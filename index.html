@@ -680,44 +680,6 @@ http.ListenAndServe(":8080", h)`
   }
 ];
 
-// Node.js adapters — the SAME Go implementation, callable from Node via wasm.
-const NODE = {
-  chalk: { pkg:"@malcolmston/chalk", loader:"loadChalk", code:
-`import { loadChalk } from '@malcolmston/chalk';
-const chalk = await loadChalk();          // loads the Go wasm
-
-chalk.red('error!');                       // ANSI string
-chalk.style('hi', ['bold'], { hex:'#ff8800' });
-chalk.figletFont('banner', 'GO');` },
-  express: { pkg:"@malcolmston/express", loader:"loadExpress", code:
-`import { loadExpress } from '@malcolmston/express';
-const x = await loadExpress();
-
-x.uuidV4();               // '2e82c0e6-…'
-x.ms('2h');               // 7200000
-x.slugify('Hello World'); // 'hello-world'
-x.isEmail('a@b.com');     // true` },
-  passport: { pkg:"@malcolmston/passport", loader:"loadPassport", code:
-`import { loadPassport } from '@malcolmston/passport';
-const p = await loadPassport();
-
-const tok = p.jwtSign({ sub: 'abc' }, 'secret');
-p.jwtVerify(tok, 'secret'); // { sub: 'abc' }
-p.totpGenerate('JBSWY3DPEHPK3PXP');` },
-  socketio: { pkg:"@malcolmston/socketio", loader:"loadSocketIO", code:
-`import { loadSocketIO } from '@malcolmston/socketio';
-const io = await loadSocketIO();
-
-io.sioEncode({ type: 2, data: ['chat','hi'] }); // '2["chat","hi"]'
-io.sioDecode('2["chat","hi"]');                 // { type:2, eventName:'chat', … }` },
-  morgan: { pkg:"@malcolmston/morgan", loader:"loadMorgan", code:
-`import { loadMorgan } from '@malcolmston/morgan';
-const m = await loadMorgan();
-
-m.format('tiny', { method:'GET', url:'/u/42', status:200, responseTime:3.5 });
-// 'GET /u/42 200 - 3.500 ms'` },
-};
-
 const FAQS = [
   ["Are these official ports of the Node.js libraries?",
    "No. They're independent re-implementations that mirror the original APIs and behaviour. They're not affiliated with or endorsed by the upstream Node.js projects. Each is MIT-licensed."],
@@ -793,7 +755,6 @@ function libView(l){
         <a class="pill b" href="${l.repo}" target="_blank" rel="noopener"><i class="fa-brands fa-github"></i>&nbsp;GitHub</a>
         <a class="pill b" href="${l.docs}" target="_blank" rel="noopener"><i class="fa-solid fa-book"></i> API docs</a>
         <span class="pill">ports <b style="color:var(--fg);margin-left:.25rem">${l.node}</b></span>
-        ${NODE[l.id] ? `<span class="pill"><i class="fa-brands fa-node-js" style="color:#8cc84b"></i>&nbsp;<b style="color:var(--fg)">${NODE[l.id].pkg}</b></span>` : ''}
       </div>
     </div>
 
@@ -803,7 +764,6 @@ function libView(l){
       <a href="#${idb}-quick">Quick start</a>
       <a href="#${idb}-cmp">Node → Go</a>
       <a href="#${idb}-more">Going further</a>
-      ${NODE[l.id] ? `<a href="#${idb}-node">Node.js</a>` : ''}
       <a href="#${idb}-feat">Features</a>
     </div>
 
@@ -821,12 +781,6 @@ function libView(l){
 
     <div class="sec-h" id="${idb}-more"><span class="bar"></span><h3 style="margin:0">Going further</h3></div>
     ${codeCard(l.integrate,'go')}
-
-    ${NODE[l.id] ? `
-    <div class="sec-h" id="${idb}-node"><span class="bar"></span><h3 style="margin:0">Run it from Node.js</h3></div>
-    <p class="muted">The same Go implementation is callable from Node via WebAssembly — no reimplementation, no Go toolchain needed to consume it.</p>
-    ${codeCard('<span class="tok-c">$</span> npm i '+NODE[l.id].pkg,'shell')}
-    ${codeCard(hi(NODE[l.id].code),'index.mjs')}` : ''}
 
     <div class="sec-h" id="${idb}-feat"><span class="bar"></span><h3 style="margin:0">Features</h3></div>
     <ul class="feat" style="--lib-accent:${l.accent}">${l.features.map(f=>`<li>${f}</li>`).join('')}</ul>
