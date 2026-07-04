@@ -1,0 +1,23 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: en-US
+early_access: false
+reviews:
+  profile: chill
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches: ["main"]
+  tools:
+    golangci-lint:
+      enabled: true
+  path_instructions:
+    - path: "**/*_test.go"
+      instructions: "Prefer table-driven, deterministic tests; no time/random flakiness."
+    - path: "**/*.go"
+      instructions: "This is a Go port of a Node.js library; keep the Node-mirroring API names (e.g. METHOD, HttpOnly, IsMongoId) intentionally."
+chat:
+  auto_reply: true
