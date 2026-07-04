@@ -163,6 +163,18 @@ header.nav{position:sticky;top:0;z-index:60;background:color-mix(in srgb,var(--b
 .tag{display:inline-flex;font-size:.74rem;font-weight:500;padding:.2rem .6rem;border-radius:999px;
   background:var(--glass-2);border:1px solid var(--edge);color:var(--fg-muted);margin:.3rem .3rem 0 0}
 
+/* live version badge (populated from the GitHub Releases API) */
+.ver{display:none;align-items:center;gap:.4rem;font-size:.72rem;font-weight:600;letter-spacing:.01em;
+  padding:.2rem .55rem;border-radius:999px;border:1px solid var(--edge);
+  background:color-mix(in srgb,#3fb950 14%,transparent);color:#3fb950;white-space:nowrap}
+.ver.show{display:inline-flex}
+.ver .dot{width:6px;height:6px;border-radius:50%;background:#3fb950;box-shadow:0 0 0 3px color-mix(in srgb,#3fb950 22%,transparent)}
+.ver .stable{opacity:.8;font-weight:500;text-transform:lowercase}
+.ver.pre{background:color-mix(in srgb,#d29922 16%,transparent);color:#d29922}
+.ver.pre .dot{background:#d29922;box-shadow:0 0 0 3px color-mix(in srgb,#d29922 22%,transparent)}
+.card .ver{position:absolute;top:1.5rem;right:1.7rem;margin:0}
+.card.lib:hover .arrow{opacity:0}
+
 /* ---------- code cards ---------- */
 .code{border:1px solid var(--edge);border-radius:var(--radius-sm);overflow:hidden;margin:.8rem 0;
   background:var(--code-bg);backdrop-filter:var(--blur);box-shadow:var(--shadow-sm),var(--hi)}
@@ -696,7 +708,7 @@ const FAQS = [
   ["Where are the full API docs?",
    "Each repository publishes a generated API reference on GitHub Pages (linked in every library tab here). The generator is a dependency-free go/doc tool committed in each repo under docs/gen."],
   ["How do I install a specific version?",
-   "Use a version or branch suffix with go get, e.g. go get github.com/malcolmston/express@latest. Once the maintainer tags releases, pin to a semver tag."]
+   "Every library publishes semver releases automatically — the live version badge on each tab (and the home cards) reads the latest tag straight from GitHub. Pin to one with a version suffix, e.g. go get github.com/malcolmston/express@v0.1.0, or track the moving stable tag with @stable. Plain @latest always resolves to the newest release."]
 ];
 
 // ---------- highlight ----------
@@ -727,9 +739,11 @@ function compareCard(inner, name, color){
 
 // ---------- render: home cards ----------
 function hx(hex,a){return hex+a;}
+function ghrepo(l){return l.repo.split('/').pop();}  // e.g. "socket.io", "express"
 function libCard(l){
   return `<div class="card lib" data-tab="${l.id}" style="--glow:${l.accent}">
     <span class="arrow">↗</span>
+    <span class="ver" data-repo="${ghrepo(l)}"></span>
     <span class="ico">${l.icon}</span>
     <h3>${l.name} <span class="tag" style="border-color:${hx(l.accent,'55')};color:${l.accent};background:${hx(l.accent,'12')}">Go</span></h3>
     <div class="mono pkg">${l.pkg}</div>
@@ -754,6 +768,7 @@ function libView(l){
       <div class="actions">
         <a class="pill b" href="${l.repo}" target="_blank" rel="noopener"><i class="fa-brands fa-github"></i>&nbsp;GitHub</a>
         <a class="pill b" href="${l.docs}" target="_blank" rel="noopener"><i class="fa-solid fa-book"></i> API docs</a>
+        <a class="ver" data-repo="${ghrepo(l)}" href="${l.repo}/releases" target="_blank" rel="noopener" style="text-decoration:none"></a>
         <span class="pill">ports <b style="color:var(--fg);margin-left:.25rem">${l.node}</b></span>
       </div>
     </div>
@@ -793,6 +808,32 @@ document.getElementById('libcards').innerHTML = LIBS.map(libCard).join('');
 document.getElementById('libviews').innerHTML = LIBS.map(libView).join('');
 document.getElementById('faqlist').innerHTML = FAQS.map(([q,a])=>
   `<details class="faq"><summary>${q}</summary><div class="body">${a}</div></details>`).join('');
+
+// ---------- live version badges from the GitHub Releases API ----------
+// Every library auto-publishes a release (see each repo's release.yml); the
+// landing page reads the latest tag at load time so versions never go stale.
+(function loadVersions(){
+  const OWNER='malcolmston';
+  const repos=[...new Set([...document.querySelectorAll('.ver[data-repo]')].map(e=>e.dataset.repo))];
+  const gh={headers:{Accept:'application/vnd.github+json'}};
+  const apply=(repo,tag,pre)=>{
+    if(!tag) return;
+    document.querySelectorAll(`.ver[data-repo="${CSS.escape(repo)}"]`).forEach(el=>{
+      el.innerHTML=`<span class="dot"></span>${tag}<span class="stable">· ${pre?'pre':'stable'}</span>`;
+      el.classList.add('show'); if(pre) el.classList.add('pre');
+      el.title=`${repo} ${tag} — ${pre?'pre-release':'stable'}`;
+    });
+  };
+  repos.forEach(repo=>{
+    fetch(`https://api.github.com/repos/${OWNER}/${repo}/releases/latest`,gh)
+      .then(r=>r.ok?r.json():Promise.reject(r.status))
+      .then(rel=>apply(repo,rel.tag_name,rel.prerelease))
+      .catch(()=>fetch(`https://api.github.com/repos/${OWNER}/${repo}/tags?per_page=1`,gh)
+        .then(r=>r.ok?r.json():Promise.reject(r.status))
+        .then(tags=>{if(tags&&tags.length) apply(repo,tags[0].name,false);})
+        .catch(()=>{}));
+  });
+})();
 
 // how-to code blocks
 document.getElementById('ht-install').innerHTML = codeCard(
