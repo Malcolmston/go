@@ -175,6 +175,29 @@ header.nav{position:sticky;top:0;z-index:60;background:color-mix(in srgb,var(--b
 .card .ver{position:absolute;top:1.5rem;right:1.7rem;margin:0}
 .card.lib:hover .arrow{opacity:0}
 
+/* ---------- releases page ---------- */
+.rel-lib{margin:0 0 2.2rem}
+.rel-head{display:flex;align-items:center;gap:.7rem;margin:0 0 .9rem}
+.rel-head .ico{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-size:1rem;
+  background:var(--glass-2);border:1px solid var(--edge);box-shadow:var(--hi)}
+.rel-head h3{font-size:1.15rem}
+.rel-head .cl{margin-left:auto;font-size:.82rem}
+.rel-item{border:1px solid var(--edge);border-radius:var(--radius-sm);background:var(--glass);
+  backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);box-shadow:var(--hi);
+  padding:.5rem .5rem .5rem 1rem;margin:.5rem 0}
+.rel-item>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:.7rem;flex-wrap:wrap}
+.rel-item>summary::-webkit-details-marker{display:none}
+.rel-item .tagn{font-family:"SF Mono",ui-monospace,monospace;font-weight:600;font-size:.9rem;color:var(--fg)}
+.rel-item .when{color:var(--fg-dim);font-size:.82rem}
+.rel-item .latest{font-size:.68rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+  padding:.12rem .45rem;border-radius:999px;background:color-mix(in srgb,#3fb950 16%,transparent);color:#3fb950}
+.rel-item .chev{margin-left:auto;color:var(--fg-dim);transition:.2s;font-size:.8rem}
+.rel-item[open] .chev{transform:rotate(90deg)}
+.rel-notes{margin:.7rem 0 .3rem;padding:.7rem .9rem;border-radius:12px;background:var(--code-bg);
+  border:1px solid var(--edge);white-space:pre-wrap;word-break:break-word;font-size:.86rem;color:var(--fg-muted);line-height:1.5}
+.rel-notes a{color:var(--link)}
+.rel-empty{color:var(--fg-dim);font-size:.86rem;padding:.4rem 0}
+
 /* ---------- code cards ---------- */
 .code{border:1px solid var(--edge);border-radius:var(--radius-sm);overflow:hidden;margin:.8rem 0;
   background:var(--code-bg);backdrop-filter:var(--blur);box-shadow:var(--shadow-sm),var(--hi)}
@@ -276,6 +299,7 @@ footer a{color:var(--fg-muted)}footer a:hover{color:var(--fg)}
       <a class="tab" data-tab="socketio" href="#socketio"><span class="dot" style="background:#d2a8ff"></span>Socket.IO</a>
       <a class="tab" data-tab="chalk" href="#chalk"><span class="dot" style="background:#ffa657"></span>chalk</a>
       <a class="tab" data-tab="morgan" href="#morgan"><span class="dot" style="background:#f778ba"></span>morgan</a>
+      <a class="tab" data-tab="releases" href="#releases">Releases</a>
       <a class="tab" data-tab="howto" href="#howto">How-to</a>
       <a class="tab" data-tab="faq" href="#faq">FAQ</a>
       <a class="tab" data-tab="ai" href="#ai">AI</a>
@@ -360,6 +384,13 @@ footer a{color:var(--fg-muted)}footer a:hover{color:var(--fg)}
 <section class="view" id="view-faq">
   <div class="sec-h"><span class="bar"></span><h2 style="margin:0">Frequently asked questions</h2></div>
   <div id="faqlist" style="margin-top:1rem"></div>
+</section>
+
+<!-- ============ RELEASES ============ -->
+<section class="view" id="view-releases">
+  <div class="sec-h"><span class="bar"></span><h2 style="margin:0">Releases &amp; changelogs</h2></div>
+  <p class="muted">Every library ships automated semver releases — the moment a <code>VERSION</code> bump lands on <code>main</code>, a tag and GitHub Release are cut and the moving <code>stable</code> tag advances. The list below is read <b>live</b> from the GitHub Releases API, newest first, so it is never out of date. Full history for each library lives in its <code>CHANGELOG.md</code>.</p>
+  <div id="rellist" class="reveal" style="margin-top:1.4rem"></div>
 </section>
 
 <!-- ============ AI ============ -->
@@ -832,6 +863,49 @@ document.getElementById('faqlist').innerHTML = FAQS.map(([q,a])=>
         .then(r=>r.ok?r.json():Promise.reject(r.status))
         .then(tags=>{if(tags&&tags.length) apply(repo,tags[0].name,false);})
         .catch(()=>{}));
+  });
+})();
+
+// ---------- releases page: full history + notes from the GitHub API ----------
+(function loadReleases(){
+  const OWNER='malcolmston';
+  const host=document.getElementById('rellist');
+  if(!host) return;
+  const repos=LIBS.map(l=>({name:l.name,icon:l.icon,accent:l.accent,repo:ghrepo(l),url:l.repo}))
+    .concat([{name:'malcolmston/go',icon:'<i class="fa-brands fa-golang"></i>',accent:'#2f9bff',repo:'go',url:'https://github.com/malcolmston/go'}]);
+  const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const linkify=s=>esc(s).replace(/https?:\/\/[^\s)]+/g,u=>`<a href="${u}" target="_blank" rel="noopener">${u}</a>`);
+  const fmtDate=iso=>{const d=new Date(iso);return isNaN(d)?iso:d.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'});};
+  host.innerHTML=repos.map(r=>`<div class="rel-lib" data-repo="${r.repo}">
+      <div class="rel-head">
+        <span class="ico" style="color:${r.accent}">${r.icon}</span>
+        <h3>${r.name}</h3>
+        <a class="cl pill b" href="${r.url}/blob/main/CHANGELOG.md" target="_blank" rel="noopener"><i class="fa-solid fa-file-lines"></i>&nbsp;Changelog</a>
+      </div>
+      <div class="rel-items"><div class="rel-empty">Loading releases…</div></div>
+    </div>`).join('');
+  const gh={headers:{Accept:'application/vnd.github+json'}};
+  repos.forEach(r=>{
+    const box=host.querySelector(`.rel-lib[data-repo="${CSS.escape(r.repo)}"] .rel-items`);
+    fetch(`https://api.github.com/repos/${OWNER}/${r.repo}/releases?per_page=8`,gh)
+      .then(x=>x.ok?x.json():Promise.reject(x.status))
+      .then(rels=>{
+        if(!rels.length){box.innerHTML='<div class="rel-empty">No releases yet.</div>';return;}
+        box.innerHTML=rels.map((rel,i)=>{
+          const notes=(rel.body||'').trim();
+          return `<details class="rel-item"${i===0?' open':''}>
+            <summary>
+              <span class="tagn">${esc(rel.tag_name)}</span>
+              ${i===0?'<span class="latest">latest</span>':''}
+              <span class="when">${fmtDate(rel.published_at)}</span>
+              <a class="when" href="${rel.html_url}" target="_blank" rel="noopener" title="Open on GitHub" style="margin-left:.2rem"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+              <span class="chev">▸</span>
+            </summary>
+            ${notes?`<div class="rel-notes">${linkify(notes)}</div>`:'<div class="rel-empty">No release notes.</div>'}
+          </details>`;
+        }).join('');
+      })
+      .catch(()=>{box.innerHTML=`<div class="rel-empty">Couldn't load releases right now — see the <a href="${r.url}/releases" target="_blank" rel="noopener">releases page</a>.</div>`;});
   });
 })();
 
