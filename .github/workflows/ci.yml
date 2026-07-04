@@ -1,0 +1,61 @@
+name: CI
+
+# Aggregate pipeline for the whole library family. It checks out every library
+# as a submodule, builds the cross-module workspace example (proving the
+# libraries compose), and runs each library's own test suite from one place.
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  workspace:
+    name: workspace build (cross-module)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+
+      - name: Build the integration example
+        run: go build ./examples/integration
+
+      - name: Vet the integration example
+        run: go vet ./examples/integration
+
+  libraries:
+    name: test ${{ matrix.lib }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        lib: [express, passport, socket.io, chalk, morgan]
+    steps:
+      - name: Checkout with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+
+      - name: Build ${{ matrix.lib }}
+        working-directory: ${{ matrix.lib }}
+        run: go build ./...
+
+      - name: Test ${{ matrix.lib }}
+        working-directory: ${{ matrix.lib }}
+        run: go test ./...
