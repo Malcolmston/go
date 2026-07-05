@@ -1,0 +1,30 @@
+name: Workspace
+
+# Proves the libraries compose: builds and vets the cross-module go.work
+# integration example (examples/integration) with every library submodule.
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  workspace:
+    name: workspace build (cross-module)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+          cache: true
+      - name: Build the integration example
+        run: go build ./examples/integration
+      - name: Vet the integration example
+        run: go vet ./examples/integration

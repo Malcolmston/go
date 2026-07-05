@@ -1,0 +1,40 @@
+name: Library tests
+
+# Runs each bundled outside library's own Go test suite from within the
+# aggregator, one job per submodule. Pulls each submodule's latest main so this
+# also catches upstream drift, not just the pinned commit.
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: ${{ matrix.lib }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        lib: [express, passport, socket.io, chalk, morgan]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+          cache: true
+      - name: Pull latest ${{ matrix.lib }}
+        run: git submodule update --remote --checkout -- "${{ matrix.lib }}"
+      - name: Build + test ${{ matrix.lib }}
+        working-directory: ${{ matrix.lib }}
+        run: |
+          go build ./...
+          go test -race ./...
