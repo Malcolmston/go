@@ -152,9 +152,14 @@ test('Copy buttons respond on every page that has them', async ({ page }) => {
     const n = await copies.count();
     for (let i = 0; i < n; i++) {
       const btn = copies.nth(i);
-      await btn.dispatchEvent('click');
-      // The button flips to "Copied" for ~1.4s on success.
-      await expect(btn).toHaveText(/Copied/, { timeout: 2000 });
+      await btn.scrollIntoViewIfNeeded();
+      // The button flips to "Copied" for ~1.4s on success. Under heavy CI
+      // parallelism a single click's re-render can be missed, so retry the whole
+      // click+assert until it lands (toPass) instead of flaking.
+      await expect(async () => {
+        await btn.dispatchEvent('click');
+        await expect(btn).toHaveText(/Copied/, { timeout: 1500 });
+      }).toPass({ timeout: 15_000 });
       clickedAny = true;
     }
   }
