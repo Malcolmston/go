@@ -2,6 +2,7 @@
 
 [![Library Tests](https://github.com/Malcolmston/go/actions/workflows/library-tests.yml/badge.svg)](https://github.com/Malcolmston/go/actions/workflows/library-tests.yml)
 [![Go Workspace](https://github.com/Malcolmston/go/actions/workflows/go-workspace.yml/badge.svg)](https://github.com/Malcolmston/go/actions/workflows/go-workspace.yml)
+[![Cross-compile](https://github.com/Malcolmston/go/actions/workflows/cross-compile.yml/badge.svg)](https://github.com/Malcolmston/go/actions/workflows/cross-compile.yml)
 [![Web Unit](https://github.com/Malcolmston/go/actions/workflows/web-unit.yml/badge.svg)](https://github.com/Malcolmston/go/actions/workflows/web-unit.yml)
 [![Web E2E](https://github.com/Malcolmston/go/actions/workflows/web-e2e.yml/badge.svg)](https://github.com/Malcolmston/go/actions/workflows/web-e2e.yml)
 [![Pages](https://github.com/Malcolmston/go/actions/workflows/pages.yml/badge.svg)](https://github.com/Malcolmston/go/actions/workflows/pages.yml)
@@ -80,6 +81,8 @@ straight at the suite that broke:
   `go build ./... && go test -race ./...` per library.
 - **[Go Workspace](.github/workflows/go-workspace.yml)** — builds and vets the
   cross-module `examples/integration` server through the shared `go.work`.
+- **[Cross-compile](.github/workflows/cross-compile.yml)** — builds the
+  integration example across a GOOS/GOARCH matrix.
 - **[Web Unit](.github/workflows/web-unit.yml)** — Vitest component tests plus a
   TypeScript type-check for the unified site.
 - **[Web E2E](.github/workflows/web-e2e.yml)** — the Playwright device sweep
