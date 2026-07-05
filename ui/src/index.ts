@@ -21,3 +21,23 @@ export { ThemeToggle } from './components/ThemeToggle';
 export { useHashTab } from './hooks/useHashTab';
 export { applyStoredTheme } from './theme';
 export { esc, hi, hx, ghrepo } from './highlight';
+
+// --- API-documentation renderer (docs) ---
+export { DocsApp } from './components/docs/DocsApp';
+export type { DocsAppProps } from './components/docs/DocsApp';
+export { PackageNav } from './components/docs/PackageNav';
+export type { PackageNavProps } from './components/docs/PackageNav';
+export { PackageView } from './components/docs/PackageView';
+export type { PackageViewProps } from './components/docs/PackageView';
+export { SymbolCard } from './components/docs/SymbolCard';
+export type { SymbolCardProps } from './components/docs/SymbolCard';
+export { DocText, parseDoc } from './components/docs/DocText';
+export type { DocTextProps } from './components/docs/DocText';
+export type {
+  DocIndex,
+  DocPackage,
+  DocType,
+  DocFunc,
+  DocValue,
+  DocExample,
+} from './docs/types';

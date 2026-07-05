@@ -1,0 +1,120 @@
+{
+  "module": "github.com/malcolmston/express",
+  "generatedAt": "2026-07-04T00:00:00Z",
+  "packages": [
+    {
+      "importPath": "github.com/malcolmston/express",
+      "name": "express",
+      "synopsis": "Package express is a fast, minimalist web framework for Go.",
+      "doc": "Package express is a fast, minimalist web framework for Go.\n\nIt provides routing, middleware, and a familiar handler API modelled on the\nNode.js Express framework.\n\nBasic usage\n\nCreate a router, register handlers, and listen:\n\n\tr := express.New()\n\tr.Get(\"/\", func(c *express.Context) { c.Send(\"hello\") })\n\tr.Listen(\":3000\")\n\nSee https://expressjs.com for the original API this mirrors.",
+      "isCommand": false,
+      "consts": [
+        {
+          "names": ["Version"],
+          "signature": "const Version = \"1.4.0\"",
+          "doc": "Version is the semantic version of the express module."
+        }
+      ],
+      "vars": [
+        {
+          "names": ["ErrNotFound"],
+          "signature": "var ErrNotFound = errors.New(\"express: route not found\")",
+          "doc": "ErrNotFound is returned when no route matches the request."
+        }
+      ],
+      "types": [
+        {
+          "name": "Router",
+          "signature": "type Router struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Router dispatches incoming requests to registered handlers. A Router is\nsafe for concurrent use once handlers are registered.",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "New",
+              "signature": "func New() *Router",
+              "doc": "New allocates and returns an empty Router."
+            }
+          ],
+          "methods": [
+            {
+              "name": "Get",
+              "recv": "*Router",
+              "signature": "func (r *Router) Get(path string, h HandlerFunc)",
+              "doc": "Get registers h to handle GET requests for the given path pattern."
+            },
+            {
+              "name": "Listen",
+              "recv": "*Router",
+              "signature": "func (r *Router) Listen(addr string) error",
+              "doc": "Listen binds addr and serves requests until the process exits.\nIt blocks and only returns on a fatal error."
+            }
+          ],
+          "examples": [
+            {
+              "name": "",
+              "code": "r := express.New()\nr.Get(\"/\", func(c *express.Context) { c.Send(\"hi\") })\nr.Listen(\":3000\")",
+              "output": "listening on :3000"
+            }
+          ]
+        },
+        {
+          "name": "HandlerFunc",
+          "signature": "type HandlerFunc func(c *Context)",
+          "doc": "HandlerFunc is the signature every route handler must satisfy.",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        }
+      ],
+      "funcs": [
+        {
+          "name": "Static",
+          "signature": "func Static(dir string) HandlerFunc",
+          "doc": "Static returns a handler that serves files from dir on disk."
+        }
+      ]
+    },
+    {
+      "importPath": "github.com/malcolmston/express/middleware",
+      "name": "middleware",
+      "synopsis": "Package middleware provides reusable request middleware.",
+      "doc": "Package middleware provides reusable request middleware for the express\nrouter, such as logging and gzip compression.",
+      "isCommand": false,
+      "consts": [
+        {
+          "names": ["LevelDefault", "LevelBestSpeed", "LevelBestCompression"],
+          "signature": "const (\n\tLevelDefault         = 0\n\tLevelBestSpeed       = 1\n\tLevelBestCompression = 9\n)",
+          "doc": "Compression levels accepted by Gzip."
+        }
+      ],
+      "vars": [],
+      "types": [
+        {
+          "name": "Logger",
+          "signature": "type Logger struct {\n\tOut io.Writer\n}",
+          "doc": "Logger writes a one-line summary of every request to Out.",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Handler",
+              "recv": "*Logger",
+              "signature": "func (l *Logger) Handler() express.HandlerFunc",
+              "doc": "Handler returns the middleware handler for this Logger."
+            }
+          ]
+        }
+      ],
+      "funcs": [
+        {
+          "name": "Gzip",
+          "signature": "func Gzip(level int) express.HandlerFunc",
+          "doc": "Gzip returns middleware that compresses responses at the given level.\nUse one of the Level constants."
+        }
+      ]
+    }
+  ]
+}
