@@ -1,9 +1,15 @@
 # malcolmston/go
 
-[![CI](https://github.com/Malcolmston/go/actions/workflows/ci.yml/badge.svg)](https://github.com/Malcolmston/go/actions/workflows/ci.yml)
+[![Library Tests](https://github.com/Malcolmston/go/actions/workflows/library-tests.yml/badge.svg)](https://github.com/Malcolmston/go/actions/workflows/library-tests.yml)
+[![Go Workspace](https://github.com/Malcolmston/go/actions/workflows/go-workspace.yml/badge.svg)](https://github.com/Malcolmston/go/actions/workflows/go-workspace.yml)
+[![Web Unit](https://github.com/Malcolmston/go/actions/workflows/web-unit.yml/badge.svg)](https://github.com/Malcolmston/go/actions/workflows/web-unit.yml)
+[![Web E2E](https://github.com/Malcolmston/go/actions/workflows/web-e2e.yml/badge.svg)](https://github.com/Malcolmston/go/actions/workflows/web-e2e.yml)
 [![Pages](https://github.com/Malcolmston/go/actions/workflows/pages.yml/badge.svg)](https://github.com/Malcolmston/go/actions/workflows/pages.yml)
 [![Release](https://img.shields.io/github/v/release/Malcolmston/go?sort=semver)](https://github.com/Malcolmston/go/releases)
+[![Last Commit](https://img.shields.io/github/last-commit/Malcolmston/go)](https://github.com/Malcolmston/go/commits)
+[![Code Size](https://img.shields.io/github/languages/code-size/Malcolmston/go)](https://github.com/Malcolmston/go)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 [![Docs](https://img.shields.io/badge/docs-pages-2f9bff)](https://malcolmston.github.io/go/)
 
 **The Node.js ecosystem, reimagined in Go.**
@@ -66,9 +72,18 @@ through the standard `http.Handler` interface.
 
 ## Pipelines
 
-- **[CI](.github/workflows/ci.yml)** — checks out every submodule, builds the
-  cross-module workspace example, and runs each library's own test suite from
-  one place.
+CI is split into focused, independently-badged workflows so a failure points
+straight at the suite that broke:
+
+- **[Library Tests](.github/workflows/library-tests.yml)** — a matrix that
+  checks out each submodule at its latest commit and runs
+  `go build ./... && go test -race ./...` per library.
+- **[Go Workspace](.github/workflows/go-workspace.yml)** — builds and vets the
+  cross-module `examples/integration` server through the shared `go.work`.
+- **[Web Unit](.github/workflows/web-unit.yml)** — Vitest component tests plus a
+  TypeScript type-check for the unified site.
+- **[Web E2E](.github/workflows/web-e2e.yml)** — the Playwright device sweep
+  against a production build of the site.
 - **[Pages](.github/workflows/pages.yml)** — publishes the unified site.
 
 ## License
