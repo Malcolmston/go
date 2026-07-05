@@ -9,7 +9,15 @@ export function useHashTab(ids: string[], fallback: string): [string, (id: strin
   };
   const [active, setActive] = useState<string>(read);
   useEffect(() => {
-    const onHash = () => setActive(read());
+    const onHash = () => {
+      const h = (typeof location !== 'undefined' ? location.hash : '').replace(/^#/, '');
+      // Only switch tabs for a recognised tab id. Any other hash is an in-page
+      // anchor (e.g. "express-install") or a nested route owned by another
+      // component (e.g. the docs "pkg/<path>" routes) — leave the active tab
+      // unchanged so the browser can scroll to the anchor without the whole
+      // view jumping back to the fallback tab.
+      if (ids.includes(h)) setActive(h);
+    };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
     // eslint-disable-next-line react-hooks/exhaustive-deps
