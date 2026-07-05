@@ -2,8 +2,11 @@ name: Supply chain
 
 # Trivy filesystem scan for known vulnerabilities, embedded secrets, and
 # misconfiguration across the repository (a lightweight "malware"/supply-chain
-# sweep). Report-only so it never blocks; findings surface in the run log and
-# job summary. Runs on push to main, weekly, and on demand.
+# sweep). Report-only so it never blocks; findings surface in the run log.
+# Runs on push to main, weekly, and on demand.
+#
+# Trivy is installed from a pinned GitHub release rather than a marketplace
+# action, avoiding third-party action supply-chain risk.
 
 on:
   push:
@@ -15,16 +18,19 @@ on:
 permissions:
   contents: read
 
+env:
+  TRIVY_VERSION: "0.58.1"
+
 jobs:
   trivy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Trivy filesystem scan
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          scan-type: fs
-          scanners: vuln,secret,misconfig
-          severity: HIGH,CRITICAL
-          exit-code: "0"
-          format: table
+      - name: Install Trivy (pinned release)
+        run: |
+          curl -sfL "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz" -o /tmp/trivy.tgz
+          tar -xzf /tmp/trivy.tgz -C /tmp trivy
+          sudo mv /tmp/trivy /usr/local/bin/trivy
+          trivy --version
+      - name: Filesystem scan (report only)
+        run: trivy fs --scanners vuln,secret,misconfig --severity HIGH,CRITICAL --exit-code 0 --no-progress .
