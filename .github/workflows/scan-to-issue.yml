@@ -1,0 +1,62 @@
+name: Scan to issue
+
+# Weekly govulncheck over the cross-module workspace example. If it reports
+# vulnerabilities, open (or update) a tracking issue; close it when clean again.
+
+on:
+  schedule:
+    - cron: "0 8 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  govulncheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+          cache: false
+      - name: Run govulncheck (workspace)
+        id: scan
+        run: |
+          go work init ./express ./passport ./socket.io ./chalk ./morgan ./examples/integration
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          set +e
+          "$(go env GOPATH)/bin/govulncheck" ./examples/integration > govuln.txt 2>&1
+          echo "code=$?" >> "$GITHUB_OUTPUT"
+      - uses: actions/github-script@v7
+        env:
+          SCAN_CODE: ${{ steps.scan.outputs.code }}
+        with:
+          script: |
+            const fs = require('fs');
+            const { owner, repo } = context.repo;
+            const clean = process.env.SCAN_CODE === '0';
+            const label = 'automated-scan';
+            const title = 'Security scan: govulncheck findings';
+            try { await github.rest.issues.getLabel({ owner, repo, name: label }); }
+            catch { await github.rest.issues.createLabel({ owner, repo, name: label, color: 'b60205', description: 'Opened automatically by the scheduled security scan' }); }
+            const open = (await github.rest.issues.listForRepo({ owner, repo, state: 'open', labels: label })).data
+              .filter(i => i.title === title);
+            if (clean) {
+              for (const i of open) {
+                await github.rest.issues.createComment({ owner, repo, issue_number: i.number, body: '✅ govulncheck is clean again — closing.' });
+                await github.rest.issues.update({ owner, repo, issue_number: i.number, state: 'closed' });
+              }
+              return;
+            }
+            let out = fs.readFileSync('govuln.txt', 'utf8');
+            if (out.length > 55000) out = out.slice(0, 55000) + '\n... (truncated)';
+            const body = `govulncheck reported vulnerabilities on the scheduled workspace scan.\n\n\`\`\`\n${out}\n\`\`\`\n\n_Filed automatically by Scan to issue (run ${context.runId})._`;
+            if (open.length) {
+              await github.rest.issues.update({ owner, repo, issue_number: open[0].number, body });
+            } else {
+              await github.rest.issues.create({ owner, repo, title, labels: [label], body });
+            }

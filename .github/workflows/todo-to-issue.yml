@@ -1,0 +1,21 @@
+name: TODO to issue
+
+# Turns new TODO / FIXME / BUG comments introduced on main into tracked GitHub
+# issues, and closes them when the comment is removed. Operates on the push diff.
+
+on:
+  push:
+    branches: ["main"]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  todos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: alstr/todo-to-issue-action@v5
+        with:
+          IDENTIFIERS: '[{"name": "TODO", "labels": ["todo"]}, {"name": "FIXME", "labels": ["fixme"]}, {"name": "BUG", "labels": ["bug"]}]'
