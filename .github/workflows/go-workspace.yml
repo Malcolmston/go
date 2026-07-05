@@ -23,7 +23,12 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: "1.24"
-          cache: true
+          cache: false
+      # go.work is gitignored (a local-dev convention), so recreate it here.
+      # The example requires the libraries at v0.0.0, which only resolve through
+      # the workspace's `use` directives pointing at the submodule checkouts.
+      - name: Set up the Go workspace
+        run: go work init ./express ./passport ./socket.io ./chalk ./morgan ./examples/integration
       - name: Build the integration example
         run: go build ./examples/integration
       - name: Vet the integration example
