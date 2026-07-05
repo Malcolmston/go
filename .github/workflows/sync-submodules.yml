@@ -37,6 +37,11 @@ jobs:
         with:
           go-version: "1.24"
 
+      # go.work is gitignored, so recreate it before building — the example
+      # requires the libraries at v0.0.0, which only resolve via the workspace.
+      - name: Set up the Go workspace
+        run: go work init ./express ./passport ./socket.io ./chalk ./morgan ./examples/integration
+
       - name: Validate the workspace still builds against latest
         run: go build ./examples/integration
 
