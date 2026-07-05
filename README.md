@@ -1,5 +1,11 @@
 # malcolmston/go
 
+[![CI](https://github.com/Malcolmston/go/actions/workflows/ci.yml/badge.svg)](https://github.com/Malcolmston/go/actions/workflows/ci.yml)
+[![Pages](https://github.com/Malcolmston/go/actions/workflows/pages.yml/badge.svg)](https://github.com/Malcolmston/go/actions/workflows/pages.yml)
+[![Release](https://img.shields.io/github/v/release/Malcolmston/go?sort=semver)](https://github.com/Malcolmston/go/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Docs](https://img.shields.io/badge/docs-pages-2f9bff)](https://malcolmston.github.io/go/)
+
 **The Node.js ecosystem, reimagined in Go.**
 
 A unified home for a family of Go libraries that recreate the most-loved
