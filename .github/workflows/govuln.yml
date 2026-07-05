@@ -1,0 +1,31 @@
+name: Govulncheck
+
+# Scans the cross-module integration example (and everything it imports across
+# the family) for known vulnerabilities. Scheduled so newly disclosed CVEs are
+# caught even when nothing changed; not a PR gate.
+
+on:
+  schedule:
+    - cron: "0 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  govulncheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+          cache: false
+      - name: Set up the Go workspace
+        run: go work init ./express ./passport ./socket.io ./chalk ./morgan ./examples/integration
+      - name: Install govulncheck
+        run: go install golang.org/x/vuln/cmd/govulncheck@latest
+      - name: Scan the integration example
+        run: govulncheck ./examples/integration
