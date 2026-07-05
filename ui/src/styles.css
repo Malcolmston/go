@@ -105,9 +105,17 @@ header.nav{position:sticky;top:0;z-index:60;background:color-mix(in srgb,var(--b
 
 /* ---------- views ---------- */
 .view{display:none;padding:3.5rem 0 7rem}
-.view.active{display:block;animation:fade .5s cubic-bezier(.2,.7,.2,1)}
+/* Pages "emerge" from the throat of the wormhole — a quick zoom + blur-in. */
+.view.active{display:block;animation:warp-in .55s cubic-bezier(.2,.75,.2,1)}
 @keyframes fade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-@media(prefers-reduced-motion:reduce){.view.active{animation:none}}
+@keyframes warp-in{from{opacity:0;transform:scale(1.06) translateY(8px);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
+@media(prefers-reduced-motion:reduce){.view.active{animation:fade .3s}}
+
+/* ---------- wormhole page transition (canvas overlay) ---------- */
+.wormhole{position:fixed;inset:0;z-index:9999;pointer-events:none;opacity:0;
+  transition:opacity .16s ease;mix-blend-mode:screen}
+.wormhole.on{opacity:1}
+@media(prefers-reduced-motion:reduce){.wormhole{mix-blend-mode:normal;background:rgba(255,255,255,.06)}}
 
 /* ---------- hero ---------- */
 .hero{position:relative;padding:6.5rem 0 4.5rem;text-align:center}

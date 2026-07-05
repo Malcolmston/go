@@ -1,6 +1,8 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import type { ReactNode } from 'react';
 import { ThemeToggle } from './ThemeToggle';
+import { Wormhole } from './Wormhole';
+import type { WormholeHandle } from './Wormhole';
 
 export interface Tab {
   id: string;
@@ -30,7 +32,15 @@ export interface LayoutProps {
 // { title, sub, initials, href }. `github` is the primary repo URL.
 export function Layout({ brand, tabs, active, onNav, github, footer, children }: LayoutProps) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const nav = useCallback((id: string) => { setMenuOpen(false); onNav(id); }, [onNav]);
+  const wormhole = useRef<WormholeHandle>(null);
+  // Navigating to a different page warps through the wormhole; the actual route
+  // swap happens at the throat of the tunnel (mid-animation). Re-selecting the
+  // current tab, or reduced-motion, routes immediately (handled in Wormhole).
+  const nav = useCallback((id: string) => {
+    setMenuOpen(false);
+    if (id !== active && wormhole.current) wormhole.current.warp(() => onNav(id));
+    else onNav(id);
+  }, [onNav, active]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenuOpen(false); };
@@ -69,6 +79,7 @@ export function Layout({ brand, tabs, active, onNav, github, footer, children }:
       </header>
       <main className="wrap">{children}</main>
       {footer && <footer className="wrap" style={{ padding: '2rem', textAlign: 'center', color: 'var(--fg-dim)' }}>{footer}</footer>}
+      <Wormhole ref={wormhole} />
     </>
   );
 }

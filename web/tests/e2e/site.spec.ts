@@ -22,12 +22,14 @@ const IGNORED_HOSTS = ['kit.fontawesome.com', 'api.github.com'];
 // Collected uncaught page errors, checked after every test.
 let pageErrors: string[] = [];
 
-test.beforeEach(({ page }) => {
+test.beforeEach(async ({ page }) => {
   pageErrors = [];
   page.on('pageerror', (err) => {
     const msg = `${err.name}: ${err.message}\n${err.stack ?? ''}`;
     if (!IGNORED_HOSTS.some((h) => msg.includes(h))) pageErrors.push(msg);
   });
+  // Reduced motion so the wormhole page transition resolves instantly.
+  await page.emulateMedia({ reducedMotion: 'reduce' });
 });
 
 test.afterEach(() => {

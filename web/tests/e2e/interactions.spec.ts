@@ -12,12 +12,15 @@ let pageErrors: string[] = [];
 
 test.use({ permissions: ['clipboard-read', 'clipboard-write'] });
 
-test.beforeEach(({ page }) => {
+test.beforeEach(async ({ page }) => {
   pageErrors = [];
   page.on('pageerror', (err) => {
     const msg = `${err.name}: ${err.message}\n${err.stack ?? ''}`;
     if (!IGNORED_HOSTS.some((h) => msg.includes(h))) pageErrors.push(msg);
   });
+  // Reduced motion by default so the wormhole page transition resolves
+  // instantly and deterministically; the wormhole test opts back into motion.
+  await page.emulateMedia({ reducedMotion: 'reduce' });
 });
 
 test.afterEach(() => {
@@ -233,4 +236,30 @@ test('API-docs navigation: filter, open a package, and jump to a symbol', async 
     expect(href, 'symbol anchor should be a hash link').toMatch(/^#/);
     await expect(page).toHaveURL(new RegExp(`${href!.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`));
   }
+});
+
+// The rest of the suite runs with reduced motion (see playwright.config) so the
+// wormhole resolves instantly; this block opts back into motion to prove the
+// transition itself works end to end.
+test.describe('wormhole page transition', () => {
+  test('navigating warps through the wormhole canvas, then the target view arrives', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await page.goto('');
+    const hrefs = await tabHrefs(page);
+    const current = (await page.locator('.view.active').getAttribute('id'))?.replace('view-', '');
+    const target = hrefs.map((h) => h.slice(1)).find((id) => id !== current);
+    test.skip(!target, 'need at least two tabs to transition between');
+
+    // Trigger the nav (dispatch is layout-robust across the device matrix).
+    await page.locator(`nav.tabs a.tab[href="#${target}"]`).dispatchEvent('click');
+
+    // The wormhole canvas lights up during the warp...
+    await expect(page.locator('canvas.wormhole')).toHaveClass(/on/, { timeout: 1500 });
+    // ...the target page arrives (swapped at the throat of the tunnel)...
+    await expect(page.locator('.view.active')).toHaveAttribute('id', `view-${target}`, { timeout: 3000 });
+    await expect(page).toHaveURL(new RegExp(`#${target}$`));
+    // ...and the overlay clears once the animation completes.
+    await expect(page.locator('canvas.wormhole')).not.toHaveClass(/on/, { timeout: 3000 });
+    expect(pageErrors, 'wormhole must not throw').toEqual([]);
+  });
 });

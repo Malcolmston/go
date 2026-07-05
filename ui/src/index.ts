@@ -18,6 +18,8 @@ export type { LibReleasesProps } from './components/LibReleases';
 export { Layout } from './components/Layout';
 export type { LayoutProps, Tab, Brand } from './components/Layout';
 export { ThemeToggle } from './components/ThemeToggle';
+export { Wormhole } from './components/Wormhole';
+export type { WormholeHandle } from './components/Wormhole';
 export { useHashTab } from './hooks/useHashTab';
 export { applyStoredTheme } from './theme';
 export { esc, hi, hx, ghrepo } from './highlight';
