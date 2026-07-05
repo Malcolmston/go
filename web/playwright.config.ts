@@ -24,9 +24,9 @@ const BASE_URL = 'http://localhost:4173/go/';
 export default defineConfig({
   testDir: './tests/e2e',
   fullyParallel: true,
-  workers: 12,
+  workers: 24,
   // Generous per-test timeout: the link/nav sweeps navigate every page, and the
-  // 200+ project matrix shares a single preview server under 12 workers.
+  // 200+ project matrix shares a single preview server under 24 workers.
   timeout: 60_000,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
