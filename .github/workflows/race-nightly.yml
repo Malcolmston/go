@@ -1,0 +1,30 @@
+name: Race (nightly)
+
+# Nightly re-vet and build of the cross-module workspace. A drift sentinel for
+# the aggregator: catches a submodule bump that breaks the integration example.
+
+on:
+  schedule:
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  workspace:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+          cache: false
+      - name: Set up the Go workspace
+        run: go work init ./express ./passport ./socket.io ./chalk ./morgan ./examples/integration
+      - name: Build and vet the integration example
+        run: |
+          go build ./examples/integration
+          go vet ./examples/integration

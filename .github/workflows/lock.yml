@@ -1,0 +1,27 @@
+name: Lock threads
+
+# Locks issues and pull requests after a long period of inactivity so stale
+# threads don't accrue drive-by comments. Scheduled only.
+
+on:
+  schedule:
+    - cron: "30 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: lock-threads
+  cancel-in-progress: false
+
+jobs:
+  lock:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: dessant/lock-threads@v5
+        with:
+          issue-inactive-days: "180"
+          pr-inactive-days: "180"
+          process-only: "issues, prs"

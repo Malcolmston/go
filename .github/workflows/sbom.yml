@@ -1,0 +1,28 @@
+name: SBOM
+
+# Generates a CycloneDX software bill of materials for the aggregator and
+# uploads it as a build artifact. Runs on release-relevant events; not a PR gate.
+
+on:
+  push:
+    branches: ["main"]
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sbom:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          format: cyclonedx-json
+          output-file: sbom.cyclonedx.json
+          artifact-name: sbom.cyclonedx.json
