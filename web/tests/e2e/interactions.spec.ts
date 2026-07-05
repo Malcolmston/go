@@ -97,6 +97,19 @@ test('every nav tab is clickable and activates its view (menu opens on mobile)',
   }
 });
 
+test('brand logo returns to the first tab', async ({ page }) => {
+  await page.goto('');
+  const hrefs = await tabHrefs(page);
+  const firstId = hrefs[0].slice(1);
+  const other = hrefs.map((h) => h.slice(1)).find((id) => id !== firstId);
+  test.skip(!other, 'need at least two tabs');
+  // Go somewhere else, then click the brand — it must route to the first tab.
+  await page.locator(`nav.tabs a.tab[href="#${other}"]`).dispatchEvent('click');
+  await expect(page.locator('.view.active')).toHaveAttribute('id', `view-${other}`);
+  await page.locator('a.brand').dispatchEvent('click');
+  await expect(page.locator('.view.active')).toHaveAttribute('id', `view-${firstId}`);
+});
+
 test('mobile header controls do not overlap (hamburger is tappable)', async ({ page }) => {
   await page.goto('');
   const menuBtn = page.locator('.menu-btn');
