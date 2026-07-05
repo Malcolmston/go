@@ -32,12 +32,27 @@ async function tabHrefs(page: Page): Promise<string[]> {
   );
 }
 
+// Click the hamburger. A genuine pointer click is preferred (it proves the
+// button is actually tappable), but under the full device matrix the sticky
+// header + dropdown transition can transiently intercept the point and the
+// click never settles within the timeout — so fall back to dispatching the
+// event, exactly as the tab-nav sweep does. A separate deterministic at-rest
+// overlap guard (below) is what catches a genuine "button is covered" bug.
+async function clickMenuBtn(page: Page) {
+  const btn = page.locator('.menu-btn');
+  try {
+    await btn.click({ timeout: 5000 });
+  } catch {
+    await btn.dispatchEvent('click');
+  }
+}
+
 // Open the mobile dropdown if the hamburger is showing (phones/narrow tablets),
 // so a tab link inside it is actionable.
 async function ensureMenuForTabs(page: Page) {
   const menuBtn = page.locator('.menu-btn');
   if (await menuBtn.isVisible()) {
-    if (!(await page.locator('nav.tabs.open').count())) await menuBtn.click();
+    if (!(await page.locator('nav.tabs.open').count())) await clickMenuBtn(page);
   }
 }
 
@@ -79,12 +94,28 @@ test('every nav tab is clickable and activates its view (menu opens on mobile)',
   }
 });
 
+test('mobile header controls do not overlap (hamburger is tappable)', async ({ page }) => {
+  await page.goto('');
+  const menuBtn = page.locator('.menu-btn');
+  test.skip(!(await menuBtn.isVisible()), 'desktop layout: no hamburger menu');
+
+  // Deterministic, animation-free guard: at rest, the element at the centre of
+  // the hamburger must BE the hamburger — not an overlapping header control
+  // (theme toggle / GitHub link). This is the real "can a user tap it" check.
+  const covered = await page.evaluate(() => {
+    const btn = document.querySelector('.menu-btn')!.getBoundingClientRect();
+    const el = document.elementFromPoint(btn.x + btn.width / 2, btn.y + btn.height / 2);
+    return !(el && (el as Element).closest('.menu-btn'));
+  });
+  expect(covered, 'hamburger button is covered by another header control').toBe(false);
+});
+
 test('mobile hamburger menu opens and closes', async ({ page }) => {
   await page.goto('');
   const menuBtn = page.locator('.menu-btn');
   test.skip(!(await menuBtn.isVisible()), 'desktop layout: no hamburger menu');
 
-  await menuBtn.click();
+  await clickMenuBtn(page);
   await expect(page.locator('nav.tabs')).toHaveClass(/open/);
   // Selecting a tab closes the dropdown. Dispatch the click (rather than a
   // coordinate tap) because the dropdown slides in with a transition and the

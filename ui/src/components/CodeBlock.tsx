@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { copyText } from '../clipboard';
 
 export interface CodeBlockProps {
   html?: string;
@@ -14,10 +15,11 @@ export function CodeBlock({ html, text, lang = 'go' }: CodeBlockProps) {
   const copy = () => {
     const el = codeRef.current;
     if (!el) return;
-    navigator.clipboard?.writeText(el.innerText).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1400);
-    });
+    copyText(el.innerText);
+    // Optimistic feedback: show "Copied" regardless of whether the async
+    // Clipboard API resolves (it is focus/permission-gated in some browsers).
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1400);
   };
   return (
     <div className="code">

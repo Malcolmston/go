@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { copyText } from '../clipboard';
 
 export interface CompareCardProps {
   html: string;
@@ -14,10 +15,10 @@ export function CompareCard({ html, name, color }: CompareCardProps) {
   const copy = () => {
     const el = codeRef.current;
     if (!el) return;
-    navigator.clipboard?.writeText(el.innerText).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1400);
-    });
+    copyText(el.innerText);
+    // Optimistic feedback (see clipboard.ts — the async API can silently fail).
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1400);
   };
   return (
     <div className="code">
