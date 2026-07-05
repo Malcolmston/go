@@ -48,6 +48,29 @@ export function Layout({ brand, tabs, active, onNav, github, footer, children }:
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
+  // Global interceptor: ANY in-page link to a tab (nav tabs, hero CTAs, footer
+  // links, cards…) routes through the wormhole instead of a bare hash jump.
+  // Only page-changing links warp — in-page anchors and external/new-tab links
+  // fall through to the browser untouched.
+  useEffect(() => {
+    const tabIds = new Set(tabs.map((t) => t.id));
+    const onClick = (e: MouseEvent) => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const a = (e.target as HTMLElement | null)?.closest?.('a');
+      if (!a) return;
+      if (a.target === '_blank' || a.hasAttribute('download')) return;
+      const href = a.getAttribute('href') || '';
+      if (!href.startsWith('#') || href.length < 2) return;
+      const id = href.slice(1);
+      if (!tabIds.has(id)) return;      // in-page anchor (not a tab) → leave alone
+      e.preventDefault();
+      if (id === active) return;         // already here → nothing to do
+      nav(id);
+    };
+    document.addEventListener('click', onClick);
+    return () => document.removeEventListener('click', onClick);
+  }, [tabs, active, nav]);
+
   return (
     <>
       <header className="nav">
