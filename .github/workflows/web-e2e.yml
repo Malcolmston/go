@@ -1,7 +1,8 @@
 name: Web e2e
 
 # Playwright end-to-end tests for the landing site across the device matrix.
-# Generates the API doc.json first so the docs tab has content.
+# Sharded across 4 parallel runners to cut wall-clock time; each shard also
+# runs its slice with the configured worker count.
 
 on:
   pull_request:
@@ -16,8 +17,12 @@ permissions:
 
 jobs:
   playwright:
-    name: Playwright E2E (device matrix)
+    name: Playwright E2E (shard ${{ matrix.shard }}/4)
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
     steps:
       - uses: actions/checkout@v4
         with: { submodules: true }
@@ -34,13 +39,13 @@ jobs:
       - name: Install Playwright chromium
         working-directory: web
         run: npx playwright install --with-deps chromium
-      - name: Run E2E
+      - name: Run E2E (shard ${{ matrix.shard }}/4)
         working-directory: web
-        run: npx playwright test
+        run: npx playwright test --shard=${{ matrix.shard }}/4
       - name: Upload report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
+          name: playwright-report-shard-${{ matrix.shard }}
           path: web/playwright-report/
           retention-days: 7
