@@ -142,6 +142,11 @@ test('mobile hamburger menu opens and closes', async ({ page }) => {
 });
 
 test('Copy buttons respond on every page that has them', async ({ page }) => {
+  // This test clicks every Copy button on every page, so on the slowest
+  // emulated viewports under 4-way sharding the cumulative toPass retries can
+  // approach the default per-test cap. Mark it slow (triples the timeout) so a
+  // laggy Copied re-render on one device can never exhaust the budget.
+  test.slow();
   await page.goto('');
   const hrefs = await tabHrefs(page);
   let clickedAny = false;
@@ -158,8 +163,8 @@ test('Copy buttons respond on every page that has them', async ({ page }) => {
       // click+assert until it lands (toPass) instead of flaking.
       await expect(async () => {
         await btn.dispatchEvent('click');
-        await expect(btn).toHaveText(/Copied/, { timeout: 1500 });
-      }).toPass({ timeout: 15_000 });
+        await expect(btn).toHaveText(/Copied/, { timeout: 2500 });
+      }).toPass({ timeout: 20_000 });
       clickedAny = true;
     }
   }
