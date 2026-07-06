@@ -266,6 +266,12 @@ test('API-docs navigation: filter, open a package, and jump to a symbol', async 
 // transition itself works end to end.
 test.describe('wormhole page transition', () => {
   test('navigating warps through the wormhole canvas, then the target view arrives', async ({ page }) => {
+    // The wormhole swaps the page at the throat of a requestAnimationFrame-driven
+    // ~760ms animation. Under 4-way sharding + 24 workers, rAF on the slowest
+    // emulated device projects can be throttled hard, so the nominal timings
+    // stretch well past a few seconds. Mark the test slow and give each phase a
+    // generous budget so a throttled-but-correct transition never flakes.
+    test.slow();
     await page.emulateMedia({ reducedMotion: 'no-preference' });
     await page.goto('');
     const hrefs = await tabHrefs(page);
@@ -277,12 +283,12 @@ test.describe('wormhole page transition', () => {
     await page.locator(`nav.tabs a.tab[href="#${target}"]`).dispatchEvent('click');
 
     // The wormhole canvas lights up during the warp...
-    await expect(page.locator('canvas.wormhole')).toHaveClass(/on/, { timeout: 1500 });
+    await expect(page.locator('canvas.wormhole')).toHaveClass(/on/, { timeout: 5000 });
     // ...the target page arrives (swapped at the throat of the tunnel)...
-    await expect(page.locator('.view.active')).toHaveAttribute('id', `view-${target}`, { timeout: 3000 });
+    await expect(page.locator('.view.active')).toHaveAttribute('id', `view-${target}`, { timeout: 15_000 });
     await expect(page).toHaveURL(new RegExp(`#${target}$`));
     // ...and the overlay clears once the animation completes.
-    await expect(page.locator('canvas.wormhole')).not.toHaveClass(/on/, { timeout: 3000 });
+    await expect(page.locator('canvas.wormhole')).not.toHaveClass(/on/, { timeout: 15_000 });
     expect(pageErrors, 'wormhole must not throw').toEqual([]);
   });
 });
