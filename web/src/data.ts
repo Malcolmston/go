@@ -1,6 +1,9 @@
 // Library + FAQ content, ported from the original static landing page.
 export interface Lib {
   id: string; name: string; icon: string; accent: string; pkg: string; node: string;
+  // source is the upstream ecosystem being ported ("Node.js" by default, "Python"
+  // for the Python-port libraries). Drives the compare-column / heading labels.
+  source?: string;
   repo: string; docs: string; tagline: string; blurb: string; tags: string[];
   features: string[]; node_code: string; go_code: string; integrate: string;
 }
@@ -238,6 +241,190 @@ h := morgan.New(mux, morgan.JSON, morgan.Config{
     Skip: func(r *http.Request, status int) bool { return status < 400 },
 })
 http.ListenAndServe(":8080", h)`
+  },
+  {
+    id:"fastmcp", name:"fastmcp", icon:'<i class="fa-solid fa-plug"></i>', accent:"#58a6ff",
+    pkg:"github.com/malcolmston/fastmcp", node:"jlowin/fastmcp", source:"Python",
+    repo:"https://github.com/malcolmston/fastmcp", docs:"https://malcolmston.github.io/fastmcp/",
+    tagline:"Build Model Context Protocol servers, fast.",
+    blurb:"A from-scratch, standard-library-only framework for building MCP (Model Context Protocol) servers in Go — "+
+      "an idiomatic port of Python's FastMCP. Register tools, resources and prompts as ordinary Go functions; the "+
+      "JSON-RPC 2.0 plumbing, reflected JSON schemas and transports (stdio + HTTP) are handled for you.",
+    tags:["MCP","tools","resources","prompts","JSON-RPC","stdio + HTTP"],
+    features:[
+      "Register tools from plain Go funcs — args &amp; JSON schema reflected from struct tags",
+      "Resources and prompts with the same ergonomic registration",
+      "Newline-delimited <b>JSON-RPC 2.0</b> over stdio (the default transport)",
+      "Streamable <b>HTTP</b> transport via <code>ServeHTTP</code> / <code>HTTPHandler</code>",
+      "Server options: <code>WithVersion</code>, <code>WithInstructions</code>",
+      "Zero third-party dependencies — Go standard library only"
+    ],
+    node_code:
+`from fastmcp import FastMCP
+
+mcp = FastMCP("demo")
+
+@mcp.tool()
+def add(a: int, b: int) -> int:
+    return a + b
+
+mcp.run()`,
+    go_code:
+`type AddArgs struct {
+    A int \`json:"a"\`
+    B int \`json:"b"\`
+}
+
+s := fastmcp.New("demo", fastmcp.WithVersion("1.0.0"))
+
+s.Tool("add", "Add two integers together",
+    func(ctx context.Context, args AddArgs) (any, error) {
+        return args.A + args.B, nil
+    })
+
+s.Run(context.Background())`,
+    integrate:
+`<span class="tok-c">// Expose a resource, then serve over HTTP instead of stdio</span>
+s.Resource("config://app", "config", "App configuration", "application/json",
+    func(ctx context.Context) (string, error) {
+        return \`{"theme":"dark"}\`, nil
+    })
+
+log.Fatal(s.ServeHTTP(":8080"))          <span class="tok-c">// streamable HTTP transport</span>`
+  },
+  {
+    id:"streamlit", name:"Streamlit", icon:'<i class="fa-solid fa-sliders"></i>', accent:"#ff4b4b",
+    pkg:"github.com/malcolmston/streamlit", node:"streamlit/streamlit", source:"Python",
+    repo:"https://github.com/malcolmston/streamlit", docs:"https://malcolmston.github.io/streamlit/",
+    tagline:"Turn a Go function into an interactive data app.",
+    blurb:"A from-scratch, dependency-free port of Streamlit. Write an app function, call display and widget methods "+
+      "top-to-bottom on a Session, and st.Run serves it over HTTP with a small embedded web UI — no JavaScript build "+
+      "step, no external charting library, standard library only.",
+    tags:["widgets","reactive re-run","charts","HTTP server","embedded UI","stdlib-only"],
+    features:[
+      "Write an app as <code>func(s *st.Session)</code>, run top-to-bottom",
+      "Widgets: <code>Button</code>, <code>Slider</code>, <code>Checkbox</code>, <code>TextInput</code>, <code>SelectBox</code> …",
+      "Display: <code>Title</code>, <code>Header</code>, <code>Markdown</code>, <code>Write</code>, <code>Table</code>, <code>Metric</code>",
+      "Built-in <code>LineChart</code> — no external charting library",
+      "Automatic re-run on interaction with per-session state",
+      "<code>st.Run(app, \":8501\")</code> serves it with an embedded web UI"
+    ],
+    node_code:
+`import streamlit as st
+
+st.title("Hello, Streamlit")
+
+if st.button("go"):
+    st.write("clicked!")
+
+n = st.slider("n", 0, 100, 50)
+st.write(n)`,
+    go_code:
+`func app(s *st.Session) {
+    s.Title("Hello, Streamlit-Go")
+
+    if s.Button("go") {
+        s.Write("clicked!")
+    }
+
+    n := s.Slider("n", 0, 100, 50, 1)
+    s.Write(n)
+}
+
+st.Run(app, ":8501")`,
+    integrate:
+`<span class="tok-c">// A sidebar control, a metric and a live chart</span>
+func app(s *st.Session) {
+    s.Sidebar().Header("Controls")
+    smooth := s.Sidebar().Checkbox("smooth", true)
+
+    s.Metric("Users", "1,204", "+3.2%")
+    s.LineChart(series(smooth))      <span class="tok-c">// []float64, no external chart lib</span>
+}`
+  },
+  {
+    id:"algebra", name:"algebra", icon:'<i class="fa-solid fa-square-root-variable"></i>', accent:"#f2cc60",
+    pkg:"github.com/malcolmston/algebra", node:"sympy/sympy", source:"Python",
+    repo:"https://github.com/malcolmston/algebra", docs:"https://malcolmston.github.io/algebra/",
+    tagline:"Symbolic mathematics — a tiny computer-algebra system.",
+    blurb:"A standard-library-only computer-algebra system, a spiritual port of a subset of Python's SymPy. Expressions "+
+      "are immutable trees over symbols, big.Int / big.Rat numbers, named constants and elementary functions — build, "+
+      "simplify, differentiate, integrate, expand, factor and solve, then print them back as readable infix.",
+    tags:["symbolic math","differentiate","integrate","solve","simplify","math/big"],
+    features:[
+      "Immutable expression trees implementing an <code>Expr</code> interface",
+      "Exact arithmetic via <code>math/big</code> integers &amp; rationals",
+      "Calculus: <code>Diff</code> and <code>Integrate</code>",
+      "<code>Simplify</code>, <code>Expand</code>, <code>Factor</code>, <code>Collect</code>, <code>Subs</code>",
+      "Equation solving: <code>Solve</code> (linear &amp; quadratic)",
+      "<code>Parse</code> / <code>MustParse</code> infix input, canonical printing"
+    ],
+    node_code:
+`import sympy as sp
+
+x = sp.symbols('x')
+f = x**2 + 2*x + 1
+
+print(sp.diff(f, x))    # 2*x + 2`,
+    go_code:
+`x := algebra.Sym("x")
+f := algebra.MustParse("x^2 + 2*x + 1")
+
+df := algebra.Diff(f, x)
+fmt.Println(algebra.Simplify(df))   // 2*x + 2`,
+    integrate:
+`<span class="tok-c">// Solve, expand and integrate</span>
+x := algebra.Sym("x")
+
+roots, _ := algebra.Solve(algebra.MustParse("x^2 - 5*x + 6"), x)
+fmt.Println(roots[0], roots[1])                              <span class="tok-c">// 2 3</span>
+
+fmt.Println(algebra.Expand(algebra.MustParse("(x + 1)^2")))  <span class="tok-c">// x^2 + 2*x + 1</span>
+fmt.Println(algebra.Integrate(algebra.MustParse("2*x"), x))  <span class="tok-c">// x^2</span>`
+  },
+  {
+    id:"opencv", name:"opencv", icon:'<i class="fa-solid fa-eye"></i>', accent:"#56d364",
+    pkg:"github.com/malcolmston/opencv", node:"opencv/opencv", source:"Python",
+    repo:"https://github.com/malcolmston/opencv", docs:"https://malcolmston.github.io/opencv/",
+    tagline:"Image processing &amp; computer vision, zero dependencies.",
+    blurb:"A standard-library-only port of a useful subset of Python's OpenCV (cv2). The core type is Mat, a dense "+
+      "row-major uint8 matrix; convert to/from image.Image, read and write PNG/JPEG, and run classic pipelines — "+
+      "colour conversion, blurring, thresholding, morphology, edges and geometric transforms — with no cgo.",
+    tags:["Mat","filters","Canny edges","morphology","PNG / JPEG","no cgo"],
+    features:[
+      "<code>Mat</code>: dense row-major 8-bit matrix (1- or 3-channel)",
+      "I/O: <code>ImRead</code> / <code>ImWrite</code> (PNG &amp; JPEG), <code>FromImage</code> / <code>ToImage</code>",
+      "Colour: <code>CvtColor</code> (e.g. <code>ColorRGB2Gray</code>)",
+      "Filtering: <code>GaussianBlur</code>, <code>Blur</code>, <code>Threshold</code>, morphology",
+      "Edges &amp; more: <code>Canny</code>, <code>Sobel</code>, geometric transforms, drawing",
+      "Package name is <code>cv</code> — no cgo, standard library only"
+    ],
+    node_code:
+`import cv2
+
+img = cv2.imread("in.png")
+gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+blur = cv2.GaussianBlur(gray, (5, 5), 1.4)
+edges = cv2.Canny(blur, 50, 150)
+
+cv2.imwrite("edges.png", edges)`,
+    go_code:
+`img, _ := cv.ImRead("in.png")
+
+gray := cv.CvtColor(img, cv.ColorRGB2Gray)
+blur := cv.GaussianBlur(gray, 5, 1.4)
+edges := cv.Canny(blur, 50, 150)
+
+cv.ImWrite("edges.png", edges)`,
+    integrate:
+`<span class="tok-c">// Threshold, then clean up with a morphological open</span>
+gray := cv.CvtColor(img, cv.ColorRGB2Gray)
+bw, _ := cv.Threshold(gray, 127, 255, cv.ThreshBinary)
+
+k := cv.GetStructuringElement(cv.MorphRect, 3, 3)
+opened := cv.MorphologyEx(bw, k, cv.MorphOpen, 1)
+
+cv.ImWrite("mask.png", opened)`
   }
 ];
 

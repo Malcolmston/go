@@ -16,8 +16,8 @@
 **The Node.js ecosystem, reimagined in Go.**
 
 A unified home for a family of Go libraries that recreate the most-loved
-building blocks of the Node.js ecosystem — with the same ergonomics, on top of
-Go's standard library.
+building blocks of the Node.js and Python ecosystems — with the same ergonomics,
+on top of Go's standard library.
 
 🌐 **Unified site & docs:** [`index.html`](index.html) → published to GitHub
 Pages (Home, per-library tabs, How-to, FAQ, AI, About, with Node-vs-Go code
@@ -36,6 +36,10 @@ cross-module code builds against the local checkouts.
 | [socket.io](socket.io) | socketio/socket.io | `github.com/malcolmston/socketio` | [pages](https://malcolmston.github.io/socket.io/) |
 | [chalk](chalk) | chalk/chalk (+inquirer, figlet) | `github.com/malcolmston/chalk` | [pages](https://malcolmston.github.io/chalk/) |
 | [morgan](morgan) | expressjs/morgan | `github.com/malcolmston/morgan` | [pages](https://malcolmston.github.io/morgan/) |
+| [fastmcp](fastmcp) | jlowin/fastmcp (Python) | `github.com/malcolmston/fastmcp` | [pages](https://malcolmston.github.io/fastmcp/) |
+| [streamlit](streamlit) | streamlit/streamlit (Python) | `github.com/malcolmston/streamlit` | [pages](https://malcolmston.github.io/streamlit/) |
+| [algebra](algebra) | sympy/sympy (Python) | `github.com/malcolmston/algebra` | [pages](https://malcolmston.github.io/algebra/) |
+| [opencv](opencv) | opencv/opencv (Python) | `github.com/malcolmston/opencv` | [pages](https://malcolmston.github.io/opencv/) |
 
 ## Clone (with submodules)
 
@@ -55,6 +59,10 @@ go get github.com/malcolmston/passport
 go get github.com/malcolmston/socketio
 go get github.com/malcolmston/chalk
 go get github.com/malcolmston/morgan
+go get github.com/malcolmston/fastmcp
+go get github.com/malcolmston/streamlit
+go get github.com/malcolmston/algebra
+go get github.com/malcolmston/opencv
 ```
 
 ## Develop across libraries (workspace)

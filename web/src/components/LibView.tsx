@@ -10,6 +10,7 @@ export interface LibViewProps {
 // LibView renders a single library's full documentation tab.
 export function LibView({ lib }: LibViewProps) {
   const idb = lib.id;
+  const source = lib.source ?? 'Node.js';
   return (
     <section className="view active" id={`view-${lib.id}`}>
       <div className="libhero" style={{ '--lib-soft': hx(lib.accent, '1f'), '--lib-accent': lib.accent } as CSSProperties}>
@@ -33,7 +34,7 @@ export function LibView({ lib }: LibViewProps) {
       <div className="onthispage">
         <a href={`#${idb}-install`}>Install</a>
         <a href={`#${idb}-quick`}>Quick start</a>
-        <a href={`#${idb}-cmp`}>Node → Go</a>
+        <a href={`#${idb}-cmp`}>{source} → Go</a>
         <a href={`#${idb}-more`}>Going further</a>
         <a href={`#${idb}-feat`}>Features</a>
       </div>
@@ -44,9 +45,9 @@ export function LibView({ lib }: LibViewProps) {
       <div className="sec-h" id={`${idb}-quick`}><span className="bar" /><h3 style={{ margin: 0 }}>Quick start</h3></div>
       <CodeBlock lang="main.go" html={hi(lib.go_code)} />
 
-      <div className="sec-h" id={`${idb}-cmp`}><span className="bar" /><h3 style={{ margin: 0 }}>Node.js → Go</h3></div>
+      <div className="sec-h" id={`${idb}-cmp`}><span className="bar" /><h3 style={{ margin: 0 }}>{source} → Go</h3></div>
       <div className="compare">
-        <CompareCard name="Node.js" color="var(--node)" html={hi(lib.node_code)} />
+        <CompareCard name={source} color="var(--node)" html={hi(lib.node_code)} />
         <CompareCard name="Go" color="var(--go)" html={hi(lib.go_code)} />
       </div>
 

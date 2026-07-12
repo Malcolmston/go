@@ -5,13 +5,13 @@
 ## What this is
 
 `malcolmston/go` is the umbrella repository for a family of Go ports of the
-most-loved building blocks of the Node.js ecosystem. It gathers five
-independent Go libraries, a unified documentation site, and a shared React
+most-loved building blocks of the Node.js and Python ecosystems. It gathers
+nine independent Go libraries, a unified documentation site, and a shared React
 component library into one place so they can be developed, tested, released,
 and documented as a coherent whole.
 
-The five libraries each recreate the ergonomics of a Node original on top of
-Go's standard library:
+The nine libraries each recreate the ergonomics of a Node.js or Python original
+on top of Go's standard library:
 
 | Library | Ports | Module | Docs |
 | ------- | ----- | ------ | ---- |
@@ -20,6 +20,10 @@ Go's standard library:
 | socket.io | socketio/socket.io | `github.com/malcolmston/socketio` | [pages](https://malcolmston.github.io/socket.io/) |
 | chalk | chalk/chalk (+ inquirer, figlet) | `github.com/malcolmston/chalk` | [pages](https://malcolmston.github.io/chalk/) |
 | morgan | expressjs/morgan | `github.com/malcolmston/morgan` | [pages](https://malcolmston.github.io/morgan/) |
+| fastmcp | jlowin/fastmcp (Python) | `github.com/malcolmston/fastmcp` | [pages](https://malcolmston.github.io/fastmcp/) |
+| streamlit | streamlit/streamlit (Python) | `github.com/malcolmston/streamlit` | [pages](https://malcolmston.github.io/streamlit/) |
+| algebra | sympy/sympy (Python) | `github.com/malcolmston/algebra` | [pages](https://malcolmston.github.io/algebra/) |
+| opencv | opencv/opencv (Python) | `github.com/malcolmston/opencv` | [pages](https://malcolmston.github.io/opencv/) |
 
 Alongside the libraries live two more pieces:
 
@@ -35,7 +39,7 @@ and docs — this repo is the connective tissue that ties them together.
 
 ## How it works
 
-**Submodules + a Go workspace.** The five libraries are vendored into this repo
+**Submodules + a Go workspace.** The nine libraries are vendored into this repo
 as **git submodules** (see [`.gitmodules`](.gitmodules)), each pinned to its own
 upstream repository. A **Go workspace** ([`go.work`](go.work)) lists every
 submodule plus the integration example, so cross-module code in this repo
@@ -116,7 +120,7 @@ This ecosystem is not trying to win a benchmark or claim the Node projects were
 wrong. It exists for teams that like the Express/Passport/Socket.IO/chalk/morgan
 programming model but want to ship it on Go's runtime. The honest case:
 
-- **One consistent, stdlib-first toolkit.** All five libraries are built on
+- **One consistent, stdlib-first toolkit.** All nine libraries are built on
   `net/http`, `io`, `context`, and friends — not on a parallel universe of
   framework primitives. Learn the idioms once and they carry across the whole
   family.
@@ -134,8 +138,8 @@ programming model but want to ship it on Go's runtime. The honest case:
 - **Type safety and tooling.** Compile-time checks, `gofmt`, the race detector,
   and Go's testing and profiling tools apply uniformly across every library.
 - **Cohesive, auto-generated docs.** One shared component library and one site
-  mean the docs for all five libraries look and behave the same, with Node → Go
-  comparisons and live version data instead of five divergent sites.
+  mean the docs for all nine libraries look and behave the same, with Node → Go
+  comparisons and live version data instead of nine divergent sites.
 
 **Tradeoffs, honestly.** These are re-implementations, not the battle-tested
 originals — they cover the common surface area, not every edge and plugin of a

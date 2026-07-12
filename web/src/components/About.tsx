@@ -15,9 +15,13 @@ export function About() {
           <tr><td>Socket.IO</td><td>socketio/socket.io</td><td className="mono">github.com/malcolmston/socketio</td><td>none</td></tr>
           <tr><td>chalk</td><td>chalk/chalk (+inquirer, figlet)</td><td className="mono">github.com/malcolmston/chalk</td><td className="mono">x/term</td></tr>
           <tr><td>morgan</td><td>expressjs/morgan</td><td className="mono">github.com/malcolmston/morgan</td><td>none</td></tr>
+          <tr><td>fastmcp</td><td>jlowin/fastmcp (Python)</td><td className="mono">github.com/malcolmston/fastmcp</td><td>none</td></tr>
+          <tr><td>Streamlit</td><td>streamlit/streamlit (Python)</td><td className="mono">github.com/malcolmston/streamlit</td><td>none</td></tr>
+          <tr><td>algebra</td><td>sympy/sympy (Python)</td><td className="mono">github.com/malcolmston/algebra</td><td>none</td></tr>
+          <tr><td>opencv</td><td>opencv/opencv (Python)</td><td className="mono">github.com/malcolmston/opencv</td><td>none</td></tr>
         </tbody>
       </table>
-      <div className="note">Not affiliated with or endorsed by the original Node.js projects or their authors. Each Go library is an independent re-implementation, released under the MIT License.</div>
+      <div className="note">Not affiliated with or endorsed by the original Node.js or Python projects or their authors. Each Go library is an independent re-implementation, released under the MIT License.</div>
     </section>
   );
 }
