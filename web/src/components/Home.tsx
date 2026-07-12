@@ -15,7 +15,8 @@ export function Home({ go }: HomeProps) {
         <span className="chip"><span className="pulse" /> Standard-library-first · Go 1.23+</span>
         <h1>The Node.js ecosystem,<br />reimagined&nbsp;in&nbsp;Go.</h1>
         <p className="lead">Faithful, idiomatic ports of the libraries you already know — Express, Passport,
-          Socket.IO, chalk and morgan — built on real wire protocols with (almost) zero third-party dependencies.</p>
+          Socket.IO, chalk and morgan from Node.js, plus fastmcp, Streamlit, algebra and opencv from Python —
+          built on real wire protocols with (almost) zero third-party dependencies.</p>
         <div className="cta">
           <a className="btn primary" href="#howto" onClick={(e) => { e.preventDefault(); go('howto'); }}>Get started →</a>
           <a className="btn" href="https://github.com/malcolmston" target="_blank" rel="noopener"><i className="fa-brands fa-github" />&nbsp;View on GitHub</a>
@@ -23,7 +24,7 @@ export function Home({ go }: HomeProps) {
       </div>
 
       <div className="bento reveal">
-        <div className="stat"><b>5</b><span>drop-in libraries</span></div>
+        <div className="stat"><b>9</b><span>drop-in libraries</span></div>
         <div className="stat"><b>300+</b><span>packages &amp; strategies</span></div>
         <div className="stat"><b>~0</b><span>third-party deps</span></div>
         <div className="stat"><b>100%</b><span>Go, wire-compatible</span></div>
