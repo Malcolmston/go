@@ -23,14 +23,22 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
+      # Top-level submodules only — NOT recursive. Each library vendors the
+      # shared UI as web/vendor/go, which points back at this aggregator repo,
+      # so the submodule graph is cyclic (go → opencv → go → …). Recursing into
+      # it makes checkout and `submodule update` walk that cycle until the job
+      # exhausts and fails. The aggregator's Go workspace build only needs the
+      # library modules themselves, so the nested web/vendor/go is irrelevant.
       - name: Checkout with submodules
         uses: actions/checkout@v4
         with:
-          submodules: recursive
+          submodules: true
           fetch-depth: 0
 
       - name: Update submodules to each library's latest main
-        run: git submodule update --remote --recursive
+        # Explicit library paths, no --recursive, so the cyclic web/vendor/go
+        # nested submodules are never touched.
+        run: git submodule update --remote express passport socket.io chalk morgan fastmcp streamlit algebra opencv
 
       - name: Set up Go
         uses: actions/setup-go@v5
