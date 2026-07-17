@@ -425,7 +425,7 @@ k := cv.GetStructuringElement(cv.MorphRect, 3, 3)
 opened := cv.MorphologyEx(bw, k, cv.MorphOpen, 1)
 
 cv.ImWrite("mask.png", opened)`
-  }
+  },
   {
   id:"oban", name:"Oban", icon:'<i class="fa-solid fa-list-check"></i>', accent:"#a855f7",
   pkg:"github.com/malcolmston/oban", node:"sorentwo/oban",
