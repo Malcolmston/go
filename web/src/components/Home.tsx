@@ -24,7 +24,7 @@ export function Home({ go }: HomeProps) {
       </div>
 
       <div className="bento reveal">
-        <div className="stat"><b>9</b><span>drop-in libraries</span></div>
+        <div className="stat"><b>33</b><span>drop-in libraries</span></div>
         <div className="stat"><b>300+</b><span>packages &amp; strategies</span></div>
         <div className="stat"><b>~0</b><span>third-party deps</span></div>
         <div className="stat"><b>100%</b><span>Go, wire-compatible</span></div>
