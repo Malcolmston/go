@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 import { VersionBadge, hx, ghrepo } from 'go-ui';
 import type { Lib } from '../data';
+import { PARITY } from '../parity';
 import { Html } from './Html';
 
 export interface LibCardProps {
@@ -19,6 +20,15 @@ export function LibCard({ lib, onOpen }: LibCardProps) {
       <div className="mono pkg">{lib.pkg}</div>
       <p className="muted small" style={{ margin: '.7rem 0 .5rem' }}>{lib.tagline}</p>
       <div>{lib.tags.slice(0, 4).map((t) => <span className="tag" key={t}>{t}</span>)}</div>
+      {PARITY[lib.id] && (
+        <div
+          className="tag"
+          title={`Verified against ${PARITY[lib.id].upstream}: ${PARITY[lib.id].casesSynced} upstream test cases synced, ${PARITY[lib.id].gapsClosed} gaps closed`}
+          style={{ marginTop: '.6rem', borderColor: hx(lib.accent, '55'), color: lib.accent, background: hx(lib.accent, '12') }}
+        >
+          ● {PARITY[lib.id].after} upstream parity
+        </div>
+      )}
     </div>
   );
 }
