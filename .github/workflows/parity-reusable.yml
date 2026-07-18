@@ -1,0 +1,63 @@
+name: Parity (reusable)
+
+# Central upstream-parity pipeline for the whole malcolmston/* family. Every
+# library repo's own .github/workflows/parity.yml is a thin caller of THIS
+# workflow, so all parity pipelines route through the go aggregator:
+#
+#   jobs:
+#     parity:
+#       uses: Malcolmston/go/.github/workflows/parity-reusable.yml@main
+#
+# It runs the port's synced upstream-parity tests (go test -run Parity), prints a
+# summary, and publishes the repo's parity.json (the machine-readable metrics the
+# go landing aggregates) as a build artifact.
+
+on:
+  workflow_call:
+    inputs:
+      go-version:
+        description: Go toolchain version
+        required: false
+        type: string
+        default: stable
+
+permissions:
+  contents: read
+
+jobs:
+  parity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ inputs.go-version }}
+
+      - name: Build
+        run: go build ./...
+
+      - name: Run upstream-parity tests
+        run: go test ./... -run Parity -v 2>&1 | tee parity.txt
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Upstream parity" >> "$GITHUB_STEP_SUMMARY"
+          if [ -f parity.json ]; then
+            echo '```json' >> "$GITHUB_STEP_SUMMARY"
+            cat parity.json >> "$GITHUB_STEP_SUMMARY"
+            echo '' >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+          fi
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          grep -E "PASS|FAIL|--- " parity.txt | tail -50 >> "$GITHUB_STEP_SUMMARY" || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload parity metrics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: parity-json
+          path: parity.json
+          if-no-files-found: ignore
