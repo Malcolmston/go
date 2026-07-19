@@ -1,6 +1,8 @@
 import type { CSSProperties } from 'react';
 import { CodeBlock, CompareCard, DocsApp, VersionBadge, hi, hx, ghrepo } from 'go-ui';
 import type { Lib } from '../data';
+import { parityFor } from '../parityLookup';
+import { PipelineFlow } from './PipelineFlow';
 import { Html } from './Html';
 
 export interface LibViewProps {
@@ -18,6 +20,7 @@ function docKey(lib: Lib): string {
 export function LibView({ lib }: LibViewProps) {
   const idb = lib.id;
   const source = lib.source ?? 'Node.js';
+  const parity = parityFor(lib);
   return (
     <section className="view active" id={`view-${lib.id}`}>
       <div className="libhero" style={{ '--lib-soft': hx(lib.accent, '1f'), '--lib-accent': lib.accent } as CSSProperties}>
@@ -44,6 +47,7 @@ export function LibView({ lib }: LibViewProps) {
         <a href={`#${idb}-cmp`}>{source} → Go</a>
         <a href={`#${idb}-more`}>Going further</a>
         <a href={`#${idb}-feat`}>Features</a>
+        {parity ? <a href={`#${idb}-parity`}>Parity &amp; pipeline</a> : null}
         <a href={`#${idb}-api`}>API reference</a>
       </div>
 
@@ -66,6 +70,38 @@ export function LibView({ lib }: LibViewProps) {
       <ul className="feat" style={{ '--lib-accent': lib.accent } as CSSProperties}>
         {lib.features.map((f, i) => <Html tag="li" html={f} key={i} />)}
       </ul>
+
+      <div className="sec-h" id={`${idb}-parity`}><span className="bar" /><h3 style={{ margin: 0 }}>Upstream parity &amp; pipeline</h3></div>
+      {parity ? (
+        <>
+          <p className="muted">
+            This score is <b>live</b> — regenerated on every deploy from{' '}
+            <a href={`${lib.repo}/blob/main/parity.json`} target="_blank" rel="noopener"><code>parity.json</code></a>,
+            which the port's parity CI pipeline publishes. It measures the Go port against the original library by syncing
+            that library's own test suite and closing the gaps those tests expose. Here is what feeds it, stage by stage:
+          </p>
+          <div className="parity-tiles">
+            <div className="parity-tile" style={{ '--lib-accent': lib.accent } as CSSProperties}>
+              <div className="parity-num">{parity.after}</div><div className="parity-lbl">measured parity</div>
+            </div>
+            <div className="parity-tile">
+              <div className="parity-num">{parity.before} → {parity.after}</div><div className="parity-lbl">before → after audit</div>
+            </div>
+            <div className="parity-tile">
+              <div className="parity-num">{parity.casesSynced.toLocaleString()}</div><div className="parity-lbl">upstream test cases synced</div>
+            </div>
+            <div className="parity-tile">
+              <div className="parity-num">{parity.gapsClosed}</div><div className="parity-lbl">behavior gaps closed</div>
+            </div>
+          </div>
+          <PipelineFlow lib={lib} parity={parity} />
+        </>
+      ) : (
+        <p className="muted">
+          {lib.name} is not yet audited against an upstream test suite, so it has no live parity score. Its pipeline still
+          builds and tests the port on every push. <a href={`${lib.repo}/actions`} target="_blank" rel="noopener">View CI ↗</a>
+        </p>
+      )}
 
       <div className="sec-h" id={`${idb}-api`}><span className="bar" /><h3 style={{ margin: 0 }}>API reference</h3></div>
       <p className="muted">The complete package-by-package Go API reference, generated from source — every exported type, function and method, with signatures, doc comments and runnable examples. Rendered inline below; also browsable on the dedicated docs site.</p>

@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react';
 import { VersionBadge, hx, ghrepo } from 'go-ui';
 import type { Lib } from '../data';
-import { PARITY } from '../parity';
+import { parityFor } from '../parityLookup';
 import { Html } from './Html';
 
 export interface LibCardProps {
@@ -11,6 +11,7 @@ export interface LibCardProps {
 
 // LibCard is the glass card for a single library on the home grid.
 export function LibCard({ lib, onOpen }: LibCardProps) {
+  const parity = parityFor(lib);
   return (
     <div className="card lib" style={{ '--glow': lib.accent } as CSSProperties} onClick={() => onOpen(lib.id)}>
       <span className="arrow">↗</span>
@@ -20,13 +21,13 @@ export function LibCard({ lib, onOpen }: LibCardProps) {
       <div className="mono pkg">{lib.pkg}</div>
       <p className="muted small" style={{ margin: '.7rem 0 .5rem' }}>{lib.tagline}</p>
       <div>{lib.tags.slice(0, 4).map((t) => <span className="tag" key={t}>{t}</span>)}</div>
-      {PARITY[lib.id] && (
+      {parity && (
         <div
           className="tag"
-          title={`Verified against ${PARITY[lib.id].upstream}: ${PARITY[lib.id].casesSynced} upstream test cases synced, ${PARITY[lib.id].gapsClosed} gaps closed`}
+          title={`Verified against ${parity.upstream}: ${parity.casesSynced} upstream test cases synced, ${parity.gapsClosed} gaps closed`}
           style={{ marginTop: '.6rem', borderColor: hx(lib.accent, '55'), color: lib.accent, background: hx(lib.accent, '12') }}
         >
-          ● {PARITY[lib.id].after} upstream parity
+          ● {parity.after} upstream parity
         </div>
       )}
     </div>

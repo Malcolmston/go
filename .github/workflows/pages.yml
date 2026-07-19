@@ -56,6 +56,14 @@ jobs:
       - name: Generate per-library API docs
         run: cd gendocs && GOWORK=off go run . -root .. -out ../web/public/docs
 
+      # Regenerate the LIVE parity scores from every submodule's parity.json
+      # (the metric each port's parity pipeline publishes), so the landing's
+      # per-library parity badges and the "Upstream parity & pipeline" section
+      # always reflect the current audited numbers rather than a hand-edited
+      # snapshot.
+      - name: Generate live parity metrics
+        run: cd genparity && GOWORK=off go run . -root .. -out ../web/src/parity.ts
+
       - name: Build site
         working-directory: web
         run: |
