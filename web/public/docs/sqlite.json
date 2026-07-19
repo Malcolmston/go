@@ -1,0 +1,575 @@
+{
+  "module": "github.com/malcolmston/sqlite",
+  "generatedAt": "2026-07-19T02:05:53Z",
+  "packages": [
+    {
+      "importPath": "github.com/malcolmston/sqlite",
+      "name": "sqlite",
+      "synopsis": "Package sqlite implements a small, embedded SQL database engine written in pure Go, using only the standard library.",
+      "doc": "Package sqlite implements a small, embedded SQL database engine written in\npure Go, using only the standard library. It provides a SQL tokenizer,\nrecursive-descent parser, and a tree-walking executor over an in-memory,\nrow-oriented store, and exposes everything through a database/sql driver.\n\n# Driver\n\nThe package registers a database/sql driver named \"mstsqlite\" (see\n[DriverName]). Open a database with:\n\n\tdb, err := sql.Open(\"mstsqlite\", \":memory:\")\n\nA DSN of \":memory:\" or \"\" creates a private anonymous database. Any other DSN\nnames a database that is shared between every connection opened with the same\nname for the lifetime of the process, so a connection pool sees a consistent\nview.\n\nThe driver supports the '?' positional placeholder for arguments and scans\nresults into the usual Go types: nil, int64, float64, string and []byte.\n\n# Supported SQL\n\nThe engine implements a useful subset of SQL:\n\n  - CREATE TABLE with typed columns (INTEGER, TEXT, REAL, BLOB), plus the\n    column constraints PRIMARY KEY and NOT NULL. CREATE TABLE IF NOT EXISTS\n    and DROP TABLE [IF EXISTS] are supported.\n  - INSERT INTO t [(cols...)] VALUES (...), (...), ... including multi-row\n    inserts.\n  - SELECT with an explicit column list or '*', column aliases (AS),\n    DISTINCT, WHERE, GROUP BY, HAVING, ORDER BY (ASC/DESC), and LIMIT/OFFSET.\n  - A single INNER JOIN of two tables with an ON condition.\n  - WHERE/HAVING expressions: comparisons (= \u003c\u003e \u003c \u003e \u003c= \u003e=), AND/OR/NOT, IN\n    (list), LIKE (with % and _ wildcards), IS NULL / IS NOT NULL, arithmetic\n    (+ - * / %) and string concatenation (||).\n  - Aggregate functions COUNT (including COUNT(*) and COUNT(DISTINCT x)), SUM,\n    AVG, MIN and MAX.\n  - UPDATE t SET col = expr [, ...] WHERE ... and DELETE FROM t WHERE ...\n  - Transactions via BEGIN / COMMIT / ROLLBACK, exposed through the standard\n    [database/sql.DB.Begin] and [database/sql.Tx] API. Transactions use\n    snapshot rollback and serializable isolation (one writer at a time).\n\n# Type system\n\nFollowing SQLite, values carry their own dynamic storage class: NULL,\nINTEGER (int64), REAL (float64), TEXT (UTF-8 string) or BLOB ([]byte). NULL\npropagates through comparisons and arithmetic using three-valued logic, and a\nNULL predicate is treated as false by WHERE and HAVING. Declared column types\napply a light affinity: inserted values are coerced toward the column type\nwhen it is lossless to do so.\n\n# Limits\n\nThis is a compact, didactic engine, not a full SQLite replacement. Notable\nlimits: data lives only in memory (there is no on-disk file format); there is\nno query planner or secondary indexes (queries scan and, for JOIN, form a\nnested loop); only INNER JOIN of exactly two tables is supported; subqueries,\nviews, triggers, common table expressions, window functions, ALTER TABLE and\nforeign keys are not implemented; and only a single PRIMARY KEY column\n(enforced as UNIQUE + NOT NULL) is supported per table.\n\n# Direct API\n\nBesides the database/sql driver, the [Database] type can be used directly via\n[Database.Exec] and [Database.Query], and [Parse] exposes the AST for callers\nthat want to inspect statements.\n",
+      "consts": [
+        {
+          "names": [
+            "DriverName"
+          ],
+          "signature": "const DriverName = \"mstsqlite\"",
+          "doc": "DriverName is the name under which this driver registers itself with\ndatabase/sql. Use it with sql.Open.\n"
+        }
+      ],
+      "vars": [],
+      "types": [
+        {
+          "name": "BeginStmt",
+          "signature": "type BeginStmt struct{}",
+          "doc": "BeginStmt starts a transaction.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "BinaryExpr",
+          "signature": "type BinaryExpr struct {\n\tOp    string\n\tLeft  Expr\n\tRight Expr\n}",
+          "doc": "BinaryExpr is an infix operator (=, \u003c, AND, +, ||, ...).\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "ColumnDef",
+          "signature": "type ColumnDef struct {\n\tName       string\n\tType       ValueType\n\tPrimaryKey bool\n\tNotNull    bool\n}",
+          "doc": "ColumnDef describes one column in a CREATE TABLE statement.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "ColumnRef",
+          "signature": "type ColumnRef struct {\n\tTable string\n\tName  string\n}",
+          "doc": "ColumnRef references a column, optionally qualified by table/alias.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "CommitStmt",
+          "signature": "type CommitStmt struct{}",
+          "doc": "CommitStmt commits the current transaction.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "CreateTableStmt",
+          "signature": "type CreateTableStmt struct {\n\tTable       string\n\tIfNotExists bool\n\tColumns     []ColumnDef\n}",
+          "doc": "CreateTableStmt represents CREATE TABLE.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Database",
+          "signature": "type Database struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Database is an in-memory SQL database. It is safe for concurrent use; every\nstatement is serialized through a single mutex, and transactions hold that\nmutex for their whole lifetime, giving serializable isolation.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewDatabase",
+              "signature": "func NewDatabase() *Database",
+              "doc": "NewDatabase creates an empty in-memory database. Most users obtain a database\nthrough the database/sql driver instead of calling this directly.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Exec",
+              "recv": "*Database",
+              "signature": "func (db *Database) Exec(sql string, args ...interface{}) (ExecResult, error)",
+              "doc": "Exec parses and executes a non-query SQL statement against the database\ndirectly (bypassing database/sql). It is convenient for setup code and tests.\n"
+            },
+            {
+              "name": "Query",
+              "recv": "*Database",
+              "signature": "func (db *Database) Query(sql string, args ...interface{}) (*ResultSet, error)",
+              "doc": "Query parses and executes a SELECT statement, returning the full result set.\n"
+            }
+          ]
+        },
+        {
+          "name": "DeleteStmt",
+          "signature": "type DeleteStmt struct {\n\tTable string\n\tWhere Expr\n}",
+          "doc": "DeleteStmt represents DELETE FROM ... WHERE.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Driver",
+          "signature": "type Driver struct{}",
+          "doc": "Driver implements database/sql/driver.Driver.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Open",
+              "recv": "*Driver",
+              "signature": "func (d *Driver) Open(name string) (driver.Conn, error)",
+              "doc": "Open returns a new connection to the database named by the DSN. A DSN of\n\":memory:\" or the empty string yields a private anonymous database; any other\nname is shared between all connections that use it.\n"
+            }
+          ]
+        },
+        {
+          "name": "DropTableStmt",
+          "signature": "type DropTableStmt struct {\n\tTable    string\n\tIfExists bool\n}",
+          "doc": "DropTableStmt represents DROP TABLE.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "ExecResult",
+          "signature": "type ExecResult struct {\n\tRowsAffected int64\n\tLastInsertID int64\n}",
+          "doc": "ExecResult reports the outcome of a statement that does not return rows.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Expr",
+          "signature": "type Expr interface {\n\t// contains filtered or unexported methods\n}",
+          "doc": "Expr is implemented by every expression node.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "FuncError",
+          "signature": "type FuncError struct {\n\tFunc string // the function name as requested\n\tMsg  string // a human-readable description of the problem\n}",
+          "doc": "FuncError describes a failure raised while invoking a built-in SQL function,\nsuch as an unknown name or an incorrect number of arguments.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Error",
+              "recv": "*FuncError",
+              "signature": "func (e *FuncError) Error() string",
+              "doc": "Error implements the error interface.\n"
+            }
+          ]
+        },
+        {
+          "name": "FuncExpr",
+          "signature": "type FuncExpr struct {\n\tName     string // upper-cased\n\tArgs     []Expr\n\tStar     bool // COUNT(*)\n\tDistinct bool\n}",
+          "doc": "FuncExpr is an aggregate or scalar function call.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "InExpr",
+          "signature": "type InExpr struct {\n\tExpr Expr\n\tList []Expr\n\tNot  bool\n}",
+          "doc": "InExpr represents \"expr IN (list)\" or the negated form.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "InsertStmt",
+          "signature": "type InsertStmt struct {\n\tTable   string\n\tColumns []string // may be empty meaning \"all columns in order\"\n\tRows    [][]Expr\n}",
+          "doc": "InsertStmt represents INSERT INTO ... VALUES.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "IsNullExpr",
+          "signature": "type IsNullExpr struct {\n\tExpr Expr\n\tNot  bool\n}",
+          "doc": "IsNullExpr represents \"expr IS NULL\" or \"expr IS NOT NULL\".\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "JoinClause",
+          "signature": "type JoinClause struct {\n\tTable string\n\tAlias string\n\tOn    Expr\n}",
+          "doc": "JoinClause describes an INNER JOIN of the primary table with another.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "LikeExpr",
+          "signature": "type LikeExpr struct {\n\tExpr    Expr\n\tPattern Expr\n\tNot     bool\n}",
+          "doc": "LikeExpr represents \"expr LIKE pattern\" (and NOT LIKE).\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Literal",
+          "signature": "type Literal struct{ Val Value }",
+          "doc": "Literal is a constant value.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "OrderTerm",
+          "signature": "type OrderTerm struct {\n\tExpr Expr\n\tDesc bool\n}",
+          "doc": "OrderTerm is one ORDER BY term.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Param",
+          "signature": "type Param struct{ Index int }",
+          "doc": "Param is a ? placeholder; Index is its zero-based ordinal.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "ResultColumn",
+          "signature": "type ResultColumn struct {\n\tStar  bool   // SELECT *\n\tTable string // for qualified star like t.*\n\tExpr  Expr   // expression when Star is false\n\tAlias string // optional AS alias\n}",
+          "doc": "ResultColumn is one entry in a SELECT projection list.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "ResultSet",
+          "signature": "type ResultSet struct {\n\tColumns []string\n\tRows    [][]Value\n}",
+          "doc": "ResultSet is the materialized output of a query.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "RollbackStmt",
+          "signature": "type RollbackStmt struct{}",
+          "doc": "RollbackStmt rolls back the current transaction.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "ScalarFunc",
+          "signature": "type ScalarFunc func(args []Value) (Value, error)",
+          "doc": "ScalarFunc is the signature of a SQL scalar function: it receives the already\nevaluated argument values and returns a single result value. Implementations\nmust be deterministic and must follow SQLite's three-valued NULL logic where\napplicable.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "LookupScalar",
+              "signature": "func LookupScalar(name string) (ScalarFunc, bool)",
+              "doc": "LookupScalar returns the built-in scalar function registered under the given\nname together with true, or (nil, false) if no such function exists. Names are\nmatched case-insensitively, mirroring SQLite where SQL function names are not\ncase sensitive.\n"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "name": "SelectStmt",
+          "signature": "type SelectStmt struct {\n\tDistinct  bool\n\tColumns   []ResultColumn\n\tFrom      string\n\tFromAlias string\n\tJoin      *JoinClause\n\tWhere     Expr\n\tGroupBy   []Expr\n\tHaving    Expr\n\tOrderBy   []OrderTerm\n\tLimit     Expr\n\tOffset    Expr\n}",
+          "doc": "SelectStmt represents SELECT.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Statement",
+          "signature": "type Statement interface {\n\t// contains filtered or unexported methods\n}",
+          "doc": "Statement is implemented by every top-level SQL statement.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "Parse",
+              "signature": "func Parse(sql string) (Statement, error)",
+              "doc": "Parse parses a single SQL statement. A trailing semicolon is permitted. It is\nexported so callers can inspect the AST directly, though most use the\ndatabase/sql driver instead.\n"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "name": "UnaryExpr",
+          "signature": "type UnaryExpr struct {\n\tOp   string\n\tExpr Expr\n}",
+          "doc": "UnaryExpr is a prefix operator (NOT, -, +).\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "UpdateStmt",
+          "signature": "type UpdateStmt struct {\n\tTable string\n\tCols  []string\n\tVals  []Expr\n\tWhere Expr\n}",
+          "doc": "UpdateStmt represents UPDATE ... SET ... WHERE.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Value",
+          "signature": "type Value struct {\n\tType ValueType\n\t// contains filtered or unexported fields\n}",
+          "doc": "Value is a single typed SQL value. The zero Value is SQL NULL.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "Abs",
+              "signature": "func Abs(v Value) Value",
+              "doc": "Abs returns the absolute value of v, following SQLite's abs(): NULL yields\nNULL, non-numeric text yields REAL 0, and the most-negative integer is\nreturned as a REAL to avoid overflow.\n"
+            },
+            {
+              "name": "Blob",
+              "signature": "func Blob(v []byte) Value",
+              "doc": "Blob returns a BLOB value.\n"
+            },
+            {
+              "name": "CallScalar",
+              "signature": "func CallScalar(name string, args []Value) (Value, error)",
+              "doc": "CallScalar evaluates the named built-in scalar function with the supplied\narguments. It returns an error if the function is unknown or if the wrong\nnumber of arguments is supplied. Names are matched case-insensitively.\n"
+            },
+            {
+              "name": "Char",
+              "signature": "func Char(vals ...Value) Value",
+              "doc": "Char returns a string built from the Unicode code points given by its integer\narguments, matching SQLite's char(). NULL arguments are skipped; no arguments\nyields an empty string.\n"
+            },
+            {
+              "name": "Coalesce",
+              "signature": "func Coalesce(vals ...Value) Value",
+              "doc": "Coalesce returns the first non-NULL argument, or NULL if every argument is\nNULL, matching SQLite's coalesce().\n"
+            },
+            {
+              "name": "Hex",
+              "signature": "func Hex(v Value) Value",
+              "doc": "Hex returns the upper-case hexadecimal encoding of v interpreted as a blob,\nmatching SQLite's hex(). NULL yields an empty string.\n"
+            },
+            {
+              "name": "IfNull",
+              "signature": "func IfNull(a, b Value) Value",
+              "doc": "IfNull returns a when a is non-NULL, otherwise b. It mirrors SQLite's\nifnull(a,b), equivalent to coalesce(a,b) with exactly two arguments.\n"
+            },
+            {
+              "name": "Instr",
+              "signature": "func Instr(haystack, needle Value) Value",
+              "doc": "Instr returns the 1-based position of the first occurrence of needle within\nhaystack, or 0 when it does not occur, matching SQLite's instr(). Text is\nsearched by character position; if either argument is a BLOB the search is\nbyte-oriented. A NULL argument yields NULL.\n"
+            },
+            {
+              "name": "Int",
+              "signature": "func Int(v int64) Value",
+              "doc": "Int returns an INTEGER value.\n"
+            },
+            {
+              "name": "LTrim",
+              "signature": "func LTrim(v Value, chars ...Value) Value",
+              "doc": "LTrim removes leading characters from v, mirroring SQLite's ltrim(X) and\nltrim(X,Y). See [Trim] for the argument semantics.\n"
+            },
+            {
+              "name": "Length",
+              "signature": "func Length(v Value) Value",
+              "doc": "Length returns the length of v, following SQLite's length(): NULL yields NULL,\nBLOBs report their byte count, and every other type reports the number of\nUnicode characters (runes) in its textual rendering.\n"
+            },
+            {
+              "name": "Lower",
+              "signature": "func Lower(v Value) Value",
+              "doc": "Lower returns v converted to lower case (ASCII letters only, like SQLite's\nlower()). NULL yields NULL.\n"
+            },
+            {
+              "name": "Null",
+              "signature": "func Null() Value",
+              "doc": "Null returns a NULL value.\n"
+            },
+            {
+              "name": "NullIf",
+              "signature": "func NullIf(a, b Value) Value",
+              "doc": "NullIf returns NULL when a and b compare equal, otherwise a. It mirrors\nSQLite's nullif(a,b).\n"
+            },
+            {
+              "name": "Quote",
+              "signature": "func Quote(v Value) Value",
+              "doc": "Quote returns an SQL literal that, when parsed, reproduces v: 'NULL' for NULL,\nthe number for INTEGER/REAL, a single-quoted string (with embedded quotes\ndoubled) for TEXT, and an X'..' blob literal for BLOB. It mirrors SQLite's\nquote().\n"
+            },
+            {
+              "name": "RTrim",
+              "signature": "func RTrim(v Value, chars ...Value) Value",
+              "doc": "RTrim removes trailing characters from v, mirroring SQLite's rtrim(X) and\nrtrim(X,Y). See [Trim] for the argument semantics.\n"
+            },
+            {
+              "name": "Real",
+              "signature": "func Real(v float64) Value",
+              "doc": "Real returns a REAL value.\n"
+            },
+            {
+              "name": "Replace",
+              "signature": "func Replace(v, from, to Value) Value",
+              "doc": "Replace returns v with every non-overlapping occurrence of from replaced by\nto, mirroring SQLite's replace(). If any argument is NULL the result is NULL;\nan empty from leaves v unchanged.\n"
+            },
+            {
+              "name": "Round",
+              "signature": "func Round(v, digits Value) Value",
+              "doc": "Round returns v rounded to the number of decimal places given by digits,\nalways as a REAL, matching SQLite's round(). Rounding is half-away-from-zero.\nA NULL v yields NULL; a NULL digits is treated as zero; non-numeric input\nrounds to 0. Negative digit counts are clamped to zero.\n"
+            },
+            {
+              "name": "Sign",
+              "signature": "func Sign(v Value) Value",
+              "doc": "Sign returns -1, 0 or 1 as an INTEGER according to the sign of v, matching\nSQLite's sign(). NULL or non-numeric input yields NULL.\n"
+            },
+            {
+              "name": "Substr",
+              "signature": "func Substr(v, start, length Value) Value",
+              "doc": "Substr returns a substring of v using SQLite's substr(X,Y,Z) semantics over\nUnicode characters. start is 1-based; a negative start counts from the end of\nthe string. If length is NULL the substring runs to the end of v; a negative\nlength selects characters preceding the start position. NULL input (or a NULL\nstart) yields NULL.\n"
+            },
+            {
+              "name": "Text",
+              "signature": "func Text(v string) Value",
+              "doc": "Text returns a TEXT value.\n"
+            },
+            {
+              "name": "Trim",
+              "signature": "func Trim(v Value, chars ...Value) Value",
+              "doc": "Trim removes leading and trailing characters from v. With no extra argument it\nstrips spaces; when a single characters value is supplied it strips any of the\ncharacters contained in that value, matching SQLite's trim(X) and trim(X,Y).\nNULL input (or a NULL character set) yields NULL.\n"
+            },
+            {
+              "name": "TypeOf",
+              "signature": "func TypeOf(v Value) Value",
+              "doc": "TypeOf returns the SQLite storage-class name of v: one of \"null\", \"integer\",\n\"real\", \"text\" or \"blob\". It mirrors SQLite's typeof().\n"
+            },
+            {
+              "name": "Unicode",
+              "signature": "func Unicode(v Value) Value",
+              "doc": "Unicode returns the Unicode code point of the first character of v's textual\nrendering, matching SQLite's unicode(). NULL or an empty string yields NULL.\n"
+            },
+            {
+              "name": "Upper",
+              "signature": "func Upper(v Value) Value",
+              "doc": "Upper returns v converted to upper case (ASCII letters only, like SQLite's\nupper()). NULL yields NULL.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Bytes",
+              "recv": "Value",
+              "signature": "func (v Value) Bytes() []byte",
+              "doc": "Bytes returns the blob content of the value.\n"
+            },
+            {
+              "name": "Float64",
+              "recv": "Value",
+              "signature": "func (v Value) Float64() float64",
+              "doc": "Float64 returns the real content of the value.\n"
+            },
+            {
+              "name": "GoValue",
+              "recv": "Value",
+              "signature": "func (v Value) GoValue() interface{}",
+              "doc": "GoValue converts the Value into a plain Go value suitable for database/sql\nscanning: nil, int64, float64, string, or []byte.\n"
+            },
+            {
+              "name": "Int64",
+              "recv": "Value",
+              "signature": "func (v Value) Int64() int64",
+              "doc": "Int64 returns the integer content of the value.\n"
+            },
+            {
+              "name": "IsNull",
+              "recv": "Value",
+              "signature": "func (v Value) IsNull() bool",
+              "doc": "IsNull reports whether the value is SQL NULL.\n"
+            },
+            {
+              "name": "Str",
+              "recv": "Value",
+              "signature": "func (v Value) Str() string",
+              "doc": "Str returns the text content of the value.\n"
+            },
+            {
+              "name": "String",
+              "recv": "Value",
+              "signature": "func (v Value) String() string",
+              "doc": "String renders the value for display and debugging.\n"
+            }
+          ]
+        },
+        {
+          "name": "ValueType",
+          "signature": "type ValueType int",
+          "doc": "ValueType enumerates the storage classes supported by the engine. They mirror\nSQLite's dynamic type system: every Value carries its own type tag.\n",
+          "consts": [
+            {
+              "names": [
+                "TypeNull",
+                "TypeInteger",
+                "TypeReal",
+                "TypeText",
+                "TypeBlob"
+              ],
+              "signature": "const (\n\t// TypeNull is the SQL NULL value.\n\tTypeNull ValueType = iota\n\t// TypeInteger is a 64-bit signed integer.\n\tTypeInteger\n\t// TypeReal is a 64-bit IEEE-754 floating point number.\n\tTypeReal\n\t// TypeText is a UTF-8 string.\n\tTypeText\n\t// TypeBlob is an arbitrary byte string.\n\tTypeBlob\n)",
+              "doc": ""
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "String",
+              "recv": "ValueType",
+              "signature": "func (t ValueType) String() string",
+              "doc": "String returns the SQL type name (e.g. \"INTEGER\", \"TEXT\", \"NULL\").\n"
+            }
+          ]
+        }
+      ],
+      "funcs": [
+        {
+          "name": "Glob",
+          "signature": "func Glob(pattern, text string) bool",
+          "doc": "Glob reports whether text matches the Unix-style glob pattern, using the same\ncase-sensitive semantics as SQLite's GLOB operator: '*' matches any sequence\nof characters, '?' matches any single character, and '[...]' matches a\ncharacter class (with ranges such as a-z and negation via a leading '^' or\n'!').\n"
+        },
+        {
+          "name": "IsScalarFunc",
+          "signature": "func IsScalarFunc(name string) bool",
+          "doc": "IsScalarFunc reports whether name refers to a registered built-in scalar\nfunction (case-insensitive).\n"
+        },
+        {
+          "name": "ScalarNames",
+          "signature": "func ScalarNames() []string",
+          "doc": "ScalarNames returns the sorted, upper-cased names of every registered built-in\nscalar function. The returned slice is freshly allocated on each call and may\nbe modified by the caller.\n"
+        }
+      ],
+      "examples": [
+        {
+          "name": "",
+          "code": "package main\n\nimport (\n\t\"database/sql\"\n\t\"fmt\"\n\t\"log\"\n\n\t_ \"github.com/malcolmston/sqlite\"\n)\n\nfunc main() {\n\tdb, err := sql.Open(\"mstsqlite\", \":memory:\")\n\tif err != nil {\n\t\tlog.Fatal(err)\n\t}\n\tdefer func() { _ = db.Close() }()\n\t// A single shared connection keeps the anonymous in-memory database stable.\n\tdb.SetMaxOpenConns(1)\n\n\tif _, err := db.Exec(`CREATE TABLE fruit (name TEXT NOT NULL, qty INTEGER)`); err != nil {\n\t\tlog.Fatal(err)\n\t}\n\tif _, err := db.Exec(\n\t\t`INSERT INTO fruit (name, qty) VALUES (?, ?), (?, ?), (?, ?)`,\n\t\t\"apple\", 3, \"banana\", 7, \"cherry\", 5,\n\t); err != nil {\n\t\tlog.Fatal(err)\n\t}\n\n\trows, err := db.Query(`SELECT name, qty FROM fruit WHERE qty \u003e= ? ORDER BY qty DESC`, 5)\n\tif err != nil {\n\t\tlog.Fatal(err)\n\t}\n\tdefer func() { _ = rows.Close() }()\n\tfor rows.Next() {\n\t\tvar name string\n\t\tvar qty int\n\t\tif err := rows.Scan(\u0026name, \u0026qty); err != nil {\n\t\t\tlog.Fatal(err)\n\t\t}\n\t\tfmt.Printf(\"%s: %d\\n\", name, qty)\n\t}\n\n\tvar total int\n\tif err := db.QueryRow(`SELECT SUM(qty) FROM fruit`).Scan(\u0026total); err != nil {\n\t\tlog.Fatal(err)\n\t}\n\tfmt.Printf(\"total: %d\\n\", total)\n\n}",
+          "output": "banana: 7\ncherry: 5\ntotal: 15",
+          "doc": "Example demonstrates opening an in-memory database through database/sql,\ncreating a table, inserting rows with placeholder arguments, and running an\naggregate query.\n"
+        }
+      ]
+    }
+  ]
+}

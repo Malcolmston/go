@@ -1,0 +1,801 @@
+{
+  "module": "github.com/malcolmston/numpy",
+  "generatedAt": "2026-07-19T02:05:53Z",
+  "packages": [
+    {
+      "importPath": "github.com/malcolmston/numpy",
+      "name": "numpy",
+      "synopsis": "Package numpy is a small, dependency-free n-dimensional array library for Go modeled on the core of Python's NumPy.",
+      "doc": "Package numpy is a small, dependency-free n-dimensional array library for Go\nmodeled on the core of Python's NumPy. It provides a single dense array type,\nNDArray, holding float64 values, together with creation helpers, shape\nmanipulation, broadcasting element-wise math, axis reductions, basic linear\nalgebra, and boolean masking.\n\n# The NDArray model\n\nAn NDArray stores its elements in one flat []float64 slice. The logical view\nof that buffer is defined by three pieces of metadata:\n\n  - shape: the length of the array along each axis.\n  - strides: how many flat elements to advance to move one step along each\n    axis. Strides are expressed in elements, not bytes.\n  - ndim and size: cached number of axes and total element count.\n\nNewly constructed arrays are contiguous in row-major (C) order. Some\noperations return views that share the underlying buffer without copying:\nTranspose permutes axes by permuting strides, and Slice selects a sub-range\nby adjusting the offset and shape. Because views alias their parent's data,\nwriting through a view is visible in the parent. Operations that must produce\nindependent data (arithmetic, reductions, Reshape, Ravel, Copy) always return\na fresh contiguous array.\n\n# Creation\n\nFromSlice, FromData and FromNested build arrays from existing values. Zeros,\nOnes, Full, Arange, Linspace, Eye and Identity generate arrays. Reshape\nre-views the same data under a new shape (with one optional inferred -1 axis).\n\n# Indexing and manipulation\n\nAt and Set read and write single elements by multi-index (negative indices\ncount from the end). Transpose, Ravel/Flatten, Slice, Concatenate and Stack\nreshape and combine arrays.\n\n# Broadcasting\n\nBinary element-wise operations broadcast their operands following NumPy's\nrules. Shapes are aligned from the trailing axis; two dimensions are\ncompatible when they are equal or one of them is 1, and a size-1 dimension is\nvirtually repeated (implemented with a zero stride, so no data is copied\nduring the broadcast itself). For example a (3, 1) array and a (1, 4) array\nbroadcast to (3, 4). Incompatible shapes panic.\n\n# Element-wise math and reductions\n\nAdd, Sub, Mul, Div, Pow and the comparison operators broadcast two arrays;\nthe *Scalar variants combine an array with a constant. Neg, Abs, Sqrt, Exp,\nLog, Sin and Cos map a function over every element. Sum, Mean, Max, Min, Std,\nVar and Prod reduce the whole array to a scalar, while SumAxis, MeanAxis,\nMaxAxis, MinAxis, StdAxis and ProdAxis reduce along one axis with an optional\nkeepdims flag.\n\n# Linear algebra and masking\n\nDot computes a 1-D dot product or a 2-D matrix product, and MatMul multiplies\ntwo matrices. The comparison operators return boolean masks encoded as 1.0 /\n0.0 float64 arrays; MaskSelect gathers the elements where a mask is set and\nWhere chooses element-wise between two arrays.\n\n# Errors\n\nThe library is deterministic. All shape and dimension validation failures\npanic with a message prefixed by \"numpy:\". This keeps the arithmetic API free\nof error returns so operations can be chained; wrap calls with recover if you\nneed to trap invalid usage.\n",
+      "consts": [],
+      "vars": [],
+      "types": [
+        {
+          "name": "NDArray",
+          "signature": "type NDArray struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "NDArray is an n-dimensional, row-major array of float64 values.\n\nThe element data is held in a single flat slice. The logical view of that\ndata is described by shape (the length along each axis) and strides (the\nnumber of flat elements to step to advance one position along each axis).\nA freshly created array is always contiguous in row-major (C) order, but\nviews produced by Transpose or slicing may be non-contiguous.\n\nAll shape-validation failures panic with a clear message. This keeps the\narithmetic API free of error returns and lets operations be chained. Use\nrecover if you need to trap these panics.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "Arange",
+              "signature": "func Arange(start, stop, step float64) *NDArray",
+              "doc": "Arange returns a 1-D array of evenly spaced values in the half-open interval\n[start, stop) advancing by step. It panics if step is zero.\n"
+            },
+            {
+              "name": "Concatenate",
+              "signature": "func Concatenate(axis int, arrays ...*NDArray) *NDArray",
+              "doc": "Concatenate joins arrays along an existing axis. All arrays must have the\nsame shape except along the concatenation axis.\n"
+            },
+            {
+              "name": "Diag",
+              "signature": "func Diag(a *NDArray) *NDArray",
+              "doc": "Diag has two behaviors mirroring NumPy. Given a 1-D array of length n it\nreturns the n-by-n matrix with that array on its main diagonal and zeros\nelsewhere. Given a 2-D array it returns its main diagonal as a new 1-D array.\nIt panics for arrays of other dimensionality.\n"
+            },
+            {
+              "name": "Eye",
+              "signature": "func Eye(n, m, k int) *NDArray",
+              "doc": "Eye returns an n-by-m matrix with ones on the k-th diagonal and zeros\nelsewhere. A positive k is above the main diagonal, negative below.\n"
+            },
+            {
+              "name": "FromData",
+              "signature": "func FromData(data []float64, shape ...int) *NDArray",
+              "doc": "FromData creates an array from a copy of data laid out in row-major order\nfor the given shape. It panics if len(data) does not match the shape size.\n"
+            },
+            {
+              "name": "FromNested",
+              "signature": "func FromNested(nested any) *NDArray",
+              "doc": "FromNested creates an array from an arbitrarily nested slice of float64\n(for example []float64, [][]float64, [][][]float64). The nested value must\nbe rectangular; a ragged structure panics.\n"
+            },
+            {
+              "name": "FromSlice",
+              "signature": "func FromSlice(values []float64) *NDArray",
+              "doc": "FromSlice creates a 1-D array from a copy of the given values.\n"
+            },
+            {
+              "name": "Full",
+              "signature": "func Full(value float64, shape ...int) *NDArray",
+              "doc": "Full returns a new array of the given shape filled with value.\n"
+            },
+            {
+              "name": "Identity",
+              "signature": "func Identity(n int) *NDArray",
+              "doc": "Identity returns the n-by-n identity matrix.\n"
+            },
+            {
+              "name": "Linspace",
+              "signature": "func Linspace(start, stop float64, num int, endpoint bool) *NDArray",
+              "doc": "Linspace returns a 1-D array of num evenly spaced values. When endpoint is\ntrue, stop is the final value; otherwise stop is excluded. It panics if\nnum is negative.\n"
+            },
+            {
+              "name": "Ones",
+              "signature": "func Ones(shape ...int) *NDArray",
+              "doc": "Ones returns a new array of the given shape filled with 1.\n"
+            },
+            {
+              "name": "OnesLike",
+              "signature": "func OnesLike(a *NDArray) *NDArray",
+              "doc": "OnesLike returns a one-filled array with the same shape as a.\n"
+            },
+            {
+              "name": "Stack",
+              "signature": "func Stack(axis int, arrays ...*NDArray) *NDArray",
+              "doc": "Stack joins arrays along a new axis. All arrays must have identical shapes.\nThe result has one more dimension than the inputs, inserted at axis.\n"
+            },
+            {
+              "name": "Where",
+              "signature": "func Where(mask, x, y *NDArray) *NDArray",
+              "doc": "Where returns an array selecting from x where mask is non-zero and from y\notherwise. All three are broadcast together.\n"
+            },
+            {
+              "name": "Zeros",
+              "signature": "func Zeros(shape ...int) *NDArray",
+              "doc": "Zeros returns a new array of the given shape filled with 0.\n"
+            },
+            {
+              "name": "ZerosLike",
+              "signature": "func ZerosLike(a *NDArray) *NDArray",
+              "doc": "ZerosLike returns a zero-filled array with the same shape as a.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Abs",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Abs() *NDArray",
+              "doc": "Abs returns the element-wise absolute value of a.\n"
+            },
+            {
+              "name": "Add",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Add(b *NDArray) *NDArray",
+              "doc": "Add returns a + b with broadcasting.\n"
+            },
+            {
+              "name": "AddScalar",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) AddScalar(s float64) *NDArray",
+              "doc": "AddScalar returns a + s.\n"
+            },
+            {
+              "name": "All",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) All() bool",
+              "doc": "All reports whether every element is non-zero.\n"
+            },
+            {
+              "name": "AllClose",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) AllClose(b *NDArray, tol float64) bool",
+              "doc": "AllClose reports whether two arrays have the same shape and all elements\ndiffer by no more than tol in absolute value.\n"
+            },
+            {
+              "name": "Any",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Any() bool",
+              "doc": "Any reports whether any element is non-zero.\n"
+            },
+            {
+              "name": "Arccos",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Arccos() *NDArray",
+              "doc": "Arccos returns the element-wise inverse cosine (in radians) of a.\n"
+            },
+            {
+              "name": "Arcsin",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Arcsin() *NDArray",
+              "doc": "Arcsin returns the element-wise inverse sine (in radians) of a.\n"
+            },
+            {
+              "name": "Arctan",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Arctan() *NDArray",
+              "doc": "Arctan returns the element-wise inverse tangent (in radians) of a.\n"
+            },
+            {
+              "name": "Arctan2",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Arctan2(b *NDArray) *NDArray",
+              "doc": "Arctan2 returns the element-wise arc tangent of a/b choosing the quadrant\nfrom the signs of both arguments, with broadcasting. It mirrors NumPy's\narctan2 and math.Atan2 (a is the \"y\" argument, b is \"x\").\n"
+            },
+            {
+              "name": "Argmax",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Argmax() int",
+              "doc": "Argmax returns the flat index (in logical row-major order) of the first\nmaximum element. It panics on an empty array.\n"
+            },
+            {
+              "name": "Argmin",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Argmin() int",
+              "doc": "Argmin returns the flat index (in logical row-major order) of the first\nminimum element. It panics on an empty array.\n"
+            },
+            {
+              "name": "Argsort",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Argsort() *NDArray",
+              "doc": "Argsort returns the indices that would sort a flattened copy of the array in\nascending order, as a 1-D float64 array. The sort is stable, so equal\nelements keep their original relative order.\n"
+            },
+            {
+              "name": "At",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) At(idx ...int) float64",
+              "doc": "At returns the element at the given multi-index. Negative indices count\nfrom the end of each axis.\n"
+            },
+            {
+              "name": "BroadcastTo",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) BroadcastTo(shape ...int) *NDArray",
+              "doc": "BroadcastTo returns a contiguous copy of a broadcast to shape.\n"
+            },
+            {
+              "name": "Cbrt",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Cbrt() *NDArray",
+              "doc": "Cbrt returns the element-wise cube root of a.\n"
+            },
+            {
+              "name": "Ceil",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Ceil() *NDArray",
+              "doc": "Ceil returns the element-wise ceiling of a (least integer \u003e= x).\n"
+            },
+            {
+              "name": "Clip",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Clip(min, max float64) *NDArray",
+              "doc": "Clip returns a copy of a with every element limited to the range [min, max].\nValues below min become min and values above max become max. It panics if\nmin \u003e max.\n"
+            },
+            {
+              "name": "Copy",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Copy() *NDArray",
+              "doc": "Copy returns a new contiguous array holding a copy of the data.\n"
+            },
+            {
+              "name": "Cos",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Cos() *NDArray",
+              "doc": "Cos returns the element-wise cosine of a.\n"
+            },
+            {
+              "name": "Cosh",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Cosh() *NDArray",
+              "doc": "Cosh returns the element-wise hyperbolic cosine of a.\n"
+            },
+            {
+              "name": "Cross",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Cross(b *NDArray) *NDArray",
+              "doc": "Cross returns the cross product of two 1-D arrays, mirroring NumPy's\nnumpy.cross for 1-D inputs. Each operand must have length 2 or 3, with any\nmissing third component treated as zero:\n\n  - two 2-vectors yield the scalar z-component a[0]*b[1] - a[1]*b[0],\n    returned as a 0-dimensional array whose single value is the result;\n  - any combination involving a 3-vector yields a 3-vector.\n\nIt panics if either operand is not 1-D or has a length other than 2 or 3.\n"
+            },
+            {
+              "name": "Cumprod",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Cumprod() *NDArray",
+              "doc": "Cumprod returns a 1-D array of the running cumulative product of the elements\nof a taken in logical row-major order. The result has the same number of\nelements as a.\n"
+            },
+            {
+              "name": "Cumsum",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Cumsum() *NDArray",
+              "doc": "Cumsum returns a 1-D array of the running cumulative sum of the elements of a\ntaken in logical row-major order. The result has the same number of elements\nas a.\n"
+            },
+            {
+              "name": "Data",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Data() []float64",
+              "doc": "Data returns a copy of the array's elements in logical row-major order.\nThe result is always contiguous regardless of the array's internal layout.\n"
+            },
+            {
+              "name": "Diagonal",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Diagonal(k int) *NDArray",
+              "doc": "Diagonal returns the k-th diagonal of a 2-D array as a new 1-D array. A\npositive k selects a diagonal above the main one, a negative k below it. It\npanics if a is not 2-D.\n"
+            },
+            {
+              "name": "Diff",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Diff() *NDArray",
+              "doc": "Diff returns the first discrete difference of a flattened 1-D copy of a, that\nis out[i] = a[i+1] - a[i]. The result has one fewer element than a; an array\nwith 0 or 1 elements yields an empty result.\n"
+            },
+            {
+              "name": "Div",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Div(b *NDArray) *NDArray",
+              "doc": "Div returns the element-wise quotient a / b with broadcasting.\n"
+            },
+            {
+              "name": "DivScalar",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) DivScalar(s float64) *NDArray",
+              "doc": "DivScalar returns a / s.\n"
+            },
+            {
+              "name": "Dot",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Dot(b *NDArray) *NDArray",
+              "doc": "Dot computes a dot product. For two 1-D arrays it returns a scalar array of\nshape (1). For two 2-D arrays it is equivalent to MatMul. Other combinations\npanic.\n"
+            },
+            {
+              "name": "Equal",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Equal(b *NDArray) bool",
+              "doc": "Equal reports whether two arrays have the same shape and identical elements.\n"
+            },
+            {
+              "name": "EqualMask",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) EqualMask(b *NDArray) *NDArray",
+              "doc": "EqualMask returns a mask that is 1 where a == b, with broadcasting.\n"
+            },
+            {
+              "name": "EqualScalar",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) EqualScalar(s float64) *NDArray",
+              "doc": "EqualScalar returns a mask that is 1 where a == s.\n"
+            },
+            {
+              "name": "Exp",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Exp() *NDArray",
+              "doc": "Exp returns the element-wise base-e exponential of a.\n"
+            },
+            {
+              "name": "ExpandDims",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) ExpandDims(axis int) *NDArray",
+              "doc": "ExpandDims returns a copy of a with a new axis of length 1 inserted at the\ngiven position. axis may range from 0 to ndim inclusive; negative values\ncount from the end (where -1 appends after the last existing axis).\n"
+            },
+            {
+              "name": "Expm1",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Expm1() *NDArray",
+              "doc": "Expm1 returns the element-wise value of exp(x)-1, accurate for x near zero.\n"
+            },
+            {
+              "name": "Flatten",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Flatten() *NDArray",
+              "doc": "Flatten is an alias for Ravel; it returns a contiguous 1-D copy.\n"
+            },
+            {
+              "name": "Flip",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Flip(axis int) *NDArray",
+              "doc": "Flip returns a new contiguous array with the order of elements reversed along\nthe given axis. Negative axis values count from the last axis. It panics if\naxis is out of range.\n"
+            },
+            {
+              "name": "Floor",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Floor() *NDArray",
+              "doc": "Floor returns the element-wise floor of a (greatest integer \u003c= x).\n"
+            },
+            {
+              "name": "Greater",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Greater(b *NDArray) *NDArray",
+              "doc": "Greater returns a mask that is 1 where a \u003e b, with broadcasting.\n"
+            },
+            {
+              "name": "GreaterEqual",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) GreaterEqual(b *NDArray) *NDArray",
+              "doc": "GreaterEqual returns a mask that is 1 where a \u003e= b, with broadcasting.\n"
+            },
+            {
+              "name": "GreaterScalar",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) GreaterScalar(s float64) *NDArray",
+              "doc": "GreaterScalar returns a mask that is 1 where a \u003e s.\n"
+            },
+            {
+              "name": "Hypot",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Hypot(b *NDArray) *NDArray",
+              "doc": "Hypot returns the element-wise sqrt(a*a + b*b) computed without undue\noverflow, with broadcasting.\n"
+            },
+            {
+              "name": "Less",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Less(b *NDArray) *NDArray",
+              "doc": "Less returns a mask that is 1 where a \u003c b, with broadcasting.\n"
+            },
+            {
+              "name": "LessEqual",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) LessEqual(b *NDArray) *NDArray",
+              "doc": "LessEqual returns a mask that is 1 where a \u003c= b, with broadcasting.\n"
+            },
+            {
+              "name": "LessScalar",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) LessScalar(s float64) *NDArray",
+              "doc": "LessScalar returns a mask that is 1 where a \u003c s.\n"
+            },
+            {
+              "name": "Log",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Log() *NDArray",
+              "doc": "Log returns the element-wise natural logarithm of a.\n"
+            },
+            {
+              "name": "Log10",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Log10() *NDArray",
+              "doc": "Log10 returns the element-wise base-10 logarithm of a.\n"
+            },
+            {
+              "name": "Log1p",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Log1p() *NDArray",
+              "doc": "Log1p returns the element-wise natural logarithm of 1+x, accurate for x near\nzero.\n"
+            },
+            {
+              "name": "Log2",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Log2() *NDArray",
+              "doc": "Log2 returns the element-wise base-2 logarithm of a.\n"
+            },
+            {
+              "name": "MaskSelect",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) MaskSelect(mask *NDArray) *NDArray",
+              "doc": "MaskSelect returns a 1-D array of the elements of a where mask is non-zero,\nin row-major order. The mask must be broadcast-compatible with a; it is\nbroadcast to a's shape before selection.\n"
+            },
+            {
+              "name": "MatMul",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) MatMul(b *NDArray) *NDArray",
+              "doc": "MatMul returns the matrix product of two 2-D arrays. The receiver has shape\n(m, k) and b has shape (k, n); the result has shape (m, n). It panics on a\ndimension mismatch or non-2-D input.\n"
+            },
+            {
+              "name": "Max",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Max() float64",
+              "doc": "Max returns the largest element. It panics on an empty array.\n"
+            },
+            {
+              "name": "MaxAxis",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) MaxAxis(axis int, keepdims bool) *NDArray",
+              "doc": "MaxAxis reduces a by maximum along the given axis.\n"
+            },
+            {
+              "name": "Maximum",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Maximum(b *NDArray) *NDArray",
+              "doc": "Maximum returns the element-wise maximum of a and b with broadcasting.\n"
+            },
+            {
+              "name": "Mean",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Mean() float64",
+              "doc": "Mean returns the arithmetic mean of all elements. It panics on an empty array.\n"
+            },
+            {
+              "name": "MeanAxis",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) MeanAxis(axis int, keepdims bool) *NDArray",
+              "doc": "MeanAxis reduces a by mean along the given axis.\n"
+            },
+            {
+              "name": "Median",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Median() float64",
+              "doc": "Median returns the median of all elements. For an even number of elements it\nreturns the average of the two middle values. It panics on an empty array.\n"
+            },
+            {
+              "name": "Min",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Min() float64",
+              "doc": "Min returns the smallest element. It panics on an empty array.\n"
+            },
+            {
+              "name": "MinAxis",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) MinAxis(axis int, keepdims bool) *NDArray",
+              "doc": "MinAxis reduces a by minimum along the given axis.\n"
+            },
+            {
+              "name": "Minimum",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Minimum(b *NDArray) *NDArray",
+              "doc": "Minimum returns the element-wise minimum of a and b with broadcasting.\n"
+            },
+            {
+              "name": "Mod",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Mod(b *NDArray) *NDArray",
+              "doc": "Mod returns the element-wise remainder of a/b with broadcasting, computed as\nmath.Mod (the result has the sign of the dividend a).\n"
+            },
+            {
+              "name": "Mul",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Mul(b *NDArray) *NDArray",
+              "doc": "Mul returns the element-wise product a * b with broadcasting.\n"
+            },
+            {
+              "name": "MulScalar",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) MulScalar(s float64) *NDArray",
+              "doc": "MulScalar returns a * s.\n"
+            },
+            {
+              "name": "Ndim",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Ndim() int",
+              "doc": "Ndim returns the number of dimensions (axes) of the array.\n"
+            },
+            {
+              "name": "Neg",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Neg() *NDArray",
+              "doc": "Neg returns the element-wise negation of a.\n"
+            },
+            {
+              "name": "Norm",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Norm() float64",
+              "doc": "Norm returns the Frobenius (L2) norm of a: the square root of the sum of the\nsquares of all elements. For a 1-D array this is the Euclidean vector norm.\n"
+            },
+            {
+              "name": "NotEqualMask",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) NotEqualMask(b *NDArray) *NDArray",
+              "doc": "NotEqualMask returns a mask that is 1 where a != b, with broadcasting.\n"
+            },
+            {
+              "name": "Outer",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Outer(b *NDArray) *NDArray",
+              "doc": "Outer returns the outer product of two arrays. Both operands are flattened to\n1-D; for inputs of length m and n the result is an (m, n) matrix with\nout[i,j] = a[i] * b[j].\n"
+            },
+            {
+              "name": "Percentile",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Percentile(q float64) float64",
+              "doc": "Percentile returns the q-th percentile of all elements, with q in the range\n[0, 100]. It uses linear interpolation between the two nearest ranks, the\nsame as NumPy's default (\"linear\") method. It panics on an empty array or if\nq is outside [0, 100].\n"
+            },
+            {
+              "name": "Pow",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Pow(b *NDArray) *NDArray",
+              "doc": "Pow returns a raised element-wise to the power b, with broadcasting.\n"
+            },
+            {
+              "name": "PowScalar",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) PowScalar(s float64) *NDArray",
+              "doc": "PowScalar returns a raised element-wise to the power s.\n"
+            },
+            {
+              "name": "Prod",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Prod() float64",
+              "doc": "Prod returns the product of all elements.\n"
+            },
+            {
+              "name": "ProdAxis",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) ProdAxis(axis int, keepdims bool) *NDArray",
+              "doc": "ProdAxis reduces a by product along the given axis.\n"
+            },
+            {
+              "name": "Ptp",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Ptp() float64",
+              "doc": "Ptp returns the \"peak to peak\" range of a, that is Max minus Min. It panics\non an empty array.\n"
+            },
+            {
+              "name": "Quantile",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Quantile(q float64) float64",
+              "doc": "Quantile returns the q-th quantile of all elements, with q in the range\n[0, 1]. It is equivalent to Percentile(q*100).\n"
+            },
+            {
+              "name": "Ravel",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Ravel() *NDArray",
+              "doc": "Ravel returns a contiguous 1-D copy of the array in row-major order.\n"
+            },
+            {
+              "name": "Reciprocal",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Reciprocal() *NDArray",
+              "doc": "Reciprocal returns the element-wise reciprocal 1/x of a.\n"
+            },
+            {
+              "name": "Reshape",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Reshape(shape ...int) *NDArray",
+              "doc": "Reshape returns a new array with the same data viewed under a new shape.\nExactly one dimension may be -1, in which case it is inferred from the total\nsize. The data is copied to contiguous order first, so the result is always\nindependent of the receiver.\n"
+            },
+            {
+              "name": "Roll",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Roll(shift int) *NDArray",
+              "doc": "Roll returns a new array the same shape as a with its flattened elements\nshifted circularly by shift positions (positive shifts move elements toward\nhigher indices). The elements are taken in logical row-major order, rolled,\nand reshaped back, matching NumPy's roll with no axis argument.\n"
+            },
+            {
+              "name": "Round",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Round() *NDArray",
+              "doc": "Round returns the element-wise rounding of a to the nearest integer, with\nhalves rounded to the nearest even value (banker's rounding), matching\nNumPy's default round behavior.\n"
+            },
+            {
+              "name": "SearchSorted",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) SearchSorted(v float64) int",
+              "doc": "SearchSorted returns the leftmost index where v could be inserted into a to\nkeep it sorted in ascending order. The receiver must be a 1-D array that is\nalready sorted; the result lies in the range [0, len]. It panics if a is not\n1-D.\n"
+            },
+            {
+              "name": "Set",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Set(v float64, idx ...int)",
+              "doc": "Set stores v at the given multi-index. Negative indices count from the end.\n"
+            },
+            {
+              "name": "Shape",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Shape() []int",
+              "doc": "Shape returns a copy of the array's shape.\n"
+            },
+            {
+              "name": "Sign",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Sign() *NDArray",
+              "doc": "Sign returns the element-wise sign of a: -1 for negative values, 0 for zero,\nand 1 for positive values. A NaN input yields NaN.\n"
+            },
+            {
+              "name": "Sin",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Sin() *NDArray",
+              "doc": "Sin returns the element-wise sine of a.\n"
+            },
+            {
+              "name": "Sinh",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Sinh() *NDArray",
+              "doc": "Sinh returns the element-wise hyperbolic sine of a.\n"
+            },
+            {
+              "name": "Size",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Size() int",
+              "doc": "Size returns the total number of elements in the array.\n"
+            },
+            {
+              "name": "Slice",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Slice(ranges ...Range) *NDArray",
+              "doc": "Slice returns a view selecting a contiguous range [start, stop) along each\naxis. Provide one Range per axis. A zero Range value (Start and Stop both 0)\nis treated as the full extent of that axis. Negative Start/Stop count from\nthe end. The result shares data with the receiver.\n"
+            },
+            {
+              "name": "Sort",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Sort() *NDArray",
+              "doc": "Sort returns a new 1-D array containing all elements of a in ascending order.\nThe array is flattened in logical row-major order before sorting, mirroring\nNumPy's sort of a flattened array. NaN values sort to the end.\n"
+            },
+            {
+              "name": "Sqrt",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Sqrt() *NDArray",
+              "doc": "Sqrt returns the element-wise square root of a.\n"
+            },
+            {
+              "name": "Square",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Square() *NDArray",
+              "doc": "Square returns the element-wise square of a (x*x).\n"
+            },
+            {
+              "name": "Squeeze",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Squeeze() *NDArray",
+              "doc": "Squeeze returns a view-independent copy of a with all axes of length 1\nremoved. If every axis has length 1 the result is a 1-D array of length 1.\n"
+            },
+            {
+              "name": "Std",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Std() float64",
+              "doc": "Std returns the population standard deviation of all elements.\n"
+            },
+            {
+              "name": "StdAxis",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) StdAxis(axis int, keepdims bool) *NDArray",
+              "doc": "StdAxis reduces a by population standard deviation along the given axis.\n"
+            },
+            {
+              "name": "StdDDof",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) StdDDof(ddof int) float64",
+              "doc": "StdDDof returns the standard deviation of all elements using the given delta\ndegrees of freedom; it is the square root of VarDDof(ddof).\n"
+            },
+            {
+              "name": "Strides",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Strides() []int",
+              "doc": "Strides returns a copy of the array's strides (in elements, not bytes).\n"
+            },
+            {
+              "name": "String",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) String() string",
+              "doc": "String renders the array's shape and data for debugging.\n"
+            },
+            {
+              "name": "Sub",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Sub(b *NDArray) *NDArray",
+              "doc": "Sub returns a - b with broadcasting.\n"
+            },
+            {
+              "name": "SubScalar",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) SubScalar(s float64) *NDArray",
+              "doc": "SubScalar returns a - s.\n"
+            },
+            {
+              "name": "Sum",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Sum() float64",
+              "doc": "Sum returns the sum of all elements.\n"
+            },
+            {
+              "name": "SumAxis",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) SumAxis(axis int, keepdims bool) *NDArray",
+              "doc": "SumAxis reduces a by summation along the given axis.\n"
+            },
+            {
+              "name": "T",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) T() *NDArray",
+              "doc": "T is shorthand for a full transpose (reverse of all axes).\n"
+            },
+            {
+              "name": "Tan",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Tan() *NDArray",
+              "doc": "Tan returns the element-wise tangent of a.\n"
+            },
+            {
+              "name": "Tanh",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Tanh() *NDArray",
+              "doc": "Tanh returns the element-wise hyperbolic tangent of a.\n"
+            },
+            {
+              "name": "Trace",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Trace() float64",
+              "doc": "Trace returns the sum of the elements on the main diagonal of a 2-D array.\nIt panics if a is not 2-D.\n"
+            },
+            {
+              "name": "Transpose",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Transpose(axes ...int) *NDArray",
+              "doc": "Transpose returns a view with the axes permuted. With no arguments the axis\norder is reversed. Otherwise axes must be a permutation of 0..ndim-1. The\nresult shares data with the receiver (it is a view, not a copy).\n"
+            },
+            {
+              "name": "Trunc",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Trunc() *NDArray",
+              "doc": "Trunc returns the element-wise truncation of a toward zero.\n"
+            },
+            {
+              "name": "Unique",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Unique() *NDArray",
+              "doc": "Unique returns a new 1-D array of the distinct element values of a, sorted in\nascending order.\n"
+            },
+            {
+              "name": "Var",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) Var() float64",
+              "doc": "Var returns the population variance of all elements (dividing by N).\n"
+            },
+            {
+              "name": "VarDDof",
+              "recv": "*NDArray",
+              "signature": "func (a *NDArray) VarDDof(ddof int) float64",
+              "doc": "VarDDof returns the variance of all elements using the given delta degrees of\nfreedom: the sum of squared deviations from the mean is divided by\n(N - ddof). ddof=0 gives the population variance (like Var) and ddof=1 gives\nthe unbiased sample variance. It panics if N-ddof \u003c= 0.\n"
+            }
+          ]
+        },
+        {
+          "name": "Range",
+          "signature": "type Range struct {\n\tStart int\n\tStop  int\n}",
+          "doc": "Range describes a half-open [Start, Stop) selection along one axis for Slice.\nIf both fields are zero the whole axis is selected. Negative values count\nfrom the end of the axis.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "R",
+              "signature": "func R(start, stop int) Range",
+              "doc": "R is a convenience constructor for a Range.\n"
+            }
+          ],
+          "methods": []
+        }
+      ],
+      "funcs": [],
+      "examples": [
+        {
+          "name": "",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\tnp \"github.com/malcolmston/numpy\"\n)\n\nfunc main() {\n\t// Build a 2x3 array with Arange + Reshape.\n\ta := np.Arange(0, 6, 1).Reshape(2, 3)\n\n\t// Broadcast-add a row vector of shape (3,).\n\tb := np.FromSlice([]float64{10, 20, 30})\n\tsum := a.Add(b)\n\n\t// Reduce along axis 0 (down the columns).\n\tcols := a.SumAxis(0, false)\n\n\t// Matrix multiply a (2x3) with its transpose (3x2) -\u003e (2x2).\n\tgram := a.MatMul(a.T())\n\n\tfmt.Println(\"a      =\", a.Data())\n\tfmt.Println(\"a+b    =\", sum.Data())\n\tfmt.Println(\"colsum =\", cols.Data())\n\tfmt.Println(\"gram   =\", gram.Data())\n\tfmt.Println(\"mean   =\", a.Mean())\n}",
+          "output": "a      = [0 1 2 3 4 5]\na+b    = [10 21 32 13 24 35]\ncolsum = [3 5 7]\ngram   = [5 14 14 50]\nmean   = 2.5"
+        },
+        {
+          "name": "NDArray (MaskSelect)",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\tnp \"github.com/malcolmston/numpy\"\n)\n\nfunc main() {\n\ta := np.Arange(0, 6, 1).Reshape(2, 3)\n\tmask := a.GreaterScalar(2)\n\tfmt.Println(a.MaskSelect(mask).Data())\n}",
+          "output": "[3 4 5]"
+        }
+      ]
+    }
+  ]
+}

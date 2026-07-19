@@ -1,0 +1,1185 @@
+{
+  "module": "github.com/malcolmston/jwt",
+  "generatedAt": "2026-07-19T02:05:52Z",
+  "packages": [
+    {
+      "importPath": "github.com/malcolmston/jwt",
+      "name": "jwt",
+      "synopsis": "Package jwt is a standard-library-only implementation of JSON Web Tokens (RFC 7519) and the underlying JSON Web Signature compact serialization (RFC 7515).",
+      "doc": "Package jwt is a standard-library-only implementation of JSON Web Tokens\n(RFC 7519) and the underlying JSON Web Signature compact serialization\n(RFC 7515).\n\n# Overview\n\nA JWT is three base64url-encoded, dot-separated parts: a JOSE header, a set\nof claims (the payload), and a signature computed over \"header.payload\". This\npackage signs and verifies tokens, encodes and validates the registered\nclaims, and parses PEM key material — all using only the Go standard library\n(crypto/*, encoding/*, math/big, ...). There are no third-party dependencies\nand no cgo.\n\n# Signing methods\n\nEvery algorithm implements the SigningMethod interface. The following are\nregistered on import:\n\n\tHMAC-SHA:    HS256, HS384, HS512   (key: []byte)\n\tRSA PKCS1v15: RS256, RS384, RS512  (sign: *rsa.PrivateKey, verify: *rsa.PublicKey)\n\tRSA-PSS:     PS256, PS384, PS512   (sign: *rsa.PrivateKey, verify: *rsa.PublicKey)\n\tECDSA:       ES256, ES384, ES512   (sign: *ecdsa.PrivateKey, verify: *ecdsa.PublicKey)\n\tEdDSA:       EdDSA (Ed25519)       (sign: ed25519.PrivateKey, verify: ed25519.PublicKey)\n\tUnsecured:   none                  (key: jwt.UnsafeAllowNoneSignatureType)\n\nECDSA signatures use the fixed-width r||s encoding required by RFC 7518, not\nASN.1 DER. Every method type-asserts its key, so a token cannot be verified\nwith a key of the wrong type (the classic algorithm-confusion attack). The\n\"none\" method is opt-in twice over: the parser must be given WithAllowNone\nand the key must be the sentinel UnsafeAllowNoneSignatureType.\n\n# JWK and JWKS\n\nParseJWK decodes a single JSON Web Key (RFC 7517) — RSA, EC, OKP (Ed25519),\nor oct — into a Go crypto key, and JSONWebKey.Thumbprint computes the RFC 7638\nthumbprint. ParseJWKSet decodes a key set; JSONWebKeySet.Keyfunc yields a\nKeyfunc that selects a key by the token's \"kid\". JWKSCache fetches and caches\na remote JWKS over net/http (with an injectable HTTPDoer for tests),\nrefreshing on TTL expiry or on a kid miss, and also exposes a Keyfunc.\n\n# Detached and unencoded payloads\n\nSignDetached and VerifyDetached implement RFC 7797 (\"b64\":false): the payload\nis signed as-is and carried out of band rather than embedded in the compact\nserialization.\n\n# Inspecting without verifying\n\nParseUnverified decodes a token's header and claims without checking the\nsignature — useful for reading a \"kid\" before key selection. Never trust its\noutput for security decisions.\n\n# Claims\n\nRegisteredClaims models the IANA-registered claims (iss, sub, aud, exp, nbf,\niat, jti). Times use NumericDate (seconds since the Unix epoch) and the\naudience uses ClaimStrings, which decodes from either a JSON string or an\narray of strings. MapClaims (a map[string]any) handles arbitrary claim sets.\nAny custom struct may be used as claims so long as it implements the Claims\ninterface (a single Valid method); embedding RegisteredClaims is the simplest\nway to do so.\n\n# Signing\n\nBuild and sign a token in one of two equivalent ways:\n\n\ttok := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)\n\ts, err := tok.SignedString([]byte(\"secret\"))\n\n\ts, err := jwt.Sign(claims, jwt.SigningMethodHS256, []byte(\"secret\"))\n\n# Parsing and validation\n\nParse resolves the verification key through a Keyfunc, which receives the\ndecoded token (including its header, e.g. \"kid\") so it can select the correct\nkey. Parse decodes into MapClaims; ParseWithClaims decodes into a caller-\nsupplied claims value:\n\n\ttok, err := jwt.Parse(s, func(t *jwt.Token) (any, error) {\n\t        return []byte(\"secret\"), nil\n\t}, jwt.WithValidMethods([]string{\"HS256\"}))\n\nParser options configure validation: WithValidMethods (reject unexpected\nalgorithms), WithLeeway, WithClock / WithTimeFunc (deterministic time),\nWithAudience, WithIssuer, WithSubject, WithIssuedAt, WithExpirationRequired,\nWithMaxTokenAge, WithRequiredClaims, WithValidTypes,\nWithKnownCriticalHeaders, WithJSONNumber, and WithAllowNone. The exp, nbf,\nand (optionally) iat claims are checked against the injected clock with the\nconfigured leeway. Unrecognized JOSE \"crit\" headers are rejected per\nRFC 7515. A Parser built with NewParser may be reused across calls.\n\nAll errors are wrapped sentinels; test them with errors.Is, e.g.\nerrors.Is(err, jwt.ErrTokenExpired) or errors.Is(err, jwt.ErrSignatureInvalid).\n\n# Keys\n\nParseRSAPrivateKeyFromPEM, ParseRSAPublicKeyFromPEM, ParseECPrivateKeyFromPEM,\nParseECPublicKeyFromPEM, ParseEdPrivateKeyFromPEM, and ParseEdPublicKeyFromPEM\nread PEM-encoded key material (PKCS#1, SEC1, PKCS#8, PKIX, and certificates as\napplicable).\n",
+      "consts": [],
+      "vars": [
+        {
+          "names": [
+            "SigningMethodES256",
+            "SigningMethodES384",
+            "SigningMethodES512"
+          ],
+          "signature": "var (\n\tSigningMethodES256 = \u0026SigningMethodECDSA{Name: \"ES256\", Hash: crypto.SHA256, KeySize: 32}\n\tSigningMethodES384 = \u0026SigningMethodECDSA{Name: \"ES384\", Hash: crypto.SHA384, KeySize: 48}\n\tSigningMethodES512 = \u0026SigningMethodECDSA{Name: \"ES512\", Hash: crypto.SHA512, KeySize: 66}\n)",
+          "doc": "Predefined ECDSA signing methods. ES512 uses the P-521 curve, whose field is\n521 bits, i.e. 66 bytes per coordinate.\n"
+        },
+        {
+          "names": [
+            "ErrInvalidToken",
+            "ErrTokenMalformed",
+            "ErrSignatureInvalid",
+            "ErrTokenUnverifiable",
+            "ErrInvalidKeyType",
+            "ErrHashUnavailable",
+            "ErrSigningMethodUnavailable",
+            "ErrTokenExpired",
+            "ErrTokenNotValidYet",
+            "ErrTokenUsedBeforeIssued",
+            "ErrTokenInvalidAudience",
+            "ErrTokenInvalidIssuer",
+            "ErrTokenInvalidSubject",
+            "ErrTokenRequiredClaimMissing",
+            "ErrInvalidType",
+            "ErrNoneAlgDisallowed",
+            "ErrInvalidKey",
+            "ErrKeyNotFound",
+            "ErrTokenTooOld",
+            "ErrInvalidCrit",
+            "ErrInvalidTyp",
+            "ErrJWKSFetch"
+          ],
+          "signature": "var (\n\t// ErrInvalidToken is a generic error indicating the token could not be\n\t// parsed or is otherwise malformed.\n\tErrInvalidToken = errors.New(\"jwt: token is invalid\")\n\n\t// ErrTokenMalformed indicates the compact serialization did not have the\n\t// expected three dot-separated parts, or a part failed to decode.\n\tErrTokenMalformed = errors.New(\"jwt: token is malformed\")\n\n\t// ErrSignatureInvalid indicates the signature failed verification.\n\tErrSignatureInvalid = errors.New(\"jwt: signature is invalid\")\n\n\t// ErrTokenUnverifiable indicates the keyFunc returned an error or no key.\n\tErrTokenUnverifiable = errors.New(\"jwt: token is unverifiable\")\n\n\t// ErrInvalidKeyType indicates the key supplied to a signing method was not\n\t// of the type that method requires.\n\tErrInvalidKeyType = errors.New(\"jwt: key is of invalid type\")\n\n\t// ErrHashUnavailable indicates the requested hash function is not linked\n\t// into the binary.\n\tErrHashUnavailable = errors.New(\"jwt: the requested hash function is unavailable\")\n\n\t// ErrSigningMethodUnavailable indicates the alg header referenced a method\n\t// that has not been registered.\n\tErrSigningMethodUnavailable = errors.New(\"jwt: signing method is unavailable\")\n\n\t// ErrTokenExpired indicates the exp claim is in the past.\n\tErrTokenExpired = errors.New(\"jwt: token is expired\")\n\n\t// ErrTokenNotValidYet indicates the nbf claim is in the future.\n\tErrTokenNotValidYet = errors.New(\"jwt: token is not valid yet\")\n\n\t// ErrTokenUsedBeforeIssued indicates the iat claim is in the future.\n\tErrTokenUsedBeforeIssued = errors.New(\"jwt: token used before issued\")\n\n\t// ErrTokenInvalidAudience indicates the aud claim did not contain the\n\t// expected audience.\n\tErrTokenInvalidAudience = errors.New(\"jwt: token has invalid audience\")\n\n\t// ErrTokenInvalidIssuer indicates the iss claim did not match the expected\n\t// issuer.\n\tErrTokenInvalidIssuer = errors.New(\"jwt: token has invalid issuer\")\n\n\t// ErrTokenInvalidSubject indicates the sub claim did not match the expected\n\t// subject.\n\tErrTokenInvalidSubject = errors.New(\"jwt: token has invalid subject\")\n\n\t// ErrTokenRequiredClaimMissing indicates a claim required by parser options\n\t// was absent.\n\tErrTokenRequiredClaimMissing = errors.New(\"jwt: token is missing a required claim\")\n\n\t// ErrInvalidType indicates a claim held a value of an unexpected JSON type.\n\tErrInvalidType = errors.New(\"jwt: invalid type for claim\")\n\n\t// ErrNoneAlgDisallowed indicates a token used the \"none\" algorithm but the\n\t// parser was not configured to accept unsecured tokens.\n\tErrNoneAlgDisallowed = errors.New(\"jwt: 'none' signature type is not allowed\")\n\n\t// ErrInvalidKey indicates a JWK could not be decoded into a usable key, or\n\t// held inconsistent parameters.\n\tErrInvalidKey = errors.New(\"jwt: key is invalid\")\n\n\t// ErrKeyNotFound indicates a JWKS did not contain a key matching the\n\t// requested key ID.\n\tErrKeyNotFound = errors.New(\"jwt: no key found for kid\")\n\n\t// ErrTokenTooOld indicates the token's age (now minus iat) exceeds the\n\t// maximum permitted by WithMaxTokenAge.\n\tErrTokenTooOld = errors.New(\"jwt: token is older than the maximum allowed age\")\n\n\t// ErrInvalidCrit indicates the JOSE \"crit\" header referenced an extension\n\t// the parser does not understand, or was itself malformed.\n\tErrInvalidCrit = errors.New(\"jwt: unsupported or malformed 'crit' header\")\n\n\t// ErrInvalidTyp indicates the JOSE \"typ\" header did not match one of the\n\t// types required by WithValidTypes.\n\tErrInvalidTyp = errors.New(\"jwt: token has invalid 'typ' header\")\n\n\t// ErrJWKSFetch indicates a JWKS could not be fetched or refreshed from its\n\t// remote endpoint.\n\tErrJWKSFetch = errors.New(\"jwt: could not fetch JWKS\")\n)",
+          "doc": "Sentinel errors returned by the package. Callers may test for these using\nerrors.Is. Parsing and validation errors are typically wrapped so that a\nsingle returned error can match several of these categories.\n"
+        },
+        {
+          "names": [
+            "SigningMethodHS256",
+            "SigningMethodHS384",
+            "SigningMethodHS512"
+          ],
+          "signature": "var (\n\tSigningMethodHS256 = \u0026SigningMethodHMAC{Name: \"HS256\", Hash: crypto.SHA256}\n\tSigningMethodHS384 = \u0026SigningMethodHMAC{Name: \"HS384\", Hash: crypto.SHA384}\n\tSigningMethodHS512 = \u0026SigningMethodHMAC{Name: \"HS512\", Hash: crypto.SHA512}\n)",
+          "doc": "Predefined HMAC signing methods.\n"
+        },
+        {
+          "names": [
+            "SigningMethodRS256",
+            "SigningMethodRS384",
+            "SigningMethodRS512"
+          ],
+          "signature": "var (\n\tSigningMethodRS256 = \u0026SigningMethodRSA{Name: \"RS256\", Hash: crypto.SHA256}\n\tSigningMethodRS384 = \u0026SigningMethodRSA{Name: \"RS384\", Hash: crypto.SHA384}\n\tSigningMethodRS512 = \u0026SigningMethodRSA{Name: \"RS512\", Hash: crypto.SHA512}\n)",
+          "doc": "Predefined RSA PKCS1v15 signing methods.\n"
+        },
+        {
+          "names": [
+            "SigningMethodPS256",
+            "SigningMethodPS384",
+            "SigningMethodPS512"
+          ],
+          "signature": "var (\n\tSigningMethodPS256 = \u0026SigningMethodRSAPSS{\n\t\tName:    \"PS256\",\n\t\tHash:    crypto.SHA256,\n\t\tOptions: \u0026rsa.PSSOptions{SaltLength: rsa.PSSSaltLengthEqualsHash, Hash: crypto.SHA256},\n\t}\n\tSigningMethodPS384 = \u0026SigningMethodRSAPSS{\n\t\tName:    \"PS384\",\n\t\tHash:    crypto.SHA384,\n\t\tOptions: \u0026rsa.PSSOptions{SaltLength: rsa.PSSSaltLengthEqualsHash, Hash: crypto.SHA384},\n\t}\n\tSigningMethodPS512 = \u0026SigningMethodRSAPSS{\n\t\tName:    \"PS512\",\n\t\tHash:    crypto.SHA512,\n\t\tOptions: \u0026rsa.PSSOptions{SaltLength: rsa.PSSSaltLengthEqualsHash, Hash: crypto.SHA512},\n\t}\n)",
+          "doc": "Predefined RSA-PSS signing methods. Per RFC 7518 the salt length equals the\nhash output length.\n"
+        },
+        {
+          "names": [
+            "ErrKeyMustBePEMEncoded"
+          ],
+          "signature": "var ErrKeyMustBePEMEncoded = fmt.Errorf(\"%w: key must be PEM encoded\", ErrInvalidKeyType)",
+          "doc": "ErrKeyMustBePEMEncoded is returned when the input is not valid PEM.\n"
+        },
+        {
+          "names": [
+            "SigningMethodEdDSA"
+          ],
+          "signature": "var SigningMethodEdDSA = \u0026SigningMethodEd25519{}",
+          "doc": "SigningMethodEdDSA is the shared instance of the EdDSA (Ed25519) signing\nmethod. It is registered under the \"EdDSA\" alg on import.\n"
+        },
+        {
+          "names": [
+            "SigningMethodNoneAlg"
+          ],
+          "signature": "var SigningMethodNoneAlg = \u0026SigningMethodNone{}",
+          "doc": "SigningMethodNoneAlg is the shared instance of the \"none\" method.\n"
+        },
+        {
+          "names": [
+            "UnsafeAllowNoneSignatureType"
+          ],
+          "signature": "var UnsafeAllowNoneSignatureType any = unsafeNoneMagic{}",
+          "doc": "UnsafeAllowNoneSignatureType is the only key value accepted by the \"none\"\nsigning method. Its type makes the opt-in explicit and greppable.\n"
+        }
+      ],
+      "types": [
+        {
+          "name": "ClaimStrings",
+          "signature": "type ClaimStrings []string",
+          "doc": "ClaimStrings represents the JWT \"aud\" claim, which may be encoded either as a\nsingle string or as an array of strings (RFC 7519 §4.1.3). It always\nmarshals back as an array unless it holds exactly one element handled by the\ncaller.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "MarshalJSON",
+              "recv": "ClaimStrings",
+              "signature": "func (s ClaimStrings) MarshalJSON() ([]byte, error)",
+              "doc": "MarshalJSON encodes as a single string when there is exactly one audience,\notherwise as an array. An empty value encodes as null (omitted with\nomitempty).\n"
+            },
+            {
+              "name": "UnmarshalJSON",
+              "recv": "*ClaimStrings",
+              "signature": "func (s *ClaimStrings) UnmarshalJSON(b []byte) error",
+              "doc": "UnmarshalJSON accepts either a JSON string or a JSON array of strings.\n"
+            }
+          ]
+        },
+        {
+          "name": "Claims",
+          "signature": "type Claims interface {\n\t// Valid reports whether the claims are internally consistent. It is called\n\t// during parsing; returning a non-nil error rejects the token. The\n\t// registered-claim time checks are performed separately by the parser's\n\t// validator, so lightweight implementations may simply return nil.\n\tValid() error\n}",
+          "doc": "Claims is implemented by any type that can be used as the payload of a JWT.\nValid performs stateless self-validation and is invoked by the parser before\nthe parser's own option-driven validation runs.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Clock",
+          "signature": "type Clock interface {\n\tNow() time.Time\n}",
+          "doc": "Clock supplies the current time to the validator. Injecting a Clock makes\nexp/nbf/iat validation deterministic in tests.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "ClockFunc",
+          "signature": "type ClockFunc func() time.Time",
+          "doc": "ClockFunc adapts a function to the Clock interface.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Now",
+              "recv": "ClockFunc",
+              "signature": "func (f ClockFunc) Now() time.Time",
+              "doc": "Now calls the wrapped function.\n"
+            }
+          ]
+        },
+        {
+          "name": "HTTPDoer",
+          "signature": "type HTTPDoer interface {\n\tDo(req *http.Request) (*http.Response, error)\n}",
+          "doc": "HTTPDoer is the subset of *http.Client used by JWKSCache to fetch a key set.\nInjecting a custom implementation makes the cache testable without real\nnetwork access.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "JSONWebKey",
+          "signature": "type JSONWebKey struct {\n\t// Key holds the parsed Go crypto key (see the type list above). It is\n\t// populated by ParseJWK and by JSONWebKeySet parsing; it is nil on a JWK\n\t// that was only unmarshaled as JSON.\n\tKey any `json:\"-\"`\n\n\t// Kty is the key type: \"RSA\", \"EC\", \"OKP\", or \"oct\".\n\tKty string `json:\"kty\"`\n\t// Use is the intended public key use, \"sig\" or \"enc\" (optional).\n\tUse string `json:\"use,omitempty\"`\n\t// KeyOps lists the permitted key operations (optional).\n\tKeyOps []string `json:\"key_ops,omitempty\"`\n\t// Alg is the algorithm intended for use with the key, e.g. \"RS256\".\n\tAlg string `json:\"alg,omitempty\"`\n\t// Kid is the key ID used to match a JWK against a token's \"kid\" header.\n\tKid string `json:\"kid,omitempty\"`\n\n\t// RSA public parameters.\n\tN string `json:\"n,omitempty\"` // modulus\n\tE string `json:\"e,omitempty\"` // public exponent\n\t// RSA private parameters.\n\tD  string `json:\"d,omitempty\"`  // private exponent (also EC/OKP private key)\n\tP  string `json:\"p,omitempty\"`  // first prime factor\n\tQ  string `json:\"q,omitempty\"`  // second prime factor\n\tDp string `json:\"dp,omitempty\"` // d mod (p-1)\n\tDq string `json:\"dq,omitempty\"` // d mod (q-1)\n\tQi string `json:\"qi,omitempty\"` // q^-1 mod p\n\n\t// EC / OKP parameters.\n\tCrv string `json:\"crv,omitempty\"` // curve, e.g. \"P-256\" or \"Ed25519\"\n\tX   string `json:\"x,omitempty\"`   // x coordinate (EC) or public key (OKP)\n\tY   string `json:\"y,omitempty\"`   // y coordinate (EC)\n\n\t// oct parameter.\n\tK string `json:\"k,omitempty\"` // symmetric key material\n}",
+          "doc": "JSONWebKey represents a single JSON Web Key (RFC 7517). It carries the raw\nJWK parameters as decoded from JSON and, after ParseJWK (or Parse on a set),\nthe corresponding Go crypto key in Key.\n\nThe supported key types (\"kty\") are:\n\n\tRSA  – *rsa.PublicKey / *rsa.PrivateKey\n\tEC   – *ecdsa.PublicKey / *ecdsa.PrivateKey (curves P-256, P-384, P-521)\n\tOKP  – ed25519.PublicKey / ed25519.PrivateKey (curve Ed25519)\n\toct  – []byte (a symmetric secret)\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewJSONWebKey",
+              "signature": "func NewJSONWebKey(key any) (*JSONWebKey, error)",
+              "doc": "NewJSONWebKey constructs a JSONWebKey (RFC 7517) from a Go crypto key,\npopulating the JSON parameters (\"n\", \"e\", \"x\", \"y\", \"d\", \"crv\", \"k\", ...) that\ncorrespond to the key's type. It is the inverse of ParseJWK, letting a service\npublish its verification keys as a JWK or JWKS.\n\nThe supported key types are:\n\n\t*rsa.PublicKey / *rsa.PrivateKey        -\u003e kty \"RSA\"\n\t*ecdsa.PublicKey / *ecdsa.PrivateKey    -\u003e kty \"EC\"  (P-256, P-384, P-521)\n\ted25519.PublicKey / ed25519.PrivateKey  -\u003e kty \"OKP\" (crv Ed25519)\n\t[]byte                                  -\u003e kty \"oct\"\n\nCoordinate and modulus fields use unpadded base64url with the fixed octet\nlengths required by RFC 7518. The resolved key is stored in the Key field, so\nthe returned JWK round-trips through ParseJWK. Use the chainable WithKeyID,\nWithAlgorithm, and WithUse to annotate the key.\n"
+            },
+            {
+              "name": "ParseJWK",
+              "signature": "func ParseJWK(data []byte) (*JSONWebKey, error)",
+              "doc": "ParseJWK decodes a single JWK from its JSON encoding and resolves its Go\ncrypto key into the returned key's Key field.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Base64Thumbprint",
+              "recv": "*JSONWebKey",
+              "signature": "func (j *JSONWebKey) Base64Thumbprint(h crypto.Hash) (string, error)",
+              "doc": "Base64Thumbprint returns the RFC 7638 JWK thumbprint of the key encoded as\nunpadded base64url, the textual form conventionally used as a \"kid\".\n"
+            },
+            {
+              "name": "IsPrivate",
+              "recv": "*JSONWebKey",
+              "signature": "func (j *JSONWebKey) IsPrivate() bool",
+              "doc": "IsPrivate reports whether the resolved key is a private (signing) key.\n"
+            },
+            {
+              "name": "MarshalJSON",
+              "recv": "JSONWebKey",
+              "signature": "func (j JSONWebKey) MarshalJSON() ([]byte, error)",
+              "doc": "MarshalJSON encodes the JWK parameters (not the resolved Key) as JSON.\n"
+            },
+            {
+              "name": "Public",
+              "recv": "*JSONWebKey",
+              "signature": "func (j *JSONWebKey) Public() *JSONWebKey",
+              "doc": "Public returns a JWK holding only the public part of the key. For a symmetric\n(\"oct\") key, which has no public form, it returns the receiver unchanged.\n"
+            },
+            {
+              "name": "Thumbprint",
+              "recv": "*JSONWebKey",
+              "signature": "func (j *JSONWebKey) Thumbprint(h crypto.Hash) ([]byte, error)",
+              "doc": "Thumbprint returns the RFC 7638 JWK thumbprint of the key, computed with the\ngiven hash (SHA-256 is the conventional choice). The thumbprint is derived\nfrom the canonical, minimal set of required members for the key type, encoded\nas lexicographically ordered compact JSON, and is stable across\nimplementations. The raw hash digest is returned; base64url-encode it for a\ntextual identifier.\n"
+            },
+            {
+              "name": "ThumbprintURI",
+              "recv": "*JSONWebKey",
+              "signature": "func (j *JSONWebKey) ThumbprintURI(h crypto.Hash) (string, error)",
+              "doc": "ThumbprintURI returns the RFC 9278 JWK Thumbprint URI for the key, of the form\n\"urn:ietf:params:oauth:jwk-thumbprint:sha-256:\u003cbase64url\u003e\". Only SHA-256,\nSHA-384, and SHA-512 have registered hash names; other hashes yield an error.\n"
+            },
+            {
+              "name": "UnmarshalJSON",
+              "recv": "*JSONWebKey",
+              "signature": "func (j *JSONWebKey) UnmarshalJSON(data []byte) error",
+              "doc": "UnmarshalJSON decodes the JWK JSON parameters and resolves the crypto key.\n"
+            },
+            {
+              "name": "WithAlgorithm",
+              "recv": "*JSONWebKey",
+              "signature": "func (j *JSONWebKey) WithAlgorithm(alg string) *JSONWebKey",
+              "doc": "WithAlgorithm sets the JWK \"alg\" (intended algorithm, e.g. \"RS256\") and\nreturns the receiver for chaining.\n"
+            },
+            {
+              "name": "WithKeyID",
+              "recv": "*JSONWebKey",
+              "signature": "func (j *JSONWebKey) WithKeyID(kid string) *JSONWebKey",
+              "doc": "WithKeyID sets the JWK \"kid\" (key ID) and returns the receiver for chaining.\n"
+            },
+            {
+              "name": "WithUse",
+              "recv": "*JSONWebKey",
+              "signature": "func (j *JSONWebKey) WithUse(use string) *JSONWebKey",
+              "doc": "WithUse sets the JWK \"use\" (public key use, \"sig\" or \"enc\") and returns the\nreceiver for chaining.\n"
+            }
+          ]
+        },
+        {
+          "name": "JSONWebKeySet",
+          "signature": "type JSONWebKeySet struct {\n\tKeys []JSONWebKey `json:\"keys\"`\n}",
+          "doc": "JSONWebKeySet is a set of JSON Web Keys (RFC 7517 §5), the \"jwks\" document\ncommonly served at a provider's well-known endpoint.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "ParseJWKSet",
+              "signature": "func ParseJWKSet(data []byte) (*JSONWebKeySet, error)",
+              "doc": "ParseJWKSet decodes a JWKS (JSON Web Key Set) document and resolves the Go\ncrypto key for every contained JWK.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Add",
+              "recv": "*JSONWebKeySet",
+              "signature": "func (s *JSONWebKeySet) Add(keys ...JSONWebKey) *JSONWebKeySet",
+              "doc": "Add appends keys to the set and returns the receiver for chaining, making it\nconvenient to assemble a JWKS document for publication.\n"
+            },
+            {
+              "name": "Key",
+              "recv": "*JSONWebKeySet",
+              "signature": "func (s *JSONWebKeySet) Key(kid string) (any, error)",
+              "doc": "Key returns the single resolved crypto key in the set matching kid. It fails\nwith ErrKeyNotFound if no key matches, and with ErrInvalidKey if more than\none key shares the kid (ambiguous). When the set holds exactly one key and\nkid is empty, that key is returned.\n"
+            },
+            {
+              "name": "Keyfunc",
+              "recv": "*JSONWebKeySet",
+              "signature": "func (s *JSONWebKeySet) Keyfunc() Keyfunc",
+              "doc": "Keyfunc returns a Keyfunc that resolves the verification key from the set by\nthe token's \"kid\" header. It also enforces that the JWK's declared \"alg\"\n(when present) matches the token's alg header, an additional guard against\nalgorithm confusion.\n"
+            },
+            {
+              "name": "LookupKeyID",
+              "recv": "*JSONWebKeySet",
+              "signature": "func (s *JSONWebKeySet) LookupKeyID(kid string) []JSONWebKey",
+              "doc": "LookupKeyID returns every key in the set whose Kid equals kid. A JWKS may\nlegitimately contain more than one key for a kid during key rotation.\n"
+            }
+          ]
+        },
+        {
+          "name": "JWKSCache",
+          "signature": "type JWKSCache struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "JWKSCache fetches a JSON Web Key Set from a URL and caches it, refreshing when\nthe cached copy grows older than the configured TTL or when a lookup misses\n(an unknown kid, which typically means the provider rotated keys). It is safe\nfor concurrent use.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewJWKSCache",
+              "signature": "func NewJWKSCache(url string, opts ...JWKSCacheOption) *JWKSCache",
+              "doc": "NewJWKSCache constructs a cache that fetches the JWKS document at url on\ndemand. Construction does not perform any network I/O; the first fetch\nhappens on the first Get, KeySet, or Keyfunc lookup.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "KeySet",
+              "recv": "*JWKSCache",
+              "signature": "func (k *JWKSCache) KeySet(ctx context.Context) (*JSONWebKeySet, error)",
+              "doc": "KeySet returns the cached key set, fetching it if the cache is empty or its\nTTL has expired. A refresh failure returns the stale set (if any) alongside\nthe error so callers may choose to proceed with previously good keys.\n"
+            },
+            {
+              "name": "Keyfunc",
+              "recv": "*JWKSCache",
+              "signature": "func (k *JWKSCache) Keyfunc() Keyfunc",
+              "doc": "Keyfunc returns a Keyfunc backed by the cache. On a kid miss it triggers one\nrate-limited refresh (bounded by WithMinRefreshInterval) before giving up, so\nkey rotation is picked up without a fetch storm. The context used for any\nrefresh is context.Background; use KeyfuncCtx to supply your own.\n"
+            },
+            {
+              "name": "KeyfuncCtx",
+              "recv": "*JWKSCache",
+              "signature": "func (k *JWKSCache) KeyfuncCtx(ctx context.Context) Keyfunc",
+              "doc": "KeyfuncCtx is like Keyfunc but uses ctx for any refresh network calls.\n"
+            },
+            {
+              "name": "Refresh",
+              "recv": "*JWKSCache",
+              "signature": "func (k *JWKSCache) Refresh(ctx context.Context) error",
+              "doc": "Refresh forces an immediate re-fetch of the JWKS, ignoring the TTL. It is\nuseful to warm the cache at startup.\n"
+            }
+          ]
+        },
+        {
+          "name": "JWKSCacheOption",
+          "signature": "type JWKSCacheOption func(*JWKSCache)",
+          "doc": "JWKSCacheOption configures a JWKSCache.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "WithHTTPClient",
+              "signature": "func WithHTTPClient(c HTTPDoer) JWKSCacheOption",
+              "doc": "WithHTTPClient sets the HTTP client used to fetch the JWKS. The default is\nhttp.DefaultClient. Pass any HTTPDoer (e.g. a fake) to control fetching in\ntests.\n"
+            },
+            {
+              "name": "WithMinRefreshInterval",
+              "signature": "func WithMinRefreshInterval(d time.Duration) JWKSCacheOption",
+              "doc": "WithMinRefreshInterval rate-limits refreshes triggered by an unknown kid, so\na burst of tokens with a bogus kid cannot cause a fetch storm. The default is\none minute.\n"
+            },
+            {
+              "name": "WithRefreshInterval",
+              "signature": "func WithRefreshInterval(d time.Duration) JWKSCacheOption",
+              "doc": "WithRefreshInterval sets how long a fetched key set is considered fresh.\nAfter this TTL elapses the next lookup triggers a refresh. The default is one\nhour.\n"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "name": "Keyfunc",
+          "signature": "type Keyfunc func(token *Token) (any, error)",
+          "doc": "Keyfunc is called by the parser after the header is decoded, with the\npartially constructed token, to obtain the verification key. Implementations\ntypically inspect token.Header (e.g. the \"kid\") and/or token.Method to\nchoose the key. Returning an error aborts parsing.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "MapClaims",
+          "signature": "type MapClaims map[string]any",
+          "doc": "MapClaims is a Claims implementation backed by a plain map, useful when the\nset of claims is dynamic or not known ahead of time.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "GetAudience",
+              "recv": "MapClaims",
+              "signature": "func (m MapClaims) GetAudience() ClaimStrings",
+              "doc": "GetAudience returns the aud claim, tolerating both string and []any forms.\n"
+            },
+            {
+              "name": "GetAuthorizedParty",
+              "recv": "MapClaims",
+              "signature": "func (m MapClaims) GetAuthorizedParty() string",
+              "doc": "GetAuthorizedParty returns the OpenID Connect \"azp\" (authorized party) claim\nas a string, or \"\" if absent. When present it names the party the token was\nissued to, and should equal the relying party's client ID.\n"
+            },
+            {
+              "name": "GetBool",
+              "recv": "MapClaims",
+              "signature": "func (m MapClaims) GetBool(key string) (bool, bool)",
+              "doc": "GetBool returns the claim key as a bool together with true when it is present\nand holds a JSON boolean. It returns (false, false) otherwise.\n"
+            },
+            {
+              "name": "GetExpirationTime",
+              "recv": "MapClaims",
+              "signature": "func (m MapClaims) GetExpirationTime() *NumericDate",
+              "doc": "GetExpirationTime returns the exp claim.\n"
+            },
+            {
+              "name": "GetFloat64",
+              "recv": "MapClaims",
+              "signature": "func (m MapClaims) GetFloat64(key string) (float64, bool)",
+              "doc": "GetFloat64 returns the claim key as a float64 together with true when it is\npresent and numeric (float64, json.Number, or an integer type). It returns\n(0, false) otherwise.\n"
+            },
+            {
+              "name": "GetID",
+              "recv": "MapClaims",
+              "signature": "func (m MapClaims) GetID() string",
+              "doc": "GetID returns the jti (JWT ID) claim as a string, or \"\" if absent.\n"
+            },
+            {
+              "name": "GetInt64",
+              "recv": "MapClaims",
+              "signature": "func (m MapClaims) GetInt64(key string) (int64, bool)",
+              "doc": "GetInt64 returns the claim key as an int64 together with true when it is\npresent and holds an integral numeric value (float64, json.Number, or an\ninteger type). It returns (0, false) otherwise.\n"
+            },
+            {
+              "name": "GetIssuedAt",
+              "recv": "MapClaims",
+              "signature": "func (m MapClaims) GetIssuedAt() *NumericDate",
+              "doc": "GetIssuedAt returns the iat claim.\n"
+            },
+            {
+              "name": "GetIssuer",
+              "recv": "MapClaims",
+              "signature": "func (m MapClaims) GetIssuer() string",
+              "doc": "GetIssuer returns the iss claim as a string, or \"\" if absent or non-string.\n"
+            },
+            {
+              "name": "GetNonce",
+              "recv": "MapClaims",
+              "signature": "func (m MapClaims) GetNonce() string",
+              "doc": "GetNonce returns the OpenID Connect \"nonce\" claim as a string, or \"\" if\nabsent. The nonce binds a token to a client session and must be compared by\nthe caller against the value it sent.\n"
+            },
+            {
+              "name": "GetNotBefore",
+              "recv": "MapClaims",
+              "signature": "func (m MapClaims) GetNotBefore() *NumericDate",
+              "doc": "GetNotBefore returns the nbf claim.\n"
+            },
+            {
+              "name": "GetString",
+              "recv": "MapClaims",
+              "signature": "func (m MapClaims) GetString(key string) string",
+              "doc": "GetString returns claim key as a string, or \"\" if absent or not a string.\n"
+            },
+            {
+              "name": "GetStringSlice",
+              "recv": "MapClaims",
+              "signature": "func (m MapClaims) GetStringSlice(key string) []string",
+              "doc": "GetStringSlice returns the claim key as a slice of strings. A single JSON\nstring yields a one-element slice; a JSON array yields its string elements\n(non-string elements are skipped). A missing or unsupported value yields nil.\n"
+            },
+            {
+              "name": "GetSubject",
+              "recv": "MapClaims",
+              "signature": "func (m MapClaims) GetSubject() string",
+              "doc": "GetSubject returns the sub claim as a string, or \"\" if absent or non-string.\n"
+            },
+            {
+              "name": "GetTime",
+              "recv": "MapClaims",
+              "signature": "func (m MapClaims) GetTime(key string) (time.Time, bool)",
+              "doc": "GetTime returns the claim key interpreted as a NumericDate (seconds since the\nUnix epoch) together with true when it is present and numeric. It returns the\nzero time and false otherwise. The returned time is in UTC.\n"
+            },
+            {
+              "name": "Has",
+              "recv": "MapClaims",
+              "signature": "func (m MapClaims) Has(key string) bool",
+              "doc": "Has reports whether the claim key is present with a non-nil value.\n"
+            },
+            {
+              "name": "Set",
+              "recv": "MapClaims",
+              "signature": "func (m MapClaims) Set(key string, value any) MapClaims",
+              "doc": "Set stores value under key and returns the receiver, allowing calls to be\nchained when assembling a claim set (m.Set(\"a\", 1).Set(\"b\", 2)).\n"
+            },
+            {
+              "name": "Valid",
+              "recv": "MapClaims",
+              "signature": "func (m MapClaims) Valid() error",
+              "doc": "Valid satisfies the Claims interface. As with RegisteredClaims, time checks\nare delegated to the parser's validator, so this returns nil.\n"
+            },
+            {
+              "name": "VerifyAudience",
+              "recv": "MapClaims",
+              "signature": "func (m MapClaims) VerifyAudience(cmp string, req bool) bool",
+              "doc": "VerifyAudience reports whether the \"aud\" claim contains cmp. When req is false\nand the claim is absent, verification passes; when req is true, an absent\nclaim fails. This mirrors the golang-jwt v4 MapClaims API.\n"
+            },
+            {
+              "name": "VerifyExpiresAt",
+              "recv": "MapClaims",
+              "signature": "func (m MapClaims) VerifyExpiresAt(cmp int64, req bool) bool",
+              "doc": "VerifyExpiresAt reports whether the token is unexpired relative to cmp (a Unix\ntimestamp in seconds): it passes when exp is strictly after cmp. When req is\nfalse and the claim is absent, verification passes; when req is true, an\nabsent claim fails.\n"
+            },
+            {
+              "name": "VerifyIssuedAt",
+              "recv": "MapClaims",
+              "signature": "func (m MapClaims) VerifyIssuedAt(cmp int64, req bool) bool",
+              "doc": "VerifyIssuedAt reports whether the \"iat\" claim is at or before cmp (a Unix\ntimestamp in seconds), i.e. the token was not issued in the future relative to\ncmp. When req is false and the claim is absent, verification passes; when req\nis true, an absent claim fails.\n"
+            },
+            {
+              "name": "VerifyIssuer",
+              "recv": "MapClaims",
+              "signature": "func (m MapClaims) VerifyIssuer(cmp string, req bool) bool",
+              "doc": "VerifyIssuer reports whether the \"iss\" claim equals cmp. When req is false and\nthe claim is absent, verification passes; when req is true, an absent claim\nfails.\n"
+            },
+            {
+              "name": "VerifyNotBefore",
+              "recv": "MapClaims",
+              "signature": "func (m MapClaims) VerifyNotBefore(cmp int64, req bool) bool",
+              "doc": "VerifyNotBefore reports whether the \"nbf\" claim is at or before cmp (a Unix\ntimestamp in seconds), i.e. the token is already valid relative to cmp. When\nreq is false and the claim is absent, verification passes; when req is true,\nan absent claim fails.\n"
+            }
+          ]
+        },
+        {
+          "name": "NumericDate",
+          "signature": "type NumericDate struct {\n\ttime.Time\n}",
+          "doc": "NumericDate wraps time.Time to marshal as a JSON numeric date: the number of\nseconds since the Unix epoch, per RFC 7519 §2. Fractional seconds are\ntruncated on encode.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewNumericDate",
+              "signature": "func NewNumericDate(t time.Time) *NumericDate",
+              "doc": "NewNumericDate returns a *NumericDate for t, or nil if t is the zero time.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "MarshalJSON",
+              "recv": "NumericDate",
+              "signature": "func (d NumericDate) MarshalJSON() ([]byte, error)",
+              "doc": "MarshalJSON encodes the date as an integer number of seconds since the epoch.\n"
+            },
+            {
+              "name": "UnmarshalJSON",
+              "recv": "*NumericDate",
+              "signature": "func (d *NumericDate) UnmarshalJSON(b []byte) error",
+              "doc": "UnmarshalJSON decodes a JSON number (possibly fractional) into the date.\n"
+            }
+          ]
+        },
+        {
+          "name": "Parser",
+          "signature": "type Parser struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Parser parses and validates tokens according to its configured options. The\nzero value is usable but NewParser with options is the common path.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewParser",
+              "signature": "func NewParser(opts ...ParserOption) *Parser",
+              "doc": "NewParser constructs a Parser with the given options.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Parse",
+              "recv": "*Parser",
+              "signature": "func (p *Parser) Parse(tokenString string, keyFunc Keyfunc) (*Token, error)",
+              "doc": "Parse is the method form; it decodes into MapClaims.\n"
+            },
+            {
+              "name": "ParseUnverified",
+              "recv": "*Parser",
+              "signature": "func (p *Parser) ParseUnverified(tokenString string, claims Claims) (*Token, []string, error)",
+              "doc": "ParseUnverified decodes a token's header and claims WITHOUT verifying the\nsignature or validating the claims. It is useful for inspecting a token\n(e.g. reading the \"kid\" or \"iss\" to choose a key or key set) before\nverification. The returned token has Valid == false and its Signature\ndecoded but unchecked.\n\nSECURITY: never trust the claims of a token returned by ParseUnverified. Use\nParse or ParseWithClaims for any token whose contents drive a decision.\n"
+            },
+            {
+              "name": "ParseWithClaims",
+              "recv": "*Parser",
+              "signature": "func (p *Parser) ParseWithClaims(tokenString string, claims Claims, keyFunc Keyfunc) (*Token, error)",
+              "doc": "ParseWithClaims decodes the token, resolves the key, verifies the signature,\nand validates the claims. On any failure it returns a nil-safe token (the\npartially parsed token may be returned alongside the error for inspection)\nand a wrapped error.\n"
+            }
+          ]
+        },
+        {
+          "name": "ParserOption",
+          "signature": "type ParserOption func(*Parser)",
+          "doc": "ParserOption configures a Parser.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "WithAllowNone",
+              "signature": "func WithAllowNone() ParserOption",
+              "doc": "WithAllowNone permits the unsecured \"none\" algorithm. Without this option a\ntoken whose alg is \"none\" is rejected outright. Even with it enabled, the\nkeyFunc must return UnsafeAllowNoneSignatureType as the key.\n"
+            },
+            {
+              "name": "WithAudience",
+              "signature": "func WithAudience(aud string) ParserOption",
+              "doc": "WithAudience requires that the aud claim contain aud.\n"
+            },
+            {
+              "name": "WithClock",
+              "signature": "func WithClock(c Clock) ParserOption",
+              "doc": "WithClock injects the clock used for time-based validation, enabling\ndeterministic tests.\n"
+            },
+            {
+              "name": "WithExpirationRequired",
+              "signature": "func WithExpirationRequired() ParserOption",
+              "doc": "WithExpirationRequired rejects tokens that lack an exp claim.\n"
+            },
+            {
+              "name": "WithIgnoreExpiration",
+              "signature": "func WithIgnoreExpiration() ParserOption",
+              "doc": "WithIgnoreExpiration disables the exp (expiration) claim check while leaving\nevery other validation — signature, nbf, iat, audience, issuer, subject and\nrequired-claim checks — in force. It mirrors the \"ignoreExpiration\" option of\nnode's jsonwebtoken and is narrower than WithoutClaimsValidation, which\nsuppresses all claim checks. Because WithExpirationRequired is itself part of\nthe exp check, it too is suppressed when expiration is ignored.\n"
+            },
+            {
+              "name": "WithIgnoreNotBefore",
+              "signature": "func WithIgnoreNotBefore() ParserOption",
+              "doc": "WithIgnoreNotBefore disables the nbf (not-before) claim check while leaving\nevery other validation in force. It mirrors the \"ignoreNotBefore\" option of\nnode's jsonwebtoken, letting a caller accept a token whose validity window\nhas not yet opened without also relaxing the exp, audience, issuer or subject\nchecks.\n"
+            },
+            {
+              "name": "WithIssuedAt",
+              "signature": "func WithIssuedAt() ParserOption",
+              "doc": "WithIssuedAt enables validation that iat is not in the future.\n"
+            },
+            {
+              "name": "WithIssuer",
+              "signature": "func WithIssuer(iss string) ParserOption",
+              "doc": "WithIssuer requires that the iss claim equal iss.\n"
+            },
+            {
+              "name": "WithJSONNumber",
+              "signature": "func WithJSONNumber() ParserOption",
+              "doc": "WithJSONNumber decodes claim numbers into json.Number rather than float64,\npreserving integer precision for large values. Applies to MapClaims.\n"
+            },
+            {
+              "name": "WithKnownCriticalHeaders",
+              "signature": "func WithKnownCriticalHeaders(names ...string) ParserOption",
+              "doc": "WithKnownCriticalHeaders registers additional JOSE \"crit\" header extension\nnames the caller understands and will process out of band. By default only\n\"b64\" (RFC 7797) is recognized; any unrecognized critical header causes the\ntoken to be rejected, as required by RFC 7515 §4.1.11.\n"
+            },
+            {
+              "name": "WithLeeway",
+              "signature": "func WithLeeway(d time.Duration) ParserOption",
+              "doc": "WithLeeway sets a symmetric tolerance applied to exp, nbf, and iat checks.\n"
+            },
+            {
+              "name": "WithMaxTokenAge",
+              "signature": "func WithMaxTokenAge(d time.Duration) ParserOption",
+              "doc": "WithMaxTokenAge rejects a token whose age — the difference between the\nverification time and its iat claim — exceeds d. The iat claim becomes\nrequired; a token without it is rejected. This mirrors the \"maxAge\" option of\nnode's jsonwebtoken.\n"
+            },
+            {
+              "name": "WithPaddingAllowed",
+              "signature": "func WithPaddingAllowed() ParserOption",
+              "doc": "WithPaddingAllowed configures the parser to accept base64url segments that\ncarry '=' padding, tolerating producers that violate the unpadded-base64url\nrequirement of the compact serialization. This is the parser's default\nbehavior; the option exists for API symmetry and to re-enable tolerance on a\nparser that a caller (or a reused base Parser) previously put into strict\nmode with WithStrictDecoding.\n"
+            },
+            {
+              "name": "WithRequiredClaims",
+              "signature": "func WithRequiredClaims(names ...string) ParserOption",
+              "doc": "WithRequiredClaims rejects a token that does not carry every named claim (with\na non-null value). Use it to insist on, e.g., \"jti\" or a custom claim\nregardless of the claims type in use.\n"
+            },
+            {
+              "name": "WithStrictDecoding",
+              "signature": "func WithStrictDecoding() ParserOption",
+              "doc": "WithStrictDecoding configures the parser to reject any base64url segment that\ncarries '=' padding characters. The JWS compact serialization mandates\nunpadded base64url (RFC 7515 §2, RFC 7797), so strict decoding matches the\nspecification exactly. It is the opposite of WithPaddingAllowed; the last of\nthe two options applied wins.\n"
+            },
+            {
+              "name": "WithSubject",
+              "signature": "func WithSubject(sub string) ParserOption",
+              "doc": "WithSubject requires that the sub claim equal sub.\n"
+            },
+            {
+              "name": "WithTimeFunc",
+              "signature": "func WithTimeFunc(f func() time.Time) ParserOption",
+              "doc": "WithTimeFunc injects a time source as a function.\n"
+            },
+            {
+              "name": "WithValidMethods",
+              "signature": "func WithValidMethods(algs []string) ParserOption",
+              "doc": "WithValidMethods restricts the accepted alg header values to algs. This is\nthe primary defense against algorithm-confusion attacks and should be set in\nproduction.\n"
+            },
+            {
+              "name": "WithValidTypes",
+              "signature": "func WithValidTypes(types ...string) ParserOption",
+              "doc": "WithValidTypes restricts the accepted JOSE \"typ\" header values to types. A\ntoken whose typ header is present but not listed is rejected; a token with no\ntyp header is accepted (the header is optional per RFC 7519). Comparison is\ncase-insensitive, matching how \"JWT\" is conventionally written.\n"
+            },
+            {
+              "name": "WithoutClaimsValidation",
+              "signature": "func WithoutClaimsValidation() ParserOption",
+              "doc": "WithoutClaimsValidation disables all claim validation performed after the\nsignature is verified: the Claims.Valid self-check, the registered time and\nequality checks (exp, nbf, iat, aud, iss, sub, max-token-age), and the\nWithRequiredClaims presence checks are all skipped. The signature is still\nverified, so the token's authenticity is unaffected; only the semantic\nvalidity of its claims is left to the caller. Use this when the application\nenforces its own claim policy, or to inspect the claims of an authentic but\npossibly expired token.\n"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "name": "RegisteredClaims",
+          "signature": "type RegisteredClaims struct {\n\tIssuer    string       `json:\"iss,omitempty\"`\n\tSubject   string       `json:\"sub,omitempty\"`\n\tAudience  ClaimStrings `json:\"aud,omitempty\"`\n\tExpiresAt *NumericDate `json:\"exp,omitempty\"`\n\tNotBefore *NumericDate `json:\"nbf,omitempty\"`\n\tIssuedAt  *NumericDate `json:\"iat,omitempty\"`\n\tID        string       `json:\"jti,omitempty\"`\n}",
+          "doc": "RegisteredClaims holds the IANA-registered claim names from RFC 7519 §4.1.\nAll fields are optional and omitted from the encoding when empty.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "GetAudience",
+              "recv": "RegisteredClaims",
+              "signature": "func (c RegisteredClaims) GetAudience() ClaimStrings",
+              "doc": "GetAudience returns the aud claim.\n"
+            },
+            {
+              "name": "GetExpirationTime",
+              "recv": "RegisteredClaims",
+              "signature": "func (c RegisteredClaims) GetExpirationTime() *NumericDate",
+              "doc": "GetExpirationTime returns the exp claim.\n"
+            },
+            {
+              "name": "GetID",
+              "recv": "RegisteredClaims",
+              "signature": "func (c RegisteredClaims) GetID() string",
+              "doc": "GetID returns the \"jti\" (JWT ID) claim, giving RegisteredClaims the same\naccessor MapClaims already exposes. It completes the registered-claim getter\nset for callers that treat claims uniformly.\n"
+            },
+            {
+              "name": "GetIssuedAt",
+              "recv": "RegisteredClaims",
+              "signature": "func (c RegisteredClaims) GetIssuedAt() *NumericDate",
+              "doc": "GetIssuedAt returns the iat claim.\n"
+            },
+            {
+              "name": "GetIssuer",
+              "recv": "RegisteredClaims",
+              "signature": "func (c RegisteredClaims) GetIssuer() string",
+              "doc": "GetIssuer returns the iss claim.\n"
+            },
+            {
+              "name": "GetNotBefore",
+              "recv": "RegisteredClaims",
+              "signature": "func (c RegisteredClaims) GetNotBefore() *NumericDate",
+              "doc": "GetNotBefore returns the nbf claim.\n"
+            },
+            {
+              "name": "GetSubject",
+              "recv": "RegisteredClaims",
+              "signature": "func (c RegisteredClaims) GetSubject() string",
+              "doc": "GetSubject returns the sub claim.\n"
+            },
+            {
+              "name": "Valid",
+              "recv": "RegisteredClaims",
+              "signature": "func (c RegisteredClaims) Valid() error",
+              "doc": "Valid satisfies the Claims interface. Time-based validation is performed by\nthe parser's validator (with configurable leeway and clock), so this returns\nnil and defers to that machinery.\n"
+            }
+          ]
+        },
+        {
+          "name": "SigningMethod",
+          "signature": "type SigningMethod interface {\n\t// Alg returns the JWS \"alg\" header value, e.g. \"HS256\" or \"ES384\".\n\tAlg() string\n\n\t// Sign signs signingString (the base64url header + \".\" + base64url\n\t// payload) with key and returns the raw signature bytes. The key type\n\t// depends on the method (e.g. []byte for HMAC, *rsa.PrivateKey for RSA).\n\tSign(signingString string, key any) ([]byte, error)\n\n\t// Verify checks that sig is a valid signature over signingString using\n\t// key. It returns nil on success and a non-nil error (wrapping\n\t// ErrSignatureInvalid) on failure.\n\tVerify(signingString string, sig []byte, key any) error\n}",
+          "doc": "SigningMethod defines the interface implemented by every algorithm the\nlibrary supports. Alg returns the value written to the JOSE \"alg\" header,\nSign produces a signature over the signing input, and Verify checks a\nsignature against that input.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "GetSigningMethod",
+              "signature": "func GetSigningMethod(alg string) SigningMethod",
+              "doc": "GetSigningMethod returns the SigningMethod registered for alg, or nil if none\nis registered.\n"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "name": "SigningMethodECDSA",
+          "signature": "type SigningMethodECDSA struct {\n\tName string\n\tHash crypto.Hash\n\t// KeySize is the byte length of each of r and s for this curve.\n\tKeySize int\n}",
+          "doc": "SigningMethodECDSA implements ECDSA (ES256, ES384, ES512). Signatures use the\nfixed-width r||s concatenation format defined by RFC 7518, not the ASN.1 DER\nform produced by ecdsa.SignASN1. Signing keys are *ecdsa.PrivateKey and\nverification keys are *ecdsa.PublicKey.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Alg",
+              "recv": "*SigningMethodECDSA",
+              "signature": "func (m *SigningMethodECDSA) Alg() string",
+              "doc": "Alg returns the JWS alg identifier.\n"
+            },
+            {
+              "name": "Sign",
+              "recv": "*SigningMethodECDSA",
+              "signature": "func (m *SigningMethodECDSA) Sign(signingString string, key any) ([]byte, error)",
+              "doc": "Sign signs signingString with an *ecdsa.PrivateKey and returns the r||s\nfixed-width encoding.\n"
+            },
+            {
+              "name": "Verify",
+              "recv": "*SigningMethodECDSA",
+              "signature": "func (m *SigningMethodECDSA) Verify(signingString string, sig []byte, key any) error",
+              "doc": "Verify verifies an r||s fixed-width ECDSA signature with an *ecdsa.PublicKey.\n"
+            }
+          ]
+        },
+        {
+          "name": "SigningMethodEd25519",
+          "signature": "type SigningMethodEd25519 struct{}",
+          "doc": "SigningMethodEd25519 implements the EdDSA signing method using the Ed25519\ncurve (RFC 8037). The JWS \"alg\" header value is \"EdDSA\". Signing keys are\ned25519.PrivateKey and verification keys are ed25519.PublicKey.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Alg",
+              "recv": "*SigningMethodEd25519",
+              "signature": "func (m *SigningMethodEd25519) Alg() string",
+              "doc": "Alg returns \"EdDSA\", the JWS alg identifier for Ed25519 signatures.\n"
+            },
+            {
+              "name": "Sign",
+              "recv": "*SigningMethodEd25519",
+              "signature": "func (m *SigningMethodEd25519) Sign(signingString string, key any) ([]byte, error)",
+              "doc": "Sign signs signingString with an ed25519.PrivateKey and returns the raw\n64-byte signature. The key must be an ed25519.PrivateKey; any other type\n(including a pointer or an RSA/EC key) is rejected with ErrInvalidKeyType,\nwhich closes the algorithm-confusion attack surface for this method.\n"
+            },
+            {
+              "name": "Verify",
+              "recv": "*SigningMethodEd25519",
+              "signature": "func (m *SigningMethodEd25519) Verify(signingString string, sig []byte, key any) error",
+              "doc": "Verify checks an Ed25519 signature over signingString with an\ned25519.PublicKey. The key must be an ed25519.PublicKey; any other type is\nrejected with ErrInvalidKeyType.\n"
+            }
+          ]
+        },
+        {
+          "name": "SigningMethodHMAC",
+          "signature": "type SigningMethodHMAC struct {\n\tName string\n\tHash crypto.Hash\n}",
+          "doc": "SigningMethodHMAC implements the HMAC-SHA family (HS256, HS384, HS512).\nThe signing key must be a []byte secret.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Alg",
+              "recv": "*SigningMethodHMAC",
+              "signature": "func (m *SigningMethodHMAC) Alg() string",
+              "doc": "Alg returns the JWS alg identifier.\n"
+            },
+            {
+              "name": "Sign",
+              "recv": "*SigningMethodHMAC",
+              "signature": "func (m *SigningMethodHMAC) Sign(signingString string, key any) ([]byte, error)",
+              "doc": "Sign computes HMAC(key, signingString). key must be a []byte.\n"
+            },
+            {
+              "name": "Verify",
+              "recv": "*SigningMethodHMAC",
+              "signature": "func (m *SigningMethodHMAC) Verify(signingString string, sig []byte, key any) error",
+              "doc": "Verify recomputes the MAC and compares it in constant time.\n"
+            }
+          ]
+        },
+        {
+          "name": "SigningMethodNone",
+          "signature": "type SigningMethodNone struct{}",
+          "doc": "SigningMethodNone implements the unsecured \"none\" algorithm from RFC 7515.\nIt produces an empty signature. To guard against the classic algorithm-\nconfusion attack, both Sign and Verify require the caller to pass\nUnsafeAllowNoneSignatureType as the key.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Alg",
+              "recv": "*SigningMethodNone",
+              "signature": "func (m *SigningMethodNone) Alg() string",
+              "doc": "Alg returns \"none\".\n"
+            },
+            {
+              "name": "Sign",
+              "recv": "*SigningMethodNone",
+              "signature": "func (m *SigningMethodNone) Sign(_ string, key any) ([]byte, error)",
+              "doc": "Sign returns an empty signature. key must be UnsafeAllowNoneSignatureType.\n"
+            },
+            {
+              "name": "Verify",
+              "recv": "*SigningMethodNone",
+              "signature": "func (m *SigningMethodNone) Verify(_ string, sig []byte, key any) error",
+              "doc": "Verify accepts only an empty signature and only when key is\nUnsafeAllowNoneSignatureType.\n"
+            }
+          ]
+        },
+        {
+          "name": "SigningMethodRSA",
+          "signature": "type SigningMethodRSA struct {\n\tName string\n\tHash crypto.Hash\n}",
+          "doc": "SigningMethodRSA implements RSASSA-PKCS1-v1_5 (RS256, RS384, RS512).\nSigning keys are *rsa.PrivateKey and verification keys are *rsa.PublicKey.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Alg",
+              "recv": "*SigningMethodRSA",
+              "signature": "func (m *SigningMethodRSA) Alg() string",
+              "doc": "Alg returns the JWS alg identifier.\n"
+            },
+            {
+              "name": "Sign",
+              "recv": "*SigningMethodRSA",
+              "signature": "func (m *SigningMethodRSA) Sign(signingString string, key any) ([]byte, error)",
+              "doc": "Sign signs signingString with an *rsa.PrivateKey using PKCS1v15.\n"
+            },
+            {
+              "name": "Verify",
+              "recv": "*SigningMethodRSA",
+              "signature": "func (m *SigningMethodRSA) Verify(signingString string, sig []byte, key any) error",
+              "doc": "Verify verifies a PKCS1v15 signature with an *rsa.PublicKey.\n"
+            }
+          ]
+        },
+        {
+          "name": "SigningMethodRSAPSS",
+          "signature": "type SigningMethodRSAPSS struct {\n\tName    string\n\tHash    crypto.Hash\n\tOptions *rsa.PSSOptions\n}",
+          "doc": "SigningMethodRSAPSS implements RSASSA-PSS (PS256, PS384, PS512).\nSigning keys are *rsa.PrivateKey and verification keys are *rsa.PublicKey.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Alg",
+              "recv": "*SigningMethodRSAPSS",
+              "signature": "func (m *SigningMethodRSAPSS) Alg() string",
+              "doc": "Alg returns the JWS alg identifier.\n"
+            },
+            {
+              "name": "Sign",
+              "recv": "*SigningMethodRSAPSS",
+              "signature": "func (m *SigningMethodRSAPSS) Sign(signingString string, key any) ([]byte, error)",
+              "doc": "Sign signs signingString with an *rsa.PrivateKey using RSA-PSS.\n"
+            },
+            {
+              "name": "Verify",
+              "recv": "*SigningMethodRSAPSS",
+              "signature": "func (m *SigningMethodRSAPSS) Verify(signingString string, sig []byte, key any) error",
+              "doc": "Verify verifies an RSA-PSS signature with an *rsa.PublicKey.\n"
+            }
+          ]
+        },
+        {
+          "name": "Token",
+          "signature": "type Token struct {\n\t// Raw is the original compact serialization, populated by the parser.\n\tRaw string\n\t// Method is the signing method selected from the alg header (or supplied to\n\t// New).\n\tMethod SigningMethod\n\t// Header is the decoded JOSE header.\n\tHeader map[string]any\n\t// Claims is the token payload.\n\tClaims Claims\n\t// Signature is the decoded (raw) signature, populated by the parser.\n\tSignature []byte\n\t// Valid reports whether the parser considered the token valid.\n\tValid bool\n}",
+          "doc": "Token represents a JWT. Before signing it holds the header and claims to be\nserialized; after parsing it additionally holds the raw compact form and the\ndecoded signature.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "New",
+              "signature": "func New(method SigningMethod) *Token",
+              "doc": "New returns a Token that will be signed with method, using RegisteredClaims\nas an empty default payload. Use NewWithClaims to supply claims.\n"
+            },
+            {
+              "name": "NewWithClaims",
+              "signature": "func NewWithClaims(method SigningMethod, claims Claims) *Token",
+              "doc": "NewWithClaims returns a Token with the given method and claims and a standard\nJOSE header ({\"alg\":..., \"typ\":\"JWT\"}).\n"
+            },
+            {
+              "name": "Parse",
+              "signature": "func Parse(tokenString string, keyFunc Keyfunc, opts ...ParserOption) (*Token, error)",
+              "doc": "Parse parses a compact JWT into a Token with MapClaims, using keyFunc to\nresolve the verification key, then verifies the signature and validates the\nclaims. See ParseWithClaims to decode into a specific claims type.\n"
+            },
+            {
+              "name": "ParseUnverified",
+              "signature": "func ParseUnverified(tokenString string, claims Claims) (*Token, []string, error)",
+              "doc": "ParseUnverified is the package-level convenience form of\nParser.ParseUnverified, decoding into the supplied claims value without\nverifying the signature. See the method for the security caveat.\n"
+            },
+            {
+              "name": "ParseWithClaims",
+              "signature": "func ParseWithClaims(tokenString string, claims Claims, keyFunc Keyfunc, opts ...ParserOption) (*Token, error)",
+              "doc": "ParseWithClaims parses into the supplied claims value (which is populated in\nplace), verifies the signature via keyFunc, and validates the claims.\n"
+            },
+            {
+              "name": "VerifyDetached",
+              "signature": "func VerifyDetached(jws string, payload []byte, keyFunc Keyfunc, opts ...ParserOption) (*Token, error)",
+              "doc": "VerifyDetached verifies a detached JWS produced with an unencoded payload\n(RFC 7797). jws is the \"BASE64URL(header)..BASE64URL(signature)\"\nserialization and payload is the detached payload supplied out of band.\nkeyFunc resolves the verification key from the decoded header.\n\nParser options that concern algorithm selection are honored: WithValidMethods\nrestricts the accepted alg (the primary algorithm-confusion defense) and\nWithAllowNone is required to accept alg \"none\". Claim validation options do\nnot apply, since the payload is opaque bytes rather than JSON claims.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "HeaderString",
+              "recv": "*Token",
+              "signature": "func (t *Token) HeaderString(key string) string",
+              "doc": "HeaderString returns the header parameter key as a string, or \"\" if it is\nabsent or not a string.\n"
+            },
+            {
+              "name": "KeyID",
+              "recv": "*Token",
+              "signature": "func (t *Token) KeyID() string",
+              "doc": "KeyID returns the token's \"kid\" header as a string, or \"\" if it is absent or\nnot a string. It is the read counterpart to SetKID and is convenient after\nParseUnverified to select a verification key.\n"
+            },
+            {
+              "name": "SetHeader",
+              "recv": "*Token",
+              "signature": "func (t *Token) SetHeader(key string, value any) *Token",
+              "doc": "SetHeader sets an arbitrary JOSE header parameter and returns the token for\nchaining. It is the general form of SetKID; use it to add headers such as\n\"cty\", \"x5t\", or a custom extension before signing. The header map is\nallocated if the token does not yet have one.\n"
+            },
+            {
+              "name": "SetKID",
+              "recv": "*Token",
+              "signature": "func (t *Token) SetKID(kid string) *Token",
+              "doc": "SetKID sets the \"kid\" (key ID) JOSE header, returning the token for chaining.\n"
+            },
+            {
+              "name": "SetType",
+              "recv": "*Token",
+              "signature": "func (t *Token) SetType(typ string) *Token",
+              "doc": "SetType sets the JOSE \"typ\" header (for example \"JWT\" or \"at+jwt\") and returns\nthe token for chaining.\n"
+            },
+            {
+              "name": "SignedString",
+              "recv": "*Token",
+              "signature": "func (t *Token) SignedString(key any) (string, error)",
+              "doc": "SignedString signs the token with key and returns the complete compact\nserialization (header.payload.signature).\n"
+            },
+            {
+              "name": "SigningString",
+              "recv": "*Token",
+              "signature": "func (t *Token) SigningString() (string, error)",
+              "doc": "SigningString returns the signing input: base64url(header) + \".\" +\nbase64url(payload). This is the value passed to SigningMethod.Sign/Verify.\n"
+            },
+            {
+              "name": "String",
+              "recv": "*Token",
+              "signature": "func (t *Token) String() string",
+              "doc": "String returns the compact serialization of the token. For a token produced\nby the parser it returns the original Raw string, giving a lossless\nparse/serialize round-trip. For a token built with New/NewWithClaims that has\nnot yet been signed, Raw is empty and String returns \"\".\n"
+            },
+            {
+              "name": "TokenType",
+              "recv": "*Token",
+              "signature": "func (t *Token) TokenType() string",
+              "doc": "TokenType returns the token's \"typ\" header as a string, or \"\" if it is absent\nor not a string.\n"
+            }
+          ]
+        },
+        {
+          "name": "Validator",
+          "signature": "type Validator struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Validator validates a set of claims independently of parsing and signature\nverification. It is configured with the same time- and equality-based\nParserOptions used by Parse (WithLeeway, WithClock, WithTimeFunc,\nWithAudience, WithIssuer, WithSubject, WithIssuedAt, WithExpirationRequired,\nWithMaxTokenAge, WithRequiredClaims), letting a caller re-run the parser's\nclaim checks against claims obtained elsewhere — for example after\nParseUnverified, or against claims assembled by the application. A Validator\nis safe for concurrent use as long as its injected Clock is.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewValidator",
+              "signature": "func NewValidator(opts ...ParserOption) *Validator",
+              "doc": "NewValidator builds a Validator from the given options. Only the validation\noptions listed on the Validator type have any effect; options that concern\nsigning methods, decoding, or header handling are accepted but ignored.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Validate",
+              "recv": "*Validator",
+              "signature": "func (val *Validator) Validate(claims Claims) error",
+              "doc": "Validate runs the configured checks against claims and returns nil if they\nall pass. It first invokes claims.Valid (the type's own self-check), then, if\nthe claims expose the registered getters (as RegisteredClaims and MapClaims\ndo), the time and equality checks, and finally the required-claim presence\nchecks. Multiple failures are joined so the result can be tested for any of\nthem with errors.Is.\n"
+            }
+          ]
+        }
+      ],
+      "funcs": [
+        {
+          "name": "ComputeKeyID",
+          "signature": "func ComputeKeyID(key any) (string, error)",
+          "doc": "ComputeKeyID derives a stable key identifier from a Go crypto key: the\nbase64url-encoded SHA-256 RFC 7638 thumbprint of the key's public part. Using\nit as the \"kid\" gives every key a deterministic, collision-resistant name\nthat both signer and verifier can compute independently.\n"
+        },
+        {
+          "name": "DecodeSegment",
+          "signature": "func DecodeSegment(seg string) ([]byte, error)",
+          "doc": "DecodeSegment decodes a base64url segment without padding. For robustness it\nalso tolerates segments that carry '=' padding by falling back to the padded\ndecoder, since some producers emit padding in violation of the spec.\n"
+        },
+        {
+          "name": "EncodeECPrivateKeyToPEM",
+          "signature": "func EncodeECPrivateKeyToPEM(key *ecdsa.PrivateKey) ([]byte, error)",
+          "doc": "EncodeECPrivateKeyToPEM serializes an ECDSA private key to PEM using the SEC1\n(\"EC PRIVATE KEY\") encoding, the inverse of ParseECPrivateKeyFromPEM.\n"
+        },
+        {
+          "name": "EncodeECPublicKeyToPEM",
+          "signature": "func EncodeECPublicKeyToPEM(key *ecdsa.PublicKey) ([]byte, error)",
+          "doc": "EncodeECPublicKeyToPEM serializes an ECDSA public key to PEM using the PKIX\n(\"PUBLIC KEY\") encoding, the inverse of ParseECPublicKeyFromPEM.\n"
+        },
+        {
+          "name": "EncodeEdPrivateKeyToPEM",
+          "signature": "func EncodeEdPrivateKeyToPEM(key ed25519.PrivateKey) ([]byte, error)",
+          "doc": "EncodeEdPrivateKeyToPEM serializes an Ed25519 private key to PEM using the\nPKCS#8 (\"PRIVATE KEY\") encoding, the inverse of ParseEdPrivateKeyFromPEM.\n"
+        },
+        {
+          "name": "EncodeEdPublicKeyToPEM",
+          "signature": "func EncodeEdPublicKeyToPEM(key ed25519.PublicKey) ([]byte, error)",
+          "doc": "EncodeEdPublicKeyToPEM serializes an Ed25519 public key to PEM using the PKIX\n(\"PUBLIC KEY\") encoding, the inverse of ParseEdPublicKeyFromPEM.\n"
+        },
+        {
+          "name": "EncodePrivateKeyToPEM",
+          "signature": "func EncodePrivateKeyToPEM(key crypto.PrivateKey) ([]byte, error)",
+          "doc": "EncodePrivateKeyToPEM serializes any supported private key (*rsa.PrivateKey,\n*ecdsa.PrivateKey, or ed25519.PrivateKey) to a PKCS#8 (\"PRIVATE KEY\") PEM\nblock. Unlike the type-specific encoders, it always uses PKCS#8, giving a\nsingle uniform private-key file format across algorithms.\n"
+        },
+        {
+          "name": "EncodePublicKeyToPEM",
+          "signature": "func EncodePublicKeyToPEM(pub crypto.PublicKey) ([]byte, error)",
+          "doc": "EncodePublicKeyToPEM serializes any supported public key (*rsa.PublicKey,\n*ecdsa.PublicKey, or ed25519.PublicKey) to a PKIX (\"PUBLIC KEY\") PEM block. It\nis the general-purpose counterpart to the type-specific encoders above.\n"
+        },
+        {
+          "name": "EncodeRSAPrivateKeyToPEM",
+          "signature": "func EncodeRSAPrivateKeyToPEM(key *rsa.PrivateKey) []byte",
+          "doc": "EncodeRSAPrivateKeyToPEM serializes an RSA private key to PEM using the PKCS#1\n(\"RSA PRIVATE KEY\") encoding, the inverse of ParseRSAPrivateKeyFromPEM. It\nnever fails for a valid key.\n"
+        },
+        {
+          "name": "EncodeRSAPublicKeyToPEM",
+          "signature": "func EncodeRSAPublicKeyToPEM(key *rsa.PublicKey) ([]byte, error)",
+          "doc": "EncodeRSAPublicKeyToPEM serializes an RSA public key to PEM using the PKIX\n(\"PUBLIC KEY\") encoding, the inverse of ParseRSAPublicKeyFromPEM.\n"
+        },
+        {
+          "name": "EncodeSegment",
+          "signature": "func EncodeSegment(seg []byte) string",
+          "doc": "EncodeSegment returns the base64url (RFC 4648 §5) encoding of seg without\npadding, as required by JWS.\n"
+        },
+        {
+          "name": "GetAlgorithms",
+          "signature": "func GetAlgorithms() []string",
+          "doc": "GetAlgorithms returns the sorted-order-independent list of registered alg\nidentifiers. It is primarily useful for diagnostics and tests.\n"
+        },
+        {
+          "name": "ParseECPrivateKeyFromPEM",
+          "signature": "func ParseECPrivateKeyFromPEM(pemBytes []byte) (*ecdsa.PrivateKey, error)",
+          "doc": "ParseECPrivateKeyFromPEM parses a PEM-encoded EC private key in either SEC1\n(\"EC PRIVATE KEY\") or PKCS#8 (\"PRIVATE KEY\") form.\n"
+        },
+        {
+          "name": "ParseECPublicKeyFromPEM",
+          "signature": "func ParseECPublicKeyFromPEM(pemBytes []byte) (*ecdsa.PublicKey, error)",
+          "doc": "ParseECPublicKeyFromPEM parses a PEM-encoded EC public key (PKIX\n\"PUBLIC KEY\") or a certificate whose public key is EC.\n"
+        },
+        {
+          "name": "ParseEdPrivateKeyFromPEM",
+          "signature": "func ParseEdPrivateKeyFromPEM(pemBytes []byte) (ed25519.PrivateKey, error)",
+          "doc": "ParseEdPrivateKeyFromPEM parses a PEM-encoded Ed25519 private key in PKCS#8\n(\"PRIVATE KEY\") form and returns it as an ed25519.PrivateKey.\n"
+        },
+        {
+          "name": "ParseEdPublicKeyFromPEM",
+          "signature": "func ParseEdPublicKeyFromPEM(pemBytes []byte) (ed25519.PublicKey, error)",
+          "doc": "ParseEdPublicKeyFromPEM parses a PEM-encoded Ed25519 public key (PKIX\n\"PUBLIC KEY\") or a certificate whose public key is Ed25519, returning it as\nan ed25519.PublicKey.\n"
+        },
+        {
+          "name": "ParseRSAPrivateKeyFromPEM",
+          "signature": "func ParseRSAPrivateKeyFromPEM(pemBytes []byte) (*rsa.PrivateKey, error)",
+          "doc": "ParseRSAPrivateKeyFromPEM parses a PEM-encoded RSA private key in either\nPKCS#1 (\"RSA PRIVATE KEY\") or PKCS#8 (\"PRIVATE KEY\") form.\n"
+        },
+        {
+          "name": "ParseRSAPublicKeyFromPEM",
+          "signature": "func ParseRSAPublicKeyFromPEM(pemBytes []byte) (*rsa.PublicKey, error)",
+          "doc": "ParseRSAPublicKeyFromPEM parses a PEM-encoded RSA public key, accepting both\nPKIX (\"PUBLIC KEY\") and PKCS#1 (\"RSA PUBLIC KEY\") forms, and also a\ncertificate (\"CERTIFICATE\") whose public key is RSA.\n"
+        },
+        {
+          "name": "RegisterSigningMethod",
+          "signature": "func RegisterSigningMethod(alg string, f func() SigningMethod)",
+          "doc": "RegisterSigningMethod registers alg so it can be resolved by GetSigningMethod\nand by the parser. It is safe for concurrent use. Registering the same alg\ntwice replaces the prior registration.\n"
+        },
+        {
+          "name": "Sign",
+          "signature": "func Sign(claims Claims, method SigningMethod, key any) (string, error)",
+          "doc": "Sign is a convenience wrapper that builds a token from claims and method and\nreturns its signed compact serialization.\n"
+        },
+        {
+          "name": "SignDetached",
+          "signature": "func SignDetached(payload []byte, method SigningMethod, key any, extraHeaders map[string]any) (string, error)",
+          "doc": "SignDetached produces a detached JWS with an unencoded payload, per RFC 7797\n(the \"b64\":false option). The payload is signed as-is (not base64url-encoded)\nand is omitted from the returned compact serialization, which has the form\n\n\tBASE64URL(header) + \"..\" + BASE64URL(signature)\n\nThe synthesized header sets \"alg\", \"b64\":false, and \"crit\":[\"b64\"]; any\nentries in extraHeaders (e.g. \"kid\") are merged in first. Recipients must\nsupply the same payload out of band and verify with VerifyDetached.\n"
+        },
+        {
+          "name": "UnregisterSigningMethod",
+          "signature": "func UnregisterSigningMethod(alg string)",
+          "doc": "UnregisterSigningMethod removes the signing method registered for alg, if any.\nAfter it returns, GetSigningMethod(alg) yields nil and the parser rejects\ntokens whose header names alg. It is the inverse of RegisterSigningMethod and\nis safe for concurrent use; unregistering an alg that is not present is a\nno-op. Use it to lock a process down to a curated set of algorithms.\n"
+        }
+      ],
+      "examples": [
+        {
+          "name": "",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"time\"\n\n\t\"github.com/malcolmston/jwt\"\n)\n\nfunc main() {\n\tsecret := []byte(\"my-hmac-secret\")\n\n\t// Use a fixed clock so the example is deterministic.\n\tnow := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)\n\n\tclaims := jwt.RegisteredClaims{\n\t\tIssuer:    \"auth.example.com\",\n\t\tSubject:   \"user-42\",\n\t\tAudience:  jwt.ClaimStrings{\"api.example.com\"},\n\t\tExpiresAt: jwt.NewNumericDate(now.Add(time.Hour)),\n\t\tIssuedAt:  jwt.NewNumericDate(now),\n\t}\n\n\tsigned, err := jwt.Sign(claims, jwt.SigningMethodHS256, secret)\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\n\tvar parsed jwt.RegisteredClaims\n\ttoken, err := jwt.ParseWithClaims(signed, \u0026parsed,\n\t\tfunc(t *jwt.Token) (any, error) { return secret, nil },\n\t\tjwt.WithValidMethods([]string{\"HS256\"}),\n\t\tjwt.WithClock(jwt.ClockFunc(func() time.Time { return now })),\n\t\tjwt.WithAudience(\"api.example.com\"),\n\t\tjwt.WithIssuer(\"auth.example.com\"),\n\t)\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\n\tfmt.Println(\"valid:\", token.Valid)\n\tfmt.Println(\"subject:\", parsed.Subject)\n\n}",
+          "output": "valid: true\nsubject: user-42",
+          "doc": "Example signs a token with HS256 and then parses and verifies it, printing a\nclaim from the verified payload.\n"
+        },
+        {
+          "name": "SignDetached",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/jwt\"\n)\n\nfunc main() {\n\tsecret := []byte(\"detached-secret\")\n\tpayload := []byte(\"arbitrary bytes, not base64url-encoded\")\n\n\tjws, err := jwt.SignDetached(payload, jwt.SigningMethodHS256, secret, nil)\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\n\ttok, err := jwt.VerifyDetached(jws, payload,\n\t\tfunc(*jwt.Token) (any, error) { return secret, nil },\n\t\tjwt.WithValidMethods([]string{\"HS256\"}))\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Println(\"valid:\", tok.Valid)\n\n}",
+          "output": "valid: true",
+          "doc": "ExampleSignDetached demonstrates RFC 7797 detached, unencoded-payload JWS:\nthe payload is signed as-is and carried out of band rather than embedded in\nthe token.\n"
+        },
+        {
+          "name": "JSONWebKey (Thumbprint)",
+          "code": "package main\n\nimport (\n\t\"crypto\"\n\t\"fmt\"\n\n\t\"github.com/malcolmston/jwt\"\n)\n\nfunc main() {\n\tjwk, err := jwt.ParseJWK([]byte(`{\"kty\":\"oct\",\"k\":\"AQAB\"}`))\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\ttp, err := jwk.Thumbprint(crypto.SHA256)\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Println(jwt.EncodeSegment(tp))\n\n}",
+          "output": "8uBm1Oeri9AB8y3VS0WbdSfBWsS34Z45nVhm9v0yh-k",
+          "doc": "ExampleJSONWebKey_Thumbprint computes the RFC 7638 thumbprint of a JWK.\n"
+        },
+        {
+          "name": "ParseUnverified",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/jwt\"\n)\n\nfunc main() {\n\tsigned, _ := jwt.Sign(jwt.MapClaims{\"iss\": \"issuer\"}, jwt.SigningMethodHS256, []byte(\"k\"))\n\n\ttok, _, err := jwt.ParseUnverified(signed, jwt.MapClaims{})\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Println(\"alg:\", tok.Header[\"alg\"])\n\tfmt.Println(\"valid:\", tok.Valid)\n\n}",
+          "output": "alg: HS256\nvalid: false",
+          "doc": "ExampleParseUnverified decodes a token without checking its signature, to\nread a header value (here the algorithm) before verification.\n"
+        }
+      ]
+    }
+  ]
+}

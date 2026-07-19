@@ -10,6 +10,12 @@ export interface DocsAppProps {
   url?: string;
   // Optional title shown above the package list (defaults to the module path).
   title?: string;
+  // Whether package selection is reflected in location.hash (#pkg/<importPath>).
+  // Defaults to true (the standalone per-library docs sites are hash-routable).
+  // A host that already owns the hash — e.g. the /go aggregator, whose tabs are
+  // hash-routed — passes false so the renderer keeps package selection in local
+  // state and does not fight the host router.
+  hashRouting?: boolean;
 }
 
 const PKG_PREFIX = 'pkg/';
@@ -23,7 +29,7 @@ function readHashPkg(): string | null {
 // DocsApp is the top-level API-docs renderer. It shows a package sidebar plus
 // the selected package's documentation, and is hash-routable by import path
 // (#pkg/<importPath>). Pass `index` directly, or a `url` to fetch a doc.json.
-export function DocsApp({ index, url, title }: DocsAppProps) {
+export function DocsApp({ index, url, title, hashRouting = true }: DocsAppProps) {
   const [data, setData] = useState<DocIndex | null>(index ?? null);
   const [error, setError] = useState<string | null>(null);
   const [active, setActive] = useState<string>('');
@@ -55,9 +61,15 @@ export function DocsApp({ index, url, title }: DocsAppProps) {
 
   const packages = data?.packages ?? [];
 
-  // Keep the active package in sync with the hash route.
+  // Keep the active package in sync. When hashRouting is on, the location hash
+  // (#pkg/<importPath>) is the source of truth; otherwise selection lives purely
+  // in local state and we just default to the first package once data arrives.
   useEffect(() => {
     if (packages.length === 0) return;
+    if (!hashRouting) {
+      setActive((cur) => (cur && packages.some((p) => p.importPath === cur) ? cur : packages[0].importPath));
+      return;
+    }
     const sync = () => {
       const fromHash = readHashPkg();
       if (fromHash && packages.some((p) => p.importPath === fromHash)) {
@@ -70,14 +82,14 @@ export function DocsApp({ index, url, title }: DocsAppProps) {
     window.addEventListener('hashchange', sync);
     return () => window.removeEventListener('hashchange', sync);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data]);
+  }, [data, hashRouting]);
 
   const select = useCallback((importPath: string) => {
-    if (typeof location !== 'undefined') {
+    if (hashRouting && typeof location !== 'undefined') {
       location.hash = PKG_PREFIX + importPath;
     }
     setActive(importPath);
-  }, []);
+  }, [hashRouting]);
 
   const current = useMemo(
     () => packages.find((p) => p.importPath === active) ?? packages[0],

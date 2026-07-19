@@ -1,0 +1,679 @@
+{
+  "module": "github.com/malcolmston/lucene",
+  "generatedAt": "2026-07-19T02:05:52Z",
+  "packages": [
+    {
+      "importPath": "github.com/malcolmston/lucene",
+      "name": "lucene",
+      "synopsis": "Package lucene is a small, dependency-free, in-memory full-text search engine in the style of Apache Lucene.",
+      "doc": "Package lucene is a small, dependency-free, in-memory full-text search\nengine in the style of Apache Lucene. It provides a configurable text\nanalysis pipeline, an inverted index with term frequencies and positions,\na rich query model with a query-string parser, and BM25 relevance ranking.\n\n# Model\n\nA Document has a unique ID and a set of named Fields, each holding raw text.\nWhen a document is added, every field is run through an Analyzer, which\ntokenizes the text, lowercases it, drops stop words, and stems the remaining\ntokens. The resulting terms are stored in an inverted Index that records, per\nfield and per term, which documents contain the term, how often, and at which\npositions. Positions enable phrase matching; frequencies and field lengths\nfeed BM25 scoring.\n\nQueries implement the Query interface. The provided implementations are:\n\n  - TermQuery      - a single analyzed term in a field.\n  - PhraseQuery    - terms occurring adjacently and in order.\n  - PrefixQuery    - all terms in a field sharing a prefix (wildcard \"net*\").\n  - RangeQuery     - all terms within a lexical range [a TO z] or {1 TO 9}.\n  - BooleanQuery   - AND/OR/NOT combination via Should/Must/MustNot clauses.\n  - MatchAllQuery  - every live document.\n\nThe Parser turns a query string into a Query tree. Its grammar supports field\nqualifiers (title:go), phrases (\"hello world\"), required (+) and prohibited\n(-) clauses, prefix wildcards (net*), ranges ([a TO z]), and parenthesized\ngrouping.\n\nSearching a query returns a Result containing the total number of matching\ndocuments and the top-ranked Hits. Ranking is by descending BM25 score with\nties broken by ascending document ID, so results are fully deterministic.\n\n# Usage\n\n\tidx := lucene.NewIndex(lucene.NewStandardAnalyzer())\n\t_ = idx.Add(lucene.Document{\n\t\tID: \"1\",\n\t\tFields: map[string]string{\n\t\t\t\"title\": \"The Go Programming Language\",\n\t\t\t\"body\":  \"Go is an open source programming language.\",\n\t\t},\n\t})\n\t_ = idx.Add(lucene.Document{\n\t\tID: \"2\",\n\t\tFields: map[string]string{\n\t\t\t\"title\": \"Rust in Action\",\n\t\t\t\"body\":  \"Rust is a systems programming language.\",\n\t\t},\n\t})\n\n\tres, _ := idx.SearchString(\"body:programming +language\", 10)\n\tfor _, hit := range res.Hits {\n\t\tfmt.Printf(\"%s %.3f\\n\", hit.ID, hit.Score)\n\t}\n\nThe engine is safe for concurrent use: an Index may be read and written from\nmultiple goroutines. All operations are deterministic given the same inputs.\n",
+      "consts": [],
+      "vars": [],
+      "types": [
+        {
+          "name": "Analyzer",
+          "signature": "type Analyzer struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Analyzer converts raw field text into a normalized stream of tokens. The\nstandard pipeline is: tokenize on non-letter/digit boundaries, lowercase,\ndrop stop words, then stem. Analyze is deterministic: the same input always\nyields the same tokens in the same order.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewAnalyzer",
+              "signature": "func NewAnalyzer(opts ...AnalyzerOption) *Analyzer",
+              "doc": "NewAnalyzer builds an Analyzer. With no options it lowercases, applies no stop\nwords, and stems. Use WithStopWords and WithStemming to customize behavior.\n"
+            },
+            {
+              "name": "NewStandardAnalyzer",
+              "signature": "func NewStandardAnalyzer() *Analyzer",
+              "doc": "NewStandardAnalyzer returns an Analyzer configured with DefaultStopWords and\nstemming enabled. It is a convenient default for English text.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Analyze",
+              "recv": "*Analyzer",
+              "signature": "func (a *Analyzer) Analyze(text string) []Token",
+              "doc": "Analyze runs the full pipeline on text and returns the resulting tokens with\ntheir positions. Positions count only tokens that survive filtering, so a\nstop word does not create a positional gap.\n"
+            },
+            {
+              "name": "AnalyzeTerm",
+              "recv": "*Analyzer",
+              "signature": "func (a *Analyzer) AnalyzeTerm(term string) string",
+              "doc": "AnalyzeTerm runs the pipeline on a single query term and returns the single\nnormalized term, or the empty string if the term was filtered out entirely\n(for example, a stop word). It never applies stop word filtering so that an\nexplicit single-term query is not silently dropped, but it does lowercase and\nstem to match the indexed form.\n"
+            }
+          ]
+        },
+        {
+          "name": "AnalyzerOption",
+          "signature": "type AnalyzerOption func(*Analyzer)",
+          "doc": "AnalyzerOption customizes the construction of an Analyzer.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "WithStemming",
+              "signature": "func WithStemming(on bool) AnalyzerOption",
+              "doc": "WithStemming enables or disables the suffix-stripping stemmer. Stemming is on\nby default.\n"
+            },
+            {
+              "name": "WithStopWords",
+              "signature": "func WithStopWords(words []string) AnalyzerOption",
+              "doc": "WithStopWords configures the analyzer to drop the supplied stop words. The\nwords are matched after lowercasing. Passing an empty slice disables stop\nword filtering.\n"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "name": "BooleanQuery",
+          "signature": "type BooleanQuery struct {\n\tClauses []Clause\n}",
+          "doc": "BooleanQuery combines sub-queries with AND/OR/NOT semantics expressed through\nOccur values. Its score for a document is the sum of the scores of the\nShould and Must clauses that the document satisfies.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewBooleanQuery",
+              "signature": "func NewBooleanQuery() *BooleanQuery",
+              "doc": "NewBooleanQuery builds an empty boolean query. Use Add to attach clauses.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Add",
+              "recv": "*BooleanQuery",
+              "signature": "func (q *BooleanQuery) Add(sub Query, occur Occur) *BooleanQuery",
+              "doc": "Add appends a clause and returns the query for chaining.\n"
+            },
+            {
+              "name": "String",
+              "recv": "*BooleanQuery",
+              "signature": "func (q *BooleanQuery) String() string",
+              "doc": "String returns a text representation of the boolean query.\n"
+            }
+          ]
+        },
+        {
+          "name": "BoostQuery",
+          "signature": "type BoostQuery struct {\n\tQuery Query\n\tBoost float64\n}",
+          "doc": "BoostQuery wraps another query and multiplies every score it produces by a\nconstant factor. It mirrors Lucene's BoostQuery: the set of matching\ndocuments is unchanged, only their relevance scores are scaled. A boost\ngreater than one promotes the wrapped clause; a boost between zero and one\ndemotes it.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewBoostQuery",
+              "signature": "func NewBoostQuery(sub Query, boost float64) *BoostQuery",
+              "doc": "NewBoostQuery builds a BoostQuery that scales the scores of sub by boost.\nA boost of zero is treated as one (no scaling) to avoid silently discarding\nall scores.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "String",
+              "recv": "*BoostQuery",
+              "signature": "func (q *BoostQuery) String() string",
+              "doc": "String returns a text representation of the boost query, for example\n\"(text:go)^2\".\n"
+            }
+          ]
+        },
+        {
+          "name": "Clause",
+          "signature": "type Clause struct {\n\tQuery Query\n\tOccur Occur\n}",
+          "doc": "Clause pairs a sub-query with its Occur semantics inside a BooleanQuery.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "ConstantScoreQuery",
+          "signature": "type ConstantScoreQuery struct {\n\tQuery Query\n\tScore float64\n}",
+          "doc": "ConstantScoreQuery wraps another query and assigns every matching document\nthe same fixed score, discarding the wrapped query's own scoring. It mirrors\nLucene's ConstantScoreQuery and is useful for pure filtering, where relevance\nordering among matches is irrelevant.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewConstantScoreQuery",
+              "signature": "func NewConstantScoreQuery(sub Query, score float64) *ConstantScoreQuery",
+              "doc": "NewConstantScoreQuery builds a ConstantScoreQuery that gives each document\nmatched by sub the given score. A score of zero is treated as one so that\nmatches remain distinguishable from non-matches.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "String",
+              "recv": "*ConstantScoreQuery",
+              "signature": "func (q *ConstantScoreQuery) String() string",
+              "doc": "String returns a text representation of the constant-score query.\n"
+            }
+          ]
+        },
+        {
+          "name": "DisjunctionMaxQuery",
+          "signature": "type DisjunctionMaxQuery struct {\n\tDisjuncts  []Query\n\tTieBreaker float64\n}",
+          "doc": "DisjunctionMaxQuery combines several sub-queries so that a document's score\nis the maximum score across the clauses that match it, plus a configurable\nfraction (the tie breaker) of the scores of the other matching clauses. It\nmirrors Lucene's DisjunctionMaxQuery and is the standard way to search the\nsame terms across multiple fields without letting a document that matches in\ntwo fields dominate one that matches strongly in a single field. A document\nmatches if it matches at least one clause.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewDisjunctionMaxQuery",
+              "signature": "func NewDisjunctionMaxQuery(tieBreaker float64, disjuncts ...Query) *DisjunctionMaxQuery",
+              "doc": "NewDisjunctionMaxQuery builds a DisjunctionMaxQuery from the given clauses.\ntieBreaker must be in [0,1]: 0 uses the pure maximum clause score, 1 sums all\nmatching clause scores. Values outside the range are clamped.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "String",
+              "recv": "*DisjunctionMaxQuery",
+              "signature": "func (q *DisjunctionMaxQuery) String() string",
+              "doc": "String returns a text representation of the disjunction-max query.\n"
+            }
+          ]
+        },
+        {
+          "name": "Document",
+          "signature": "type Document struct {\n\tID     string\n\tFields map[string]string\n}",
+          "doc": "Document is a unit of content added to an Index. ID must be unique within the\nindex; adding a document whose ID already exists replaces the previous\nversion. Fields maps field names to their raw (unanalyzed) text.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Error",
+          "signature": "type Error struct {\n\tOp  string\n\tMsg string\n}",
+          "doc": "Error is the error type returned by the library. Op names the operation that\nfailed (for example \"add\" or \"parse\") and Msg describes the problem.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Error",
+              "recv": "*Error",
+              "signature": "func (e *Error) Error() string",
+              "doc": "Error returns the error message.\n"
+            }
+          ]
+        },
+        {
+          "name": "FacetResult",
+          "signature": "type FacetResult struct {\n\t// Value is the indexed (analyzed) term.\n\tValue string\n\t// Count is the number of live documents containing the term in the field.\n\tCount int\n}",
+          "doc": "FacetResult pairs a distinct field term with the number of live documents in\nwhich it appears. It is the unit returned by FacetCounts.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "FuzzyQuery",
+          "signature": "type FuzzyQuery struct {\n\tField    string\n\tTerm     string\n\tMaxEdits int\n\tBoost    float64\n}",
+          "doc": "FuzzyQuery matches documents containing any term in a field whose Levenshtein\nedit distance from the query term is at most MaxEdits. It is the engine for\napproximate (\"did you mean\") matching that tolerates typos. Each matching\nterm contributes its BM25 score, so a document that contains several near\nvariants scores higher.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewFuzzyQuery",
+              "signature": "func NewFuzzyQuery(field, term string, maxEdits int) *FuzzyQuery",
+              "doc": "NewFuzzyQuery builds a FuzzyQuery that matches terms within maxEdits edits of\nterm. A negative maxEdits is treated as zero (exact match). An empty field\ndefaults to \"text\". The term is compared against indexed terms after\nlowercasing but without stemming, so it matches the surface form recorded in\nthe index.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "String",
+              "recv": "*FuzzyQuery",
+              "signature": "func (q *FuzzyQuery) String() string",
+              "doc": "String returns a text representation of the fuzzy query in the conventional\n\"field:term~N\" form.\n"
+            }
+          ]
+        },
+        {
+          "name": "Highlighter",
+          "signature": "type Highlighter struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Highlighter produces snippets of field text with query terms wrapped in\nmarker strings. It analyzes text the same way the index does so that stemmed\nand lowercased query terms line up with the original words.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewHighlighter",
+              "signature": "func NewHighlighter(analyzer *Analyzer, pre, post string) *Highlighter",
+              "doc": "NewHighlighter builds a Highlighter that wraps matched terms between pre and\npost markers (for example \"\u003cb\u003e\" and \"\u003c/b\u003e\"). If analyzer is nil,\nNewStandardAnalyzer is used.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Highlight",
+              "recv": "*Highlighter",
+              "signature": "func (h *Highlighter) Highlight(text string, q Query) string",
+              "doc": "Highlight returns text with every word that matches a term in q wrapped in\nthe highlighter's markers. Matching is performed on the analyzed form of each\nword, so inflected forms are highlighted when the query term stems to the\nsame root. The original text, spacing, and punctuation are preserved.\n"
+            }
+          ]
+        },
+        {
+          "name": "Hit",
+          "signature": "type Hit struct {\n\tID    string\n\tScore float64\n\t// contains filtered or unexported fields\n}",
+          "doc": "Hit is a single search result: the external document ID, its relevance score,\nand the internal document number.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Index",
+          "signature": "type Index struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Index is an in-memory inverted index over a set of documents. It supports\nconcurrent use by multiple goroutines. The zero value is not usable; call\nNewIndex.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewIndex",
+              "signature": "func NewIndex(analyzer *Analyzer) *Index",
+              "doc": "NewIndex creates an empty index that uses the supplied analyzer for both\nindexing and query analysis. If analyzer is nil, NewStandardAnalyzer is used.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Add",
+              "recv": "*Index",
+              "signature": "func (idx *Index) Add(doc Document) error",
+              "doc": "Add inserts or replaces a document. If a document with the same ID already\nexists it is deleted first, so Add doubles as update. An empty ID or a nil\nFields map is rejected with an error.\n"
+            },
+            {
+              "name": "Analyzer",
+              "recv": "*Index",
+              "signature": "func (idx *Index) Analyzer() *Analyzer",
+              "doc": "Analyzer returns the analyzer used by the index.\n"
+            },
+            {
+              "name": "Delete",
+              "recv": "*Index",
+              "signature": "func (idx *Index) Delete(id string) bool",
+              "doc": "Delete removes the document with the given ID. It reports whether a document\nwas actually removed.\n"
+            },
+            {
+              "name": "DocFreq",
+              "recv": "*Index",
+              "signature": "func (idx *Index) DocFreq(field, term string) int",
+              "doc": "DocFreq returns the number of live documents that contain term in the given\nfield, the document frequency used by IDF weighting. The term is analyzed\nwith the index's analyzer so it lines up with the indexed form. It returns 0\nfor an unknown field or term. It mirrors the docFreq statistic exposed by\nLucene's IndexReader.\n"
+            },
+            {
+              "name": "FacetCounts",
+              "recv": "*Index",
+              "signature": "func (idx *Index) FacetCounts(field string) []FacetResult",
+              "doc": "FacetCounts returns, for the given field, every distinct term together with\nthe number of live documents that contain it, sorted by descending count and\nthen ascending term for deterministic output. It is a lightweight equivalent\nof Lucene's terms faceting: a quick way to see the value distribution of a\nfield. An unknown field yields an empty (non-nil) slice.\n"
+            },
+            {
+              "name": "Fields",
+              "recv": "*Index",
+              "signature": "func (idx *Index) Fields() []string",
+              "doc": "Fields returns the sorted names of all fields that have been indexed.\n"
+            },
+            {
+              "name": "Has",
+              "recv": "*Index",
+              "signature": "func (idx *Index) Has(id string) bool",
+              "doc": "Has reports whether a live document with the given ID exists.\n"
+            },
+            {
+              "name": "MoreLikeThis",
+              "recv": "*Index",
+              "signature": "func (idx *Index) MoreLikeThis(id, field string, topN int) Result",
+              "doc": "MoreLikeThis finds the documents most similar to the document identified by\nid, comparing them on the terms of the given field. It mirrors Lucene's\nMoreLikeThis feature: the source document's most distinctive terms (ranked by\nterm frequency times inverse document frequency) become an implicit query,\nand the top matching documents are returned, ranked by descending BM25 score\nwith ties broken by ascending document ID. The source document itself is\nalways excluded from the results. A topN of zero or less returns all matches.\nIf id is unknown, the field is missing, or the document has no terms in the\nfield, an empty Result is returned.\n"
+            },
+            {
+              "name": "NumDocs",
+              "recv": "*Index",
+              "signature": "func (idx *Index) NumDocs() int",
+              "doc": "NumDocs returns the number of live documents currently in the index.\n"
+            },
+            {
+              "name": "Search",
+              "recv": "*Index",
+              "signature": "func (idx *Index) Search(q Query, topN int) Result",
+              "doc": "Search evaluates q against the index and returns up to topN hits ranked by\ndescending BM25 score. Ties are broken by ascending document ID so results\nare fully deterministic. A topN of zero or less returns all matching hits.\n"
+            },
+            {
+              "name": "SearchString",
+              "recv": "*Index",
+              "signature": "func (idx *Index) SearchString(queryString string, topN int) (Result, error)",
+              "doc": "SearchString parses queryString with the index's analyzer and default field\nand then executes it. It is a convenience wrapper over Parser and Search.\n"
+            },
+            {
+              "name": "SpellCheck",
+              "recv": "*Index",
+              "signature": "func (idx *Index) SpellCheck(field, term string, maxEdits, max int) []string",
+              "doc": "SpellCheck suggests corrections for term drawn from the terms indexed in the\ngiven field: every indexed term within maxEdits Levenshtein edits of term,\nexcluding term itself, ordered by ascending edit distance, then descending\ndocument frequency, then ascending term. It mirrors the didactic behaviour of\nLucene's SpellChecker. The term is lowercased (not stemmed) before comparison.\nA max of zero or less returns all candidates; a negative maxEdits is treated\nas one. An unknown field or empty term yields an empty (non-nil) slice.\n"
+            },
+            {
+              "name": "Suggest",
+              "recv": "*Index",
+              "signature": "func (idx *Index) Suggest(field, prefix string, max int) []string",
+              "doc": "Suggest returns up to max indexed terms in the given field that begin with\nprefix, ordered by descending document frequency (most common first) and then\nascending term for ties. It is a simple prefix autocompleter in the spirit of\nLucene's suggest module. The prefix is lowercased to match the indexed form.\nA max of zero or less returns all matching terms. An unknown field or empty\nprefix yields an empty (non-nil) slice.\n"
+            },
+            {
+              "name": "TermCount",
+              "recv": "*Index",
+              "signature": "func (idx *Index) TermCount(field string) int",
+              "doc": "TermCount returns the number of distinct terms currently indexed in the given\nfield. It returns 0 for an unknown field. It corresponds to the size of a\nfield's term dictionary in Lucene.\n"
+            },
+            {
+              "name": "Terms",
+              "recv": "*Index",
+              "signature": "func (idx *Index) Terms(field string) []string",
+              "doc": "Terms returns the distinct terms indexed in the given field, sorted in\nascending lexical order. The returned slice is freshly allocated and may be\nmodified by the caller. An unknown field yields an empty (non-nil) slice. It\nexposes the field's term dictionary, akin to iterating Lucene's TermsEnum.\n"
+            },
+            {
+              "name": "TotalTermFreq",
+              "recv": "*Index",
+              "signature": "func (idx *Index) TotalTermFreq(field, term string) int",
+              "doc": "TotalTermFreq returns the total number of occurrences of term across every\nlive document in the given field, summing per-document term frequencies. The\nterm is analyzed with the index's analyzer. It returns 0 for an unknown field\nor term. It mirrors the totalTermFreq statistic in Lucene's IndexReader.\n"
+            }
+          ]
+        },
+        {
+          "name": "MatchAllQuery",
+          "signature": "type MatchAllQuery struct{}",
+          "doc": "MatchAllQuery matches every live document with a constant score of 1. It is\nuseful as a base for filtering with MustNot clauses.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "String",
+              "recv": "*MatchAllQuery",
+              "signature": "func (q *MatchAllQuery) String() string",
+              "doc": "String returns the \"*:*\" text form of the match-all query.\n"
+            }
+          ]
+        },
+        {
+          "name": "Occur",
+          "signature": "type Occur int",
+          "doc": "Occur specifies how a clause participates in a BooleanQuery.\n",
+          "consts": [
+            {
+              "names": [
+                "Should",
+                "Must",
+                "MustNot"
+              ],
+              "signature": "const (\n\t// Should clauses contribute to the score; a document matches the boolean\n\t// query if it satisfies at least one Should clause (when there are no Must\n\t// clauses) or any combination alongside the Must clauses.\n\tShould Occur = iota\n\t// Must clauses are required: a matching document must satisfy every Must\n\t// clause.\n\tMust\n\t// MustNot clauses are prohibited: a matching document must satisfy none of\n\t// them. They never contribute to the score.\n\tMustNot\n)",
+              "doc": ""
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Parser",
+          "signature": "type Parser struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Parser turns query strings into Query trees. The accepted grammar supports:\n\n  - term queries:            word\n  - field qualifiers:        title:word\n  - phrase queries:          \"a b c\"  (optionally field-qualified)\n  - required / prohibited:   +word  -word   (AND / NOT)\n  - prefix / wildcard:       net*    title:net*\n  - range queries:           [a TO z]  {1 TO 9}  (bounds, inclusive [] or exclusive {})\n  - grouping:                (a b) +c\n\nBare, space-separated clauses combine as Should (OR) by default. A clause\nprefixed with '+' becomes Must (AND); a clause prefixed with '-' becomes\nMustNot (NOT). Field qualifiers apply to the clause they precede.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewParser",
+              "signature": "func NewParser(analyzer *Analyzer, defaultField string) *Parser",
+              "doc": "NewParser builds a parser that analyzes terms with the given analyzer and\nresolves unqualified clauses against defaultField. If analyzer is nil,\nNewStandardAnalyzer is used; if defaultField is empty, \"text\" is used.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Parse",
+              "recv": "*Parser",
+              "signature": "func (p *Parser) Parse(input string) (Query, error)",
+              "doc": "Parse converts a query string into a Query. An empty or whitespace-only input\nyields a MatchAllQuery. Structural errors (unterminated phrase, malformed\nrange, unbalanced parentheses) return an *Error.\n"
+            }
+          ]
+        },
+        {
+          "name": "PhraseQuery",
+          "signature": "type PhraseQuery struct {\n\tField string\n\tTerms []string\n\tBoost float64\n}",
+          "doc": "PhraseQuery matches documents in which the given terms occur adjacently and\nin order within a single field. Positional information recorded at index time\ndrives the match. Scoring sums the BM25 contributions of the constituent\nterms for documents where the phrase is present.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewPhraseQuery",
+              "signature": "func NewPhraseQuery(field string, terms ...string) *PhraseQuery",
+              "doc": "NewPhraseQuery builds a PhraseQuery from raw terms. An empty field defaults to\n\"text\".\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "String",
+              "recv": "*PhraseQuery",
+              "signature": "func (q *PhraseQuery) String() string",
+              "doc": "String returns a text representation of the phrase query.\n"
+            }
+          ]
+        },
+        {
+          "name": "PrefixQuery",
+          "signature": "type PrefixQuery struct {\n\tField  string\n\tPrefix string\n\tBoost  float64\n}",
+          "doc": "PrefixQuery matches every document containing any term in a field that begins\nwith the given prefix. It is the engine for wildcard-prefix queries such as\n\"net*\". Scores sum the BM25 contributions of all matching terms.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewPrefixQuery",
+              "signature": "func NewPrefixQuery(field, prefix string) *PrefixQuery",
+              "doc": "NewPrefixQuery builds a PrefixQuery. An empty field defaults to \"text\".\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "String",
+              "recv": "*PrefixQuery",
+              "signature": "func (q *PrefixQuery) String() string",
+              "doc": "String returns a text representation of the prefix query.\n"
+            }
+          ]
+        },
+        {
+          "name": "Query",
+          "signature": "type Query interface {\n\n\t// String returns a canonical, human-readable form of the query.\n\tString() string\n\t// contains filtered or unexported methods\n}",
+          "doc": "Query is the interface implemented by all query types. A Query knows how to\nmatch documents in an index and produce per-document scores. Implementations\nare produced either directly or by the query Parser.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "RangeQuery",
+          "signature": "type RangeQuery struct {\n\tField        string\n\tLower        string\n\tUpper        string\n\tIncludeLower bool\n\tIncludeUpper bool\n\tBoost        float64\n}",
+          "doc": "RangeQuery matches documents containing at least one term in a field that\nfalls within a lexical range [Lower, Upper]. Bounds may be inclusive or\nexclusive, and either bound may be empty to leave that side unbounded. Terms\nare compared as strings, which yields correct numeric ordering for\nzero-padded or fixed-width numbers.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewRangeQuery",
+              "signature": "func NewRangeQuery(field, lower, upper string, includeLower, includeUpper bool) *RangeQuery",
+              "doc": "NewRangeQuery builds an inclusive-by-default range query. An empty field\ndefaults to \"text\".\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "String",
+              "recv": "*RangeQuery",
+              "signature": "func (q *RangeQuery) String() string",
+              "doc": "String returns a text representation of the range query.\n"
+            }
+          ]
+        },
+        {
+          "name": "RegexpQuery",
+          "signature": "type RegexpQuery struct {\n\tField string\n\n\tBoost float64\n\t// contains filtered or unexported fields\n}",
+          "doc": "RegexpQuery matches every document containing any term in a field that\nmatches an anchored regular expression, mirroring Lucene's RegexpQuery. The\npattern uses Go's regexp/syntax (RE2) and must match a whole term, not a\nsubstring, so \"colou?r\" matches \"color\" and \"colour\" but not \"colored\".\nScores sum the BM25 contributions of all matching terms.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewRegexpQuery",
+              "signature": "func NewRegexpQuery(field, pattern string) (*RegexpQuery, error)",
+              "doc": "NewRegexpQuery compiles pattern and builds a RegexpQuery over field. The\npattern is automatically anchored to match a complete term. An invalid\npattern returns an *Error. An empty field defaults to \"text\". Terms in the\nindex are lowercased, so patterns should be written in lower case.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "String",
+              "recv": "*RegexpQuery",
+              "signature": "func (q *RegexpQuery) String() string",
+              "doc": "String returns a text representation of the regexp query in the conventional\n\"field:/pattern/\" form.\n"
+            }
+          ]
+        },
+        {
+          "name": "Result",
+          "signature": "type Result struct {\n\t// Total is the number of documents that matched the query, which may exceed\n\t// len(Hits) when the caller requested fewer.\n\tTotal int\n\tHits  []Hit\n}",
+          "doc": "Result is the outcome of a search: the total number of documents that matched\nand the top-ranked hits.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "TermQuery",
+          "signature": "type TermQuery struct {\n\tField string\n\tTerm  string\n\tBoost float64\n}",
+          "doc": "TermQuery matches documents that contain a single analyzed term in a field.\nIt scores matches with BM25.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewTermQuery",
+              "signature": "func NewTermQuery(field, term string) *TermQuery",
+              "doc": "NewTermQuery builds a TermQuery. An empty field defaults to \"text\".\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "String",
+              "recv": "*TermQuery",
+              "signature": "func (q *TermQuery) String() string",
+              "doc": "String returns a text representation of the term query.\n"
+            }
+          ]
+        },
+        {
+          "name": "TermsQuery",
+          "signature": "type TermsQuery struct {\n\tField string\n\tTerms []string\n\tBoost float64\n}",
+          "doc": "TermsQuery matches documents that contain any one of several terms in a\nfield, scoring each match as the sum of the BM25 contributions of the terms\nit contains. It mirrors Lucene's TermInSetQuery and is a compact alternative\nto a BooleanQuery of many Should term clauses.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewTermsQuery",
+              "signature": "func NewTermsQuery(field string, terms ...string) *TermsQuery",
+              "doc": "NewTermsQuery builds a TermsQuery over the given terms. An empty field\ndefaults to \"text\". Terms are analyzed with the index's analyzer at match\ntime, exactly as a TermQuery would be.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "String",
+              "recv": "*TermsQuery",
+              "signature": "func (q *TermsQuery) String() string",
+              "doc": "String returns a text representation of the terms query.\n"
+            }
+          ]
+        },
+        {
+          "name": "Token",
+          "signature": "type Token struct {\n\tText     string\n\tPosition int\n}",
+          "doc": "Token is a single unit of text produced by an Analyzer. Position records the\nordinal offset of the token within the analyzed field (starting at zero) and\nis used by phrase queries for positional matching.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "WildcardQuery",
+          "signature": "type WildcardQuery struct {\n\tField   string\n\tPattern string\n\tBoost   float64\n}",
+          "doc": "WildcardQuery matches every document containing any term in a field that\nmatches a glob-style pattern using '*' (any run of characters) and '?' (a\nsingle character). Unlike PrefixQuery the wildcards may appear anywhere in\nthe pattern, for example \"n?t*rk\". Scores sum the BM25 contributions of all\nmatching terms.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewWildcardQuery",
+              "signature": "func NewWildcardQuery(field, pattern string) *WildcardQuery",
+              "doc": "NewWildcardQuery builds a WildcardQuery. The pattern is lowercased before\nmatching so it lines up with the lowercased terms in the index. An empty\nfield defaults to \"text\".\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "String",
+              "recv": "*WildcardQuery",
+              "signature": "func (q *WildcardQuery) String() string",
+              "doc": "String returns a text representation of the wildcard query.\n"
+            }
+          ]
+        }
+      ],
+      "funcs": [
+        {
+          "name": "DamerauLevenshteinDistance",
+          "signature": "func DamerauLevenshteinDistance(a, b string) int",
+          "doc": "DamerauLevenshteinDistance returns the optimal string alignment distance\nbetween a and b: the minimum number of single-character insertions, deletions,\nsubstitutions, and transpositions of two adjacent characters needed to turn a\ninto b. It extends LevenshteinDistance by counting a swap of neighbouring\ncharacters (for example \"ab\" to \"ba\") as one edit rather than two, which\nbetter models common typos. It operates on Unicode code points, is symmetric,\nand runs in O(len(a)*len(b)) time.\n"
+        },
+        {
+          "name": "DefaultStopWords",
+          "signature": "func DefaultStopWords() []string",
+          "doc": "DefaultStopWords is a small, conventional English stop word list. It is a\ncopy; callers may modify the returned slice freely.\n"
+        },
+        {
+          "name": "EdgeNGrams",
+          "signature": "func EdgeNGrams(s string, minGram, maxGram int) []string",
+          "doc": "EdgeNGrams returns the prefixes of s whose length in Unicode code points is\nbetween minGram and maxGram inclusive, shortest first. It mirrors Lucene's\nEdgeNGramTokenFilter, the standard building block for autocomplete: indexing\nthe edge n-grams of a term lets a prefix be matched as an ordinary term. If\nminGram is less than one it is raised to one; if maxGram is less than minGram,\nor s is empty, an empty (non-nil) slice is returned. maxGram is capped at the\nrune length of s.\n"
+        },
+        {
+          "name": "JaroSimilarity",
+          "signature": "func JaroSimilarity(a, b string) float64",
+          "doc": "JaroSimilarity returns the Jaro similarity of a and b, a value in [0,1] where\n1 means the strings are identical and 0 means they share no matching\ncharacters. It accounts for matching characters within a sliding window and\nthe number of transpositions among them, and is a common ingredient in\nrecord-linkage and typo-tolerant matching. Two empty strings are defined to\nhave similarity 1.\n"
+        },
+        {
+          "name": "JaroWinklerSimilarity",
+          "signature": "func JaroWinklerSimilarity(a, b string) float64",
+          "doc": "JaroWinklerSimilarity returns the Jaro-Winkler similarity of a and b, a value\nin [0,1]. It boosts the Jaro similarity when the strings share a common\nprefix, reflecting the observation that human errors are less likely at the\nstart of a word. This is a faithful port of Lucene's JaroWinklerDistance\n(lucene/suggest): the boost is applied only when the Jaro similarity is at\nleast the 0.7 threshold; the common prefix is not capped in length; and the\nscaling factor is min(0.1, 1/maxLen) where maxLen is the rune length of the\nlonger string. It operates on Unicode code points and is symmetric.\n"
+        },
+        {
+          "name": "LevenshteinDistance",
+          "signature": "func LevenshteinDistance(a, b string) int",
+          "doc": "LevenshteinDistance returns the minimum number of single-character\ninsertions, deletions, or substitutions required to transform a into b. It\noperates on Unicode code points (runes), so multi-byte characters count as a\nsingle edit. The result is symmetric: LevenshteinDistance(a, b) equals\nLevenshteinDistance(b, a). It is deterministic and runs in O(len(a)*len(b))\ntime using two rolling rows of O(len(b)) space.\n"
+        },
+        {
+          "name": "LevenshteinSimilarity",
+          "signature": "func LevenshteinSimilarity(a, b string) float64",
+          "doc": "LevenshteinSimilarity returns the normalized Levenshtein similarity of a and\nb, a value in [0,1] where 1 means the strings are identical. It is a faithful\nport of Lucene's LevenshteinDistance.getDistance (lucene/suggest): the raw\nedit distance is normalized as 1 - distance/max(len(a), len(b)). Following\nLucene, if either string is empty the result is 1 when both are empty and 0\notherwise. It operates on Unicode code points and is symmetric.\n"
+        },
+        {
+          "name": "NGramSimilarity",
+          "signature": "func NGramSimilarity(a, b string, n int) float64",
+          "doc": "NGramSimilarity returns the n-gram similarity of a and b, a value in [0,1]\nwhere 1 means the strings are identical. It is a faithful port of Lucene's\nNGramDistance.getDistance (lucene/suggest), a Levenshtein-style edit distance\ncomputed over overlapping character n-grams rather than single characters,\nwith affix padding so that boundary n-grams are compared fairly. Larger n\nweighs longer shared substrings more heavily. If n is less than one it\ndefaults to one, in which case the result equals LevenshteinSimilarity.\nFollowing Lucene, if either string is empty the result is 1 when both are\nempty and 0 otherwise. It operates on Unicode code points and is symmetric in\nvalue for equal n.\n"
+        },
+        {
+          "name": "NGrams",
+          "signature": "func NGrams(s string, n int) []string",
+          "doc": "NGrams splits s into overlapping substrings of exactly n Unicode code points\n(character n-grams), in left-to-right order. It mirrors Lucene's NGramTokenizer\nand is useful for substring and fuzzy matching. If n is less than one, or if s\nhas fewer than n runes, NGrams returns an empty (non-nil) slice. The input is\nused verbatim: callers that want case-insensitive n-grams should lowercase s\nfirst.\n"
+        },
+        {
+          "name": "Shingles",
+          "signature": "func Shingles(tokens []string, n int) []string",
+          "doc": "Shingles combines adjacent tokens into word n-grams of size n, joining the\nmembers of each shingle with a single space. It mirrors Lucene's\nShingleFilter and captures short phrases as single index terms, improving\nphrase-like matching. If n is less than one it defaults to two; if fewer than\nn tokens are supplied, an empty (non-nil) slice is returned.\n"
+        },
+        {
+          "name": "Soundex",
+          "signature": "func Soundex(s string) string",
+          "doc": "Soundex encodes an English word into the classic four-character Soundex code:\nan uppercase initial letter followed by three digits derived from the\nremaining consonants. It mirrors the phonetic encoding in Lucene's analysis\nmodule and groups words that sound alike (\"Robert\" and \"Rupert\" both encode\nto \"R163\"). Non-letter characters are ignored. An input with no letters yields\nthe empty string. The result is always padded or truncated to exactly four\ncharacters when any letter is present.\n"
+        },
+        {
+          "name": "WildcardMatch",
+          "signature": "func WildcardMatch(pattern, s string) bool",
+          "doc": "WildcardMatch reports whether s matches pattern, where the pattern may\ncontain two wildcard metacharacters: '*' matches any (possibly empty)\nsequence of characters, and '?' matches exactly one character. All other\ncharacters match literally. Matching is performed over Unicode code points\nand is anchored: the whole of s must be consumed. It runs in linear time with\nbacktracking on '*'.\n"
+        }
+      ],
+      "examples": [
+        {
+          "name": "",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/lucene\"\n)\n\nfunc main() {\n\tidx := lucene.NewIndex(lucene.NewStandardAnalyzer())\n\n\t_ = idx.Add(lucene.Document{ID: \"1\", Fields: map[string]string{\n\t\t\"title\": \"The Go Programming Language\",\n\t\t\"body\":  \"Go is an open source programming language designed at Google.\",\n\t}})\n\t_ = idx.Add(lucene.Document{ID: \"2\", Fields: map[string]string{\n\t\t\"title\": \"Rust in Action\",\n\t\t\"body\":  \"Rust is a systems programming language focused on safety.\",\n\t}})\n\t_ = idx.Add(lucene.Document{ID: \"3\", Fields: map[string]string{\n\t\t\"title\": \"Network Programming with Go\",\n\t\t\"body\":  \"Building network servers and clients using the Go programming language.\",\n\t}})\n\n\t// Documents mentioning \"go\" in the body, ranked by relevance.\n\tres, err := idx.SearchString(\"body:go\", 10)\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Println(\"matches:\", res.Total)\n\tfor _, hit := range res.Hits {\n\t\tfmt.Println(hit.ID)\n\t}\n\n\t// Highlight the query term in a snippet.\n\th := lucene.NewHighlighter(idx.Analyzer(), \"[\", \"]\")\n\tfmt.Println(h.Highlight(\"Go is an open source programming language.\", lucene.NewTermQuery(\"body\", \"go\")))\n\n}",
+          "output": "matches: 2\n1\n3\n[Go] is an open source programming language.",
+          "doc": "Example demonstrates indexing a few documents and running a parsed query with\nBM25 ranking.\n"
+        }
+      ]
+    }
+  ]
+}

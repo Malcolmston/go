@@ -1,0 +1,814 @@
+{
+  "module": "github.com/malcolmston/axios",
+  "generatedAt": "2026-07-19T02:05:52Z",
+  "packages": [
+    {
+      "importPath": "github.com/malcolmston/axios",
+      "name": "axios",
+      "synopsis": "Package axios is an ergonomic, axios-style HTTP client built entirely on the Go standard library (net/http).",
+      "doc": "Package axios is an ergonomic, axios-style HTTP client built entirely on the\nGo standard library (net/http). It offers a configurable client instance,\nconvenience verb methods, automatic body encoding/decoding, request and\nresponse interceptors, configurable retries with backoff, and a typed error\nthat carries the response for non-2xx statuses.\n\n# Clients and configuration\n\nCreate a client with New and a Config. Every Config field is optional:\n\n\tclient := axios.New(axios.Config{\n\t\tBaseURL:     \"https://api.example.com\",\n\t\tHeaders:     http.Header{\"X-App\": {\"demo\"}},\n\t\tParams:      url.Values{\"v\": {\"1\"}},\n\t\tTimeout:     5 * time.Second,\n\t\tBearerToken: \"secret\",\n\t})\n\nA zero-value client is also ready to use, and the package exposes\npackage-level Get/Post/... helpers backed by a default client (see Default and\nSetDefault).\n\n# Verb methods\n\nGet, Delete, Head and Options take a URL and an optional *RequestConfig. Post,\nPut and Patch additionally take a body:\n\n\tresp, err := client.Get(\"/users\", \u0026axios.RequestConfig{\n\t\tParams: url.Values{\"page\": {\"2\"}},\n\t})\n\tresp, err = client.Post(\"/users\", map[string]any{\"name\": \"Ada\"})\n\nThe lower-level Request method underlies all of them.\n\n# Bodies\n\nRequest bodies are encoded automatically by their dynamic type (see\nEncodeBody): structs and maps become JSON (application/json), url.Values\nbecomes form-urlencoded, and []byte/string/io.Reader are sent raw. Set\nRequestConfig.ContentType to override the chosen Content-Type.\n\n# Responses\n\nA Response buffers the whole body into Body and exposes helpers: JSON decodes\ninto a value, Text returns a string, OK reports a 2xx status, and Status,\nStatusText and Headers expose the metadata. The generic helpers GetJSON and\nGetJSONDefault fetch and decode in one call.\n\n# Status validation and errors\n\nBy default any non-2xx response resolves to an *Error whose Response field\nstill holds the parsed body, letting callers inspect it. Override this per\nclient or per request with ValidateStatus (analogous to axios validateStatus).\nTransport failures also return an *Error, with the underlying error available\nvia errors.Unwrap.\n\n# Interceptors\n\nRequestInterceptors run in order after the outgoing request is built but\nbefore it is sent, and may mutate it. ResponseInterceptors run in order after\nthe response is buffered but before status validation, and may transform it.\n\n# Retries\n\nSet Config.Retry to enable automatic retries. RetryConfig controls the number\nof attempts, the Backoff schedule, and a RetryOn predicate. The defaults\n(DefaultBackoff, DefaultRetryOn) retry on transport errors and 5xx responses\nwith exponential backoff.\n\n# Cancellation\n\nRequests honor a context (Config.Context / RequestConfig.Context) and, for an\naxios-style API, an AbortController: create one with NewAbortController, pass\nits Signal via RequestConfig.Signal, and call Abort to cancel. The legacy\nCancelToken (NewCancelToken) is also supported. IsCancel reports whether an\nerror came from a cancellation.\n\n# Progress\n\nConfig/RequestConfig OnUploadProgress and OnDownloadProgress receive\nProgressEvent values as the request and response bodies are transferred.\n\n# Transforms\n\nTransformRequest and TransformResponse are pipelines that rewrite the raw\nbody bytes (and may mutate headers) around encoding/decoding, complementing\nthe request/response interceptors.\n\n# Response types and streaming\n\nResponseType selects how the body is delivered. The default buffers into\nResponse.Body; ResponseStream leaves it unread on Response.Stream for\nincremental consumption (call Response.Close when done).\n\n# Query parameters\n\nParams (url.Values) and ParamsMap (nested map, flattened with FlattenParams)\nare merged into the URL. ArrayFormat controls how repeated values are encoded\n(repeat/brackets/indices/comma), or supply a ParamsSerializer to take over\nentirely. GetUri returns the resolved URL without sending a request.\n\n# Decompression\n\nResponses are transparently decompressed (gzip and deflate) and an\nAccept-Encoding header is advertised, unless Config.Decompress is disabled.\n\n# Redirects and size guards\n\nMaxRedirects caps or disables redirect following (or supply a RedirectPolicy).\nMaxContentLength and MaxBodyLength bound response and request body sizes.\n\n# XSRF/CSRF\n\nWith XSRFCookieName and XSRFHeaderName set, a token is copied from the\nclient's cookie jar into the outgoing request header.\n\n# Instances and helpers\n\nCreate returns a new client whose config is deep-merged over an existing one\n(request \u003e instance \u003e defaults precedence throughout). All and Spread run and\ncombine several requests; IsAxiosError, AsError and Error.ToJSON aid error\nhandling; HeaderDefaults provides common/get/post default header groups.\n",
+      "consts": [
+        {
+          "names": [
+            "ErrCodeInvalidURL",
+            "ErrCodeBadRequest",
+            "ErrCodeNetwork",
+            "ErrCodeCanceled",
+            "ErrCodeBadResponse"
+          ],
+          "signature": "const (\n\t// ErrCodeInvalidURL indicates the request URL could not be built or parsed.\n\tErrCodeInvalidURL = \"ERR_INVALID_URL\"\n\t// ErrCodeBadRequest indicates the request could not be prepared (body\n\t// encoding, request transform, size guard).\n\tErrCodeBadRequest = \"ERR_BAD_REQUEST\"\n\t// ErrCodeNetwork indicates a transport/connection failure.\n\tErrCodeNetwork = \"ERR_NETWORK\"\n\t// ErrCodeCanceled indicates the request was canceled or its context was\n\t// done (timeout, abort).\n\tErrCodeCanceled = \"ERR_CANCELED\"\n\t// ErrCodeBadResponse indicates the response was received but rejected\n\t// (status validation, response transform/interceptor, decode).\n\tErrCodeBadResponse = \"ERR_BAD_RESPONSE\"\n)",
+          "doc": "Error codes classify an *Error, mirroring the axios error.code values so\ncallers can branch on the kind of failure.\n"
+        }
+      ],
+      "vars": [
+        {
+          "names": [
+            "ErrCanceled"
+          ],
+          "signature": "var ErrCanceled = errors.New(\"axios: request canceled\")",
+          "doc": "ErrCanceled is the cause reported when a request is aborted via an\nAbortController or CancelToken without an explicit reason.\n"
+        }
+      ],
+      "types": [
+        {
+          "name": "AbortController",
+          "signature": "type AbortController struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "AbortController creates AbortSignals and aborts them, mirroring the DOM\nAbortController API. Share one controller's Signal across several requests to\ncancel them all at once.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewAbortController",
+              "signature": "func NewAbortController() *AbortController",
+              "doc": "NewAbortController returns a ready-to-use AbortController derived from\ncontext.Background.\n"
+            },
+            {
+              "name": "NewAbortControllerWithContext",
+              "signature": "func NewAbortControllerWithContext(parent context.Context) *AbortController",
+              "doc": "NewAbortControllerWithContext returns an AbortController whose signal is also\ncanceled when the parent context is canceled. If parent is nil,\ncontext.Background is used.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Abort",
+              "recv": "*AbortController",
+              "signature": "func (a *AbortController) Abort(cause error)",
+              "doc": "Abort cancels every request using this controller's signal. The optional\ncause is reported via AbortSignal.Err and context.Cause; when nil,\nErrCanceled is used.\n"
+            },
+            {
+              "name": "Signal",
+              "recv": "*AbortController",
+              "signature": "func (a *AbortController) Signal() *AbortSignal",
+              "doc": "Signal returns the AbortSignal controlled by this controller. Pass it to\nRequestConfig.Signal or Config.Signal.\n"
+            }
+          ]
+        },
+        {
+          "name": "AbortSignal",
+          "signature": "type AbortSignal struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "AbortSignal is the read side of an AbortController. A request configured with\na signal (RequestConfig.Signal or Config.Signal) is canceled when the\ncontrolling AbortController's Abort method is called. It is the standard-\nlibrary analogue of the DOM AbortSignal that axios accepts.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Aborted",
+              "recv": "*AbortSignal",
+              "signature": "func (s *AbortSignal) Aborted() bool",
+              "doc": "Aborted reports whether the signal has been aborted.\n"
+            },
+            {
+              "name": "Context",
+              "recv": "*AbortSignal",
+              "signature": "func (s *AbortSignal) Context() context.Context",
+              "doc": "Context returns the context that is canceled when the signal is aborted. It\nis never nil.\n"
+            },
+            {
+              "name": "Err",
+              "recv": "*AbortSignal",
+              "signature": "func (s *AbortSignal) Err() error",
+              "doc": "Err returns the cause the signal was aborted with, or nil if it has not been\naborted.\n"
+            }
+          ]
+        },
+        {
+          "name": "ArrayFormat",
+          "signature": "type ArrayFormat int",
+          "doc": "ArrayFormat controls how repeated query parameters (values with more than one\nentry) are serialized, mirroring the qs/axios paramsSerializer options.\n",
+          "consts": [
+            {
+              "names": [
+                "ArrayFormatRepeat",
+                "ArrayFormatBrackets",
+                "ArrayFormatIndices",
+                "ArrayFormatComma"
+              ],
+              "signature": "const (\n\t// ArrayFormatRepeat repeats the key for each value: a=1\u0026a=2. This is the\n\t// default and matches url.Values.Encode.\n\tArrayFormatRepeat ArrayFormat = iota\n\t// ArrayFormatBrackets appends empty brackets to the key: a[]=1\u0026a[]=2.\n\tArrayFormatBrackets\n\t// ArrayFormatIndices appends the element index in brackets: a[0]=1\u0026a[1]=2.\n\tArrayFormatIndices\n\t// ArrayFormatComma joins the values with commas into a single pair: a=1,2.\n\tArrayFormatComma\n)",
+              "doc": ""
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "BasicAuth",
+          "signature": "type BasicAuth struct {\n\t// Username is the Basic auth user name.\n\tUsername string\n\t// Password is the Basic auth password.\n\tPassword string\n}",
+          "doc": "BasicAuth holds credentials for HTTP Basic authentication.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "CancelFunc",
+          "signature": "type CancelFunc func(message string)",
+          "doc": "CancelFunc cancels a CancelToken with an optional human-readable message.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "CancelToken",
+          "signature": "type CancelToken struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "CancelToken is the legacy axios cancellation primitive. Obtain one, together\nwith its cancel function, from NewCancelToken, and pass it via\nRequestConfig.CancelToken. New code should prefer AbortController.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Context",
+              "recv": "*CancelToken",
+              "signature": "func (t *CancelToken) Context() context.Context",
+              "doc": "Context returns the context canceled when the token is canceled.\n"
+            }
+          ]
+        },
+        {
+          "name": "CanceledError",
+          "signature": "type CanceledError struct {\n\t// Message is the reason supplied to the cancel function.\n\tMessage string\n}",
+          "doc": "CanceledError is the cause carried when a CancelToken is canceled with an\nexplicit message.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Error",
+              "recv": "*CanceledError",
+              "signature": "func (e *CanceledError) Error() string",
+              "doc": "Error implements the error interface.\n"
+            }
+          ]
+        },
+        {
+          "name": "Client",
+          "signature": "type Client struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Client is a reusable, configured HTTP client. It is safe for concurrent use.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "Create",
+              "signature": "func Create(cfg Config) *Client",
+              "doc": "Create returns a new Client whose configuration is cfg deep-merged over the\npackage-level default client's configuration. It mirrors axios.create.\n"
+            },
+            {
+              "name": "Default",
+              "signature": "func Default() *Client",
+              "doc": "Default returns the package-level default client used by the package-level\nGet/Post/... helpers.\n"
+            },
+            {
+              "name": "New",
+              "signature": "func New(cfg Config) *Client",
+              "doc": "New creates a Client from the given configuration.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Create",
+              "recv": "*Client",
+              "signature": "func (c *Client) Create(cfg Config) *Client",
+              "doc": "Create returns a new Client whose configuration is cfg deep-merged over this\nclient's configuration (request-time values still take ultimate precedence).\nIt mirrors axios.create. Headers, header groups and params are merged\nkey-by-key; other set fields in cfg override the base.\n"
+            },
+            {
+              "name": "Delete",
+              "recv": "*Client",
+              "signature": "func (c *Client) Delete(rawURL string, cfg ...*RequestConfig) (*Response, error)",
+              "doc": "Delete issues a DELETE request.\n"
+            },
+            {
+              "name": "Get",
+              "recv": "*Client",
+              "signature": "func (c *Client) Get(rawURL string, cfg ...*RequestConfig) (*Response, error)",
+              "doc": "Get issues a GET request.\n"
+            },
+            {
+              "name": "GetUri",
+              "recv": "*Client",
+              "signature": "func (c *Client) GetUri(rawURL string, rc *RequestConfig) (string, error)",
+              "doc": "GetUri returns the fully-resolved URL (base + path + serialized params) that\na request with the given config would target, without sending it. It mirrors\naxios getUri.\n"
+            },
+            {
+              "name": "Head",
+              "recv": "*Client",
+              "signature": "func (c *Client) Head(rawURL string, cfg ...*RequestConfig) (*Response, error)",
+              "doc": "Head issues a HEAD request.\n"
+            },
+            {
+              "name": "Options",
+              "recv": "*Client",
+              "signature": "func (c *Client) Options(rawURL string, cfg ...*RequestConfig) (*Response, error)",
+              "doc": "Options issues an OPTIONS request.\n"
+            },
+            {
+              "name": "Patch",
+              "recv": "*Client",
+              "signature": "func (c *Client) Patch(rawURL string, body any, cfg ...*RequestConfig) (*Response, error)",
+              "doc": "Patch issues a PATCH request with the given body.\n"
+            },
+            {
+              "name": "Post",
+              "recv": "*Client",
+              "signature": "func (c *Client) Post(rawURL string, body any, cfg ...*RequestConfig) (*Response, error)",
+              "doc": "Post issues a POST request with the given body.\n"
+            },
+            {
+              "name": "Put",
+              "recv": "*Client",
+              "signature": "func (c *Client) Put(rawURL string, body any, cfg ...*RequestConfig) (*Response, error)",
+              "doc": "Put issues a PUT request with the given body.\n"
+            },
+            {
+              "name": "Request",
+              "recv": "*Client",
+              "signature": "func (c *Client) Request(method, rawURL string, body any, rc *RequestConfig) (*Response, error)",
+              "doc": "Request is the low-level entry point that all helper methods build on. Body\nis encoded automatically based on its dynamic type (see EncodeBody).\n"
+            }
+          ]
+        },
+        {
+          "name": "Config",
+          "signature": "type Config struct {\n\t// BaseURL is prepended to request URLs that are not absolute.\n\tBaseURL string\n\t// Headers are sent with every request. Per-request headers take precedence\n\t// on a per-key basis.\n\tHeaders http.Header\n\t// HeaderGroups holds method-scoped default headers (common/get/post/...),\n\t// mirroring axios defaults.headers. They are applied beneath Headers.\n\tHeaderGroups HeaderDefaults\n\t// Params are default query parameters merged into every request.\n\tParams url.Values\n\t// ParamsMap holds nested/typed default query parameters that are flattened\n\t// with bracket notation (see FlattenParams) and merged into every request.\n\tParamsMap map[string]any\n\t// ParamsSerializer, when set, fully controls how query parameters are\n\t// encoded (axios paramsSerializer).\n\tParamsSerializer ParamsSerializer\n\t// ArrayFormat selects how repeated params are serialized when\n\t// ParamsSerializer is nil. The zero value repeats the key.\n\tArrayFormat ArrayFormat\n\t// Timeout, when \u003e 0, bounds each individual attempt via a context deadline.\n\tTimeout time.Duration\n\t// BasicAuth, when set, adds an Authorization: Basic header.\n\tBasicAuth *BasicAuth\n\t// BearerToken, when non-empty, adds an Authorization: Bearer header.\n\tBearerToken string\n\t// Proxy configures an outbound HTTP proxy. It is honored only when\n\t// HTTPClient is nil (the client builds its own transport).\n\tProxy *ProxyConfig\n\t// HTTPClient lets callers supply a fully custom *http.Client. If nil a\n\t// client is created (optionally using Transport/Proxy/redirect policy).\n\tHTTPClient *http.Client\n\t// Transport is used to build the internal *http.Client when HTTPClient is\n\t// nil.\n\tTransport http.RoundTripper\n\t// Context is the default context for requests. If nil, context.Background\n\t// is used. A per-request context overrides this.\n\tContext context.Context\n\t// Signal cancels every request made with this client when its controller\n\t// aborts (axios signal). A per-request Signal overrides it.\n\tSignal *AbortSignal\n\t// ValidateStatus decides which status codes resolve successfully. If nil,\n\t// 2xx codes are treated as success and everything else yields an *Error.\n\tValidateStatus func(status int) bool\n\t// MaxRedirects controls redirect following. Zero uses the default of 10; a\n\t// negative value disables following (the 3xx response is returned); a\n\t// positive value caps the redirect chain and errors when exceeded. Honored\n\t// only when HTTPClient is nil.\n\tMaxRedirects int\n\t// RedirectPolicy fully overrides redirect handling (http.Client\n\t// CheckRedirect) when set. Honored only when HTTPClient is nil.\n\tRedirectPolicy func(req *http.Request, via []*http.Request) error\n\t// MaxContentLength, when \u003e 0, rejects response bodies larger than this many\n\t// bytes (axios maxContentLength).\n\tMaxContentLength int64\n\t// MaxBodyLength, when \u003e 0, rejects request bodies larger than this many\n\t// bytes (axios maxBodyLength).\n\tMaxBodyLength int64\n\t// Decompress controls transparent gzip/deflate decompression of responses.\n\t// Nil (the default) enables it; set to a pointer to false to disable.\n\tDecompress *bool\n\t// ResponseType selects how response bodies are delivered (buffered vs.\n\t// streamed). See ResponseType.\n\tResponseType ResponseType\n\t// XSRFCookieName and XSRFHeaderName enable copying an anti-CSRF token from a\n\t// response cookie (in the client's cookie jar) into a request header. Both\n\t// must be set for the feature to activate.\n\tXSRFCookieName string\n\t// XSRFHeaderName is the request header that receives the XSRF cookie value.\n\tXSRFHeaderName string\n\t// OnUploadProgress is called as the request body is written.\n\tOnUploadProgress ProgressFunc\n\t// OnDownloadProgress is called as the response body is read.\n\tOnDownloadProgress ProgressFunc\n\t// TransformRequest transforms the encoded request body before sending.\n\tTransformRequest []RequestTransform\n\t// TransformResponse transforms the response body before interceptors and\n\t// status validation.\n\tTransformResponse []ResponseTransform\n\t// Retry configures automatic retries. If nil, retrying is disabled.\n\tRetry *RetryConfig\n\t// RequestInterceptors run, in order, before each request is sent.\n\tRequestInterceptors []RequestInterceptor\n\t// ResponseInterceptors run, in order, after each response is received.\n\tResponseInterceptors []ResponseInterceptor\n}",
+          "doc": "Config configures a Client instance. Every field is optional; the zero value\nyields a usable client backed by http.DefaultClient semantics.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "MergeConfig",
+              "signature": "func MergeConfig(base, override Config) Config",
+              "doc": "MergeConfig deep-merges override onto base and returns the combined Config,\nmirroring axios.mergeConfig. Map-valued fields (headers, header groups,\nparams) are merged key by key with override winning; scalar, pointer, slice\nand function fields are taken from override when set and otherwise from base.\n\nIt is the same merge used internally by Create/Client.Create, exposed so\ncallers can precompute a resolved configuration.\n"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "name": "Error",
+          "signature": "type Error struct {\n\t// Message is a human readable description of what went wrong.\n\tMessage string\n\t// Code classifies the error (one of the ErrCode* constants).\n\tCode string\n\t// Request is the outgoing *http.Request that produced the error, when\n\t// available.\n\tRequest *http.Request\n\t// Response is the parsed response. It is non-nil for status rejections and\n\t// nil for transport errors.\n\tResponse *Response\n\t// Err is the underlying error, if any (transport errors, encode errors...).\n\tErr error\n}",
+          "doc": "Error is the typed error returned by the client when a request fails, either\nbecause of a transport/network problem or because the response status was\nrejected by the configured ValidateStatus predicate.\n\nWhen the failure is a rejected status, Response is populated so callers can\nstill inspect the body, headers and status code. When the failure is a\ntransport error (DNS, connection refused, timeout, ...), Err holds the\nunderlying error and Response is nil.\n\nError implements the error interface and supports errors.Is/errors.As via\nUnwrap.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "AsError",
+              "signature": "func AsError(err error) *Error",
+              "doc": "AsError returns err as an *Error if it is one (or wraps one), else nil. It is\na convenience wrapper over errors.As.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Error",
+              "recv": "*Error",
+              "signature": "func (e *Error) Error() string",
+              "doc": "Error implements the error interface.\n"
+            },
+            {
+              "name": "MarshalJSON",
+              "recv": "*Error",
+              "signature": "func (e *Error) MarshalJSON() ([]byte, error)",
+              "doc": "MarshalJSON implements json.Marshaler using ToJSON, so encoding an *Error\nyields the same shape as axios error.toJSON.\n"
+            },
+            {
+              "name": "StatusCode",
+              "recv": "*Error",
+              "signature": "func (e *Error) StatusCode() int",
+              "doc": "StatusCode is a convenience accessor that returns the HTTP status code\nassociated with the error, or 0 when there is no response.\n"
+            },
+            {
+              "name": "ToJSON",
+              "recv": "*Error",
+              "signature": "func (e *Error) ToJSON() map[string]any",
+              "doc": "ToJSON returns a JSON-serializable view of the error, mirroring axios\nerror.toJSON. It includes the message, code, HTTP method and URL (when a\nrequest is available) and the status (when a response is available).\n"
+            },
+            {
+              "name": "Unwrap",
+              "recv": "*Error",
+              "signature": "func (e *Error) Unwrap() error",
+              "doc": "Unwrap returns the underlying error so that errors.Is and errors.As work.\n"
+            }
+          ]
+        },
+        {
+          "name": "FormData",
+          "signature": "type FormData struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "FormData builds a multipart/form-data request body, mirroring the browser\nFormData object that axios accepts as a request body. Add plain fields with\nAddField and file parts with AddFile / AddFileBytes, then obtain the encoded\nbody with Reader, Bytes or WriteTo and its matching Content-Type with\nContentType.\n\nParts are emitted in the order they were added, and the default boundary is\nfixed, so a given sequence of calls always produces byte-identical output.\n\nTypical use with a client:\n\n\tfd := axios.NewFormData()\n\tfd.AddField(\"name\", \"Ada\")\n\tfd.AddFileBytes(\"avatar\", \"a.png\", pngBytes)\n\tbody, _ := fd.Bytes()\n\tclient.Post(\"/upload\", body, \u0026axios.RequestConfig{ContentType: fd.ContentType()})\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewFormData",
+              "signature": "func NewFormData() *FormData",
+              "doc": "NewFormData returns an empty FormData that uses a fixed default boundary.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "AddField",
+              "recv": "*FormData",
+              "signature": "func (f *FormData) AddField(name, value string)",
+              "doc": "AddField appends a plain text field with the given name and value.\n"
+            },
+            {
+              "name": "AddFile",
+              "recv": "*FormData",
+              "signature": "func (f *FormData) AddFile(field, filename string, r io.Reader) error",
+              "doc": "AddFile appends a file part read in full from r. The field is the form field\nname and filename is the reported client filename. The part is sent with\nContent-Type application/octet-stream. It returns any error encountered while\nreading r.\n"
+            },
+            {
+              "name": "AddFileBytes",
+              "recv": "*FormData",
+              "signature": "func (f *FormData) AddFileBytes(field, filename string, data []byte)",
+              "doc": "AddFileBytes appends a file part whose contents are data. It never fails and\nis a convenience wrapper over AddFile for in-memory payloads.\n"
+            },
+            {
+              "name": "AddFilePart",
+              "recv": "*FormData",
+              "signature": "func (f *FormData) AddFilePart(field, filename, contentType string, data []byte)",
+              "doc": "AddFilePart appends a file part with an explicit Content-Type, overriding the\ndefault application/octet-stream. An empty contentType falls back to the\ndefault.\n"
+            },
+            {
+              "name": "Boundary",
+              "recv": "*FormData",
+              "signature": "func (f *FormData) Boundary() string",
+              "doc": "Boundary returns the multipart boundary that will be used when encoding.\n"
+            },
+            {
+              "name": "Bytes",
+              "recv": "*FormData",
+              "signature": "func (f *FormData) Bytes() ([]byte, error)",
+              "doc": "Bytes encodes and returns the full multipart/form-data body. The result is\ndeterministic for a given sequence of Add calls and boundary.\n"
+            },
+            {
+              "name": "ContentType",
+              "recv": "*FormData",
+              "signature": "func (f *FormData) ContentType() string",
+              "doc": "ContentType returns the full multipart/form-data Content-Type header value,\nincluding the boundary parameter, suitable for RequestConfig.ContentType.\n"
+            },
+            {
+              "name": "Len",
+              "recv": "*FormData",
+              "signature": "func (f *FormData) Len() int",
+              "doc": "Len returns the number of parts (fields and files) added so far.\n"
+            },
+            {
+              "name": "Reader",
+              "recv": "*FormData",
+              "signature": "func (f *FormData) Reader() (io.Reader, error)",
+              "doc": "Reader encodes the body and returns it as an io.Reader positioned at the\nstart, ready to be used as a request body.\n"
+            },
+            {
+              "name": "SetBoundary",
+              "recv": "*FormData",
+              "signature": "func (f *FormData) SetBoundary(boundary string) error",
+              "doc": "SetBoundary overrides the multipart boundary. The value must be a valid,\nnon-empty multipart boundary (1-70 of the permitted characters); otherwise an\nerror is returned and the boundary is left unchanged.\n"
+            },
+            {
+              "name": "WriteTo",
+              "recv": "*FormData",
+              "signature": "func (f *FormData) WriteTo(w io.Writer) (int64, error)",
+              "doc": "WriteTo encodes the multipart body into w, implementing io.WriterTo. It\nreturns the number of bytes written and any error.\n"
+            }
+          ]
+        },
+        {
+          "name": "HeaderDefaults",
+          "signature": "type HeaderDefaults struct {\n\t// Common headers are applied to every request regardless of method.\n\tCommon http.Header\n\t// Get headers are applied only to GET requests.\n\tGet http.Header\n\t// Post headers are applied only to POST requests.\n\tPost http.Header\n\t// Put headers are applied only to PUT requests.\n\tPut http.Header\n\t// Patch headers are applied only to PATCH requests.\n\tPatch http.Header\n\t// Delete headers are applied only to DELETE requests.\n\tDelete http.Header\n\t// Head headers are applied only to HEAD requests.\n\tHead http.Header\n\t// Options headers are applied only to OPTIONS requests.\n\tOptions http.Header\n}",
+          "doc": "HeaderDefaults holds default headers grouped the way axios groups them under\ndefaults.headers: Common headers apply to every request, and the per-method\ngroups apply only to requests using that method. Method-specific headers take\nprecedence over Common, and both are overridden by Config.Headers and\nper-request headers.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "DefaultHeaderGroups",
+              "signature": "func DefaultHeaderGroups() HeaderDefaults",
+              "doc": "DefaultHeaderGroups returns a HeaderDefaults pre-populated the way axios does:\na common Accept of application/json. Callers can extend the returned value.\n"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "name": "ParamsSerializer",
+          "signature": "type ParamsSerializer func(params url.Values) string",
+          "doc": "ParamsSerializer converts query parameters into an encoded query string\n(without a leading \"?\"). It mirrors the axios paramsSerializer hook. When set\non a Config or RequestConfig it fully replaces the built-in serialization.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "ProgressEvent",
+          "signature": "type ProgressEvent struct {\n\t// Loaded is the number of bytes transferred so far.\n\tLoaded int64\n\t// Total is the total number of bytes expected, or -1 when the length is\n\t// unknown (for example a chunked response with no Content-Length).\n\tTotal int64\n\t// LengthComputable reports whether Total is known (Total \u003e= 0).\n\tLengthComputable bool\n}",
+          "doc": "ProgressEvent describes the progress of a request or response body transfer.\nIt mirrors the axios progress event passed to onUploadProgress and\nonDownloadProgress.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Progress",
+              "recv": "ProgressEvent",
+              "signature": "func (e ProgressEvent) Progress() float64",
+              "doc": "Progress returns the fraction transferred in the range [0,1], or 0 when the\ntotal length is unknown.\n"
+            }
+          ]
+        },
+        {
+          "name": "ProgressFunc",
+          "signature": "type ProgressFunc func(ProgressEvent)",
+          "doc": "ProgressFunc is the callback invoked as bytes are transferred. It is called\nwith cumulative progress; the final call reports Loaded == Total when the\ntotal is known.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "ProxyConfig",
+          "signature": "type ProxyConfig struct {\n\t// Host is the proxy host name or IP (required).\n\tHost string\n\t// Port is the proxy port. When 0 the URL is built without an explicit port.\n\tPort int\n\t// Protocol is the proxy URL scheme; defaults to \"http\" when empty.\n\tProtocol string\n\t// Username, when set, adds proxy Basic credentials.\n\tUsername string\n\t// Password is the proxy Basic password.\n\tPassword string\n}",
+          "doc": "ProxyConfig configures an outbound HTTP proxy, mirroring the axios proxy\noption. It is used only when the client builds its own *http.Client (that is,\nwhen Config.HTTPClient is nil).\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "URL",
+              "recv": "*ProxyConfig",
+              "signature": "func (p *ProxyConfig) URL() *url.URL",
+              "doc": "URL renders the proxy as a *url.URL suitable for http.Transport.Proxy, or nil\nwhen Host is empty.\n"
+            }
+          ]
+        },
+        {
+          "name": "RequestConfig",
+          "signature": "type RequestConfig struct {\n\t// Headers are merged over the client's default headers for this request.\n\tHeaders http.Header\n\t// Params are query parameters merged over the client's defaults (request\n\t// wins per key).\n\tParams url.Values\n\t// ParamsMap holds nested/typed query parameters flattened with bracket\n\t// notation (see FlattenParams) for this request.\n\tParamsMap map[string]any\n\t// Timeout, when \u003e 0, overrides the client's per-attempt timeout.\n\tTimeout time.Duration\n\t// BasicAuth, when set, overrides the client's auth with Basic credentials.\n\tBasicAuth *BasicAuth\n\t// BearerToken, when non-empty, overrides the client's auth with a bearer\n\t// token.\n\tBearerToken string\n\t// Context, when set, overrides the client's default context for this\n\t// request.\n\tContext context.Context\n\t// ValidateStatus, when set, overrides the client's status predicate for\n\t// this request.\n\tValidateStatus func(status int) bool\n\t// ContentType, when set, overrides the automatically chosen Content-Type.\n\tContentType string\n\t// Signal cancels this request when its controller aborts.\n\tSignal *AbortSignal\n\t// CancelToken cancels this request (legacy axios cancellation).\n\tCancelToken *CancelToken\n\t// ParamsSerializer overrides the client's query serialization for this\n\t// request.\n\tParamsSerializer ParamsSerializer\n\t// ArrayFormat overrides the client's repeated-param format for this\n\t// request.\n\tArrayFormat *ArrayFormat\n\t// ResponseType overrides the client's response delivery for this request.\n\tResponseType *ResponseType\n\t// MaxContentLength overrides the client's response size guard.\n\tMaxContentLength int64\n\t// MaxBodyLength overrides the client's request size guard.\n\tMaxBodyLength int64\n\t// OnUploadProgress overrides the client's upload progress callback.\n\tOnUploadProgress ProgressFunc\n\t// OnDownloadProgress overrides the client's download progress callback.\n\tOnDownloadProgress ProgressFunc\n\t// TransformRequest overrides the client's request transform pipeline.\n\tTransformRequest []RequestTransform\n\t// TransformResponse overrides the client's response transform pipeline.\n\tTransformResponse []ResponseTransform\n}",
+          "doc": "RequestConfig overrides Client defaults for a single request. All fields are\noptional. Header and Param maps are merged with the client defaults (the\nrequest wins on conflicting keys); other non-zero fields replace the client\nvalue for that request.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "RequestInterceptor",
+          "signature": "type RequestInterceptor func(req *http.Request) error",
+          "doc": "RequestInterceptor is invoked, in registration order, after the outgoing\n*http.Request has been fully built (URL, headers, auth and body applied) but\nbefore it is sent. It may mutate the request in place. Returning an error\naborts the request and the error is propagated to the caller.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "RequestTransform",
+          "signature": "type RequestTransform func(body []byte, headers http.Header) ([]byte, error)",
+          "doc": "RequestTransform transforms an outgoing request body before it is sent. It\nreceives the encoded body and the header set that will be applied to the\nrequest, and returns the (possibly rewritten) body. Transforms may mutate\nheaders in place, for example to set Content-Type. They mirror the axios\ntransformRequest pipeline and run in registration order after EncodeBody but\nbefore request interceptors. Returning an error aborts the request.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Response",
+          "signature": "type Response struct {\n\t// Status is the numeric HTTP status code, e.g. 200.\n\tStatus int\n\t// StatusText is the textual status, e.g. \"200 OK\".\n\tStatusText string\n\t// Headers holds the response headers.\n\tHeaders http.Header\n\t// Body is the raw, fully-buffered response body. It is nil for streaming\n\t// responses (see Stream).\n\tBody []byte\n\t// Stream is the unbuffered response body for ResponseStream requests. It is\n\t// nil for buffered responses. Read from it and then Close the response.\n\tStream io.ReadCloser\n\t// Request is the final *http.Request that produced this response.\n\tRequest *http.Request\n\t// Raw is the underlying *http.Response. For buffered responses its Body has\n\t// already been drained and closed. Provided for advanced use (TLS info,\n\t// cookies, ...).\n\tRaw *http.Response\n\t// contains filtered or unexported fields\n}",
+          "doc": "Response is the result of a completed HTTP request. For buffered response\ntypes the body has already been fully read into Body, so there is no stream\nto close and the value is safe to reuse and inspect repeatedly. For the\nResponseStream type the body is instead available on Stream and the caller\nMUST call Close to release the underlying connection.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "All",
+              "signature": "func All(calls ...func() (*Response, error)) ([]*Response, error)",
+              "doc": "All runs the given request-producing functions concurrently and returns their\nresponses in the same order, mirroring axios.all. If any call returns an\nerror, All returns the responses gathered so far (with nil in the failed\nslots) and the first error encountered.\n"
+            },
+            {
+              "name": "Delete",
+              "signature": "func Delete(rawURL string, cfg ...*RequestConfig) (*Response, error)",
+              "doc": "Delete issues a DELETE request using the default client.\n"
+            },
+            {
+              "name": "Get",
+              "signature": "func Get(rawURL string, cfg ...*RequestConfig) (*Response, error)",
+              "doc": "Get issues a GET request using the default client.\n"
+            },
+            {
+              "name": "Head",
+              "signature": "func Head(rawURL string, cfg ...*RequestConfig) (*Response, error)",
+              "doc": "Head issues a HEAD request using the default client.\n"
+            },
+            {
+              "name": "Options",
+              "signature": "func Options(rawURL string, cfg ...*RequestConfig) (*Response, error)",
+              "doc": "Options issues an OPTIONS request using the default client.\n"
+            },
+            {
+              "name": "Patch",
+              "signature": "func Patch(rawURL string, body any, cfg ...*RequestConfig) (*Response, error)",
+              "doc": "Patch issues a PATCH request using the default client.\n"
+            },
+            {
+              "name": "Post",
+              "signature": "func Post(rawURL string, body any, cfg ...*RequestConfig) (*Response, error)",
+              "doc": "Post issues a POST request using the default client.\n"
+            },
+            {
+              "name": "Put",
+              "signature": "func Put(rawURL string, body any, cfg ...*RequestConfig) (*Response, error)",
+              "doc": "Put issues a PUT request using the default client.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Bytes",
+              "recv": "*Response",
+              "signature": "func (r *Response) Bytes() []byte",
+              "doc": "Bytes returns the raw response body bytes. For a streaming response it reads\nthe stream to completion (and caches the result in Body).\n"
+            },
+            {
+              "name": "Close",
+              "recv": "*Response",
+              "signature": "func (r *Response) Close() error",
+              "doc": "Close releases the resources held by a streaming response (the network body\nand request context). It is a no-op for buffered responses and is safe to\ncall multiple times.\n"
+            },
+            {
+              "name": "ContentLength",
+              "recv": "*Response",
+              "signature": "func (r *Response) ContentLength() int64",
+              "doc": "ContentLength returns the value of the Content-Length response header parsed\nas an integer, or -1 when the header is missing or not a valid number. Note\nthis reflects the declared length, which may differ from len(Body) for\ndecompressed or chunked responses.\n"
+            },
+            {
+              "name": "ContentType",
+              "recv": "*Response",
+              "signature": "func (r *Response) ContentType() string",
+              "doc": "ContentType returns the raw Content-Type response header value, including any\nparameters (e.g. \"application/json; charset=utf-8\"), or \"\" if absent.\n"
+            },
+            {
+              "name": "Cookies",
+              "recv": "*Response",
+              "signature": "func (r *Response) Cookies() []*http.Cookie",
+              "doc": "Cookies parses and returns the cookies set by the response via Set-Cookie\nheaders.\n"
+            },
+            {
+              "name": "Header",
+              "recv": "*Response",
+              "signature": "func (r *Response) Header(key string) string",
+              "doc": "Header returns the first value associated with the given response header key.\n"
+            },
+            {
+              "name": "IsClientError",
+              "recv": "*Response",
+              "signature": "func (r *Response) IsClientError() bool",
+              "doc": "IsClientError reports whether the status code is in the 4xx range.\n"
+            },
+            {
+              "name": "IsInformational",
+              "recv": "*Response",
+              "signature": "func (r *Response) IsInformational() bool",
+              "doc": "IsInformational reports whether the status code is in the 1xx range.\n"
+            },
+            {
+              "name": "IsRedirect",
+              "recv": "*Response",
+              "signature": "func (r *Response) IsRedirect() bool",
+              "doc": "IsRedirect reports whether the status code is in the 3xx range.\n"
+            },
+            {
+              "name": "IsServerError",
+              "recv": "*Response",
+              "signature": "func (r *Response) IsServerError() bool",
+              "doc": "IsServerError reports whether the status code is in the 5xx range.\n"
+            },
+            {
+              "name": "JSON",
+              "recv": "*Response",
+              "signature": "func (r *Response) JSON(v any) error",
+              "doc": "JSON decodes the response body into v using encoding/json. For a streaming\nresponse it reads and decodes the stream.\n"
+            },
+            {
+              "name": "Location",
+              "recv": "*Response",
+              "signature": "func (r *Response) Location() (*url.URL, error)",
+              "doc": "Location returns the URL from the Location response header, resolved relative\nto the request URL when possible. It returns an error if the header is\nabsent or unparseable, mirroring http.Response.Location.\n"
+            },
+            {
+              "name": "OK",
+              "recv": "*Response",
+              "signature": "func (r *Response) OK() bool",
+              "doc": "OK reports whether the status code is in the 2xx range.\n"
+            },
+            {
+              "name": "RetryAfter",
+              "recv": "*Response",
+              "signature": "func (r *Response) RetryAfter() (time.Duration, bool)",
+              "doc": "RetryAfter interprets the Retry-After response header, returning the delay a\nclient should wait before retrying and whether the header was present and\nvalid. Both forms are supported: a number of seconds, and an HTTP-date. For\nthe date form the delay is measured from the response's Date header when\npresent, otherwise from the current time; a date in the past yields a zero\nduration.\n"
+            },
+            {
+              "name": "Text",
+              "recv": "*Response",
+              "signature": "func (r *Response) Text() string",
+              "doc": "Text returns the response body as a string. For a streaming response it reads\nthe stream to completion.\n"
+            }
+          ]
+        },
+        {
+          "name": "ResponseInterceptor",
+          "signature": "type ResponseInterceptor func(resp *Response) error",
+          "doc": "ResponseInterceptor is invoked, in registration order, after a response has\nbeen received and buffered but before status validation. It may inspect or\ntransform the Response in place. Returning an error aborts processing and the\nerror is propagated to the caller.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "ResponseTransform",
+          "signature": "type ResponseTransform func(body []byte, headers http.Header) ([]byte, error)",
+          "doc": "ResponseTransform transforms a received response body after it has been\nbuffered (and decompressed) but before response interceptors and status\nvalidation. It receives the body and response headers and returns the\nrewritten body. It mirrors the axios transformResponse pipeline and runs in\nregistration order. Returning an error aborts processing. Response transforms\nare skipped for streaming responses (ResponseStream), which are never\nbuffered.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "ResponseType",
+          "signature": "type ResponseType int",
+          "doc": "ResponseType selects how a response body is delivered, mirroring the axios\nresponseType option. The default (ResponseDefault) buffers the body into\nResponse.Body, exactly like the JSON/text/bytes types; the distinction only\nmatters for ResponseStream, which leaves the body unread for the caller to\nconsume from Response.Stream.\n",
+          "consts": [
+            {
+              "names": [
+                "ResponseDefault",
+                "ResponseJSON",
+                "ResponseText",
+                "ResponseBytes",
+                "ResponseStream"
+              ],
+              "signature": "const (\n\t// ResponseDefault buffers the body and leaves interpretation to the caller\n\t// (Response.JSON, Response.Text, Response.Bytes).\n\tResponseDefault ResponseType = iota\n\t// ResponseJSON buffers the body; callers typically decode it with\n\t// Response.JSON. Included for parity with axios responseType: \"json\".\n\tResponseJSON\n\t// ResponseText buffers the body as text; use Response.Text.\n\tResponseText\n\t// ResponseBytes buffers the raw bytes; use Response.Bytes.\n\tResponseBytes\n\t// ResponseStream leaves the response body unbuffered and exposes it via\n\t// Response.Stream for incremental reading. The caller MUST close the\n\t// response (Response.Close) to release the connection.\n\tResponseStream\n)",
+              "doc": ""
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "RetryConfig",
+          "signature": "type RetryConfig struct {\n\t// Retries is the number of additional attempts after the first. A value of\n\t// 0 disables retrying.\n\tRetries int\n\t// Backoff returns how long to wait before the given attempt (1-based: the\n\t// argument is the number of the attempt about to be made, i.e. 1 means the\n\t// first retry). If nil, DefaultBackoff is used.\n\tBackoff func(attempt int) time.Duration\n\t// RetryOn decides whether an attempt should be retried given its result.\n\t// Either resp or err will be set. If nil, DefaultRetryOn is used.\n\tRetryOn func(resp *Response, err error) bool\n}",
+          "doc": "RetryConfig controls automatic retries. A request is attempted at most\nRetries+1 times. Between attempts the client sleeps for the duration returned\nby Backoff, and only retries when RetryOn reports true.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        }
+      ],
+      "funcs": [
+        {
+          "name": "BuildFullPath",
+          "signature": "func BuildFullPath(baseURL, requestedURL string, allowAbsoluteURLs bool) string",
+          "doc": "BuildFullPath combines baseURL with requestedURL exactly like axios's\ncore/buildFullPath. When baseURL is non-empty and either requestedURL is\nrelative or allowAbsoluteURLs is false, the two are combined via CombineURLs;\notherwise requestedURL is returned untouched. This lets an absolute\nrequestedURL override the configured base (the axios default) while\nallowAbsoluteURLs=false forces every request under the base.\n"
+        },
+        {
+          "name": "BuildURL",
+          "signature": "func BuildURL(rawURL string, params url.Values, format ArrayFormat) string",
+          "doc": "BuildURL appends serialized query params to rawURL, mirroring axios's\nhelpers/buildURL. Params are encoded with EncodeURIComponent, and\nmulti-valued keys are expanded according to format (axios defaults arrays to\nbracket notation, ArrayFormatBrackets). Any fragment (\"#...\") in rawURL is\ndiscarded, and the params are appended after \"?\" when rawURL has no query or\n\"\u0026\" when it already does. When params is empty, rawURL is returned unchanged\n(fragment included). Keys are emitted in sorted order for deterministic\noutput.\n"
+        },
+        {
+          "name": "CombineURLs",
+          "signature": "func CombineURLs(baseURL, relativeURL string) string",
+          "doc": "CombineURLs joins baseURL and relativeURL the way axios's helpers/combineURLs\ndoes. Trailing slashes are stripped from baseURL and leading slashes from\nrelativeURL, and the two are joined with a single \"/\". When relativeURL is\nempty, baseURL is returned unchanged.\n"
+        },
+        {
+          "name": "DefaultBackoff",
+          "signature": "func DefaultBackoff(attempt int) time.Duration",
+          "doc": "DefaultBackoff returns an exponential backoff: 100ms, 200ms, 400ms, ...\ncapped at 10s.\n"
+        },
+        {
+          "name": "DefaultRetryOn",
+          "signature": "func DefaultRetryOn(resp *Response, err error) bool",
+          "doc": "DefaultRetryOn retries on any transport error or on a 5xx status code.\n"
+        },
+        {
+          "name": "DeleteJSON",
+          "signature": "func DeleteJSON[T any](c *Client, rawURL string, cfg ...*RequestConfig) (T, error)",
+          "doc": "DeleteJSON issues a DELETE request and decodes a successful JSON response\ninto a value of type T.\n"
+        },
+        {
+          "name": "EncodeBody",
+          "signature": "func EncodeBody(body any) ([]byte, string, error)",
+          "doc": "EncodeBody converts a request body value into bytes and a default\nContent-Type. The rules are:\n\n  - nil                        -\u003e no body, no content type\n  - []byte                     -\u003e raw bytes, application/octet-stream\n  - string                     -\u003e raw bytes, text/plain; charset=utf-8\n  - io.Reader                  -\u003e drained to bytes, application/octet-stream\n  - url.Values                 -\u003e form encoded, application/x-www-form-urlencoded\n  - anything else              -\u003e JSON encoded, application/json\n"
+        },
+        {
+          "name": "EncodeURIComponent",
+          "signature": "func EncodeURIComponent(s string) string",
+          "doc": "EncodeURIComponent encodes a query key or value the way axios's helpers/buildURL\nencode function does: like JavaScript's encodeURIComponent, but with ':', '$'\nand ',' left unescaped and a space encoded as '+' rather than \"%20\". Square\nbrackets and other reserved characters remain percent-encoded.\n"
+        },
+        {
+          "name": "FlattenParams",
+          "signature": "func FlattenParams(m map[string]any) url.Values",
+          "doc": "FlattenParams turns a nested map[string]any into flat url.Values using\nbracket notation for nested objects and arrays, matching how axios serializes\nobject params. For example {\"filter\": {\"name\": \"ada\"}, \"ids\": []any{1, 2}}\nbecomes filter[name]=ada, ids[]=1, ids[]=2 (with ArrayFormatBrackets). Scalar\nvalues are stringified; nested maps recurse with bracketed keys.\n"
+        },
+        {
+          "name": "FormToJSON",
+          "signature": "func FormToJSON(values url.Values) map[string]any",
+          "doc": "FormToJSON converts flat, bracket-notation form values into a nested\nmap[string]any, mirroring the axios helper of the same name. It is the\ninverse of the bracket-notation flattening used for query/form serialization\n(see FlattenParams).\n\nKeys are interpreted the way axios's parsePropPath does, splitting on\nbrackets as well as any other non-word separator (\".\", \"-\", \" \"):\n\n  - \"a\"            -\u003e {\"a\": \"1\"}\n  - \"a[b]\"         -\u003e {\"a\": {\"b\": \"1\"}}\n  - \"a[b][c]\"      -\u003e {\"a\": {\"b\": {\"c\": \"1\"}}}\n  - \"a.b.c\"        -\u003e {\"a\": {\"b\": {\"c\": \"1\"}}}\n  - \"a[]\"          -\u003e {\"a\": [\"1\", \"2\", ...]}   (empty brackets append)\n  - \"a[0]\", \"a[1]\" -\u003e {\"a\": [\"x\", \"y\"]}        (numeric brackets index)\n\nWhen a key repeats (url.Values may hold several values for one key) the\nvalues are collected into a slice in order. Leaf values are always strings.\nKeys are processed in sorted order so the result is deterministic.\n\nAs a guard against prototype-pollution (matching the axios CVE fix), any key\nwhose path contains a \"__proto__\" segment is skipped entirely.\n"
+        },
+        {
+          "name": "GetJSON",
+          "signature": "func GetJSON[T any](c *Client, rawURL string, cfg ...*RequestConfig) (T, error)",
+          "doc": "GetJSON issues a GET request with the given client and decodes a successful\nJSON response into a value of type T, which it returns. If the request fails\n(transport error or rejected status) the zero value of T and the error are\nreturned.\n"
+        },
+        {
+          "name": "GetJSONDefault",
+          "signature": "func GetJSONDefault[T any](rawURL string, cfg ...*RequestConfig) (T, error)",
+          "doc": "GetJSONDefault is GetJSON using the package-level default client.\n"
+        },
+        {
+          "name": "IsAbsoluteURL",
+          "signature": "func IsAbsoluteURL(rawURL string) bool",
+          "doc": "IsAbsoluteURL reports whether rawURL is an absolute URL, mirroring axios's\nhelpers/isAbsoluteURL. A URL is absolute when it begins with \"\u003cscheme\u003e://\" or\nis protocol-relative (\"//host\"). Per RFC 3986 a scheme name begins with a\nletter and is followed by any combination of letters, digits, plus, period or\nhyphen; a leading run that is not a valid scheme (for example \"123://\" or\n\"!valid://\") is therefore not absolute.\n"
+        },
+        {
+          "name": "IsAxiosError",
+          "signature": "func IsAxiosError(err error) bool",
+          "doc": "IsAxiosError reports whether err is (or wraps) an *Error produced by this\npackage, mirroring axios.isAxiosError.\n"
+        },
+        {
+          "name": "IsCancel",
+          "signature": "func IsCancel(err error) bool",
+          "doc": "IsCancel reports whether err was produced by aborting a request through an\nAbortController or CancelToken. It mirrors axios.isCancel.\n"
+        },
+        {
+          "name": "NewCancelToken",
+          "signature": "func NewCancelToken() (*CancelToken, CancelFunc)",
+          "doc": "NewCancelToken returns a CancelToken and the function that cancels it,\nmirroring axios.CancelToken.source(). Calling the returned CancelFunc aborts\nany in-flight request configured with the token; the message becomes the\ncancellation cause.\n"
+        },
+        {
+          "name": "PatchJSON",
+          "signature": "func PatchJSON[T any](c *Client, rawURL string, body any, cfg ...*RequestConfig) (T, error)",
+          "doc": "PatchJSON issues a PATCH request with the given body and decodes a successful\nJSON response into a value of type T.\n"
+        },
+        {
+          "name": "PostJSON",
+          "signature": "func PostJSON[T any](c *Client, rawURL string, body any, cfg ...*RequestConfig) (T, error)",
+          "doc": "PostJSON issues a POST request with the given body and decodes a successful\nJSON response into a value of type T. It complements GetJSON, mirroring the\ntyped axios.post\u003cT\u003e call. On a transport error or rejected status the zero\nvalue of T and the error are returned.\n"
+        },
+        {
+          "name": "PutJSON",
+          "signature": "func PutJSON[T any](c *Client, rawURL string, body any, cfg ...*RequestConfig) (T, error)",
+          "doc": "PutJSON issues a PUT request with the given body and decodes a successful\nJSON response into a value of type T.\n"
+        },
+        {
+          "name": "RequestJSON",
+          "signature": "func RequestJSON[T any](c *Client, method, rawURL string, body any, rc *RequestConfig) (T, error)",
+          "doc": "RequestJSON issues an arbitrary request via Client.Request and decodes a\nsuccessful JSON response into a value of type T. It is the generic,\nmethod-agnostic counterpart to the verb-specific *JSON helpers.\n"
+        },
+        {
+          "name": "SerializeParams",
+          "signature": "func SerializeParams(params url.Values, format ArrayFormat) string",
+          "doc": "SerializeParams encodes params into a query string using the given\nArrayFormat. Keys and values are URL-escaped and keys are emitted in sorted\norder for deterministic output.\n"
+        },
+        {
+          "name": "SetDefault",
+          "signature": "func SetDefault(c *Client)",
+          "doc": "SetDefault replaces the package-level default client.\n"
+        },
+        {
+          "name": "Spread",
+          "signature": "func Spread[T any](fn func(...*Response) T) func([]*Response) T",
+          "doc": "Spread adapts a variadic callback so it can consume the slice returned by All,\nmirroring axios.spread. For example:\n\n\tresps, err := axios.All(a, b)\n\tnames := axios.Spread(func(rs ...*axios.Response) []int {\n\t\treturn []int{rs[0].Status, rs[1].Status}\n\t})(resps)\n"
+        }
+      ],
+      "examples": [
+        {
+          "name": "",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"io\"\n\t\"net/http\"\n\t\"net/http/httptest\"\n\n\t\"github.com/malcolmston/axios\"\n)\n\nfunc main() {\n\tsrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {\n\t\tw.Header().Set(\"Content-Type\", \"application/json\")\n\t\t_, _ = io.WriteString(w, `{\"name\":\"Ada Lovelace\",\"age\":36}`)\n\t}))\n\tdefer srv.Close()\n\n\tclient := axios.New(axios.Config{BaseURL: srv.URL})\n\n\tvar person struct {\n\t\tName string `json:\"name\"`\n\t\tAge  int    `json:\"age\"`\n\t}\n\tresp, err := client.Get(\"/user\")\n\tif err != nil {\n\t\tfmt.Println(\"error:\", err)\n\t\treturn\n\t}\n\tif err := resp.JSON(\u0026person); err != nil {\n\t\tfmt.Println(\"decode:\", err)\n\t\treturn\n\t}\n\n\tfmt.Println(\"status:\", resp.Status)\n\tfmt.Println(\"name:\", person.Name)\n\n}",
+          "output": "status: 200\nname: Ada Lovelace",
+          "doc": "Example demonstrates a basic GET request against a test server, decoding the\nJSON response into a struct.\n"
+        },
+        {
+          "name": "SerializeParams",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/url\"\n\n\t\"github.com/malcolmston/axios\"\n)\n\nfunc main() {\n\tparams := url.Values{\"id\": {\"1\", \"2\"}}\n\tfmt.Println(axios.SerializeParams(params, axios.ArrayFormatRepeat))\n\tfmt.Println(axios.SerializeParams(params, axios.ArrayFormatBrackets))\n\tfmt.Println(axios.SerializeParams(params, axios.ArrayFormatComma))\n}",
+          "output": "id=1\u0026id=2\nid%5B%5D=1\u0026id%5B%5D=2\nid=1%2C2",
+          "doc": "ExampleSerializeParams shows the array serialization formats used by the\nquery-parameter encoder (and the paramsSerializer hook).\n"
+        },
+        {
+          "name": "All",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"io\"\n\t\"net/http\"\n\t\"net/http/httptest\"\n\n\t\"github.com/malcolmston/axios\"\n)\n\nfunc main() {\n\tsrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {\n\t\t_, _ = io.WriteString(w, r.URL.Path)\n\t}))\n\tdefer srv.Close()\n\tclient := axios.New(axios.Config{BaseURL: srv.URL})\n\n\tresps, err := axios.All(\n\t\tfunc() (*axios.Response, error) { return client.Get(\"/first\") },\n\t\tfunc() (*axios.Response, error) { return client.Get(\"/second\") },\n\t)\n\tif err != nil {\n\t\tfmt.Println(\"error:\", err)\n\t\treturn\n\t}\n\tfmt.Println(axios.Spread(func(rs ...*axios.Response) string {\n\t\treturn rs[0].Text() + \" \" + rs[1].Text()\n\t})(resps))\n}",
+          "output": "/first /second",
+          "doc": "ExampleAll runs several requests concurrently and combines their results with\nSpread, mirroring axios.all/axios.spread.\n"
+        }
+      ]
+    }
+  ]
+}

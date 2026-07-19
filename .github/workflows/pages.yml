@@ -23,6 +23,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # The library submodules are the source gendocs reads to build each
+          # library's inline API reference.
+          submodules: true
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+          cache: true
 
       - name: Set up Node
         uses: actions/setup-node@v4
@@ -30,6 +40,21 @@ jobs:
           node-version: "20"
           cache: npm
           cache-dependency-path: web/package-lock.json
+
+      # Best-effort: move each submodule to the tip of its default branch so the
+      # aggregator's inline API docs are current rather than pinned. If this
+      # fails (network, no tracking branch), gendocs still runs over the pinned
+      # checkout, so the docs are never worse than the committed snapshot.
+      - name: Freshen library submodules
+        run: git submodule update --remote --recursive || true
+
+      # Regenerate one DocIndex JSON per library (web/public/docs/<lib>.json),
+      # the full Go API reference the /go landing renders inline under each
+      # library's "API reference" section (via the shared DocsApp renderer).
+      # Run from inside gendocs (its own stdlib-only module) with GOWORK=off so
+      # it does not depend on the git-ignored go.work.
+      - name: Generate per-library API docs
+        run: cd gendocs && GOWORK=off go run . -root .. -out ../web/public/docs
 
       - name: Build site
         working-directory: web

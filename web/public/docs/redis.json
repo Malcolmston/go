@@ -1,0 +1,1837 @@
+{
+  "module": "github.com/malcolmston/redis",
+  "generatedAt": "2026-07-19T02:05:53Z",
+  "packages": [
+    {
+      "importPath": "github.com/malcolmston/redis",
+      "name": "redis",
+      "synopsis": "Package redis is an embeddable, in-memory, Redis-style data-structure store written entirely with the Go standard library.",
+      "doc": "Package redis is an embeddable, in-memory, Redis-style data-structure store\nwritten entirely with the Go standard library.\n\nIt provides a thread-safe keyspace holding typed values, a RESP (REdis\nSerialization Protocol) codec, an in-process command dispatcher, and an\noptional TCP server. It has no external dependencies and no cgo.\n\n# Store\n\nThe central type is Store, a thread-safe keyspace guarded by a single mutex.\nConstruct one with New for production use, or NewWithClock to inject a Clock\n(typically a *ManualClock) so that expiration behaves deterministically in\ntests:\n\n\ts := redis.New()\n\ts.Set(\"greeting\", \"hello\", redis.SetOptions{})\n\tv, ok, _ := s.Get(\"greeting\") // \"hello\", true\n\nEvery command is available both as a typed Go method (for example Get,\nLPush, ZAdd) and through the dynamic dispatcher Do.\n\n# Data types\n\nThe store supports the core Redis data types:\n\n  - Strings: SET (with EX/PX/NX/XX), GET, GETSET, APPEND, STRLEN,\n    INCR/DECR/INCRBY/DECRBY, plus DEL/EXISTS.\n  - Expiration: EXPIRE, PEXPIRE, TTL, PTTL, PERSIST. Expiry is lazy: expired\n    keys are removed on access and skipped by scans. The clock is injectable.\n  - Lists: LPUSH, RPUSH, LPOP, RPOP, LRANGE, LLEN, LINDEX.\n  - Hashes: HSET, HGET, HDEL, HGETALL, HKEYS, HVALS, HLEN, HEXISTS.\n  - Sets: SADD, SREM, SMEMBERS, SISMEMBER, SCARD, SINTER, SUNION, SDIFF.\n  - Sorted sets: ZADD, ZREM, ZSCORE, ZRANGE, ZREVRANGE, ZRANGEBYSCORE,\n    ZRANK, ZREVRANK, ZCARD. These are backed by a skiplist ordered by\n    (score, member) with lexicographic tie-breaking, giving O(log n)\n    insertion, deletion, and rank queries.\n  - Generic: KEYS (glob patterns), TYPE, FLUSHALL, DBSIZE.\n\nApplying a command to a key of the wrong type returns ErrWrongType, matching\nRedis's WRONGTYPE behavior.\n\n# RESP codec\n\nEncoder and Decoder implement the RESP2 wire format for the five value\ntypes: simple strings (+), errors (-), integers (:), bulk strings ($, and\nthe null bulk string), and arrays (*, and the null array). The helper types\nSimpleString and RESPError distinguish status and error replies from ordinary\nbulk strings.\n\n\tvar buf bytes.Buffer\n\tenc := redis.NewEncoder(\u0026buf)\n\tenc.Encode([]any{\"foo\", int64(42)})\n\tdec := redis.NewDecoder(\u0026buf)\n\tv, _ := dec.Decode() // []any{\"foo\", int64(42)}\n\n# Command dispatch\n\nStore.Do executes a command by name and string arguments, returning a\nRESP-friendly Go value (SimpleString, int64, string, nil, or []any). It is\nthe in-process equivalent of a client sending a RESP command array:\n\n\ts.Do(\"SET\", \"n\", \"1\")\n\ts.Do(\"INCR\", \"n\")      // int64(2)\n\ts.Do(\"TYPE\", \"n\")      // SimpleString(\"string\")\n\n# TCP server\n\nServer wraps a Store and speaks RESP over TCP so real Redis clients can\nconnect. It is optional and independent of the core store, so the\ndeterministic tests never rely on it:\n\n\tsrv := redis.NewServer(s)\n\tgo srv.ListenAndServe(\":6379\")\n\tdefer srv.Close()\n",
+      "consts": [],
+      "vars": [
+        {
+          "names": [
+            "ErrWrongType",
+            "ErrNotInteger",
+            "ErrNotFloat",
+            "ErrSyntax",
+            "ErrWrongArgs",
+            "ErrUnknownCommand",
+            "ErrOutOfRange",
+            "ErrIncrOverflow",
+            "ErrIncrNaNOrInf"
+          ],
+          "signature": "var (\n\t// ErrWrongType is returned when a command is applied to a key holding a\n\t// value of a different type.\n\tErrWrongType = errors.New(\"WRONGTYPE Operation against a key holding the wrong kind of value\")\n\t// ErrNotInteger is returned when a numeric operation is attempted on a\n\t// value that is not a base-10 integer.\n\tErrNotInteger = errors.New(\"ERR value is not an integer or out of range\")\n\t// ErrNotFloat is returned when a float operation receives a non-float\n\t// argument.\n\tErrNotFloat = errors.New(\"ERR value is not a valid float\")\n\t// ErrSyntax is returned when command options are malformed.\n\tErrSyntax = errors.New(\"ERR syntax error\")\n\t// ErrWrongArgs is returned when a command receives the wrong number of\n\t// arguments.\n\tErrWrongArgs = errors.New(\"ERR wrong number of arguments\")\n\t// ErrUnknownCommand is returned by Do for an unrecognized command.\n\tErrUnknownCommand = errors.New(\"ERR unknown command\")\n\t// ErrOutOfRange is returned when an index argument is out of range.\n\tErrOutOfRange = errors.New(\"ERR index out of range\")\n\t// ErrIncrOverflow is returned when an integer increment or decrement would\n\t// carry the result outside the signed 64-bit range. It mirrors the Redis\n\t// \"increment or decrement would overflow\" reply.\n\tErrIncrOverflow = errors.New(\"ERR increment or decrement would overflow\")\n\t// ErrIncrNaNOrInf is returned when a floating-point increment would produce\n\t// a NaN or infinite result. It mirrors the Redis \"increment would produce\n\t// NaN or Infinity\" reply.\n\tErrIncrNaNOrInf = errors.New(\"ERR increment would produce NaN or Infinity\")\n)",
+          "doc": "Errors returned by store commands. They mirror common Redis error replies and\nare safe to compare with errors.Is.\n"
+        },
+        {
+          "names": [
+            "ErrBadSnapshot"
+          ],
+          "signature": "var ErrBadSnapshot = errors.New(\"ERR bad snapshot payload\")",
+          "doc": "ErrBadSnapshot is returned when snapshot or dump bytes are malformed,\ntruncated, or carry an unrecognized version.\n"
+        },
+        {
+          "names": [
+            "ErrBusyKey"
+          ],
+          "signature": "var ErrBusyKey = errors.New(\"BUSYKEY Target key name already exists\")",
+          "doc": "ErrBusyKey is returned by RestoreKey when the destination key already exists\nand replacement was not requested, matching the Redis BUSYKEY error.\n"
+        },
+        {
+          "names": [
+            "ErrNoSuchKey"
+          ],
+          "signature": "var ErrNoSuchKey = errors.New(\"ERR no such key\")",
+          "doc": "ErrNoSuchKey is returned by commands that require the source key to exist,\nsuch as Rename, when that key is absent. It mirrors the Redis \"no such key\"\nerror reply and is safe to compare with errors.Is.\n"
+        },
+        {
+          "names": [
+            "ErrProtocol"
+          ],
+          "signature": "var ErrProtocol = errors.New(\"resp: protocol error\")",
+          "doc": "ErrProtocol indicates malformed RESP input.\n"
+        },
+        {
+          "names": [
+            "ErrTxAborted"
+          ],
+          "signature": "var ErrTxAborted = errors.New(\"EXECABORT transaction discarded due to WATCH\")",
+          "doc": "ErrTxAborted is returned by Tx.Exec when a watched key changed between the\ntime it was watched and the call to Exec, or when the transaction was\ndiscarded. It mirrors the Redis EXECABORT reply and, per Redis semantics,\ncorresponds to EXEC yielding the null reply.\n"
+        }
+      ],
+      "types": [
+        {
+          "name": "BitFieldOverflow",
+          "signature": "type BitFieldOverflow int",
+          "doc": "BitFieldOverflow selects how BitFieldIncrBy behaves when an increment pushes a\nfield outside the range representable by its type.\n",
+          "consts": [
+            {
+              "names": [
+                "OverflowWrap",
+                "OverflowSat",
+                "OverflowFail"
+              ],
+              "signature": "const (\n\t// OverflowWrap wraps around using two's-complement / modular arithmetic.\n\tOverflowWrap BitFieldOverflow = iota\n\t// OverflowSat saturates to the minimum or maximum value of the type.\n\tOverflowSat\n\t// OverflowFail leaves the field unchanged and reports failure.\n\tOverflowFail\n)",
+              "doc": "Overflow modes for BitFieldIncrBy, matching Redis BITFIELD OVERFLOW.\n"
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "BitFieldType",
+          "signature": "type BitFieldType struct {\n\t// Signed selects two's-complement interpretation when true.\n\tSigned bool\n\t// Bits is the field width. Unsigned fields allow 1..63 bits and signed\n\t// fields allow 1..64 bits, matching Redis.\n\tBits uint\n}",
+          "doc": "BitFieldType describes one integer field within a bitmap: its width in bits\nand whether it is interpreted as signed (two's complement) or unsigned. It\nmirrors the \"u8\", \"i16\", ... type encodings of the Redis BITFIELD command.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "BitOp",
+          "signature": "type BitOp int",
+          "doc": "BitOp identifies a bitwise operation performed by Store.BitOp over one or\nmore source strings.\n",
+          "consts": [
+            {
+              "names": [
+                "BitOpAnd",
+                "BitOpOr",
+                "BitOpXor",
+                "BitOpNot"
+              ],
+              "signature": "const (\n\t// BitOpAnd computes the bitwise AND of all sources.\n\tBitOpAnd BitOp = iota\n\t// BitOpOr computes the bitwise OR of all sources.\n\tBitOpOr\n\t// BitOpXor computes the bitwise XOR of all sources.\n\tBitOpXor\n\t// BitOpNot computes the bitwise complement of a single source.\n\tBitOpNot\n)",
+              "doc": "Recognized bitwise operations for Store.BitOp, mirroring the Redis BITOP\noperators. BitOpNot is unary; the others combine two or more sources.\n"
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Clock",
+          "signature": "type Clock interface {\n\t// Now returns the current time.\n\tNow() time.Time\n}",
+          "doc": "Clock abstracts time retrieval so expiration can be tested deterministically.\nThe zero interface is never used; the store defaults to a real-time clock.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Decoder",
+          "signature": "type Decoder struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Decoder reads RESP values from an underlying reader.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewDecoder",
+              "signature": "func NewDecoder(r io.Reader) *Decoder",
+              "doc": "NewDecoder returns a Decoder reading from r.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Decode",
+              "recv": "*Decoder",
+              "signature": "func (d *Decoder) Decode() (any, error)",
+              "doc": "Decode reads the next RESP value. The concrete Go types returned are:\n\n\tsimple string -\u003e SimpleString\n\terror         -\u003e RESPError\n\tinteger       -\u003e int64\n\tbulk string   -\u003e string, or nil for the null bulk string\n\tarray         -\u003e []any, or nil for the null array\n"
+            },
+            {
+              "name": "DecodeCommand",
+              "recv": "*Decoder",
+              "signature": "func (d *Decoder) DecodeCommand() ([]string, error)",
+              "doc": "DecodeCommand reads a single client command, which RESP encodes as an array\nof bulk strings, and returns it as a slice of argument strings. Inline\ncommands are not supported.\n"
+            }
+          ]
+        },
+        {
+          "name": "Encoder",
+          "signature": "type Encoder struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Encoder writes RESP values to an underlying writer.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewEncoder",
+              "signature": "func NewEncoder(w io.Writer) *Encoder",
+              "doc": "NewEncoder returns an Encoder writing to w.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Encode",
+              "recv": "*Encoder",
+              "signature": "func (e *Encoder) Encode(v any) error",
+              "doc": "Encode writes v as a RESP value and flushes. Supported dynamic types:\nSimpleString, RESPError, error, nil, int/int64/int, string ([]byte) as bulk\nstring, and []any as an array. Nested arrays are supported.\n"
+            }
+          ]
+        },
+        {
+          "name": "ExpireCond",
+          "signature": "type ExpireCond int",
+          "doc": "ExpireCond selects a precondition for ExpireWith, mirroring the NX, XX, GT,\nand LT flags added to the Redis EXPIRE family in Redis 7.0.\n",
+          "consts": [
+            {
+              "names": [
+                "ExpireCondNone",
+                "ExpireCondNX",
+                "ExpireCondXX",
+                "ExpireCondGT",
+                "ExpireCondLT"
+              ],
+              "signature": "const (\n\t// ExpireCondNone always applies the new expiration.\n\tExpireCondNone ExpireCond = iota\n\t// ExpireCondNX applies only when the key currently has no expiration.\n\tExpireCondNX\n\t// ExpireCondXX applies only when the key currently has an expiration.\n\tExpireCondXX\n\t// ExpireCondGT applies only when the new expiration is later than the\n\t// current one; a key with no expiration is treated as expiring at infinity,\n\t// so GT never applies to it.\n\tExpireCondGT\n\t// ExpireCondLT applies only when the new expiration is earlier than the\n\t// current one; a key with no expiration is treated as expiring at infinity,\n\t// so LT always applies to it.\n\tExpireCondLT\n)",
+              "doc": "Preconditions for ExpireWith.\n"
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "GeoMember",
+          "signature": "type GeoMember struct {\n\t// Longitude is the east-west coordinate in degrees.\n\tLongitude float64\n\t// Latitude is the north-south coordinate in degrees.\n\tLatitude float64\n\t// Member is the sorted-set member name to associate with the coordinate.\n\tMember string\n}",
+          "doc": "GeoMember pairs a coordinate with a member name for insertion via GeoAdd.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "GeoPoint",
+          "signature": "type GeoPoint struct {\n\t// Longitude is the east-west coordinate in degrees, range -180..180.\n\tLongitude float64\n\t// Latitude is the north-south coordinate in degrees, range\n\t// -85.05112878..85.05112878.\n\tLatitude float64\n}",
+          "doc": "GeoPoint is a longitude/latitude coordinate in degrees.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "GeoSearchResult",
+          "signature": "type GeoSearchResult struct {\n\t// Member is the matched sorted-set member.\n\tMember string\n\t// Dist is the distance from the search center in the requested unit.\n\tDist float64\n\t// Point is the member's decoded coordinate.\n\tPoint GeoPoint\n}",
+          "doc": "GeoSearchResult is one match returned by GeoSearch or GeoRadius.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "GeoUnit",
+          "signature": "type GeoUnit float64",
+          "doc": "GeoUnit is a distance unit expressed as its length in meters. Multiply a\nvalue in the unit by the GeoUnit to obtain meters, or divide meters by it to\nconvert back.\n",
+          "consts": [
+            {
+              "names": [
+                "GeoMeters",
+                "GeoKilometers",
+                "GeoMiles",
+                "GeoFeet"
+              ],
+              "signature": "const (\n\t// GeoMeters is the meter unit.\n\tGeoMeters GeoUnit = 1\n\t// GeoKilometers is the kilometer unit (1000 meters).\n\tGeoKilometers GeoUnit = 1000\n\t// GeoMiles is the statute-mile unit (1609.34 meters).\n\tGeoMiles GeoUnit = 1609.34\n\t// GeoFeet is the foot unit (0.3048 meters).\n\tGeoFeet GeoUnit = 0.3048\n)",
+              "doc": ""
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "GetExOptions",
+          "signature": "type GetExOptions struct {\n\t// EX sets a new expiration in seconds. Ignored if zero.\n\tEX time.Duration\n\t// PX sets a new expiration in milliseconds. Ignored if zero.\n\tPX time.Duration\n\t// Persist removes any existing expiration, making the key persistent.\n\tPersist bool\n}",
+          "doc": "GetExOptions controls how GetEx adjusts the expiration of the fetched key.\nThe zero value leaves any existing TTL untouched. At most one of EX, PX, or\nPersist should be set; if several are set, PX takes precedence over EX, and\nPersist takes precedence over both.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "HashEntry",
+          "signature": "type HashEntry struct {\n\t// Field is the field name.\n\tField string\n\t// Value is the field's value.\n\tValue string\n}",
+          "doc": "HashEntry is a single field/value pair of a hash, returned by\nHRandFieldWithValues.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "LcsMatch",
+          "signature": "type LcsMatch struct {\n\t// AStart and AEnd are the inclusive byte offsets of the run in key1.\n\tAStart, AEnd int\n\t// BStart and BEnd are the inclusive byte offsets of the run in key2.\n\tBStart, BEnd int\n\t// Len is the length of the run in bytes.\n\tLen int\n}",
+          "doc": "LcsMatch describes one contiguous run shared by two strings, as reported by\nLcsIdx. The run spans key1's value at byte offsets [AStart, AEnd] and key2's\nvalue at byte offsets [BStart, BEnd]; both ranges are inclusive and have the\nsame length, given by Len.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "LexRange",
+          "signature": "type LexRange struct {\n\t// Min is the lower member bound.\n\tMin string\n\t// Max is the upper member bound.\n\tMax string\n\t// MinExclusive excludes members equal to Min.\n\tMinExclusive bool\n\t// MaxExclusive excludes members equal to Max.\n\tMaxExclusive bool\n\t// MinInf selects the \"-\" endpoint, matching every member from the start.\n\tMinInf bool\n\t// MaxInf selects the \"+\" endpoint, matching every member to the end.\n\tMaxInf bool\n}",
+          "doc": "LexRange bounds a ZRangeByLex query over members that share a common score.\nMin and Max are the string bounds; the Exclusive flags switch a bound from\ninclusive (\"[\") to exclusive (\"(\"), and the Inf flags select the negative\n(\"-\") or positive (\"+\") infinity endpoints, ignoring the corresponding bound.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "ListDirection",
+          "signature": "type ListDirection int",
+          "doc": "ListDirection selects an end of a list for the multi-key pop command LMPop.\n",
+          "consts": [
+            {
+              "names": [
+                "DirLeft",
+                "DirRight"
+              ],
+              "signature": "const (\n\t// DirLeft selects the head of the list.\n\tDirLeft ListDirection = iota\n\t// DirRight selects the tail of the list.\n\tDirRight\n)",
+              "doc": "List ends for LMPop, matching the LEFT and RIGHT keywords of Redis LMPOP.\n"
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "ListEnd",
+          "signature": "type ListEnd int",
+          "doc": "ListEnd identifies which end of a list an element is popped from or pushed to.\n",
+          "consts": [
+            {
+              "names": [
+                "ListLeft",
+                "ListRight"
+              ],
+              "signature": "const (\n\t// ListLeft is the head of the list.\n\tListLeft ListEnd = iota\n\t// ListRight is the tail of the list.\n\tListRight\n)",
+              "doc": "The two ends of a list, used by LMove.\n"
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "ManualClock",
+          "signature": "type ManualClock struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "ManualClock is a Clock whose time is advanced explicitly. It is safe for\nconcurrent use and is intended for deterministic expiration tests.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewManualClock",
+              "signature": "func NewManualClock(t time.Time) *ManualClock",
+              "doc": "NewManualClock returns a ManualClock initialized to t.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Advance",
+              "recv": "*ManualClock",
+              "signature": "func (c *ManualClock) Advance(d time.Duration)",
+              "doc": "Advance moves the clock forward by d.\n"
+            },
+            {
+              "name": "Now",
+              "recv": "*ManualClock",
+              "signature": "func (c *ManualClock) Now() time.Time",
+              "doc": "Now returns the clock's current time.\n"
+            },
+            {
+              "name": "Set",
+              "recv": "*ManualClock",
+              "signature": "func (c *ManualClock) Set(t time.Time)",
+              "doc": "Set sets the clock to an absolute time.\n"
+            }
+          ]
+        },
+        {
+          "name": "Message",
+          "signature": "type Message struct {\n\t// Channel is the channel the message was published to.\n\tChannel string\n\t// Pattern is the subscription pattern that matched, or empty for an\n\t// exact-channel delivery.\n\tPattern string\n\t// Payload is the published message body.\n\tPayload string\n}",
+          "doc": "Message is a single pub/sub delivery. Pattern is empty for messages delivered\nto an exact-channel subscription and holds the matching pattern for messages\ndelivered to a pattern subscription.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "ObjectInfo",
+          "signature": "type ObjectInfo struct {\n\t// Encoding is the internal representation name, such as \"embstr\",\n\t// \"listpack\", \"hashtable\", or \"skiplist\".\n\tEncoding string\n\t// RefCount is the number of references to the value; this store keeps one\n\t// reference per key.\n\tRefCount int64\n\t// IdleTime is the number of seconds the value has been idle. This store\n\t// does not track access time, so it is always zero.\n\tIdleTime int64\n}",
+          "doc": "ObjectInfo reports internal metadata about the value stored at a key, as\nexposed by the Redis OBJECT command.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "PendingEntry",
+          "signature": "type PendingEntry struct {\n\t// ID is the pending entry's stream ID.\n\tID StreamID\n\t// Consumer is the name of the consumer that owns the entry.\n\tConsumer string\n\t// Deliveries is the number of times the entry has been delivered.\n\tDeliveries int64\n\t// IdleMs is the elapsed time since the entry was last delivered, in\n\t// milliseconds.\n\tIdleMs int64\n}",
+          "doc": "PendingEntry describes one entry in a consumer group's pending-entries list:\nthe entry ID, the consumer currently owning it, how many times it has been\ndelivered, and how long (in milliseconds, per the Store's Clock) since its\nlast delivery.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "RESPError",
+          "signature": "type RESPError string",
+          "doc": "RESPError is a RESP error reply (the \"-ERR ...\" form).\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Error",
+              "recv": "RESPError",
+              "signature": "func (e RESPError) Error() string",
+              "doc": "Error implements the error interface.\n"
+            }
+          ]
+        },
+        {
+          "name": "ScanPairs",
+          "signature": "type ScanPairs struct {\n\t// Cursor is the start index for the next call, or 0 when iteration is done.\n\tCursor uint64\n\t// Pairs holds the flattened field/value or member/score pairs from this step.\n\tPairs []string\n}",
+          "doc": "ScanPairs is the reply to a hash or sorted-set iteration step. It carries a\nflat sequence of pairs: field,value,... for hashes and member,score,... for\nsorted sets. Cursor is 0 once iteration is complete.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "ScanResult",
+          "signature": "type ScanResult struct {\n\t// Cursor is the start index for the next call, or 0 when iteration is done.\n\tCursor uint64\n\t// Keys holds the keys or set members produced by this step.\n\tKeys []string\n}",
+          "doc": "ScanResult is the reply to a keyspace or set iteration step. Cursor is the\nopaque value to pass to the next call and is 0 once iteration is complete.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "ScoreRange",
+          "signature": "type ScoreRange struct {\n\t// Min is the lower score bound.\n\tMin float64\n\t// Max is the upper score bound.\n\tMax float64\n\t// MinExclusive excludes members whose score equals Min.\n\tMinExclusive bool\n\t// MaxExclusive excludes members whose score equals Max.\n\tMaxExclusive bool\n}",
+          "doc": "ScoreRange bounds a ZRangeByScore query. Use math.Inf for open ends.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Server",
+          "signature": "type Server struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Server is a minimal TCP server that speaks RESP and dispatches each command\nto a backing Store via Do. It is intended for integration use and is kept off\nthe deterministic test path. The zero value is not usable; use NewServer.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewServer",
+              "signature": "func NewServer(store *Store) *Server",
+              "doc": "NewServer returns a Server that dispatches commands to store.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Addr",
+              "recv": "*Server",
+              "signature": "func (srv *Server) Addr() net.Addr",
+              "doc": "Addr returns the address the server is listening on, or nil if not serving.\n"
+            },
+            {
+              "name": "Close",
+              "recv": "*Server",
+              "signature": "func (srv *Server) Close() error",
+              "doc": "Close stops the server and closes its listener.\n"
+            },
+            {
+              "name": "ListenAndServe",
+              "recv": "*Server",
+              "signature": "func (srv *Server) ListenAndServe(addr string) error",
+              "doc": "ListenAndServe binds to addr (e.g. \":6379\") and serves connections until the\nlistener is closed. It always returns a non-nil error.\n"
+            },
+            {
+              "name": "Serve",
+              "recv": "*Server",
+              "signature": "func (srv *Server) Serve(ln net.Listener) error",
+              "doc": "Serve accepts connections on ln and serves each in its own goroutine. Serve\nreturns when the listener is closed via Close.\n"
+            }
+          ]
+        },
+        {
+          "name": "SetOptions",
+          "signature": "type SetOptions struct {\n\t// EX sets an expiration in seconds. Ignored if zero.\n\tEX time.Duration\n\t// PX sets an expiration in milliseconds. Ignored if zero. If both EX and\n\t// PX are set, PX takes precedence.\n\tPX time.Duration\n\t// NX sets the key only if it does not already exist.\n\tNX bool\n\t// XX sets the key only if it already exists.\n\tXX bool\n}",
+          "doc": "SetOptions modifies the behavior of Set. The zero value performs an\nunconditional set with no expiration.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "SimpleString",
+          "signature": "type SimpleString string",
+          "doc": "SimpleString is a RESP simple string (the \"+OK\" form). It is a distinct type\nso encoders can tell it apart from a bulk string.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "SortOptions",
+          "signature": "type SortOptions struct {\n\t// Alpha sorts elements lexically as strings instead of numerically. When\n\t// false, every element must parse as a float or ErrNotFloat is returned.\n\tAlpha bool\n\t// Desc reverses the ordering to descending.\n\tDesc bool\n\t// Limit enables the Offset/Count window; when false all elements are\n\t// returned.\n\tLimit bool\n\t// Offset is the number of sorted elements to skip when Limit is true.\n\tOffset int\n\t// Count is the maximum number of elements to return when Limit is true; a\n\t// negative Count returns every element after Offset.\n\tCount int\n}",
+          "doc": "SortOptions controls Sort and SortStore. The zero value sorts the elements\nnumerically in ascending order and returns them all.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Store",
+          "signature": "type Store struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Store is a thread-safe, in-memory keyspace holding typed values. The zero\nvalue is not usable; construct one with New or NewWithClock.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "New",
+              "signature": "func New() *Store",
+              "doc": "New returns an empty Store backed by a real-time clock.\n"
+            },
+            {
+              "name": "NewFromSnapshot",
+              "signature": "func NewFromSnapshot(data []byte) (*Store, error)",
+              "doc": "NewFromSnapshot returns a new Store, backed by a real-time clock, populated\nfrom data as produced by MarshalSnapshot. It returns ErrBadSnapshot if data\nis malformed.\n"
+            },
+            {
+              "name": "NewWithClock",
+              "signature": "func NewWithClock(clock Clock) *Store",
+              "doc": "NewWithClock returns an empty Store that reads the current time from clock.\nPassing a *ManualClock makes expiration fully deterministic.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Append",
+              "recv": "*Store",
+              "signature": "func (s *Store) Append(key, str string) (int, error)",
+              "doc": "Append appends str to the value at key, creating it if absent, and returns\nthe resulting string length.\n"
+            },
+            {
+              "name": "BitCount",
+              "recv": "*Store",
+              "signature": "func (s *Store) BitCount(key string, start, end int64, bitRange bool) (int64, error)",
+              "doc": "BitCount returns the number of set bits within an inclusive range of the\nvalue. When bitRange is false, start and end are byte indexes; when true they\nare bit indexes (the Redis BIT unit). Negative indexes count back from the\nend. A missing key counts as 0. It returns ErrWrongType if the key holds a\nnon-string value.\n"
+            },
+            {
+              "name": "BitCountRange",
+              "recv": "*Store",
+              "signature": "func (s *Store) BitCountRange(key string, start, stop int, byBit bool) (int, error)",
+              "doc": "BitCountRange counts the set bits in the string stored at key between the\ninclusive offsets start and stop. When byBit is false the offsets are byte\noffsets (as in classic BITCOUNT); when true they are bit offsets (the BIT\nvariant added in Redis 7.0). Negative offsets count back from the end. It\nreturns ErrWrongType if the key holds a non-string value.\n"
+            },
+            {
+              "name": "BitFieldGet",
+              "recv": "*Store",
+              "signature": "func (s *Store) BitFieldGet(key string, t BitFieldType, offset uint) (int64, error)",
+              "doc": "BitFieldGet returns the integer value of the field of type t whose first bit\nis at the given bit offset within the bitmap stored at key. Bits past the end\nof the value read as zero. A missing key reads as all zeros. It returns\nErrSyntax for an invalid type and ErrWrongType if the key holds a non-string\nvalue. It mirrors the GET sub-operation of Redis BITFIELD.\n"
+            },
+            {
+              "name": "BitFieldIncrBy",
+              "recv": "*Store",
+              "signature": "func (s *Store) BitFieldIncrBy(key string, t BitFieldType, offset uint, incr int64, ov BitFieldOverflow) (int64, bool, error)",
+              "doc": "BitFieldIncrBy adds incr to the field of type t at the given bit offset within\nthe bitmap stored at key, applying the overflow policy ov, and returns the new\nvalue. The boolean is false only when ov is OverflowFail and the operation\nwould overflow, in which case the field is left unchanged. It returns\nErrSyntax for an invalid type and ErrWrongType if the key holds a non-string\nvalue. It mirrors the INCRBY sub-operation of Redis BITFIELD.\n"
+            },
+            {
+              "name": "BitFieldSet",
+              "recv": "*Store",
+              "signature": "func (s *Store) BitFieldSet(key string, t BitFieldType, offset uint, value int64) (int64, error)",
+              "doc": "BitFieldSet sets the field of type t at the given bit offset within the\nbitmap stored at key to value, creating or growing the value as needed, and\nreturns the field's previous value. It returns ErrSyntax for an invalid type\nand ErrWrongType if the key holds a non-string value. It mirrors the SET\nsub-operation of Redis BITFIELD.\n"
+            },
+            {
+              "name": "BitOp",
+              "recv": "*Store",
+              "signature": "func (s *Store) BitOp(op BitOp, destKey string, srcKeys ...string) (int64, error)",
+              "doc": "BitOp performs the bitwise operation op over the source keys and stores the\nresult as a string at destKey, returning the length in bytes of the stored\nvalue. For BitOpAnd, BitOpOr and BitOpXor the result length equals the length\nof the longest source, with shorter operands zero-extended; missing sources\nare treated as empty. BitOpNot requires exactly one source and complements it.\nIf the result is empty, destKey is deleted and 0 is returned. It returns\nErrSyntax if BitOpNot is given other than one source or op is unknown,\nErrWrongArgs if no source is given for a binary op, and ErrWrongType if any\nsource holds a non-string value.\n"
+            },
+            {
+              "name": "BitPos",
+              "recv": "*Store",
+              "signature": "func (s *Store) BitPos(key string, bit int, start, end int64, useBitRange bool) (int64, error)",
+              "doc": "BitPos returns the position of the first bit set to bit (0 or 1) within an\ninclusive range of the value, or -1 when no such bit is found. When\nuseBitRange is false, start and end are byte indexes; when true they are bit\nindexes (the Redis BIT unit). Negative indexes count back from the end. A\nmissing key yields -1. It returns ErrSyntax if bit is not 0 or 1 and\nErrWrongType if the key holds a non-string value.\n"
+            },
+            {
+              "name": "Copy",
+              "recv": "*Store",
+              "signature": "func (s *Store) Copy(src, dst string, replace bool) (bool, error)",
+              "doc": "Copy writes a deep copy of the value at src, including any TTL, to dst. When\ndst already exists it is overwritten only if replace is true. It reports\nwhether the copy happened; a false result means src was absent, dst existed\nwithout replace, or src and dst were the same key. The error is always nil\nand exists for signature parity.\n"
+            },
+            {
+              "name": "DBSize",
+              "recv": "*Store",
+              "signature": "func (s *Store) DBSize() int",
+              "doc": "DBSize returns the number of live keys in the store.\n"
+            },
+            {
+              "name": "Decr",
+              "recv": "*Store",
+              "signature": "func (s *Store) Decr(key string) (int64, error)",
+              "doc": "Decr decrements the integer value at key by one.\n"
+            },
+            {
+              "name": "DecrBy",
+              "recv": "*Store",
+              "signature": "func (s *Store) DecrBy(key string, delta int64) (int64, error)",
+              "doc": "DecrBy decrements the integer value at key by delta. Passing math.MinInt64\nyields ErrIncrOverflow because its negation is not representable, matching\nRedis DECRBY.\n"
+            },
+            {
+              "name": "Del",
+              "recv": "*Store",
+              "signature": "func (s *Store) Del(keys ...string) int",
+              "doc": "Del removes the given keys, returning the count of keys actually deleted.\n"
+            },
+            {
+              "name": "Do",
+              "recv": "*Store",
+              "signature": "func (s *Store) Do(args ...string) (any, error)",
+              "doc": "Do executes a single command by name and arguments, returning a result in a\nRESP-friendly Go representation and an error for command-level failures.\nCommand names are case-insensitive. The returned value uses these types:\n\n\tSimpleString  for status replies such as OK\n\tint64         for integer replies\n\tstring        for bulk-string replies\n\tnil           for null replies (missing key, failed NX/XX)\n\t[]any         for array replies\n\nDo is the in-process equivalent of a client sending a RESP command array.\n"
+            },
+            {
+              "name": "DumpKey",
+              "recv": "*Store",
+              "signature": "func (s *Store) DumpKey(key string) ([]byte, bool, error)",
+              "doc": "DumpKey serializes the value stored at key into a portable byte slice in the\nsame spirit as the Redis DUMP command. The boolean is false when the key is\nabsent or expired. The bytes carry the value but not its key or TTL and can be\nmaterialized into any store with RestoreKey.\n"
+            },
+            {
+              "name": "Exists",
+              "recv": "*Store",
+              "signature": "func (s *Store) Exists(keys ...string) int",
+              "doc": "Exists returns the number of the given keys that currently exist. Keys given\nmultiple times are counted multiple times, matching Redis semantics.\n"
+            },
+            {
+              "name": "Expire",
+              "recv": "*Store",
+              "signature": "func (s *Store) Expire(key string, d time.Duration) bool",
+              "doc": "Expire sets a time-to-live of d on key. It returns false if the key does not\nexist. A non-positive d deletes the key immediately (as Redis does).\n"
+            },
+            {
+              "name": "ExpireAt",
+              "recv": "*Store",
+              "signature": "func (s *Store) ExpireAt(key string, t time.Time) bool",
+              "doc": "ExpireAt sets the absolute expiration time of key to t. It returns false if\nthe key does not exist. If t is in the past the key is deleted immediately.\nIt mirrors the Redis EXPIREAT/PEXPIREAT commands.\n"
+            },
+            {
+              "name": "ExpireTime",
+              "recv": "*Store",
+              "signature": "func (s *Store) ExpireTime(key string) (time.Time, TTLCode)",
+              "doc": "ExpireTime returns the absolute time at which key will expire. The returned\nTTLCode is TTLValue when the time is meaningful, TTLNoExpiry when the key\nexists but has no expiration, and TTLNoKey when the key is absent. It mirrors\nthe Redis EXPIRETIME command.\n"
+            },
+            {
+              "name": "ExpireWith",
+              "recv": "*Store",
+              "signature": "func (s *Store) ExpireWith(key string, d time.Duration, cond ExpireCond) bool",
+              "doc": "ExpireWith sets a time-to-live of d on key subject to the precondition cond,\nreporting whether the expiration was applied. It returns false if the key does\nnot exist or the precondition is not met. A non-positive d deletes the key\n(when the precondition allows the write). It mirrors Redis EXPIRE with the\nNX/XX/GT/LT options.\n"
+            },
+            {
+              "name": "FlushAll",
+              "recv": "*Store",
+              "signature": "func (s *Store) FlushAll()",
+              "doc": "FlushAll removes every key from the store.\n"
+            },
+            {
+              "name": "GeoAdd",
+              "recv": "*Store",
+              "signature": "func (s *Store) GeoAdd(key string, members ...GeoMember) (int, error)",
+              "doc": "GeoAdd adds each member at its coordinate to the geo set at key, encoding the\ncoordinate as a 52-bit geohash score and delegating to ZAdd. It returns the\nnumber of members newly added; coordinate updates to existing members are\nnot counted, matching GEOADD.\n"
+            },
+            {
+              "name": "GeoDist",
+              "recv": "*Store",
+              "signature": "func (s *Store) GeoDist(key, m1, m2 string, unit GeoUnit) (float64, bool, error)",
+              "doc": "GeoDist returns the geodesic distance between members m1 and m2 in the given\nunit, computed with the haversine formula. The boolean is false (and the\ndistance zero) when the key or either member is absent.\n"
+            },
+            {
+              "name": "GeoHash",
+              "recv": "*Store",
+              "signature": "func (s *Store) GeoHash(key string, members ...string) ([]string, error)",
+              "doc": "GeoHash returns the 11-character base32 geohash of each requested member,\nusing the Redis-compatible alphabet and the standard -90..90 latitude range.\nThe returned slice has one entry per member; the entry is the empty string\nwhen the key or member is absent.\n"
+            },
+            {
+              "name": "GeoPos",
+              "recv": "*Store",
+              "signature": "func (s *Store) GeoPos(key string, members ...string) ([]*GeoPoint, error)",
+              "doc": "GeoPos returns the decoded coordinate of each requested member. The returned\nslice has one entry per member in order; the entry is nil when the key or the\nmember is absent.\n"
+            },
+            {
+              "name": "GeoRadius",
+              "recv": "*Store",
+              "signature": "func (s *Store) GeoRadius(key string, lon, lat, radius float64, unit GeoUnit, count int, sortAsc bool) ([]GeoSearchResult, error)",
+              "doc": "GeoRadius is the legacy GEORADIUS spelling; it wraps GeoSearch with the\ncenter given as explicit longitude and latitude.\n"
+            },
+            {
+              "name": "GeoSearch",
+              "recv": "*Store",
+              "signature": "func (s *Store) GeoSearch(key string, center GeoPoint, radius float64, unit GeoUnit, count int, sortAsc bool) ([]GeoSearchResult, error)",
+              "doc": "GeoSearch returns members within radius of center, implementing GEOSEARCH\nBYRADIUS FROMLONLAT. It scans the sorted set in score order, decodes each\nmember, and keeps those whose haversine distance from center is within\nradius (both interpreted in unit). A count of zero or less is unlimited;\notherwise at most count results are returned. When sortAsc is true results\nare ordered by ascending distance (ties broken by member) before count is\napplied.\n"
+            },
+            {
+              "name": "Get",
+              "recv": "*Store",
+              "signature": "func (s *Store) Get(key string) (string, bool, error)",
+              "doc": "Get returns the string stored at key. The boolean is false if the key is\nabsent or expired. It returns ErrWrongType if the key holds a non-string.\n"
+            },
+            {
+              "name": "GetBit",
+              "recv": "*Store",
+              "signature": "func (s *Store) GetBit(key string, offset int64) (int, error)",
+              "doc": "GetBit returns the bit stored at offset, or 0 when offset is past the end of\nthe value or the key is missing. It returns ErrOutOfRange if offset is\nnegative and ErrWrongType if the key holds a non-string value.\n"
+            },
+            {
+              "name": "GetDel",
+              "recv": "*Store",
+              "signature": "func (s *Store) GetDel(key string) (string, bool, error)",
+              "doc": "GetDel atomically returns the string value stored at key and deletes the key.\nThe boolean is false when the key is absent or expired, in which case nothing\nis deleted. It returns ErrWrongType if the key holds a non-string value,\nmirroring the Redis GETDEL command.\n"
+            },
+            {
+              "name": "GetEx",
+              "recv": "*Store",
+              "signature": "func (s *Store) GetEx(key string, opts GetExOptions) (string, bool, error)",
+              "doc": "GetEx returns the string value stored at key while optionally modifying its\nexpiration according to opts. The boolean is false when the key is absent or\nexpired. It returns ErrWrongType if the key holds a non-string value,\nmirroring the Redis GETEX command.\n"
+            },
+            {
+              "name": "GetRange",
+              "recv": "*Store",
+              "signature": "func (s *Store) GetRange(key string, start, end int) (string, error)",
+              "doc": "GetRange returns the substring of the string at key bounded by the inclusive\nindexes start and end. Negative indexes count back from the end of the\nstring, and both bounds are clamped to the string's extent. A missing key,\nan empty string, or an empty range yields the empty string. A non-string key\nyields ErrWrongType.\n"
+            },
+            {
+              "name": "GetSet",
+              "recv": "*Store",
+              "signature": "func (s *Store) GetSet(key, str string) (string, bool, error)",
+              "doc": "GetSet atomically sets key to str and returns the previous value. The boolean\nis false when there was no previous value.\n"
+            },
+            {
+              "name": "HDel",
+              "recv": "*Store",
+              "signature": "func (s *Store) HDel(key string, fields ...string) (int, error)",
+              "doc": "HDel removes the given fields from the hash at key and returns the number of\nfields removed. The key is deleted when its last field is removed.\n"
+            },
+            {
+              "name": "HExists",
+              "recv": "*Store",
+              "signature": "func (s *Store) HExists(key, field string) (bool, error)",
+              "doc": "HExists reports whether field exists in the hash at key.\n"
+            },
+            {
+              "name": "HGet",
+              "recv": "*Store",
+              "signature": "func (s *Store) HGet(key, field string) (string, bool, error)",
+              "doc": "HGet returns the value of field in the hash at key. The boolean is false when\nthe key or field is absent.\n"
+            },
+            {
+              "name": "HGetAll",
+              "recv": "*Store",
+              "signature": "func (s *Store) HGetAll(key string) (map[string]string, error)",
+              "doc": "HGetAll returns all field-value pairs of the hash at key as a map. The\nreturned map is a copy and safe for the caller to mutate.\n"
+            },
+            {
+              "name": "HGetDel",
+              "recv": "*Store",
+              "signature": "func (s *Store) HGetDel(key string, fields ...string) ([]*string, error)",
+              "doc": "HGetDel returns the values of the given fields in the hash at key and deletes\nthose fields, all atomically. The result has one entry per requested field, in\norder; a nil entry marks a field that was absent. The key is deleted when its\nlast field is removed. It returns ErrWrongType if the key holds a non-hash\nvalue, mirroring the Redis HGETDEL command.\n"
+            },
+            {
+              "name": "HIncrBy",
+              "recv": "*Store",
+              "signature": "func (s *Store) HIncrBy(key, field string, delta int64) (int64, error)",
+              "doc": "HIncrBy increments the integer value of field in the hash at key by delta and\nreturns the result. A missing key or field is treated as 0. It returns\nErrNotInteger if the field holds a non-integer and ErrWrongType if the key\nholds a non-hash value.\n"
+            },
+            {
+              "name": "HIncrByFloat",
+              "recv": "*Store",
+              "signature": "func (s *Store) HIncrByFloat(key, field string, delta float64) (float64, error)",
+              "doc": "HIncrByFloat increments the floating-point value of field in the hash at key\nby delta and returns the result. A missing key or field is treated as 0. The\nstored value is rewritten in Redis' human-readable float format (fixed-point,\nshortest round-trip). It returns ErrNotFloat if the field holds a non-float,\nErrWrongType if the key holds a non-hash value, and ErrIncrNaNOrInf if the\nsum is NaN or infinite, in which case the field is left unchanged.\n"
+            },
+            {
+              "name": "HKeys",
+              "recv": "*Store",
+              "signature": "func (s *Store) HKeys(key string) ([]string, error)",
+              "doc": "HKeys returns the field names of the hash at key, sorted for determinism.\n"
+            },
+            {
+              "name": "HLen",
+              "recv": "*Store",
+              "signature": "func (s *Store) HLen(key string) (int, error)",
+              "doc": "HLen returns the number of fields in the hash at key.\n"
+            },
+            {
+              "name": "HMGet",
+              "recv": "*Store",
+              "signature": "func (s *Store) HMGet(key string, fields ...string) []*string",
+              "doc": "HMGet returns the values of the given fields in the hash at key, in order. A\nnil entry marks a field that is absent; a missing key or a key holding a\nnon-hash value yields all-nil entries.\n"
+            },
+            {
+              "name": "HRandField",
+              "recv": "*Store",
+              "signature": "func (s *Store) HRandField(key string, count int, withValues bool) ([]string, error)",
+              "doc": "HRandField returns random field names from the hash at key. A positive count\nreturns up to count distinct fields; a negative count returns exactly -count\nfields with repetition allowed. When withValues is true each field is followed\nby its value in the returned slice. It returns ErrWrongType if the key holds a\nnon-hash value.\n"
+            },
+            {
+              "name": "HRandFieldWithValues",
+              "recv": "*Store",
+              "signature": "func (s *Store) HRandFieldWithValues(key string, count int) ([]HashEntry, error)",
+              "doc": "HRandFieldWithValues returns up to count random field/value pairs from the\nhash at key without removing them. A positive count returns distinct fields; a\nnegative count returns exactly -count pairs with repetition allowed. A count\nof zero returns an empty slice. It returns ErrWrongType if the key holds a\nnon-hash value. It is the typed WITHVALUES form of Redis HRANDFIELD.\n"
+            },
+            {
+              "name": "HScan",
+              "recv": "*Store",
+              "signature": "func (s *Store) HScan(key string, cursor uint64, match string, count int) (ScanPairs, error)",
+              "doc": "HScan iterates the fields of the hash at key, returning field/value pairs\nflattened into ScanPairs.Pairs. The match glob filters on field name (empty\nmatches all) and count bounds how many fields are examined this step\n(defaulting to 10 when count\u003c=0). A missing key yields an empty result with\nCursor 0; ErrWrongType is returned if key holds a non-hash value.\n"
+            },
+            {
+              "name": "HSet",
+              "recv": "*Store",
+              "signature": "func (s *Store) HSet(key string, pairs ...string) (int, error)",
+              "doc": "HSet sets field-value pairs on the hash at key and returns the number of\nfields that were newly created (not counting updates to existing fields).\npairs must have even length: field, value, field, value, ...\n"
+            },
+            {
+              "name": "HSetNX",
+              "recv": "*Store",
+              "signature": "func (s *Store) HSetNX(key, field, val string) (bool, error)",
+              "doc": "HSetNX sets field to val in the hash at key only if field does not already\nexist, reporting whether the write happened. It returns ErrWrongType if the\nkey holds a non-hash value.\n"
+            },
+            {
+              "name": "HStrlen",
+              "recv": "*Store",
+              "signature": "func (s *Store) HStrlen(key, field string) (int, error)",
+              "doc": "HStrlen returns the length of the value of field in the hash at key, or 0 if\nthe key or field is absent. It returns ErrWrongType if the key holds a\nnon-hash value.\n"
+            },
+            {
+              "name": "HVals",
+              "recv": "*Store",
+              "signature": "func (s *Store) HVals(key string) ([]string, error)",
+              "doc": "HVals returns the values of the hash at key, ordered by sorted field name.\n"
+            },
+            {
+              "name": "Incr",
+              "recv": "*Store",
+              "signature": "func (s *Store) Incr(key string) (int64, error)",
+              "doc": "Incr increments the integer value at key by one.\n"
+            },
+            {
+              "name": "IncrBy",
+              "recv": "*Store",
+              "signature": "func (s *Store) IncrBy(key string, delta int64) (int64, error)",
+              "doc": "IncrBy increments the integer value at key by delta and returns the result.\nA missing key is treated as 0. It returns ErrNotInteger if the value is not a\nbase-10 integer, and ErrIncrOverflow if the sum would fall outside the signed\n64-bit range, in which case the stored value is left unchanged.\n"
+            },
+            {
+              "name": "IncrByFloat",
+              "recv": "*Store",
+              "signature": "func (s *Store) IncrByFloat(key string, delta float64) (float64, error)",
+              "doc": "IncrByFloat increments the floating-point value at key by delta and returns\nthe result, treating a missing key as 0. The stored value is rewritten in\nRedis' human-readable float format (fixed-point, shortest round-trip). A\nnon-string key yields ErrWrongType, a value that does not parse as a float\nyields ErrNotFloat, and a sum that is NaN or infinite yields ErrIncrNaNOrInf\nwith the stored value left unchanged.\n"
+            },
+            {
+              "name": "Keys",
+              "recv": "*Store",
+              "signature": "func (s *Store) Keys(pattern string) []string",
+              "doc": "Keys returns all keys matching the glob-style pattern (see Match). The order\nof the returned slice is unspecified.\n"
+            },
+            {
+              "name": "LIndex",
+              "recv": "*Store",
+              "signature": "func (s *Store) LIndex(key string, index int) (string, bool, error)",
+              "doc": "LIndex returns the element at index in the list at key. Negative indexes\ncount from the tail (-1 is the last element). The boolean is false when the\nindex is out of range or the key is absent.\n"
+            },
+            {
+              "name": "LInsert",
+              "recv": "*Store",
+              "signature": "func (s *Store) LInsert(key string, before bool, pivot, val string) (int, error)",
+              "doc": "LInsert inserts val into the list at key either before or after the first\noccurrence of pivot. It returns the new length on success, -1 when pivot is\nnot present, and 0 when the key does not exist. It returns ErrWrongType if\nthe key holds a non-list value.\n"
+            },
+            {
+              "name": "LLen",
+              "recv": "*Store",
+              "signature": "func (s *Store) LLen(key string) (int, error)",
+              "doc": "LLen returns the length of the list at key, or 0 if absent.\n"
+            },
+            {
+              "name": "LMPop",
+              "recv": "*Store",
+              "signature": "func (s *Store) LMPop(dir ListDirection, count int, keys ...string) (string, []string, bool, error)",
+              "doc": "LMPop pops up to count elements from the given end of the first of keys that\nholds a non-empty list, scanning keys left to right. It returns the key that\nwas popped from and the popped elements, in pop order. The boolean is false\nwhen none of the keys hold a non-empty list. It returns ErrWrongType if a\nscanned key holds a non-list value, mirroring the Redis LMPOP command.\n"
+            },
+            {
+              "name": "LMove",
+              "recv": "*Store",
+              "signature": "func (s *Store) LMove(src, dst string, from, to ListEnd) (string, bool, error)",
+              "doc": "LMove atomically pops an element from the from end of the list at src and\npushes it onto the to end of the list at dst, which may equal src. It returns\nthe moved element and true, or false when src is empty or absent. It returns\nErrWrongType if either key holds a non-list value.\n"
+            },
+            {
+              "name": "LPop",
+              "recv": "*Store",
+              "signature": "func (s *Store) LPop(key string) (string, bool, error)",
+              "doc": "LPop removes and returns the head element of the list at key. The boolean is\nfalse when the list is empty or missing.\n"
+            },
+            {
+              "name": "LPopN",
+              "recv": "*Store",
+              "signature": "func (s *Store) LPopN(key string, count int) ([]string, error)",
+              "doc": "LPopN removes and returns up to count elements from the head of the list at\nkey, in the order they are popped. A count of zero or less returns an empty\nslice. The key is deleted when it becomes empty. It returns ErrWrongType if\nthe key holds a non-list value, mirroring the count form of Redis LPOP.\n"
+            },
+            {
+              "name": "LPos",
+              "recv": "*Store",
+              "signature": "func (s *Store) LPos(key, val string, rank, count int) ([]int, error)",
+              "doc": "LPos returns the indexes of elements equal to val in the list at key. rank\nselects which match to start from: 1 is the first match, 2 the second, and a\nnegative rank searches from the tail (-1 is the last match); rank 0 is treated\nas 1. count limits the number of indexes returned, with 0 meaning all\nmatches. It returns ErrWrongType if the key holds a non-list value.\n"
+            },
+            {
+              "name": "LPush",
+              "recv": "*Store",
+              "signature": "func (s *Store) LPush(key string, values ...string) (int, error)",
+              "doc": "LPush prepends values to the list at key (leftmost first) and returns the new\nlength. Values are inserted so that the last argument ends up at the head,\nmatching Redis LPUSH.\n"
+            },
+            {
+              "name": "LPushX",
+              "recv": "*Store",
+              "signature": "func (s *Store) LPushX(key string, values ...string) (int, error)",
+              "doc": "LPushX prepends values to the list at key only if key already holds a list,\nand returns the new length. If the key does not exist it makes no change and\nreturns 0. It returns ErrWrongType if the key holds a non-list value,\nmirroring the Redis LPUSHX command.\n"
+            },
+            {
+              "name": "LRange",
+              "recv": "*Store",
+              "signature": "func (s *Store) LRange(key string, start, stop int) ([]string, error)",
+              "doc": "LRange returns the elements of the list at key between start and stop,\ninclusive. Negative indexes count from the tail. Out-of-range bounds are\nclamped, and an empty slice is returned when the range selects nothing.\n"
+            },
+            {
+              "name": "LRem",
+              "recv": "*Store",
+              "signature": "func (s *Store) LRem(key string, count int, val string) (int, error)",
+              "doc": "LRem removes elements equal to val from the list at key. When count is\npositive it removes up to count elements moving from head to tail; when\nnegative it removes up to -count elements moving from tail to head; when zero\nit removes every matching element. It returns the number removed and deletes\nthe key when the list becomes empty.\n"
+            },
+            {
+              "name": "LSet",
+              "recv": "*Store",
+              "signature": "func (s *Store) LSet(key string, index int, val string) error",
+              "doc": "LSet sets the element at index in the list at key to val. Negative indexes\ncount from the tail. It returns ErrNoSuchKey when the key is absent and\nErrOutOfRange when index is outside the list. It returns ErrWrongType if the\nkey holds a non-list value.\n"
+            },
+            {
+              "name": "LTrim",
+              "recv": "*Store",
+              "signature": "func (s *Store) LTrim(key string, start, stop int) error",
+              "doc": "LTrim trims the list at key so that only the elements with indexes between\nstart and stop, inclusive, remain. Negative indexes count from the tail.\nWhen the range selects nothing the key is deleted. It returns ErrWrongType if\nthe key holds a non-list value.\n"
+            },
+            {
+              "name": "Lcs",
+              "recv": "*Store",
+              "signature": "func (s *Store) Lcs(key1, key2 string) (string, error)",
+              "doc": "Lcs returns the longest common subsequence of the string values stored at\nkey1 and key2. A missing key is treated as an empty string. It returns\nErrWrongType if either key holds a non-string value, mirroring the Redis LCS\ncommand with no extra options.\n"
+            },
+            {
+              "name": "LcsIdx",
+              "recv": "*Store",
+              "signature": "func (s *Store) LcsIdx(key1, key2 string) ([]LcsMatch, int, error)",
+              "doc": "LcsIdx returns the contiguous matching runs that make up the longest common\nsubsequence of the string values stored at key1 and key2, together with the\ntotal length of the subsequence. Matches are ordered from the highest offsets\nto the lowest, matching the Redis LCS ... IDX WITHMATCHLEN reply. A missing\nkey is treated as an empty string. It returns ErrWrongType if either key\nholds a non-string value.\n"
+            },
+            {
+              "name": "LcsLen",
+              "recv": "*Store",
+              "signature": "func (s *Store) LcsLen(key1, key2 string) (int, error)",
+              "doc": "LcsLen returns the length of the longest common subsequence of the string\nvalues stored at key1 and key2. A missing key is treated as an empty string.\nIt returns ErrWrongType if either key holds a non-string value, mirroring the\nRedis LCS ... LEN command.\n"
+            },
+            {
+              "name": "LoadSnapshot",
+              "recv": "*Store",
+              "signature": "func (s *Store) LoadSnapshot(data []byte) error",
+              "doc": "LoadSnapshot replaces the entire contents of the store with the keyspace\nencoded in data, which must have been produced by MarshalSnapshot. Expiration\ntimes are restored as absolute times, so they remain meaningful against the\nstore's clock. It returns ErrBadSnapshot if data is malformed.\n"
+            },
+            {
+              "name": "MGet",
+              "recv": "*Store",
+              "signature": "func (s *Store) MGet(keys ...string) []*string",
+              "doc": "MGet returns the string values of the given keys in order. Each element is\nnil when the corresponding key is missing, expired, or holds a non-string\nvalue.\n"
+            },
+            {
+              "name": "MSet",
+              "recv": "*Store",
+              "signature": "func (s *Store) MSet(pairs ...string) error",
+              "doc": "MSet sets each key to its paired value from pairs, which must be a non-empty,\neven-length sequence of alternating key and value strings; any other length\nyields ErrWrongArgs. Each write clears any existing TTL, matching SET.\n"
+            },
+            {
+              "name": "MSetNX",
+              "recv": "*Store",
+              "signature": "func (s *Store) MSetNX(pairs ...string) (bool, error)",
+              "doc": "MSetNX sets each key to its paired value from pairs only if none of the keys\nalready exist; the operation is all-or-nothing. It reports whether the writes\nhappened. pairs must be a non-empty, even-length sequence of alternating key\nand value strings; any other length yields ErrWrongArgs.\n"
+            },
+            {
+              "name": "MarshalSnapshot",
+              "recv": "*Store",
+              "signature": "func (s *Store) MarshalSnapshot() ([]byte, error)",
+              "doc": "MarshalSnapshot serializes the entire keyspace, including per-key expiration\ntimes, into a portable, deterministic byte slice. Keys and collection members\nare emitted in sorted order so that identical stores always produce identical\nbytes. Stream keys, which live outside the ordinary keyspace, are not\nincluded. The bytes can be reloaded with LoadSnapshot or NewFromSnapshot.\n"
+            },
+            {
+              "name": "MemoryUsage",
+              "recv": "*Store",
+              "signature": "func (s *Store) MemoryUsage(key string) (int64, bool)",
+              "doc": "MemoryUsage returns an estimate, in bytes, of the memory used by the value\nstored at key, including a fixed per-key overhead and the key name. The\nboolean is false when the key is missing or expired. The figure is a\ndeterministic approximation, not the exact allocation, and mirrors the intent\nof the Redis MEMORY USAGE command.\n"
+            },
+            {
+              "name": "Multi",
+              "recv": "*Store",
+              "signature": "func (s *Store) Multi() *Tx",
+              "doc": "Multi begins a new optimistic transaction against the Store and returns an\nempty Tx handle. Commands are accumulated with Queue and applied by Exec.\n"
+            },
+            {
+              "name": "Object",
+              "recv": "*Store",
+              "signature": "func (s *Store) Object(key string) (ObjectInfo, bool)",
+              "doc": "Object returns metadata about the value stored at key. The boolean is false\nwhen the key is missing or expired.\n"
+            },
+            {
+              "name": "ObjectEncoding",
+              "recv": "*Store",
+              "signature": "func (s *Store) ObjectEncoding(key string) (string, bool)",
+              "doc": "ObjectEncoding returns the internal encoding name of the value stored at key,\nsuch as \"int\", \"embstr\", \"raw\", \"listpack\", \"hashtable\", or \"skiplist\". The\nboolean is false when the key is missing or expired. It mirrors the Redis\nOBJECT ENCODING command.\n"
+            },
+            {
+              "name": "ObjectFreq",
+              "recv": "*Store",
+              "signature": "func (s *Store) ObjectFreq(key string) (int64, bool)",
+              "doc": "ObjectFreq returns the logarithmic access frequency counter of the value at\nkey. This store does not implement an LFU eviction policy, so the result is\nalways 0 for a live key. The boolean is false when the key is missing or\nexpired. It mirrors the Redis OBJECT FREQ command.\n"
+            },
+            {
+              "name": "ObjectIdleTime",
+              "recv": "*Store",
+              "signature": "func (s *Store) ObjectIdleTime(key string) (int64, bool)",
+              "doc": "ObjectIdleTime returns the number of seconds the value at key has been idle.\nThis store does not track access times, so the result is always 0 for a live\nkey. The boolean is false when the key is missing or expired. It mirrors the\nRedis OBJECT IDLETIME command.\n"
+            },
+            {
+              "name": "ObjectRefCount",
+              "recv": "*Store",
+              "signature": "func (s *Store) ObjectRefCount(key string) (int64, bool)",
+              "doc": "ObjectRefCount returns the reference count of the value stored at key. This\nstore keeps exactly one reference per key, so the count is always 1 for a live\nkey. The boolean is false when the key is missing or expired. It mirrors the\nRedis OBJECT REFCOUNT command.\n"
+            },
+            {
+              "name": "PExpire",
+              "recv": "*Store",
+              "signature": "func (s *Store) PExpire(key string, d time.Duration) bool",
+              "doc": "PExpire is Expire with millisecond-precision semantics; it is provided for\nnaming parity with Redis and behaves identically to Expire for a duration.\n"
+            },
+            {
+              "name": "PExpireAt",
+              "recv": "*Store",
+              "signature": "func (s *Store) PExpireAt(key string, t time.Time) bool",
+              "doc": "PExpireAt sets the absolute expiration time of key to t. It is identical to\nExpireAt and is provided for naming parity with the Redis PEXPIREAT command.\n"
+            },
+            {
+              "name": "PExpireTime",
+              "recv": "*Store",
+              "signature": "func (s *Store) PExpireTime(key string) (time.Time, TTLCode)",
+              "doc": "PExpireTime returns the absolute expiration time of key. It is identical to\nExpireTime and is provided for naming parity with the Redis PEXPIRETIME\ncommand.\n"
+            },
+            {
+              "name": "PFAdd",
+              "recv": "*Store",
+              "signature": "func (s *Store) PFAdd(key string, elements ...string) (int, error)",
+              "doc": "PFAdd adds the given elements to the HyperLogLog stored at key, creating a\nnew HLL there if the key is absent. It returns 1 if the HLL was created or\nat least one internal register was updated (so the cardinality estimate may\nhave changed) and 0 otherwise. It returns ErrWrongType if key holds a value\nthat is not a HyperLogLog string.\n"
+            },
+            {
+              "name": "PFCount",
+              "recv": "*Store",
+              "signature": "func (s *Store) PFCount(keys ...string) (int64, error)",
+              "doc": "PFCount returns the estimated cardinality of the HyperLogLog(s) at the given\nkeys. With a single key it returns that key's estimate (0 if the key is\nabsent). With multiple keys it estimates the cardinality of the union of\ntheir registers without persisting the merged result. It returns\nErrWrongArgs if no key is given and ErrWrongType if any key holds a value\nthat is not a HyperLogLog string.\n"
+            },
+            {
+              "name": "PFMerge",
+              "recv": "*Store",
+              "signature": "func (s *Store) PFMerge(destKey string, srcKeys ...string) error",
+              "doc": "PFMerge writes to destKey the register-wise maximum of the HyperLogLogs at\ndestKey (if any) and all srcKeys, producing a TypeString HLL representing the\nunion of their observed elements. Absent keys are treated as empty HLLs. It\nreturns ErrWrongType if destKey or any source key holds a value that is not a\nHyperLogLog string.\n"
+            },
+            {
+              "name": "PSetEx",
+              "recv": "*Store",
+              "signature": "func (s *Store) PSetEx(key string, millis int, val string) error",
+              "doc": "PSetEx sets key to val with an expiration of millis milliseconds, replacing\nany existing value and TTL. A non-positive millis yields ErrSyntax.\n"
+            },
+            {
+              "name": "PSubscribe",
+              "recv": "*Store",
+              "signature": "func (s *Store) PSubscribe(patterns ...string) *Subscription",
+              "doc": "PSubscribe returns a Subscription that receives messages published to any\nchannel matching one of the given glob-style patterns (see Match). Duplicate\npatterns are ignored. The returned Subscription must be closed with Close when\nno longer needed.\n"
+            },
+            {
+              "name": "PTTL",
+              "recv": "*Store",
+              "signature": "func (s *Store) PTTL(key string) (time.Duration, TTLCode)",
+              "doc": "PTTL is an alias of TTL; the remaining Duration can be inspected at any\nprecision by the caller.\n"
+            },
+            {
+              "name": "Persist",
+              "recv": "*Store",
+              "signature": "func (s *Store) Persist(key string) bool",
+              "doc": "Persist removes any expiration from key, returning true if a TTL was cleared.\n"
+            },
+            {
+              "name": "PubSubChannels",
+              "recv": "*Store",
+              "signature": "func (s *Store) PubSubChannels(pattern string) []string",
+              "doc": "PubSubChannels returns the active exact channels (those with at least one\nsubscriber), sorted lexicographically. An empty pattern or \"*\" lists every\nactive channel; any other pattern filters the result via Match.\n"
+            },
+            {
+              "name": "PubSubNumPat",
+              "recv": "*Store",
+              "signature": "func (s *Store) PubSubNumPat() int",
+              "doc": "PubSubNumPat returns the number of distinct patterns that currently have at\nleast one pattern subscription.\n"
+            },
+            {
+              "name": "PubSubNumSub",
+              "recv": "*Store",
+              "signature": "func (s *Store) PubSubNumSub(channels ...string) map[string]int",
+              "doc": "PubSubNumSub returns a map from each of the given channels to its number of\nexact subscribers. Channels with no subscribers map to zero.\n"
+            },
+            {
+              "name": "Publish",
+              "recv": "*Store",
+              "signature": "func (s *Store) Publish(channel, payload string) int",
+              "doc": "Publish sends payload to channel and returns the number of receivers: the\ncount of exact subscribers to channel plus the count of pattern subscriptions\nwhose pattern matches channel. Delivery is non-blocking, so a receiver whose\nbuffer is full is still counted but does not receive the message.\n"
+            },
+            {
+              "name": "RPop",
+              "recv": "*Store",
+              "signature": "func (s *Store) RPop(key string) (string, bool, error)",
+              "doc": "RPop removes and returns the tail element of the list at key. The boolean is\nfalse when the list is empty or missing.\n"
+            },
+            {
+              "name": "RPopLPush",
+              "recv": "*Store",
+              "signature": "func (s *Store) RPopLPush(src, dst string) (string, bool, error)",
+              "doc": "RPopLPush pops the tail element of the list at src and pushes it onto the head\nof the list at dst. It is equivalent to LMove(src, dst, ListRight, ListLeft).\n"
+            },
+            {
+              "name": "RPopN",
+              "recv": "*Store",
+              "signature": "func (s *Store) RPopN(key string, count int) ([]string, error)",
+              "doc": "RPopN removes and returns up to count elements from the tail of the list at\nkey, in the order they are popped. A count of zero or less returns an empty\nslice. The key is deleted when it becomes empty. It returns ErrWrongType if\nthe key holds a non-list value, mirroring the count form of Redis RPOP.\n"
+            },
+            {
+              "name": "RPush",
+              "recv": "*Store",
+              "signature": "func (s *Store) RPush(key string, values ...string) (int, error)",
+              "doc": "RPush appends values to the list at key and returns the new length.\n"
+            },
+            {
+              "name": "RPushX",
+              "recv": "*Store",
+              "signature": "func (s *Store) RPushX(key string, values ...string) (int, error)",
+              "doc": "RPushX appends values to the list at key only if key already holds a list,\nand returns the new length. If the key does not exist it makes no change and\nreturns 0. It returns ErrWrongType if the key holds a non-list value,\nmirroring the Redis RPUSHX command.\n"
+            },
+            {
+              "name": "RandomKey",
+              "recv": "*Store",
+              "signature": "func (s *Store) RandomKey() (string, bool)",
+              "doc": "RandomKey returns a uniformly-random live key from the store. The boolean is\nfalse when the store holds no live keys.\n"
+            },
+            {
+              "name": "Rename",
+              "recv": "*Store",
+              "signature": "func (s *Store) Rename(src, dst string) error",
+              "doc": "Rename moves the value at src, including any TTL, to dst, overwriting any\nexisting value at dst. It returns ErrNoSuchKey if src does not exist. Renaming\na key to itself is a no-op that succeeds.\n"
+            },
+            {
+              "name": "RenameNX",
+              "recv": "*Store",
+              "signature": "func (s *Store) RenameNX(src, dst string) (bool, error)",
+              "doc": "RenameNX moves the value at src, including any TTL, to dst only if dst does\nnot already exist. It reports whether the rename happened and returns\nErrNoSuchKey if src does not exist.\n"
+            },
+            {
+              "name": "RestoreKey",
+              "recv": "*Store",
+              "signature": "func (s *Store) RestoreKey(key string, data []byte, ttl time.Duration, replace bool) error",
+              "doc": "RestoreKey creates a value at key from data previously produced by DumpKey.\nIf ttl is positive the key is given that time-to-live; a non-positive ttl\nleaves the key persistent. When the key already exists RestoreKey returns\nErrBusyKey unless replace is true. It returns ErrBadSnapshot if data is\nmalformed. It mirrors the Redis RESTORE command.\n"
+            },
+            {
+              "name": "SAdd",
+              "recv": "*Store",
+              "signature": "func (s *Store) SAdd(key string, members ...string) (int, error)",
+              "doc": "SAdd adds members to the set at key and returns the number of members that\nwere newly added.\n"
+            },
+            {
+              "name": "SCard",
+              "recv": "*Store",
+              "signature": "func (s *Store) SCard(key string) (int, error)",
+              "doc": "SCard returns the number of members in the set at key.\n"
+            },
+            {
+              "name": "SDiff",
+              "recv": "*Store",
+              "signature": "func (s *Store) SDiff(keys ...string) ([]string, error)",
+              "doc": "SDiff returns the members of the first set at keys[0] that are not present in\nany of the subsequent sets, sorted.\n"
+            },
+            {
+              "name": "SDiffStore",
+              "recv": "*Store",
+              "signature": "func (s *Store) SDiffStore(dst string, keys ...string) (int, error)",
+              "doc": "SDiffStore stores the difference of the sets at keys into dst as a set and\nreturns the cardinality of the result. An empty result deletes dst. It returns\nErrWrongType if any source key holds a non-set value.\n"
+            },
+            {
+              "name": "SInter",
+              "recv": "*Store",
+              "signature": "func (s *Store) SInter(keys ...string) ([]string, error)",
+              "doc": "SInter returns the intersection of the sets at keys, sorted.\n"
+            },
+            {
+              "name": "SInterCard",
+              "recv": "*Store",
+              "signature": "func (s *Store) SInterCard(limit int, keys ...string) (int, error)",
+              "doc": "SInterCard returns the number of members in the intersection of the sets at\nkeys. When limit is greater than zero the count stops as soon as it reaches\nlimit, which bounds the work performed on large sets. It returns ErrWrongType\nif any key holds a non-set value, mirroring the Redis SINTERCARD command.\n"
+            },
+            {
+              "name": "SInterStore",
+              "recv": "*Store",
+              "signature": "func (s *Store) SInterStore(dst string, keys ...string) (int, error)",
+              "doc": "SInterStore stores the intersection of the sets at keys into dst as a set and\nreturns the cardinality of the result. An empty result deletes dst. It returns\nErrWrongType if any source key holds a non-set value.\n"
+            },
+            {
+              "name": "SIsMember",
+              "recv": "*Store",
+              "signature": "func (s *Store) SIsMember(key, member string) (bool, error)",
+              "doc": "SIsMember reports whether member is in the set at key.\n"
+            },
+            {
+              "name": "SMIsMember",
+              "recv": "*Store",
+              "signature": "func (s *Store) SMIsMember(key string, members ...string) ([]bool, error)",
+              "doc": "SMIsMember reports, for each member, whether it belongs to the set at key,\nreturning a slice of booleans in the same order as members. A missing key\nyields all-false results. It returns ErrWrongType if the key holds a non-set\nvalue, mirroring the Redis SMISMEMBER command.\n"
+            },
+            {
+              "name": "SMembers",
+              "recv": "*Store",
+              "signature": "func (s *Store) SMembers(key string) ([]string, error)",
+              "doc": "SMembers returns the members of the set at key, sorted for determinism.\n"
+            },
+            {
+              "name": "SMove",
+              "recv": "*Store",
+              "signature": "func (s *Store) SMove(src, dst, member string) (bool, error)",
+              "doc": "SMove moves member from the set at src to the set at dst, which may equal src.\nIt reports whether member was present in src and therefore moved. It returns\nErrWrongType if either key holds a non-set value, and deletes src when it\nbecomes empty.\n"
+            },
+            {
+              "name": "SPop",
+              "recv": "*Store",
+              "signature": "func (s *Store) SPop(key string, count int) ([]string, error)",
+              "doc": "SPop removes and returns up to count random members from the set at key. A\nnegative count is treated as zero. The key is deleted when it becomes empty.\nIt returns ErrWrongType if the key holds a non-set value.\n"
+            },
+            {
+              "name": "SRandMember",
+              "recv": "*Store",
+              "signature": "func (s *Store) SRandMember(key string, count int) ([]string, error)",
+              "doc": "SRandMember returns random members from the set at key without removing them.\nA positive count returns up to count distinct members; a negative count\nreturns exactly -count members with repetition allowed. It returns\nErrWrongType if the key holds a non-set value.\n"
+            },
+            {
+              "name": "SRem",
+              "recv": "*Store",
+              "signature": "func (s *Store) SRem(key string, members ...string) (int, error)",
+              "doc": "SRem removes members from the set at key and returns the number removed. The\nkey is deleted when its last member is removed.\n"
+            },
+            {
+              "name": "SScan",
+              "recv": "*Store",
+              "signature": "func (s *Store) SScan(key string, cursor uint64, match string, count int) (ScanResult, error)",
+              "doc": "SScan iterates the members of the set at key. The match glob filters on\nmember (empty matches all) and count bounds how many members are examined\nthis step (defaulting to 10 when count\u003c=0). A missing key yields an empty\nresult with Cursor 0; ErrWrongType is returned if key holds a non-set value.\n"
+            },
+            {
+              "name": "SUnion",
+              "recv": "*Store",
+              "signature": "func (s *Store) SUnion(keys ...string) ([]string, error)",
+              "doc": "SUnion returns the union of the sets at keys, sorted.\n"
+            },
+            {
+              "name": "SUnionStore",
+              "recv": "*Store",
+              "signature": "func (s *Store) SUnionStore(dst string, keys ...string) (int, error)",
+              "doc": "SUnionStore stores the union of the sets at keys into dst as a set and returns\nthe cardinality of the result. An empty result deletes dst. It returns\nErrWrongType if any source key holds a non-set value.\n"
+            },
+            {
+              "name": "Scan",
+              "recv": "*Store",
+              "signature": "func (s *Store) Scan(cursor uint64, match string, count int) ScanResult",
+              "doc": "Scan iterates the live top-level keys of the store. cursor is the opaque\nvalue returned by the previous call (0 to begin). Expired keys are skipped,\nthe optional match glob filters keys (empty matches all), and count bounds\nhow many keys are examined this step (defaulting to 10 when count\u003c=0). The\nreturned ScanResult carries the matching keys and a Cursor of 0 once the\nfinal batch has been delivered.\n"
+            },
+            {
+              "name": "Set",
+              "recv": "*Store",
+              "signature": "func (s *Store) Set(key, str string, opts SetOptions) bool",
+              "doc": "Set stores str at key subject to opts. It reports whether the write happened;\na false result means an NX/XX precondition was not met. The key's type is\nreset to string and, unless an expiration option is given, any existing TTL\nis cleared (matching Redis SET semantics).\n"
+            },
+            {
+              "name": "SetBit",
+              "recv": "*Store",
+              "signature": "func (s *Store) SetBit(key string, offset int64, value int) (int, error)",
+              "doc": "SetBit sets the bit at offset to value (which must be 0 or 1) and returns the\nprevious bit stored there. The backing string is grown with zero bytes as\nneeded so that offset becomes addressable. A missing key is created as an\nempty string. It returns ErrSyntax if value is not 0 or 1, ErrOutOfRange if\noffset is negative, and ErrWrongType if the key holds a non-string value.\n"
+            },
+            {
+              "name": "SetEx",
+              "recv": "*Store",
+              "signature": "func (s *Store) SetEx(key string, seconds int, val string) error",
+              "doc": "SetEx sets key to val with an expiration of seconds seconds, replacing any\nexisting value and TTL. A non-positive seconds yields ErrSyntax.\n"
+            },
+            {
+              "name": "SetNX",
+              "recv": "*Store",
+              "signature": "func (s *Store) SetNX(key, val string) (bool, error)",
+              "doc": "SetNX sets key to val only if key does not already exist. It reports whether\nthe write happened. The error is always nil and exists for signature parity\nwith the other string commands.\n"
+            },
+            {
+              "name": "SetRange",
+              "recv": "*Store",
+              "signature": "func (s *Store) SetRange(key string, offset int, val string) (int, error)",
+              "doc": "SetRange overwrites part of the string at key starting at offset with val,\nzero-padding with NUL bytes if the current value is shorter than offset. A\nmissing key is treated as an empty string. It returns the length of the\nresulting string. A negative offset yields ErrOutOfRange, and a non-string\nkey yields ErrWrongType. When val is empty the value is left unchanged and\nits current length is returned.\n"
+            },
+            {
+              "name": "Sort",
+              "recv": "*Store",
+              "signature": "func (s *Store) Sort(key string, opts SortOptions) ([]string, error)",
+              "doc": "Sort returns the elements of the list, set, or sorted set at key in sorted\norder, without modifying the key. Elements are compared numerically by\ndefault, or lexically when opts.Alpha is set. It returns ErrNotFloat when a\nnumeric sort meets a non-numeric element and ErrWrongType if the key holds a\nstring. It mirrors a common subset of the Redis SORT command (ordering and\nLIMIT; the BY and GET patterns are not supported).\n"
+            },
+            {
+              "name": "SortStore",
+              "recv": "*Store",
+              "signature": "func (s *Store) SortStore(dst, key string, opts SortOptions) (int, error)",
+              "doc": "SortStore sorts the elements of the list, set, or sorted set at key as Sort\ndoes and stores the result as a list at dst, returning its length. An empty\nresult deletes dst. It mirrors the STORE modifier of Redis SORT.\n"
+            },
+            {
+              "name": "Strlen",
+              "recv": "*Store",
+              "signature": "func (s *Store) Strlen(key string) (int, error)",
+              "doc": "Strlen returns the length of the string value at key, or 0 if absent.\n"
+            },
+            {
+              "name": "SubStr",
+              "recv": "*Store",
+              "signature": "func (s *Store) SubStr(key string, start, stop int) (string, error)",
+              "doc": "SubStr returns the substring of the value stored at key between the inclusive\nbyte offsets start and stop. Negative offsets count back from the end of the\nstring (-1 is the last byte). Out-of-range offsets are clamped. It is the\nclassic alias of GetRange and mirrors the Redis SUBSTR command. It returns\nErrWrongType if the key holds a non-string value.\n"
+            },
+            {
+              "name": "Subscribe",
+              "recv": "*Store",
+              "signature": "func (s *Store) Subscribe(channels ...string) *Subscription",
+              "doc": "Subscribe returns a Subscription that receives messages published to any of\nthe given exact channels. Duplicate channels are ignored. The returned\nSubscription must be closed with Close when no longer needed.\n"
+            },
+            {
+              "name": "TTL",
+              "recv": "*Store",
+              "signature": "func (s *Store) TTL(key string) (time.Duration, TTLCode)",
+              "doc": "TTL returns the remaining time-to-live of key. The Duration is meaningful\nonly when the returned code is TTLValue.\n"
+            },
+            {
+              "name": "Touch",
+              "recv": "*Store",
+              "signature": "func (s *Store) Touch(keys ...string) int",
+              "doc": "Touch returns the number of the given keys that currently exist. Keys given\nmultiple times are counted multiple times, matching Redis semantics. It does\nnot alter the keys.\n"
+            },
+            {
+              "name": "TypeOf",
+              "recv": "*Store",
+              "signature": "func (s *Store) TypeOf(key string) Type",
+              "doc": "TypeOf returns the Type of the value stored at key, or TypeNone if absent.\n"
+            },
+            {
+              "name": "Unlink",
+              "recv": "*Store",
+              "signature": "func (s *Store) Unlink(keys ...string) int",
+              "doc": "Unlink removes the given keys and returns the count actually removed. It has\nthe same semantics as Del.\n"
+            },
+            {
+              "name": "XAck",
+              "recv": "*Store",
+              "signature": "func (s *Store) XAck(key, group string, ids ...string) (int, error)",
+              "doc": "XAck removes the given IDs from the pending-entries list of group on the\nstream at key, returning the number of entries actually acknowledged. Unknown\nIDs, a missing group, or a missing stream contribute nothing.\n"
+            },
+            {
+              "name": "XAdd",
+              "recv": "*Store",
+              "signature": "func (s *Store) XAdd(key, id string, fields ...string) (StreamID, error)",
+              "doc": "XAdd appends an entry to the stream at key, creating the stream if needed, and\nreturns the assigned ID. When id is \"*\" a monotonically increasing ID is\ngenerated using s.clock.Now() for the millisecond component and prev+1 for the\nsequence within the same millisecond; the \"ms-*\" form auto-generates only the\nsequence. An explicit ID must be strictly greater than the stream's current\nlast ID. fields must contain an even number of elements (field,value,...) or\nErrWrongArgs is returned.\n"
+            },
+            {
+              "name": "XDel",
+              "recv": "*Store",
+              "signature": "func (s *Store) XDel(key string, ids ...string) (int, error)",
+              "doc": "XDel removes the entries with the given IDs from the stream at key and returns\nthe number actually removed. A malformed ID yields an error; a missing stream\nyields 0. The stream's last ID is not reset by deletion.\n"
+            },
+            {
+              "name": "XGroupCreate",
+              "recv": "*Store",
+              "signature": "func (s *Store) XGroupCreate(key, group, id string, mkstream bool) error",
+              "doc": "XGroupCreate creates the consumer group on the stream at key, starting\ndelivery after the given ID. \"$\" starts after the current last ID (only new\nentries), \"0\" (or \"0-0\") from the beginning. When mkstream is true a missing\nstream is created; otherwise a missing stream is an error. Recreating an\nexisting group is an error.\n"
+            },
+            {
+              "name": "XGroupDestroy",
+              "recv": "*Store",
+              "signature": "func (s *Store) XGroupDestroy(key, group string) (bool, error)",
+              "doc": "XGroupDestroy removes the named consumer group from the stream at key,\nreturning whether a group was actually removed.\n"
+            },
+            {
+              "name": "XLen",
+              "recv": "*Store",
+              "signature": "func (s *Store) XLen(key string) int",
+              "doc": "XLen returns the number of entries currently stored in the stream at key, or 0\nif no such stream exists.\n"
+            },
+            {
+              "name": "XPending",
+              "recv": "*Store",
+              "signature": "func (s *Store) XPending(key, group string) (count int, min, max StreamID, perConsumer map[string]int64, err error)",
+              "doc": "XPending summarizes the pending-entries list of group on the stream at key: the\ntotal count, the smallest and largest pending IDs (zero values when empty),\nand a per-consumer count of owned entries. A missing stream or group is an\nerror.\n"
+            },
+            {
+              "name": "XRange",
+              "recv": "*Store",
+              "signature": "func (s *Store) XRange(key, start, end string, count int) ([]StreamEntry, error)",
+              "doc": "XRange returns entries with IDs in [start, end] in ascending order. \"-\" and\n\"+\" are open lower/upper bounds; an incomplete \"ms\" bound covers every\nsequence for that millisecond. A count \u003c= 0 returns all matching entries.\n"
+            },
+            {
+              "name": "XRead",
+              "recv": "*Store",
+              "signature": "func (s *Store) XRead(count int, streams map[string]string) (map[string][]StreamEntry, error)",
+              "doc": "XRead returns, for each stream in streams (mapping key to a last-seen ID), the\nentries whose IDs are strictly greater than that ID. Keys with no newer\nentries (or no stream at all) are omitted from the result. A count \u003c= 0\nreturns all newer entries per key.\n"
+            },
+            {
+              "name": "XReadGroup",
+              "recv": "*Store",
+              "signature": "func (s *Store) XReadGroup(group, consumer string, count int, streams map[string]string) (map[string][]StreamEntry, error)",
+              "doc": "XReadGroup reads entries on behalf of consumer within group across the given\nstreams. For a key mapped to \"\u003e\", new entries (those after the group's\nlast-delivered ID) are delivered, the group's cursor advances, and each\ndelivered entry is recorded in the pending-entries list under consumer. For a\nkey mapped to a real ID, the consumer's own pending entries with IDs strictly\ngreater than that ID are re-read (pass \"0\" to re-read all of them). Keys that\nproduce no entries are omitted. A count \u003c= 0 returns all eligible entries.\n"
+            },
+            {
+              "name": "XRevRange",
+              "recv": "*Store",
+              "signature": "func (s *Store) XRevRange(key, end, start string, count int) ([]StreamEntry, error)",
+              "doc": "XRevRange returns entries with IDs in [start, end] in descending order. Note\nthe reversed argument order (end before start) mirroring the Redis command. A\ncount \u003c= 0 returns all matching entries.\n"
+            },
+            {
+              "name": "ZAdd",
+              "recv": "*Store",
+              "signature": "func (s *Store) ZAdd(key string, members ...ZMember) (int, error)",
+              "doc": "ZAdd adds or updates members with the given scores and returns the number of\nmembers newly added (updates to existing members are not counted).\n"
+            },
+            {
+              "name": "ZAddWith",
+              "recv": "*Store",
+              "signature": "func (s *Store) ZAddWith(key string, opts ZAddOptions, members ...ZMember) (int, error)",
+              "doc": "ZAddWith adds or updates members in the sorted set at key subject to opts and\nreturns the number of members added, or, when opts.CH is set, the number of\nmembers added or updated. It returns ErrSyntax for contradictory options\n(NX with any of XX/GT/LT, or GT with LT) and ErrWrongType if the key holds a\nnon-zset value. It mirrors Redis ZADD with flags (excluding INCR, which is\navailable through ZIncrBy).\n"
+            },
+            {
+              "name": "ZCard",
+              "recv": "*Store",
+              "signature": "func (s *Store) ZCard(key string) (int, error)",
+              "doc": "ZCard returns the number of members in the sorted set at key.\n"
+            },
+            {
+              "name": "ZCount",
+              "recv": "*Store",
+              "signature": "func (s *Store) ZCount(key string, r ScoreRange) (int, error)",
+              "doc": "ZCount returns the number of members in the sorted set at key whose score\nfalls within r. It returns ErrWrongType if the key holds a non-zset value.\n"
+            },
+            {
+              "name": "ZDiff",
+              "recv": "*Store",
+              "signature": "func (s *Store) ZDiff(keys ...string) ([]ZMember, error)",
+              "doc": "ZDiff returns the members of the sorted set at the first of keys that are not\npresent in any of the remaining sorted sets, each carrying its score from the\nfirst set, ordered low-to-high. It returns ErrWrongType if any key holds a\nnon-zset value, mirroring the Redis ZDIFF command (WITHSCORES form).\n"
+            },
+            {
+              "name": "ZDiffStore",
+              "recv": "*Store",
+              "signature": "func (s *Store) ZDiffStore(dst string, keys ...string) (int, error)",
+              "doc": "ZDiffStore stores the difference of the sorted set at the first of keys and\nthe remaining sorted sets into dst, and returns the cardinality of the result.\nAn empty result deletes dst. It returns ErrWrongType if any key holds a\nnon-zset value, mirroring the Redis ZDIFFSTORE command.\n"
+            },
+            {
+              "name": "ZIncrBy",
+              "recv": "*Store",
+              "signature": "func (s *Store) ZIncrBy(key string, delta float64, member string) (float64, error)",
+              "doc": "ZIncrBy increments the score of member in the sorted set at key by delta and\nreturns the new score. A missing key or member starts from 0. It returns\nErrWrongType if the key holds a non-zset value.\n"
+            },
+            {
+              "name": "ZInter",
+              "recv": "*Store",
+              "signature": "func (s *Store) ZInter(keys []string, weights []float64, op ZStoreOp) ([]ZMember, error)",
+              "doc": "ZInter returns the intersection of the sorted sets at keys, ordered\nlow-to-high by combined score. A member is included only if it is present in\nevery source set. Each source score is multiplied by the matching entry in\nweights (nil means every weight is 1) before scores are combined with op. It\nreturns ErrWrongType if any key holds a non-zset value, mirroring the Redis\nZINTER command (WITHSCORES form).\n"
+            },
+            {
+              "name": "ZInterCard",
+              "recv": "*Store",
+              "signature": "func (s *Store) ZInterCard(limit int, keys ...string) (int, error)",
+              "doc": "ZInterCard returns the number of members in the intersection of the sorted\nsets at keys. When limit is greater than zero the count stops once it reaches\nlimit. It returns ErrWrongType if any key holds a non-zset value, mirroring\nthe Redis ZINTERCARD command.\n"
+            },
+            {
+              "name": "ZInterStore",
+              "recv": "*Store",
+              "signature": "func (s *Store) ZInterStore(dst string, keys []string, weights []float64, op ZStoreOp) (int, error)",
+              "doc": "ZInterStore stores the intersection of the sorted sets at keys into dst and\nreturns the cardinality of the result. A member is included only if it is\npresent in every source set. Each source score is multiplied by the matching\nentry in weights (nil means every weight is 1) before scores are combined with\nop. An empty result deletes dst. It returns ErrWrongType if any source key\nholds a non-zset value.\n"
+            },
+            {
+              "name": "ZLexCount",
+              "recv": "*Store",
+              "signature": "func (s *Store) ZLexCount(key string, r LexRange) (int, error)",
+              "doc": "ZLexCount returns the number of members in the sorted set at key that fall\nwithin the lexical range r. As with ZRangeByLex it assumes all members share\nthe same score. It returns ErrWrongType if the key holds a non-zset value,\nmirroring the Redis ZLEXCOUNT command.\n"
+            },
+            {
+              "name": "ZMPopMax",
+              "recv": "*Store",
+              "signature": "func (s *Store) ZMPopMax(count int, keys ...string) (string, []ZMember, bool, error)",
+              "doc": "ZMPopMax pops up to count members with the highest scores from the first of\nkeys that holds a non-empty sorted set, scanning keys left to right. It\nreturns the key popped from and the popped members, ordered high-to-low. The\nboolean is false when none of the keys hold a non-empty sorted set. It returns\nErrWrongType if a scanned key holds a non-zset value, mirroring Redis ZMPOP\nwith the MAX modifier.\n"
+            },
+            {
+              "name": "ZMPopMin",
+              "recv": "*Store",
+              "signature": "func (s *Store) ZMPopMin(count int, keys ...string) (string, []ZMember, bool, error)",
+              "doc": "ZMPopMin pops up to count members with the lowest scores from the first of\nkeys that holds a non-empty sorted set, scanning keys left to right. It\nreturns the key popped from and the popped members, ordered low-to-high. The\nboolean is false when none of the keys hold a non-empty sorted set. It returns\nErrWrongType if a scanned key holds a non-zset value, mirroring Redis ZMPOP\nwith the MIN modifier.\n"
+            },
+            {
+              "name": "ZMScore",
+              "recv": "*Store",
+              "signature": "func (s *Store) ZMScore(key string, members ...string) []*float64",
+              "doc": "ZMScore returns the scores of the given members in the sorted set at key, in\norder. A nil entry marks a member that is absent; a missing key or a key\nholding a non-zset value yields all-nil entries.\n"
+            },
+            {
+              "name": "ZPopMax",
+              "recv": "*Store",
+              "signature": "func (s *Store) ZPopMax(key string, count int) ([]ZMember, error)",
+              "doc": "ZPopMax removes and returns up to count members with the highest scores from\nthe sorted set at key, ordered high-to-low. The key is deleted when it becomes\nempty. It returns ErrWrongType if the key holds a non-zset value.\n"
+            },
+            {
+              "name": "ZPopMin",
+              "recv": "*Store",
+              "signature": "func (s *Store) ZPopMin(key string, count int) ([]ZMember, error)",
+              "doc": "ZPopMin removes and returns up to count members with the lowest scores from\nthe sorted set at key, ordered low-to-high. The key is deleted when it becomes\nempty. It returns ErrWrongType if the key holds a non-zset value.\n"
+            },
+            {
+              "name": "ZRandMember",
+              "recv": "*Store",
+              "signature": "func (s *Store) ZRandMember(key string, count int) ([]string, error)",
+              "doc": "ZRandMember returns random members from the sorted set at key without removing\nthem. A positive count returns up to count distinct members; a negative count\nreturns exactly -count members with repetition allowed. A count of zero\nreturns an empty slice. It returns ErrWrongType if the key holds a non-zset\nvalue, mirroring the Redis ZRANDMEMBER command.\n"
+            },
+            {
+              "name": "ZRandMemberWithScores",
+              "recv": "*Store",
+              "signature": "func (s *Store) ZRandMemberWithScores(key string, count int) ([]ZMember, error)",
+              "doc": "ZRandMemberWithScores returns up to count random members of the sorted set at\nkey together with their scores, without removing them. A positive count\nreturns distinct members; a negative count returns exactly -count members with\nrepetition allowed. It returns ErrWrongType if the key holds a non-zset value,\nmirroring Redis ZRANDMEMBER ... WITHSCORES.\n"
+            },
+            {
+              "name": "ZRange",
+              "recv": "*Store",
+              "signature": "func (s *Store) ZRange(key string, start, stop int) ([]ZMember, error)",
+              "doc": "ZRange returns members with rank between start and stop inclusive, ordered\nlow-to-high score. Negative indexes count from the end. If withScores is\ntrue, the returned members carry their scores; otherwise Score is zero.\n"
+            },
+            {
+              "name": "ZRangeByLex",
+              "recv": "*Store",
+              "signature": "func (s *Store) ZRangeByLex(key string, r LexRange) ([]string, error)",
+              "doc": "ZRangeByLex returns the members of the sorted set at key that fall within the\nlexical range r, in ascending member order. It assumes all members share the\nsame score, as required by the Redis command. It returns ErrWrongType if the\nkey holds a non-zset value.\n"
+            },
+            {
+              "name": "ZRangeByLexLimit",
+              "recv": "*Store",
+              "signature": "func (s *Store) ZRangeByLexLimit(key string, r LexRange, offset, count int) ([]string, error)",
+              "doc": "ZRangeByLexLimit is ZRangeByLex restricted to a window: it skips the first\noffset matching members and returns at most count of the rest. A count less\nthan zero returns every member after the offset. It mirrors the LIMIT\nmodifier of Redis ZRANGEBYLEX. It returns ErrWrongType if the key holds a\nnon-zset value.\n"
+            },
+            {
+              "name": "ZRangeByScore",
+              "recv": "*Store",
+              "signature": "func (s *Store) ZRangeByScore(key string, r ScoreRange) ([]ZMember, error)",
+              "doc": "ZRangeByScore returns members whose score falls within r, ordered\nlow-to-high. Members with equal scores are ordered lexicographically.\n"
+            },
+            {
+              "name": "ZRangeByScoreLimit",
+              "recv": "*Store",
+              "signature": "func (s *Store) ZRangeByScoreLimit(key string, r ScoreRange, offset, count int) ([]ZMember, error)",
+              "doc": "ZRangeByScoreLimit is ZRangeByScore restricted to a window: it skips the\nfirst offset matching members and returns at most count of the rest. A count\nless than zero returns every member after the offset. It mirrors the LIMIT\nmodifier of Redis ZRANGEBYSCORE. It returns ErrWrongType if the key holds a\nnon-zset value.\n"
+            },
+            {
+              "name": "ZRangeStore",
+              "recv": "*Store",
+              "signature": "func (s *Store) ZRangeStore(dst, src string, start, stop int, rev bool) (int, error)",
+              "doc": "ZRangeStore stores into dst the members of the sorted set at src whose rank is\nbetween start and stop inclusive, and returns the cardinality of the result.\nWhen rev is true the ranks are taken in high-to-low score order. Negative\nindexes count from the end. An empty result deletes dst. It returns\nErrWrongType if either key holds a non-zset value, mirroring the Redis\nZRANGESTORE command by rank.\n"
+            },
+            {
+              "name": "ZRank",
+              "recv": "*Store",
+              "signature": "func (s *Store) ZRank(key, member string) (int, bool, error)",
+              "doc": "ZRank returns the zero-based rank of member ordered from lowest score to\nhighest. The boolean is false when the key or member is absent.\n"
+            },
+            {
+              "name": "ZRem",
+              "recv": "*Store",
+              "signature": "func (s *Store) ZRem(key string, members ...string) (int, error)",
+              "doc": "ZRem removes members from the sorted set at key and returns the number\nremoved. The key is deleted when it becomes empty.\n"
+            },
+            {
+              "name": "ZRemRangeByLex",
+              "recv": "*Store",
+              "signature": "func (s *Store) ZRemRangeByLex(key string, r LexRange) (int, error)",
+              "doc": "ZRemRangeByLex removes the members of the sorted set at key that fall within\nthe lexical range r, returning the number removed and deleting the key when it\nbecomes empty. It assumes all members share the same score. It returns\nErrWrongType if the key holds a non-zset value, mirroring the Redis\nZREMRANGEBYLEX command.\n"
+            },
+            {
+              "name": "ZRemRangeByRank",
+              "recv": "*Store",
+              "signature": "func (s *Store) ZRemRangeByRank(key string, start, stop int) (int, error)",
+              "doc": "ZRemRangeByRank removes the members of the sorted set at key whose rank is\nbetween start and stop, inclusive, ordered low-to-high score. Negative indexes\ncount from the end. It returns the number removed and deletes the key when it\nbecomes empty. It returns ErrWrongType if the key holds a non-zset value.\n"
+            },
+            {
+              "name": "ZRemRangeByScore",
+              "recv": "*Store",
+              "signature": "func (s *Store) ZRemRangeByScore(key string, r ScoreRange) (int, error)",
+              "doc": "ZRemRangeByScore removes the members of the sorted set at key whose score\nfalls within r. It returns the number removed and deletes the key when it\nbecomes empty. It returns ErrWrongType if the key holds a non-zset value.\n"
+            },
+            {
+              "name": "ZRevRange",
+              "recv": "*Store",
+              "signature": "func (s *Store) ZRevRange(key string, start, stop int) ([]ZMember, error)",
+              "doc": "ZRevRange is ZRange with high-to-low score ordering.\n"
+            },
+            {
+              "name": "ZRevRangeByLex",
+              "recv": "*Store",
+              "signature": "func (s *Store) ZRevRangeByLex(key string, r LexRange) ([]string, error)",
+              "doc": "ZRevRangeByLex returns the members of the sorted set at key that fall within\nthe lexical range r, in descending member order. It assumes all members share\nthe same score. It returns ErrWrongType if the key holds a non-zset value,\nmirroring the Redis ZREVRANGEBYLEX command.\n"
+            },
+            {
+              "name": "ZRevRangeByScore",
+              "recv": "*Store",
+              "signature": "func (s *Store) ZRevRangeByScore(key string, r ScoreRange) ([]ZMember, error)",
+              "doc": "ZRevRangeByScore returns the members of the sorted set at key whose score\nfalls within r, ordered high-to-low (members with equal scores are ordered in\nreverse lexical order). It returns ErrWrongType if the key holds a non-zset\nvalue, mirroring the Redis ZREVRANGEBYSCORE command.\n"
+            },
+            {
+              "name": "ZRevRangeByScoreLimit",
+              "recv": "*Store",
+              "signature": "func (s *Store) ZRevRangeByScoreLimit(key string, r ScoreRange, offset, count int) ([]ZMember, error)",
+              "doc": "ZRevRangeByScoreLimit is ZRevRangeByScore restricted to a window: it skips the\nfirst offset matching members (in high-to-low order) and returns at most\ncount of the rest. A count less than zero returns every member after the\noffset. It mirrors the LIMIT modifier of Redis ZREVRANGEBYSCORE. It returns\nErrWrongType if the key holds a non-zset value.\n"
+            },
+            {
+              "name": "ZRevRank",
+              "recv": "*Store",
+              "signature": "func (s *Store) ZRevRank(key, member string) (int, bool, error)",
+              "doc": "ZRevRank returns the zero-based rank of member ordered from highest score to\nlowest.\n"
+            },
+            {
+              "name": "ZScan",
+              "recv": "*Store",
+              "signature": "func (s *Store) ZScan(key string, cursor uint64, match string, count int) (ScanPairs, error)",
+              "doc": "ZScan iterates the members of the sorted set at key, returning member/score\npairs flattened into ScanPairs.Pairs with scores rendered by formatFloat. The\nmatch glob filters on member (empty matches all) and count bounds how many\nmembers are examined this step (defaulting to 10 when count\u003c=0). A missing\nkey yields an empty result with Cursor 0; ErrWrongType is returned if key\nholds a non-zset value.\n"
+            },
+            {
+              "name": "ZScore",
+              "recv": "*Store",
+              "signature": "func (s *Store) ZScore(key, member string) (float64, bool, error)",
+              "doc": "ZScore returns the score of member in the sorted set at key. The boolean is\nfalse when the key or member is absent.\n"
+            },
+            {
+              "name": "ZUnion",
+              "recv": "*Store",
+              "signature": "func (s *Store) ZUnion(keys []string, weights []float64, op ZStoreOp) ([]ZMember, error)",
+              "doc": "ZUnion returns the union of the sorted sets at keys, ordered low-to-high by\ncombined score. Each source score is multiplied by the matching entry in\nweights (nil means every weight is 1) before scores are combined with op. It\nreturns ErrWrongType if any key holds a non-zset value, mirroring the Redis\nZUNION command (WITHSCORES form).\n"
+            },
+            {
+              "name": "ZUnionStore",
+              "recv": "*Store",
+              "signature": "func (s *Store) ZUnionStore(dst string, keys []string, weights []float64, op ZStoreOp) (int, error)",
+              "doc": "ZUnionStore stores the union of the sorted sets at keys into dst and returns\nthe cardinality of the result. Each source score is multiplied by the matching\nentry in weights (nil means every weight is 1) before scores are combined with\nop. An empty result deletes dst. It returns ErrWrongType if any source key\nholds a non-zset value.\n"
+            }
+          ]
+        },
+        {
+          "name": "StreamEntry",
+          "signature": "type StreamEntry struct {\n\t// ID is the entry's stream ID.\n\tID StreamID\n\t// Fields holds field,value,field,value,... in the order supplied to XAdd.\n\tFields []string\n}",
+          "doc": "StreamEntry is a single stream record: its ID plus a flat slice of\nalternating field,value,... pairs in insertion order.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "StreamID",
+          "signature": "type StreamID struct {\n\t// Ms is the millisecond timestamp component of the ID.\n\tMs uint64\n\t// Seq is the sequence number distinguishing IDs sharing the same Ms.\n\tSeq uint64\n}",
+          "doc": "StreamID is a stream entry identifier composed of a millisecond timestamp and\na per-millisecond sequence number, rendered as \"\u003cMs\u003e-\u003cSeq\u003e\".\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "ParseStreamID",
+              "signature": "func ParseStreamID(s string) (StreamID, error)",
+              "doc": "ParseStreamID parses a stream ID in one of three textual forms:\n\n\t\"ms\"     -\u003e StreamID{Ms: ms, Seq: 0}\n\t\"ms-seq\" -\u003e StreamID{Ms: ms, Seq: seq}\n\t\"ms-*\"   -\u003e StreamID{Ms: ms, Seq: streamSeqAuto} (auto-sequence sentinel)\n\nIt returns an error if either component is not a valid base-10 unsigned\ninteger (the \"*\" sequence being the sole exception).\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Compare",
+              "recv": "StreamID",
+              "signature": "func (id StreamID) Compare(o StreamID) int",
+              "doc": "Compare orders two IDs, returning -1 if id sorts before o, 1 if after, and 0\nif they are equal. Ms is the primary key and Seq breaks ties.\n"
+            },
+            {
+              "name": "String",
+              "recv": "StreamID",
+              "signature": "func (id StreamID) String() string",
+              "doc": "String returns the canonical \"\u003cms\u003e-\u003cseq\u003e\" text form of the ID.\n"
+            }
+          ]
+        },
+        {
+          "name": "Subscription",
+          "signature": "type Subscription struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Subscription is an active pub/sub subscription obtained from Store.Subscribe\nor Store.PSubscribe. Messages are delivered on a buffered channel; a caller\nmust drain Messages promptly, as deliveries are dropped when the buffer is\nfull. A Subscription must be closed with Close when no longer needed.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Channels",
+              "recv": "*Subscription",
+              "signature": "func (sub *Subscription) Channels() []string",
+              "doc": "Channels returns the exact channels this subscription is subscribed to, sorted\nlexicographically. For a pattern subscription the result is empty.\n"
+            },
+            {
+              "name": "Close",
+              "recv": "*Subscription",
+              "signature": "func (sub *Subscription) Close()",
+              "doc": "Close unregisters the subscription from its Store and closes the delivery\nchannel returned by Messages. It is idempotent; calling it more than once has\nno additional effect.\n"
+            },
+            {
+              "name": "Messages",
+              "recv": "*Subscription",
+              "signature": "func (sub *Subscription) Messages() \u003c-chan Message",
+              "doc": "Messages returns the receive-only stream of deliveries for this subscription.\nThe channel is closed by Close.\n"
+            }
+          ]
+        },
+        {
+          "name": "TTLCode",
+          "signature": "type TTLCode int",
+          "doc": "TTLCode categorizes a TTL result, distinguishing a missing key from a key\nwith no expiration.\n",
+          "consts": [
+            {
+              "names": [
+                "TTLValue",
+                "TTLNoKey",
+                "TTLNoExpiry"
+              ],
+              "signature": "const (\n\t// TTLValue indicates the returned Duration is a real remaining TTL.\n\tTTLValue TTLCode = iota\n\t// TTLNoKey indicates the key does not exist (Redis reply -2).\n\tTTLNoKey\n\t// TTLNoExpiry indicates the key exists but has no TTL (Redis reply -1).\n\tTTLNoExpiry\n)",
+              "doc": "TTL result codes, corresponding to Redis's -2/-1/positive reply convention.\n"
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Tx",
+          "signature": "type Tx struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Tx is an optimistic, per-connection transaction handle over a Store. It is\ndeliberately a separate object rather than state on the shared Store because\nMULTI/WATCH/EXEC have per-connection semantics that do not fit a value shared\nby many callers.\n\nBecause the write paths in the rest of the package cannot be hooked to bump a\nper-key version counter, WATCH is implemented with value snapshots: at watch\ntime each key's live contents are fingerprinted, and at Exec time every\nfingerprint is recomputed and compared. A key that was changed and then\nchanged back to identical contents is therefore not treated as modified,\nwhich is acceptable for optimistic-concurrency use.\n\nAtomicity is best-effort in this embedded model. The watch re-check and the\nexecution of the queued commands each acquire the Store mutex independently\n(Exec runs commands through Store.Do), so the sequence is not one atomic\ncritical section. This is sufficient for optimistic concurrency control: if no\nwatched key changed up to the check, the queued commands proceed, and a racing\nwriter that mutates a watched key before the check causes an abort. A Tx is\nnot safe for concurrent use by multiple goroutines.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Discard",
+              "recv": "*Tx",
+              "signature": "func (t *Tx) Discard()",
+              "doc": "Discard drops the transaction, clearing all queued commands and watches. A\ndiscarded transaction can no longer be executed: a subsequent Exec returns\nErrTxAborted.\n"
+            },
+            {
+              "name": "Exec",
+              "recv": "*Tx",
+              "signature": "func (t *Tx) Exec() ([]any, error)",
+              "doc": "Exec runs the queued commands and returns their results. If a queuing error\nwas recorded (see Queue) or the transaction was discarded, Exec runs nothing\nand returns that error, or ErrTxAborted for a discarded transaction. Otherwise\nit re-fingerprints every watched key; if any differs from its watch-time\nsnapshot, Exec runs nothing and returns (nil, ErrTxAborted), corresponding to\nEXEC's null reply. When all watches still match, the queued commands are run in\norder through Store.Do and Exec returns one result per command: each element is\nthe command's value, or its error if the command failed.\n"
+            },
+            {
+              "name": "Queue",
+              "recv": "*Tx",
+              "signature": "func (t *Tx) Queue(args ...string) *Tx",
+              "doc": "Queue buffers a command (name and arguments) to be run by Exec. If the command\nname is not present in the dispatch table, or no name is supplied, Queue\nrecords a queuing error so that Exec aborts without running anything, mirroring\nhow Redis rejects an entire transaction whose commands failed to queue. Queue\nreturns the receiver to allow chaining.\n"
+            },
+            {
+              "name": "Unwatch",
+              "recv": "*Tx",
+              "signature": "func (t *Tx) Unwatch() *Tx",
+              "doc": "Unwatch clears all watched keys, so a subsequent Exec performs no\nchange-detection. It returns the receiver to allow chaining.\n"
+            },
+            {
+              "name": "Watch",
+              "recv": "*Tx",
+              "signature": "func (t *Tx) Watch(keys ...string) *Tx",
+              "doc": "Watch records a value snapshot (fingerprint) of each named key's current live\nstate, so that Exec can later detect whether any of them changed. It may be\ncalled more than once to extend the watch set; re-watching a key refreshes its\nsnapshot. Watch returns the receiver to allow chaining.\n"
+            }
+          ]
+        },
+        {
+          "name": "Type",
+          "signature": "type Type string",
+          "doc": "Type identifies the data type stored at a key.\n",
+          "consts": [
+            {
+              "names": [
+                "TypeNone",
+                "TypeString",
+                "TypeList",
+                "TypeHash",
+                "TypeSet",
+                "TypeZSet"
+              ],
+              "signature": "const (\n\tTypeNone   Type = \"none\"\n\tTypeString Type = \"string\"\n\tTypeList   Type = \"list\"\n\tTypeHash   Type = \"hash\"\n\tTypeSet    Type = \"set\"\n\tTypeZSet   Type = \"zset\"\n)",
+              "doc": "Recognized value types, mirroring Redis TYPE replies.\n"
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "ZAddOptions",
+          "signature": "type ZAddOptions struct {\n\t// NX only adds new members and never updates the score of an existing one.\n\tNX bool\n\t// XX only updates existing members and never adds new ones.\n\tXX bool\n\t// GT only updates an existing member when the new score is greater than the\n\t// current score. New members are still added (unless XX is set).\n\tGT bool\n\t// LT only updates an existing member when the new score is less than the\n\t// current score. New members are still added (unless XX is set).\n\tLT bool\n\t// CH makes ZAddWith count changed members (added plus updated) rather than\n\t// only newly added members.\n\tCH bool\n}",
+          "doc": "ZAddOptions modifies the behavior of ZAddWith, mirroring the NX, XX, GT, LT,\nand CH flags of the Redis ZADD command. The zero value performs an\nunconditional add-or-update that counts only newly added members.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "ZMember",
+          "signature": "type ZMember = zmember",
+          "doc": "ZMember pairs a member with its score, used by score-returning range queries.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "ZStoreOp",
+          "signature": "type ZStoreOp int",
+          "doc": "ZStoreOp selects how scores are combined when a member appears in more than\none source set during ZUnionStore and ZInterStore.\n",
+          "consts": [
+            {
+              "names": [
+                "ZStoreSum",
+                "ZStoreMin",
+                "ZStoreMax"
+              ],
+              "signature": "const (\n\t// ZStoreSum adds the weighted scores together.\n\tZStoreSum ZStoreOp = iota\n\t// ZStoreMin keeps the smallest weighted score.\n\tZStoreMin\n\t// ZStoreMax keeps the largest weighted score.\n\tZStoreMax\n)",
+              "doc": "Score aggregation modes for ZUnionStore and ZInterStore.\n"
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        }
+      ],
+      "funcs": [
+        {
+          "name": "Match",
+          "signature": "func Match(pattern, name string) bool",
+          "doc": "Match reports whether name matches the glob-style pattern used by the KEYS\ncommand. Supported metacharacters:\n\n\t\"*\"        matches any sequence of characters (including none)\n\t\"?\"        matches any single character\n\t\"[abc]\"    matches any character in the set\n\t\"[^abc]\"   matches any character not in the set\n\t\"[a-z]\"    matches any character in the range\n\t\"\\x\"       matches the literal character x\n\nMatching is performed over bytes.\n"
+        }
+      ],
+      "examples": [
+        {
+          "name": "",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/redis\"\n)\n\nfunc main() {\n\ts := redis.New()\n\n\t// Strings and counters.\n\t_, _ = s.Do(\"SET\", \"user:1:name\", \"alice\")\n\t_, _ = s.Do(\"SET\", \"user:1:visits\", \"0\")\n\t_, _ = s.Do(\"INCR\", \"user:1:visits\")\n\t_, _ = s.Do(\"INCRBY\", \"user:1:visits\", \"4\")\n\n\tname, _ := s.Do(\"GET\", \"user:1:name\")\n\tvisits, _ := s.Do(\"GET\", \"user:1:visits\")\n\tfmt.Printf(\"%s has %s visits\\n\", name, visits)\n\n\t// A sorted set as a leaderboard.\n\t_, _ = s.Do(\"ZADD\", \"board\", \"10\", \"alice\", \"25\", \"bob\", \"5\", \"carol\")\n\ttop, _ := s.Do(\"ZREVRANGE\", \"board\", \"0\", \"-1\", \"WITHSCORES\")\n\tfmt.Println(\"leaderboard:\", top)\n\n\trank, _ := s.Do(\"ZREVRANK\", \"board\", \"alice\")\n\tfmt.Println(\"alice rank:\", rank)\n\n}",
+          "output": "alice has 5 visits\nleaderboard: [bob 25 alice 10 carol 5]\nalice rank: 1",
+          "doc": "Example demonstrates the in-process command dispatcher across several data\ntypes.\n"
+        },
+        {
+          "name": "Store (Get)",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/redis\"\n)\n\nfunc main() {\n\ts := redis.New()\n\ts.Set(\"greeting\", \"hello\", redis.SetOptions{})\n\n\tv, ok, _ := s.Get(\"greeting\")\n\tfmt.Println(v, ok)\n\n\t_, ok, _ = s.Get(\"absent\")\n\tfmt.Println(ok)\n\n}",
+          "output": "hello true\nfalse",
+          "doc": "ExampleStore_Get shows the typed method API with a hit and a miss.\n"
+        }
+      ]
+    }
+  ]
+}

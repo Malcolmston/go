@@ -1,0 +1,2232 @@
+{
+  "module": "github.com/malcolmston/quartz",
+  "generatedAt": "2026-07-19T02:05:53Z",
+  "packages": [
+    {
+      "importPath": "github.com/malcolmston/quartz",
+      "name": "quartz",
+      "synopsis": "Package quartz is a Quartz-style, in-process job scheduler written entirely with the Go standard library.",
+      "doc": "Package quartz is a Quartz-style, in-process job scheduler written entirely\nwith the Go standard library. It provides jobs, triggers (simple interval and\nfull cron), a worker pool, listeners, and a pluggable job store.\n\n# Overview\n\nThe three central concepts are the Job, the JobDetail, and the Trigger:\n\n  - A Job is the code to run: any type implementing Execute(context.Context)\n    error. The JobFunc adapter turns a plain function into a Job.\n  - A JobDetail names a job (via a Key), attaches a description and a\n    JobDataMap of state, and holds the Job implementation. One JobDetail may\n    be fired by many triggers.\n  - A Trigger decides when a job fires. Two implementations are provided:\n    SimpleTrigger (a start time plus a fixed interval and an optional repeat\n    count) and CronTrigger (a full cron expression evaluated in a chosen time\n    zone).\n\nA Scheduler ties them together. It stores jobs and triggers in a JobStore,\nruns a background loop that fires due triggers, and executes the resulting\nwork on a bounded pool of worker goroutines.\n\n# Cron expressions\n\nCronTrigger uses ParseCron, which understands six space separated fields\n(second, minute, hour, day-of-month, month, day-of-week); a five field\nexpression without seconds is also accepted. Fields support ranges (1-5),\nsteps (*/15 and 10-30/5), lists (1,3,5), names (JAN..DEC and SUN..SAT), and\nthe * and ? wildcards. See CronExpression for the exact grammar and the day\nmatching rules.\n\n# Deterministic time\n\nEvery fire-time decision flows through an injectable clock. Triggers compute\ntheir next fire time as a pure function of a supplied \"now\", and the\nScheduler reads time through Options.Clock. Tests can therefore drive the\nscheduler with a virtual clock and call Scheduler.ProcessDue directly,\nwithout sleeping or depending on the wall clock.\n\n# Lifecycle and control\n\nJobs and triggers can be scheduled, unscheduled, paused, and resumed\nindividually or by job. Start launches the worker pool and background loop;\nShutdown stops them, optionally draining in-flight work. Triggers that fire\nlate are reconciled through a configurable misfire policy.\n\n# Listeners\n\nJobListener and TriggerListener expose hooks around each execution:\nTriggerListener can even veto a job for a particular fire. Embed\nBaseJobListener or BaseTriggerListener to implement only the callbacks you\nneed.\n\n# Concurrency\n\nThe Scheduler, MemoryJobStore, and all exported scheduler methods are safe\nfor concurrent use. Trigger implementations are mutated only by the scheduler\nand are not intended to be advanced from multiple goroutines simultaneously.\n\n# Example\n\nThe following schedules a job to run every 15 seconds:\n\n\ts := quartz.NewScheduler(quartz.Options{Concurrency: 4})\n\tjob := quartz.NewJobDetail(quartz.NewKey(\"report\"), quartz.JobFunc(\n\t\tfunc(ctx context.Context) error { return nil }))\n\ttrig := quartz.NewSimpleTrigger(\n\t\tquartz.NewKey(\"report-trigger\"), job.Key(),\n\t\ttime.Now(), 15*time.Second, quartz.RepeatForever)\n\t_ = s.ScheduleJob(job, trig)\n\t_ = s.Start()\n\tdefer s.Shutdown(true)\n",
+      "consts": [
+        {
+          "names": [
+            "DefaultGroup"
+          ],
+          "signature": "const DefaultGroup = \"DEFAULT\"",
+          "doc": "DefaultGroup is used when a Key is created without an explicit group.\n"
+        },
+        {
+          "names": [
+            "RepeatForever"
+          ],
+          "signature": "const RepeatForever = -1",
+          "doc": "RepeatForever is used as the repeat count of a SimpleTrigger that should keep\nfiring without a fixed limit.\n"
+        }
+      ],
+      "vars": [
+        {
+          "names": [
+            "ErrJobNotFound",
+            "ErrTriggerNotFound",
+            "ErrJobExists",
+            "ErrTriggerExists"
+          ],
+          "signature": "var (\n\t// ErrJobNotFound is returned when a job key is not present in the store.\n\tErrJobNotFound = errors.New(\"quartz: job not found\")\n\t// ErrTriggerNotFound is returned when a trigger key is not present.\n\tErrTriggerNotFound = errors.New(\"quartz: trigger not found\")\n\t// ErrJobExists is returned when storing a job whose key already exists.\n\tErrJobExists = errors.New(\"quartz: job already exists\")\n\t// ErrTriggerExists is returned when storing a trigger whose key already\n\t// exists.\n\tErrTriggerExists = errors.New(\"quartz: trigger already exists\")\n)",
+          "doc": "Common store errors.\n"
+        },
+        {
+          "names": [
+            "ErrSchedulerRunning",
+            "ErrSchedulerShutdown"
+          ],
+          "signature": "var (\n\t// ErrSchedulerRunning is returned by operations that are not allowed\n\t// while the scheduler is running.\n\tErrSchedulerRunning = errors.New(\"quartz: scheduler is running\")\n\t// ErrSchedulerShutdown is returned by operations attempted after the\n\t// scheduler has been shut down.\n\tErrSchedulerShutdown = errors.New(\"quartz: scheduler is shut down\")\n)",
+          "doc": "Common scheduler errors.\n"
+        }
+      ],
+      "types": [
+        {
+          "name": "AnnualCalendar",
+          "signature": "type AnnualCalendar struct {\n\tBaseCalendar\n\t// contains filtered or unexported fields\n}",
+          "doc": "AnnualCalendar excludes a specific month and day that recurs every year (for\nexample December 25). The year is ignored when matching. Exclusions have day\ngranularity and the date is determined in the calendar's location.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewAnnualCalendar",
+              "signature": "func NewAnnualCalendar() *AnnualCalendar",
+              "doc": "NewAnnualCalendar returns an AnnualCalendar with no days excluded.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "IsTimeIncluded",
+              "recv": "*AnnualCalendar",
+              "signature": "func (c *AnnualCalendar) IsTimeIncluded(t time.Time) bool",
+              "doc": "IsTimeIncluded reports whether t's month and day are not excluded and the base\nCalendar also includes t.\n"
+            },
+            {
+              "name": "NextIncludedTime",
+              "recv": "*AnnualCalendar",
+              "signature": "func (c *AnnualCalendar) NextIncludedTime(t time.Time) time.Time",
+              "doc": "NextIncludedTime returns the earliest instant at or after t that does not fall\non an excluded annual date and is allowed by the base Calendar.\n"
+            },
+            {
+              "name": "SetDayExcluded",
+              "recv": "*AnnualCalendar",
+              "signature": "func (c *AnnualCalendar) SetDayExcluded(month time.Month, day int, excluded bool)",
+              "doc": "SetDayExcluded sets whether the given month and day are excluded every year.\n"
+            }
+          ]
+        },
+        {
+          "name": "BaseCalendar",
+          "signature": "type BaseCalendar struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "BaseCalendar provides the state and delegation shared by every Calendar\nimplementation in this package. It stores an optional base Calendar and an\noptional evaluation location, and is meant to be embedded. A BaseCalendar\nexcludes no instant of its own, so used directly it behaves as a pass-through\nto its base (or includes everything when it has no base). Embedding types\noverride IsTimeIncluded and NextIncludedTime to add their own exclusion rule\nwhile still consulting the base through the helpers it provides.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "GetBaseCalendar",
+              "recv": "*BaseCalendar",
+              "signature": "func (b *BaseCalendar) GetBaseCalendar() Calendar",
+              "doc": "GetBaseCalendar returns the base Calendar, or nil when none is set.\n"
+            },
+            {
+              "name": "IsTimeIncluded",
+              "recv": "*BaseCalendar",
+              "signature": "func (b *BaseCalendar) IsTimeIncluded(t time.Time) bool",
+              "doc": "IsTimeIncluded reports whether t is included. A BaseCalendar contributes no\nexclusion of its own, so the result is determined solely by its base Calendar\n(or true when there is no base).\n"
+            },
+            {
+              "name": "Location",
+              "recv": "*BaseCalendar",
+              "signature": "func (b *BaseCalendar) Location() *time.Location",
+              "doc": "Location returns the evaluation time zone, or nil when instants are evaluated\nin their own location.\n"
+            },
+            {
+              "name": "NextIncludedTime",
+              "recv": "*BaseCalendar",
+              "signature": "func (b *BaseCalendar) NextIncludedTime(t time.Time) time.Time",
+              "doc": "NextIncludedTime returns the next instant at or after t allowed by the base\nCalendar, or t itself when there is no base.\n"
+            },
+            {
+              "name": "SetBaseCalendar",
+              "recv": "*BaseCalendar",
+              "signature": "func (b *BaseCalendar) SetBaseCalendar(base Calendar)",
+              "doc": "SetBaseCalendar sets the base Calendar consulted in addition to this one. A\nnil base clears any existing base.\n"
+            },
+            {
+              "name": "SetLocation",
+              "recv": "*BaseCalendar",
+              "signature": "func (b *BaseCalendar) SetLocation(loc *time.Location)",
+              "doc": "SetLocation sets the time zone in which wall-clock exclusions (day, weekday,\ntime-of-day and cron rules) are evaluated. A nil location means each instant\nis evaluated in its own location.\n"
+            }
+          ]
+        },
+        {
+          "name": "BaseJobListener",
+          "signature": "type BaseJobListener struct{ ListenerName string }",
+          "doc": "BaseJobListener is a no-op JobListener that can be embedded to implement only\nthe methods of interest.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "JobToBeExecuted",
+              "recv": "BaseJobListener",
+              "signature": "func (b BaseJobListener) JobToBeExecuted(context.Context, *JobExecutionContext)",
+              "doc": "JobToBeExecuted implements JobListener.\n"
+            },
+            {
+              "name": "JobWasExecuted",
+              "recv": "BaseJobListener",
+              "signature": "func (b BaseJobListener) JobWasExecuted(context.Context, *JobExecutionContext)",
+              "doc": "JobWasExecuted implements JobListener.\n"
+            },
+            {
+              "name": "Name",
+              "recv": "BaseJobListener",
+              "signature": "func (b BaseJobListener) Name() string",
+              "doc": "Name implements JobListener.\n"
+            }
+          ]
+        },
+        {
+          "name": "BaseTriggerListener",
+          "signature": "type BaseTriggerListener struct{ ListenerName string }",
+          "doc": "BaseTriggerListener is a no-op TriggerListener that can be embedded to\nimplement only the methods of interest.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Name",
+              "recv": "BaseTriggerListener",
+              "signature": "func (b BaseTriggerListener) Name() string",
+              "doc": "Name implements TriggerListener.\n"
+            },
+            {
+              "name": "TriggerComplete",
+              "recv": "BaseTriggerListener",
+              "signature": "func (b BaseTriggerListener) TriggerComplete(context.Context, Trigger, *JobExecutionContext)",
+              "doc": "TriggerComplete implements TriggerListener.\n"
+            },
+            {
+              "name": "TriggerFired",
+              "recv": "BaseTriggerListener",
+              "signature": "func (b BaseTriggerListener) TriggerFired(context.Context, Trigger, *JobExecutionContext)",
+              "doc": "TriggerFired implements TriggerListener.\n"
+            },
+            {
+              "name": "VetoJobExecution",
+              "recv": "BaseTriggerListener",
+              "signature": "func (b BaseTriggerListener) VetoJobExecution(context.Context, Trigger, *JobExecutionContext) bool",
+              "doc": "VetoJobExecution implements TriggerListener and never vetoes.\n"
+            }
+          ]
+        },
+        {
+          "name": "Calendar",
+          "signature": "type Calendar interface {\n\t// IsTimeIncluded reports whether t is allowed to fire, that is whether it\n\t// is excluded neither by this Calendar nor by any base Calendar.\n\tIsTimeIncluded(t time.Time) bool\n\t// NextIncludedTime returns the earliest instant at or after t that\n\t// IsTimeIncluded reports as included. When t itself is included it is\n\t// returned unchanged.\n\tNextIncludedTime(t time.Time) time.Time\n\t// SetBaseCalendar sets the base Calendar consulted in addition to this\n\t// Calendar. A nil base clears any existing base.\n\tSetBaseCalendar(Calendar)\n\t// GetBaseCalendar returns the base Calendar, or nil when none is set.\n\tGetBaseCalendar() Calendar\n}",
+          "doc": "Calendar excludes selected instants from a trigger's fire schedule. Calendars\nare additive: a Calendar may wrap a base Calendar so that an instant is\nconsidered included only when it is included by this Calendar and by its base,\nletting several exclusion rules compose into one. Implementations must be safe\nfor use by a single scheduler goroutine at a time, matching the concurrency\ncontract of Trigger.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "CalendarIntervalScheduleBuilder",
+          "signature": "type CalendarIntervalScheduleBuilder struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "CalendarIntervalScheduleBuilder builds a CalendarIntervalTrigger that advances\nby a whole calendar unit (day, week, month, year, or a sub-day duration).\nCreate one with CalendarIntervalSchedule.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "CalendarIntervalSchedule",
+              "signature": "func CalendarIntervalSchedule() *CalendarIntervalScheduleBuilder",
+              "doc": "CalendarIntervalSchedule starts building a calendar-interval schedule. The\ndefault is one day.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "BuildTrigger",
+              "recv": "*CalendarIntervalScheduleBuilder",
+              "signature": "func (b *CalendarIntervalScheduleBuilder) BuildTrigger(key, jobKey Key, start, end time.Time, description string) (Trigger, error)",
+              "doc": "BuildTrigger implements ScheduleBuilder.\n"
+            },
+            {
+              "name": "In",
+              "recv": "*CalendarIntervalScheduleBuilder",
+              "signature": "func (b *CalendarIntervalScheduleBuilder) In(loc *time.Location) *CalendarIntervalScheduleBuilder",
+              "doc": "In sets the time zone used to evaluate calendar advancement and returns the\nbuilder for chaining. A nil location is ignored.\n"
+            },
+            {
+              "name": "WithInterval",
+              "recv": "*CalendarIntervalScheduleBuilder",
+              "signature": "func (b *CalendarIntervalScheduleBuilder) WithInterval(count int, unit IntervalUnit) *CalendarIntervalScheduleBuilder",
+              "doc": "WithInterval sets the interval count and unit and returns the builder for\nchaining.\n"
+            },
+            {
+              "name": "WithIntervalInDays",
+              "recv": "*CalendarIntervalScheduleBuilder",
+              "signature": "func (b *CalendarIntervalScheduleBuilder) WithIntervalInDays(days int) *CalendarIntervalScheduleBuilder",
+              "doc": "WithIntervalInDays sets a day interval and returns the builder for chaining.\n"
+            },
+            {
+              "name": "WithIntervalInMonths",
+              "recv": "*CalendarIntervalScheduleBuilder",
+              "signature": "func (b *CalendarIntervalScheduleBuilder) WithIntervalInMonths(months int) *CalendarIntervalScheduleBuilder",
+              "doc": "WithIntervalInMonths sets a month interval and returns the builder for\nchaining.\n"
+            },
+            {
+              "name": "WithIntervalInWeeks",
+              "recv": "*CalendarIntervalScheduleBuilder",
+              "signature": "func (b *CalendarIntervalScheduleBuilder) WithIntervalInWeeks(weeks int) *CalendarIntervalScheduleBuilder",
+              "doc": "WithIntervalInWeeks sets a week interval and returns the builder for chaining.\n"
+            },
+            {
+              "name": "WithIntervalInYears",
+              "recv": "*CalendarIntervalScheduleBuilder",
+              "signature": "func (b *CalendarIntervalScheduleBuilder) WithIntervalInYears(years int) *CalendarIntervalScheduleBuilder",
+              "doc": "WithIntervalInYears sets a year interval and returns the builder for chaining.\n"
+            },
+            {
+              "name": "WithMisfirePolicy",
+              "recv": "*CalendarIntervalScheduleBuilder",
+              "signature": "func (b *CalendarIntervalScheduleBuilder) WithMisfirePolicy(p MisfirePolicy) *CalendarIntervalScheduleBuilder",
+              "doc": "WithMisfirePolicy sets the misfire policy and returns the builder for\nchaining.\n"
+            }
+          ]
+        },
+        {
+          "name": "CalendarIntervalTrigger",
+          "signature": "type CalendarIntervalTrigger struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "CalendarIntervalTrigger fires starting at a given time and then repeats at a\nfixed count of calendar units. Because it advances by calendar units rather\nthan a fixed duration, successive fires honor the varying length of months and\nyears and remain aligned to wall-clock time across daylight saving\ntransitions. Advancement is computed in the trigger's location (time.UTC by\ndefault): day, week, month and year steps use time.Time.AddDate while\nsub-day steps (second, minute, hour) are added as an absolute duration with\ntime.Time.Add.\n\nIts next, prev and timesTriggered state fields mirror SimpleTrigger so a SQL\njob store can persist and restore an in-flight trigger.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewCalendarIntervalTrigger",
+              "signature": "func NewCalendarIntervalTrigger(key, jobKey Key, start time.Time, unit IntervalUnit, count int) *CalendarIntervalTrigger",
+              "doc": "NewCalendarIntervalTrigger builds a CalendarIntervalTrigger that first fires at\nstart and then repeats every count units. A count that is zero or negative\nyields a trigger that fires only once. The trigger evaluates advancement in\ntime.UTC until changed with In.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "ComputeFirstFireTime",
+              "recv": "*CalendarIntervalTrigger",
+              "signature": "func (t *CalendarIntervalTrigger) ComputeFirstFireTime(now time.Time) time.Time",
+              "doc": "ComputeFirstFireTime implements Trigger. It sets the first fire time to the\nconfigured start time, or the zero time when the start time is already past\nthe end time. The now argument is unused because the first fire is always the\nstart time.\n"
+            },
+            {
+              "name": "Count",
+              "recv": "*CalendarIntervalTrigger",
+              "signature": "func (t *CalendarIntervalTrigger) Count() int",
+              "doc": "Count returns the number of units advanced between fires.\n"
+            },
+            {
+              "name": "Description",
+              "recv": "*CalendarIntervalTrigger",
+              "signature": "func (t *CalendarIntervalTrigger) Description() string",
+              "doc": "Description implements Trigger.\n"
+            },
+            {
+              "name": "EndTime",
+              "recv": "*CalendarIntervalTrigger",
+              "signature": "func (t *CalendarIntervalTrigger) EndTime() time.Time",
+              "doc": "EndTime returns the configured end time, or the zero time when unbounded.\n"
+            },
+            {
+              "name": "FireTimeAfter",
+              "recv": "*CalendarIntervalTrigger",
+              "signature": "func (t *CalendarIntervalTrigger) FireTimeAfter(after time.Time) time.Time",
+              "doc": "FireTimeAfter returns the first scheduled fire time strictly after the given\ntime, or the zero time when the trigger has no such fire (it is past its end\ntime or its count is non-positive so it fires only once). It is a pure query\nthat does not consult or mutate the trigger's running state, mirroring the\noriginal Quartz CalendarIntervalTrigger.getFireTimeAfter(Date). Advancement\nuses the same calendar arithmetic as normal firing, so successive fires honor\nthe varying length of months and years in the trigger's location.\n"
+            },
+            {
+              "name": "In",
+              "recv": "*CalendarIntervalTrigger",
+              "signature": "func (t *CalendarIntervalTrigger) In(loc *time.Location) *CalendarIntervalTrigger",
+              "doc": "In sets the time zone used to evaluate calendar advancement and returns the\ntrigger. A nil location is ignored, leaving the current location in place.\n"
+            },
+            {
+              "name": "JobKey",
+              "recv": "*CalendarIntervalTrigger",
+              "signature": "func (t *CalendarIntervalTrigger) JobKey() Key",
+              "doc": "JobKey implements Trigger.\n"
+            },
+            {
+              "name": "Key",
+              "recv": "*CalendarIntervalTrigger",
+              "signature": "func (t *CalendarIntervalTrigger) Key() Key",
+              "doc": "Key implements Trigger.\n"
+            },
+            {
+              "name": "Location",
+              "recv": "*CalendarIntervalTrigger",
+              "signature": "func (t *CalendarIntervalTrigger) Location() *time.Location",
+              "doc": "Location returns the time zone used to evaluate calendar advancement.\n"
+            },
+            {
+              "name": "MisfirePolicy",
+              "recv": "*CalendarIntervalTrigger",
+              "signature": "func (t *CalendarIntervalTrigger) MisfirePolicy() MisfirePolicy",
+              "doc": "MisfirePolicy implements Trigger.\n"
+            },
+            {
+              "name": "NextFireTime",
+              "recv": "*CalendarIntervalTrigger",
+              "signature": "func (t *CalendarIntervalTrigger) NextFireTime() time.Time",
+              "doc": "NextFireTime implements Trigger.\n"
+            },
+            {
+              "name": "PreserveWallClock",
+              "recv": "*CalendarIntervalTrigger",
+              "signature": "func (t *CalendarIntervalTrigger) PreserveWallClock(preserve bool) *CalendarIntervalTrigger",
+              "doc": "PreserveWallClock controls how day, week, month and year advancement behaves\nacross daylight saving transitions and returns the trigger. When enabled the\nnatural time.Time.AddDate result is used, which keeps the wall-clock\ntime-of-day fixed (for example a 09:00 local fire stays at 09:00 local even\nwhen the UTC offset changes). When disabled the result is shifted by the\nchange in UTC offset so the absolute time-of-day (in UTC) is preserved\ninstead. It has no effect on sub-day units or in zones without daylight\nsaving. It is disabled by default.\n"
+            },
+            {
+              "name": "PreviousFireTime",
+              "recv": "*CalendarIntervalTrigger",
+              "signature": "func (t *CalendarIntervalTrigger) PreviousFireTime() time.Time",
+              "doc": "PreviousFireTime implements Trigger.\n"
+            },
+            {
+              "name": "StartTime",
+              "recv": "*CalendarIntervalTrigger",
+              "signature": "func (t *CalendarIntervalTrigger) StartTime() time.Time",
+              "doc": "StartTime returns the configured start time.\n"
+            },
+            {
+              "name": "String",
+              "recv": "*CalendarIntervalTrigger",
+              "signature": "func (t *CalendarIntervalTrigger) String() string",
+              "doc": "String returns a debug representation of the trigger.\n"
+            },
+            {
+              "name": "TimesTriggered",
+              "recv": "*CalendarIntervalTrigger",
+              "signature": "func (t *CalendarIntervalTrigger) TimesTriggered() int",
+              "doc": "TimesTriggered returns the number of times the trigger has fired.\n"
+            },
+            {
+              "name": "Triggered",
+              "recv": "*CalendarIntervalTrigger",
+              "signature": "func (t *CalendarIntervalTrigger) Triggered(now time.Time) time.Time",
+              "doc": "Triggered implements Trigger. It records the just-fired time, advances the\nnext fire time by one unit*count step, and returns the new next fire time\n(the zero time once the trigger is exhausted by its end time or a\nnon-positive count).\n"
+            },
+            {
+              "name": "Unit",
+              "recv": "*CalendarIntervalTrigger",
+              "signature": "func (t *CalendarIntervalTrigger) Unit() IntervalUnit",
+              "doc": "Unit returns the calendar unit the trigger advances by.\n"
+            },
+            {
+              "name": "UpdateAfterMisfire",
+              "recv": "*CalendarIntervalTrigger",
+              "signature": "func (t *CalendarIntervalTrigger) UpdateAfterMisfire(now time.Time) time.Time",
+              "doc": "UpdateAfterMisfire implements Trigger. It reschedules the trigger relative to\nnow according to its misfire policy: MisfireIgnore leaves the next fire time\nunchanged, MisfireFireNow sets it to now, and MisfireSmart and\nMisfireDoNothing repeatedly advance whole unit*count steps until the next\nfire time is strictly after now.\n"
+            },
+            {
+              "name": "WillFireAgain",
+              "recv": "*CalendarIntervalTrigger",
+              "signature": "func (t *CalendarIntervalTrigger) WillFireAgain() bool",
+              "doc": "WillFireAgain implements Trigger.\n"
+            },
+            {
+              "name": "WithDescription",
+              "recv": "*CalendarIntervalTrigger",
+              "signature": "func (t *CalendarIntervalTrigger) WithDescription(desc string) *CalendarIntervalTrigger",
+              "doc": "WithDescription sets the trigger description and returns the trigger.\n"
+            },
+            {
+              "name": "WithEndTime",
+              "recv": "*CalendarIntervalTrigger",
+              "signature": "func (t *CalendarIntervalTrigger) WithEndTime(end time.Time) *CalendarIntervalTrigger",
+              "doc": "WithEndTime sets a time after which the trigger will not fire and returns the\ntrigger. The zero time means the trigger has no end.\n"
+            },
+            {
+              "name": "WithMisfirePolicy",
+              "recv": "*CalendarIntervalTrigger",
+              "signature": "func (t *CalendarIntervalTrigger) WithMisfirePolicy(p MisfirePolicy) *CalendarIntervalTrigger",
+              "doc": "WithMisfirePolicy sets the misfire policy and returns the trigger.\n"
+            }
+          ]
+        },
+        {
+          "name": "CalendarTrigger",
+          "signature": "type CalendarTrigger struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "CalendarTrigger decorates another Trigger with a Calendar so that scheduled\nfire times never land on an instant the Calendar excludes. It delegates every\nTrigger method to the wrapped trigger but, after the wrapped trigger produces\na next fire time, advances the wrapped trigger past any excluded instant using\nthe Calendar. The wrapped trigger and any scheduler using it are left\nuntouched; the exclusion behavior lives entirely in this decorator.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "WithCalendar",
+              "signature": "func WithCalendar(inner Trigger, cal Calendar) *CalendarTrigger",
+              "doc": "WithCalendar returns a CalendarTrigger that fires like inner but skips every\ninstant excluded by cal. A nil cal disables filtering and makes the decorator\na transparent pass-through.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "ComputeFirstFireTime",
+              "recv": "*CalendarTrigger",
+              "signature": "func (t *CalendarTrigger) ComputeFirstFireTime(now time.Time) time.Time",
+              "doc": "ComputeFirstFireTime implements Trigger. It computes the wrapped trigger's\nfirst fire time and then advances past any excluded instant so the first fire\nis never on an excluded time.\n"
+            },
+            {
+              "name": "Description",
+              "recv": "*CalendarTrigger",
+              "signature": "func (t *CalendarTrigger) Description() string",
+              "doc": "Description implements Trigger by delegating to the wrapped trigger.\n"
+            },
+            {
+              "name": "JobKey",
+              "recv": "*CalendarTrigger",
+              "signature": "func (t *CalendarTrigger) JobKey() Key",
+              "doc": "JobKey implements Trigger by delegating to the wrapped trigger.\n"
+            },
+            {
+              "name": "Key",
+              "recv": "*CalendarTrigger",
+              "signature": "func (t *CalendarTrigger) Key() Key",
+              "doc": "Key implements Trigger by delegating to the wrapped trigger.\n"
+            },
+            {
+              "name": "MisfirePolicy",
+              "recv": "*CalendarTrigger",
+              "signature": "func (t *CalendarTrigger) MisfirePolicy() MisfirePolicy",
+              "doc": "MisfirePolicy implements Trigger by delegating to the wrapped trigger.\n"
+            },
+            {
+              "name": "NextFireTime",
+              "recv": "*CalendarTrigger",
+              "signature": "func (t *CalendarTrigger) NextFireTime() time.Time",
+              "doc": "NextFireTime implements Trigger. It returns the wrapped trigger's next fire\ntime, which is always an included instant (or the zero time) because every\nmutating call re-applies the Calendar filter.\n"
+            },
+            {
+              "name": "PreviousFireTime",
+              "recv": "*CalendarTrigger",
+              "signature": "func (t *CalendarTrigger) PreviousFireTime() time.Time",
+              "doc": "PreviousFireTime implements Trigger by delegating to the wrapped trigger.\n"
+            },
+            {
+              "name": "Triggered",
+              "recv": "*CalendarTrigger",
+              "signature": "func (t *CalendarTrigger) Triggered(now time.Time) time.Time",
+              "doc": "Triggered implements Trigger. It advances the wrapped trigger and then skips\nforward over any excluded instant so the returned next fire time is included.\n"
+            },
+            {
+              "name": "UpdateAfterMisfire",
+              "recv": "*CalendarTrigger",
+              "signature": "func (t *CalendarTrigger) UpdateAfterMisfire(now time.Time) time.Time",
+              "doc": "UpdateAfterMisfire implements Trigger. It applies the wrapped trigger's\nmisfire handling and then re-applies the Calendar filter so the rescheduled\nfire time is never on an excluded time.\n"
+            },
+            {
+              "name": "WillFireAgain",
+              "recv": "*CalendarTrigger",
+              "signature": "func (t *CalendarTrigger) WillFireAgain() bool",
+              "doc": "WillFireAgain implements Trigger by delegating to the wrapped trigger.\n"
+            }
+          ]
+        },
+        {
+          "name": "CronCalendar",
+          "signature": "type CronCalendar struct {\n\tBaseCalendar\n\t// contains filtered or unexported fields\n}",
+          "doc": "CronCalendar excludes every instant that matches a cron expression. It reuses\nthe package cron parser, so any expression accepted by ParseCron is accepted\nhere. Matching is performed at one-second granularity in the calendar's\nlocation.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewCronCalendar",
+              "signature": "func NewCronCalendar(expr string) (*CronCalendar, error)",
+              "doc": "NewCronCalendar returns a CronCalendar that excludes instants matching expr.\nIt returns the error from ParseCron when expr is invalid.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "IsTimeIncluded",
+              "recv": "*CronCalendar",
+              "signature": "func (c *CronCalendar) IsTimeIncluded(t time.Time) bool",
+              "doc": "IsTimeIncluded reports whether t does not match the expression and the base\nCalendar also includes t.\n"
+            },
+            {
+              "name": "NextIncludedTime",
+              "recv": "*CronCalendar",
+              "signature": "func (c *CronCalendar) NextIncludedTime(t time.Time) time.Time",
+              "doc": "NextIncludedTime returns the earliest instant at or after t that does not\nmatch the expression and is allowed by the base Calendar.\n"
+            }
+          ]
+        },
+        {
+          "name": "CronExpression",
+          "signature": "type CronExpression struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "CronExpression is a parsed cron schedule. It supports six space separated\nfields:\n\n\tsecond      0-59\n\tminute      0-59\n\thour        0-23\n\tdayOfMonth  1-31\n\tmonth       1-12 or JAN-DEC\n\tdayOfWeek   0-6  or SUN-SAT (0 and 7 both mean Sunday)\n\nA five field expression (without seconds) is also accepted; a \"0\" seconds\nfield is assumed.\n\nEach field supports the following syntax (shown with literal tokens):\n\n\tstar     every value\n\t?        no specific value (treated as star; for dayOfMonth/dayOfWeek)\n\t1-5      an inclusive range\n\tstar/15  a step over the whole range\n\t10-30/5  a step over a range\n\t1,3,5    a list of values or ranges\n\tMON,JAN  three letter names (case insensitive) for month and dayOfWeek\n\nDay matching follows Unix semantics: when both dayOfMonth and dayOfWeek are\nrestricted (neither * nor ?), a day matches if either field matches;\notherwise only the restricted field applies.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "MustParseCron",
+              "signature": "func MustParseCron(expr string) *CronExpression",
+              "doc": "MustParseCron is like ParseCron but panics on error. It is intended for use\nwith constant expressions in tests and package initialization.\n"
+            },
+            {
+              "name": "ParseCron",
+              "signature": "func ParseCron(expr string) (*CronExpression, error)",
+              "doc": "ParseCron parses a cron expression. It returns an error describing the first\nproblem encountered.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "IsSatisfiedBy",
+              "recv": "*CronExpression",
+              "signature": "func (c *CronExpression) IsSatisfiedBy(t time.Time) bool",
+              "doc": "IsSatisfiedBy reports whether the given time exactly matches the expression,\nevaluated in the time's own location and at whole-second granularity\n(sub-second components are ignored). It mirrors the original Quartz\nCronExpression.isSatisfiedBy(Date) predicate: a time satisfies the expression\nwhen its second, minute, hour and month all match and its day satisfies the\nday-of-month / day-of-week rule.\n"
+            },
+            {
+              "name": "Next",
+              "recv": "*CronExpression",
+              "signature": "func (c *CronExpression) Next(after time.Time) time.Time",
+              "doc": "Next returns the first time strictly after the given time that matches the\nexpression, in the time's own location. It returns the zero time if no match\nis found within roughly five years (which indicates an impossible schedule\nsuch as February 30th).\n"
+            },
+            {
+              "name": "String",
+              "recv": "*CronExpression",
+              "signature": "func (c *CronExpression) String() string",
+              "doc": "String returns the original source expression.\n"
+            }
+          ]
+        },
+        {
+          "name": "CronScheduleBuilder",
+          "signature": "type CronScheduleBuilder struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "CronScheduleBuilder builds a CronTrigger from a cron expression evaluated in a\nchosen time zone. Create one with CronSchedule or a convenience constructor.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "CronSchedule",
+              "signature": "func CronSchedule(expr string) (*CronScheduleBuilder, error)",
+              "doc": "CronSchedule starts building a cron schedule from the given expression. The\nexpression is validated immediately and an error is returned if it is\ninvalid.\n"
+            },
+            {
+              "name": "CronScheduleDailyAt",
+              "signature": "func CronScheduleDailyAt(hour, minute int) *CronScheduleBuilder",
+              "doc": "CronScheduleDailyAt builds a cron schedule that fires every day at the given\nhour (0-23) and minute (0-59).\n"
+            },
+            {
+              "name": "CronScheduleMonthlyOn",
+              "signature": "func CronScheduleMonthlyOn(dayOfMonth, hour, minute int) *CronScheduleBuilder",
+              "doc": "CronScheduleMonthlyOn builds a cron schedule that fires every month on the\ngiven day-of-month at the given hour and minute.\n"
+            },
+            {
+              "name": "CronScheduleWeeklyOn",
+              "signature": "func CronScheduleWeeklyOn(day time.Weekday, hour, minute int) *CronScheduleBuilder",
+              "doc": "CronScheduleWeeklyOn builds a cron schedule that fires every week on the given\nweekday at the given hour and minute.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "BuildTrigger",
+              "recv": "*CronScheduleBuilder",
+              "signature": "func (b *CronScheduleBuilder) BuildTrigger(key, jobKey Key, start, end time.Time, description string) (Trigger, error)",
+              "doc": "BuildTrigger implements ScheduleBuilder.\n"
+            },
+            {
+              "name": "In",
+              "recv": "*CronScheduleBuilder",
+              "signature": "func (b *CronScheduleBuilder) In(loc *time.Location) *CronScheduleBuilder",
+              "doc": "In sets the time zone used to evaluate the cron expression and returns the\nbuilder for chaining. A nil location is ignored.\n"
+            },
+            {
+              "name": "WithMisfirePolicy",
+              "recv": "*CronScheduleBuilder",
+              "signature": "func (b *CronScheduleBuilder) WithMisfirePolicy(p MisfirePolicy) *CronScheduleBuilder",
+              "doc": "WithMisfirePolicy sets the misfire policy and returns the builder for\nchaining.\n"
+            }
+          ]
+        },
+        {
+          "name": "CronTrigger",
+          "signature": "type CronTrigger struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "CronTrigger fires according to a CronExpression, evaluated in a configurable\ntime zone. Fire times are never before the trigger's start time nor after its\noptional end time.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewCronTrigger",
+              "signature": "func NewCronTrigger(key, jobKey, expr string) (*CronTrigger, error)",
+              "doc": "NewCronTrigger builds a CronTrigger from a cron expression string. The\nexpression is evaluated in UTC unless changed with In. It returns an error if\nthe expression is invalid.\n"
+            },
+            {
+              "name": "NewCronTriggerWithKeys",
+              "signature": "func NewCronTriggerWithKeys(key, jobKey Key, expr string) (*CronTrigger, error)",
+              "doc": "NewCronTriggerWithKeys is like NewCronTrigger but takes fully qualified keys.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "ComputeFirstFireTime",
+              "recv": "*CronTrigger",
+              "signature": "func (t *CronTrigger) ComputeFirstFireTime(now time.Time) time.Time",
+              "doc": "ComputeFirstFireTime implements Trigger.\n"
+            },
+            {
+              "name": "Description",
+              "recv": "*CronTrigger",
+              "signature": "func (t *CronTrigger) Description() string",
+              "doc": "Description implements Trigger.\n"
+            },
+            {
+              "name": "EndingAt",
+              "recv": "*CronTrigger",
+              "signature": "func (t *CronTrigger) EndingAt(end time.Time) *CronTrigger",
+              "doc": "EndingAt sets the latest time the trigger may fire and returns it.\n"
+            },
+            {
+              "name": "Expression",
+              "recv": "*CronTrigger",
+              "signature": "func (t *CronTrigger) Expression() *CronExpression",
+              "doc": "Expression returns the parsed cron expression.\n"
+            },
+            {
+              "name": "In",
+              "recv": "*CronTrigger",
+              "signature": "func (t *CronTrigger) In(loc *time.Location) *CronTrigger",
+              "doc": "In sets the time zone used to evaluate the cron expression and returns the\ntrigger. A nil location is ignored.\n"
+            },
+            {
+              "name": "JobKey",
+              "recv": "*CronTrigger",
+              "signature": "func (t *CronTrigger) JobKey() Key",
+              "doc": "JobKey implements Trigger.\n"
+            },
+            {
+              "name": "Key",
+              "recv": "*CronTrigger",
+              "signature": "func (t *CronTrigger) Key() Key",
+              "doc": "Key implements Trigger.\n"
+            },
+            {
+              "name": "MisfirePolicy",
+              "recv": "*CronTrigger",
+              "signature": "func (t *CronTrigger) MisfirePolicy() MisfirePolicy",
+              "doc": "MisfirePolicy implements Trigger.\n"
+            },
+            {
+              "name": "NextFireTime",
+              "recv": "*CronTrigger",
+              "signature": "func (t *CronTrigger) NextFireTime() time.Time",
+              "doc": "NextFireTime implements Trigger.\n"
+            },
+            {
+              "name": "PreviousFireTime",
+              "recv": "*CronTrigger",
+              "signature": "func (t *CronTrigger) PreviousFireTime() time.Time",
+              "doc": "PreviousFireTime implements Trigger.\n"
+            },
+            {
+              "name": "StartingAt",
+              "recv": "*CronTrigger",
+              "signature": "func (t *CronTrigger) StartingAt(start time.Time) *CronTrigger",
+              "doc": "StartingAt sets the earliest time the trigger may fire and returns it.\n"
+            },
+            {
+              "name": "String",
+              "recv": "*CronTrigger",
+              "signature": "func (t *CronTrigger) String() string",
+              "doc": "String returns a debug representation of the trigger.\n"
+            },
+            {
+              "name": "Triggered",
+              "recv": "*CronTrigger",
+              "signature": "func (t *CronTrigger) Triggered(now time.Time) time.Time",
+              "doc": "Triggered implements Trigger.\n"
+            },
+            {
+              "name": "UpdateAfterMisfire",
+              "recv": "*CronTrigger",
+              "signature": "func (t *CronTrigger) UpdateAfterMisfire(now time.Time) time.Time",
+              "doc": "UpdateAfterMisfire implements Trigger.\n"
+            },
+            {
+              "name": "WillFireAgain",
+              "recv": "*CronTrigger",
+              "signature": "func (t *CronTrigger) WillFireAgain() bool",
+              "doc": "WillFireAgain implements Trigger.\n"
+            },
+            {
+              "name": "WithDescription",
+              "recv": "*CronTrigger",
+              "signature": "func (t *CronTrigger) WithDescription(desc string) *CronTrigger",
+              "doc": "WithDescription sets the trigger description and returns the trigger.\n"
+            },
+            {
+              "name": "WithMisfirePolicy",
+              "recv": "*CronTrigger",
+              "signature": "func (t *CronTrigger) WithMisfirePolicy(p MisfirePolicy) *CronTrigger",
+              "doc": "WithMisfirePolicy sets the misfire policy and returns the trigger.\n"
+            }
+          ]
+        },
+        {
+          "name": "DailyCalendar",
+          "signature": "type DailyCalendar struct {\n\tBaseCalendar\n\t// contains filtered or unexported fields\n}",
+          "doc": "DailyCalendar excludes a wall-clock time-of-day range that repeats every day.\nBy default the range is the excluded window; Invert flips the sense so that\nonly instants inside the range are included. The range may wrap past midnight\n(when its start is later than its end). The range is evaluated in the\ncalendar's location.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewDailyCalendar",
+              "signature": "func NewDailyCalendar(start, end TimeOfDay) *DailyCalendar",
+              "doc": "NewDailyCalendar returns a DailyCalendar that excludes the inclusive\nwall-clock range [start, end] every day. When start is later than end the\nrange wraps across midnight. It reuses the package TimeOfDay type; the range\nis defined by each value's hour, minute and second.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Invert",
+              "recv": "*DailyCalendar",
+              "signature": "func (c *DailyCalendar) Invert() *DailyCalendar",
+              "doc": "Invert flips whether the configured range is the excluded window or the only\nincluded window, and returns the calendar so the call can be chained.\n"
+            },
+            {
+              "name": "IsTimeIncluded",
+              "recv": "*DailyCalendar",
+              "signature": "func (c *DailyCalendar) IsTimeIncluded(t time.Time) bool",
+              "doc": "IsTimeIncluded reports whether t is included by the time-of-day rule and by\nthe base Calendar.\n"
+            },
+            {
+              "name": "NextIncludedTime",
+              "recv": "*DailyCalendar",
+              "signature": "func (c *DailyCalendar) NextIncludedTime(t time.Time) time.Time",
+              "doc": "NextIncludedTime returns the earliest instant at or after t whose time of day\nis allowed and that the base Calendar also allows.\n"
+            }
+          ]
+        },
+        {
+          "name": "DailyTimeIntervalScheduleBuilder",
+          "signature": "type DailyTimeIntervalScheduleBuilder struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "DailyTimeIntervalScheduleBuilder builds a DailyTimeIntervalTrigger that fires\nrepeatedly within a daily time window on selected days of the week. Create one\nwith DailyTimeIntervalSchedule.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "DailyTimeIntervalSchedule",
+              "signature": "func DailyTimeIntervalSchedule() *DailyTimeIntervalScheduleBuilder",
+              "doc": "DailyTimeIntervalSchedule starts building a daily-time-interval schedule. The\ndefault is a one-minute interval spanning the whole day, every day.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "BuildTrigger",
+              "recv": "*DailyTimeIntervalScheduleBuilder",
+              "signature": "func (b *DailyTimeIntervalScheduleBuilder) BuildTrigger(key, jobKey Key, start, end time.Time, description string) (Trigger, error)",
+              "doc": "BuildTrigger implements ScheduleBuilder.\n"
+            },
+            {
+              "name": "EndingDailyAt",
+              "recv": "*DailyTimeIntervalScheduleBuilder",
+              "signature": "func (b *DailyTimeIntervalScheduleBuilder) EndingDailyAt(tod TimeOfDay) *DailyTimeIntervalScheduleBuilder",
+              "doc": "EndingDailyAt sets the latest time-of-day the trigger may fire and returns the\nbuilder for chaining.\n"
+            },
+            {
+              "name": "In",
+              "recv": "*DailyTimeIntervalScheduleBuilder",
+              "signature": "func (b *DailyTimeIntervalScheduleBuilder) In(loc *time.Location) *DailyTimeIntervalScheduleBuilder",
+              "doc": "In sets the time zone used to evaluate the daily window and returns the\nbuilder for chaining. A nil location is ignored.\n"
+            },
+            {
+              "name": "OnDaysOfWeek",
+              "recv": "*DailyTimeIntervalScheduleBuilder",
+              "signature": "func (b *DailyTimeIntervalScheduleBuilder) OnDaysOfWeek(days ...time.Weekday) *DailyTimeIntervalScheduleBuilder",
+              "doc": "OnDaysOfWeek restricts firing to the given weekdays and returns the builder\nfor chaining. Passing no days leaves the current selection unchanged.\n"
+            },
+            {
+              "name": "OnEveryDay",
+              "recv": "*DailyTimeIntervalScheduleBuilder",
+              "signature": "func (b *DailyTimeIntervalScheduleBuilder) OnEveryDay() *DailyTimeIntervalScheduleBuilder",
+              "doc": "OnEveryDay allows firing on all seven days of the week and returns the builder\nfor chaining.\n"
+            },
+            {
+              "name": "OnMondayThroughFriday",
+              "recv": "*DailyTimeIntervalScheduleBuilder",
+              "signature": "func (b *DailyTimeIntervalScheduleBuilder) OnMondayThroughFriday() *DailyTimeIntervalScheduleBuilder",
+              "doc": "OnMondayThroughFriday restricts firing to weekdays and returns the builder for\nchaining.\n"
+            },
+            {
+              "name": "OnSaturdayAndSunday",
+              "recv": "*DailyTimeIntervalScheduleBuilder",
+              "signature": "func (b *DailyTimeIntervalScheduleBuilder) OnSaturdayAndSunday() *DailyTimeIntervalScheduleBuilder",
+              "doc": "OnSaturdayAndSunday restricts firing to the weekend and returns the builder\nfor chaining.\n"
+            },
+            {
+              "name": "StartingDailyAt",
+              "recv": "*DailyTimeIntervalScheduleBuilder",
+              "signature": "func (b *DailyTimeIntervalScheduleBuilder) StartingDailyAt(tod TimeOfDay) *DailyTimeIntervalScheduleBuilder",
+              "doc": "StartingDailyAt sets the earliest time-of-day the trigger may fire and returns\nthe builder for chaining.\n"
+            },
+            {
+              "name": "WithInterval",
+              "recv": "*DailyTimeIntervalScheduleBuilder",
+              "signature": "func (b *DailyTimeIntervalScheduleBuilder) WithInterval(count int, unit IntervalUnit) *DailyTimeIntervalScheduleBuilder",
+              "doc": "WithInterval sets the interval count and (sub-day) unit and returns the\nbuilder for chaining.\n"
+            },
+            {
+              "name": "WithIntervalInHours",
+              "recv": "*DailyTimeIntervalScheduleBuilder",
+              "signature": "func (b *DailyTimeIntervalScheduleBuilder) WithIntervalInHours(hours int) *DailyTimeIntervalScheduleBuilder",
+              "doc": "WithIntervalInHours sets an hours interval and returns the builder for\nchaining.\n"
+            },
+            {
+              "name": "WithIntervalInMinutes",
+              "recv": "*DailyTimeIntervalScheduleBuilder",
+              "signature": "func (b *DailyTimeIntervalScheduleBuilder) WithIntervalInMinutes(minutes int) *DailyTimeIntervalScheduleBuilder",
+              "doc": "WithIntervalInMinutes sets a minutes interval and returns the builder for\nchaining.\n"
+            },
+            {
+              "name": "WithIntervalInSeconds",
+              "recv": "*DailyTimeIntervalScheduleBuilder",
+              "signature": "func (b *DailyTimeIntervalScheduleBuilder) WithIntervalInSeconds(seconds int) *DailyTimeIntervalScheduleBuilder",
+              "doc": "WithIntervalInSeconds sets a seconds interval and returns the builder for\nchaining.\n"
+            },
+            {
+              "name": "WithMisfirePolicy",
+              "recv": "*DailyTimeIntervalScheduleBuilder",
+              "signature": "func (b *DailyTimeIntervalScheduleBuilder) WithMisfirePolicy(p MisfirePolicy) *DailyTimeIntervalScheduleBuilder",
+              "doc": "WithMisfirePolicy sets the misfire policy and returns the builder for\nchaining.\n"
+            },
+            {
+              "name": "WithRepeatCount",
+              "recv": "*DailyTimeIntervalScheduleBuilder",
+              "signature": "func (b *DailyTimeIntervalScheduleBuilder) WithRepeatCount(count int) *DailyTimeIntervalScheduleBuilder",
+              "doc": "WithRepeatCount caps the number of fires per day and returns the builder for\nchaining. Without it the trigger repeats for the whole window.\n"
+            }
+          ]
+        },
+        {
+          "name": "DailyTimeIntervalTrigger",
+          "signature": "type DailyTimeIntervalTrigger struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "DailyTimeIntervalTrigger fires on a fixed sub-day interval within a daily\ntime-of-day window, but only on a selected set of weekdays. Within each\nactive day it starts at the window's start time-of-day and steps forward by\ncount units (seconds, minutes or hours) as long as the next step does not\npass the window's end time-of-day; once it would pass the end it rolls to the\nstart time-of-day of the next active day. All arithmetic is performed in the\ntrigger's location (time.UTC by default) so the window boundaries are\nwall-clock times that stay fixed across daylight saving transitions.\n\nThe trigger reuses IntervalUnit from CalendarIntervalTrigger (restricted to\nIntervalSecond, IntervalMinute and IntervalHour) and the RepeatForever\nsentinel from SimpleTrigger. A repeat count of N produces N+1 total fires;\nRepeatForever fires without a fixed limit. Its startTime and endTime bound\nthe trigger absolutely, independent of the daily window.\n\nIts next, prev and timesTriggered state fields mirror SimpleTrigger and\nCalendarIntervalTrigger so a SQL job store can persist and restore an\nin-flight trigger.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewDailyTimeIntervalTrigger",
+              "signature": "func NewDailyTimeIntervalTrigger(key, jobKey Key, start TimeOfDay, end TimeOfDay, unit IntervalUnit, count int) *DailyTimeIntervalTrigger",
+              "doc": "NewDailyTimeIntervalTrigger builds a DailyTimeIntervalTrigger whose daily\nfiring window runs from start to end (both wall-clock times-of-day), stepping\nby count of the given unit. The unit should be one of IntervalSecond,\nIntervalMinute or IntervalHour; other units yield a zero step and the trigger\nthen fires once per active day at the window start. By default the trigger is\nactive on all seven weekdays, evaluates times in time.UTC, and repeats\nforever; use the fluent builders to change these. The window must have end\nno earlier than start, otherwise the trigger never fires.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "ComputeFirstFireTime",
+              "recv": "*DailyTimeIntervalTrigger",
+              "signature": "func (t *DailyTimeIntervalTrigger) ComputeFirstFireTime(now time.Time) time.Time",
+              "doc": "ComputeFirstFireTime implements Trigger. It finds the first in-window slot at\nor after the later of the reference clock now and the configured start time,\nhonoring the absolute end time. It returns the zero time when the trigger\nwill never fire.\n"
+            },
+            {
+              "name": "Count",
+              "recv": "*DailyTimeIntervalTrigger",
+              "signature": "func (t *DailyTimeIntervalTrigger) Count() int",
+              "doc": "Count returns the number of units advanced between fires within a day.\n"
+            },
+            {
+              "name": "DaysOfWeek",
+              "recv": "*DailyTimeIntervalTrigger",
+              "signature": "func (t *DailyTimeIntervalTrigger) DaysOfWeek() []time.Weekday",
+              "doc": "DaysOfWeek returns a copy of the weekdays on which the trigger is active.\n"
+            },
+            {
+              "name": "Description",
+              "recv": "*DailyTimeIntervalTrigger",
+              "signature": "func (t *DailyTimeIntervalTrigger) Description() string",
+              "doc": "Description implements Trigger.\n"
+            },
+            {
+              "name": "EndTime",
+              "recv": "*DailyTimeIntervalTrigger",
+              "signature": "func (t *DailyTimeIntervalTrigger) EndTime() time.Time",
+              "doc": "EndTime returns the configured absolute end time, or the zero time when\nunbounded.\n"
+            },
+            {
+              "name": "EndTimeOfDay",
+              "recv": "*DailyTimeIntervalTrigger",
+              "signature": "func (t *DailyTimeIntervalTrigger) EndTimeOfDay() TimeOfDay",
+              "doc": "EndTimeOfDay returns the end of the daily firing window.\n"
+            },
+            {
+              "name": "EndingAt",
+              "recv": "*DailyTimeIntervalTrigger",
+              "signature": "func (t *DailyTimeIntervalTrigger) EndingAt(end time.Time) *DailyTimeIntervalTrigger",
+              "doc": "EndingAt sets the absolute time after which the trigger will not fire and\nreturns the trigger. The zero time means the trigger has no end.\n"
+            },
+            {
+              "name": "In",
+              "recv": "*DailyTimeIntervalTrigger",
+              "signature": "func (t *DailyTimeIntervalTrigger) In(loc *time.Location) *DailyTimeIntervalTrigger",
+              "doc": "In sets the time zone used to evaluate the daily window and returns the\ntrigger. A nil location is ignored, leaving the current location in place.\n"
+            },
+            {
+              "name": "JobKey",
+              "recv": "*DailyTimeIntervalTrigger",
+              "signature": "func (t *DailyTimeIntervalTrigger) JobKey() Key",
+              "doc": "JobKey implements Trigger.\n"
+            },
+            {
+              "name": "Key",
+              "recv": "*DailyTimeIntervalTrigger",
+              "signature": "func (t *DailyTimeIntervalTrigger) Key() Key",
+              "doc": "Key implements Trigger.\n"
+            },
+            {
+              "name": "Location",
+              "recv": "*DailyTimeIntervalTrigger",
+              "signature": "func (t *DailyTimeIntervalTrigger) Location() *time.Location",
+              "doc": "Location returns the time zone used to evaluate the daily window.\n"
+            },
+            {
+              "name": "MisfirePolicy",
+              "recv": "*DailyTimeIntervalTrigger",
+              "signature": "func (t *DailyTimeIntervalTrigger) MisfirePolicy() MisfirePolicy",
+              "doc": "MisfirePolicy implements Trigger.\n"
+            },
+            {
+              "name": "NextFireTime",
+              "recv": "*DailyTimeIntervalTrigger",
+              "signature": "func (t *DailyTimeIntervalTrigger) NextFireTime() time.Time",
+              "doc": "NextFireTime implements Trigger.\n"
+            },
+            {
+              "name": "OnDaysOfWeek",
+              "recv": "*DailyTimeIntervalTrigger",
+              "signature": "func (t *DailyTimeIntervalTrigger) OnDaysOfWeek(days ...time.Weekday) *DailyTimeIntervalTrigger",
+              "doc": "OnDaysOfWeek restricts the trigger to fire only on the given weekdays and\nreturns the trigger. Calling it with no arguments leaves the current set\nunchanged (the default is all seven weekdays). The supplied slice is copied\nso later external mutation does not leak in.\n"
+            },
+            {
+              "name": "PreviousFireTime",
+              "recv": "*DailyTimeIntervalTrigger",
+              "signature": "func (t *DailyTimeIntervalTrigger) PreviousFireTime() time.Time",
+              "doc": "PreviousFireTime implements Trigger.\n"
+            },
+            {
+              "name": "RepeatCount",
+              "recv": "*DailyTimeIntervalTrigger",
+              "signature": "func (t *DailyTimeIntervalTrigger) RepeatCount() int",
+              "doc": "RepeatCount returns the configured repeat count.\n"
+            },
+            {
+              "name": "StartTime",
+              "recv": "*DailyTimeIntervalTrigger",
+              "signature": "func (t *DailyTimeIntervalTrigger) StartTime() time.Time",
+              "doc": "StartTime returns the configured absolute start time, or the zero time when\nunbounded.\n"
+            },
+            {
+              "name": "StartTimeOfDay",
+              "recv": "*DailyTimeIntervalTrigger",
+              "signature": "func (t *DailyTimeIntervalTrigger) StartTimeOfDay() TimeOfDay",
+              "doc": "StartTimeOfDay returns the start of the daily firing window.\n"
+            },
+            {
+              "name": "StartingAt",
+              "recv": "*DailyTimeIntervalTrigger",
+              "signature": "func (t *DailyTimeIntervalTrigger) StartingAt(start time.Time) *DailyTimeIntervalTrigger",
+              "doc": "StartingAt sets the absolute time before which the trigger will not fire and\nreturns the trigger. The zero time means the trigger has no lower bound\nbeyond the reference clock passed to ComputeFirstFireTime.\n"
+            },
+            {
+              "name": "String",
+              "recv": "*DailyTimeIntervalTrigger",
+              "signature": "func (t *DailyTimeIntervalTrigger) String() string",
+              "doc": "String returns a debug representation of the trigger.\n"
+            },
+            {
+              "name": "TimesTriggered",
+              "recv": "*DailyTimeIntervalTrigger",
+              "signature": "func (t *DailyTimeIntervalTrigger) TimesTriggered() int",
+              "doc": "TimesTriggered returns the number of times the trigger has fired.\n"
+            },
+            {
+              "name": "Triggered",
+              "recv": "*DailyTimeIntervalTrigger",
+              "signature": "func (t *DailyTimeIntervalTrigger) Triggered(now time.Time) time.Time",
+              "doc": "Triggered implements Trigger. It records the just-fired time, advances to the\nnext in-window slot (or the start of the next active day), and returns the\nnew next fire time (the zero time once the trigger is exhausted by its repeat\ncount or end time).\n"
+            },
+            {
+              "name": "Unit",
+              "recv": "*DailyTimeIntervalTrigger",
+              "signature": "func (t *DailyTimeIntervalTrigger) Unit() IntervalUnit",
+              "doc": "Unit returns the sub-day interval unit the trigger advances by within a day.\n"
+            },
+            {
+              "name": "UpdateAfterMisfire",
+              "recv": "*DailyTimeIntervalTrigger",
+              "signature": "func (t *DailyTimeIntervalTrigger) UpdateAfterMisfire(now time.Time) time.Time",
+              "doc": "UpdateAfterMisfire implements Trigger. It reschedules the trigger relative to\nnow according to its misfire policy, using the same dispatch as the other\ntriggers: MisfireIgnore leaves the next fire time unchanged, MisfireFireNow\nsets it to now (while repeats remain), and MisfireSmart and MisfireDoNothing\nadvance slot by slot until the next fire time is strictly after now.\n"
+            },
+            {
+              "name": "WillFireAgain",
+              "recv": "*DailyTimeIntervalTrigger",
+              "signature": "func (t *DailyTimeIntervalTrigger) WillFireAgain() bool",
+              "doc": "WillFireAgain implements Trigger.\n"
+            },
+            {
+              "name": "WithDescription",
+              "recv": "*DailyTimeIntervalTrigger",
+              "signature": "func (t *DailyTimeIntervalTrigger) WithDescription(desc string) *DailyTimeIntervalTrigger",
+              "doc": "WithDescription sets the trigger description and returns the trigger.\n"
+            },
+            {
+              "name": "WithMisfirePolicy",
+              "recv": "*DailyTimeIntervalTrigger",
+              "signature": "func (t *DailyTimeIntervalTrigger) WithMisfirePolicy(p MisfirePolicy) *DailyTimeIntervalTrigger",
+              "doc": "WithMisfirePolicy sets the misfire policy and returns the trigger.\n"
+            },
+            {
+              "name": "WithRepeatCount",
+              "recv": "*DailyTimeIntervalTrigger",
+              "signature": "func (t *DailyTimeIntervalTrigger) WithRepeatCount(count int) *DailyTimeIntervalTrigger",
+              "doc": "WithRepeatCount sets the number of repeats after the initial fire and returns\nthe trigger. A count of N yields N+1 total fires; RepeatForever fires without\na fixed limit.\n"
+            }
+          ]
+        },
+        {
+          "name": "HolidayCalendar",
+          "signature": "type HolidayCalendar struct {\n\tBaseCalendar\n\t// contains filtered or unexported fields\n}",
+          "doc": "HolidayCalendar excludes whole calendar days. Exclusions have day\ngranularity: any instant that falls on an excluded date is excluded\nregardless of its time of day. Dates are compared in the calendar's\nevaluation location.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewHolidayCalendar",
+              "signature": "func NewHolidayCalendar() *HolidayCalendar",
+              "doc": "NewHolidayCalendar returns a HolidayCalendar with no excluded dates.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "AddExcludedDate",
+              "recv": "*HolidayCalendar",
+              "signature": "func (c *HolidayCalendar) AddExcludedDate(t time.Time)",
+              "doc": "AddExcludedDate excludes the calendar day on which t falls. The time of day of\nt is ignored.\n"
+            },
+            {
+              "name": "IsTimeIncluded",
+              "recv": "*HolidayCalendar",
+              "signature": "func (c *HolidayCalendar) IsTimeIncluded(t time.Time) bool",
+              "doc": "IsTimeIncluded reports whether t is included, that is whether its day is not\nexcluded and the base Calendar also includes it.\n"
+            },
+            {
+              "name": "NextIncludedTime",
+              "recv": "*HolidayCalendar",
+              "signature": "func (c *HolidayCalendar) NextIncludedTime(t time.Time) time.Time",
+              "doc": "NextIncludedTime returns the earliest instant at or after t that is not on an\nexcluded day and is allowed by the base Calendar.\n"
+            },
+            {
+              "name": "RemoveExcludedDate",
+              "recv": "*HolidayCalendar",
+              "signature": "func (c *HolidayCalendar) RemoveExcludedDate(t time.Time)",
+              "doc": "RemoveExcludedDate stops excluding the calendar day on which t falls. It is a\nno-op when that day was not excluded.\n"
+            }
+          ]
+        },
+        {
+          "name": "IntervalUnit",
+          "signature": "type IntervalUnit int",
+          "doc": "IntervalUnit identifies the calendar unit by which a CalendarIntervalTrigger\nadvances between fires. Unlike a fixed time.Duration, calendar units honor the\nvarying length of months and years as well as daylight saving transitions.\n",
+          "consts": [
+            {
+              "names": [
+                "IntervalSecond",
+                "IntervalMinute",
+                "IntervalHour",
+                "IntervalDay",
+                "IntervalWeek",
+                "IntervalMonth",
+                "IntervalYear"
+              ],
+              "signature": "const (\n\t// IntervalSecond advances by a fixed number of seconds. It is a sub-day\n\t// unit and is added as an absolute duration.\n\tIntervalSecond IntervalUnit = iota\n\t// IntervalMinute advances by a fixed number of minutes. It is a sub-day\n\t// unit and is added as an absolute duration.\n\tIntervalMinute\n\t// IntervalHour advances by a fixed number of hours. It is a sub-day unit\n\t// and is added as an absolute duration.\n\tIntervalHour\n\t// IntervalDay advances by whole calendar days, evaluated in the trigger's\n\t// location so wall-clock time is preserved across daylight saving changes.\n\tIntervalDay\n\t// IntervalWeek advances by whole calendar weeks (seven days per count),\n\t// evaluated in the trigger's location.\n\tIntervalWeek\n\t// IntervalMonth advances by whole calendar months, honoring the differing\n\t// number of days per month.\n\tIntervalMonth\n\t// IntervalYear advances by whole calendar years, honoring leap years.\n\tIntervalYear\n)",
+              "doc": ""
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Job",
+          "signature": "type Job interface {\n\tExecute(ctx context.Context) error\n}",
+          "doc": "Job is the unit of work executed by the scheduler. Implementations must be\nsafe for concurrent use if the same instance is shared across multiple\nJobDetails or triggers. The provided context is cancelled when the scheduler\nis shutting down without waiting for the job to finish.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "JobBuilder",
+          "signature": "type JobBuilder struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "JobBuilder assembles a JobDetail through a fluent, chainable interface. Create\none with NewJob, configure it, then call Build. The zero value is not usable;\nalways start from NewJob.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewJob",
+              "signature": "func NewJob() *JobBuilder",
+              "doc": "NewJob starts building a JobDetail. Attach the work with OfJob and, if\ndesired, an identity with WithIdentity before calling Build.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Build",
+              "recv": "*JobBuilder",
+              "signature": "func (b *JobBuilder) Build() (*JobDetail, error)",
+              "doc": "Build produces the configured JobDetail. It returns an error if no Job was\nsupplied. When no identity was set a process-unique name is generated in the\ndefault group.\n"
+            },
+            {
+              "name": "OfJob",
+              "recv": "*JobBuilder",
+              "signature": "func (b *JobBuilder) OfJob(job Job) *JobBuilder",
+              "doc": "OfJob sets the concrete Job implementation the detail will run and returns the\nbuilder for chaining.\n"
+            },
+            {
+              "name": "StoreDurably",
+              "recv": "*JobBuilder",
+              "signature": "func (b *JobBuilder) StoreDurably(durable bool) *JobBuilder",
+              "doc": "StoreDurably sets whether the job is retained by the store even when no\ntriggers reference it and returns the builder for chaining.\n"
+            },
+            {
+              "name": "UsingJobData",
+              "recv": "*JobBuilder",
+              "signature": "func (b *JobBuilder) UsingJobData(key string, value any) *JobBuilder",
+              "doc": "UsingJobData adds a single key/value pair to the job's JobDataMap and returns\nthe builder for chaining.\n"
+            },
+            {
+              "name": "UsingJobDataMap",
+              "recv": "*JobBuilder",
+              "signature": "func (b *JobBuilder) UsingJobDataMap(data JobDataMap) *JobBuilder",
+              "doc": "UsingJobDataMap merges every entry of the given map into the job's data and\nreturns the builder for chaining.\n"
+            },
+            {
+              "name": "WithDescription",
+              "recv": "*JobBuilder",
+              "signature": "func (b *JobBuilder) WithDescription(desc string) *JobBuilder",
+              "doc": "WithDescription sets the job's human readable description and returns the\nbuilder for chaining.\n"
+            },
+            {
+              "name": "WithIdentity",
+              "recv": "*JobBuilder",
+              "signature": "func (b *JobBuilder) WithIdentity(key Key) *JobBuilder",
+              "doc": "WithIdentity sets the job's key and returns the builder for chaining.\n"
+            },
+            {
+              "name": "WithIdentityName",
+              "recv": "*JobBuilder",
+              "signature": "func (b *JobBuilder) WithIdentityName(name string) *JobBuilder",
+              "doc": "WithIdentityName sets the job's key to the given name in the default group and\nreturns the builder for chaining.\n"
+            },
+            {
+              "name": "WithIdentityNameGroup",
+              "recv": "*JobBuilder",
+              "signature": "func (b *JobBuilder) WithIdentityNameGroup(name, group string) *JobBuilder",
+              "doc": "WithIdentityNameGroup sets the job's key to the given name and group and\nreturns the builder for chaining.\n"
+            }
+          ]
+        },
+        {
+          "name": "JobDataMap",
+          "signature": "type JobDataMap map[string]any",
+          "doc": "JobDataMap is a string-keyed bag of state passed to a Job at execution time.\nIt is carried both by a JobDetail and, after merging, by every trigger fire.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Clone",
+              "recv": "JobDataMap",
+              "signature": "func (m JobDataMap) Clone() JobDataMap",
+              "doc": "Clone returns a shallow copy of the map so callers can mutate it without\naffecting the original.\n"
+            },
+            {
+              "name": "GetInt",
+              "recv": "JobDataMap",
+              "signature": "func (m JobDataMap) GetInt(key string) (int, bool)",
+              "doc": "GetInt returns the value at key as an int and whether it was present and of\nthe expected type.\n"
+            },
+            {
+              "name": "GetString",
+              "recv": "JobDataMap",
+              "signature": "func (m JobDataMap) GetString(key string) (string, bool)",
+              "doc": "GetString returns the value at key as a string and whether it was present and\nof the expected type.\n"
+            }
+          ]
+        },
+        {
+          "name": "JobDetail",
+          "signature": "type JobDetail struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "JobDetail is the definition of a job: its identity, an optional description,\nthe concrete Job implementation to run, and a JobDataMap of state. A single\nJobDetail may be fired by multiple triggers.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewJobDetail",
+              "signature": "func NewJobDetail(key Key, job Job) *JobDetail",
+              "doc": "NewJobDetail constructs a JobDetail for the given key and Job.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Data",
+              "recv": "*JobDetail",
+              "signature": "func (d *JobDetail) Data() JobDataMap",
+              "doc": "Data returns the JobDataMap associated with the job.\n"
+            },
+            {
+              "name": "Description",
+              "recv": "*JobDetail",
+              "signature": "func (d *JobDetail) Description() string",
+              "doc": "Description returns the job's description.\n"
+            },
+            {
+              "name": "Durable",
+              "recv": "*JobDetail",
+              "signature": "func (d *JobDetail) Durable(durable bool) *JobDetail",
+              "doc": "Durable marks the job as durable, meaning it is retained by the store even\nwhen no triggers reference it. Non-durable jobs are removed once their last\ntrigger is unscheduled.\n"
+            },
+            {
+              "name": "IsDurable",
+              "recv": "*JobDetail",
+              "signature": "func (d *JobDetail) IsDurable() bool",
+              "doc": "IsDurable reports whether the job is durable.\n"
+            },
+            {
+              "name": "Job",
+              "recv": "*JobDetail",
+              "signature": "func (d *JobDetail) Job() Job",
+              "doc": "Job returns the concrete Job implementation.\n"
+            },
+            {
+              "name": "Key",
+              "recv": "*JobDetail",
+              "signature": "func (d *JobDetail) Key() Key",
+              "doc": "Key returns the job's identity.\n"
+            },
+            {
+              "name": "String",
+              "recv": "*JobDetail",
+              "signature": "func (d *JobDetail) String() string",
+              "doc": "String returns a debug representation of the JobDetail.\n"
+            },
+            {
+              "name": "WithData",
+              "recv": "*JobDetail",
+              "signature": "func (d *JobDetail) WithData(data JobDataMap) *JobDetail",
+              "doc": "WithData sets the JobDataMap and returns the detail for chaining. The map is\ncloned so later external mutation does not leak in.\n"
+            },
+            {
+              "name": "WithDescription",
+              "recv": "*JobDetail",
+              "signature": "func (d *JobDetail) WithDescription(desc string) *JobDetail",
+              "doc": "WithDescription sets a human readable description and returns the detail for\nchaining.\n"
+            }
+          ]
+        },
+        {
+          "name": "JobExecutionContext",
+          "signature": "type JobExecutionContext struct {\n\t// Scheduler is the scheduler running the job.\n\tScheduler *Scheduler\n\t// Detail is the JobDetail being executed.\n\tDetail *JobDetail\n\t// Trigger is the trigger that caused this execution.\n\tTrigger Trigger\n\t// FireTime is the scheduled fire time for this execution.\n\tFireTime time.Time\n\t// MergedData is the JobDataMap available to the job (a clone of the\n\t// job's data).\n\tMergedData JobDataMap\n\t// Result holds the error returned by Execute after it completes.\n\tResult error\n}",
+          "doc": "JobExecutionContext carries the state of a single job execution as it flows\nthrough listeners and the Job itself.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "JobFunc",
+          "signature": "type JobFunc func(ctx context.Context) error",
+          "doc": "JobFunc adapts an ordinary function to the Job interface.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Execute",
+              "recv": "JobFunc",
+              "signature": "func (f JobFunc) Execute(ctx context.Context) error",
+              "doc": "Execute implements the Job interface.\n"
+            }
+          ]
+        },
+        {
+          "name": "JobListener",
+          "signature": "type JobListener interface {\n\t// Name identifies the listener.\n\tName() string\n\t// JobToBeExecuted is called immediately before Execute.\n\tJobToBeExecuted(ctx context.Context, jec *JobExecutionContext)\n\t// JobWasExecuted is called after Execute returns, with the resulting\n\t// error (if any) in jec.Result.\n\tJobWasExecuted(ctx context.Context, jec *JobExecutionContext)\n}",
+          "doc": "JobListener receives notifications about the lifecycle of job executions. All\nmethods are invoked synchronously on the worker goroutine; keep them fast.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "JobStore",
+          "signature": "type JobStore interface {\n\t// StoreJob saves a JobDetail. If replace is false and the job already\n\t// exists, ErrJobExists is returned.\n\tStoreJob(detail *JobDetail, replace bool) error\n\t// RemoveJob deletes a job. It reports whether a job was removed.\n\tRemoveJob(key Key) (bool, error)\n\t// GetJob returns the JobDetail for a key.\n\tGetJob(key Key) (*JobDetail, error)\n\t// JobKeys returns all stored job keys.\n\tJobKeys() []Key\n\n\t// StoreTrigger saves a trigger in the given state. If replace is false\n\t// and the trigger exists, ErrTriggerExists is returned.\n\tStoreTrigger(trigger Trigger, state TriggerState, replace bool) error\n\t// RemoveTrigger deletes a trigger. It reports whether one was removed.\n\tRemoveTrigger(key Key) (bool, error)\n\t// GetTrigger returns the stored trigger for a key.\n\tGetTrigger(key Key) (*StoredTrigger, error)\n\t// TriggerKeys returns all stored trigger keys.\n\tTriggerKeys() []Key\n\t// TriggersForJob returns all triggers referencing the given job.\n\tTriggersForJob(jobKey Key) []*StoredTrigger\n\n\t// SetTriggerState updates the state of a trigger.\n\tSetTriggerState(key Key, state TriggerState) error\n\n\t// AcquireNextTriggers returns up to maxCount triggers in NORMAL state\n\t// whose next fire time is at or before noLaterThan, ordered by fire\n\t// time. It does not mutate state.\n\tAcquireNextTriggers(noLaterThan time.Time, maxCount int) []*StoredTrigger\n}",
+          "doc": "JobStore persists JobDetails and Triggers. Implementations must be safe for\nconcurrent use. The in-memory implementation is MemoryJobStore; a database\nbacked store can be added by implementing this interface.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Key",
+          "signature": "type Key struct {\n\tName  string\n\tGroup string\n}",
+          "doc": "Key uniquely identifies a job or trigger within a group. The zero Key is not\nvalid; use NewKey to construct one. When a group is omitted it defaults to\nDefaultGroup.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "MatchKeys",
+              "signature": "func MatchKeys(m Matcher, keys []Key) []Key",
+              "doc": "MatchKeys returns the subset of keys that satisfy the matcher, preserving\ntheir input order. A nil matcher returns all keys.\n"
+            },
+            {
+              "name": "NewKey",
+              "signature": "func NewKey(name string) Key",
+              "doc": "NewKey builds a Key in the DefaultGroup.\n"
+            },
+            {
+              "name": "NewKeyInGroup",
+              "signature": "func NewKeyInGroup(name, group string) Key",
+              "doc": "NewKeyInGroup builds a Key in the given group. An empty group is replaced\nwith DefaultGroup.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "IsZero",
+              "recv": "Key",
+              "signature": "func (k Key) IsZero() bool",
+              "doc": "IsZero reports whether the Key carries no name.\n"
+            },
+            {
+              "name": "String",
+              "recv": "Key",
+              "signature": "func (k Key) String() string",
+              "doc": "String returns the \"group.name\" representation of the Key.\n"
+            }
+          ]
+        },
+        {
+          "name": "MatchFunc",
+          "signature": "type MatchFunc func(key Key) bool",
+          "doc": "MatchFunc adapts an ordinary function to the Matcher interface.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Matches",
+              "recv": "MatchFunc",
+              "signature": "func (f MatchFunc) Matches(key Key) bool",
+              "doc": "Matches implements the Matcher interface.\n"
+            }
+          ]
+        },
+        {
+          "name": "Matcher",
+          "signature": "type Matcher interface {\n\t// Matches reports whether the given key satisfies the matcher.\n\tMatches(key Key) bool\n}",
+          "doc": "Matcher reports whether a Key satisfies some criterion. Implementations must\nbe safe for concurrent use.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "AndMatcher",
+              "signature": "func AndMatcher(matchers ...Matcher) Matcher",
+              "doc": "AndMatcher returns a Matcher that matches a key only when every supplied\nmatcher matches it. With no matchers it matches everything.\n"
+            },
+            {
+              "name": "AnythingMatcher",
+              "signature": "func AnythingMatcher() Matcher",
+              "doc": "AnythingMatcher returns a Matcher that matches every key.\n"
+            },
+            {
+              "name": "GroupContains",
+              "signature": "func GroupContains(sub string) Matcher",
+              "doc": "GroupContains returns a Matcher that matches keys whose group contains sub.\n"
+            },
+            {
+              "name": "GroupEndsWith",
+              "signature": "func GroupEndsWith(suffix string) Matcher",
+              "doc": "GroupEndsWith returns a Matcher that matches keys whose group ends with\nsuffix.\n"
+            },
+            {
+              "name": "GroupEquals",
+              "signature": "func GroupEquals(group string) Matcher",
+              "doc": "GroupEquals returns a Matcher that matches keys whose group equals group.\n"
+            },
+            {
+              "name": "GroupStartsWith",
+              "signature": "func GroupStartsWith(prefix string) Matcher",
+              "doc": "GroupStartsWith returns a Matcher that matches keys whose group begins with\nprefix.\n"
+            },
+            {
+              "name": "KeyEquals",
+              "signature": "func KeyEquals(key Key) Matcher",
+              "doc": "KeyEquals returns a Matcher that matches exactly the given key (both name and\ngroup).\n"
+            },
+            {
+              "name": "NameContains",
+              "signature": "func NameContains(sub string) Matcher",
+              "doc": "NameContains returns a Matcher that matches keys whose name contains sub.\n"
+            },
+            {
+              "name": "NameEndsWith",
+              "signature": "func NameEndsWith(suffix string) Matcher",
+              "doc": "NameEndsWith returns a Matcher that matches keys whose name ends with suffix.\n"
+            },
+            {
+              "name": "NameEquals",
+              "signature": "func NameEquals(name string) Matcher",
+              "doc": "NameEquals returns a Matcher that matches keys whose name equals name,\nregardless of group.\n"
+            },
+            {
+              "name": "NameStartsWith",
+              "signature": "func NameStartsWith(prefix string) Matcher",
+              "doc": "NameStartsWith returns a Matcher that matches keys whose name begins with\nprefix.\n"
+            },
+            {
+              "name": "NotMatcher",
+              "signature": "func NotMatcher(m Matcher) Matcher",
+              "doc": "NotMatcher returns a Matcher that inverts the result of the given matcher. A\nnil matcher is treated as matching everything, so its negation matches\nnothing.\n"
+            },
+            {
+              "name": "OrMatcher",
+              "signature": "func OrMatcher(matchers ...Matcher) Matcher",
+              "doc": "OrMatcher returns a Matcher that matches a key when at least one supplied\nmatcher matches it. With no matchers it matches nothing.\n"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "name": "MemoryJobStore",
+          "signature": "type MemoryJobStore struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "MemoryJobStore is an in-memory, mutex protected JobStore suitable for a\nsingle process scheduler.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewMemoryJobStore",
+              "signature": "func NewMemoryJobStore() *MemoryJobStore",
+              "doc": "NewMemoryJobStore constructs an empty in-memory store.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "AcquireNextTriggers",
+              "recv": "*MemoryJobStore",
+              "signature": "func (s *MemoryJobStore) AcquireNextTriggers(noLaterThan time.Time, maxCount int) []*StoredTrigger",
+              "doc": "AcquireNextTriggers implements JobStore.\n"
+            },
+            {
+              "name": "GetJob",
+              "recv": "*MemoryJobStore",
+              "signature": "func (s *MemoryJobStore) GetJob(key Key) (*JobDetail, error)",
+              "doc": "GetJob implements JobStore.\n"
+            },
+            {
+              "name": "GetTrigger",
+              "recv": "*MemoryJobStore",
+              "signature": "func (s *MemoryJobStore) GetTrigger(key Key) (*StoredTrigger, error)",
+              "doc": "GetTrigger implements JobStore.\n"
+            },
+            {
+              "name": "JobKeys",
+              "recv": "*MemoryJobStore",
+              "signature": "func (s *MemoryJobStore) JobKeys() []Key",
+              "doc": "JobKeys implements JobStore.\n"
+            },
+            {
+              "name": "RemoveJob",
+              "recv": "*MemoryJobStore",
+              "signature": "func (s *MemoryJobStore) RemoveJob(key Key) (bool, error)",
+              "doc": "RemoveJob implements JobStore.\n"
+            },
+            {
+              "name": "RemoveTrigger",
+              "recv": "*MemoryJobStore",
+              "signature": "func (s *MemoryJobStore) RemoveTrigger(key Key) (bool, error)",
+              "doc": "RemoveTrigger implements JobStore.\n"
+            },
+            {
+              "name": "SetTriggerState",
+              "recv": "*MemoryJobStore",
+              "signature": "func (s *MemoryJobStore) SetTriggerState(key Key, state TriggerState) error",
+              "doc": "SetTriggerState implements JobStore.\n"
+            },
+            {
+              "name": "StoreJob",
+              "recv": "*MemoryJobStore",
+              "signature": "func (s *MemoryJobStore) StoreJob(detail *JobDetail, replace bool) error",
+              "doc": "StoreJob implements JobStore.\n"
+            },
+            {
+              "name": "StoreTrigger",
+              "recv": "*MemoryJobStore",
+              "signature": "func (s *MemoryJobStore) StoreTrigger(trigger Trigger, state TriggerState, replace bool) error",
+              "doc": "StoreTrigger implements JobStore.\n"
+            },
+            {
+              "name": "TriggerKeys",
+              "recv": "*MemoryJobStore",
+              "signature": "func (s *MemoryJobStore) TriggerKeys() []Key",
+              "doc": "TriggerKeys implements JobStore.\n"
+            },
+            {
+              "name": "TriggersForJob",
+              "recv": "*MemoryJobStore",
+              "signature": "func (s *MemoryJobStore) TriggersForJob(jobKey Key) []*StoredTrigger",
+              "doc": "TriggersForJob implements JobStore.\n"
+            }
+          ]
+        },
+        {
+          "name": "MisfirePolicy",
+          "signature": "type MisfirePolicy int",
+          "doc": "MisfirePolicy determines what a trigger does when the scheduler was unable to\nfire it on time (for example while paused or under load).\n",
+          "consts": [
+            {
+              "names": [
+                "MisfireSmart",
+                "MisfireFireNow",
+                "MisfireIgnore",
+                "MisfireDoNothing"
+              ],
+              "signature": "const (\n\t// MisfireSmart lets the trigger choose a sensible default: SimpleTrigger\n\t// reschedules relative to now while preserving its remaining count, and\n\t// CronTrigger advances to the next valid time after now.\n\tMisfireSmart MisfirePolicy = iota\n\t// MisfireFireNow instructs the trigger to fire once immediately and then\n\t// resume its normal schedule.\n\tMisfireFireNow\n\t// MisfireIgnore instructs the trigger to fire for every missed time as\n\t// fast as possible until it has caught up with now.\n\tMisfireIgnore\n\t// MisfireDoNothing instructs the trigger to skip all missed fires and\n\t// compute its next fire time strictly after now.\n\tMisfireDoNothing\n)",
+              "doc": ""
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "MonthlyCalendar",
+          "signature": "type MonthlyCalendar struct {\n\tBaseCalendar\n\t// contains filtered or unexported fields\n}",
+          "doc": "MonthlyCalendar excludes numbered days of the month (1 through 31). Exclusions\nhave day granularity and the day of month is determined in the calendar's\nlocation. Excluding a day that a given month does not have simply never\nmatches in that month.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewMonthlyCalendar",
+              "signature": "func NewMonthlyCalendar() *MonthlyCalendar",
+              "doc": "NewMonthlyCalendar returns a MonthlyCalendar with no days excluded.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "IsTimeIncluded",
+              "recv": "*MonthlyCalendar",
+              "signature": "func (c *MonthlyCalendar) IsTimeIncluded(t time.Time) bool",
+              "doc": "IsTimeIncluded reports whether t's day of month is not excluded and the base\nCalendar also includes t.\n"
+            },
+            {
+              "name": "NextIncludedTime",
+              "recv": "*MonthlyCalendar",
+              "signature": "func (c *MonthlyCalendar) NextIncludedTime(t time.Time) time.Time",
+              "doc": "NextIncludedTime returns the earliest instant at or after t that falls on a\nnon-excluded day of month and is allowed by the base Calendar.\n"
+            },
+            {
+              "name": "SetDayExcluded",
+              "recv": "*MonthlyCalendar",
+              "signature": "func (c *MonthlyCalendar) SetDayExcluded(day int, excluded bool)",
+              "doc": "SetDayExcluded sets whether the given day of month is excluded. Days outside\nthe range 1 through 31 are ignored.\n"
+            }
+          ]
+        },
+        {
+          "name": "Options",
+          "signature": "type Options struct {\n\t// Store is the JobStore to use. Defaults to a new MemoryJobStore.\n\tStore JobStore\n\t// Concurrency is the number of worker goroutines. Defaults to 1.\n\tConcurrency int\n\t// Clock returns the current time. Defaults to time.Now. Injecting a\n\t// custom clock makes firing decisions deterministic in tests.\n\tClock func() time.Time\n\t// PollInterval is how often the background loop wakes to check for due\n\t// triggers when running in real time. Defaults to 100ms.\n\tPollInterval time.Duration\n\t// MisfireThreshold is how late a trigger may fire before it is treated\n\t// as a misfire. Defaults to 5s.\n\tMisfireThreshold time.Duration\n}",
+          "doc": "Options configures a Scheduler.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "SQLJobStore",
+          "signature": "type SQLJobStore struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "SQLJobStore is a persistent JobStore backed solely by the standard library\ndatabase/sql package. The caller supplies an already configured *sql.DB; no\nthird-party driver is imported by this package. Jobs are persisted by type\nname plus a gob encoded JobDataMap and reconstructed through the factory\nregistry (see RegisterJobType); triggers are persisted by serializing the\nunexported state of the four supported concrete Trigger implementations. All\nmethods take the store mutex so that operations observe a single,\nconnection-pool-agnostic order.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewSQLJobStore",
+              "signature": "func NewSQLJobStore(db *sql.DB, opts SQLJobStoreOptions) *SQLJobStore",
+              "doc": "NewSQLJobStore constructs a SQLJobStore over the given *sql.DB and options.\nIt does not touch the database; call CreateSchema to create the backing\ntables. The db may be nil only when the store is used solely for the\nstateless (de)serialization helpers.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "AcquireNextTriggers",
+              "recv": "*SQLJobStore",
+              "signature": "func (s *SQLJobStore) AcquireNextTriggers(noLaterThan time.Time, maxCount int) []*StoredTrigger",
+              "doc": "AcquireNextTriggers implements JobStore. It returns up to maxCount triggers in\nthe NORMAL state whose next fire time is at or before noLaterThan, ordered by\nfire time. A maxCount of zero or less imposes no limit. It does not mutate any\nstate.\n"
+            },
+            {
+              "name": "CreateSchema",
+              "recv": "*SQLJobStore",
+              "signature": "func (s *SQLJobStore) CreateSchema(ctx context.Context) error",
+              "doc": "CreateSchema creates the jobs and triggers tables if they do not already\nexist. It is idempotent and safe to call on every startup.\n"
+            },
+            {
+              "name": "GetJob",
+              "recv": "*SQLJobStore",
+              "signature": "func (s *SQLJobStore) GetJob(key Key) (*JobDetail, error)",
+              "doc": "GetJob implements JobStore. It reconstructs the Job through the registered\nfactory (see RegisterJobType) and rehydrates its JobDataMap. It returns\nErrJobNotFound when no row exists.\n"
+            },
+            {
+              "name": "GetTrigger",
+              "recv": "*SQLJobStore",
+              "signature": "func (s *SQLJobStore) GetTrigger(key Key) (*StoredTrigger, error)",
+              "doc": "GetTrigger implements JobStore. It returns ErrTriggerNotFound when no row\nexists.\n"
+            },
+            {
+              "name": "JobKeys",
+              "recv": "*SQLJobStore",
+              "signature": "func (s *SQLJobStore) JobKeys() []Key",
+              "doc": "JobKeys implements JobStore. Keys are ordered by group then name.\n"
+            },
+            {
+              "name": "RemoveJob",
+              "recv": "*SQLJobStore",
+              "signature": "func (s *SQLJobStore) RemoveJob(key Key) (bool, error)",
+              "doc": "RemoveJob implements JobStore. It reports whether a job row was deleted.\n"
+            },
+            {
+              "name": "RemoveTrigger",
+              "recv": "*SQLJobStore",
+              "signature": "func (s *SQLJobStore) RemoveTrigger(key Key) (bool, error)",
+              "doc": "RemoveTrigger implements JobStore. It reports whether a trigger row was\ndeleted.\n"
+            },
+            {
+              "name": "SetTriggerState",
+              "recv": "*SQLJobStore",
+              "signature": "func (s *SQLJobStore) SetTriggerState(key Key, state TriggerState) error",
+              "doc": "SetTriggerState implements JobStore. It returns ErrTriggerNotFound when no\nrow matches the key.\n"
+            },
+            {
+              "name": "StoreJob",
+              "recv": "*SQLJobStore",
+              "signature": "func (s *SQLJobStore) StoreJob(detail *JobDetail, replace bool) error",
+              "doc": "StoreJob implements JobStore. It persists the JobDetail's identity, type\nname, and gob encoded JobDataMap. If replace is false and a job with the same\nkey already exists, ErrJobExists is returned.\n"
+            },
+            {
+              "name": "StoreTrigger",
+              "recv": "*SQLJobStore",
+              "signature": "func (s *SQLJobStore) StoreTrigger(trigger Trigger, state TriggerState, replace bool) error",
+              "doc": "StoreTrigger implements JobStore. It serializes the trigger's concrete state\nand persists it in the given state. If replace is false and a trigger with\nthe same key already exists, ErrTriggerExists is returned.\n"
+            },
+            {
+              "name": "TriggerKeys",
+              "recv": "*SQLJobStore",
+              "signature": "func (s *SQLJobStore) TriggerKeys() []Key",
+              "doc": "TriggerKeys implements JobStore. Keys are ordered by group then name.\n"
+            },
+            {
+              "name": "TriggersForJob",
+              "recv": "*SQLJobStore",
+              "signature": "func (s *SQLJobStore) TriggersForJob(jobKey Key) []*StoredTrigger",
+              "doc": "TriggersForJob implements JobStore. It returns every stored trigger that\nreferences the given job, ordered by group then name.\n"
+            }
+          ]
+        },
+        {
+          "name": "SQLJobStoreOptions",
+          "signature": "type SQLJobStoreOptions struct {\n\t// Driver is the name of the database/sql driver backing the supplied\n\t// *sql.DB (for example \"sqlite\", \"postgres\", or \"mysql\"). It selects the\n\t// SQL dialect used for identifier quoting, bind placeholders, and column\n\t// types. An empty value uses a portable default (ANSI quoting and \"?\"\n\t// placeholders).\n\tDriver string\n\t// TablePrefix is prepended to the \"jobs\" and \"triggers\" table names,\n\t// allowing several stores to share a database. It may be empty.\n\tTablePrefix string\n}",
+          "doc": "SQLJobStoreOptions configures a SQLJobStore.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "ScheduleBuilder",
+          "signature": "type ScheduleBuilder interface {\n\t// BuildTrigger constructs a fully configured Trigger for the given\n\t// identity and job key. A zero start or end time means the corresponding\n\t// bound is unset. It returns an error if the schedule is invalid.\n\tBuildTrigger(key, jobKey Key, start, end time.Time, description string) (Trigger, error)\n}",
+          "doc": "ScheduleBuilder is implemented by the schedule builders (simple, cron,\ncalendar-interval and daily-time-interval). A TriggerBuilder combines a\nScheduleBuilder with an identity, job reference and start/end window to\nproduce a concrete Trigger.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Scheduler",
+          "signature": "type Scheduler struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Scheduler schedules jobs, fires their triggers, and runs the resulting work\non a bounded worker pool. It is safe for concurrent use.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewScheduler",
+              "signature": "func NewScheduler(opts Options) *Scheduler",
+              "doc": "NewScheduler constructs a Scheduler from Options, applying defaults for any\nzero valued field.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "AddJob",
+              "recv": "*Scheduler",
+              "signature": "func (s *Scheduler) AddJob(detail *JobDetail) error",
+              "doc": "AddJob stores a durable job without any trigger.\n"
+            },
+            {
+              "name": "AddJobListener",
+              "recv": "*Scheduler",
+              "signature": "func (s *Scheduler) AddJobListener(l JobListener)",
+              "doc": "AddJobListener registers a JobListener. It must be called before Start.\n"
+            },
+            {
+              "name": "AddTriggerListener",
+              "recv": "*Scheduler",
+              "signature": "func (s *Scheduler) AddTriggerListener(l TriggerListener)",
+              "doc": "AddTriggerListener registers a TriggerListener. It must be called before\nStart.\n"
+            },
+            {
+              "name": "DeleteJob",
+              "recv": "*Scheduler",
+              "signature": "func (s *Scheduler) DeleteJob(jobKey Key) (bool, error)",
+              "doc": "DeleteJob removes a job and all of its triggers.\n"
+            },
+            {
+              "name": "IsStarted",
+              "recv": "*Scheduler",
+              "signature": "func (s *Scheduler) IsStarted() bool",
+              "doc": "IsStarted reports whether the scheduler is running.\n"
+            },
+            {
+              "name": "Now",
+              "recv": "*Scheduler",
+              "signature": "func (s *Scheduler) Now() time.Time",
+              "doc": "Now returns the scheduler's current time using its injected clock.\n"
+            },
+            {
+              "name": "PauseJob",
+              "recv": "*Scheduler",
+              "signature": "func (s *Scheduler) PauseJob(jobKey Key) error",
+              "doc": "PauseJob pauses all triggers of a job.\n"
+            },
+            {
+              "name": "PauseTrigger",
+              "recv": "*Scheduler",
+              "signature": "func (s *Scheduler) PauseTrigger(key Key) error",
+              "doc": "PauseTrigger sets a trigger to the paused state so it will not fire until\nresumed.\n"
+            },
+            {
+              "name": "ProcessDue",
+              "recv": "*Scheduler",
+              "signature": "func (s *Scheduler) ProcessDue() int",
+              "doc": "ProcessDue fires every trigger that is due at the scheduler's current time.\nIt is called by the background loop and may also be invoked directly to drive\nthe scheduler deterministically in tests using an injected clock. It returns\nthe number of triggers fired.\n"
+            },
+            {
+              "name": "ResumeJob",
+              "recv": "*Scheduler",
+              "signature": "func (s *Scheduler) ResumeJob(jobKey Key) error",
+              "doc": "ResumeJob resumes all triggers of a job.\n"
+            },
+            {
+              "name": "ResumeTrigger",
+              "recv": "*Scheduler",
+              "signature": "func (s *Scheduler) ResumeTrigger(key Key) error",
+              "doc": "ResumeTrigger returns a paused trigger to the normal state, applying misfire\nhandling for any fires missed while paused.\n"
+            },
+            {
+              "name": "ScheduleJob",
+              "recv": "*Scheduler",
+              "signature": "func (s *Scheduler) ScheduleJob(detail *JobDetail, trigger Trigger) error",
+              "doc": "ScheduleJob stores the job and its trigger and computes the trigger's first\nfire time. If detail is nil the job is assumed to already exist in the store.\n"
+            },
+            {
+              "name": "Shutdown",
+              "recv": "*Scheduler",
+              "signature": "func (s *Scheduler) Shutdown(waitForJobs bool)",
+              "doc": "Shutdown stops the scheduling loop and the worker pool. When waitForJobs is\ntrue it blocks until all in-flight and queued jobs have drained; otherwise it\ncancels running jobs' contexts and returns promptly.\n"
+            },
+            {
+              "name": "Start",
+              "recv": "*Scheduler",
+              "signature": "func (s *Scheduler) Start() error",
+              "doc": "Start launches the worker pool and the background scheduling loop. It is a\nno-op if the scheduler is already running and returns ErrSchedulerShutdown if\nit was shut down.\n"
+            },
+            {
+              "name": "Store",
+              "recv": "*Scheduler",
+              "signature": "func (s *Scheduler) Store() JobStore",
+              "doc": "Store returns the underlying JobStore.\n"
+            },
+            {
+              "name": "TriggerJob",
+              "recv": "*Scheduler",
+              "signature": "func (s *Scheduler) TriggerJob(jobKey Key) error",
+              "doc": "TriggerJob fires a job immediately, out of band from its triggers, by\ndispatching a one-off execution. The job must exist in the store.\n"
+            },
+            {
+              "name": "UnscheduleJob",
+              "recv": "*Scheduler",
+              "signature": "func (s *Scheduler) UnscheduleJob(triggerKey Key) (bool, error)",
+              "doc": "UnscheduleJob removes a trigger. If the referenced job is not durable and has\nno remaining triggers, the job is removed as well.\n"
+            }
+          ]
+        },
+        {
+          "name": "SimpleScheduleBuilder",
+          "signature": "type SimpleScheduleBuilder struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "SimpleScheduleBuilder builds a SimpleTrigger: a start time plus a fixed\ninterval repeated a bounded number of times or forever. Create one with\nSimpleSchedule.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "SimpleSchedule",
+              "signature": "func SimpleSchedule() *SimpleScheduleBuilder",
+              "doc": "SimpleSchedule starts building a simple interval schedule. Without further\nconfiguration it produces a trigger that fires exactly once at the start\ntime.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "BuildTrigger",
+              "recv": "*SimpleScheduleBuilder",
+              "signature": "func (b *SimpleScheduleBuilder) BuildTrigger(key, jobKey Key, start, end time.Time, description string) (Trigger, error)",
+              "doc": "BuildTrigger implements ScheduleBuilder.\n"
+            },
+            {
+              "name": "RepeatForever",
+              "recv": "*SimpleScheduleBuilder",
+              "signature": "func (b *SimpleScheduleBuilder) RepeatForever() *SimpleScheduleBuilder",
+              "doc": "RepeatForever configures unbounded repeats and returns the builder for\nchaining.\n"
+            },
+            {
+              "name": "WithInterval",
+              "recv": "*SimpleScheduleBuilder",
+              "signature": "func (b *SimpleScheduleBuilder) WithInterval(d time.Duration) *SimpleScheduleBuilder",
+              "doc": "WithInterval sets the repeat interval and returns the builder for chaining.\n"
+            },
+            {
+              "name": "WithIntervalInHours",
+              "recv": "*SimpleScheduleBuilder",
+              "signature": "func (b *SimpleScheduleBuilder) WithIntervalInHours(hours int) *SimpleScheduleBuilder",
+              "doc": "WithIntervalInHours sets the repeat interval in hours and returns the builder\nfor chaining.\n"
+            },
+            {
+              "name": "WithIntervalInMinutes",
+              "recv": "*SimpleScheduleBuilder",
+              "signature": "func (b *SimpleScheduleBuilder) WithIntervalInMinutes(minutes int) *SimpleScheduleBuilder",
+              "doc": "WithIntervalInMinutes sets the repeat interval in minutes and returns the\nbuilder for chaining.\n"
+            },
+            {
+              "name": "WithIntervalInSeconds",
+              "recv": "*SimpleScheduleBuilder",
+              "signature": "func (b *SimpleScheduleBuilder) WithIntervalInSeconds(seconds int) *SimpleScheduleBuilder",
+              "doc": "WithIntervalInSeconds sets the repeat interval in seconds and returns the\nbuilder for chaining.\n"
+            },
+            {
+              "name": "WithMisfirePolicy",
+              "recv": "*SimpleScheduleBuilder",
+              "signature": "func (b *SimpleScheduleBuilder) WithMisfirePolicy(p MisfirePolicy) *SimpleScheduleBuilder",
+              "doc": "WithMisfirePolicy sets the misfire policy and returns the builder for\nchaining.\n"
+            },
+            {
+              "name": "WithRepeatCount",
+              "recv": "*SimpleScheduleBuilder",
+              "signature": "func (b *SimpleScheduleBuilder) WithRepeatCount(count int) *SimpleScheduleBuilder",
+              "doc": "WithRepeatCount sets the number of repeats after the initial fire and returns\nthe builder for chaining. A count of N yields N+1 total fires.\n"
+            }
+          ]
+        },
+        {
+          "name": "SimpleTrigger",
+          "signature": "type SimpleTrigger struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "SimpleTrigger fires starting at a given time, then repeats on a fixed\ninterval either a bounded number of times or forever. A repeat count of N\nresults in N+1 total fires (the initial fire plus N repeats), matching the\nsemantics of the original Quartz project.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewSimpleTrigger",
+              "signature": "func NewSimpleTrigger(key, jobKey Key, start time.Time, interval time.Duration, repeatCount int) *SimpleTrigger",
+              "doc": "NewSimpleTrigger builds a SimpleTrigger. A repeatCount of RepeatForever means\nunbounded repeats. An interval of zero with a non-zero repeat count is\ninvalid and will cause the trigger to fire only once.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "ComputeFirstFireTime",
+              "recv": "*SimpleTrigger",
+              "signature": "func (t *SimpleTrigger) ComputeFirstFireTime(now time.Time) time.Time",
+              "doc": "ComputeFirstFireTime implements Trigger.\n"
+            },
+            {
+              "name": "Description",
+              "recv": "*SimpleTrigger",
+              "signature": "func (t *SimpleTrigger) Description() string",
+              "doc": "Description implements Trigger.\n"
+            },
+            {
+              "name": "FireTimeAfter",
+              "recv": "*SimpleTrigger",
+              "signature": "func (t *SimpleTrigger) FireTimeAfter(after time.Time) time.Time",
+              "doc": "FireTimeAfter returns the first scheduled fire time strictly after the given\ntime, or the zero time when the trigger has no such fire (it is exhausted by\nits repeat count or end time). It is a pure query that does not consult or\nmutate the trigger's running state, mirroring the original Quartz\nSimpleTrigger.getFireTimeAfter(Date). Fire times are the start time plus\nwhole multiples of the interval; a trigger with RepeatForever is unbounded,\notherwise it fires repeatCount+1 times in total.\n"
+            },
+            {
+              "name": "Interval",
+              "recv": "*SimpleTrigger",
+              "signature": "func (t *SimpleTrigger) Interval() time.Duration",
+              "doc": "Interval returns the repeat interval.\n"
+            },
+            {
+              "name": "JobKey",
+              "recv": "*SimpleTrigger",
+              "signature": "func (t *SimpleTrigger) JobKey() Key",
+              "doc": "JobKey implements Trigger.\n"
+            },
+            {
+              "name": "Key",
+              "recv": "*SimpleTrigger",
+              "signature": "func (t *SimpleTrigger) Key() Key",
+              "doc": "Key implements Trigger.\n"
+            },
+            {
+              "name": "MisfirePolicy",
+              "recv": "*SimpleTrigger",
+              "signature": "func (t *SimpleTrigger) MisfirePolicy() MisfirePolicy",
+              "doc": "MisfirePolicy implements Trigger.\n"
+            },
+            {
+              "name": "NextFireTime",
+              "recv": "*SimpleTrigger",
+              "signature": "func (t *SimpleTrigger) NextFireTime() time.Time",
+              "doc": "NextFireTime implements Trigger.\n"
+            },
+            {
+              "name": "PreviousFireTime",
+              "recv": "*SimpleTrigger",
+              "signature": "func (t *SimpleTrigger) PreviousFireTime() time.Time",
+              "doc": "PreviousFireTime implements Trigger.\n"
+            },
+            {
+              "name": "RepeatCount",
+              "recv": "*SimpleTrigger",
+              "signature": "func (t *SimpleTrigger) RepeatCount() int",
+              "doc": "RepeatCount returns the configured repeat count.\n"
+            },
+            {
+              "name": "StartTime",
+              "recv": "*SimpleTrigger",
+              "signature": "func (t *SimpleTrigger) StartTime() time.Time",
+              "doc": "StartTime returns the configured start time.\n"
+            },
+            {
+              "name": "String",
+              "recv": "*SimpleTrigger",
+              "signature": "func (t *SimpleTrigger) String() string",
+              "doc": "String returns a debug representation of the trigger.\n"
+            },
+            {
+              "name": "TimesTriggered",
+              "recv": "*SimpleTrigger",
+              "signature": "func (t *SimpleTrigger) TimesTriggered() int",
+              "doc": "TimesTriggered returns the number of times the trigger has fired.\n"
+            },
+            {
+              "name": "Triggered",
+              "recv": "*SimpleTrigger",
+              "signature": "func (t *SimpleTrigger) Triggered(now time.Time) time.Time",
+              "doc": "Triggered implements Trigger.\n"
+            },
+            {
+              "name": "UpdateAfterMisfire",
+              "recv": "*SimpleTrigger",
+              "signature": "func (t *SimpleTrigger) UpdateAfterMisfire(now time.Time) time.Time",
+              "doc": "UpdateAfterMisfire implements Trigger. It reschedules the trigger relative to\nnow according to its misfire policy.\n"
+            },
+            {
+              "name": "WillFireAgain",
+              "recv": "*SimpleTrigger",
+              "signature": "func (t *SimpleTrigger) WillFireAgain() bool",
+              "doc": "WillFireAgain implements Trigger.\n"
+            },
+            {
+              "name": "WithDescription",
+              "recv": "*SimpleTrigger",
+              "signature": "func (t *SimpleTrigger) WithDescription(desc string) *SimpleTrigger",
+              "doc": "WithDescription sets the trigger description and returns the trigger.\n"
+            },
+            {
+              "name": "WithEndTime",
+              "recv": "*SimpleTrigger",
+              "signature": "func (t *SimpleTrigger) WithEndTime(end time.Time) *SimpleTrigger",
+              "doc": "WithEndTime sets a time after which the trigger will not fire and returns the\ntrigger. The zero time means no end.\n"
+            },
+            {
+              "name": "WithMisfirePolicy",
+              "recv": "*SimpleTrigger",
+              "signature": "func (t *SimpleTrigger) WithMisfirePolicy(p MisfirePolicy) *SimpleTrigger",
+              "doc": "WithMisfirePolicy sets the misfire policy and returns the trigger.\n"
+            }
+          ]
+        },
+        {
+          "name": "StoredTrigger",
+          "signature": "type StoredTrigger struct {\n\tTrigger Trigger\n\tState   TriggerState\n}",
+          "doc": "StoredTrigger couples a Trigger with its scheduling state inside a JobStore.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "TimeOfDay",
+          "signature": "type TimeOfDay struct {\n\t// Hour is the hour of the day in the range [0, 23].\n\tHour int\n\t// Minute is the minute of the hour in the range [0, 59].\n\tMinute int\n\t// Second is the second of the minute in the range [0, 59].\n\tSecond int\n}",
+          "doc": "TimeOfDay is a wall-clock time-of-day, expressed as an hour, minute and\nsecond offset from midnight. It carries no date or location; a\nDailyTimeIntervalTrigger interprets it against each active day in the\ntrigger's own location so that window boundaries are wall-clock times.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewTimeOfDay",
+              "signature": "func NewTimeOfDay(h, m, s int) TimeOfDay",
+              "doc": "NewTimeOfDay builds a TimeOfDay from an hour, minute and second. The values\nare stored as given; callers are responsible for supplying sane, normalized\ncomponents (for example 0-23 for the hour).\n"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "name": "Trigger",
+          "signature": "type Trigger interface {\n\t// Key returns the trigger's identity.\n\tKey() Key\n\t// JobKey returns the key of the job this trigger fires.\n\tJobKey() Key\n\n\t// ComputeFirstFireTime initializes internal state and returns the first\n\t// time the trigger should fire at or after its configured start time,\n\t// using now as the reference clock. It returns the zero time if the\n\t// trigger will never fire.\n\tComputeFirstFireTime(now time.Time) time.Time\n\n\t// NextFireTime returns the currently scheduled fire time, or the zero\n\t// time if the trigger is exhausted.\n\tNextFireTime() time.Time\n\n\t// PreviousFireTime returns the last time the trigger fired, or the zero\n\t// time if it has not fired yet.\n\tPreviousFireTime() time.Time\n\n\t// Triggered advances the trigger after a fire at the given time and\n\t// returns the next fire time (zero when exhausted).\n\tTriggered(now time.Time) time.Time\n\n\t// WillFireAgain reports whether NextFireTime is set.\n\tWillFireAgain() bool\n\n\t// MisfirePolicy returns the configured misfire policy.\n\tMisfirePolicy() MisfirePolicy\n\n\t// UpdateAfterMisfire recomputes the next fire time relative to now\n\t// according to the trigger's misfire policy and returns it.\n\tUpdateAfterMisfire(now time.Time) time.Time\n\n\t// Description returns an optional human readable description.\n\tDescription() string\n}",
+          "doc": "Trigger describes when a job should fire. Implementations must be safe for\nuse by a single scheduler goroutine at a time; the scheduler serializes all\nmutating calls (ComputeFirstFireTime and Triggered) per trigger.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "TriggerBuilder",
+          "signature": "type TriggerBuilder struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "TriggerBuilder assembles a Trigger by combining an identity, a job reference,\na firing window and a ScheduleBuilder. Create one with NewTrigger.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewTrigger",
+              "signature": "func NewTrigger() *TriggerBuilder",
+              "doc": "NewTrigger starts building a Trigger. Configure its identity, job and schedule\nthen call Build.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Build",
+              "recv": "*TriggerBuilder",
+              "signature": "func (b *TriggerBuilder) Build() (Trigger, error)",
+              "doc": "Build produces the configured Trigger. It requires a job reference (set with\nForJob or ForJobDetail). When no identity was set a process-unique name is\ngenerated. When no schedule was set a fire-once SimpleSchedule is used. When\nno start time was set the trigger starts at the current time, matching the\noriginal Quartz default.\n"
+            },
+            {
+              "name": "EndAt",
+              "recv": "*TriggerBuilder",
+              "signature": "func (b *TriggerBuilder) EndAt(t time.Time) *TriggerBuilder",
+              "doc": "EndAt sets the latest time the trigger may fire and returns the builder for\nchaining. The zero time means no end.\n"
+            },
+            {
+              "name": "ForJob",
+              "recv": "*TriggerBuilder",
+              "signature": "func (b *TriggerBuilder) ForJob(jobKey Key) *TriggerBuilder",
+              "doc": "ForJob sets the key of the job the trigger will fire and returns the builder\nfor chaining.\n"
+            },
+            {
+              "name": "ForJobDetail",
+              "recv": "*TriggerBuilder",
+              "signature": "func (b *TriggerBuilder) ForJobDetail(detail *JobDetail) *TriggerBuilder",
+              "doc": "ForJobDetail sets the job reference from an existing JobDetail and returns the\nbuilder for chaining.\n"
+            },
+            {
+              "name": "StartAt",
+              "recv": "*TriggerBuilder",
+              "signature": "func (b *TriggerBuilder) StartAt(t time.Time) *TriggerBuilder",
+              "doc": "StartAt sets the earliest time the trigger may fire and returns the builder\nfor chaining.\n"
+            },
+            {
+              "name": "StartNow",
+              "recv": "*TriggerBuilder",
+              "signature": "func (b *TriggerBuilder) StartNow() *TriggerBuilder",
+              "doc": "StartNow marks the trigger to begin at the moment Build is called and returns\nthe builder for chaining.\n"
+            },
+            {
+              "name": "WithDescription",
+              "recv": "*TriggerBuilder",
+              "signature": "func (b *TriggerBuilder) WithDescription(desc string) *TriggerBuilder",
+              "doc": "WithDescription sets the trigger's description and returns the builder for\nchaining.\n"
+            },
+            {
+              "name": "WithIdentity",
+              "recv": "*TriggerBuilder",
+              "signature": "func (b *TriggerBuilder) WithIdentity(key Key) *TriggerBuilder",
+              "doc": "WithIdentity sets the trigger's key and returns the builder for chaining.\n"
+            },
+            {
+              "name": "WithIdentityName",
+              "recv": "*TriggerBuilder",
+              "signature": "func (b *TriggerBuilder) WithIdentityName(name string) *TriggerBuilder",
+              "doc": "WithIdentityName sets the trigger's key to the given name in the default group\nand returns the builder for chaining.\n"
+            },
+            {
+              "name": "WithIdentityNameGroup",
+              "recv": "*TriggerBuilder",
+              "signature": "func (b *TriggerBuilder) WithIdentityNameGroup(name, group string) *TriggerBuilder",
+              "doc": "WithIdentityNameGroup sets the trigger's key to the given name and group and\nreturns the builder for chaining.\n"
+            },
+            {
+              "name": "WithSchedule",
+              "recv": "*TriggerBuilder",
+              "signature": "func (b *TriggerBuilder) WithSchedule(s ScheduleBuilder) *TriggerBuilder",
+              "doc": "WithSchedule sets the ScheduleBuilder that determines the trigger's firing\ncadence and returns the builder for chaining.\n"
+            }
+          ]
+        },
+        {
+          "name": "TriggerListener",
+          "signature": "type TriggerListener interface {\n\t// Name identifies the listener.\n\tName() string\n\t// TriggerFired is called when a trigger has fired and its job is about\n\t// to be executed.\n\tTriggerFired(ctx context.Context, trigger Trigger, jec *JobExecutionContext)\n\t// VetoJobExecution returns true to prevent the job from executing for\n\t// this fire.\n\tVetoJobExecution(ctx context.Context, trigger Trigger, jec *JobExecutionContext) bool\n\t// TriggerComplete is called after the job has executed (or was vetoed).\n\tTriggerComplete(ctx context.Context, trigger Trigger, jec *JobExecutionContext)\n}",
+          "doc": "TriggerListener receives notifications about trigger firing. VetoJobExecution\nallows a listener to prevent a job from running for a given fire.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "TriggerState",
+          "signature": "type TriggerState int",
+          "doc": "TriggerState enumerates the scheduling state of a stored trigger.\n",
+          "consts": [
+            {
+              "names": [
+                "TriggerStateNormal",
+                "TriggerStatePaused",
+                "TriggerStateComplete"
+              ],
+              "signature": "const (\n\t// TriggerStateNormal means the trigger is eligible to fire.\n\tTriggerStateNormal TriggerState = iota\n\t// TriggerStatePaused means the trigger will not fire until resumed.\n\tTriggerStatePaused\n\t// TriggerStateComplete means the trigger will not fire again.\n\tTriggerStateComplete\n)",
+              "doc": ""
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "String",
+              "recv": "TriggerState",
+              "signature": "func (s TriggerState) String() string",
+              "doc": "String returns the trigger state's name (e.g. \"waiting\", \"paused\").\n"
+            }
+          ]
+        },
+        {
+          "name": "WeeklyCalendar",
+          "signature": "type WeeklyCalendar struct {\n\tBaseCalendar\n\t// contains filtered or unexported fields\n}",
+          "doc": "WeeklyCalendar excludes whole days of the week. By default Sunday and Saturday\nare excluded. Exclusions have day granularity and the weekday is determined in\nthe calendar's location.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewWeeklyCalendar",
+              "signature": "func NewWeeklyCalendar() *WeeklyCalendar",
+              "doc": "NewWeeklyCalendar returns a WeeklyCalendar with Sunday and Saturday excluded.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "IsTimeIncluded",
+              "recv": "*WeeklyCalendar",
+              "signature": "func (c *WeeklyCalendar) IsTimeIncluded(t time.Time) bool",
+              "doc": "IsTimeIncluded reports whether t's weekday is not excluded and the base\nCalendar also includes t.\n"
+            },
+            {
+              "name": "NextIncludedTime",
+              "recv": "*WeeklyCalendar",
+              "signature": "func (c *WeeklyCalendar) NextIncludedTime(t time.Time) time.Time",
+              "doc": "NextIncludedTime returns the earliest instant at or after t that falls on a\nnon-excluded weekday and is allowed by the base Calendar.\n"
+            },
+            {
+              "name": "SetDayExcluded",
+              "recv": "*WeeklyCalendar",
+              "signature": "func (c *WeeklyCalendar) SetDayExcluded(day time.Weekday, excluded bool)",
+              "doc": "SetDayExcluded sets whether the given weekday is excluded.\n"
+            }
+          ]
+        }
+      ],
+      "funcs": [
+        {
+          "name": "RegisterJobType",
+          "signature": "func RegisterJobType(name string, factory func() Job)",
+          "doc": "RegisterJobType registers a factory that constructs a fresh Job of a concrete\ntype. The name must match the value returned by jobTypeName for instances of\nthat type (that is, reflect.TypeOf(job).String(), such as\n\"*mypkg.EmailJob\"), because the SQL store persists a job by that name and\nrebuilds it by looking the factory up again. Registering the same name twice\nreplaces the previous factory. It is safe for concurrent use.\n"
+        }
+      ],
+      "examples": [
+        {
+          "name": "",
+          "code": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\t\"time\"\n\n\t\"github.com/malcolmston/quartz\"\n)\n\nfunc main() {\n\t// A fixed clock lets us fire triggers without real time passing.\n\tnow := time.Date(2026, 1, 1, 9, 59, 0, 0, time.UTC)\n\ts := quartz.NewScheduler(quartz.Options{\n\t\tClock: func() time.Time { return now },\n\t})\n\n\tjob := quartz.NewJobDetail(\n\t\tquartz.NewKey(\"daily-report\"),\n\t\tquartz.JobFunc(func(ctx context.Context) error {\n\t\t\tfmt.Println(\"report generated\")\n\t\t\treturn nil\n\t\t}),\n\t)\n\n\t// Fire at 10:00:00 every day.\n\ttrigger, err := quartz.NewCronTriggerWithKeys(\n\t\tquartz.NewKey(\"report-trigger\"), job.Key(), \"0 0 10 * * *\")\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\n\tif err := s.ScheduleJob(job, trigger); err != nil {\n\t\tpanic(err)\n\t}\n\n\tfmt.Println(\"next fire:\", trigger.NextFireTime().Format(\"2006-01-02 15:04:05\"))\n\n\t// Nothing is due yet at 09:59.\n\tfmt.Println(\"fired at 09:59:\", s.ProcessDue())\n\n\t// Advance to 10:00 and process again.\n\tnow = time.Date(2026, 1, 1, 10, 0, 0, 0, time.UTC)\n\tfmt.Println(\"fired at 10:00:\", s.ProcessDue())\n\n}",
+          "output": "next fire: 2026-01-01 10:00:00\nfired at 09:59: 0\nreport generated\nfired at 10:00: 1",
+          "doc": "Example demonstrates scheduling a cron job and firing it deterministically\nwith an injected clock. Because the clock is controlled by the test, the\nscheduler can be driven with ProcessDue instead of sleeping.\n"
+        },
+        {
+          "name": "SimpleTrigger",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"time\"\n\n\t\"github.com/malcolmston/quartz\"\n)\n\nfunc main() {\n\tstart := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)\n\ttrig := quartz.NewSimpleTrigger(\n\t\tquartz.NewKey(\"t\"), quartz.NewKey(\"j\"),\n\t\tstart, 30*time.Minute, 2) // 3 total fires\n\n\ttrig.ComputeFirstFireTime(start)\n\tfor trig.WillFireAgain() {\n\t\tfmt.Println(trig.NextFireTime().Format(\"15:04\"))\n\t\ttrig.Triggered(trig.NextFireTime())\n\t}\n\n}",
+          "output": "00:00\n00:30\n01:00",
+          "doc": "ExampleSimpleTrigger shows a bounded, repeating interval trigger and its fire\ntimes computed with an injected clock.\n"
+        }
+      ]
+    }
+  ]
+}

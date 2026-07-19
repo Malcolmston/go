@@ -1,0 +1,873 @@
+{
+  "module": "github.com/malcolmston/nodemailer",
+  "generatedAt": "2026-07-19T02:05:53Z",
+  "packages": [
+    {
+      "importPath": "github.com/malcolmston/nodemailer",
+      "name": "nodemailer",
+      "synopsis": "Package nodemailer is a Nodemailer-style email composition and SMTP sending library implemented entirely with the Go standard library.",
+      "doc": "Package nodemailer is a Nodemailer-style email composition and SMTP sending\nlibrary implemented entirely with the Go standard library.\n\nIt provides three layers that compose cleanly:\n\n  - A Message builder for assembling an email from its parts: From, To, Cc,\n    Bcc, Reply-To, Subject, plain-text and HTML bodies, custom headers, an\n    explicit Date and Message-ID, file attachments and inline (CID) images.\n  - A MIME encoder that turns a Message into RFC 5322 / MIME bytes.\n  - A Transport interface with concrete SMTP, in-memory and JSON transports,\n    driven by a Transporter that mirrors nodemailer's sendMail flow.\n\n# Building a message\n\nMessages are constructed with New and the fluent setters, or by populating\nthe exported struct fields directly. Address setters parse and validate\ntheir inputs using net/mail; the first error is deferred and surfaced by\nBuild (or Err):\n\n\tmsg := nodemailer.New().\n\t\tSetFrom(\"Ada Lovelace \u003cada@example.com\u003e\").\n\t\tAddTo(\"Grace Hopper \u003cgrace@example.com\u003e\", \"team@example.com\").\n\t\tSetSubject(\"Progress report\").\n\t\tSetText(\"Plain-text body\").\n\t\tSetHTML(\"\u003cp\u003eHTML body\u003c/p\u003e\")\n\nAddresses accept the usual forms: a bare addr-spec (\"a@b.com\"), a named\naddress (\"Name \u003ca@b.com\u003e\") and comma-separated lists. Validation rejects\nclearly-invalid values such as missing \"@\", empty local or domain parts and\ndomains without a dot.\n\n# MIME structure\n\nBuild chooses the correct MIME structure automatically:\n\n  - text only or HTML only: a single text/plain or text/html part.\n  - text and HTML: multipart/alternative.\n  - inline (CID) resources: the body is wrapped in multipart/related.\n  - regular attachments: the whole thing is wrapped in multipart/mixed.\n\nText bodies are quoted-printable encoded; attachments are base64 encoded and\nwrapped at 76 columns. Non-ASCII subjects, display names and filenames use\nRFC 2047 encoded words. All line endings are CRLF and long header lines are\nfolded at whitespace.\n\nOutput is deterministic when Date, MessageID and Boundary are all set\nexplicitly, which makes the encoder straightforward to unit-test:\n\n\tmsg.SetDate(time.Date(2026, 1, 2, 15, 4, 5, 0, time.UTC)).\n\t\tSetMessageID(\"fixed@example.com\").\n\t\tSetBoundary(\"BOUNDARY\")\n\traw, err := msg.Build()\n\n# Transports\n\nA Transport delivers encoded bytes to recipients:\n\n\ttype Transport interface {\n\t\tSend(from string, to []string, raw []byte) error\n\t}\n\nSMTPTransport speaks SMTP via net/smtp with PLAIN or OAuth2 (XOAUTH2)\nauthentication and either implicit TLS or STARTTLS. It can verify a server\n(dial + EHLO + optional auth, no send) and request RFC 3461 delivery status\nnotifications. Pool wraps it as a bounded, reusable connection pool.\nSendmailTransport pipes to a local sendmail binary, while MemoryTransport and\nJSONTransport capture messages for tests.\n\nA Transporter ties a Message to a Transport:\n\n\ttr := nodemailer.NewTransporter(\u0026nodemailer.MemoryTransport{})\n\tinfo, err := tr.SendMail(msg)\n\nSendMail builds the MIME bytes, derives the SMTP envelope (sender plus the\ncombined To/Cc/Bcc recipient list and any address groups) and returns Info\ncontaining the Message-ID, envelope and raw bytes.\n\n# Additional features\n\nThe library also supports DKIM signing (RSA-SHA256 with relaxed or simple\ncanonicalization via the DKIM type), named address groups, List-* headers,\nmessage priority, In-Reply-To/References threading, extra body alternatives\nand text/calendar (iCal) events, and loading attachments from a file path, an\nio.Reader or a URL with content-type sniffing.\n",
+      "consts": [],
+      "vars": [
+        {
+          "names": [
+            "DefaultDKIMHeaders"
+          ],
+          "signature": "var DefaultDKIMHeaders = []string{\"From\", \"To\", \"Cc\", \"Subject\", \"Date\", \"Message-ID\", \"MIME-Version\", \"Content-Type\"}",
+          "doc": "DefaultDKIMHeaders is the default set of headers to sign when DKIM.Headers is\nempty. Only headers present in the message are included.\n"
+        },
+        {
+          "names": [
+            "ErrDKIMConfig"
+          ],
+          "signature": "var ErrDKIMConfig = errors.New(\"nodemailer: incomplete DKIM configuration\")",
+          "doc": "ErrDKIMConfig is returned when the DKIM configuration is incomplete.\n"
+        },
+        {
+          "names": [
+            "ErrInvalidAddress"
+          ],
+          "signature": "var ErrInvalidAddress = errors.New(\"nodemailer: invalid email address\")",
+          "doc": "ErrInvalidAddress is returned when an address fails validation.\n"
+        },
+        {
+          "names": [
+            "ErrPoolClosed"
+          ],
+          "signature": "var ErrPoolClosed = errors.New(\"nodemailer: pool is closed\")",
+          "doc": "ErrPoolClosed is returned when a Pool is used after Close.\n"
+        }
+      ],
+      "types": [
+        {
+          "name": "Address",
+          "signature": "type Address struct {\n\t// Name is the optional human-readable display name.\n\tName string\n\t// Address is the addr-spec, e.g. \"ada@example.com\".\n\tAddress string\n}",
+          "doc": "Address represents a single email address with an optional display name,\ne.g. Name=\"Ada Lovelace\", Address=\"ada@example.com\".\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "ParseAddress",
+              "signature": "func ParseAddress(s string) (Address, error)",
+              "doc": "ParseAddress parses a single RFC 5322 address such as\n\"Ada Lovelace \u003cada@example.com\u003e\" or \"ada@example.com\".\n"
+            },
+            {
+              "name": "ParseAddressList",
+              "signature": "func ParseAddressList(s string) ([]Address, error)",
+              "doc": "ParseAddressList parses a comma-separated list of addresses such as\n\"Ada \u003cada@example.com\u003e, grace@example.com\".\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Domain",
+              "recv": "Address",
+              "signature": "func (a Address) Domain() string",
+              "doc": "Domain returns the domain part of the address (everything after the last\n\"@\"), or the empty string when the address has no \"@\".\n"
+            },
+            {
+              "name": "Equal",
+              "recv": "Address",
+              "signature": "func (a Address) Equal(b Address) bool",
+              "doc": "Equal reports whether two addresses refer to the same mailbox. The domain is\ncompared case-insensitively (domains are case-insensitive per RFC 5321) while\nthe local part is compared verbatim. Display names are ignored.\n"
+            },
+            {
+              "name": "Local",
+              "recv": "Address",
+              "signature": "func (a Address) Local() string",
+              "doc": "Local returns the local part of the address (everything before the last \"@\"),\nor the empty string when the address has no \"@\".\n"
+            },
+            {
+              "name": "String",
+              "recv": "Address",
+              "signature": "func (a Address) String() string",
+              "doc": "String renders the address for a header, applying RFC 2047 encoded-word\nencoding to non-ASCII display names and quoting when required.\n"
+            },
+            {
+              "name": "Validate",
+              "recv": "Address",
+              "signature": "func (a Address) Validate() error",
+              "doc": "Validate reports whether the address is a plausible, well-formed addr-spec.\nIt rejects clearly-invalid values: empty addresses, addresses without a\nsingle \"@\", empty local or domain parts, whitespace inside the addr-spec and\ndomains without a dot.\n"
+            }
+          ]
+        },
+        {
+          "name": "AddressGroup",
+          "signature": "type AddressGroup struct {\n\t// Name is the group label shown before the colon.\n\tName string\n\t// Addresses are the group members.\n\tAddresses []Address\n}",
+          "doc": "AddressGroup is a named RFC 5322 address group, e.g.\n\n\tTeam: ada@example.com, grace@example.com;\n\nName is the group's display label and Addresses are its members (which may be\nempty for an \"undisclosed recipients:;\" style group).\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "ParseAddressGroup",
+              "signature": "func ParseAddressGroup(s string) (AddressGroup, error)",
+              "doc": "ParseAddressGroup parses a single RFC 5322 group construct of the form\n\"Name: addr, addr;\". The trailing semicolon is optional. It returns an error\nif the input is not a group (no colon) or any member is invalid.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "String",
+              "recv": "AddressGroup",
+              "signature": "func (g AddressGroup) String() string",
+              "doc": "String renders the group as an RFC 5322 header value:\n\"Name: a@x, b@y;\". A group with no members renders as \"Name:;\".\n"
+            }
+          ]
+        },
+        {
+          "name": "Alternative",
+          "signature": "type Alternative struct {\n\t// ContentType is the MIME media type, e.g. \"text/x-web-markdown\". A charset\n\t// parameter of utf-8 is appended automatically for text/* types that lack\n\t// one.\n\tContentType string\n\t// Content is the body text.\n\tContent string\n}",
+          "doc": "Alternative is an additional body representation placed alongside the plain\ntext and HTML parts inside the multipart/alternative container. Mail clients\npick the last (most preferred) alternative they can render.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Attachment",
+          "signature": "type Attachment struct {\n\t// Filename is the name presented to the recipient.\n\tFilename string\n\t// Content holds the raw bytes of the attachment.\n\tContent []byte\n\t// ContentType is the MIME type, e.g. \"application/pdf\". If empty it is\n\t// guessed from the filename extension, falling back to\n\t// \"application/octet-stream\".\n\tContentType string\n\t// ContentID, when set, adds a Content-ID header so the resource can be\n\t// referenced from HTML via cid:ContentID. Implies an inline part.\n\tContentID string\n\t// Inline marks the attachment as an inline part (Content-Disposition:\n\t// inline) rather than a regular attachment. Setting ContentID also makes\n\t// the part inline.\n\tInline bool\n}",
+          "doc": "Attachment represents a file or inline resource attached to a Message.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Canonicalization",
+          "signature": "type Canonicalization string",
+          "doc": "Canonicalization selects a DKIM canonicalization algorithm (RFC 6376 §3.4).\n",
+          "consts": [
+            {
+              "names": [
+                "CanonSimple",
+                "CanonRelaxed"
+              ],
+              "signature": "const (\n\t// CanonSimple is the \"simple\" canonicalization: header names and values are\n\t// used verbatim (only trailing empty body lines are stripped).\n\tCanonSimple Canonicalization = \"simple\"\n\t// CanonRelaxed is the \"relaxed\" canonicalization: header names are\n\t// lower-cased, whitespace runs collapsed, and body lines stripped of\n\t// trailing whitespace.\n\tCanonRelaxed Canonicalization = \"relaxed\"\n)",
+              "doc": ""
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "CapturedMessage",
+          "signature": "type CapturedMessage struct {\n\tFrom string\n\tTo   []string\n\tRaw  []byte\n}",
+          "doc": "CapturedMessage is a single message recorded by a MemoryTransport.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "DKIM",
+          "signature": "type DKIM struct {\n\t// Domain is the signing domain (the \"d=\" tag), e.g. \"example.com\".\n\tDomain string\n\t// Selector is the key selector (the \"s=\" tag), e.g. \"mail\". The public key\n\t// is published at \u003cselector\u003e._domainkey.\u003cdomain\u003e in DNS.\n\tSelector string\n\t// PrivateKey is the RSA private key used to sign.\n\tPrivateKey *rsa.PrivateKey\n\t// Headers lists the header field names to sign (the \"h=\" tag), in order. If\n\t// empty, DefaultDKIMHeaders is used. Missing headers are skipped.\n\tHeaders []string\n\t// HeaderCanon is the header canonicalization; defaults to CanonRelaxed.\n\tHeaderCanon Canonicalization\n\t// BodyCanon is the body canonicalization; defaults to CanonRelaxed.\n\tBodyCanon Canonicalization\n\t// Time is the signature timestamp (the \"t=\" tag). If zero, no timestamp is\n\t// added; set it explicitly for deterministic output.\n\tTime time.Time\n}",
+          "doc": "DKIM holds the configuration for signing a message with a DKIM-Signature\nheader (RFC 6376) using RSA-SHA256.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "DNSRecord",
+              "recv": "*DKIM",
+              "signature": "func (d *DKIM) DNSRecord() (string, error)",
+              "doc": "DNSRecord returns the value of the TXT record to publish for this DKIM key,\nderived from the configured private key's public half. The record has the\nform \"v=DKIM1; k=rsa; p=\u003cbase64 SubjectPublicKeyInfo\u003e\", which verifiers fetch\nto validate a DKIM-Signature. It returns an error when the private key is\nunset or cannot be marshalled.\n"
+            },
+            {
+              "name": "DNSRecordName",
+              "recv": "*DKIM",
+              "signature": "func (d *DKIM) DNSRecordName() (string, error)",
+              "doc": "DNSRecordName returns the DNS host name at which this DKIM key's public record\nmust be published, i.e. \"\u003cselector\u003e._domainkey.\u003cdomain\u003e\". It returns an error\nwhen the selector or domain is unset.\n"
+            },
+            {
+              "name": "Sign",
+              "recv": "*DKIM",
+              "signature": "func (d *DKIM) Sign(raw []byte) (string, error)",
+              "doc": "Sign returns a DKIM-Signature header line (without a trailing CRLF) for the\ngiven fully-encoded message. The message must have its header/body separator\nas an empty CRLF line. The returned line should be prepended to the message\nheaders.\n"
+            }
+          ]
+        },
+        {
+          "name": "DSNNotify",
+          "signature": "type DSNNotify string",
+          "doc": "DSNNotify selects the conditions under which a delivery status notification\nis generated (RFC 3461 NOTIFY parameter).\n",
+          "consts": [
+            {
+              "names": [
+                "DSNNotifyNever",
+                "DSNNotifySuccess",
+                "DSNNotifyFailure",
+                "DSNNotifyDelay"
+              ],
+              "signature": "const (\n\t// DSNNotifyNever suppresses all notifications (NOTIFY=NEVER, exclusive).\n\tDSNNotifyNever DSNNotify = \"NEVER\"\n\t// DSNNotifySuccess requests notification on successful delivery.\n\tDSNNotifySuccess DSNNotify = \"SUCCESS\"\n\t// DSNNotifyFailure requests notification on delivery failure.\n\tDSNNotifyFailure DSNNotify = \"FAILURE\"\n\t// DSNNotifyDelay requests notification when delivery is delayed.\n\tDSNNotifyDelay DSNNotify = \"DELAY\"\n)",
+              "doc": ""
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "DSNOptions",
+          "signature": "type DSNOptions struct {\n\t// Return controls how much of the message a bounce includes (MAIL RET).\n\tReturn DSNReturn\n\t// EnvID is an envelope identifier echoed back in the DSN (MAIL ENVID).\n\tEnvID string\n\t// Notify lists the conditions that trigger a notification (RCPT NOTIFY).\n\tNotify []DSNNotify\n\t// OrigRecipient is the original recipient address recorded in RCPT ORCPT\n\t// (formatted as \"rfc822;\u003caddr\u003e\").\n\tOrigRecipient string\n}",
+          "doc": "DSNOptions configures RFC 3461 Delivery Status Notifications, mirroring\nnodemailer's dsn option. It influences the SMTP MAIL FROM and RCPT TO\nparameters and has no effect on non-SMTP transports.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "DSNReturn",
+          "signature": "type DSNReturn string",
+          "doc": "DSNReturn selects how much of the original message a DSN report includes.\n",
+          "consts": [
+            {
+              "names": [
+                "DSNReturnFull",
+                "DSNReturnHeaders"
+              ],
+              "signature": "const (\n\t// DSNReturnFull requests the full message be returned (RET=FULL).\n\tDSNReturnFull DSNReturn = \"FULL\"\n\t// DSNReturnHeaders requests only the headers be returned (RET=HDRS).\n\tDSNReturnHeaders DSNReturn = \"HDRS\"\n)",
+              "doc": ""
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Envelope",
+          "signature": "type Envelope struct {\n\tFrom string\n\tTo   []string\n}",
+          "doc": "Envelope is the SMTP envelope: the sender and the full recipient list\nactually used for delivery (To + Cc + Bcc).\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Header",
+          "signature": "type Header struct {\n\tKey   string\n\tValue string\n}",
+          "doc": "Header is a single custom header field in insertion order.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "ICalEvent",
+          "signature": "type ICalEvent struct {\n\t// Method is the iCalendar method (REQUEST, PUBLISH, CANCEL, REPLY). It\n\t// defaults to PUBLISH and is emitted as the Content-Type method parameter.\n\tMethod string\n\t// Content is the raw iCalendar document (a VCALENDAR block).\n\tContent string\n\t// Filename is the name used when the event is presented as an attachment;\n\t// it defaults to \"invite.ics\".\n\tFilename string\n}",
+          "doc": "ICalEvent describes a calendar invitation carried as a text/calendar\nalternative body, mirroring nodemailer's icalEvent option.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Info",
+          "signature": "type Info struct {\n\t// MessageID is the Message-ID header value (without angle brackets).\n\tMessageID string\n\t// Envelope is the SMTP envelope used for delivery.\n\tEnvelope Envelope\n\t// Raw is the encoded message that was handed to the transport.\n\tRaw []byte\n}",
+          "doc": "Info describes the result of a successful send.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "JSONTransport",
+          "signature": "type JSONTransport struct {\n\tRecords []json.RawMessage\n\t// contains filtered or unexported fields\n}",
+          "doc": "JSONTransport is a Transport that captures a JSON serialisation of each\nmessage instead of delivering it, mirroring nodemailer's jsonTransport. The\nraw body is base64-encoded so it round-trips through JSON safely.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Last",
+              "recv": "*JSONTransport",
+              "signature": "func (t *JSONTransport) Last() (json.RawMessage, bool)",
+              "doc": "Last returns the most recent JSON record and true, or nil and false.\n"
+            },
+            {
+              "name": "Send",
+              "recv": "*JSONTransport",
+              "signature": "func (t *JSONTransport) Send(from string, to []string, raw []byte) error",
+              "doc": "Send serialises the message to JSON and stores it.\n"
+            }
+          ]
+        },
+        {
+          "name": "MemoryTransport",
+          "signature": "type MemoryTransport struct {\n\tMessages []CapturedMessage\n\t// contains filtered or unexported fields\n}",
+          "doc": "MemoryTransport is an in-memory Transport that captures every message it is\nasked to send. It is safe for concurrent use and is intended for tests.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Last",
+              "recv": "*MemoryTransport",
+              "signature": "func (t *MemoryTransport) Last() (CapturedMessage, bool)",
+              "doc": "Last returns the most recently captured message and true, or a zero value\nand false when nothing has been sent.\n"
+            },
+            {
+              "name": "Send",
+              "recv": "*MemoryTransport",
+              "signature": "func (t *MemoryTransport) Send(from string, to []string, raw []byte) error",
+              "doc": "Send records the message in memory. It never fails.\n"
+            }
+          ]
+        },
+        {
+          "name": "Message",
+          "signature": "type Message struct {\n\tFrom    Address\n\tTo      []Address\n\tCc      []Address\n\tBcc     []Address\n\tReplyTo []Address\n\n\t// ToGroups and CcGroups hold named RFC 5322 address groups rendered in the\n\t// To and Cc headers respectively, in addition to the flat To/Cc slices.\n\tToGroups []AddressGroup\n\tCcGroups []AddressGroup\n\n\tSubject string\n\tText    string\n\tHTML    string\n\n\t// Alternatives holds additional body parts (beyond Text and HTML) to place\n\t// in the multipart/alternative container, such as an amp/html or watch-html\n\t// body. They are ordered from least to most preferred.\n\tAlternatives []Alternative\n\n\t// ICalEvent, when set, adds a text/calendar alternative body carrying a\n\t// calendar invitation.\n\tICalEvent *ICalEvent\n\n\t// Headers holds additional custom headers in insertion order.\n\tHeaders []Header\n\n\t// InReplyTo is the Message-ID (without angle brackets) this message replies\n\t// to. It populates the In-Reply-To header.\n\tInReplyTo string\n\t// References lists prior Message-IDs (without angle brackets) forming the\n\t// thread's References header.\n\tReferences []string\n\n\t// Priority sets the message priority, populating X-Priority, X-MSMail-Priority\n\t// and Importance headers. The zero value leaves them unset.\n\tPriority Priority\n\n\t// ListHeaders holds RFC 2369 / RFC 8058 List-* headers (List-Unsubscribe,\n\t// List-ID, ...) in insertion order.\n\tListHeaders []Header\n\n\t// DKIM, when set, signs the built message with a DKIM-Signature header.\n\tDKIM *DKIM\n\n\t// Date is the message Date header. If zero, the current time is used at\n\t// Build time; set it explicitly for deterministic output.\n\tDate time.Time\n\n\t// MessageID is the Message-ID header without angle brackets. If empty one\n\t// is generated at Build time; set it explicitly for deterministic output.\n\tMessageID string\n\n\t// Boundary is the base MIME multipart boundary. If empty a random one is\n\t// generated at Build time; set it explicitly for deterministic output.\n\t// Nested multiparts derive their boundaries from this base.\n\tBoundary string\n\n\tAttachments []Attachment\n\t// contains filtered or unexported fields\n}",
+          "doc": "Message is a builder for an RFC 5322 / MIME email message.\n\nFields may be set directly or via the fluent setter methods. Address setters\nparse and validate their inputs, deferring any error until Build is called.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "New",
+              "signature": "func New() *Message",
+              "doc": "New returns an empty Message ready to be populated with the fluent setters.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "AddAlternative",
+              "recv": "*Message",
+              "signature": "func (m *Message) AddAlternative(contentType, content string) *Message",
+              "doc": "AddAlternative appends an alternative body representation with the given\ncontent type.\n"
+            },
+            {
+              "name": "AddBcc",
+              "recv": "*Message",
+              "signature": "func (m *Message) AddBcc(addrs ...string) *Message",
+              "doc": "AddBcc parses and appends one or more Bcc recipients.\n"
+            },
+            {
+              "name": "AddCc",
+              "recv": "*Message",
+              "signature": "func (m *Message) AddCc(addrs ...string) *Message",
+              "doc": "AddCc parses and appends one or more Cc recipients.\n"
+            },
+            {
+              "name": "AddCcGroup",
+              "recv": "*Message",
+              "signature": "func (m *Message) AddCcGroup(name string, addrs ...string) *Message",
+              "doc": "AddCcGroup appends a named group of recipients to the Cc header.\n"
+            },
+            {
+              "name": "AddHeader",
+              "recv": "*Message",
+              "signature": "func (m *Message) AddHeader(key, value string) *Message",
+              "doc": "AddHeader appends a custom header field.\n"
+            },
+            {
+              "name": "AddListHeader",
+              "recv": "*Message",
+              "signature": "func (m *Message) AddListHeader(key, value string) *Message",
+              "doc": "AddListHeader appends an RFC 2369 List-* header. The key may be given with or\nwithout the \"List-\" prefix (e.g. \"Unsubscribe\" or \"List-Unsubscribe\").\n"
+            },
+            {
+              "name": "AddReferences",
+              "recv": "*Message",
+              "signature": "func (m *Message) AddReferences(messageIDs ...string) *Message",
+              "doc": "AddReferences appends Message-IDs (without angle brackets) to the References\nheader, used for threading.\n"
+            },
+            {
+              "name": "AddReplyTo",
+              "recv": "*Message",
+              "signature": "func (m *Message) AddReplyTo(addrs ...string) *Message",
+              "doc": "AddReplyTo parses and appends one or more Reply-To addresses.\n"
+            },
+            {
+              "name": "AddTo",
+              "recv": "*Message",
+              "signature": "func (m *Message) AddTo(addrs ...string) *Message",
+              "doc": "AddTo parses and appends one or more To recipients.\n"
+            },
+            {
+              "name": "AddToGroup",
+              "recv": "*Message",
+              "signature": "func (m *Message) AddToGroup(name string, addrs ...string) *Message",
+              "doc": "AddToGroup appends a named group of recipients to the To header. The members\nbecome envelope recipients and are rendered as an RFC 5322 group in the To\nheader. Members are parsed and validated; the first error is deferred to\nBuild.\n"
+            },
+            {
+              "name": "Attach",
+              "recv": "*Message",
+              "signature": "func (m *Message) Attach(a Attachment) *Message",
+              "doc": "Attach appends an attachment.\n"
+            },
+            {
+              "name": "AttachBytes",
+              "recv": "*Message",
+              "signature": "func (m *Message) AttachBytes(filename, contentType string, content []byte) *Message",
+              "doc": "AttachBytes is a convenience for attaching in-memory content.\n"
+            },
+            {
+              "name": "AttachFile",
+              "recv": "*Message",
+              "signature": "func (m *Message) AttachFile(path string) *Message",
+              "doc": "AttachFile reads the file at path and appends it as a regular attachment. The\nfilename defaults to the base name of path and the content type is guessed\nfrom the extension, falling back to content sniffing.\n"
+            },
+            {
+              "name": "AttachReader",
+              "recv": "*Message",
+              "signature": "func (m *Message) AttachReader(filename, contentType string, r io.Reader) *Message",
+              "doc": "AttachReader reads all bytes from r and appends them as a regular attachment\nwith the given filename and content type. If contentType is empty it is\nsniffed from the content and filename.\n"
+            },
+            {
+              "name": "AttachURL",
+              "recv": "*Message",
+              "signature": "func (m *Message) AttachURL(url string) *Message",
+              "doc": "AttachURL fetches the resource at url over HTTP(S) and appends it as a regular\nattachment. The filename defaults to the last path segment of the URL and the\ncontent type is taken from the response, then sniffed as a fallback.\n"
+            },
+            {
+              "name": "Build",
+              "recv": "*Message",
+              "signature": "func (m *Message) Build() ([]byte, error)",
+              "doc": "Build encodes the Message into raw RFC 5322 / MIME bytes with CRLF line\nendings. Output is deterministic when Date, MessageID and Boundary are all\nset explicitly.\n"
+            },
+            {
+              "name": "Embed",
+              "recv": "*Message",
+              "signature": "func (m *Message) Embed(contentID, filename, contentType string, content []byte) *Message",
+              "doc": "Embed appends an inline resource referenceable from HTML via cid:contentID.\n"
+            },
+            {
+              "name": "EmbedFile",
+              "recv": "*Message",
+              "signature": "func (m *Message) EmbedFile(contentID, path string) *Message",
+              "doc": "EmbedFile reads the file at path and appends it as an inline resource\nreferenceable from HTML via cid:contentID.\n"
+            },
+            {
+              "name": "EmbedReader",
+              "recv": "*Message",
+              "signature": "func (m *Message) EmbedReader(contentID, filename, contentType string, r io.Reader) *Message",
+              "doc": "EmbedReader reads all bytes from r and appends them as an inline resource\nreferenceable via cid:contentID.\n"
+            },
+            {
+              "name": "Err",
+              "recv": "*Message",
+              "signature": "func (m *Message) Err() error",
+              "doc": "Err returns the first error recorded by a fluent setter, if any.\n"
+            },
+            {
+              "name": "GenerateTextFromHTML",
+              "recv": "*Message",
+              "signature": "func (m *Message) GenerateTextFromHTML() *Message",
+              "doc": "GenerateTextFromHTML populates the message Text body from its HTML body using\nHTMLToText, mirroring nodemailer's generateTextFromHtml option. It is a no-op\nwhen the HTML body is empty or a Text body is already set. It returns the\nmessage for chaining.\n"
+            },
+            {
+              "name": "Recipients",
+              "recv": "*Message",
+              "signature": "func (m *Message) Recipients() []string",
+              "doc": "Recipients returns all envelope recipients (To, Cc, Bcc and any named\naddress groups) as addr-specs.\n"
+            },
+            {
+              "name": "SetAMP",
+              "recv": "*Message",
+              "signature": "func (m *Message) SetAMP(ampHTML string) *Message",
+              "doc": "SetAMP adds an AMP for Email body as a \"text/x-amp-html\" alternative,\nmirroring nodemailer's amp message option. Supporting clients render the AMP\nbody in preference to the plain HTML one; others fall back to HTML or text.\nIt returns the message for chaining.\n"
+            },
+            {
+              "name": "SetBoundary",
+              "recv": "*Message",
+              "signature": "func (m *Message) SetBoundary(b string) *Message",
+              "doc": "SetBoundary sets the base multipart boundary.\n"
+            },
+            {
+              "name": "SetDate",
+              "recv": "*Message",
+              "signature": "func (m *Message) SetDate(t time.Time) *Message",
+              "doc": "SetDate sets the Date header.\n"
+            },
+            {
+              "name": "SetFrom",
+              "recv": "*Message",
+              "signature": "func (m *Message) SetFrom(addr string) *Message",
+              "doc": "SetFrom parses and sets the From address.\n"
+            },
+            {
+              "name": "SetHTML",
+              "recv": "*Message",
+              "signature": "func (m *Message) SetHTML(s string) *Message",
+              "doc": "SetHTML sets the HTML body.\n"
+            },
+            {
+              "name": "SetInReplyTo",
+              "recv": "*Message",
+              "signature": "func (m *Message) SetInReplyTo(messageID string) *Message",
+              "doc": "SetInReplyTo sets the In-Reply-To header from a Message-ID (without angle\nbrackets).\n"
+            },
+            {
+              "name": "SetListUnsubscribe",
+              "recv": "*Message",
+              "signature": "func (m *Message) SetListUnsubscribe(uris ...string) *Message",
+              "doc": "SetListUnsubscribe sets the List-Unsubscribe header from one or more URIs\n(mailto: or https:). Each URI is wrapped in angle brackets per RFC 2369.\n"
+            },
+            {
+              "name": "SetListUnsubscribePost",
+              "recv": "*Message",
+              "signature": "func (m *Message) SetListUnsubscribePost() *Message",
+              "doc": "SetListUnsubscribePost enables RFC 8058 one-click unsubscribe by adding the\nList-Unsubscribe-Post header. Call SetListUnsubscribe as well to supply the\nunsubscribe URIs.\n"
+            },
+            {
+              "name": "SetMessageID",
+              "recv": "*Message",
+              "signature": "func (m *Message) SetMessageID(id string) *Message",
+              "doc": "SetMessageID sets the Message-ID (without angle brackets).\n"
+            },
+            {
+              "name": "SetPriority",
+              "recv": "*Message",
+              "signature": "func (m *Message) SetPriority(p Priority) *Message",
+              "doc": "SetPriority sets the message priority (see Priority).\n"
+            },
+            {
+              "name": "SetSubject",
+              "recv": "*Message",
+              "signature": "func (m *Message) SetSubject(s string) *Message",
+              "doc": "SetSubject sets the Subject header.\n"
+            },
+            {
+              "name": "SetText",
+              "recv": "*Message",
+              "signature": "func (m *Message) SetText(s string) *Message",
+              "doc": "SetText sets the plain-text body.\n"
+            },
+            {
+              "name": "SetWatchHTML",
+              "recv": "*Message",
+              "signature": "func (m *Message) SetWatchHTML(watchHTML string) *Message",
+              "doc": "SetWatchHTML adds an Apple Watch specific body as a \"text/watch-html\"\nalternative, mirroring nodemailer's watchHtml message option. It returns the\nmessage for chaining.\n"
+            },
+            {
+              "name": "WithDKIM",
+              "recv": "*Message",
+              "signature": "func (m *Message) WithDKIM(d *DKIM) *Message",
+              "doc": "WithDKIM configures DKIM signing for the message and returns it for chaining.\n"
+            }
+          ]
+        },
+        {
+          "name": "ParsedAddr",
+          "signature": "type ParsedAddr struct {\n\t// Name is the display name (for a leaf) or the group label (for a group).\n\tName string\n\t// Address is the addr-spec for a leaf entry; it is empty for a group.\n\tAddress string\n\t// Group holds the members of a group entry; it is nil for a leaf.\n\tGroup []ParsedAddr\n\t// IsGroup reports whether this entry is an RFC 5322 group. When true the\n\t// entry carries Group (possibly empty) instead of Address.\n\tIsGroup bool\n}",
+          "doc": "ParsedAddr is a single structured entry produced by ParseAddresses. It mirrors\nthe object shape returned by nodemailer's lib/addressparser: a leaf entry has\nName and Address set (with IsGroup false), while a group entry has Name set,\nIsGroup true and Group holding its (flattened) members.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "ParseAddresses",
+              "signature": "func ParseAddresses(str string) []ParsedAddr",
+              "doc": "ParseAddresses parses an RFC 5322 address-field string into structured\nentries, exactly as nodemailer's addressparser does. It is deliberately\nlenient: it accepts display-name-only entries, comments, unterminated\nquotes/brackets, semicolon delimiters and named groups, never rewriting an\ninvalid address into a valid one. Quoted local-parts are preserved verbatim\nso that \"user@evil.com\"@example.com routes to example.com, not evil.com.\n\nLeaf entries carry Name and Address; group entries carry Name, IsGroup and\nGroup. Use ParseAddressesFlatten to obtain only the leaves.\n"
+            },
+            {
+              "name": "ParseAddressesFlatten",
+              "signature": "func ParseAddressesFlatten(str string) []ParsedAddr",
+              "doc": "ParseAddressesFlatten behaves like ParseAddresses but recursively flattens\nevery group so the result contains only leaf entries (Name/Address), matching\nnodemailer's addressparser(str, {flatten:true}).\n"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "name": "ParsedAttachment",
+          "signature": "type ParsedAttachment struct {\n\t// Filename is the part's filename, from Content-Disposition or Content-Type.\n\tFilename string\n\t// ContentType is the part's MIME media type without parameters.\n\tContentType string\n\t// ContentID is the Content-ID value with any angle brackets removed.\n\tContentID string\n\t// Inline reports whether the part had a Content-Disposition of \"inline\".\n\tInline bool\n\t// Content is the fully decoded part body.\n\tContent []byte\n}",
+          "doc": "ParsedAttachment is a single decoded attachment or inline resource extracted\nfrom a parsed message.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "ParsedMessage",
+          "signature": "type ParsedMessage struct {\n\t// Header holds the top-level message headers.\n\tHeader mail.Header\n\t// From, To and Cc are the parsed address lists (empty when the header is\n\t// absent or unparseable).\n\tFrom []Address\n\tTo   []Address\n\tCc   []Address\n\t// Subject is the RFC 2047 decoded Subject header.\n\tSubject string\n\t// Date is the parsed Date header, or the zero time when absent/invalid.\n\tDate time.Time\n\t// MessageID is the Message-ID value with any angle brackets removed.\n\tMessageID string\n\t// Text is the concatenated text/plain body content, if any.\n\tText string\n\t// HTML is the concatenated text/html body content, if any.\n\tHTML string\n\t// Attachments holds every part with an attachment or inline disposition.\n\tAttachments []ParsedAttachment\n}",
+          "doc": "ParsedMessage is the decoded representation of a raw RFC 5322 / MIME message,\nproviding read access to its headers, addresses, bodies and attachments. It\nis produced by ParseMIME and mirrors, in a lightweight form, the output of\nnodemailer's companion mailparser.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "ParseMIME",
+              "signature": "func ParseMIME(raw []byte) (*ParsedMessage, error)",
+              "doc": "ParseMIME parses raw RFC 5322 / MIME bytes into a ParsedMessage, decoding\ntransfer encodings (base64, quoted-printable), walking nested multipart\ncontainers and separating body text from attachments. It is the inverse, in\nspirit, of Message.Build.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Get",
+              "recv": "*ParsedMessage",
+              "signature": "func (pm *ParsedMessage) Get(key string) string",
+              "doc": "Get returns the decoded value of the named top-level header (case-insensitive),\nor the empty string when absent. Encoded-words in the value are decoded to\nUTF-8.\n"
+            }
+          ]
+        },
+        {
+          "name": "Pool",
+          "signature": "type Pool struct {\n\t// Transport describes how to reach the SMTP server. It is required.\n\tTransport *SMTPTransport\n\t// MaxConnections bounds the number of simultaneously open connections. It\n\t// defaults to 5.\n\tMaxConnections int\n\t// MaxMessages is the number of messages a single connection may carry before\n\t// it is closed and replaced. It defaults to 100.\n\tMaxMessages int\n\t// contains filtered or unexported fields\n}",
+          "doc": "Pool is a bounded pool of reusable SMTP connections, mirroring nodemailer's\npooled SMTP transport. It satisfies the Transport interface, dialing lazily\nand recycling connections after a configurable number of messages.\n\nA Pool is safe for concurrent use. Callers must invoke Close when finished to\nrelease the underlying connections.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Close",
+              "recv": "*Pool",
+              "signature": "func (p *Pool) Close() error",
+              "doc": "Close closes all idle connections and marks the pool closed. In-flight sends\nclose their connections as they complete. Close is idempotent.\n"
+            },
+            {
+              "name": "Send",
+              "recv": "*Pool",
+              "signature": "func (p *Pool) Send(from string, to []string, raw []byte) error",
+              "doc": "Send delivers a message, reusing an idle connection when one is available and\notherwise opening a new one (subject to MaxConnections).\n"
+            },
+            {
+              "name": "Verify",
+              "recv": "*Pool",
+              "signature": "func (p *Pool) Verify() error",
+              "doc": "Verify checks connectivity and authentication without sending a message.\n"
+            }
+          ]
+        },
+        {
+          "name": "Priority",
+          "signature": "type Priority int",
+          "doc": "Priority expresses a message's importance, mapping to the X-Priority,\nX-MSMail-Priority and Importance headers.\n",
+          "consts": [
+            {
+              "names": [
+                "PriorityNormal",
+                "PriorityHigh",
+                "PriorityLow"
+              ],
+              "signature": "const (\n\t// PriorityNormal leaves priority headers unset (the default).\n\tPriorityNormal Priority = iota\n\t// PriorityHigh marks the message as high priority.\n\tPriorityHigh\n\t// PriorityLow marks the message as low priority.\n\tPriorityLow\n)",
+              "doc": ""
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "SMTPTransport",
+          "signature": "type SMTPTransport struct {\n\t// Host is the SMTP server hostname.\n\tHost string\n\t// Port is the SMTP server port (e.g. 25, 465, 587).\n\tPort int\n\t// Username and Password enable PLAIN authentication when Username is set\n\t// and Auth is nil.\n\tUsername string\n\tPassword string\n\t// Auth overrides the default PLAIN authentication mechanism.\n\tAuth smtp.Auth\n\t// TLS uses implicit TLS for the whole connection (typically port 465).\n\tTLS bool\n\t// STARTTLS upgrades a plaintext connection to TLS (typically port 587).\n\tSTARTTLS bool\n\t// TLSConfig is the TLS configuration used for TLS/STARTTLS. When nil a\n\t// config with ServerName set to Host is used.\n\tTLSConfig *tls.Config\n\t// LocalName is the name sent in the EHLO/HELO command.\n\tLocalName string\n\t// DSN, when set, requests RFC 3461 delivery status notifications by adding\n\t// parameters to the MAIL FROM and RCPT TO commands.\n\tDSN *DSNOptions\n\t// contains filtered or unexported fields\n}",
+          "doc": "SMTPTransport delivers messages over SMTP using the standard net/smtp client.\nIt supports plain SMTP, implicit TLS (SMTPS) and STARTTLS with optional\nauthentication.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewServiceSMTP",
+              "signature": "func NewServiceSMTP(service, username, password string) (*SMTPTransport, error)",
+              "doc": "NewServiceSMTP builds an SMTPTransport pre-configured for a well-known\nprovider identified by service name (e.g. \"Gmail\"), using the given username\nand password for PLAIN authentication. It returns an error if the service is\nunknown. The returned transport can be adjusted further before use.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Send",
+              "recv": "*SMTPTransport",
+              "signature": "func (t *SMTPTransport) Send(from string, to []string, raw []byte) error",
+              "doc": "Send delivers the raw message to the SMTP server over a fresh connection.\n"
+            },
+            {
+              "name": "Verify",
+              "recv": "*SMTPTransport",
+              "signature": "func (t *SMTPTransport) Verify() error",
+              "doc": "Verify checks that the SMTP server is reachable and the configured\nauthentication (if any) succeeds. It dials, greets, optionally upgrades to\nTLS and authenticates, then closes the connection without sending a message.\n"
+            }
+          ]
+        },
+        {
+          "name": "SendmailTransport",
+          "signature": "type SendmailTransport struct {\n\t// Path is the sendmail binary to run. It defaults to \"/usr/sbin/sendmail\".\n\tPath string\n\t// Args are extra arguments inserted before the computed envelope arguments.\n\tArgs []string\n\t// UseHeaders passes -t so sendmail extracts recipients from the message\n\t// headers instead of the command line. When false the envelope sender (-f)\n\t// and the recipient addresses are passed explicitly.\n\tUseHeaders bool\n}",
+          "doc": "SendmailTransport delivers messages by piping them to a local sendmail-compatible\nbinary via os/exec, mirroring nodemailer's sendmail transport.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Send",
+              "recv": "*SendmailTransport",
+              "signature": "func (t *SendmailTransport) Send(from string, to []string, raw []byte) error",
+              "doc": "Send pipes the raw message to the sendmail binary's standard input.\n"
+            }
+          ]
+        },
+        {
+          "name": "Service",
+          "signature": "type Service struct {\n\t// Name is the canonical provider name, e.g. \"Gmail\".\n\tName string\n\t// Host is the SMTP submission host, e.g. \"smtp.gmail.com\".\n\tHost string\n\t// Port is the SMTP submission port, e.g. 465 or 587.\n\tPort int\n\t// Secure reports whether the connection uses implicit TLS from the start\n\t// (typically port 465). When false, callers should use STARTTLS on the\n\t// submission port (typically 587).\n\tSecure bool\n}",
+          "doc": "Service describes the SMTP connection settings for a well-known email\nprovider, mirroring an entry in nodemailer's well-known/services.json. It lets\ncallers configure an SMTPTransport by provider name instead of remembering\nhost, port and TLS mode.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "WellKnownService",
+              "signature": "func WellKnownService(name string) (Service, bool)",
+              "doc": "WellKnownService looks up the SMTP settings for a provider by name (or alias),\ncase-insensitively. It reports whether the provider is known, mirroring\nnodemailer's getWellKnownService.\n"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "name": "StreamTransport",
+          "signature": "type StreamTransport struct {\n\t// Writer receives the raw bytes of every sent message. It must be non-nil.\n\tWriter io.Writer\n\t// contains filtered or unexported fields\n}",
+          "doc": "StreamTransport writes each fully-encoded message to an io.Writer instead of\ndelivering it over the network, mirroring nodemailer's streamTransport. It is\nuseful for piping messages to a file, a buffer or another process. A blank\nline is written between successive messages so a single stream remains\nreadable.\n\nStreamTransport is safe for concurrent use.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewStreamTransport",
+              "signature": "func NewStreamTransport(w io.Writer) *StreamTransport",
+              "doc": "NewStreamTransport returns a StreamTransport that writes encoded messages to\nw.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Send",
+              "recv": "*StreamTransport",
+              "signature": "func (t *StreamTransport) Send(from string, to []string, raw []byte) error",
+              "doc": "Send writes the raw message bytes to the configured Writer. The from and to\narguments are ignored; the envelope is already encoded in the message\nheaders. It returns any error reported by the underlying Writer.\n"
+            }
+          ]
+        },
+        {
+          "name": "Transport",
+          "signature": "type Transport interface {\n\tSend(from string, to []string, raw []byte) error\n}",
+          "doc": "Transport delivers a fully-encoded message to its recipients. The raw\nargument is the RFC 5322 bytes produced by Message.Build.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Transporter",
+          "signature": "type Transporter struct {\n\tTransport Transport\n}",
+          "doc": "Transporter builds messages and delivers them through a Transport, mirroring\nnodemailer's createTransport().sendMail() flow.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewTransporter",
+              "signature": "func NewTransporter(t Transport) *Transporter",
+              "doc": "NewTransporter returns a Transporter backed by t.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "SendMail",
+              "recv": "*Transporter",
+              "signature": "func (tr *Transporter) SendMail(m *Message) (Info, error)",
+              "doc": "SendMail encodes m and delivers it through the configured transport. It\nreturns Info describing the delivery, or an error if building or sending\nfails.\n"
+            }
+          ]
+        }
+      ],
+      "funcs": [
+        {
+          "name": "Base64Encode",
+          "signature": "func Base64Encode(data []byte) string",
+          "doc": "Base64Encode encodes data as standard (padded) base64 with no line wrapping,\nmirroring nodemailer's libbase64 encode. Use Base64Wrap to add line breaks.\n"
+        },
+        {
+          "name": "Base64Wrap",
+          "signature": "func Base64Wrap(str string, lineLength int) string",
+          "doc": "Base64Wrap inserts CRLF line breaks into a base64 string so that no line\nexceeds lineLength characters, matching nodemailer's libbase64 wrap. A\nlineLength of zero (or less) defaults to 76. No trailing CRLF is emitted,\neven when the content is an exact multiple of lineLength.\n"
+        },
+        {
+          "name": "DecodeHeaderWord",
+          "signature": "func DecodeHeaderWord(s string) (string, error)",
+          "doc": "DecodeHeaderWord decodes a header value that may contain one or more RFC 2047\nencoded-words (either Q or B encoded, in any charset the standard library can\nmap to UTF-8), returning the decoded UTF-8 text. Values without encoded-words\nare returned unchanged. This mirrors nodemailer's libmime mimeWordsDecode.\n"
+        },
+        {
+          "name": "EncodeMimeWord",
+          "signature": "func EncodeMimeWord(data []byte, encoding string) string",
+          "doc": "EncodeMimeWord encodes data as a single RFC 2047 UTF-8 encoded-word using the\ngiven encoding (\"Q\" for quoted-printable, \"B\" for base64; empty defaults to\n\"Q\"), mirroring nodemailer's mimeFuncs.encodeWord without length splitting.\nThe result is wrapped as \"=?UTF-8?Q?...?=\" or \"=?UTF-8?B?...?=\".\n"
+        },
+        {
+          "name": "EncodeWord",
+          "signature": "func EncodeWord(charset, s string) string",
+          "doc": "EncodeWord encodes s as an RFC 2047 \"encoded-word\" using the given charset\n(e.g. \"utf-8\") and Q (quoted-printable) encoding, as used for non-ASCII\nheader values such as Subject and display names. ASCII-only input is returned\nunchanged. This mirrors nodemailer's libmime mimeWordEncode.\n"
+        },
+        {
+          "name": "FormatAddressList",
+          "signature": "func FormatAddressList(addrs []Address) string",
+          "doc": "FormatAddressList renders a slice of addresses as a single RFC 5322 header\nvalue: a comma-separated list of \"Name \u003caddr\u003e\" (or bare addr-spec when the\nname is empty), with non-ASCII display names RFC 2047 encoded.\n"
+        },
+        {
+          "name": "GenerateMessageID",
+          "signature": "func GenerateMessageID(domain string) string",
+          "doc": "GenerateMessageID returns a fresh, globally-unique Message-ID value (without\nthe surrounding angle brackets) of the form \"\u003crandom\u003e@domain\". When domain is\nempty, \"localhost\" is used. The random component is cryptographically random,\nso the result is unique but not deterministic; set Message.MessageID\nexplicitly for reproducible output.\n"
+        },
+        {
+          "name": "HTMLToText",
+          "signature": "func HTMLToText(htmlSource string) string",
+          "doc": "HTMLToText converts an HTML fragment or document into a readable plain-text\napproximation. Script and style contents are dropped, block-level tags become\nline breaks, list items are prefixed with a bullet, HTML entities are decoded\nand runs of whitespace are collapsed.\n\nIt is a best-effort flattener intended for generating a text/plain\nalternative from an HTML body, not a full HTML renderer.\n"
+        },
+        {
+          "name": "HasLongerLines",
+          "signature": "func HasLongerLines(str string, lineLength int) bool",
+          "doc": "HasLongerLines reports whether str contains at least one line longer than\nlineLength characters, matching nodemailer's mimeFuncs.hasLongerLines. Lines\nare delimited by \"\\n\" and measured in Unicode code points.\n"
+        },
+        {
+          "name": "IsPlainText",
+          "signature": "func IsPlainText(value string) bool",
+          "doc": "IsPlainText reports whether value contains only characters that need no MIME\nencoding: printable ASCII plus TAB, CR and LF. It returns false for control\ncharacters (other than TAB/CR/LF) and any byte outside the 7-bit ASCII range.\nThis mirrors nodemailer's mimeFuncs.isPlainText (non-parameter form).\n"
+        },
+        {
+          "name": "NormalizeAddress",
+          "signature": "func NormalizeAddress(s string) (string, error)",
+          "doc": "NormalizeAddress parses a single address and returns its addr-spec with the\ndomain lower-cased and surrounding whitespace removed, discarding any display\nname. It is handy for de-duplicating and comparing recipient addresses. An\nerror is returned when the input is not a valid address.\n"
+        },
+        {
+          "name": "ParseRSAPrivateKey",
+          "signature": "func ParseRSAPrivateKey(pemBytes []byte) (*rsa.PrivateKey, error)",
+          "doc": "ParseRSAPrivateKey decodes a PEM-encoded RSA private key in either PKCS#1\n(\"RSA PRIVATE KEY\") or PKCS#8 (\"PRIVATE KEY\") form.\n"
+        },
+        {
+          "name": "QPEncode",
+          "signature": "func QPEncode(data []byte) string",
+          "doc": "QPEncode encodes data as a Quoted-Printable string with no line wrapping,\nmirroring nodemailer's libqp encode. Bytes outside the printable range are\nwritten as \"=XX\" (uppercase hex); a space or tab at the end of the input or\nimmediately before a CR/LF is encoded so trailing whitespace is preserved.\nUse QPWrap to add soft line breaks.\n"
+        },
+        {
+          "name": "QPWrap",
+          "signature": "func QPWrap(str string, lineLength int) string",
+          "doc": "QPWrap inserts soft line breaks (\"=\\r\\n\") into an already Quoted-Printable\nencoded string so that no line exceeds lineLength characters, matching\nnodemailer's libqp wrap. A lineLength of zero (or less) defaults to 76.\nBreaks are chosen to avoid splitting \"=XX\" escape sequences and multi-byte\nUTF-8 runs, preferring word boundaries where possible.\n"
+        },
+        {
+          "name": "WellKnownServiceNames",
+          "signature": "func WellKnownServiceNames() []string",
+          "doc": "WellKnownServiceNames returns the canonical names of all supported well-known\nservices in alphabetical order, with duplicates (from aliases) removed.\n"
+        },
+        {
+          "name": "XOAuth2Auth",
+          "signature": "func XOAuth2Auth(user, accessToken string) smtp.Auth",
+          "doc": "XOAuth2Auth returns an smtp.Auth that implements the SASL XOAUTH2 mechanism\nused by Gmail, Outlook and other OAuth2-enabled SMTP servers.\n\nuser is the account's email address and accessToken is a valid OAuth2 bearer\naccess token (not the refresh token). The mechanism sends a single initial\nclient response and, on failure, answers the server's error challenge with an\nempty line so the session can be torn down cleanly.\n"
+        },
+        {
+          "name": "XOAuth2Token",
+          "signature": "func XOAuth2Token(user, accessToken string) string",
+          "doc": "XOAuth2Token builds the raw (un-encoded) XOAUTH2 client response string:\n\n\tuser=\u003cuser\u003e^Aauth=Bearer \u003ctoken\u003e^A^A\n\nwhere ^A is the ASCII SOH (0x01) separator. It is exported so callers can\nconstruct the token independently, for example when driving a custom client.\n"
+        }
+      ],
+      "examples": [
+        {
+          "name": "",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n\t\"time\"\n\n\t\"github.com/malcolmston/nodemailer\"\n)\n\nfunc main() {\n\tmsg := nodemailer.New().\n\t\tSetFrom(\"Ada Lovelace \u003cada@example.com\u003e\").\n\t\tAddTo(\"grace@example.com\").\n\t\tSetSubject(\"Progress report\").\n\t\tSetText(\"Plain-text body\").\n\t\tSetHTML(\"\u003cp\u003eHTML body\u003c/p\u003e\").\n\t\tSetDate(time.Date(2026, 1, 2, 15, 4, 5, 0, time.UTC)).\n\t\tSetMessageID(\"report-42@example.com\").\n\t\tSetBoundary(\"EXAMPLE_BOUNDARY\")\n\n\traw, err := msg.Build()\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\n\tfor _, line := range strings.Split(string(raw), \"\\r\\n\") {\n\t\tswitch {\n\t\tcase strings.HasPrefix(line, \"Subject:\"),\n\t\t\tstrings.HasPrefix(line, \"Message-ID:\"),\n\t\t\tstrings.HasPrefix(line, \"Content-Type: multipart\"):\n\t\t\tfmt.Println(line)\n\t\t}\n\t}\n\n}",
+          "output": "Message-ID: \u003creport-42@example.com\u003e\nSubject: Progress report\nContent-Type: multipart/alternative; boundary=\"EXAMPLE_BOUNDARY\"",
+          "doc": "Example builds a deterministic message and prints its structural headers.\n"
+        },
+        {
+          "name": "XOAuth2Token",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/nodemailer\"\n)\n\nfunc main() {\n\tfmt.Printf(\"%q\\n\", nodemailer.XOAuth2Token(\"ada@example.com\", \"ya29.token\"))\n\n}",
+          "output": "\"user=ada@example.com\\x01auth=Bearer ya29.token\\x01\\x01\"",
+          "doc": "ExampleXOAuth2Token shows the raw SASL XOAUTH2 client-response string.\n"
+        },
+        {
+          "name": "Message (AddToGroup)",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n\t\"time\"\n\n\t\"github.com/malcolmston/nodemailer\"\n)\n\nfunc main() {\n\tmsg := nodemailer.New().\n\t\tSetFrom(\"ada@example.com\").\n\t\tAddToGroup(\"Team\", \"grace@example.com\", \"carl@example.com\").\n\t\tSetSubject(\"Standup\").\n\t\tSetText(\"9am\").\n\t\tSetDate(time.Date(2026, 1, 2, 15, 4, 5, 0, time.UTC)).\n\t\tSetMessageID(\"g@example.com\").\n\t\tSetBoundary(\"B\")\n\n\traw, err := msg.Build()\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tfor _, line := range strings.Split(string(raw), \"\\r\\n\") {\n\t\tif strings.HasPrefix(line, \"To:\") {\n\t\t\tfmt.Println(line)\n\t\t}\n\t}\n\n}",
+          "output": "To: Team: \u003cgrace@example.com\u003e, \u003ccarl@example.com\u003e;",
+          "doc": "ExampleMessage_AddToGroup renders recipients as an RFC 5322 address group.\n"
+        },
+        {
+          "name": "Transporter (SendMail)",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n\t\"time\"\n\n\t\"github.com/malcolmston/nodemailer\"\n)\n\nfunc main() {\n\ttr := nodemailer.NewTransporter(\u0026nodemailer.MemoryTransport{})\n\tmsg := nodemailer.New().\n\t\tSetFrom(\"ada@example.com\").\n\t\tAddTo(\"grace@example.com\").\n\t\tAddCc(\"carl@example.com\").\n\t\tSetSubject(\"Welcome\").\n\t\tSetText(\"Hi!\").\n\t\tSetDate(time.Date(2026, 1, 2, 15, 4, 5, 0, time.UTC)).\n\t\tSetMessageID(\"welcome-1@example.com\").\n\t\tSetBoundary(\"B\")\n\tinfo, err := tr.SendMail(msg)\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Println(info.Envelope.From)\n\tfmt.Println(strings.Join(info.Envelope.To, \", \"))\n\tfmt.Println(info.MessageID)\n\n}",
+          "output": "ada@example.com\ngrace@example.com, carl@example.com\nwelcome-1@example.com",
+          "doc": "ExampleTransporter_SendMail sends a message through the in-memory transport\nand prints the resulting envelope.\n"
+        }
+      ]
+    }
+  ]
+}

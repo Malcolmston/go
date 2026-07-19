@@ -1,0 +1,947 @@
+{
+  "module": "github.com/malcolmston/sharp",
+  "generatedAt": "2026-07-19T02:05:53Z",
+  "packages": [
+    {
+      "importPath": "github.com/malcolmston/sharp",
+      "name": "sharp",
+      "synopsis": "Package sharp is a high-level, fluent image-processing library for Go, built entirely on the standard library (image, image/color, image/png, image/jpeg, image/gif; BMP and uncompressed TIFF codecs are implemented in-package).",
+      "doc": "Package sharp is a high-level, fluent image-processing library for Go, built\nentirely on the standard library (image, image/color, image/png, image/jpeg,\nimage/gif; BMP and uncompressed TIFF codecs are implemented in-package). It\nis inspired by the ergonomics of the Node.js \"sharp\" library: you build a\npipeline, chain operations, and export to a format.\n\n# The pipeline\n\nA Pipeline wraps an in-memory RGBA image. Construct one from a decoded image,\na file, a byte slice or an io.Reader:\n\n\tp := sharp.New(img)                 // from an image.Image\n\tp := sharp.FromFile(\"in.png\")       // decode a file\n\tp := sharp.FromBytes(data)          // decode PNG/JPEG bytes\n\tp := sharp.FromReader(r)            // decode from a reader\n\nOperations are methods that return the same *Pipeline, so they chain. They\nare applied eagerly and mutate the pipeline's internal buffer (the source\nimage passed to New is copied first and never modified). If any step fails,\nthe error is stored and every later operation is skipped; the error surfaces\nfrom the terminal export call or from Err. All operations are deterministic:\nidentical input always yields identical output.\n\n\tout, err := sharp.FromFile(\"in.jpg\").\n\t\tResize(sharp.ResizeOptions{Width: 800, Fit: sharp.FitContain}).\n\t\tGrayscale().\n\t\tSharpen(1).\n\t\tToJPEG(85)\n\n# Operations\n\nGeometry:\n  - Resize with Nearest, Bilinear, Cubic (Catmull-Rom), Mitchell or Lanczos3\n    sampling and FitExact/FitContain/FitCover.\n  - Affine (arbitrary 2x3 matrix, bilinear) and Trim (auto-crop borders).\n  - Crop / Extract a rectangular region, Extend (pad) with a fill colour.\n  - Rotate90/180/270 (exact) and Rotate (arbitrary angle, bilinear).\n  - FlipVertical/Flip and FlipHorizontal/Flop.\n\nColour and tone:\n  - Grayscale, Negate/Invert, Tint, Brightness, Contrast, Gamma,\n    Saturation, Threshold.\n  - Normalise (contrast stretch), Linear (a*x+b per channel),\n    Modulate (brightness/saturation/hue/lightness) and CLAHE.\n\nConvolution and morphology:\n  - Blur (separable Gaussian), Sharpen, Unsharp (sigma-based unsharp mask)\n    and a generic Convolve(Kernel).\n  - Median, Erode, Dilate and a generic Morphology (open/close).\n\nChannels and bands:\n  - ExtractChannel, JoinChannels, RemoveAlpha, EnsureAlpha, Recomb (colour\n    matrix) and bitwise Boolean/Bandbool operations.\n\nComposition:\n  - Composite another image with alpha blending, gravity/offset placement and\n    a choice of blend modes (multiply, screen, overlay, darken, lighten, ...).\n  - Flatten onto a solid background colour, removing transparency.\n\n# Metadata and statistics\n\nMetadata reports the current width, height, detected source format, channel\ncount, alpha presence, density and colour space. Stats computes per-channel\nmeans. Clone returns an independent copy of a pipeline so a partially-built\npipeline can be branched.\n\n# Codecs\n\nInput decodes PNG, JPEG, GIF, BMP and uncompressed TIFF (the last two\nimplemented in-package), plus raw pixel buffers via FromRaw. Output supports\nPNG, JPEG, GIF, BMP, TIFF and raw bytes. There is no standard-library codec\nfor WebP or AVIF, so those formats are out of scope.\n\n# Output\n\nTerminal methods materialise the result:\n\n\timg, err := p.ToImage()      // the image.Image\n\tbuf, err := p.ToPNG()        // PNG bytes\n\tbuf, err := p.ToJPEG(90)     // JPEG bytes at quality 90\n\tbuf, err := p.ToGIF()        // GIF bytes\n\tbuf, err := p.ToBMP()        // BMP bytes\n\tbuf, err := p.ToTIFF()       // TIFF bytes\n\tbuf, err := p.ToRaw()        // raw RGBA bytes\n\terr := p.ToFile(\"out.png\", sharp.FormatPNG, 0)\n\n# Determinism and colour handling\n\nImages are held as non-premultiplied 8-bit RGBA. Channel arithmetic is done\nin floating point and clamped to [0,255]. JPEG output has no alpha, so the\nencoder flattens transparency onto black; call Flatten first to control the\nbackground.\n",
+      "consts": [],
+      "vars": [
+        {
+          "names": [
+            "Black",
+            "White",
+            "Transparent"
+          ],
+          "signature": "var (\n\tBlack       = RGBA{0, 0, 0, 255}\n\tWhite       = RGBA{255, 255, 255, 255}\n\tTransparent = RGBA{0, 0, 0, 0}\n)",
+          "doc": "Black, White and Transparent are common fill colours.\n"
+        }
+      ],
+      "types": [
+        {
+          "name": "AffineOptions",
+          "signature": "type AffineOptions struct {\n\t// Background fills output pixels whose inverse-mapped source coordinate\n\t// falls outside the source image.\n\tBackground RGBA\n}",
+          "doc": "AffineOptions configures an Affine transform.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "BlendMode",
+          "signature": "type BlendMode int",
+          "doc": "BlendMode selects how overlay (source) colours are combined with base\n(backdrop) colours during Composite. The default, BlendOver, is ordinary\nsource-over alpha compositing; the others are the separable blend modes from\nthe W3C compositing specification, applied per channel in [0,1] before the\nalpha composite.\n",
+          "consts": [
+            {
+              "names": [
+                "BlendOver",
+                "BlendMultiply",
+                "BlendScreen",
+                "BlendOverlay",
+                "BlendDarken",
+                "BlendLighten",
+                "BlendColorDodge",
+                "BlendColorBurn",
+                "BlendHardLight",
+                "BlendSoftLight",
+                "BlendDifference",
+                "BlendExclusion",
+                "BlendAdd"
+              ],
+              "signature": "const (\n\tBlendOver BlendMode = iota\n\tBlendMultiply\n\tBlendScreen\n\tBlendOverlay\n\tBlendDarken\n\tBlendLighten\n\tBlendColorDodge\n\tBlendColorBurn\n\tBlendHardLight\n\tBlendSoftLight\n\tBlendDifference\n\tBlendExclusion\n\tBlendAdd\n)",
+              "doc": "Blend modes.\n"
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "BoolOp",
+          "signature": "type BoolOp int",
+          "doc": "BoolOp selects a bitwise operation for Boolean and Bandbool.\n",
+          "consts": [
+            {
+              "names": [
+                "BoolAnd",
+                "BoolOr",
+                "BoolXor"
+              ],
+              "signature": "const (\n\tBoolAnd BoolOp = iota\n\tBoolOr\n\tBoolXor\n)",
+              "doc": "Bitwise operations.\n"
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "CLAHEOptions",
+          "signature": "type CLAHEOptions struct {\n\t// Width and Height are the tile dimensions in pixels. Zero maps to a\n\t// sensible default of one eighth of the image (minimum 1).\n\tWidth  int\n\tHeight int\n\t// MaxSlope is the contrast-limiting clip factor (typical 2-4). Zero maps to\n\t// 3. A value of 0 after mapping disables clipping.\n\tMaxSlope int\n}",
+          "doc": "CLAHEOptions configures Contrast Limited Adaptive Histogram Equalisation.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Channel",
+          "signature": "type Channel int",
+          "doc": "Channel identifies one band of an RGBA image.\n",
+          "consts": [
+            {
+              "names": [
+                "ChannelR",
+                "ChannelG",
+                "ChannelB",
+                "ChannelA"
+              ],
+              "signature": "const (\n\tChannelR Channel = iota\n\tChannelG\n\tChannelB\n\tChannelA\n)",
+              "doc": "Channel indices.\n"
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "ChannelStat",
+          "signature": "type ChannelStat struct {\n\tMin    uint8\n\tMax    uint8\n\tMean   float64\n\tStdDev float64\n\tSum    float64\n}",
+          "doc": "ChannelStat holds summary statistics for a single colour band across all\npixels of an image. Min and Max are the extreme sample values (0-255); Mean\nand StdDev are the arithmetic mean and population standard deviation of the\nsamples; Sum is the total of all samples in the band.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "CompositeOptions",
+          "signature": "type CompositeOptions struct {\n\t// Left and Top position the overlay's top-left corner in base pixels. They\n\t// are used only when Gravity is nil (see UseGravity).\n\tLeft int\n\tTop  int\n\t// UseGravity, when true, positions the overlay using Gravity instead of\n\t// Left/Top.\n\tUseGravity bool\n\tGravity    Gravity\n\t// Opacity scales the overlay's alpha in [0,1]. The zero value means fully\n\t// opaque (1.0); use a small positive number for near-transparent overlays.\n\tOpacity float64\n\t// Blend selects the blend mode. The zero value, BlendOver, is ordinary\n\t// source-over compositing.\n\tBlend BlendMode\n}",
+          "doc": "CompositeOptions configures how an overlay image is combined with the base.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "ExtendMode",
+          "signature": "type ExtendMode int",
+          "doc": "ExtendMode selects how the border pixels added by ExtendWith are filled.\n",
+          "consts": [
+            {
+              "names": [
+                "ExtendBackground",
+                "ExtendCopy",
+                "ExtendRepeat",
+                "ExtendMirror"
+              ],
+              "signature": "const (\n\t// ExtendBackground fills the new border with a solid colour (the default).\n\tExtendBackground ExtendMode = iota\n\t// ExtendCopy replicates the nearest edge pixel outward (edge clamp).\n\tExtendCopy\n\t// ExtendRepeat tiles the source image to fill the border (wrap-around).\n\tExtendRepeat\n\t// ExtendMirror reflects the source across each edge.\n\tExtendMirror\n)",
+              "doc": "Extend fill strategies. They mirror the extendWith options of the Node sharp\nlibrary.\n"
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "ExtendOptions",
+          "signature": "type ExtendOptions struct {\n\tTop        int\n\tRight      int\n\tBottom     int\n\tLeft       int\n\tBackground RGBA\n\tMode       ExtendMode\n}",
+          "doc": "ExtendOptions configures an ExtendWith operation. Top, Right, Bottom and Left\ngive the padding in pixels on each side (negative values are treated as\nzero). Background is used only when Mode is ExtendBackground.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Fit",
+          "signature": "type Fit int",
+          "doc": "Fit controls how the target dimensions are interpreted when both a width and\na height are supplied to Resize.\n",
+          "consts": [
+            {
+              "names": [
+                "FitExact",
+                "FitContain",
+                "FitCover"
+              ],
+              "signature": "const (\n\t// FitExact stretches the image to exactly width x height, ignoring aspect\n\t// ratio.\n\tFitExact Fit = iota\n\t// FitContain scales the image to fit entirely within width x height,\n\t// preserving aspect ratio. The output is the scaled image (no padding).\n\tFitContain\n\t// FitCover scales the image to completely cover width x height, preserving\n\t// aspect ratio, then centre-crops the overflow to exactly width x height.\n\tFitCover\n)",
+              "doc": "Fit modes.\n"
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Format",
+          "signature": "type Format string",
+          "doc": "Format identifies an encoded image format.\n",
+          "consts": [
+            {
+              "names": [
+                "FormatUnknown",
+                "FormatPNG",
+                "FormatJPEG",
+                "FormatGIF",
+                "FormatBMP",
+                "FormatTIFF",
+                "FormatRaw"
+              ],
+              "signature": "const (\n\tFormatUnknown Format = \"\"\n\tFormatPNG     Format = \"png\"\n\tFormatJPEG    Format = \"jpeg\"\n\tFormatGIF     Format = \"gif\"\n\tFormatBMP     Format = \"bmp\"\n\tFormatTIFF    Format = \"tiff\"\n\tFormatRaw     Format = \"raw\"\n)",
+              "doc": "Supported image formats.\n"
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Gravity",
+          "signature": "type Gravity int",
+          "doc": "Gravity anchors an overlay or region relative to the base image.\n",
+          "consts": [
+            {
+              "names": [
+                "GravityTopLeft",
+                "GravityTop",
+                "GravityTopRight",
+                "GravityLeft",
+                "GravityCenter",
+                "GravityRight",
+                "GravityBottomLeft",
+                "GravityBottom",
+                "GravityBottomRight"
+              ],
+              "signature": "const (\n\tGravityTopLeft Gravity = iota\n\tGravityTop\n\tGravityTopRight\n\tGravityLeft\n\tGravityCenter\n\tGravityRight\n\tGravityBottomLeft\n\tGravityBottom\n\tGravityBottomRight\n)",
+              "doc": "Gravity anchors.\n"
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Histogram",
+          "signature": "type Histogram struct {\n\tR         [256]uint64\n\tG         [256]uint64\n\tB         [256]uint64\n\tLuminance [256]uint64\n}",
+          "doc": "Histogram holds 256-bin intensity histograms for an image. R, G and B count\nthe occurrences of each 8-bit value in the respective colour band, and\nLuminance counts the rounded Rec. 601 luma of every pixel.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Interpolation",
+          "signature": "type Interpolation int",
+          "doc": "Interpolation selects the sampling algorithm used when resizing or rotating.\n",
+          "consts": [
+            {
+              "names": [
+                "Cubic",
+                "Mitchell",
+                "Lanczos3"
+              ],
+              "signature": "const (\n\t// Cubic is a Catmull-Rom bicubic filter (support 2): sharper than Bilinear\n\t// with mild overshoot, a good general-purpose photographic default.\n\tCubic Interpolation = iota + 2\n\t// Mitchell is the Mitchell-Netravali filter (B = C = 1/3, support 2): a\n\t// balanced trade-off between blurring and ringing.\n\tMitchell\n\t// Lanczos3 is a windowed-sinc filter (support 3): the highest quality of the\n\t// built-in kernels, with the most pronounced edge sharpening.\n\tLanczos3\n)",
+              "doc": "Additional high-quality, separable resampling kernels selectable through\nResizeOptions.Interpolation. They continue the Interpolation enumeration\nstarted in resize.go (Nearest = 0, Bilinear = 1).\n"
+            },
+            {
+              "names": [
+                "Nearest",
+                "Bilinear"
+              ],
+              "signature": "const (\n\t// Nearest performs nearest-neighbour sampling: fast and exact for integer\n\t// scale factors, blocky otherwise.\n\tNearest Interpolation = iota\n\t// Bilinear performs bilinear sampling: smoother, the sensible default.\n\tBilinear\n)",
+              "doc": "Available interpolation kernels.\n"
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "JPEGOptions",
+          "signature": "type JPEGOptions struct {\n\t// Quality is the JPEG quality in the range [1,100]. Values outside the\n\t// range are clamped; the zero value maps to the encoder default of 75.\n\tQuality int\n}",
+          "doc": "JPEGOptions configures JPEG encoding.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Kernel",
+          "signature": "type Kernel struct {\n\tSize    int\n\tWeights []float64\n\tDivisor float64\n\tOffset  float64\n}",
+          "doc": "Kernel is a square convolution kernel. Weights are stored row-major and Size\nmust be odd (1, 3, 5, ...). Divisor and Offset are applied after the weighted\nsum: out = sum/Divisor + Offset. A zero Divisor is treated as 1.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewKernel",
+              "signature": "func NewKernel(weights []float64, divisor, offset float64) (Kernel, error)",
+              "doc": "NewKernel builds a Kernel from a square slice of weights, inferring the size.\nIt returns an error if len(weights) is not a positive odd perfect square.\n"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "name": "Metadata",
+          "signature": "type Metadata struct {\n\t// Width and Height are the pixel dimensions.\n\tWidth  int\n\tHeight int\n\t// Format is the detected source format (FormatUnknown for images built with\n\t// New or produced entirely in-memory).\n\tFormat Format\n\t// Channels is the number of meaningful colour bands: 4 when the image has\n\t// any transparency, otherwise 3.\n\tChannels int\n\t// HasAlpha reports whether any pixel is non-opaque.\n\tHasAlpha bool\n\t// Density is the pixel density in dots per inch (defaults to 72).\n\tDensity int\n\t// Space names the colour space; this library operates in sRGB.\n\tSpace string\n}",
+          "doc": "Metadata describes the current image held by a pipeline.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "ModulateOptions",
+          "signature": "type ModulateOptions struct {\n\t// Brightness multiplies the CIELAB lightness L* (1 = unchanged). Zero maps\n\t// to 1.\n\tBrightness float64\n\t// Saturation multiplies the LCh chroma C* (1 = unchanged). Zero maps to 1.\n\tSaturation float64\n\t// Hue rotates the LCh hue angle by this many degrees.\n\tHue float64\n\t// Lightness adds this amount directly to the CIELAB lightness L* (which\n\t// ranges 0-100).\n\tLightness float64\n}",
+          "doc": "ModulateOptions configures a Modulate operation. Multipliers default to 1 and\nadditive/rotational terms default to 0 when left as the zero value.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "MorphOp",
+          "signature": "type MorphOp int",
+          "doc": "MorphOp selects a morphological operation for Morphology.\n",
+          "consts": [
+            {
+              "names": [
+                "MorphErode",
+                "MorphDilate",
+                "MorphOpen",
+                "MorphClose"
+              ],
+              "signature": "const (\n\tMorphErode MorphOp = iota\n\tMorphDilate\n\tMorphOpen\n\tMorphClose\n)",
+              "doc": "Morphological operations. Erode and Dilate use a square structuring element;\nOpen is erode-then-dilate (removes small bright specks) and Close is\ndilate-then-erode (fills small dark holes).\n"
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "NormaliseOptions",
+          "signature": "type NormaliseOptions struct {\n\t// Lower and Upper are the luminance percentiles (0-100) mapped to 0 and 255\n\t// respectively. The zero value maps to Lower = 0, Upper = 100 (full range).\n\tLower float64\n\tUpper float64\n}",
+          "doc": "NormaliseOptions configures a Normalise (contrast-stretch) operation.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "PNGOptions",
+          "signature": "type PNGOptions struct {\n\t// Compression selects the PNG compression level. The zero value uses the\n\t// encoder default.\n\tCompression png.CompressionLevel\n}",
+          "doc": "PNGOptions configures PNG encoding.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Pipeline",
+          "signature": "type Pipeline struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Pipeline is a fluent, chainable image-processing pipeline. Construct one with\nNew, FromFile or FromBytes, chain any number of operations, then materialise\nthe result with ToImage, ToPNG, ToJPEG or ToFile.\n\nOperations are applied eagerly and mutate the pipeline's internal RGBA\nbuffer. If any step fails, the error is retained and every subsequent\noperation becomes a no-op; the error surfaces from the terminal call or from\nErr. All operations are deterministic.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "FromBytes",
+              "signature": "func FromBytes(data []byte) *Pipeline",
+              "doc": "FromBytes decodes an encoded image (PNG or JPEG) from a byte slice and\nreturns a pipeline seeded with it. The detected format is recorded and\nreported by Metadata.\n"
+            },
+            {
+              "name": "FromFile",
+              "signature": "func FromFile(path string) *Pipeline",
+              "doc": "FromFile reads and decodes an image file from disk.\n"
+            },
+            {
+              "name": "FromRaw",
+              "signature": "func FromRaw(pix []byte, width, height, channels int) *Pipeline",
+              "doc": "FromRaw builds a pipeline from raw pixel bytes. channels must be 1\n(grayscale), 3 (RGB) or 4 (RGBA); the data length must equal\nwidth*height*channels. Grayscale expands to equal RGB with opaque alpha and\nRGB gets opaque alpha.\n"
+            },
+            {
+              "name": "FromReader",
+              "signature": "func FromReader(r io.Reader) *Pipeline",
+              "doc": "FromReader decodes an encoded image from r. The reader is fully consumed so\nthe in-package BMP and TIFF decoders can inspect the magic number.\n"
+            },
+            {
+              "name": "JoinChannels",
+              "signature": "func JoinChannels(channels ...image.Image) *Pipeline",
+              "doc": "JoinChannels builds a new pipeline by combining single-band images into the\nR, G, B and (optionally) A channels of one image. Each source contributes its\nred channel as the band value. Exactly 3 or 4 images must be supplied and all\nmust share the same dimensions; with 3 the result is fully opaque.\n"
+            },
+            {
+              "name": "New",
+              "signature": "func New(img image.Image) *Pipeline",
+              "doc": "New creates a pipeline from an already-decoded image. The source pixels are\ncopied into an internal RGBA buffer, so the caller's image is never mutated.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Affine",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Affine(m [6]float64, opts AffineOptions) *Pipeline",
+              "doc": "Affine applies an arbitrary 2x3 affine transform to the image, sampling the\nsource bilinearly. The matrix m = [a, b, c, d, e, f] maps a source point\n(x, y) to the destination point\n\n\tX = a*x + b*y + c\n\tY = d*x + e*y + f\n\nThe output canvas is sized to the axis-aligned bounding box of the\ntransformed source and translated so its top-left corner is the origin.\nExposed areas are filled with opts.Background. The matrix must be invertible\n(non-zero determinant of its 2x2 linear part).\n"
+            },
+            {
+              "name": "Bandbool",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Bandbool(op BoolOp) *Pipeline",
+              "doc": "Bandbool reduces the three colour channels of each pixel into a single value\nby folding them together with a bitwise operator, producing a grayscale\n(single-band) image with the result written to R, G and B. Alpha is set fully\nopaque.\n"
+            },
+            {
+              "name": "Blur",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Blur(sigma float64) *Pipeline",
+              "doc": "Blur applies a Gaussian blur with the given standard deviation (sigma) in\npixels. A sigma \u003c= 0 leaves the image unchanged. The blur is separable and\nimplemented as two 1-D passes for efficiency; alpha is blurred alongside RGB.\n"
+            },
+            {
+              "name": "Boolean",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Boolean(other image.Image, op BoolOp) *Pipeline",
+              "doc": "Boolean applies a per-channel bitwise operation between the current image and\nother, pixel-for-pixel over the overlapping region. The two images must share\ndimensions. Alpha is combined with the same operator.\n"
+            },
+            {
+              "name": "Brightness",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Brightness(factor float64) *Pipeline",
+              "doc": "Brightness scales pixel intensity. A factor of 1 is a no-op, 0 produces\nblack, and values above 1 brighten. Negative factors are clamped to 0.\n"
+            },
+            {
+              "name": "CLAHE",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) CLAHE(opts CLAHEOptions) *Pipeline",
+              "doc": "CLAHE applies Contrast Limited Adaptive Histogram Equalisation to the image\nluminance and rescales the RGB channels to match, enhancing local contrast\nwithout amplifying noise as strongly as global equalisation. Tile mappings\nare bilinearly interpolated to avoid block artefacts. Alpha is preserved.\n"
+            },
+            {
+              "name": "ChannelStats",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) ChannelStats() ([]ChannelStat, error)",
+              "doc": "ChannelStats computes per-band statistics for the current image and returns a\nslice of four ChannelStat values in red, green, blue, alpha order. It mirrors\nthe richer per-channel information reported by the Node sharp library's\nstats() call. An empty image yields zero-valued statistics.\n"
+            },
+            {
+              "name": "Clone",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Clone() *Pipeline",
+              "doc": "Clone returns an independent deep copy of the pipeline, including any pending\nerror state. Mutating the clone never affects the original.\n"
+            },
+            {
+              "name": "Composite",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Composite(overlay image.Image, opts CompositeOptions) *Pipeline",
+              "doc": "Composite alpha-blends overlay onto the current image (\"source-over\"). The\nbase dimensions are preserved; parts of the overlay outside the base are\nclipped.\n"
+            },
+            {
+              "name": "Contrast",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Contrast(factor float64) *Pipeline",
+              "doc": "Contrast adjusts contrast about the midpoint (128). A factor of 1 is a no-op,\nvalues above 1 increase contrast and values in [0,1) reduce it.\n"
+            },
+            {
+              "name": "Convolve",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Convolve(k Kernel) *Pipeline",
+              "doc": "Convolve applies an arbitrary convolution kernel to the RGB channels. Edges\nare handled by clamping sample coordinates to the image bounds. The alpha\nchannel is preserved unchanged.\n"
+            },
+            {
+              "name": "Crop",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Crop(r Rectangle) *Pipeline",
+              "doc": "Crop extracts the rectangular region r from the current image. It is an alias\nfor Extract. The region must lie fully within the image bounds.\n"
+            },
+            {
+              "name": "Dilate",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Dilate(radius int) *Pipeline",
+              "doc": "Dilate applies grayscale morphological dilation with a square structuring\nelement of the given radius (each channel replaced by its neighbourhood\nmaximum). A radius \u003c 1 is a no-op.\n"
+            },
+            {
+              "name": "DominantColor",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) DominantColor() (RGBA, error)",
+              "doc": "DominantColor returns the most prominent opaque colour in the image. Pixels\nare grouped into a coarse 16x16x16 RGB histogram, the most populated bin is\nselected, and the mean colour of the pixels falling in that bin is returned\nwith full opacity. Fully transparent pixels are ignored. It mirrors the\ndominant colour reported by the Node sharp library's stats() call.\n"
+            },
+            {
+              "name": "DominantColour",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) DominantColour() (RGBA, error)",
+              "doc": "DominantColour is a British-spelling alias for DominantColor.\n"
+            },
+            {
+              "name": "EnsureAlpha",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) EnsureAlpha(alpha float64) *Pipeline",
+              "doc": "EnsureAlpha guarantees the image carries an alpha channel. Because the\ninternal buffer is always RGBA, this is a no-op when any pixel is already\nnon-opaque; when the image is fully opaque (effectively no alpha information)\nevery pixel's alpha is set to round(alpha*255), where alpha is in [0,1].\n"
+            },
+            {
+              "name": "Entropy",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Entropy() (float64, error)",
+              "doc": "Entropy returns the Shannon entropy (in bits) of the image's luminance\nhistogram. It ranges from 0 for a single-valued image up to 8 for a perfectly\nuniform distribution of all 256 luma levels, and is a useful measure of how\nmuch detail an image carries.\n"
+            },
+            {
+              "name": "Erode",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Erode(radius int) *Pipeline",
+              "doc": "Erode applies grayscale morphological erosion with a square structuring\nelement of the given radius (each channel replaced by its neighbourhood\nminimum). A radius \u003c 1 is a no-op.\n"
+            },
+            {
+              "name": "Err",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Err() error",
+              "doc": "Err returns the first error that occurred in the pipeline, if any.\n"
+            },
+            {
+              "name": "Extend",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Extend(top, right, bottom, left int, fill RGBA) *Pipeline",
+              "doc": "Extend pads the image by the given number of pixels on each side, filling the\nnew border with fill. Negative values are treated as zero.\n"
+            },
+            {
+              "name": "ExtendWith",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) ExtendWith(opts ExtendOptions) *Pipeline",
+              "doc": "ExtendWith pads the image on each side using the chosen ExtendMode. Unlike\nExtend, which always fills with a solid colour, ExtendWith can replicate,\ntile or mirror the source pixels into the new border, matching the extendWith\nbehaviour of the Node sharp library.\n"
+            },
+            {
+              "name": "Extract",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Extract(r Rectangle) *Pipeline",
+              "doc": "Extract extracts the rectangular region r from the current image.\n"
+            },
+            {
+              "name": "ExtractChannel",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) ExtractChannel(ch Channel) *Pipeline",
+              "doc": "ExtractChannel reduces the image to a single band, producing a grayscale\nimage whose R, G and B are all set to the selected channel's value and whose\nalpha is fully opaque.\n"
+            },
+            {
+              "name": "Flatten",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Flatten(bg RGBA) *Pipeline",
+              "doc": "Flatten composites the image over a solid background colour, removing any\ntransparency. The output is fully opaque.\n"
+            },
+            {
+              "name": "Flip",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Flip() *Pipeline",
+              "doc": "Flip is an alias for FlipVertical.\n"
+            },
+            {
+              "name": "FlipHorizontal",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) FlipHorizontal() *Pipeline",
+              "doc": "FlipHorizontal mirrors the image left-to-right.\n"
+            },
+            {
+              "name": "FlipVertical",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) FlipVertical() *Pipeline",
+              "doc": "FlipVertical mirrors the image top-to-bottom.\n"
+            },
+            {
+              "name": "Flop",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Flop() *Pipeline",
+              "doc": "Flop is an alias for FlipHorizontal.\n"
+            },
+            {
+              "name": "Gamma",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Gamma(gamma float64) *Pipeline",
+              "doc": "Gamma applies gamma correction. Output = 255 * (in/255)^(1/gamma). A gamma of\n1 is a no-op; values above 1 brighten mid-tones. Gamma must be positive;\nnon-positive values are ignored.\n"
+            },
+            {
+              "name": "Grayscale",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Grayscale() *Pipeline",
+              "doc": "Grayscale converts the image to grayscale using Rec. 601 luma weights.\n"
+            },
+            {
+              "name": "Histogram",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Histogram() (Histogram, error)",
+              "doc": "Histogram computes per-channel and luminance histograms for the current\nimage. The counts across each band sum to the pixel count.\n"
+            },
+            {
+              "name": "Invert",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Invert() *Pipeline",
+              "doc": "Invert is an alias for Negate.\n"
+            },
+            {
+              "name": "IsOpaque",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) IsOpaque() (bool, error)",
+              "doc": "IsOpaque reports whether every pixel in the image is fully opaque (alpha 255).\nIt corresponds to the isOpaque flag exposed by the Node sharp library.\n"
+            },
+            {
+              "name": "Linear",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Linear(a, b []float64) *Pipeline",
+              "doc": "Linear applies an independent per-channel linear transform out = a*in + b to\nthe RGB channels, with values in [0,255]. Each of a and b may have length 1\n(applied to all three channels) or length 3 (R, G, B). Alpha is preserved.\n"
+            },
+            {
+              "name": "MeanColor",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) MeanColor() (RGBA, error)",
+              "doc": "MeanColor returns the arithmetic mean colour of the image across every pixel,\nincluding the alpha channel, rounded to 8-bit components.\n"
+            },
+            {
+              "name": "MeanColour",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) MeanColour() (RGBA, error)",
+              "doc": "MeanColour is a British-spelling alias for MeanColor.\n"
+            },
+            {
+              "name": "Median",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Median(radius int) *Pipeline",
+              "doc": "Median replaces each pixel with the per-channel median of its\n(2*radius+1)x(2*radius+1) neighbourhood, an edge-preserving noise filter.\nEdges are handled by clamping sample coordinates. A radius \u003c 1 is a no-op.\n"
+            },
+            {
+              "name": "Metadata",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Metadata() (Metadata, error)",
+              "doc": "Metadata returns the dimensions, source format and colour properties of the\ncurrent image.\n"
+            },
+            {
+              "name": "Modulate",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Modulate(opts ModulateOptions) *Pipeline",
+              "doc": "Modulate adjusts brightness, saturation, hue and lightness together by\nconverting each pixel to the cylindrical CIELAB colour space (LCh),\ntransforming, and converting back. This mirrors the upstream Node.js sharp\nlibrary, which performs modulate in LCh: the lightness L* is scaled by\nBrightness and offset by Lightness, the chroma C* is scaled by Saturation, and\nthe hue angle is rotated by Hue degrees. It is a convenient single call for\ncommon tone tweaks. Alpha is preserved.\n\nBecause the conversion runs through D65 CIELAB, results match upstream sharp's\ndocumented known-answer vectors to within a rounding unit or two (the upstream\nC++/libvips pipeline uses 32-bit float intermediates where this uses float64).\n"
+            },
+            {
+              "name": "Morphology",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Morphology(op MorphOp, radius int) *Pipeline",
+              "doc": "Morphology applies the morphological operation op with a square structuring\nelement of the given radius. Open and Close are compositions of Erode and\nDilate. A radius \u003c 1 is a no-op. RGB and alpha are all processed.\n"
+            },
+            {
+              "name": "Negate",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Negate() *Pipeline",
+              "doc": "Negate inverts the RGB channels (photographic negative). Alpha is preserved.\n"
+            },
+            {
+              "name": "Normalise",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Normalise(opts NormaliseOptions) *Pipeline",
+              "doc": "Normalise stretches image contrast so that the chosen lower/upper luminance\npercentiles span the full [0,255] range. The same linear mapping is applied\nto all three colour channels, preserving hue. Alpha is untouched. If the\nimage has no luminance spread the image is left unchanged.\n"
+            },
+            {
+              "name": "Normalize",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Normalize(opts NormaliseOptions) *Pipeline",
+              "doc": "Normalize is a US-spelling alias for Normalise.\n"
+            },
+            {
+              "name": "Recomb",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Recomb(matrix [][]float64) *Pipeline",
+              "doc": "Recomb multiplies each pixel's channel vector by a colour matrix. A 3x3\nmatrix recombines RGB (alpha preserved); a 4x4 matrix recombines RGBA. The\nmatrix is given row-major as a slice of rows. Results are clamped to [0,255].\n"
+            },
+            {
+              "name": "RemoveAlpha",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) RemoveAlpha() *Pipeline",
+              "doc": "RemoveAlpha discards transparency by setting every pixel's alpha to fully\nopaque. RGB values are left untouched (they are not pre-multiplied).\n"
+            },
+            {
+              "name": "Resize",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Resize(opts ResizeOptions) *Pipeline",
+              "doc": "Resize scales the image according to opts.\n"
+            },
+            {
+              "name": "ResizeHeight",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) ResizeHeight(height int) *Pipeline",
+              "doc": "ResizeHeight scales the image to the given height in pixels, deriving the\nwidth from the source aspect ratio with bilinear sampling. It is a shorthand\nfor a Resize with only a height supplied.\n"
+            },
+            {
+              "name": "ResizeTo",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) ResizeTo(width, height int) *Pipeline",
+              "doc": "ResizeTo is a convenience wrapper for a bilinear FitExact resize.\n"
+            },
+            {
+              "name": "ResizeWidth",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) ResizeWidth(width int) *Pipeline",
+              "doc": "ResizeWidth scales the image to the given width in pixels, deriving the height\nfrom the source aspect ratio with bilinear sampling. It is a shorthand for a\nResize with only a width supplied.\n"
+            },
+            {
+              "name": "Rotate",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Rotate(degrees float64, fill RGBA) *Pipeline",
+              "doc": "Rotate rotates the image by an arbitrary angle in degrees (clockwise) about\nits centre using bilinear sampling. The output canvas is enlarged to hold the\nwhole rotated image and the exposed corners are filled with fill. Multiples\nof 90 degrees are dispatched to the exact rotations.\n"
+            },
+            {
+              "name": "Rotate180",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Rotate180() *Pipeline",
+              "doc": "Rotate180 rotates the image 180 degrees.\n"
+            },
+            {
+              "name": "Rotate270",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Rotate270() *Pipeline",
+              "doc": "Rotate270 rotates the image 270 degrees clockwise (90 counter-clockwise).\n"
+            },
+            {
+              "name": "Rotate90",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Rotate90() *Pipeline",
+              "doc": "Rotate90 rotates the image 90 degrees clockwise.\n"
+            },
+            {
+              "name": "Saturation",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Saturation(factor float64) *Pipeline",
+              "doc": "Saturation scales colour saturation about the pixel luma. A factor of 0\nyields grayscale, 1 is a no-op and values above 1 boost saturation.\n"
+            },
+            {
+              "name": "Sepia",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Sepia() *Pipeline",
+              "doc": "Sepia applies the classic sepia-tone colour matrix to the image, warming it\ninto shades of brown. It is a convenience wrapper around the same transform\navailable through Recomb. Alpha is preserved.\n"
+            },
+            {
+              "name": "Sharpen",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Sharpen(amount float64) *Pipeline",
+              "doc": "Sharpen applies a standard 3x3 sharpening kernel. Amount scales the\nsharpening strength; a value \u003c= 0 leaves the image unchanged and 1 is the\ncanonical strength.\n"
+            },
+            {
+              "name": "Sharpness",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Sharpness() (float64, error)",
+              "doc": "Sharpness returns a scalar estimate of image sharpness computed as the mean\nabsolute discrete Laplacian of luminance over the interior pixels. Flat\nimages score 0; higher values indicate stronger local contrast (edges and\nfine detail). Images smaller than 3x3 return 0.\n"
+            },
+            {
+              "name": "Stats",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Stats() (Stats, error)",
+              "doc": "Stats computes the mean of each channel across all pixels.\n"
+            },
+            {
+              "name": "Threshold",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Threshold(level uint8) *Pipeline",
+              "doc": "Threshold converts the image to black and white: pixels whose luma is greater\nthan or equal to level (0-255) become white, the rest black. Alpha is\npreserved.\n"
+            },
+            {
+              "name": "Tint",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Tint(t RGBA) *Pipeline",
+              "doc": "Tint multiplies each channel by the tint colour (normalised to [0,1]),\nproducing a colour cast. A tint of White leaves the image unchanged.\n"
+            },
+            {
+              "name": "ToBMP",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) ToBMP() ([]byte, error)",
+              "doc": "ToBMP encodes the current image as an uncompressed BMP. Images with any\ntransparency are written as 32-bit BGRA; otherwise 24-bit BGR is used.\n"
+            },
+            {
+              "name": "ToColorspace",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) ToColorspace(space string) *Pipeline",
+              "doc": "ToColorspace is a US-spelling alias for ToColourspace.\n"
+            },
+            {
+              "name": "ToColourspace",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) ToColourspace(space string) *Pipeline",
+              "doc": "ToColourspace converts the working image into the requested colour space.\nRecognised values are \"b-w\", \"bw\", \"grey\", \"gray\", \"greyscale\" and\n\"grayscale\" (all of which convert to greyscale) and \"srgb\", \"rgb\" and \"rgb8\"\n(which leave the sRGB image unchanged). Any other value sets an error on the\npipeline. It corresponds to the toColourspace method of the Node sharp\nlibrary.\n"
+            },
+            {
+              "name": "ToFile",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) ToFile(path string, format Format, quality int) error",
+              "doc": "ToFile encodes the image and writes it to path. The format is chosen from the\nrequested Format; FormatUnknown falls back to the pipeline's source format,\nthen to PNG. For JPEG, quality 0 selects the default.\n"
+            },
+            {
+              "name": "ToFormat",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) ToFormat(format Format, quality int) ([]byte, error)",
+              "doc": "ToFormat encodes the current image to the requested format and returns the\nbytes, dispatching to the matching ToPNG/ToJPEG/ToGIF/ToBMP/ToTIFF/ToRaw\nmethod. For JPEG, quality selects the compression level (0 uses the default);\nit is ignored for the other formats. FormatUnknown falls back to the\npipeline's source format, then to PNG.\n"
+            },
+            {
+              "name": "ToGIF",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) ToGIF() ([]byte, error)",
+              "doc": "ToGIF encodes the current image as a single-frame GIF. Colours are quantised\nto a 256-entry palette by the standard library encoder.\n"
+            },
+            {
+              "name": "ToImage",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) ToImage() (image.Image, error)",
+              "doc": "ToImage returns the resulting image, or the pipeline's error.\n"
+            },
+            {
+              "name": "ToJPEG",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) ToJPEG(quality int) ([]byte, error)",
+              "doc": "ToJPEG encodes the current image as JPEG at the given quality (1-100). A\nquality of 0 selects the default (75).\n"
+            },
+            {
+              "name": "ToJPEGWithOptions",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) ToJPEGWithOptions(opts JPEGOptions) ([]byte, error)",
+              "doc": "ToJPEGWithOptions encodes the current image as JPEG using the supplied\noptions. JPEG has no alpha channel, so the image is flattened onto black.\n"
+            },
+            {
+              "name": "ToPNG",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) ToPNG() ([]byte, error)",
+              "doc": "ToPNG encodes the current image as PNG and returns the bytes.\n"
+            },
+            {
+              "name": "ToPNGWithOptions",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) ToPNGWithOptions(opts PNGOptions) ([]byte, error)",
+              "doc": "ToPNGWithOptions encodes the current image as PNG using the supplied options.\n"
+            },
+            {
+              "name": "ToRaw",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) ToRaw() ([]byte, error)",
+              "doc": "ToRaw returns the raw, non-premultiplied 8-bit RGBA pixel bytes of the current\nimage in row-major order (4 bytes per pixel). The returned slice is a copy.\n"
+            },
+            {
+              "name": "ToTIFF",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) ToTIFF() ([]byte, error)",
+              "doc": "ToTIFF encodes the current image as a baseline, uncompressed 8-bit RGBA TIFF\n(little-endian).\n"
+            },
+            {
+              "name": "Trim",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Trim(threshold float64) *Pipeline",
+              "doc": "Trim auto-crops uniform borders. The reference border colour is taken from\nthe top-left pixel; any pixel whose per-channel difference from it exceeds\nthreshold (0-255, compared on the maximum absolute channel delta including\nalpha) is treated as content. The image is cropped to the bounding box of the\ncontent. A threshold \u003c 0 is treated as 0. If the whole image matches the\nborder colour the image is left unchanged.\n"
+            },
+            {
+              "name": "Unflatten",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Unflatten() *Pipeline",
+              "doc": "Unflatten makes fully white pixels transparent by setting the alpha of every\npixel whose red, green and blue channels are all 255 to zero. It is the\ninverse-in-spirit of Flatten and mirrors the unflatten operation of the Node\nsharp library, useful for turning a white background into transparency.\n"
+            },
+            {
+              "name": "Unsharp",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) Unsharp(opts UnsharpOptions) *Pipeline",
+              "doc": "Unsharp sharpens the image using an unsharp mask: it subtracts a Gaussian-\nblurred copy to isolate detail, then adds a scaled multiple of that detail\nback. This is the high-quality, sigma-based counterpart to the fixed 3x3\nSharpen. A Sigma \u003c= 0 is a no-op. Alpha is preserved.\n"
+            },
+            {
+              "name": "WithDensity",
+              "recv": "*Pipeline",
+              "signature": "func (p *Pipeline) WithDensity(dpi int) *Pipeline",
+              "doc": "WithDensity records a pixel density in dots per inch on the pipeline, which is\nreported back through Metadata. Non-positive values are ignored. It mirrors\nsetting density via the Node sharp library's withMetadata call and does not\nalter any pixels.\n"
+            }
+          ]
+        },
+        {
+          "name": "RGBA",
+          "signature": "type RGBA struct {\n\tR uint8\n\tG uint8\n\tB uint8\n\tA uint8\n}",
+          "doc": "RGBA is a convenience colour type with 8-bit non-premultiplied channels. It\nis used for fills, tints and background colours.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "NRGBA",
+              "recv": "RGBA",
+              "signature": "func (c RGBA) NRGBA() color.NRGBA",
+              "doc": "NRGBA converts to the standard library's color.NRGBA.\n"
+            }
+          ]
+        },
+        {
+          "name": "Rectangle",
+          "signature": "type Rectangle struct {\n\tX      int\n\tY      int\n\tWidth  int\n\tHeight int\n}",
+          "doc": "Rectangle describes an axis-aligned region for crop/extract operations.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "ResizeOptions",
+          "signature": "type ResizeOptions struct {\n\tWidth         int\n\tHeight        int\n\tFit           Fit\n\tInterpolation Interpolation\n}",
+          "doc": "ResizeOptions configures a Resize operation. A zero Width or Height means\n\"derive from the other dimension while preserving aspect ratio\". At least one\nof Width or Height must be non-zero.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Stats",
+          "signature": "type Stats struct {\n\tMeanR float64\n\tMeanG float64\n\tMeanB float64\n\tMeanA float64\n}",
+          "doc": "Stats holds simple per-channel statistics for an image, with each mean in the\nrange [0,255].\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "UnsharpOptions",
+          "signature": "type UnsharpOptions struct {\n\t// Sigma is the Gaussian blur radius used to build the mask; larger values\n\t// sharpen coarser detail. Must be \u003e 0.\n\tSigma float64\n\t// Amount scales the high-frequency detail added back (1 = standard). Zero\n\t// maps to 1.\n\tAmount float64\n\t// Threshold, in [0,255], suppresses sharpening where the local difference is\n\t// small, avoiding noise amplification in flat areas.\n\tThreshold float64\n}",
+          "doc": "UnsharpOptions configures an Unsharp (unsharp-mask) sharpen.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        }
+      ],
+      "funcs": [
+        {
+          "name": "DeltaE76",
+          "signature": "func DeltaE76(l1, a1, b1, l2, a2, b2 float64) float64",
+          "doc": "DeltaE76 returns the CIE76 colour difference (Euclidean distance in CIELAB)\nbetween two L*a*b* colours. A value of 0 means the colours are identical;\nvalues around 2.3 correspond to a just-noticeable difference.\n"
+        },
+        {
+          "name": "HSVToRGB",
+          "signature": "func HSVToRGB(h, s, v float64) (r, g, b uint8)",
+          "doc": "HSVToRGB converts a Hue/Saturation/Value colour to an 8-bit sRGB triple. Hue\nis taken in degrees (values outside [0,360) are wrapped) and saturation and\nvalue are clamped to [0,1]. It is the inverse of RGBToHSV.\n"
+        },
+        {
+          "name": "LabToRGB",
+          "signature": "func LabToRGB(l, a, bb float64) (r, g, b uint8)",
+          "doc": "LabToRGB converts a CIELAB (L*a*b*) colour under the D65 white point to an\n8-bit sRGB triple, clamping to the display gamut. It is the inverse of\nRGBToLab.\n"
+        },
+        {
+          "name": "Luma",
+          "signature": "func Luma(r, g, b uint8) uint8",
+          "doc": "Luma returns the rounded Rec. 601 luminance of an 8-bit sRGB triple, using\nthe weights 0.299R + 0.587G + 0.114B. It is the same luma the library uses\ninternally for Grayscale and Threshold, exposed for callers that need it.\n"
+        },
+        {
+          "name": "RGBToHSV",
+          "signature": "func RGBToHSV(r, g, b uint8) (h, s, v float64)",
+          "doc": "RGBToHSV converts an 8-bit sRGB triple to Hue/Saturation/Value. Hue is\nreturned in degrees in the range [0,360), while saturation and value are in\n[0,1]. It is the inverse of HSVToRGB. Grey inputs return a hue of 0.\n"
+        },
+        {
+          "name": "RGBToLab",
+          "signature": "func RGBToLab(r, g, b uint8) (l, a, bb float64)",
+          "doc": "RGBToLab converts an 8-bit sRGB triple to CIELAB (L*a*b*) under the D65 white\npoint. L is in [0,100]; a and b are unbounded but typically within roughly\n[-128,127]. Pure white maps to L=100, a=0, b=0 and pure black to L=0. It is\nthe inverse of LabToRGB.\n"
+        },
+        {
+          "name": "RGBToXYZ",
+          "signature": "func RGBToXYZ(r, g, b uint8) (x, y, z float64)",
+          "doc": "RGBToXYZ converts an 8-bit sRGB triple to CIE 1931 XYZ under the D65 white\npoint, using the standard sRGB gamma expansion. Y is normalised so that pure\nwhite (255,255,255) maps to approximately (0.9505, 1.0000, 1.0890). It is the\ninverse of XYZToRGB.\n"
+        },
+        {
+          "name": "XYZToRGB",
+          "signature": "func XYZToRGB(x, y, z float64) (r, g, b uint8)",
+          "doc": "XYZToRGB converts a CIE 1931 XYZ colour (D65 white point) to an 8-bit sRGB\ntriple, applying the sRGB gamma and clamping to the display gamut. It is the\ninverse of RGBToXYZ.\n"
+        }
+      ],
+      "examples": [
+        {
+          "name": "",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"image\"\n\t\"image/color\"\n\n\t\"github.com/malcolmston/sharp\"\n)\n\nfunc main() {\n\tsrc := image.NewRGBA(image.Rect(0, 0, 100, 60))\n\tfor y := 0; y \u003c 60; y++ {\n\t\tfor x := 0; x \u003c 100; x++ {\n\t\t\tsrc.Set(x, y, color.RGBA{R: uint8(x % 256), G: uint8(y % 256), B: 128, A: 255})\n\t\t}\n\t}\n\n\tout, err := sharp.New(src).\n\t\tResizeTo(50, 30).\n\t\tGrayscale().\n\t\tToImage()\n\tif err != nil {\n\t\tfmt.Println(\"error:\", err)\n\t\treturn\n\t}\n\n\tfmt.Printf(\"bounds=%v\\n\", out.Bounds())\n}",
+          "output": "bounds=(0,0)-(50,30)",
+          "doc": "Example builds a small gradient image, resizes it, and prints the resulting\nbounds and format.\n"
+        }
+      ]
+    }
+  ]
+}

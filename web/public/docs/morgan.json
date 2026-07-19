@@ -1,0 +1,231 @@
+{
+  "module": "github.com/malcolmston/morgan",
+  "generatedAt": "2026-07-19T02:05:53Z",
+  "packages": [
+    {
+      "importPath": "github.com/malcolmston/morgan",
+      "name": "morgan",
+      "synopsis": "Package morgan is an HTTP request logger middleware for net/http, ported from the Node.js expressjs/morgan library (the request logger most commonly seen mounted on Express applications).",
+      "doc": "Package morgan is an HTTP request logger middleware for net/http, ported from\nthe Node.js expressjs/morgan library (the request logger most commonly seen\nmounted on Express applications). Like its namesake, morgan produces one\naccess-log line per HTTP request and derives the fields of that line by\nexpanding named tokens — :method, :url, :status, :response-time and so on —\nagainst the request and the response it observed. The goal of the port is\nbehavioural parity: the same format names, the same token syntax, and the\nsame Common Log Format output, expressed idiomatically in Go and depending\nonly on the standard library.\n\nUse morgan when you want structured, human- or machine-readable access logs\nfor an HTTP service without adopting a heavier logging framework. It answers\nthe operational questions an access log exists to answer — who called what,\nwhen, with which method and path, what status came back, how large the\nresponse was, and how long it took — and it does so uniformly for every\nhandler it wraps. Typical uses are request auditing, latency spot-checks,\nfeeding an existing log pipeline, or simply having readable local output\nduring development.\n\nThe central entry point is New, which wraps any http.Handler and returns a\nnew http.Handler that logs each request as it passes through. Internally New\nsubstitutes a small responseRecorder for the real http.ResponseWriter so that\nthe status code, the response headers (and therefore the reported content\nlength), and the moment headers are flushed can be captured without the\nwrapped handler being aware of it. Timing is measured around the call to the\ninner handler, giving both :response-time (arrival to headers written) and\n:total-time (arrival to fully written). Once the handler returns, the\ncollected values are assembled into a Log and the active FormatFunc renders\nthe final line.\n\nOutput is controlled by a Format, which is either a predefined constant or a\nraw format string. The predefined formats mirror Node morgan exactly:\nCombined (Apache combined log format, the fullest line, including referrer\nand user agent), Common (Apache common log format), Dev (concise output whose\n:status is colored by response class — green 2xx, cyan 3xx, yellow 4xx, red\n5xx — for terminal use), Short (like common plus response time and without\nthe bracketed date), and Tiny (the minimal method/url/status/length/time\nline). This port additionally offers JSON, which emits one JSON object per\nrequest. Raw format strings use :token and :token[arg] placeholders. Fifteen tokens are\npredefined — among them :method, :url, :status, :response-time, :total-time,\n:remote-addr, :remote-user, :referrer, :user-agent, :http-version, :pid and\n:incoming, plus the argument-taking :date[clf|iso|web], :req[header] and\n:res[header] — and a missing or empty token value renders as \"-\". Formats are\ncompiled into a FormatFunc by Compile, tokens are resolved from a live\nregistry at render time, and the token set can be extended at runtime with\nToken. Named formats can be added with RegisterFormat (a format string) or\nRegisterFormatFunc (a FormatFunc).\n\nBehaviour beyond the format is configured through Config, and its options are\ndeliberately close to the Node API. Config.Stream sets the destination writer\n(the analogue of morgan's stream option, defaulting to os.Stdout);\nConfig.Buffer enables interval-based buffered flushing (morgan's buffer\noption); Config.Immediate writes the line on request arrival rather than on\nresponse completion, trading away response fields such as status and length\nfor a guarantee the request is logged even if the handler never returns; and\nConfig.Skip is the equivalent of morgan's skip function, receiving the\nrequest and the observed status and returning true to suppress the line.\nCustom tokens (Token) and the compiled-format machinery (Compile, FormatFunc)\nround out the parity. The most notable difference from the Node library is\nnaturally the type system: tokens receive a strongly typed Log rather than\nloosely typed request/response objects, and Go's io.Writer stands in for a\nNode writable stream.\n",
+      "consts": [],
+      "vars": [],
+      "types": [
+        {
+          "name": "Config",
+          "signature": "type Config struct {\n\t// Immediate writes the log line on request instead of response.\n\t// The request will be logged even if the server crashes, but response\n\t// data (status code, content length, etc.) cannot be logged.\n\tImmediate bool\n\n\t// Skip determines whether to skip logging for a given request/response pair.\n\t// Example — only log errors:\n\t//   Skip: func(r *http.Request, status int) bool { return status \u003c 400 }\n\tSkip func(r *http.Request, status int) bool\n\n\t// Stream is the output writer for log lines. Defaults to os.Stdout.\n\tStream io.Writer\n\n\t// Buffer enables write buffering. Log lines are flushed to Stream in\n\t// batches at this interval. Zero disables buffering.\n\tBuffer time.Duration\n}",
+          "doc": "Config holds the options for a morgan middleware instance.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Format",
+          "signature": "type Format string",
+          "doc": "Format is a predefined or custom log format string. Tokens use :name or :name[arg] syntax.\n",
+          "consts": [
+            {
+              "names": [
+                "Combined",
+                "Common",
+                "Dev",
+                "Short",
+                "Tiny",
+                "JSON"
+              ],
+              "signature": "const (\n\t// Combined is the standard Apache combined log format.\n\t//   :remote-addr - :remote-user [:date[clf]] \":method :url HTTP/:http-version\" :status :res[content-length] \":referrer\" \":user-agent\"\n\tCombined Format = `:remote-addr - :remote-user [:date[clf]] \":method :url HTTP/:http-version\" :status :res[content-length] \":referrer\" \":user-agent\"`\n\n\t// Common is the standard Apache common log format.\n\t//   :remote-addr - :remote-user [:date[clf]] \":method :url HTTP/:http-version\" :status :res[content-length]\n\tCommon Format = `:remote-addr - :remote-user [:date[clf]] \":method :url HTTP/:http-version\" :status :res[content-length]`\n\n\t// Dev is concise output colored by response status, for development use.\n\t// :status is green for 2xx, cyan for 3xx, yellow for 4xx, red for 5xx, uncolored for 1xx.\n\tDev Format = \"dev\"\n\n\t// Short is shorter than default, also including response time.\n\t//   :remote-addr :remote-user :method :url HTTP/:http-version :status :res[content-length] - :response-time ms\n\tShort Format = `:remote-addr :remote-user :method :url HTTP/:http-version :status :res[content-length] - :response-time ms`\n\n\t// Tiny is the minimal output.\n\t//   :method :url :status :res[content-length] - :response-time ms\n\tTiny Format = `:method :url :status :res[content-length] - :response-time ms`\n\n\t// JSON emits each request as a single-line JSON object.\n\tJSON Format = \"json\"\n)",
+              "doc": ""
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "FormatFunc",
+          "signature": "type FormatFunc func(r *http.Request, log Log) string",
+          "doc": "FormatFunc is a compiled format function that renders a single log line.\nAn empty return value signals that the line should be skipped.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "Compile",
+              "signature": "func Compile(format string) FormatFunc",
+              "doc": "Compile compiles a format string into a FormatFunc. Tokens are resolved from\nthe live registry at render time, so tokens registered after Compile is called\nare still visible.\n\nToken syntax: :name or :name[arg].\n"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "name": "IP",
+          "signature": "type IP []byte",
+          "doc": "IP represents an IP address as a slice of bytes.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "String",
+              "recv": "IP",
+              "signature": "func (ip IP) String() string",
+              "doc": "String returns the textual form of the IP address, or \"\u003cnil\u003e\" when the\naddress is empty. It matches the formatting of net.IP.String.\n"
+            }
+          ]
+        },
+        {
+          "name": "Log",
+          "signature": "type Log struct {\n\t// :date — time the log line is written; use :date[clf], :date[iso], or :date[web].\n\tDATE time.Time\n\t// :http-version — HTTP protocol version (e.g. \"1.1\").\n\tHTTPVersion string\n\t// :method — HTTP method of the request.\n\tMETHOD string\n\t// :pid — process ID of the server process.\n\tPID int\n\t// :referrer — Referrer header (falls back to mis-spelled Referer).\n\tREFERRER string\n\t// :remote-addr — remote address of the request.\n\tREMOTE_IP IP\n\t// :remote-user — user authenticated via Basic auth.\n\tREMOTE_USER string\n\t// :req[header] — a specific request header; read live from *http.Request via the token.\n\tREQUEST_HEADER string\n\t// :res[header] — response headers captured after the handler runs.\n\tRESPONSE_HEADERS http.Header\n\t// :response-time[digits] — time from request arrival to response headers written, in ms.\n\tRESPONSE_TIME time.Duration\n\t// :status — HTTP status code; \"-\" if the cycle completed before a response was sent.\n\tSTATUS int\n\t// :total-time[digits] — time from request arrival to response fully written, in ms.\n\tTOTAL_TIME time.Duration\n\t// :url — request URL path (with query string if present).\n\tURL string\n\t// :user-agent — User-Agent header.\n\tUSER_AGENT string\n\t// :incoming — size of the incoming request body in bytes (-1 if unknown).\n\tINCOMING int64\n}",
+          "doc": "Log holds all token values captured for a single HTTP request/response cycle.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "FromRequest",
+              "signature": "func FromRequest(r *http.Request, status int, responseTime, totalTime time.Duration) Log",
+              "doc": "FromRequest populates a Log from an incoming HTTP request and timing information.\nRESPONSE_HEADERS must be set by the caller after the handler runs.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "String",
+              "recv": "Log",
+              "signature": "func (l Log) String() string",
+              "doc": "String returns the log line in Combined format.\n"
+            }
+          ]
+        },
+        {
+          "name": "SkipFunc",
+          "signature": "type SkipFunc func(r *http.Request, status int) bool",
+          "doc": "SkipFunc decides whether the log line for a request/response pair should be\nsuppressed. It has the same signature as Config.Skip and any SkipFunc may be\nassigned directly to that field.\n\nReturning true suppresses the line; returning false logs it. This mirrors the\nskip option of the Node.js morgan library, whose README documents the same\n\"return true to skip\" convention.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "CombineSkips",
+              "signature": "func CombineSkips(fns ...SkipFunc) SkipFunc",
+              "doc": "CombineSkips returns a SkipFunc that suppresses logging when any of the given\nSkipFuncs would suppress it (a logical OR). Nil entries are ignored. Calling\nCombineSkips with no functions returns a SkipFunc that never skips.\n\nIt lets several independent policies be composed, for example:\n\n\tSkip: morgan.CombineSkips(\n\t    morgan.SkipPaths(\"/healthz\"),\n\t    morgan.SkipStatusBelow(400),\n\t)\n"
+            },
+            {
+              "name": "SkipPaths",
+              "signature": "func SkipPaths(paths ...string) SkipFunc",
+              "doc": "SkipPaths returns a SkipFunc that suppresses logging for any request whose URL\npath exactly matches one of the given paths. It is the standard way to keep\nhealth-check and readiness endpoints (for example \"/healthz\" or \"/metrics\")\nout of an access log.\n\nMatching is performed against r.URL.Path only; query strings are ignored. A nil\nrequest never matches.\n"
+            },
+            {
+              "name": "SkipStatusBelow",
+              "signature": "func SkipStatusBelow(min int) SkipFunc",
+              "doc": "SkipStatusBelow returns a SkipFunc that suppresses logging whenever the\nresponse status code is below min. It is the Go form of morgan's canonical\n\"only log errors\" example, SkipStatusBelow(400), which skips every 1xx/2xx/3xx\nresponse and logs only 4xx and 5xx.\n\nA status of 0 (no response written, e.g. under Config.Immediate) is treated as\nbelow any positive min and is therefore skipped.\n"
+            },
+            {
+              "name": "SkipStatusBetween",
+              "signature": "func SkipStatusBetween(lo, hi int) SkipFunc",
+              "doc": "SkipStatusBetween returns a SkipFunc that suppresses logging whenever the\nresponse status code is within the inclusive range [lo, hi]. It is useful for\nsilencing an uninteresting band of statuses, for example SkipStatusBetween(200,\n399) to log only redirects-and-errors-excluded... i.e. only 1xx, 4xx and 5xx.\n"
+            },
+            {
+              "name": "SkipUserAgents",
+              "signature": "func SkipUserAgents(substrings ...string) SkipFunc",
+              "doc": "SkipUserAgents returns a SkipFunc that suppresses logging for any request whose\nUser-Agent header contains one of the given case-insensitive substrings. It is\ncommonly used to drop noise from uptime monitors, load-balancer probes and\ncrawlers, for example SkipUserAgents(\"kube-probe\", \"ELB-HealthChecker\").\n\nAn empty substring is ignored so that it never matches every request.\n"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "name": "TokenFunc",
+          "signature": "type TokenFunc func(r *http.Request, log Log, args ...string) string",
+          "doc": "TokenFunc is the callback signature for a token handler. It receives the original\nrequest, the populated Log, and any bracket arguments (e.g. \"clf\" from :date[clf]),\nand returns the string to render at that position in the log line.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        }
+      ],
+      "funcs": [
+        {
+          "name": "Clfdate",
+          "signature": "func Clfdate(t time.Time) string",
+          "doc": "Clfdate formats t in Common Log Format, for example \"27/Nov/2024:06:21:42\n+0000\". The value is always expressed in UTC with a fixed +0000 offset, exactly\nmatching the :date[clf] token and the Node.js morgan clfdate helper. It is\nexported so callers building custom format functions can reuse the identical\ntimestamp rendering.\n"
+        },
+        {
+          "name": "ClientIP",
+          "signature": "func ClientIP(r *http.Request) string",
+          "doc": "ClientIP resolves the client IP address for a request using the same\nprecedence morgan applies to the :remote-addr token: the first value of the\nX-Forwarded-For header when present, otherwise the host portion of\nr.RemoteAddr. The returned string has any port stripped. An empty string is\nreturned when neither source yields an address (including a nil request).\n\nX-Forwarded-For may contain a comma-separated list of proxies; the left-most\n(original client) entry is returned, trimmed of surrounding whitespace.\n"
+        },
+        {
+          "name": "FormatDuration",
+          "signature": "func FormatDuration(d time.Duration, digits int) string",
+          "doc": "FormatDuration formats a duration as milliseconds with the given number of decimal digits.\n"
+        },
+        {
+          "name": "New",
+          "signature": "func New(next http.Handler, format Format, cfg Config) http.Handler",
+          "doc": "New returns an http.Handler middleware that logs each request using the given\nformat and configuration. format may be a named format (\"combined\", \"dev\", …)\nor a raw format string with :token syntax.\n\nExample:\n\n\tmux := http.NewServeMux()\n\thttp.ListenAndServe(\":8080\", morgan.New(mux, morgan.Dev, morgan.Config{}))\n"
+        },
+        {
+          "name": "RegisterFormat",
+          "signature": "func RegisterFormat(name, fmtString string)",
+          "doc": "RegisterFormat registers a named format string.\nOverwrites any existing format with the same name.\n"
+        },
+        {
+          "name": "RegisterFormatFunc",
+          "signature": "func RegisterFormatFunc(name string, fn FormatFunc)",
+          "doc": "RegisterFormatFunc registers a named format function.\nOverwrites any existing format with the same name.\n"
+        },
+        {
+          "name": "RequestProtocol",
+          "signature": "func RequestProtocol(r *http.Request) string",
+          "doc": "RequestProtocol reports the scheme under which a request was received: \"https\"\nwhen the connection is TLS-terminated (r.TLS != nil) or when a trusted proxy\nset X-Forwarded-Proto to \"https\", and \"http\" otherwise. It mirrors the\nprotocol reasoning used by Express req.protocol behind a proxy and backs the\n:protocol token.\n"
+        },
+        {
+          "name": "RequestURL",
+          "signature": "func RequestURL(r *http.Request) string",
+          "doc": "RequestURL returns the request target rendered exactly as the :url token: the\nURL path, with \"?\" and the raw query string appended when a query is present. A\nnil request or nil URL yields an empty string. It lets custom format functions\nreproduce morgan's :url without duplicating the assembly logic.\n"
+        },
+        {
+          "name": "StatusCategory",
+          "signature": "func StatusCategory(status int) string",
+          "doc": "StatusCategory classifies an HTTP status code into its RFC 7231 response class\nand returns a lowercase, hyphenated label:\n\n\t1xx -\u003e \"informational\"\n\t2xx -\u003e \"success\"\n\t3xx -\u003e \"redirect\"\n\t4xx -\u003e \"client-error\"\n\t5xx -\u003e \"server-error\"\n\nA status of 0 (no response written) or any code outside the 100-599 range\nreturns \"unknown\". This mirrors the response-class reasoning the dev format\nuses to colour the status code, exposed for use in custom tokens and Skip\nfunctions.\n"
+        },
+        {
+          "name": "StatusColorCode",
+          "signature": "func StatusColorCode(status int) int",
+          "doc": "StatusColorCode returns the ANSI Select Graphic Rendition (SGR) colour code the\ndev format applies to a status of the given class:\n\n\t5xx -\u003e 31 (red)\n\t4xx -\u003e 33 (yellow)\n\t3xx -\u003e 36 (cyan)\n\t2xx -\u003e 32 (green)\n\totherwise -\u003e 0 (no colour)\n\nThe returned value is the numeric parameter of an ESC[\u003ccode\u003em sequence, so a\ncoloured status can be rendered as \"\\x1b[\" + strconv.Itoa(StatusColorCode(s)) +\n\"m\". It reproduces exactly the palette documented for morgan.Dev.\n"
+        },
+        {
+          "name": "Token",
+          "signature": "func Token(name string, fn TokenFunc)",
+          "doc": "Token registers (or overwrites) a named token available as :name or :name[arg]\nin format strings.\n\nExample:\n\n\tmorgan.Token(\"type\", func(r *http.Request, log morgan.Log, args ...string) string {\n\t    return r.Header.Get(\"Content-Type\")\n\t})\n"
+        }
+      ],
+      "examples": [
+        {
+          "name": "New",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n\t\"net/http/httptest\"\n\t\"strings\"\n\n\t\"github.com/malcolmston/morgan\"\n)\n\nfunc main() {\n\tvar buf strings.Builder\n\n\tapp := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {\n\t\tfmt.Fprint(w, \"ok\")\n\t})\n\n\tlogged := morgan.New(app, morgan.Tiny, morgan.Config{Stream: \u0026buf})\n\n\treq := httptest.NewRequest(http.MethodGet, \"/hi\", nil)\n\trec := httptest.NewRecorder()\n\tlogged.ServeHTTP(rec, req)\n\n\tfmt.Println(strings.Contains(buf.String(), \"GET /hi 200\"))\n}",
+          "output": "true",
+          "doc": "ExampleNew demonstrates the most common use of the package: wrapping an\nexisting http.Handler with a predefined format. Here the Tiny format is used,\nwhich renders the method, URL, status, response content length and response\ntime. The middleware is driven with an httptest request and recorder so the\nexample is fully self-contained and does not need a live network listener.\nLog output is redirected into a bytes buffer via Config.Stream instead of the\ndefault os.Stdout so the test can inspect it. The takeaway is that a single\ncall to New turns any handler into a logged handler without changing the\nhandler itself. Because the Tiny format includes a non-deterministic\nresponse-time value, the example asserts only that a stable substring is\npresent rather than printing the whole line.\n"
+        },
+        {
+          "name": "Token",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n\t\"net/http/httptest\"\n\t\"strings\"\n\n\t\"github.com/malcolmston/morgan\"\n)\n\nfunc main() {\n\tmorgan.Token(\"app-version\", func(_ *http.Request, _ morgan.Log, _ ...string) string {\n\t\treturn \"1.0.0\"\n\t})\n\n\tvar buf strings.Builder\n\n\tapp := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {\n\t\tfmt.Fprint(w, \"ok\")\n\t})\n\n\tlogged := morgan.New(app, morgan.Format(\":method :url :app-version\"), morgan.Config{Stream: \u0026buf})\n\n\treq := httptest.NewRequest(http.MethodGet, \"/widgets\", nil)\n\trec := httptest.NewRecorder()\n\tlogged.ServeHTTP(rec, req)\n\n\tfmt.Print(buf.String())\n}",
+          "output": "GET /widgets 1.0.0",
+          "doc": "ExampleToken shows how to extend morgan with a custom token and then use that\ntoken inside a raw format string. A token named \"app-version\" is registered\nwith Token; its handler ignores the request and returns a fixed string, but a\nreal handler could read anything from the request or Log. The format string\ncombines the built-in :method and :url tokens with the new :app-version\ntoken, and New compiles it because the string is not a registered format\nname. Tokens are resolved from the live registry at render time, so\nregistering the token before the request is served is sufficient. The\ntakeaway is that any per-request value you can compute can become a first\nclass token; because this format contains no timing or date tokens, its\noutput is deterministic and can be asserted exactly.\n"
+        },
+        {
+          "name": "Config (skip)",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n\t\"net/http/httptest\"\n\t\"strings\"\n\n\t\"github.com/malcolmston/morgan\"\n)\n\nfunc main() {\n\tvar buf strings.Builder\n\n\tapp := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {\n\t\tif r.URL.Path == \"/missing\" {\n\t\t\thttp.Error(w, \"not found\", http.StatusNotFound)\n\t\t\treturn\n\t\t}\n\t\tfmt.Fprint(w, \"ok\")\n\t})\n\n\tcfg := morgan.Config{\n\t\tStream: \u0026buf,\n\t\tSkip: func(_ *http.Request, status int) bool {\n\t\t\treturn status \u003c 400\n\t\t},\n\t}\n\tlogged := morgan.New(app, morgan.Tiny, cfg)\n\n\tokReq := httptest.NewRequest(http.MethodGet, \"/ok\", nil)\n\tlogged.ServeHTTP(httptest.NewRecorder(), okReq)\n\tfmt.Println(\"logged after success:\", buf.Len() \u003e 0)\n\n\tmissReq := httptest.NewRequest(http.MethodGet, \"/missing\", nil)\n\tlogged.ServeHTTP(httptest.NewRecorder(), missReq)\n\tfmt.Println(\"has 404 line:\", strings.Contains(buf.String(), \"GET /missing 404\"))\n}",
+          "output": "logged after success: false\nhas 404 line: true",
+          "doc": "ExampleConfig_skip demonstrates directing output to a custom io.Writer while\nsuppressing routine requests with a Skip function. The Skip callback receives\nthe request and the observed status code and returns true to drop the line,\nso returning status \u003c 400 here means only client and server errors are\nlogged. Two requests are driven through the same middleware: a successful one\nthat Skip suppresses, and a not-found one that is kept. The example inspects\nthe buffer after each request to show the filtering taking effect. The\ntakeaway is that Config.Stream and Config.Skip together let you send access\nlogs anywhere an io.Writer can reach while logging only the requests you care\nabout, mirroring the stream and skip options of the Node morgan middleware.\n"
+        }
+      ]
+    },
+    {
+      "importPath": "github.com/malcolmston/morgan/tests",
+      "name": "",
+      "synopsis": "",
+      "doc": "",
+      "consts": [],
+      "vars": [],
+      "types": [],
+      "funcs": []
+    }
+  ]
+}

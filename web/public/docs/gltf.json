@@ -1,0 +1,1476 @@
+{
+  "module": "github.com/malcolmston/gltf",
+  "generatedAt": "2026-07-19T02:05:52Z",
+  "packages": [
+    {
+      "importPath": "github.com/malcolmston/gltf",
+      "name": "gltf",
+      "synopsis": "Package gltf is a dependency-free toolkit for reading, writing, and inspecting glTF 2.0 assets in both the JSON (.gltf) and binary (.glb) container formats.",
+      "doc": "Package gltf is a dependency-free toolkit for reading, writing, and inspecting\nglTF 2.0 assets in both the JSON (.gltf) and binary (.glb) container formats.\n\n# Document model\n\n[Document] is the root object and mirrors the glTF 2.0 JSON schema. Every\ntop-level collection (scenes, nodes, meshes, accessors, buffer views,\nbuffers, materials, textures, images, samplers, animations, skins, and\ncameras) is a slice addressed by integer index from elsewhere in the\ndocument, exactly as in the specification. Unknown or vendor-specific data is\npreserved through the Extensions and Extras fields, which are typed as\n[encoding/json.RawMessage].\n\nTyped enumerations ([ComponentType], [AccessorType], [PrimitiveMode],\n[Filter], [WrapMode], [Interpolation], [CameraType], [AlphaMode], and others)\ncarry the spec-defined constant values and helper methods.\n\n# Reading and writing\n\nFor JSON documents use [Decode] and [Encode], or the file helpers [Open] and\n[Save]. For the binary container use [ReadGLB] and [WriteGLB], or the file\nhelpers [OpenGLB] and [SaveGLB]. [Open] and [OpenGLB] additionally resolve\nbuffer data.\n\n# Buffers\n\nBuffer payloads come from three sources: an embedded GLB BIN chunk, a base64\n\"data:\" URI, or an external file. [Document.ResolveBuffers] loads all three\ninto each [Buffer]'s Data field; [EncodeDataURI] performs the reverse for\nembedding.\n\n# Accessors\n\nOnce buffers are resolved, the Decode* methods on [Document] read typed\nvertex data out of accessors, honoring byteOffset, byteStride, the normalized\nflag, and sparse substitutions:\n\n  - [Document.DecodeAccessorFloat32] returns flattened float32 components;\n  - [Document.DecodeAccessorVec2], [Document.DecodeAccessorVec3], and\n    [Document.DecodeAccessorVec4] return typed vectors;\n  - [Document.DecodeAccessorUint32] and [Document.DecodeIndices] return\n    unsigned integer index data.\n\nThe Add* methods provide the write path: [Document.AddAccessorVec3],\n[Document.AddAccessorVec2], [Document.AddAccessorVec4],\n[Document.AddAccessorFloat32], and [Document.AddIndicesUint32] append typed\ndata to buffer 0 as a new bufferView and accessor, computing min/max.\n\n# Scene evaluation\n\nThe transform helpers work with a column-major [Mat4], a [Quat] rotation, and\n[Vec3] vectors. [TRS] composes a transform; [Mat4.Decompose] recovers it;\n[Node.LocalMatrix] and [Document.GlobalMatrix] give local and world\ntransforms. [Document.EvaluateSampler] and [Document.SampleChannel] evaluate\nanimation channels (STEP, LINEAR, and CUBICSPLINE, with quaternion [Slerp]\nfor rotations), and [Document.ApplyAnimation] poses nodes in place.\n[Document.JointMatrices] computes skinning matrices, and\n[Document.MorphedPositions] blends morph targets.\n\n# Extensions\n\nNamed Khronos extensions are modeled by typed structs (for example\n[MaterialsUnlit], [MaterialsTransmission], [TextureTransform], and\n[LightsPunctual]) with parse/encode helpers [GetExtension] and [SetExtension];\nunknown extensions round-trip verbatim through [ExtensionMap] and\n[MarshalExtensions].\n\n# Images\n\n[Document.DecodeImage] decodes embedded, data-URI, and external PNG/JPEG\nimages to an [image.Image].\n\n# Validation\n\n[Document.Validate] performs required-field, index-range, and structural\nconsistency checks (accessor and bufferView bounds, component/type rules,\nanimation, camera, material, image, and skin constraints), returning a\n[ValidationErrors] value that lists every problem with a descriptive path.\n\n# Building\n\n[Triangle] constructs a minimal, valid single-triangle document plus its\nbinary buffer; [WriteTriangleGLB] and [WriteTriangleGLTF] emit it directly.\n",
+      "consts": [
+        {
+          "names": [
+            "ExtMaterialsUnlit",
+            "ExtMaterialsEmissiveStrength",
+            "ExtMaterialsTransmission",
+            "ExtMaterialsIOR",
+            "ExtTextureTransform",
+            "ExtLightsPunctual",
+            "ExtMaterialsPBRSpecularGlossiness"
+          ],
+          "signature": "const (\n\t// ExtMaterialsUnlit is the name of the KHR_materials_unlit extension.\n\tExtMaterialsUnlit = \"KHR_materials_unlit\"\n\t// ExtMaterialsEmissiveStrength is the name of the\n\t// KHR_materials_emissive_strength extension.\n\tExtMaterialsEmissiveStrength = \"KHR_materials_emissive_strength\"\n\t// ExtMaterialsTransmission is the name of the KHR_materials_transmission\n\t// extension.\n\tExtMaterialsTransmission = \"KHR_materials_transmission\"\n\t// ExtMaterialsIOR is the name of the KHR_materials_ior extension.\n\tExtMaterialsIOR = \"KHR_materials_ior\"\n\t// ExtTextureTransform is the name of the KHR_texture_transform extension.\n\tExtTextureTransform = \"KHR_texture_transform\"\n\t// ExtLightsPunctual is the name of the KHR_lights_punctual extension.\n\tExtLightsPunctual = \"KHR_lights_punctual\"\n\t// ExtMaterialsPBRSpecularGlossiness is the name of the\n\t// KHR_materials_pbrSpecularGlossiness extension.\n\tExtMaterialsPBRSpecularGlossiness = \"KHR_materials_pbrSpecularGlossiness\"\n)",
+          "doc": "Extension name constants for the Khronos (KHR_) extensions supported by this\npackage.\n"
+        },
+        {
+          "names": [
+            "ExtMaterialsClearcoat",
+            "ExtMaterialsSheen",
+            "ExtMaterialsSpecular",
+            "ExtMaterialsVolume"
+          ],
+          "signature": "const (\n\t// ExtMaterialsClearcoat is the name of the KHR_materials_clearcoat extension.\n\tExtMaterialsClearcoat = \"KHR_materials_clearcoat\"\n\t// ExtMaterialsSheen is the name of the KHR_materials_sheen extension.\n\tExtMaterialsSheen = \"KHR_materials_sheen\"\n\t// ExtMaterialsSpecular is the name of the KHR_materials_specular extension.\n\tExtMaterialsSpecular = \"KHR_materials_specular\"\n\t// ExtMaterialsVolume is the name of the KHR_materials_volume extension.\n\tExtMaterialsVolume = \"KHR_materials_volume\"\n)",
+          "doc": "Extension name constants for the additional Khronos PBR material extensions\nmodeled below.\n"
+        },
+        {
+          "names": [
+            "GLBMagic",
+            "GLBVersion"
+          ],
+          "signature": "const (\n\t// GLBMagic is the little-endian \"glTF\" magic that begins every GLB file.\n\tGLBMagic uint32 = 0x46546C67\n\t// GLBVersion is the GLB container version supported by this package.\n\tGLBVersion uint32 = 2\n)",
+          "doc": "GLB container constants defined by the glTF 2.0 specification.\n"
+        },
+        {
+          "names": [
+            "Version"
+          ],
+          "signature": "const Version = \"2.0\"",
+          "doc": "Version is the glTF specification version this package targets.\n"
+        }
+      ],
+      "vars": [
+        {
+          "names": [
+            "IdentityQuat"
+          ],
+          "signature": "var IdentityQuat = Quat{0, 0, 0, 1}",
+          "doc": "IdentityQuat is the rotation quaternion representing no rotation.\n"
+        },
+        {
+          "names": [
+            "TrianglePositions"
+          ],
+          "signature": "var TrianglePositions = [3][3]float32{\n\t{0, 0, 0},\n\t{1, 0, 0},\n\t{0, 1, 0},\n}",
+          "doc": "TrianglePositions are the three VEC3 vertex positions used by Triangle.\n"
+        }
+      ],
+      "types": [
+        {
+          "name": "Accessor",
+          "signature": "type Accessor struct {\n\tBufferView    *Index          `json:\"bufferView,omitempty\"`\n\tByteOffset    int             `json:\"byteOffset,omitempty\"`\n\tComponentType ComponentType   `json:\"componentType\"`\n\tNormalized    bool            `json:\"normalized,omitempty\"`\n\tCount         int             `json:\"count\"`\n\tType          AccessorType    `json:\"type\"`\n\tMax           []float64       `json:\"max,omitempty\"`\n\tMin           []float64       `json:\"min,omitempty\"`\n\tSparse        *Sparse         `json:\"sparse,omitempty\"`\n\tName          string          `json:\"name,omitempty\"`\n\tExtensions    json.RawMessage `json:\"extensions,omitempty\"`\n\tExtras        json.RawMessage `json:\"extras,omitempty\"`\n}",
+          "doc": "Accessor defines how to interpret the typed data stored in a bufferView (or\ngenerated by a sparse substitution).\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "AccessorType",
+          "signature": "type AccessorType string",
+          "doc": "AccessorType specifies whether an accessor element is a scalar, vector, or\nmatrix. It is encoded as a JSON string in glTF.\n",
+          "consts": [
+            {
+              "names": [
+                "AccessorScalar",
+                "AccessorVec2",
+                "AccessorVec3",
+                "AccessorVec4",
+                "AccessorMat2",
+                "AccessorMat3",
+                "AccessorMat4"
+              ],
+              "signature": "const (\n\tAccessorScalar AccessorType = \"SCALAR\"\n\tAccessorVec2   AccessorType = \"VEC2\"\n\tAccessorVec3   AccessorType = \"VEC3\"\n\tAccessorVec4   AccessorType = \"VEC4\"\n\tAccessorMat2   AccessorType = \"MAT2\"\n\tAccessorMat3   AccessorType = \"MAT3\"\n\tAccessorMat4   AccessorType = \"MAT4\"\n)",
+              "doc": "Accessor element types defined by the glTF 2.0 specification.\n"
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "ComponentCount",
+              "recv": "AccessorType",
+              "signature": "func (t AccessorType) ComponentCount() int",
+              "doc": "ComponentCount returns the number of components in a single element of this\naccessor type. It returns 0 for an unknown type.\n"
+            }
+          ]
+        },
+        {
+          "name": "AlphaMode",
+          "signature": "type AlphaMode string",
+          "doc": "AlphaMode controls how a material's alpha value is interpreted.\n",
+          "consts": [
+            {
+              "names": [
+                "AlphaOpaque",
+                "AlphaMask",
+                "AlphaBlend"
+              ],
+              "signature": "const (\n\tAlphaOpaque AlphaMode = \"OPAQUE\"\n\tAlphaMask   AlphaMode = \"MASK\"\n\tAlphaBlend  AlphaMode = \"BLEND\"\n)",
+              "doc": "Material alpha modes defined by the glTF 2.0 specification.\n"
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Animation",
+          "signature": "type Animation struct {\n\tName       string             `json:\"name,omitempty\"`\n\tChannels   []AnimationChannel `json:\"channels\"`\n\tSamplers   []AnimationSampler `json:\"samplers\"`\n\tExtensions json.RawMessage    `json:\"extensions,omitempty\"`\n\tExtras     json.RawMessage    `json:\"extras,omitempty\"`\n}",
+          "doc": "Animation binds keyframe data (samplers) to node properties (channels).\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "AnimationChannel",
+          "signature": "type AnimationChannel struct {\n\tSampler    Index                  `json:\"sampler\"`\n\tTarget     AnimationChannelTarget `json:\"target\"`\n\tExtensions json.RawMessage        `json:\"extensions,omitempty\"`\n\tExtras     json.RawMessage        `json:\"extras,omitempty\"`\n}",
+          "doc": "AnimationChannel connects an animation sampler to a target property.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "AnimationChannelTarget",
+          "signature": "type AnimationChannelTarget struct {\n\tNode       *Index          `json:\"node,omitempty\"`\n\tPath       AnimationPath   `json:\"path\"`\n\tExtensions json.RawMessage `json:\"extensions,omitempty\"`\n\tExtras     json.RawMessage `json:\"extras,omitempty\"`\n}",
+          "doc": "AnimationChannelTarget identifies the node and property an animation drives.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "AnimationPath",
+          "signature": "type AnimationPath string",
+          "doc": "AnimationPath is the node property targeted by an animation channel.\n",
+          "consts": [
+            {
+              "names": [
+                "PathTranslation",
+                "PathRotation",
+                "PathScale",
+                "PathWeights"
+              ],
+              "signature": "const (\n\tPathTranslation AnimationPath = \"translation\"\n\tPathRotation    AnimationPath = \"rotation\"\n\tPathScale       AnimationPath = \"scale\"\n\tPathWeights     AnimationPath = \"weights\"\n)",
+              "doc": "Animation target paths defined by the glTF 2.0 specification.\n"
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "AnimationSampler",
+          "signature": "type AnimationSampler struct {\n\tInput         Index           `json:\"input\"`\n\tInterpolation Interpolation   `json:\"interpolation,omitempty\"`\n\tOutput        Index           `json:\"output\"`\n\tExtensions    json.RawMessage `json:\"extensions,omitempty\"`\n\tExtras        json.RawMessage `json:\"extras,omitempty\"`\n}",
+          "doc": "AnimationSampler holds keyframe input (times) and output (values) accessors.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "GetInterpolation",
+              "recv": "*AnimationSampler",
+              "signature": "func (s *AnimationSampler) GetInterpolation() Interpolation",
+              "doc": "GetInterpolation returns the sampler's interpolation algorithm, defaulting to\n[InterpolationLinear] when unset, as required by the specification.\n"
+            }
+          ]
+        },
+        {
+          "name": "Asset",
+          "signature": "type Asset struct {\n\tCopyright  string          `json:\"copyright,omitempty\"`\n\tGenerator  string          `json:\"generator,omitempty\"`\n\tVersion    string          `json:\"version\"`\n\tMinVersion string          `json:\"minVersion,omitempty\"`\n\tExtensions json.RawMessage `json:\"extensions,omitempty\"`\n\tExtras     json.RawMessage `json:\"extras,omitempty\"`\n}",
+          "doc": "Asset holds metadata about the glTF asset. The Version field is required by\nthe specification.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Box",
+          "signature": "type Box struct {\n\tMin Vec3\n\tMax Vec3\n}",
+          "doc": "Box is an axis-aligned bounding box in world or local space, defined by its\nminimum and maximum corner. An empty box (one that contains no points) has a\nMin component greater than the corresponding Max component; see [EmptyBox].\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "EmptyBox",
+              "signature": "func EmptyBox() Box",
+              "doc": "EmptyBox returns an empty bounding box: its Min is +Inf and its Max is -Inf on\nevery axis, so the first point added by [Box.Add] establishes both corners.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Add",
+              "recv": "Box",
+              "signature": "func (b Box) Add(p Vec3) Box",
+              "doc": "Add returns the smallest box that contains both b and the point p.\n"
+            },
+            {
+              "name": "Center",
+              "recv": "Box",
+              "signature": "func (b Box) Center() Vec3",
+              "doc": "Center returns the midpoint of the box. It is only meaningful for a non-empty\nbox.\n"
+            },
+            {
+              "name": "Contains",
+              "recv": "Box",
+              "signature": "func (b Box) Contains(p Vec3) bool",
+              "doc": "Contains reports whether the point p lies within the box, inclusive of its\nboundary.\n"
+            },
+            {
+              "name": "Empty",
+              "recv": "Box",
+              "signature": "func (b Box) Empty() bool",
+              "doc": "Empty reports whether the box contains no points, which is true when any axis\nhas Min greater than Max.\n"
+            },
+            {
+              "name": "Size",
+              "recv": "Box",
+              "signature": "func (b Box) Size() Vec3",
+              "doc": "Size returns the extent of the box along each axis (Max minus Min). It is only\nmeaningful for a non-empty box.\n"
+            },
+            {
+              "name": "Transform",
+              "recv": "Box",
+              "signature": "func (b Box) Transform(m Mat4) Box",
+              "doc": "Transform returns the axis-aligned bounding box that encloses b after each of\nits eight corners is transformed by the column-major matrix m. An empty box is\nreturned unchanged.\n"
+            },
+            {
+              "name": "Union",
+              "recv": "Box",
+              "signature": "func (b Box) Union(o Box) Box",
+              "doc": "Union returns the smallest box that contains both b and o. Empty operands are\nignored, so unioning with an [EmptyBox] returns the other box.\n"
+            }
+          ]
+        },
+        {
+          "name": "Buffer",
+          "signature": "type Buffer struct {\n\tURI        string          `json:\"uri,omitempty\"`\n\tByteLength int             `json:\"byteLength\"`\n\tName       string          `json:\"name,omitempty\"`\n\tExtensions json.RawMessage `json:\"extensions,omitempty\"`\n\tExtras     json.RawMessage `json:\"extras,omitempty\"`\n\n\t// Data holds the resolved bytes for this buffer once ResolveBuffers has\n\t// run. It is not serialized to JSON.\n\tData []byte `json:\"-\"`\n}",
+          "doc": "Buffer points to binary geometry, animation, or skin data. URI may be a file\npath, a base64 data URI, or empty for the GLB binary chunk.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "BufferView",
+          "signature": "type BufferView struct {\n\tBuffer     Index           `json:\"buffer\"`\n\tByteOffset int             `json:\"byteOffset,omitempty\"`\n\tByteLength int             `json:\"byteLength\"`\n\tByteStride int             `json:\"byteStride,omitempty\"`\n\tTarget     *TargetType     `json:\"target,omitempty\"`\n\tName       string          `json:\"name,omitempty\"`\n\tExtensions json.RawMessage `json:\"extensions,omitempty\"`\n\tExtras     json.RawMessage `json:\"extras,omitempty\"`\n}",
+          "doc": "BufferView is a contiguous slice of a buffer.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Camera",
+          "signature": "type Camera struct {\n\tName         string              `json:\"name,omitempty\"`\n\tType         CameraType          `json:\"type\"`\n\tPerspective  *CameraPerspective  `json:\"perspective,omitempty\"`\n\tOrthographic *CameraOrthographic `json:\"orthographic,omitempty\"`\n\tExtensions   json.RawMessage     `json:\"extensions,omitempty\"`\n\tExtras       json.RawMessage     `json:\"extras,omitempty\"`\n}",
+          "doc": "Camera is a projection used to render the scene. Exactly one of Perspective\nor Orthographic must be set, matching Type.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "ProjectionMatrix",
+              "recv": "*Camera",
+              "signature": "func (c *Camera) ProjectionMatrix() (Mat4, error)",
+              "doc": "ProjectionMatrix returns the column-major projection matrix for the camera,\ndispatching on its Type to the perspective or orthographic projection. It\nreturns an error when the camera is missing the projection block that matches\nits Type.\n"
+            }
+          ]
+        },
+        {
+          "name": "CameraOrthographic",
+          "signature": "type CameraOrthographic struct {\n\tXMag       float64         `json:\"xmag\"`\n\tYMag       float64         `json:\"ymag\"`\n\tZFar       float64         `json:\"zfar\"`\n\tZNear      float64         `json:\"znear\"`\n\tExtensions json.RawMessage `json:\"extensions,omitempty\"`\n\tExtras     json.RawMessage `json:\"extras,omitempty\"`\n}",
+          "doc": "CameraOrthographic holds orthographic projection parameters.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "ProjectionMatrix",
+              "recv": "*CameraOrthographic",
+              "signature": "func (c *CameraOrthographic) ProjectionMatrix() Mat4",
+              "doc": "ProjectionMatrix returns the column-major projection matrix for the\northographic camera, following the glTF 2.0 specification.\n"
+            }
+          ]
+        },
+        {
+          "name": "CameraPerspective",
+          "signature": "type CameraPerspective struct {\n\tAspectRatio *float64        `json:\"aspectRatio,omitempty\"`\n\tYFOV        float64         `json:\"yfov\"`\n\tZFar        *float64        `json:\"zfar,omitempty\"`\n\tZNear       float64         `json:\"znear\"`\n\tExtensions  json.RawMessage `json:\"extensions,omitempty\"`\n\tExtras      json.RawMessage `json:\"extras,omitempty\"`\n}",
+          "doc": "CameraPerspective holds perspective projection parameters.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "ProjectionMatrix",
+              "recv": "*CameraPerspective",
+              "signature": "func (c *CameraPerspective) ProjectionMatrix() Mat4",
+              "doc": "ProjectionMatrix returns the column-major projection matrix for the\nperspective camera, following the glTF 2.0 specification. When ZFar is nil the\nprojection uses an infinite far plane. When AspectRatio is nil an aspect ratio\nof 1 is assumed (the specification defers to the viewport aspect ratio).\n"
+            }
+          ]
+        },
+        {
+          "name": "CameraType",
+          "signature": "type CameraType string",
+          "doc": "CameraType distinguishes perspective and orthographic cameras.\n",
+          "consts": [
+            {
+              "names": [
+                "CameraTypePerspective",
+                "CameraTypeOrthographic"
+              ],
+              "signature": "const (\n\tCameraTypePerspective  CameraType = \"perspective\"\n\tCameraTypeOrthographic CameraType = \"orthographic\"\n)",
+              "doc": "Camera types defined by the glTF 2.0 specification.\n"
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "ComponentType",
+          "signature": "type ComponentType int",
+          "doc": "ComponentType identifies the datatype of the components that make up an\naccessor element. The integer values match the glTF 2.0 specification (they\nare OpenGL constants).\n",
+          "consts": [
+            {
+              "names": [
+                "ComponentByte",
+                "ComponentUnsignedByte",
+                "ComponentShort",
+                "ComponentUnsignedShort",
+                "ComponentUnsignedInt",
+                "ComponentFloat"
+              ],
+              "signature": "const (\n\tComponentByte          ComponentType = 5120 // signed 8-bit integer\n\tComponentUnsignedByte  ComponentType = 5121 // unsigned 8-bit integer\n\tComponentShort         ComponentType = 5122 // signed 16-bit integer\n\tComponentUnsignedShort ComponentType = 5123 // unsigned 16-bit integer\n\tComponentUnsignedInt   ComponentType = 5125 // unsigned 32-bit integer\n\tComponentFloat         ComponentType = 5126 // 32-bit IEEE-754 float\n)",
+              "doc": "Component types defined by the glTF 2.0 specification.\n"
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "SizeInBytes",
+              "recv": "ComponentType",
+              "signature": "func (c ComponentType) SizeInBytes() int",
+              "doc": "SizeInBytes returns the size, in bytes, of a single component of this type.\nIt returns 0 for an unknown component type.\n"
+            },
+            {
+              "name": "String",
+              "recv": "ComponentType",
+              "signature": "func (c ComponentType) String() string",
+              "doc": "String returns a human-readable name for the component type.\n"
+            }
+          ]
+        },
+        {
+          "name": "Document",
+          "signature": "type Document struct {\n\t// ExtensionsUsed lists glTF extensions used somewhere in this asset.\n\tExtensionsUsed []string `json:\"extensionsUsed,omitempty\"`\n\t// ExtensionsRequired lists glTF extensions required to load this asset.\n\tExtensionsRequired []string `json:\"extensionsRequired,omitempty\"`\n\n\tAsset       Asset        `json:\"asset\"`\n\tScene       *Index       `json:\"scene,omitempty\"`\n\tScenes      []Scene      `json:\"scenes,omitempty\"`\n\tNodes       []Node       `json:\"nodes,omitempty\"`\n\tMeshes      []Mesh       `json:\"meshes,omitempty\"`\n\tAccessors   []Accessor   `json:\"accessors,omitempty\"`\n\tBufferViews []BufferView `json:\"bufferViews,omitempty\"`\n\tBuffers     []Buffer     `json:\"buffers,omitempty\"`\n\tMaterials   []Material   `json:\"materials,omitempty\"`\n\tTextures    []Texture    `json:\"textures,omitempty\"`\n\tImages      []Image      `json:\"images,omitempty\"`\n\tSamplers    []Sampler    `json:\"samplers,omitempty\"`\n\tAnimations  []Animation  `json:\"animations,omitempty\"`\n\tSkins       []Skin       `json:\"skins,omitempty\"`\n\tCameras     []Camera     `json:\"cameras,omitempty\"`\n\n\tExtensions json.RawMessage `json:\"extensions,omitempty\"`\n\tExtras     json.RawMessage `json:\"extras,omitempty\"`\n}",
+          "doc": "Document is the root object of a glTF 2.0 asset. It mirrors the JSON schema\nof the glTF specification; every top-level array is addressed by integer\nindex from elsewhere in the document.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "Decode",
+              "signature": "func Decode(r io.Reader) (*Document, error)",
+              "doc": "Decode reads a .gltf JSON document from r and returns the parsed Document.\nIt does not resolve buffer data; call ResolveBuffers for that.\n"
+            },
+            {
+              "name": "Open",
+              "signature": "func Open(path string) (*Document, error)",
+              "doc": "Open reads and decodes a .gltf file at path and resolves its buffers relative\nto the file's directory. External file and data-URI buffers are loaded.\n"
+            },
+            {
+              "name": "OpenGLB",
+              "signature": "func OpenGLB(path string) (*Document, error)",
+              "doc": "OpenGLB reads and decodes a .glb file at path, attaching its BIN chunk to the\ndocument's buffers and resolving external and data-URI buffers relative to\nthe file's directory.\n"
+            },
+            {
+              "name": "ReadGLB",
+              "signature": "func ReadGLB(r io.Reader) (*Document, []byte, error)",
+              "doc": "ReadGLB reads a binary GLB stream from r, returning the parsed Document and\nthe raw bytes of its embedded BIN chunk (nil if absent). The BIN chunk is\nalso attached to the first buffer without a URI via ResolveBuffers-style\nwiring: callers that need buffer data resolved should pass the returned bin\nto Document.ResolveBuffers.\n"
+            },
+            {
+              "name": "Triangle",
+              "signature": "func Triangle() (*Document, []byte)",
+              "doc": "Triangle builds a minimal, valid glTF document describing a single triangle:\none buffer, one bufferView, one POSITION accessor, one primitive, one mesh,\none node, and one scene. It returns the document together with the binary\nbuffer data (the GLB BIN chunk). Buffer 0 is URI-less and references that\ndata, which is also attached to the buffer's Data field so the document can\nbe decoded immediately without calling ResolveBuffers.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "AccessorBounds",
+              "recv": "*Document",
+              "signature": "func (d *Document) AccessorBounds(index int) (Box, error)",
+              "doc": "AccessorBounds returns the axis-aligned bounding box of a VEC3 accessor (for\nexample a POSITION attribute). When the accessor carries a three-component Min\nand Max they are used directly; otherwise the accessor is decoded and scanned.\nIt returns an error if the accessor is not VEC3 or cannot be decoded.\n"
+            },
+            {
+              "name": "AddAccessorFloat32",
+              "recv": "*Document",
+              "signature": "func (d *Document) AddAccessorFloat32(data []float32, typ AccessorType) int",
+              "doc": "AddAccessorFloat32 appends flattened float32 data as a new accessor of the\ngiven element type to buffer 0, computing per-component min/max, and returns\nthe new accessor index. len(data) must be a multiple of the type's component\ncount. The bytes are stored little-endian and, when the document has no\nresolved buffer 0, one is created so the data can be decoded immediately.\n"
+            },
+            {
+              "name": "AddAccessorVec2",
+              "recv": "*Document",
+              "signature": "func (d *Document) AddAccessorVec2(data [][2]float32) int",
+              "doc": "AddAccessorVec2 appends VEC2 float data as a new accessor and returns its\nindex. See [Document.AddAccessorFloat32].\n"
+            },
+            {
+              "name": "AddAccessorVec3",
+              "recv": "*Document",
+              "signature": "func (d *Document) AddAccessorVec3(data [][3]float32) int",
+              "doc": "AddAccessorVec3 appends VEC3 float data (for example positions or normals) as\na new accessor and returns its index. See [Document.AddAccessorFloat32].\n"
+            },
+            {
+              "name": "AddAccessorVec4",
+              "recv": "*Document",
+              "signature": "func (d *Document) AddAccessorVec4(data [][4]float32) int",
+              "doc": "AddAccessorVec4 appends VEC4 float data as a new accessor and returns its\nindex. See [Document.AddAccessorFloat32].\n"
+            },
+            {
+              "name": "AddBinData",
+              "recv": "*Document",
+              "signature": "func (d *Document) AddBinData(data []byte) int",
+              "doc": "AddBinData appends raw bytes (for example an encoded PNG or JPEG image) to\nbuffer 0 and adds a bufferView covering them, returning the new bufferView\nindex. It is the write-path counterpart to a bufferView-backed [Image].\n"
+            },
+            {
+              "name": "AddIndicesUint32",
+              "recv": "*Document",
+              "signature": "func (d *Document) AddIndicesUint32(data []uint32) int",
+              "doc": "AddIndicesUint32 appends unsigned 32-bit index data as a new SCALAR accessor\nbound to an element-array bufferView, and returns the new accessor index. It\nis the write-path inverse of [Document.DecodeIndices].\n"
+            },
+            {
+              "name": "ApplyAnimation",
+              "recv": "*Document",
+              "signature": "func (d *Document) ApplyAnimation(anim *Animation, t float64) error",
+              "doc": "ApplyAnimation samples every channel of anim at time t and writes the results\ninto the targeted nodes' Translation, Rotation, Scale, and Weights fields.\nChannels whose target node is nil are skipped. Buffers must be resolved\nfirst. It is a convenience for posing a document at a point in time.\n"
+            },
+            {
+              "name": "DecodeAccessorFloat32",
+              "recv": "*Document",
+              "signature": "func (d *Document) DecodeAccessorFloat32(index int) ([]float32, error)",
+              "doc": "DecodeAccessorFloat32 decodes accessor at index into a flat slice of\nfloat32 values with length Count*ComponentCount, applying normalization when\nthe accessor's Normalized flag is set. It works for any component type.\n"
+            },
+            {
+              "name": "DecodeAccessorMat4",
+              "recv": "*Document",
+              "signature": "func (d *Document) DecodeAccessorMat4(index int) ([]Mat4, error)",
+              "doc": "DecodeAccessorMat4 decodes a MAT4 accessor into a slice of column-major\n[Mat4] matrices. It is the correct decoder for a skin's inverse bind\nmatrices.\n"
+            },
+            {
+              "name": "DecodeAccessorUint32",
+              "recv": "*Document",
+              "signature": "func (d *Document) DecodeAccessorUint32(index int) ([]uint32, error)",
+              "doc": "DecodeAccessorUint32 decodes an accessor with an unsigned-integer component\ntype into a flat slice of uint32 values (length Count*ComponentCount). It is\nthe correct decoder for index accessors (SCALAR UNSIGNED_BYTE/SHORT/INT).\n"
+            },
+            {
+              "name": "DecodeAccessorVec2",
+              "recv": "*Document",
+              "signature": "func (d *Document) DecodeAccessorVec2(index int) ([][2]float32, error)",
+              "doc": "DecodeAccessorVec2 decodes a VEC2 accessor into a slice of 2-component\nfloat32 vectors.\n"
+            },
+            {
+              "name": "DecodeAccessorVec3",
+              "recv": "*Document",
+              "signature": "func (d *Document) DecodeAccessorVec3(index int) ([][3]float32, error)",
+              "doc": "DecodeAccessorVec3 decodes a VEC3 accessor into a slice of 3-component\nfloat32 vectors (for example vertex positions or normals).\n"
+            },
+            {
+              "name": "DecodeAccessorVec4",
+              "recv": "*Document",
+              "signature": "func (d *Document) DecodeAccessorVec4(index int) ([][4]float32, error)",
+              "doc": "DecodeAccessorVec4 decodes a VEC4 accessor into a slice of 4-component\nfloat32 vectors.\n"
+            },
+            {
+              "name": "DecodeImage",
+              "recv": "*Document",
+              "signature": "func (d *Document) DecodeImage(imageIndex int, baseDir string) (image.Image, string, error)",
+              "doc": "DecodeImage decodes the image at imageIndex into an [image.Image], returning\nthe registered format name (for example \"png\" or \"jpeg\"). PNG and JPEG are\nsupported out of the box; register additional decoders via the standard\nlibrary's image package to handle more formats. baseDir resolves external\nfile URIs and may be empty for embedded images.\n"
+            },
+            {
+              "name": "DecodeIndices",
+              "recv": "*Document",
+              "signature": "func (d *Document) DecodeIndices(p *Primitive) ([]uint32, error)",
+              "doc": "DecodeIndices decodes the primitive's index accessor into a flat slice of\nuint32 vertex indices. It returns nil, nil for a non-indexed primitive.\n"
+            },
+            {
+              "name": "DecodeMorphTargetVec3",
+              "recv": "*Document",
+              "signature": "func (d *Document) DecodeMorphTargetVec3(prim *Primitive, targetIndex int, attribute string) ([][3]float32, error)",
+              "doc": "DecodeMorphTargetVec3 decodes the VEC3 delta values of a single morph target\nattribute (for example \"POSITION\" or \"NORMAL\") on a primitive. targetIndex\nselects the entry in the primitive's Targets slice. Buffers must be resolved\nfirst.\n"
+            },
+            {
+              "name": "DecodeMorphTargetsVec3",
+              "recv": "*Document",
+              "signature": "func (d *Document) DecodeMorphTargetsVec3(prim *Primitive, attribute string) ([][][3]float32, error)",
+              "doc": "DecodeMorphTargetsVec3 decodes the VEC3 deltas of the given attribute for\nevery morph target of the primitive, returning one delta slice per target.\nBuffers must be resolved first.\n"
+            },
+            {
+              "name": "EvaluateSampler",
+              "recv": "*Document",
+              "signature": "func (d *Document) EvaluateSampler(s *AnimationSampler, t float64, rotation bool) ([]float32, error)",
+              "doc": "EvaluateSampler evaluates the animation sampler at time t, returning the\ninterpolated value as a slice of stride float32 components. Times outside the\nkeyframe range are clamped to the first or last keyframe. When rotation is\ntrue (a rotation channel), LINEAR interpolation uses quaternion slerp and the\nCUBICSPLINE result is normalized, matching the glTF specification. Buffers\nmust be resolved first.\n"
+            },
+            {
+              "name": "GlobalMatrices",
+              "recv": "*Document",
+              "signature": "func (d *Document) GlobalMatrices() ([]Mat4, error)",
+              "doc": "GlobalMatrices returns the world (global) transform of every node in the\ndocument, indexed by node index. Each matrix is the product of the local\nmatrices from the node's root ancestor down to the node. It returns an error\nif the node hierarchy contains a cycle.\n"
+            },
+            {
+              "name": "GlobalMatrix",
+              "recv": "*Document",
+              "signature": "func (d *Document) GlobalMatrix(nodeIndex int) (Mat4, error)",
+              "doc": "GlobalMatrix returns the world (global) transform of the node at nodeIndex,\nobtained by multiplying the local matrices of every ancestor from the root\ndown to the node. It returns an error if nodeIndex is out of range or the\nhierarchy contains a cycle.\n"
+            },
+            {
+              "name": "ImageBytes",
+              "recv": "*Document",
+              "signature": "func (d *Document) ImageBytes(imageIndex int, baseDir string) ([]byte, string, error)",
+              "doc": "ImageBytes returns the raw encoded bytes of the image at imageIndex together\nwith its MIME type. It resolves three sources:\n\n  - a base64 \"data:\" URI (MIME type taken from the URI);\n  - a bufferView-backed image (buffers must be resolved first);\n  - an external file, read relative to baseDir.\n\nbaseDir may be empty when the image is embedded.\n"
+            },
+            {
+              "name": "InverseBindMatrices",
+              "recv": "*Document",
+              "signature": "func (d *Document) InverseBindMatrices(skinIndex int) ([]Mat4, error)",
+              "doc": "InverseBindMatrices returns the skin's inverse bind matrices. When the skin\ndeclares an inverseBindMatrices accessor it is decoded; otherwise the glTF\ndefault of one identity matrix per joint is returned. Buffers must be\nresolved first when an accessor is present.\n"
+            },
+            {
+              "name": "JointMatrices",
+              "recv": "*Document",
+              "signature": "func (d *Document) JointMatrices(skinIndex int) ([]Mat4, error)",
+              "doc": "JointMatrices computes the skinning matrix for each joint of the skin as\nglobalJointTransform * inverseBindMatrix. The result has one matrix per\njoint, in joint order. This is the joint matrix used by vertex skinning when\nthe skinned mesh node's own transform is identity; use [Document.JointMatricesForNode]\nto account for a non-identity mesh node. Buffers must be resolved first.\n"
+            },
+            {
+              "name": "JointMatricesForNode",
+              "recv": "*Document",
+              "signature": "func (d *Document) JointMatricesForNode(skinIndex, meshNodeIndex int) ([]Mat4, error)",
+              "doc": "JointMatricesForNode computes joint matrices for the skin as it is used by\nthe mesh node meshNodeIndex, following the glTF formula\n\n\tjointMatrix(j) = inverse(globalTransform(meshNode)) *\n\t                 globalTransform(joints[j]) * inverseBindMatrices[j]\n\nThe mesh node's inverse global transform maps joints into the mesh's local\nspace. Buffers must be resolved first.\n"
+            },
+            {
+              "name": "Lights",
+              "recv": "*Document",
+              "signature": "func (d *Document) Lights() ([]Light, bool)",
+              "doc": "Lights decodes the document-level KHR_lights_punctual extension, returning\nits light array and whether the extension is present.\n"
+            },
+            {
+              "name": "MorphedPositions",
+              "recv": "*Document",
+              "signature": "func (d *Document) MorphedPositions(prim *Primitive, weights []float64) ([][3]float32, error)",
+              "doc": "MorphedPositions returns a primitive's POSITION attribute with the primitive's\nmorph targets applied at the given weights. It is a convenience combining\n[Document.DecodeAccessorVec3], [Document.DecodeMorphTargetsVec3], and\n[BlendMorphTargetsVec3]. Buffers must be resolved first.\n"
+            },
+            {
+              "name": "NodesInScene",
+              "recv": "*Document",
+              "signature": "func (d *Document) NodesInScene(sceneIndex int) ([]int, error)",
+              "doc": "NodesInScene returns the indices of every node reachable from the scene at\nsceneIndex, obtained by a depth-first walk of the scene's root nodes and their\ndescendants. Each node appears once, in depth-first pre-order. It returns an\nerror for an out-of-range scene index or a cycle in the node hierarchy.\n"
+            },
+            {
+              "name": "PrimitiveBounds",
+              "recv": "*Document",
+              "signature": "func (d *Document) PrimitiveBounds(p *Primitive) (Box, error)",
+              "doc": "PrimitiveBounds returns the local-space bounding box of a primitive, computed\nfrom its POSITION attribute. It returns an error when the primitive has no\nPOSITION attribute or its accessor cannot be read.\n"
+            },
+            {
+              "name": "ResolveBuffers",
+              "recv": "*Document",
+              "signature": "func (d *Document) ResolveBuffers(baseDir string, bin []byte) error",
+              "doc": "ResolveBuffers loads the raw bytes for every buffer in the document, storing\nthem in each Buffer's Data field. It handles three sources:\n\n  - an embedded GLB BIN chunk (a buffer with an empty URI), supplied via bin;\n  - base64 \"data:\" URIs;\n  - external files, resolved relative to baseDir.\n\nbaseDir may be empty when no external file references are expected. bin may\nbe nil when there is no GLB binary chunk.\n"
+            },
+            {
+              "name": "RootNodes",
+              "recv": "*Document",
+              "signature": "func (d *Document) RootNodes() []int",
+              "doc": "RootNodes returns the indices of every node that is not referenced as a child\nof another node, in ascending order. These are the roots of the document's\nnode forest, regardless of which scene they belong to.\n"
+            },
+            {
+              "name": "SampleChannel",
+              "recv": "*Document",
+              "signature": "func (d *Document) SampleChannel(anim *Animation, channelIndex int, t float64) (AnimationPath, []float32, error)",
+              "doc": "SampleChannel evaluates animation channel channelIndex of anim at time t. It\nreturns the target property path and the interpolated value: three components\nfor translation/scale, four (a quaternion) for rotation, and one per morph\ntarget for weights. Buffers must be resolved first.\n"
+            },
+            {
+              "name": "SamplerKeyframes",
+              "recv": "*Document",
+              "signature": "func (d *Document) SamplerKeyframes(s *AnimationSampler) (times []float32, values []float32, stride int, err error)",
+              "doc": "SamplerKeyframes decodes an animation sampler's input (times) and output\n(values) accessors. times has one entry per keyframe. values is flattened\nwith stride perKeyframe components; for CUBICSPLINE each keyframe occupies\nthree consecutive strides (in-tangent, value, out-tangent). Buffers must be\nresolved first.\n"
+            },
+            {
+              "name": "SceneBounds",
+              "recv": "*Document",
+              "signature": "func (d *Document) SceneBounds(sceneIndex int) (Box, error)",
+              "doc": "SceneBounds returns the world-space bounding box of every mesh reachable from\nthe scene at sceneIndex, transforming each primitive's local bounds by the\nglobal matrix of the node that carries it. An empty scene (no meshes) yields\nan empty box. It returns an error for an out-of-range scene index or a node\nhierarchy cycle.\n"
+            },
+            {
+              "name": "Validate",
+              "recv": "*Document",
+              "signature": "func (d *Document) Validate() error",
+              "doc": "Validate checks the document for required fields and index ranges, returning\na ValidationErrors describing every problem found, or nil if the document is\nstructurally valid. It does not require buffer data to be resolved.\n"
+            }
+          ]
+        },
+        {
+          "name": "Filter",
+          "signature": "type Filter int",
+          "doc": "Filter identifies a texture magnification or minification filter.\n",
+          "consts": [
+            {
+              "names": [
+                "FilterNearest",
+                "FilterLinear",
+                "FilterNearestMipmapNearest",
+                "FilterLinearMipmapNearest",
+                "FilterNearestMipmapLinear",
+                "FilterLinearMipmapLinear"
+              ],
+              "signature": "const (\n\tFilterNearest              Filter = 9728\n\tFilterLinear               Filter = 9729\n\tFilterNearestMipmapNearest Filter = 9984\n\tFilterLinearMipmapNearest  Filter = 9985\n\tFilterNearestMipmapLinear  Filter = 9986\n\tFilterLinearMipmapLinear   Filter = 9987\n)",
+              "doc": "Texture filters defined by the glTF 2.0 specification.\n"
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "String",
+              "recv": "Filter",
+              "signature": "func (f Filter) String() string",
+              "doc": "String returns the glTF specification name of the texture filter (for example\n\"LINEAR_MIPMAP_LINEAR\"), or a numeric fallback for an unknown value.\n"
+            }
+          ]
+        },
+        {
+          "name": "Image",
+          "signature": "type Image struct {\n\tName       string          `json:\"name,omitempty\"`\n\tURI        string          `json:\"uri,omitempty\"`\n\tMimeType   string          `json:\"mimeType,omitempty\"`\n\tBufferView *Index          `json:\"bufferView,omitempty\"`\n\tExtensions json.RawMessage `json:\"extensions,omitempty\"`\n\tExtras     json.RawMessage `json:\"extras,omitempty\"`\n}",
+          "doc": "Image is image data used to create a texture. Exactly one of URI or\nBufferView is expected.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Index",
+          "signature": "type Index = int",
+          "doc": "Index is a reference to another element in one of the Document's top-level\narrays. glTF omits absent indices from the JSON, so it is represented as a\npointer to an int; a nil pointer means \"no reference\".\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Interpolation",
+          "signature": "type Interpolation string",
+          "doc": "Interpolation is the interpolation algorithm used by an animation sampler.\n",
+          "consts": [
+            {
+              "names": [
+                "InterpolationLinear",
+                "InterpolationStep",
+                "InterpolationCubicSpline"
+              ],
+              "signature": "const (\n\tInterpolationLinear      Interpolation = \"LINEAR\"\n\tInterpolationStep        Interpolation = \"STEP\"\n\tInterpolationCubicSpline Interpolation = \"CUBICSPLINE\"\n)",
+              "doc": "Animation interpolation algorithms defined by the glTF 2.0 specification.\n"
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Light",
+          "signature": "type Light struct {\n\tName string `json:\"name,omitempty\"`\n\t// Color is the linear RGB light color. Default [1,1,1].\n\tColor *[3]float64 `json:\"color,omitempty\"`\n\t// Intensity is in candela (point/spot) or lux (directional). Default 1.\n\tIntensity *float64  `json:\"intensity,omitempty\"`\n\tType      LightType `json:\"type\"`\n\t// Range is the maximum distance the light affects (point/spot). Nil means\n\t// infinite.\n\tRange *float64 `json:\"range,omitempty\"`\n\t// Spot holds cone parameters when Type is \"spot\".\n\tSpot       *LightSpot      `json:\"spot,omitempty\"`\n\tExtensions json.RawMessage `json:\"extensions,omitempty\"`\n\tExtras     json.RawMessage `json:\"extras,omitempty\"`\n}",
+          "doc": "Light is a punctual light source defined by KHR_lights_punctual.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "LightSpot",
+          "signature": "type LightSpot struct {\n\t// InnerConeAngle is the angle (radians) at which falloff begins. Default 0.\n\tInnerConeAngle float64 `json:\"innerConeAngle,omitempty\"`\n\t// OuterConeAngle is the angle (radians) at which falloff ends. Default π/4.\n\tOuterConeAngle *float64        `json:\"outerConeAngle,omitempty\"`\n\tExtras         json.RawMessage `json:\"extras,omitempty\"`\n}",
+          "doc": "LightSpot holds the cone angles of a spot light.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "LightType",
+          "signature": "type LightType string",
+          "doc": "LightType is the kind of a punctual light.\n",
+          "consts": [
+            {
+              "names": [
+                "LightTypeDirectional",
+                "LightTypePoint",
+                "LightTypeSpot"
+              ],
+              "signature": "const (\n\tLightTypeDirectional LightType = \"directional\"\n\tLightTypePoint       LightType = \"point\"\n\tLightTypeSpot        LightType = \"spot\"\n)",
+              "doc": "Punctual light types defined by KHR_lights_punctual.\n"
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "LightsPunctual",
+          "signature": "type LightsPunctual struct {\n\tLights []Light         `json:\"lights\"`\n\tExtras json.RawMessage `json:\"extras,omitempty\"`\n}",
+          "doc": "LightsPunctual is the KHR_lights_punctual document-level extension, holding\nthe array of lights that nodes reference by index.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Mat4",
+          "signature": "type Mat4 [16]float64",
+          "doc": "Mat4 is a 4x4 matrix stored in column-major order, matching the layout of a\nglTF [Node] matrix: element (row r, column c) is at index c*4+r.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "IdentityMatrix",
+              "signature": "func IdentityMatrix() Mat4",
+              "doc": "IdentityMatrix returns the 4x4 identity matrix.\n"
+            },
+            {
+              "name": "LookAt",
+              "signature": "func LookAt(eye, center, up Vec3) Mat4",
+              "doc": "LookAt returns a right-handed view matrix that positions the camera at eye\nlooking toward center, with up giving the approximate world up direction. It\nmatches the convention of gluLookAt: the resulting matrix maps world space\ninto the camera's view space (camera looking down its local -Z axis).\n"
+            },
+            {
+              "name": "Orthographic",
+              "signature": "func Orthographic(xmag, ymag, near, far float64) Mat4",
+              "doc": "Orthographic returns a right-handed orthographic projection matrix using the\nglTF camera convention. xmag and ymag are the horizontal and vertical\nmagnifications (half-extents), and near/far are the clip-plane distances.\n"
+            },
+            {
+              "name": "Perspective",
+              "signature": "func Perspective(yfov, aspect, near, far float64) Mat4",
+              "doc": "Perspective returns a right-handed perspective projection matrix using the\nglTF camera convention. yfov is the vertical field of view in radians, aspect\nis width/height, and near/far are the clip-plane distances. A non-positive\nfar value produces an infinite-far projection.\n"
+            },
+            {
+              "name": "TRS",
+              "signature": "func TRS(t Vec3, r Quat, s Vec3) Mat4",
+              "doc": "TRS composes a translation, rotation, and scale into a single column-major\ntransform matrix, equivalent to T * R * S: scale is applied first, then\nrotation, then translation.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "At",
+              "recv": "Mat4",
+              "signature": "func (m Mat4) At(row, col int) float64",
+              "doc": "At returns the element at the given row and column (both 0-based).\n"
+            },
+            {
+              "name": "Decompose",
+              "recv": "Mat4",
+              "signature": "func (m Mat4) Decompose() (translation Vec3, rotation Quat, scale Vec3)",
+              "doc": "Decompose extracts the translation, rotation, and scale that produce the\nmatrix when combined by [TRS]. It assumes m is a valid affine transform\n(no shear); a negative determinant is folded into the X scale.\n"
+            },
+            {
+              "name": "Inverse",
+              "recv": "Mat4",
+              "signature": "func (m Mat4) Inverse() (Mat4, bool)",
+              "doc": "Inverse returns the inverse of the matrix and reports whether it is\ninvertible. When the matrix is singular the identity matrix is returned with\nok=false.\n"
+            },
+            {
+              "name": "Mul",
+              "recv": "Mat4",
+              "signature": "func (m Mat4) Mul(n Mat4) Mat4",
+              "doc": "Mul returns the matrix product m*n, using column-major conventions. When m\nand n are transforms, the result applies n first and then m.\n"
+            },
+            {
+              "name": "MulVec4",
+              "recv": "Mat4",
+              "signature": "func (m Mat4) MulVec4(v Vec4) Vec4",
+              "doc": "MulVec4 returns the product of the matrix and the column vector v.\n"
+            },
+            {
+              "name": "TransformDir",
+              "recv": "Mat4",
+              "signature": "func (m Mat4) TransformDir(v Vec3) Vec3",
+              "doc": "TransformDir applies the matrix to a direction vector (implicit w=0), so the\ntranslation component is ignored. It is the correct transform for normals'\ntangent directions but not for normals themselves under non-uniform scale.\n"
+            },
+            {
+              "name": "TransformPoint",
+              "recv": "Mat4",
+              "signature": "func (m Mat4) TransformPoint(p Vec3) Vec3",
+              "doc": "TransformPoint applies the matrix to a 3D point (implicit w=1) and performs\nthe perspective divide when the resulting w is not 1.\n"
+            },
+            {
+              "name": "Transpose",
+              "recv": "Mat4",
+              "signature": "func (m Mat4) Transpose() Mat4",
+              "doc": "Transpose returns the matrix transpose of m.\n"
+            }
+          ]
+        },
+        {
+          "name": "Material",
+          "signature": "type Material struct {\n\tName                 string                `json:\"name,omitempty\"`\n\tPBRMetallicRoughness *PBRMetallicRoughness `json:\"pbrMetallicRoughness,omitempty\"`\n\tNormalTexture        *NormalTexture        `json:\"normalTexture,omitempty\"`\n\tOcclusionTexture     *OcclusionTexture     `json:\"occlusionTexture,omitempty\"`\n\tEmissiveTexture      *TextureInfo          `json:\"emissiveTexture,omitempty\"`\n\tEmissiveFactor       *[3]float64           `json:\"emissiveFactor,omitempty\"`\n\tAlphaMode            AlphaMode             `json:\"alphaMode,omitempty\"`\n\tAlphaCutoff          *float64              `json:\"alphaCutoff,omitempty\"`\n\tDoubleSided          bool                  `json:\"doubleSided,omitempty\"`\n\tExtensions           json.RawMessage       `json:\"extensions,omitempty\"`\n\tExtras               json.RawMessage       `json:\"extras,omitempty\"`\n}",
+          "doc": "Material defines the appearance of a primitive.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Clearcoat",
+              "recv": "*Material",
+              "signature": "func (m *Material) Clearcoat() (MaterialsClearcoat, bool)",
+              "doc": "Clearcoat decodes the KHR_materials_clearcoat extension from the material,\nreporting whether it is present.\n"
+            },
+            {
+              "name": "EmissiveStrength",
+              "recv": "*Material",
+              "signature": "func (m *Material) EmissiveStrength() (float64, bool)",
+              "doc": "EmissiveStrength returns the KHR_materials_emissive_strength value and whether\nthe extension is present. When absent it returns the default 1.0.\n"
+            },
+            {
+              "name": "IOR",
+              "recv": "*Material",
+              "signature": "func (m *Material) IOR() (float64, bool)",
+              "doc": "IOR returns the KHR_materials_ior index of refraction and whether the\nextension is present. When absent it returns the default 1.5.\n"
+            },
+            {
+              "name": "SetExtension",
+              "recv": "*Material",
+              "signature": "func (m *Material) SetExtension(name string, v any) error",
+              "doc": "SetExtension sets or replaces a named extension on the material, preserving\nany other extensions already present.\n"
+            },
+            {
+              "name": "Sheen",
+              "recv": "*Material",
+              "signature": "func (m *Material) Sheen() (MaterialsSheen, bool)",
+              "doc": "Sheen decodes the KHR_materials_sheen extension from the material, reporting\nwhether it is present.\n"
+            },
+            {
+              "name": "Specular",
+              "recv": "*Material",
+              "signature": "func (m *Material) Specular() (MaterialsSpecular, bool)",
+              "doc": "Specular decodes the KHR_materials_specular extension from the material,\nreporting whether it is present.\n"
+            },
+            {
+              "name": "SpecularGlossiness",
+              "recv": "*Material",
+              "signature": "func (m *Material) SpecularGlossiness() (MaterialsPBRSpecularGlossiness, bool)",
+              "doc": "SpecularGlossiness decodes the KHR_materials_pbrSpecularGlossiness extension,\nreporting whether it is present.\n"
+            },
+            {
+              "name": "Transmission",
+              "recv": "*Material",
+              "signature": "func (m *Material) Transmission() (MaterialsTransmission, bool)",
+              "doc": "Transmission decodes the KHR_materials_transmission extension, reporting\nwhether it is present.\n"
+            },
+            {
+              "name": "Unlit",
+              "recv": "*Material",
+              "signature": "func (m *Material) Unlit() bool",
+              "doc": "Unlit reports whether the material carries the KHR_materials_unlit extension.\n"
+            },
+            {
+              "name": "Volume",
+              "recv": "*Material",
+              "signature": "func (m *Material) Volume() (MaterialsVolume, bool)",
+              "doc": "Volume decodes the KHR_materials_volume extension from the material, reporting\nwhether it is present.\n"
+            }
+          ]
+        },
+        {
+          "name": "MaterialsClearcoat",
+          "signature": "type MaterialsClearcoat struct {\n\t// ClearcoatFactor is the clearcoat layer intensity. The glTF default is 0.\n\tClearcoatFactor float64 `json:\"clearcoatFactor,omitempty\"`\n\t// ClearcoatTexture modulates the clearcoat factor (red channel).\n\tClearcoatTexture *TextureInfo `json:\"clearcoatTexture,omitempty\"`\n\t// ClearcoatRoughnessFactor is the clearcoat layer roughness. Default 0.\n\tClearcoatRoughnessFactor float64 `json:\"clearcoatRoughnessFactor,omitempty\"`\n\t// ClearcoatRoughnessTexture modulates the clearcoat roughness (green channel).\n\tClearcoatRoughnessTexture *TextureInfo `json:\"clearcoatRoughnessTexture,omitempty\"`\n\t// ClearcoatNormalTexture is a normal map applied to the clearcoat layer.\n\tClearcoatNormalTexture *NormalTexture  `json:\"clearcoatNormalTexture,omitempty\"`\n\tExtras                 json.RawMessage `json:\"extras,omitempty\"`\n}",
+          "doc": "MaterialsClearcoat is the KHR_materials_clearcoat extension, adding a clear\nprotective coating layer (as on car paint or lacquered wood) over the base\nmaterial.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "MaterialsEmissiveStrength",
+          "signature": "type MaterialsEmissiveStrength struct {\n\t// EmissiveStrength multiplies the material's emissive factor. The glTF\n\t// default is 1.0.\n\tEmissiveStrength float64         `json:\"emissiveStrength\"`\n\tExtras           json.RawMessage `json:\"extras,omitempty\"`\n}",
+          "doc": "MaterialsEmissiveStrength is the KHR_materials_emissive_strength extension,\nscaling a material's emissive factor beyond the usual [0,1] range.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "MaterialsIOR",
+          "signature": "type MaterialsIOR struct {\n\t// IOR is the index of refraction. The glTF default is 1.5.\n\tIOR    float64         `json:\"ior\"`\n\tExtras json.RawMessage `json:\"extras,omitempty\"`\n}",
+          "doc": "MaterialsIOR is the KHR_materials_ior extension, overriding a material's\nindex of refraction.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "MaterialsPBRSpecularGlossiness",
+          "signature": "type MaterialsPBRSpecularGlossiness struct {\n\t// DiffuseFactor is the reflected diffuse RGBA factor. Default [1,1,1,1].\n\tDiffuseFactor *[4]float64 `json:\"diffuseFactor,omitempty\"`\n\t// DiffuseTexture is the diffuse texture.\n\tDiffuseTexture *TextureInfo `json:\"diffuseTexture,omitempty\"`\n\t// SpecularFactor is the specular RGB factor. Default [1,1,1].\n\tSpecularFactor *[3]float64 `json:\"specularFactor,omitempty\"`\n\t// GlossinessFactor is the glossiness (smoothness). Default 1.\n\tGlossinessFactor *float64 `json:\"glossinessFactor,omitempty\"`\n\t// SpecularGlossinessTexture holds specular (RGB) and glossiness (A).\n\tSpecularGlossinessTexture *TextureInfo    `json:\"specularGlossinessTexture,omitempty\"`\n\tExtras                    json.RawMessage `json:\"extras,omitempty\"`\n}",
+          "doc": "MaterialsPBRSpecularGlossiness is the (archived) KHR_materials_pbrSpecularGlossiness\nextension, providing the specular-glossiness material model as an alternative\nto metallic-roughness.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "MaterialsSheen",
+          "signature": "type MaterialsSheen struct {\n\t// SheenColorFactor is the sheen RGB color. The glTF default is [0,0,0].\n\tSheenColorFactor *[3]float64 `json:\"sheenColorFactor,omitempty\"`\n\t// SheenColorTexture modulates the sheen color (RGB channels).\n\tSheenColorTexture *TextureInfo `json:\"sheenColorTexture,omitempty\"`\n\t// SheenRoughnessFactor is the sheen roughness. The glTF default is 0.\n\tSheenRoughnessFactor float64 `json:\"sheenRoughnessFactor,omitempty\"`\n\t// SheenRoughnessTexture modulates the sheen roughness (alpha channel).\n\tSheenRoughnessTexture *TextureInfo    `json:\"sheenRoughnessTexture,omitempty\"`\n\tExtras                json.RawMessage `json:\"extras,omitempty\"`\n}",
+          "doc": "MaterialsSheen is the KHR_materials_sheen extension, adding a retro-reflective\nsheen used to model cloth and fabric.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "MaterialsSpecular",
+          "signature": "type MaterialsSpecular struct {\n\t// SpecularFactor scales the specular reflection strength. Default 1.\n\tSpecularFactor *float64 `json:\"specularFactor,omitempty\"`\n\t// SpecularTexture modulates the specular factor (alpha channel).\n\tSpecularTexture *TextureInfo `json:\"specularTexture,omitempty\"`\n\t// SpecularColorFactor is the specular RGB tint. The glTF default is [1,1,1].\n\tSpecularColorFactor *[3]float64 `json:\"specularColorFactor,omitempty\"`\n\t// SpecularColorTexture modulates the specular color (RGB channels).\n\tSpecularColorTexture *TextureInfo    `json:\"specularColorTexture,omitempty\"`\n\tExtras               json.RawMessage `json:\"extras,omitempty\"`\n}",
+          "doc": "MaterialsSpecular is the KHR_materials_specular extension, allowing the\nspecular reflection strength and color of a metallic-roughness material to be\ntuned independently.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "MaterialsTransmission",
+          "signature": "type MaterialsTransmission struct {\n\t// TransmissionFactor is the base percentage of light transmitted through\n\t// the surface. The glTF default is 0.0.\n\tTransmissionFactor float64 `json:\"transmissionFactor,omitempty\"`\n\t// TransmissionTexture modulates the transmission factor (red channel).\n\tTransmissionTexture *TextureInfo    `json:\"transmissionTexture,omitempty\"`\n\tExtras              json.RawMessage `json:\"extras,omitempty\"`\n}",
+          "doc": "MaterialsTransmission is the KHR_materials_transmission extension, describing\noptically transparent surfaces such as glass.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "MaterialsUnlit",
+          "signature": "type MaterialsUnlit struct {\n\tExtras json.RawMessage `json:\"extras,omitempty\"`\n}",
+          "doc": "MaterialsUnlit is the KHR_materials_unlit extension. It carries no data; its\npresence marks a material as unlit (rendered with its base color only).\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "MaterialsVolume",
+          "signature": "type MaterialsVolume struct {\n\t// ThicknessFactor is the thickness of the volume in local space. Default 0\n\t// (a thin-walled surface with no volume).\n\tThicknessFactor float64 `json:\"thicknessFactor,omitempty\"`\n\t// ThicknessTexture modulates the thickness (green channel).\n\tThicknessTexture *TextureInfo `json:\"thicknessTexture,omitempty\"`\n\t// AttenuationDistance is the average distance light travels before being\n\t// attenuated. Nil means infinity (no attenuation).\n\tAttenuationDistance *float64 `json:\"attenuationDistance,omitempty\"`\n\t// AttenuationColor is the color that white light turns into by the\n\t// attenuation distance. The glTF default is [1,1,1].\n\tAttenuationColor *[3]float64     `json:\"attenuationColor,omitempty\"`\n\tExtras           json.RawMessage `json:\"extras,omitempty\"`\n}",
+          "doc": "MaterialsVolume is the KHR_materials_volume extension, giving a transmissive\nsurface a physical thickness so light is attenuated as it passes through the\nenclosed volume.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Mesh",
+          "signature": "type Mesh struct {\n\tName       string          `json:\"name,omitempty\"`\n\tPrimitives []Primitive     `json:\"primitives\"`\n\tWeights    []float64       `json:\"weights,omitempty\"`\n\tExtensions json.RawMessage `json:\"extensions,omitempty\"`\n\tExtras     json.RawMessage `json:\"extras,omitempty\"`\n}",
+          "doc": "Mesh is a set of primitives to be rendered.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Node",
+          "signature": "type Node struct {\n\tName        string          `json:\"name,omitempty\"`\n\tCamera      *Index          `json:\"camera,omitempty\"`\n\tChildren    []Index         `json:\"children,omitempty\"`\n\tSkin        *Index          `json:\"skin,omitempty\"`\n\tMatrix      *[16]float64    `json:\"matrix,omitempty\"`\n\tMesh        *Index          `json:\"mesh,omitempty\"`\n\tRotation    *[4]float64     `json:\"rotation,omitempty\"`\n\tScale       *[3]float64     `json:\"scale,omitempty\"`\n\tTranslation *[3]float64     `json:\"translation,omitempty\"`\n\tWeights     []float64       `json:\"weights,omitempty\"`\n\tExtensions  json.RawMessage `json:\"extensions,omitempty\"`\n\tExtras      json.RawMessage `json:\"extras,omitempty\"`\n}",
+          "doc": "Node is a node in the scene graph. A node may have either a Matrix or a\ncombination of Translation, Rotation, and Scale, but not both.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "LocalMatrix",
+              "recv": "*Node",
+              "signature": "func (n *Node) LocalMatrix() Mat4",
+              "doc": "LocalMatrix returns the node's local transform as a column-major matrix. If\nthe node has an explicit matrix it is returned directly; otherwise the\ntranslation, rotation, and scale (each defaulting to identity) are composed\nwith [TRS].\n"
+            },
+            {
+              "name": "NodeLight",
+              "recv": "*Node",
+              "signature": "func (n *Node) NodeLight() (int, bool)",
+              "doc": "NodeLight decodes the node-level KHR_lights_punctual reference, returning the\nreferenced light index and whether the extension is present.\n"
+            }
+          ]
+        },
+        {
+          "name": "NodeLight",
+          "signature": "type NodeLight struct {\n\tLight  Index           `json:\"light\"`\n\tExtras json.RawMessage `json:\"extras,omitempty\"`\n}",
+          "doc": "NodeLight is the KHR_lights_punctual node-level extension, referencing a\nlight in the document-level [LightsPunctual] array.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "NormalTexture",
+          "signature": "type NormalTexture struct {\n\tIndex      Index           `json:\"index\"`\n\tTexCoord   int             `json:\"texCoord,omitempty\"`\n\tScale      *float64        `json:\"scale,omitempty\"`\n\tExtensions json.RawMessage `json:\"extensions,omitempty\"`\n\tExtras     json.RawMessage `json:\"extras,omitempty\"`\n}",
+          "doc": "NormalTexture references a normal map, with an additional scale factor.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "OcclusionTexture",
+          "signature": "type OcclusionTexture struct {\n\tIndex      Index           `json:\"index\"`\n\tTexCoord   int             `json:\"texCoord,omitempty\"`\n\tStrength   *float64        `json:\"strength,omitempty\"`\n\tExtensions json.RawMessage `json:\"extensions,omitempty\"`\n\tExtras     json.RawMessage `json:\"extras,omitempty\"`\n}",
+          "doc": "OcclusionTexture references an occlusion map, with an additional strength.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "PBRMetallicRoughness",
+          "signature": "type PBRMetallicRoughness struct {\n\tBaseColorFactor          *[4]float64     `json:\"baseColorFactor,omitempty\"`\n\tBaseColorTexture         *TextureInfo    `json:\"baseColorTexture,omitempty\"`\n\tMetallicFactor           *float64        `json:\"metallicFactor,omitempty\"`\n\tRoughnessFactor          *float64        `json:\"roughnessFactor,omitempty\"`\n\tMetallicRoughnessTexture *TextureInfo    `json:\"metallicRoughnessTexture,omitempty\"`\n\tExtensions               json.RawMessage `json:\"extensions,omitempty\"`\n\tExtras                   json.RawMessage `json:\"extras,omitempty\"`\n}",
+          "doc": "PBRMetallicRoughness holds the metallic-roughness material model parameters.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Primitive",
+          "signature": "type Primitive struct {\n\tAttributes map[string]Index   `json:\"attributes\"`\n\tIndices    *Index             `json:\"indices,omitempty\"`\n\tMaterial   *Index             `json:\"material,omitempty\"`\n\tMode       *PrimitiveMode     `json:\"mode,omitempty\"`\n\tTargets    []map[string]Index `json:\"targets,omitempty\"`\n\tExtensions json.RawMessage    `json:\"extensions,omitempty\"`\n\tExtras     json.RawMessage    `json:\"extras,omitempty\"`\n}",
+          "doc": "Primitive describes the geometry to be rendered with a material. Attributes\nmaps attribute semantics (for example \"POSITION\" or \"NORMAL\") to accessor\nindices.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "GetMode",
+              "recv": "*Primitive",
+              "signature": "func (p *Primitive) GetMode() PrimitiveMode",
+              "doc": "GetMode returns the primitive's rendering mode, defaulting to\nPrimitiveTriangles when unset, as required by the specification.\n"
+            }
+          ]
+        },
+        {
+          "name": "PrimitiveMode",
+          "signature": "type PrimitiveMode int",
+          "doc": "PrimitiveMode specifies the type of primitives to render. The integer values\nmatch the glTF 2.0 specification (OpenGL primitive modes).\n",
+          "consts": [
+            {
+              "names": [
+                "PrimitivePoints",
+                "PrimitiveLines",
+                "PrimitiveLineLoop",
+                "PrimitiveLineStrip",
+                "PrimitiveTriangles",
+                "PrimitiveTriangleStrip",
+                "PrimitiveTriangleFan"
+              ],
+              "signature": "const (\n\tPrimitivePoints        PrimitiveMode = 0\n\tPrimitiveLines         PrimitiveMode = 1\n\tPrimitiveLineLoop      PrimitiveMode = 2\n\tPrimitiveLineStrip     PrimitiveMode = 3\n\tPrimitiveTriangles     PrimitiveMode = 4\n\tPrimitiveTriangleStrip PrimitiveMode = 5\n\tPrimitiveTriangleFan   PrimitiveMode = 6\n)",
+              "doc": "Primitive rendering modes defined by the glTF 2.0 specification.\n"
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "String",
+              "recv": "PrimitiveMode",
+              "signature": "func (m PrimitiveMode) String() string",
+              "doc": "String returns the glTF specification name of the primitive mode (for example\n\"TRIANGLES\"), or a numeric fallback for an unknown value.\n"
+            }
+          ]
+        },
+        {
+          "name": "Quat",
+          "signature": "type Quat [4]float64",
+          "doc": "Quat is a rotation quaternion stored in glTF component order (x, y, z, w).\nThe identity rotation is [0, 0, 0, 1].\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "QuatFromAxisAngle",
+              "signature": "func QuatFromAxisAngle(axis Vec3, angle float64) Quat",
+              "doc": "QuatFromAxisAngle returns the unit quaternion representing a rotation of angle\nradians about axis. A zero-length axis yields the identity rotation.\n"
+            },
+            {
+              "name": "QuatFromEuler",
+              "signature": "func QuatFromEuler(x, y, z float64) Quat",
+              "doc": "QuatFromEuler returns the unit quaternion for the given intrinsic Euler\nangles in radians, applied in X, then Y, then Z order (roll, pitch, yaw).\nThe result equals QuatFromAxisAngle(Z,z) * QuatFromAxisAngle(Y,y) *\nQuatFromAxisAngle(X,x).\n"
+            },
+            {
+              "name": "Slerp",
+              "signature": "func Slerp(a, b Quat, t float64) Quat",
+              "doc": "Slerp returns the spherical linear interpolation between quaternions a and b\nat parameter t in [0,1]. Both are treated as unit quaternions; the result is\nnormalized. It is the interpolation glTF uses for rotation channels.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Conjugate",
+              "recv": "Quat",
+              "signature": "func (q Quat) Conjugate() Quat",
+              "doc": "Conjugate returns the quaternion conjugate (-x, -y, -z, w). For a unit\nquaternion the conjugate is also its inverse.\n"
+            },
+            {
+              "name": "Dot",
+              "recv": "Quat",
+              "signature": "func (q Quat) Dot(o Quat) float64",
+              "doc": "Dot returns the four-component dot product of q and o.\n"
+            },
+            {
+              "name": "Matrix",
+              "recv": "Quat",
+              "signature": "func (q Quat) Matrix() Mat4",
+              "doc": "Matrix returns the 4x4 rotation matrix equivalent to the quaternion. The\nquaternion is normalized first.\n"
+            },
+            {
+              "name": "Mul",
+              "recv": "Quat",
+              "signature": "func (q Quat) Mul(o Quat) Quat",
+              "doc": "Mul returns the Hamilton product q*o. When both are unit quaternions the\nresult represents applying rotation o first and then q, and is itself a unit\nquaternion. Components are in glTF order (x, y, z, w).\n"
+            },
+            {
+              "name": "Normalize",
+              "recv": "Quat",
+              "signature": "func (q Quat) Normalize() Quat",
+              "doc": "Normalize returns the quaternion scaled to unit length. A zero quaternion is\nreturned as the identity.\n"
+            },
+            {
+              "name": "Rotate",
+              "recv": "Quat",
+              "signature": "func (q Quat) Rotate(v Vec3) Vec3",
+              "doc": "Rotate applies the rotation represented by q to the vector v and returns the\nrotated vector. The quaternion is normalized first.\n"
+            }
+          ]
+        },
+        {
+          "name": "Sampler",
+          "signature": "type Sampler struct {\n\tName       string          `json:\"name,omitempty\"`\n\tMagFilter  *Filter         `json:\"magFilter,omitempty\"`\n\tMinFilter  *Filter         `json:\"minFilter,omitempty\"`\n\tWrapS      *WrapMode       `json:\"wrapS,omitempty\"`\n\tWrapT      *WrapMode       `json:\"wrapT,omitempty\"`\n\tExtensions json.RawMessage `json:\"extensions,omitempty\"`\n\tExtras     json.RawMessage `json:\"extras,omitempty\"`\n}",
+          "doc": "Sampler defines texture filtering and wrapping.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Scene",
+          "signature": "type Scene struct {\n\tName       string          `json:\"name,omitempty\"`\n\tNodes      []Index         `json:\"nodes,omitempty\"`\n\tExtensions json.RawMessage `json:\"extensions,omitempty\"`\n\tExtras     json.RawMessage `json:\"extras,omitempty\"`\n}",
+          "doc": "Scene is the root of a node hierarchy.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Skin",
+          "signature": "type Skin struct {\n\tName                string          `json:\"name,omitempty\"`\n\tInverseBindMatrices *Index          `json:\"inverseBindMatrices,omitempty\"`\n\tSkeleton            *Index          `json:\"skeleton,omitempty\"`\n\tJoints              []Index         `json:\"joints\"`\n\tExtensions          json.RawMessage `json:\"extensions,omitempty\"`\n\tExtras              json.RawMessage `json:\"extras,omitempty\"`\n}",
+          "doc": "Skin defines joints and matrices for vertex skinning.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Sparse",
+          "signature": "type Sparse struct {\n\tCount      int             `json:\"count\"`\n\tIndices    SparseIndices   `json:\"indices\"`\n\tValues     SparseValues    `json:\"values\"`\n\tExtensions json.RawMessage `json:\"extensions,omitempty\"`\n\tExtras     json.RawMessage `json:\"extras,omitempty\"`\n}",
+          "doc": "Sparse describes displacements applied to a subset of an accessor's elements.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "SparseIndices",
+          "signature": "type SparseIndices struct {\n\tBufferView    Index           `json:\"bufferView\"`\n\tByteOffset    int             `json:\"byteOffset,omitempty\"`\n\tComponentType ComponentType   `json:\"componentType\"`\n\tExtensions    json.RawMessage `json:\"extensions,omitempty\"`\n\tExtras        json.RawMessage `json:\"extras,omitempty\"`\n}",
+          "doc": "SparseIndices points to the bufferView holding the indices of the elements to\nbe replaced. ComponentType must be an unsigned integer type.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "SparseValues",
+          "signature": "type SparseValues struct {\n\tBufferView Index           `json:\"bufferView\"`\n\tByteOffset int             `json:\"byteOffset,omitempty\"`\n\tExtensions json.RawMessage `json:\"extensions,omitempty\"`\n\tExtras     json.RawMessage `json:\"extras,omitempty\"`\n}",
+          "doc": "SparseValues points to the bufferView holding the replacement element values.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "TargetType",
+          "signature": "type TargetType int",
+          "doc": "TargetType is the OpenGL buffer binding target hint carried by a bufferView.\n",
+          "consts": [
+            {
+              "names": [
+                "TargetArrayBuffer",
+                "TargetElementArrayBuffer"
+              ],
+              "signature": "const (\n\tTargetArrayBuffer        TargetType = 34962 // vertex attributes\n\tTargetElementArrayBuffer TargetType = 34963 // vertex indices\n)",
+              "doc": "BufferView target hints defined by the glTF 2.0 specification.\n"
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "String",
+              "recv": "TargetType",
+              "signature": "func (t TargetType) String() string",
+              "doc": "String returns the glTF specification name of the bufferView target (for\nexample \"ARRAY_BUFFER\"), or a numeric fallback for an unknown value.\n"
+            }
+          ]
+        },
+        {
+          "name": "Texture",
+          "signature": "type Texture struct {\n\tName       string          `json:\"name,omitempty\"`\n\tSampler    *Index          `json:\"sampler,omitempty\"`\n\tSource     *Index          `json:\"source,omitempty\"`\n\tExtensions json.RawMessage `json:\"extensions,omitempty\"`\n\tExtras     json.RawMessage `json:\"extras,omitempty\"`\n}",
+          "doc": "Texture pairs a source image with a sampler.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "TextureInfo",
+          "signature": "type TextureInfo struct {\n\tIndex      Index           `json:\"index\"`\n\tTexCoord   int             `json:\"texCoord,omitempty\"`\n\tExtensions json.RawMessage `json:\"extensions,omitempty\"`\n\tExtras     json.RawMessage `json:\"extras,omitempty\"`\n}",
+          "doc": "TextureInfo references a texture and the UV set used to sample it.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "TextureTransform",
+              "recv": "*TextureInfo",
+              "signature": "func (ti *TextureInfo) TextureTransform() (TextureTransform, bool)",
+              "doc": "TextureTransform decodes the KHR_texture_transform extension from a texture\nreference, reporting whether it is present.\n"
+            }
+          ]
+        },
+        {
+          "name": "TextureTransform",
+          "signature": "type TextureTransform struct {\n\t// Offset is the UV translation applied after scaling. Default [0,0].\n\tOffset *[2]float64 `json:\"offset,omitempty\"`\n\t// Rotation is the counter-clockwise rotation in radians. Default 0.\n\tRotation float64 `json:\"rotation,omitempty\"`\n\t// Scale is the UV scale. Default [1,1].\n\tScale *[2]float64 `json:\"scale,omitempty\"`\n\t// TexCoord overrides the texture's UV set index when non-nil.\n\tTexCoord *int            `json:\"texCoord,omitempty\"`\n\tExtras   json.RawMessage `json:\"extras,omitempty\"`\n}",
+          "doc": "TextureTransform is the KHR_texture_transform extension, applying an offset,\nrotation, and scale to a texture's UV coordinates. It appears inside a\n[TextureInfo]'s extensions.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "UVMatrix",
+              "recv": "*TextureTransform",
+              "signature": "func (t *TextureTransform) UVMatrix() [9]float64",
+              "doc": "UVMatrix returns the 3x3 UV transform (column-major, with the last column\ncarrying the translation) implied by the texture transform, applying scale,\nthen rotation, then offset. Absent fields use their glTF defaults.\n"
+            }
+          ]
+        },
+        {
+          "name": "ValidationError",
+          "signature": "type ValidationError struct {\n\tPath    string\n\tMessage string\n}",
+          "doc": "ValidationError describes a single problem found by Validate. Path locates the\noffending element within the document (for example \"meshes[0].primitives[1]\").\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Error",
+              "recv": "ValidationError",
+              "signature": "func (e ValidationError) Error() string",
+              "doc": "Error implements the error interface.\n"
+            }
+          ]
+        },
+        {
+          "name": "ValidationErrors",
+          "signature": "type ValidationErrors []ValidationError",
+          "doc": "ValidationErrors is a collection of validation problems. It is returned as a\nsingle error by Validate when the document is invalid.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "AsValidationErrors",
+              "signature": "func AsValidationErrors(err error) (ValidationErrors, bool)",
+              "doc": "AsValidationErrors returns the underlying ValidationErrors when err was\nproduced by Validate, and reports whether the conversion succeeded.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Error",
+              "recv": "ValidationErrors",
+              "signature": "func (errs ValidationErrors) Error() string",
+              "doc": "Error implements the error interface, joining each problem on its own line.\n"
+            }
+          ]
+        },
+        {
+          "name": "Vec3",
+          "signature": "type Vec3 [3]float64",
+          "doc": "Vec3 is a three-component vector of float64 values. It is used for node\ntranslation and scale, and as a general-purpose 3D vector by the transform\nhelpers.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Add",
+              "recv": "Vec3",
+              "signature": "func (v Vec3) Add(o Vec3) Vec3",
+              "doc": "Add returns the component-wise sum v+o.\n"
+            },
+            {
+              "name": "Cross",
+              "recv": "Vec3",
+              "signature": "func (v Vec3) Cross(o Vec3) Vec3",
+              "doc": "Cross returns the cross product v×o, a vector perpendicular to both operands.\n"
+            },
+            {
+              "name": "Dot",
+              "recv": "Vec3",
+              "signature": "func (v Vec3) Dot(o Vec3) float64",
+              "doc": "Dot returns the dot product of v and o.\n"
+            },
+            {
+              "name": "Length",
+              "recv": "Vec3",
+              "signature": "func (v Vec3) Length() float64",
+              "doc": "Length returns the Euclidean length (magnitude) of v.\n"
+            },
+            {
+              "name": "Lerp",
+              "recv": "Vec3",
+              "signature": "func (v Vec3) Lerp(o Vec3, t float64) Vec3",
+              "doc": "Lerp returns the linear interpolation between v and o at parameter t. t=0\nyields v and t=1 yields o; values outside [0,1] extrapolate.\n"
+            },
+            {
+              "name": "Normalize",
+              "recv": "Vec3",
+              "signature": "func (v Vec3) Normalize() Vec3",
+              "doc": "Normalize returns v scaled to unit length. A zero-length vector is returned\nunchanged (as the zero vector).\n"
+            },
+            {
+              "name": "Scale",
+              "recv": "Vec3",
+              "signature": "func (v Vec3) Scale(s float64) Vec3",
+              "doc": "Scale returns v with every component multiplied by s.\n"
+            },
+            {
+              "name": "Sub",
+              "recv": "Vec3",
+              "signature": "func (v Vec3) Sub(o Vec3) Vec3",
+              "doc": "Sub returns the component-wise difference v-o.\n"
+            }
+          ]
+        },
+        {
+          "name": "Vec4",
+          "signature": "type Vec4 [4]float64",
+          "doc": "Vec4 is a four-component vector of float64 values.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "WrapMode",
+          "signature": "type WrapMode int",
+          "doc": "WrapMode identifies a texture wrapping mode for the S or T axis.\n",
+          "consts": [
+            {
+              "names": [
+                "WrapClampToEdge",
+                "WrapMirroredRepeat",
+                "WrapRepeat"
+              ],
+              "signature": "const (\n\tWrapClampToEdge    WrapMode = 33071\n\tWrapMirroredRepeat WrapMode = 33648\n\tWrapRepeat         WrapMode = 10497\n)",
+              "doc": "Texture wrapping modes defined by the glTF 2.0 specification.\n"
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "String",
+              "recv": "WrapMode",
+              "signature": "func (w WrapMode) String() string",
+              "doc": "String returns the glTF specification name of the wrap mode (for example\n\"CLAMP_TO_EDGE\"), or a numeric fallback for an unknown value.\n"
+            }
+          ]
+        }
+      ],
+      "funcs": [
+        {
+          "name": "BlendMorphTargetsVec3",
+          "signature": "func BlendMorphTargetsVec3(base [][3]float32, targets [][][3]float32, weights []float64) [][3]float32",
+          "doc": "BlendMorphTargetsVec3 applies weighted morph-target deltas to base vertex\ndata, returning base + sum(weights[i] * targets[i]). Each target slice and\nbase must have the same length; weights shorter than targets treat missing\nentries as zero. The base slice is not modified.\n"
+        },
+        {
+          "name": "EffectiveWeights",
+          "signature": "func EffectiveWeights(node *Node, mesh *Mesh) []float64",
+          "doc": "EffectiveWeights returns the morph-target weights in effect for the given\nmesh when instantiated by node. Per the specification, a node's weights\noverride the mesh's default weights; when neither is present a nil slice is\nreturned. node may be nil to use only the mesh weights.\n"
+        },
+        {
+          "name": "Encode",
+          "signature": "func Encode(w io.Writer, doc *Document) error",
+          "doc": "Encode writes doc as indented .gltf JSON to w.\n"
+        },
+        {
+          "name": "EncodeDataURI",
+          "signature": "func EncodeDataURI(data []byte) string",
+          "doc": "EncodeDataURI returns a base64 application/octet-stream data URI for data,\nsuitable for use as a Buffer.URI in an embedded .gltf file.\n"
+        },
+        {
+          "name": "ExtensionMap",
+          "signature": "func ExtensionMap(raw json.RawMessage) (map[string]json.RawMessage, error)",
+          "doc": "ExtensionMap decodes a raw extensions object into a map from extension name\nto its raw JSON value. It returns an empty (non-nil) map when raw is empty.\nThe map preserves every extension verbatim, including ones this package does\nnot model, so it can be round-tripped with [MarshalExtensions].\n"
+        },
+        {
+          "name": "GetExtension",
+          "signature": "func GetExtension(raw json.RawMessage, name string, v any) (bool, error)",
+          "doc": "GetExtension decodes the named extension from raw into v, reporting whether\nthe extension was present. v must be a non-nil pointer.\n"
+        },
+        {
+          "name": "MarshalExtensions",
+          "signature": "func MarshalExtensions(m map[string]json.RawMessage) (json.RawMessage, error)",
+          "doc": "MarshalExtensions encodes an extension map back into a raw extensions object.\nIt returns nil (which serializes as an omitted field) when the map is empty.\n"
+        },
+        {
+          "name": "MarshalJSON",
+          "signature": "func MarshalJSON(doc *Document) ([]byte, error)",
+          "doc": "MarshalJSON is a convenience wrapper returning the indented JSON encoding of\ndoc as a byte slice.\n"
+        },
+        {
+          "name": "Save",
+          "signature": "func Save(path string, doc *Document) error",
+          "doc": "Save encodes doc and writes it to a .gltf file at path. Buffer data is not\nwritten to separate files; callers embedding buffers should use data URIs or\nthe GLB container.\n"
+        },
+        {
+          "name": "SaveGLB",
+          "signature": "func SaveGLB(path string, doc *Document, bin []byte) error",
+          "doc": "SaveGLB writes doc and an optional BIN chunk to a .glb file at path.\n"
+        },
+        {
+          "name": "SetExtension",
+          "signature": "func SetExtension(raw json.RawMessage, name string, v any) (json.RawMessage, error)",
+          "doc": "SetExtension returns a new raw extensions object with the named extension set\nto the JSON encoding of v, preserving every other extension already present\nin raw. Passing a nil v removes the named extension.\n"
+        },
+        {
+          "name": "WriteGLB",
+          "signature": "func WriteGLB(w io.Writer, doc *Document, bin []byte) error",
+          "doc": "WriteGLB writes doc and an optional BIN chunk to w as a binary GLB stream. If\nbin is nil, the BIN chunk is omitted. The JSON chunk is padded with spaces\nand the BIN chunk with zeros to a four-byte boundary, as required.\n"
+        },
+        {
+          "name": "WriteTriangleGLB",
+          "signature": "func WriteTriangleGLB(w io.Writer) error",
+          "doc": "WriteTriangleGLB writes the single-triangle asset to w as a binary .glb.\n"
+        },
+        {
+          "name": "WriteTriangleGLTF",
+          "signature": "func WriteTriangleGLTF(w io.Writer) error",
+          "doc": "WriteTriangleGLTF writes the single-triangle asset to w as an embedded .gltf,\nwith the buffer stored as a base64 data URI so the file is self-contained.\n"
+        }
+      ],
+      "examples": [
+        {
+          "name": "",
+          "code": "package main\n\nimport (\n\t\"bytes\"\n\t\"fmt\"\n\n\t\"github.com/malcolmston/gltf\"\n)\n\nfunc main() {\n\t// Build a minimal triangle document and its binary buffer.\n\tdoc, bin := gltf.Triangle()\n\n\t// Write it to an in-memory GLB stream.\n\tvar buf bytes.Buffer\n\tif err := gltf.WriteGLB(\u0026buf, doc, bin); err != nil {\n\t\tpanic(err)\n\t}\n\n\t// Read the GLB back and resolve its embedded binary chunk.\n\tloaded, chunk, err := gltf.ReadGLB(\u0026buf)\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tif err := loaded.ResolveBuffers(\"\", chunk); err != nil {\n\t\tpanic(err)\n\t}\n\n\t// Decode the POSITION accessor into typed vertices.\n\tpositions, err := loaded.DecodeAccessorVec3(0)\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\n\tfmt.Printf(\"vertices: %d\\n\", len(positions))\n\tfmt.Printf(\"first: %v\\n\", positions[0])\n}",
+          "output": "vertices: 3\nfirst: [0 0 0]",
+          "doc": "Example builds a single-triangle mesh, writes it to an in-memory GLB\ncontainer, reads it back, resolves the embedded buffer, and prints the number\nof decoded vertices.\n"
+        }
+      ]
+    }
+  ]
+}
