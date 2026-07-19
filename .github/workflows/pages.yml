@@ -64,6 +64,12 @@ jobs:
       - name: Generate live parity metrics
         run: cd genparity && GOWORK=off go run . -root .. -out ../web/src/parity.ts
 
+      # Regenerate the search index + package-connection graph (web/public/
+      # graph.json + search-index.json) that the Explore tab falls back to when
+      # the serverless search/GraphQL API isn't reachable (as on GitHub Pages).
+      - name: Generate search + package-graph data
+        run: node scripts/build-graph-data.mjs
+
       - name: Build site
         working-directory: web
         run: |

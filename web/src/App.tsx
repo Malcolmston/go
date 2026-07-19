@@ -7,6 +7,7 @@ import { Home } from './components/Home';
 import { LibView } from './components/LibView';
 import { Parity } from './components/Parity';
 import { Pipeline } from './components/Pipeline';
+import { Explore } from './components/Explore';
 import { Releases } from './components/Releases';
 import { HowTo } from './components/HowTo';
 import { Faq } from './components/Faq';
@@ -18,6 +19,7 @@ const TABS: Tab[] = [
   ...LIBS.map((l) => ({ id: l.id, label: l.name, dot: l.accent })),
   { id: 'parity', label: 'Parity' },
   { id: 'pipeline', label: 'Pipeline' },
+  { id: 'explore', label: 'Explore' },
   { id: 'releases', label: 'Releases' },
   { id: 'howto', label: 'How-to' },
   { id: 'faq', label: 'FAQ' },
@@ -52,6 +54,7 @@ export function App() {
       {lib && <LibView lib={lib} key={lib.id} />}
       {active === 'parity' && <Parity />}
       {active === 'pipeline' && <Pipeline />}
+      {active === 'explore' && <Explore />}
       {active === 'releases' && <Releases />}
       {active === 'howto' && <HowTo />}
       {active === 'faq' && <Faq />}
