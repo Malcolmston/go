@@ -23,9 +23,15 @@ describe('LibView', () => {
 
   it('renders external doc/repo links opening in a new tab', () => {
     render(<LibView lib={express} />);
-    const github = screen.getByRole('link', { name: /GitHub/ });
-    expect(github).toHaveAttribute('href', express.repo);
-    expect(github).toHaveAttribute('target', '_blank');
-    expect(github).toHaveAttribute('rel', expect.stringContaining('noopener'));
+    // Several GitHub links now render (the hero repo link plus the parity
+    // pipeline's run/actions link); every external GitHub link must open safely
+    // in a new tab, and the hero one points at the repo.
+    const githubs = screen.getAllByRole('link', { name: /GitHub/ });
+    expect(githubs.length).toBeGreaterThan(0);
+    for (const link of githubs) {
+      expect(link).toHaveAttribute('target', '_blank');
+      expect(link).toHaveAttribute('rel', expect.stringContaining('noopener'));
+    }
+    expect(githubs.some((l) => l.getAttribute('href') === express.repo)).toBe(true);
   });
 });
