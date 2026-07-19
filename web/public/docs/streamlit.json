@@ -1,0 +1,656 @@
+{
+  "module": "github.com/malcolmston/streamlit",
+  "generatedAt": "2026-07-19T02:05:53Z",
+  "packages": [
+    {
+      "importPath": "github.com/malcolmston/streamlit/st",
+      "name": "st",
+      "synopsis": "Package st is a from-scratch, standard-library-only Go port of Python's Streamlit: a framework for building interactive web and data apps by writing a plain script.",
+      "doc": "Package st is a from-scratch, standard-library-only Go port of Python's\nStreamlit: a framework for building interactive web and data apps by writing\na plain script.\n\n# The model\n\nYou write an app function with the signature func(s *st.Session). Inside it\nyou call methods on the session to build the page: s.Title, s.Write,\ns.Slider, s.Button and so on. Each call appends one element to the page's\nelement tree, and each widget call returns the widget's current value. The\nframework runs your app function top to bottom to produce the page.\n\nThe defining behaviour of Streamlit, reproduced faithfully here, is\nrerun-on-interaction. When the user interacts with any widget, the entire\napp function runs again from the top. Widget values are restored from\nper-session state, so a slider you dragged reads its new position on the\nnext run, and any [State] you stored persists too. The freshly built element\ntree is diffed against the page and the browser updates. This means app code\ncan be written as a simple straight-line script: there are no callbacks,\nevent handlers, or manual DOM updates.\n\n# Sessions and containers\n\nA [Session] represents one browser connection. It embeds the root\n[Container], so all display and widget methods are available directly on the\nsession. Layout helpers such as [Container.Columns] and [Container.Expander]\nreturn further containers that render nested regions; [Session.Sidebar]\nreturns the sidebar container. Because every method lives on *Container, the\nsame API works uniformly for the main body, the sidebar and each column.\n\n# Transport and frontend\n\n[Run] starts an HTTP server. It serves a small, dependency-free single-page\nfrontend (embedded via go:embed) that renders the JSON element tree and\nposts widget-change events back to POST /api/run. The server applies the\nevent, reruns the app function for that session, and returns the new tree.\nThe whole protocol is plain JSON request/response — no third-party modules,\nno JavaScript frameworks, no external charting library (charts are rendered\nto inline SVG on the server).\n\n# Example\n\n\tpackage main\n\n\timport \"github.com/malcolmston/streamlit/st\"\n\n\tfunc main() {\n\t\tst.Run(app, \":8501\")\n\t}\n\n\tfunc app(s *st.Session) {\n\t\ts.Title(\"Hello, Streamlit-Go\")\n\t\tn := s.Slider(\"Points\", 0, 100, 50, 1)\n\t\ts.LineChart(series(int(n)))\n\t\tif s.Button(\"Celebrate\") {\n\t\t\ts.Success(\"🎉\")\n\t\t}\n\t}\n\n# Widgets, layout, media and charts\n\nBeyond the basics the package offers a broad surface, each piece backed by\nper-session state and rendered by the embedded frontend:\n\n  - Display and data: [Container.Title], [Container.Header],\n    [Container.Subheader], [Container.Markdown], [Container.Write],\n    [Container.Metric], [Container.Code], [Container.JSON],\n    [Container.Table] and [Container.DataFrame]. Tabular structs and slices\n    render automatically, and alerts ([Container.Success], [Container.Info],\n    [Container.Warning], [Container.Error]) draw the callout boxes.\n  - Widgets: [Container.Button], [Container.Checkbox], [Container.Toggle],\n    [Container.Slider], [Container.SelectSlider], [Container.NumberInput],\n    [Container.TextInput], [Container.TextArea], [Container.SelectBox],\n    [Container.Radio], [Container.MultiSelect], [Container.DateInput],\n    [Container.TimeInput], [Container.ColorPicker], [Container.Feedback],\n    [Container.DownloadButton] and [Container.FileUploader].\n  - Layout: [Container.Columns], [Container.Container], [Container.Expander],\n    [Container.Tabs], [Container.Popover], [Container.Status],\n    [Container.Empty] and [Session.Sidebar].\n  - Forms: [Container.Form] with [Container.FormSubmitButton] batch widget\n    updates until the form is submitted.\n  - Chat: [Container.ChatMessage] and [Container.ChatInput].\n  - Media: [Container.Image], [Container.Logo], [Container.Audio],\n    [Container.Video] and [Container.Map]. Bytes and [image.Image] values are\n    embedded as base64 data URIs.\n  - Charts (server-side SVG): [Container.LineChart], [Container.AreaChart],\n    [Container.BarChart], [Container.ScatterChart], [Container.PieChart] and\n    [Container.Histogram].\n  - Caching: [Session.Cache] memoises an expensive computation process-wide,\n    across reruns and sessions, with an optional TTL — the analogue of\n    st.cache_data. [CacheClear] evicts every cached entry.\n\n# Deferred features\n\nThis is a compact reimplementation of a large framework. Deliberately\ndeferred: custom components, resource caching (st.cache_resource),\nmultipage apps, real-time streaming/async widgets, in-place dataframe\nediting and theming APIs. The synchronous long-poll-free transport also\nmeans [Container.Spinner] and [Container.Progress] are snapshots of the\ncompleted run rather than live-updating during work.\n",
+      "consts": [],
+      "vars": [],
+      "types": [
+        {
+          "name": "Container",
+          "signature": "type Container struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Container is a region of the page into which elements are appended. The root\ncontainer is embedded in [Session] so its methods are reachable directly on\nthe session; layout helpers such as [Container.Columns] and\n[Container.Expander] return additional containers that render nested regions.\n\nEvery display and widget method lives on *Container, which is what lets the\nsame API be used for the main body, the sidebar, and individual columns.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "AreaChart",
+              "recv": "*Container",
+              "signature": "func (c *Container) AreaChart(series ...[]float64)",
+              "doc": "AreaChart adds a filled area chart. See [Container.LineChart] for the series\nconvention.\n"
+            },
+            {
+              "name": "Audio",
+              "recv": "*Container",
+              "signature": "func (c *Container) Audio(src any)",
+              "doc": "Audio adds an audio player. src may be a URL string or raw audio bytes (for\nexample WAV or MP3), which are embedded as a data URI.\n"
+            },
+            {
+              "name": "AudioInput",
+              "recv": "*Container",
+              "signature": "func (c *Container) AudioInput(label string, key ...string) []UploadedFile",
+              "doc": "AudioInput adds a control that records audio from the user's microphone and\nreturns the recorded files for the current session, mirroring Streamlit's\nst.audio_input. It works like [Container.CameraInput], receiving bytes over\nthe multipart /api/upload endpoint keyed by the widget key.\n"
+            },
+            {
+              "name": "Badge",
+              "recv": "*Container",
+              "signature": "func (c *Container) Badge(label string, color ...string)",
+              "doc": "Badge adds a small coloured pill label, mirroring Streamlit's st.badge. color\nis an optional colour name (for example \"blue\", \"green\", \"red\", \"orange\",\n\"violet\" or \"grey\"); an empty or unrecognised colour defaults to \"blue\".\n"
+            },
+            {
+              "name": "Balloons",
+              "recv": "*Container",
+              "signature": "func (c *Container) Balloons()",
+              "doc": "Balloons triggers the celebratory balloons animation, mirroring Streamlit's\nst.balloons. It adds a one-shot effect element to the page.\n"
+            },
+            {
+              "name": "BarChart",
+              "recv": "*Container",
+              "signature": "func (c *Container) BarChart(series ...[]float64)",
+              "doc": "BarChart adds a bar chart. See [Container.LineChart] for the series\nconvention. Multiple series are drawn as grouped bars.\n"
+            },
+            {
+              "name": "BorderedContainer",
+              "recv": "*Container",
+              "signature": "func (c *Container) BorderedContainer() *Container",
+              "doc": "BorderedContainer adds a nested grouping region drawn with a visible border\nand returns a container for it, mirroring Streamlit's st.container(border=\nTrue). It behaves like [Container.Container] but is visually delimited, which\nis useful for grouping related output into a card.\n"
+            },
+            {
+              "name": "Button",
+              "recv": "*Container",
+              "signature": "func (c *Container) Button(label string, key ...string) bool",
+              "doc": "Button adds a clickable button and returns true on the single run triggered\nby a click. An optional stable key may be supplied as the final argument.\n"
+            },
+            {
+              "name": "CameraInput",
+              "recv": "*Container",
+              "signature": "func (c *Container) CameraInput(label string, key ...string) []UploadedFile",
+              "doc": "CameraInput adds a control that captures a photo from the user's webcam and\nreturns the captured image files for the current session, mirroring\nStreamlit's st.camera_input. Like [Container.FileUploader] the bytes arrive\nover the multipart /api/upload endpoint keyed by the widget key and are held\nin session state; the returned slice is empty until a photo is taken.\n"
+            },
+            {
+              "name": "Caption",
+              "recv": "*Container",
+              "signature": "func (c *Container) Caption(text string)",
+              "doc": "Caption adds small, muted caption text (rendered as markdown).\n"
+            },
+            {
+              "name": "ChatInput",
+              "recv": "*Container",
+              "signature": "func (c *Container) ChatInput(placeholder string, key ...string) string",
+              "doc": "ChatInput adds a chat entry box pinned to the bottom of its region and\nreturns the message the user last submitted, or the empty string before any\nsubmission. Submitting a message (pressing Enter) reruns the app with the new\nvalue available. An optional stable key may be supplied.\n\n\tif msg := s.ChatInput(\"Ask me anything\"); msg != \"\" {\n\t\ts.ChatMessage(\"user\").Text(msg)\n\t}\n"
+            },
+            {
+              "name": "ChatMessage",
+              "recv": "*Container",
+              "signature": "func (c *Container) ChatMessage(role string) *Container",
+              "doc": "ChatMessage adds a chat message bubble attributed to role (commonly \"user\"\nor \"assistant\") and returns a container for the message body. Any elements\nmay be placed inside it, so a message can contain markdown, tables, charts,\nand so on.\n\n\tm := s.ChatMessage(\"assistant\")\n\tm.Markdown(\"Here is your **answer**.\")\n"
+            },
+            {
+              "name": "Checkbox",
+              "recv": "*Container",
+              "signature": "func (c *Container) Checkbox(label string, def bool, key ...string) bool",
+              "doc": "Checkbox adds a checkbox initialised to def and returns its current state.\n"
+            },
+            {
+              "name": "Code",
+              "recv": "*Container",
+              "signature": "func (c *Container) Code(code, lang string)",
+              "doc": "Code adds a syntax-highlight-styled code block. lang is an advisory\nlanguage label (for example \"go\" or \"python\") and may be empty.\n"
+            },
+            {
+              "name": "ColorPicker",
+              "recv": "*Container",
+              "signature": "func (c *Container) ColorPicker(label, def string, key ...string) string",
+              "doc": "ColorPicker adds a colour selector and returns the chosen colour as a\n\"#rrggbb\" hex string. def is the initial value; an empty def defaults to\nblack (\"#000000\").\n"
+            },
+            {
+              "name": "Columns",
+              "recv": "*Container",
+              "signature": "func (c *Container) Columns(n int) []*Container",
+              "doc": "Columns splits the current region into n side-by-side columns and returns a\ncontainer for each. Elements added to a returned container render within that\ncolumn. If n is less than one it is treated as one.\n\n\tc1, c2 := s.Columns(2)[0], s.Columns(2)[1] // (illustrative)\n\tcols := s.Columns(2)\n\tcols[0].Metric(\"Left\", \"1\", \"\")\n\tcols[1].Metric(\"Right\", \"2\", \"\")\n"
+            },
+            {
+              "name": "Container",
+              "recv": "*Container",
+              "signature": "func (c *Container) Container() *Container",
+              "doc": "Container adds a nested, undecorated grouping region and returns a container\nfor it. It is useful for grouping elements or for building output out of\norder.\n"
+            },
+            {
+              "name": "DataFrame",
+              "recv": "*Container",
+              "signature": "func (c *Container) DataFrame(data any, caption ...string)",
+              "doc": "DataFrame renders tabular data like [Container.Table] but adds a client-side\nsorting hint, so column headers can be clicked to sort the rows in the\nbrowser. It mirrors Streamlit's st.dataframe entry point and accepts an\noptional caption.\n"
+            },
+            {
+              "name": "DateInput",
+              "recv": "*Container",
+              "signature": "func (c *Container) DateInput(label, def string, key ...string) string",
+              "doc": "DateInput adds a calendar date field and returns the selected date as an\nISO-8601 string (\"2006-01-02\"). def is the initial value and may be empty.\n"
+            },
+            {
+              "name": "DateRangeInput",
+              "recv": "*Container",
+              "signature": "func (c *Container) DateRangeInput(label, defStart, defEnd string, key ...string) (string, string)",
+              "doc": "DateRangeInput adds a calendar control that selects a start and end date and\nreturns them as ISO-8601 strings (\"2006-01-02\"), mirroring Streamlit's\nst.date_input used with a tuple default. defStart and defEnd are the initial\nvalues and may be empty. The earlier date is always returned first.\n"
+            },
+            {
+              "name": "Divider",
+              "recv": "*Container",
+              "signature": "func (c *Container) Divider()",
+              "doc": "Divider adds a horizontal rule.\n"
+            },
+            {
+              "name": "DownloadButton",
+              "recv": "*Container",
+              "signature": "func (c *Container) DownloadButton(label, filename string, data []byte, key ...string) bool",
+              "doc": "DownloadButton adds a button that downloads data as a file named filename\nwhen clicked, and returns true on the single run triggered by the click. The\nbytes are embedded in the page as a base64 data URI, so this is best suited\nto modestly sized payloads. The content type is detected from the data.\n"
+            },
+            {
+              "name": "Echo",
+              "recv": "*Container",
+              "signature": "func (c *Container) Echo(code string)",
+              "doc": "Echo adds a read-only display of Go source code, mirroring Streamlit's\nst.echo (which shows the code inside its block). The code is rendered as a\nsyntax-styled block tagged as Go.\n"
+            },
+            {
+              "name": "Empty",
+              "recv": "*Container",
+              "signature": "func (c *Container) Empty() *Container",
+              "doc": "Empty adds a single placeholder region and returns a container for it.\nBecause the element tree is rebuilt on every run, an Empty is most useful as\na stable slot whose contents are decided later in the same run.\n"
+            },
+            {
+              "name": "Error",
+              "recv": "*Container",
+              "signature": "func (c *Container) Error(text string)",
+              "doc": "Error adds a red error message box.\n"
+            },
+            {
+              "name": "Exception",
+              "recv": "*Container",
+              "signature": "func (c *Container) Exception(err error)",
+              "doc": "Exception adds a formatted error box for err, mirroring Streamlit's\nst.exception. The error's message and its Go type name are shown. A nil error\nrenders an empty exception box.\n"
+            },
+            {
+              "name": "Expander",
+              "recv": "*Container",
+              "signature": "func (c *Container) Expander(label string, expanded bool) *Container",
+              "doc": "Expander adds a collapsible section with the given label and returns a\ncontainer for its body. When expanded is true the section starts open.\n"
+            },
+            {
+              "name": "Feedback",
+              "recv": "*Container",
+              "signature": "func (c *Container) Feedback(kind string, key ...string) int",
+              "doc": "Feedback adds a rating control and returns the selected score, or -1 when\nnothing has been chosen yet. kind selects the style: \"stars\" yields a 0–4\nfive-star rating and \"thumbs\" yields a 0 (down) / 1 (up) control. Any other\nvalue is treated as \"stars\".\n"
+            },
+            {
+              "name": "FileUploader",
+              "recv": "*Container",
+              "signature": "func (c *Container) FileUploader(label string, key ...string) []UploadedFile",
+              "doc": "FileUploader adds a file selection control and returns the files uploaded for\nit in the current session. Bytes are received over a multipart POST to\n/api/upload and held in session state (they are not part of the JSON element\ntree); only filenames are echoed to the browser. The returned slice is empty\nuntil the user uploads at least one file.\n"
+            },
+            {
+              "name": "Form",
+              "recv": "*Container",
+              "signature": "func (c *Container) Form(key string) *Container",
+              "doc": "Form adds a form region identified by key and returns a container for its\nbody. Widgets appended to the returned container defer their state updates:\ninteracting with them does not rerun the app. Instead the browser stages\ntheir values locally and commits them all at once when a\n[Container.FormSubmitButton] inside the form is clicked, at which point the\napp reruns with every staged value applied together.\n\nThis batching is the point of a form: several inputs can be changed and then\nsubmitted as a unit, avoiding a rerun per keystroke.\n\n\tf := s.Form(\"signup\")\n\tname := f.TextInput(\"Name\", \"\")\n\tage := f.NumberInput(\"Age\", 18)\n\tif f.FormSubmitButton(\"Register\") {\n\t\ts.Success(\"Welcome, \" + name)\n\t\t_ = age\n\t}\n"
+            },
+            {
+              "name": "FormSubmitButton",
+              "recv": "*Container",
+              "signature": "func (c *Container) FormSubmitButton(label string) bool",
+              "doc": "FormSubmitButton adds the submit button for the enclosing form and returns\ntrue on the single run triggered by its click. It must be called on a\ncontainer returned by [Container.Form]; used elsewhere it behaves like a\ndisconnected button that never batches values.\n"
+            },
+            {
+              "name": "Header",
+              "recv": "*Container",
+              "signature": "func (c *Container) Header(text string)",
+              "doc": "Header adds a section header.\n"
+            },
+            {
+              "name": "Help",
+              "recv": "*Container",
+              "signature": "func (c *Container) Help(value any)",
+              "doc": "Help adds an introspective description of value, mirroring Streamlit's\nst.help. The value's Go type and its formatted representation are shown, which\nis handy for quickly inspecting a variable while building an app.\n"
+            },
+            {
+              "name": "Histogram",
+              "recv": "*Container",
+              "signature": "func (c *Container) Histogram(data []float64, bins int)",
+              "doc": "Histogram adds a histogram of data grouped into the given number of bins\n(clamped to at least one), rendered as a bar chart. It is a convenience over\nbucketing the data yourself and calling [Container.BarChart].\n"
+            },
+            {
+              "name": "Html",
+              "recv": "*Container",
+              "signature": "func (c *Container) Html(html string)",
+              "doc": "Html adds a block of raw, unescaped HTML, mirroring Streamlit's st.html. The\nmarkup is inserted verbatim, so only pass HTML you trust — untrusted input can\ninject script into the page.\n"
+            },
+            {
+              "name": "Image",
+              "recv": "*Container",
+              "signature": "func (c *Container) Image(src any, caption ...string)",
+              "doc": "Image adds an image. src may be a URL string, PNG/JPEG (or other) bytes, or\nan [image.Image] value, which is encoded to PNG. An optional caption is shown\nbeneath the image.\n"
+            },
+            {
+              "name": "Info",
+              "recv": "*Container",
+              "signature": "func (c *Container) Info(text string)",
+              "doc": "Info adds a blue informational message box.\n"
+            },
+            {
+              "name": "JSON",
+              "recv": "*Container",
+              "signature": "func (c *Container) JSON(value any, collapsed ...bool)",
+              "doc": "JSON adds a pretty-printed JSON view of value. Values that cannot be\nmarshalled are rendered using their Go default formatting instead. When the\noptional collapsed argument is true the view starts collapsed behind a\ndisclosure toggle in the browser.\n"
+            },
+            {
+              "name": "Latex",
+              "recv": "*Container",
+              "signature": "func (c *Container) Latex(expr string)",
+              "doc": "Latex adds a block of mathematics written in LaTeX. expr is the raw LaTeX\nsource without surrounding delimiters, for example `\\int_a^b f(x)\\,dx`. It\nmirrors Streamlit's st.latex; the embedded frontend renders the expression in\na dedicated math block.\n"
+            },
+            {
+              "name": "LineChart",
+              "recv": "*Container",
+              "signature": "func (c *Container) LineChart(series ...[]float64)",
+              "doc": "LineChart adds a line chart. Each argument is one numeric series; series are\nplotted against a shared 0..N-1 x-axis and rendered to inline SVG on the\nserver using only the standard library.\n"
+            },
+            {
+              "name": "LinkButton",
+              "recv": "*Container",
+              "signature": "func (c *Container) LinkButton(label, url string)",
+              "doc": "LinkButton adds a button that navigates to url when clicked, mirroring\nStreamlit's st.link_button. Unlike [Container.Button] it does not rerun the\napp; it is a styled hyperlink.\n"
+            },
+            {
+              "name": "Logo",
+              "recv": "*Container",
+              "signature": "func (c *Container) Logo(src any)",
+              "doc": "Logo adds a small brand image, typically shown at the top of the app or\nsidebar. src accepts the same values as [Container.Image].\n"
+            },
+            {
+              "name": "Map",
+              "recv": "*Container",
+              "signature": "func (c *Container) Map(points []MapPoint)",
+              "doc": "Map adds a simple point map. Each point is projected with an equirectangular\nprojection and drawn as a dot over a framed world extent, rendered to inline\nSVG on the server using only the standard library.\n"
+            },
+            {
+              "name": "Markdown",
+              "recv": "*Container",
+              "signature": "func (c *Container) Markdown(text string)",
+              "doc": "Markdown adds text rendered with a small, safe subset of Markdown\n(headings, bold, italics, inline code, links and lists) by the frontend.\n"
+            },
+            {
+              "name": "Metric",
+              "recv": "*Container",
+              "signature": "func (c *Container) Metric(label, value, delta string)",
+              "doc": "Metric adds a big-number metric with an optional delta indicator. A delta\nbeginning with '-' renders as a negative (downward) change; the coloring can\nbe flipped or disabled with [Container.MetricColored].\n\nAlongside the raw delta text, the resolved arrow direction (\"up\", \"down\" or\n\"none\") and delta colour (\"green\", \"red\" or \"grey\") are attached to the\nelement, matching how Streamlit's st.metric derives them; see\n[Container.MetricColored] for the exact rules.\n"
+            },
+            {
+              "name": "MetricColored",
+              "recv": "*Container",
+              "signature": "func (c *Container) MetricColored(label, value, delta, deltaColor string)",
+              "doc": "MetricColored is like [Container.Metric] but controls how the delta is\ncoloured. deltaColor is one of \"normal\" (positive green, negative red),\n\"inverse\" (the reverse, useful when lower is better), or \"off\" (grey).\n\nThe element records the resolved \"color\" (\"green\", \"red\" or \"grey\") and\n\"direction\" (\"up\", \"down\" or \"none\") in addition to the raw delta text and\ndeltaColor mode, mirroring Streamlit's st.metric. See [metricDeltaSignal] for\nhow the sign of the delta text is interpreted.\n"
+            },
+            {
+              "name": "MultiSelect",
+              "recv": "*Container",
+              "signature": "func (c *Container) MultiSelect(label string, options []string, key ...string) []string",
+              "doc": "MultiSelect adds a multiple-selection control and returns the currently\nselected options. Selections not present in options are dropped.\n"
+            },
+            {
+              "name": "NumberInput",
+              "recv": "*Container",
+              "signature": "func (c *Container) NumberInput(label string, def float64, key ...string) float64",
+              "doc": "NumberInput adds a numeric entry field initialised to def and returns its\ncurrent value.\n"
+            },
+            {
+              "name": "NumberInputRange",
+              "recv": "*Container",
+              "signature": "func (c *Container) NumberInputRange(label string, min, max, def float64, key ...string) float64",
+              "doc": "NumberInputRange adds a numeric entry field bounded to the inclusive range\n[min, max] and returns its current value clamped to that range, mirroring\nStreamlit's st.number_input(min_value=…, max_value=…). def is the initial\nvalue and is itself clamped.\n"
+            },
+            {
+              "name": "PageLink",
+              "recv": "*Container",
+              "signature": "func (c *Container) PageLink(url, label string)",
+              "doc": "PageLink adds a navigational link to url shown with the given label,\nmirroring Streamlit's st.page_link. It is rendered as a prominent link rather\nthan a button.\n"
+            },
+            {
+              "name": "PasswordInput",
+              "recv": "*Container",
+              "signature": "func (c *Container) PasswordInput(label, def string, key ...string) string",
+              "doc": "PasswordInput adds a single-line text field whose contents are masked in the\nbrowser and returns its current value, mirroring Streamlit's\nst.text_input(type=\"password\"). def is the initial value.\n"
+            },
+            {
+              "name": "PieChart",
+              "recv": "*Container",
+              "signature": "func (c *Container) PieChart(values []float64, labels []string)",
+              "doc": "PieChart adds a pie chart. values gives each slice's magnitude and the\noptional labels name the slices in order. Non-positive totals render an empty\nchart.\n"
+            },
+            {
+              "name": "Pills",
+              "recv": "*Container",
+              "signature": "func (c *Container) Pills(label string, options []string, key ...string) []string",
+              "doc": "Pills adds a row of selectable \"pill\" chips allowing multiple selections and\nreturns the currently selected options, mirroring Streamlit's st.pills.\nSelections not present in options are dropped. An optional stable key may be\nsupplied as the final argument.\n"
+            },
+            {
+              "name": "Popover",
+              "recv": "*Container",
+              "signature": "func (c *Container) Popover(label string) *Container",
+              "doc": "Popover adds a button that reveals a small floating panel when clicked and\nreturns a container for the panel's body. The panel is toggled in the browser\nwithout rerunning the app, making it a convenient home for extra controls or\nhelp text.\n"
+            },
+            {
+              "name": "PrimaryButton",
+              "recv": "*Container",
+              "signature": "func (c *Container) PrimaryButton(label string, key ...string) bool",
+              "doc": "PrimaryButton adds an emphasised call-to-action button and returns true on the\nsingle run triggered by a click, mirroring Streamlit's st.button(type=\n\"primary\"). It behaves exactly like [Container.Button] but is styled as the\npage's primary action.\n"
+            },
+            {
+              "name": "Progress",
+              "recv": "*Container",
+              "signature": "func (c *Container) Progress(value float64)",
+              "doc": "Progress adds a progress bar. value is a fraction in the range [0, 1] and is\nclamped to that range. Alongside the clamped fraction the element records an\ninteger \"percent\" in [0, 100] computed as int(value*100), matching the\n0–100 completion value Streamlit's st.progress reports.\n"
+            },
+            {
+              "name": "Radio",
+              "recv": "*Container",
+              "signature": "func (c *Container) Radio(label string, options []string, key ...string) string",
+              "doc": "Radio adds a group of mutually exclusive radio options and returns the\nselected option. Behaves like [Container.SelectBox] for defaults.\n"
+            },
+            {
+              "name": "ScatterChart",
+              "recv": "*Container",
+              "signature": "func (c *Container) ScatterChart(xs, ys []float64)",
+              "doc": "ScatterChart adds a scatter plot of the paired xs and ys values, rendered to\ninline SVG on the server. Points beyond the shorter of the two slices are\nignored. Unlike the line/bar/area charts, the axes are scaled to the data\nrather than anchored at zero.\n"
+            },
+            {
+              "name": "SegmentedControl",
+              "recv": "*Container",
+              "signature": "func (c *Container) SegmentedControl(label string, options []string, key ...string) string",
+              "doc": "SegmentedControl adds a single-choice segmented button group and returns the\nselected option, mirroring Streamlit's st.segmented_control. The first option\nis selected by default; if options is empty the empty string is returned.\n"
+            },
+            {
+              "name": "SelectBox",
+              "recv": "*Container",
+              "signature": "func (c *Container) SelectBox(label string, options []string, key ...string) string",
+              "doc": "SelectBox adds a drop-down of options and returns the selected option. The\nfirst option is selected by default; if options is empty the empty string is\nreturned.\n"
+            },
+            {
+              "name": "SelectSlider",
+              "recv": "*Container",
+              "signature": "func (c *Container) SelectSlider(label string, options []string, key ...string) string",
+              "doc": "SelectSlider adds a slider that moves across a set of discrete options and\nreturns the currently selected option. The first option is selected by\ndefault. If options is empty the empty string is returned.\n"
+            },
+            {
+              "name": "SelectSliderRange",
+              "recv": "*Container",
+              "signature": "func (c *Container) SelectSliderRange(label string, options []string, key ...string) (string, string)",
+              "doc": "SelectSliderRange adds a slider that selects a contiguous range across a set\nof discrete options and returns the currently selected low and high options,\nmirroring Streamlit's st.select_slider used with a tuple default. By default\nthe full range (first to last option) is selected. The returned pair is\nordered by position in options. If options is empty two empty strings are\nreturned.\n"
+            },
+            {
+              "name": "Slider",
+              "recv": "*Container",
+              "signature": "func (c *Container) Slider(label string, min, max, def, step float64, key ...string) float64",
+              "doc": "Slider adds a numeric slider bounded by min and max, initialised to def, and\nreturns its current value. step controls the increment; if step is zero a\nsensible default of (max-min)/100 is used.\n\nIf min and max are supplied out of order they are swapped. When the current\nvalue falls outside [min, max] the bounds are widened to include it rather\nthan the value being clamped, matching Streamlit's st.slider — which adjusts\nthe range to fit an out-of-range default instead of moving the value. As a\nresult the returned value is always exactly the resolved value, and min/max\non the element may differ from the arguments.\n"
+            },
+            {
+              "name": "SliderRange",
+              "recv": "*Container",
+              "signature": "func (c *Container) SliderRange(label string, min, max, low, high, step float64, key ...string) (float64, float64)",
+              "doc": "SliderRange adds a two-handle range slider bounded by min and max and returns\nthe currently selected low and high values, mirroring Streamlit's st.slider\nused with a tuple default. low and high are the initial handle positions; both\nreturned values are clamped to [min, max] and the lower is always returned\nfirst. step controls the increment; a non-positive step defaults to\n(max-min)/100.\n"
+            },
+            {
+              "name": "Snow",
+              "recv": "*Container",
+              "signature": "func (c *Container) Snow()",
+              "doc": "Snow triggers the falling-snow animation, mirroring Streamlit's st.snow. It\nadds a one-shot effect element to the page.\n"
+            },
+            {
+              "name": "Spinner",
+              "recv": "*Container",
+              "signature": "func (c *Container) Spinner(label string)",
+              "doc": "Spinner adds a spinner with a label. In this synchronous MVP the spinner is\nprimarily decorative: the element tree is delivered only after the run\ncompletes, so a spinner marks a region that performed work rather than\nanimating during it.\n"
+            },
+            {
+              "name": "Status",
+              "recv": "*Container",
+              "signature": "func (c *Container) Status(label string, state ...string) *Container",
+              "doc": "Status adds a collapsible status box with a label and a visual state and\nreturns a container for its body. The optional state is one of \"running\"\n(default), \"complete\", or \"error\"; it selects the icon shown beside the\nlabel. Because the app reruns top to bottom, updating a status is simply a\nmatter of calling Status again with a new state on the next run.\n\n\tst := s.Status(\"Crunching numbers…\", \"running\")\n\tst.Write(\"step 1 done\")\n"
+            },
+            {
+              "name": "Subheader",
+              "recv": "*Container",
+              "signature": "func (c *Container) Subheader(text string)",
+              "doc": "Subheader adds a smaller section header.\n"
+            },
+            {
+              "name": "Success",
+              "recv": "*Container",
+              "signature": "func (c *Container) Success(text string)",
+              "doc": "Success adds a green success message box.\n"
+            },
+            {
+              "name": "Table",
+              "recv": "*Container",
+              "signature": "func (c *Container) Table(data any, caption ...string)",
+              "doc": "Table renders tabular data. It accepts:\n\n  - [][]string, where the first row is treated as the header;\n  - a slice of structs, where exported field names become the header and\n    each element becomes a row;\n  - a single struct, rendered as a one-row table.\n\nAn optional caption is shown beneath the table. Anything unsupported falls\nback to a JSON view.\n"
+            },
+            {
+              "name": "Tabs",
+              "recv": "*Container",
+              "signature": "func (c *Container) Tabs(labels []string) []*Container",
+              "doc": "Tabs adds a tabbed region with one tab per label and returns a container for\neach tab's body, in the same order as labels. Switching between tabs happens\nentirely in the browser and does not rerun the app. If labels is empty a\nsingle unnamed tab is created.\n\n\ttabs := s.Tabs([]string{\"Chart\", \"Data\"})\n\ttabs[0].LineChart(series)\n\ttabs[1].DataFrame(rows)\n"
+            },
+            {
+              "name": "Text",
+              "recv": "*Container",
+              "signature": "func (c *Container) Text(text string)",
+              "doc": "Text adds fixed-width, unformatted text.\n"
+            },
+            {
+              "name": "TextArea",
+              "recv": "*Container",
+              "signature": "func (c *Container) TextArea(label, def string, key ...string) string",
+              "doc": "TextArea adds a multi-line text field initialised to def and returns its\ncurrent value.\n"
+            },
+            {
+              "name": "TextInput",
+              "recv": "*Container",
+              "signature": "func (c *Container) TextInput(label, def string, key ...string) string",
+              "doc": "TextInput adds a single-line text field initialised to def and returns its\ncurrent value.\n"
+            },
+            {
+              "name": "TextInputMax",
+              "recv": "*Container",
+              "signature": "func (c *Container) TextInputMax(label, def string, maxChars int, key ...string) string",
+              "doc": "TextInputMax adds a single-line text field that accepts at most maxChars\ncharacters and returns its current value, truncated to maxChars runes,\nmirroring Streamlit's st.text_input(max_chars=…). A maxChars of zero or less\nimposes no limit.\n"
+            },
+            {
+              "name": "TimeInput",
+              "recv": "*Container",
+              "signature": "func (c *Container) TimeInput(label, def string, key ...string) string",
+              "doc": "TimeInput adds a time-of-day field and returns the selected time as a\n24-hour \"15:04\" string. def is the initial value and may be empty.\n"
+            },
+            {
+              "name": "Title",
+              "recv": "*Container",
+              "signature": "func (c *Container) Title(text string)",
+              "doc": "Title adds a top-level page title.\n"
+            },
+            {
+              "name": "Toast",
+              "recv": "*Container",
+              "signature": "func (c *Container) Toast(message string, icon ...string)",
+              "doc": "Toast adds a transient notification message, mirroring Streamlit's st.toast.\nAn optional leading icon (typically an emoji) may be supplied as the second\nargument.\n"
+            },
+            {
+              "name": "Toggle",
+              "recv": "*Container",
+              "signature": "func (c *Container) Toggle(label string, def bool, key ...string) bool",
+              "doc": "Toggle adds an on/off switch initialised to def and returns its current\nstate. It behaves like [Container.Checkbox] but renders as a sliding toggle.\n"
+            },
+            {
+              "name": "Video",
+              "recv": "*Container",
+              "signature": "func (c *Container) Video(src any)",
+              "doc": "Video adds a video player. src may be a URL string or raw video bytes (for\nexample MP4), which are embedded as a data URI.\n"
+            },
+            {
+              "name": "Warning",
+              "recv": "*Container",
+              "signature": "func (c *Container) Warning(text string)",
+              "doc": "Warning adds a yellow warning message box.\n"
+            },
+            {
+              "name": "Write",
+              "recv": "*Container",
+              "signature": "func (c *Container) Write(args ...any)",
+              "doc": "Write is the Swiss-army display method, mirroring Streamlit's st.write. It\ninspects each argument's dynamic type and dispatches to the most appropriate\nspecialised renderer:\n\n  - string            -\u003e [Container.Markdown]\n  - error             -\u003e [Container.Error]\n  - fmt.Stringer      -\u003e [Container.Text] (via String)\n  - struct / slice of\n    structs / [][]string -\u003e [Container.Table]\n  - map / other slice  -\u003e [Container.JSON]\n  - everything else    -\u003e [Container.Text] (via fmt.Sprint)\n\nPassing multiple arguments renders each in turn.\n"
+            }
+          ]
+        },
+        {
+          "name": "Element",
+          "signature": "type Element struct {\n\t// Type identifies how the frontend should render the node, for example\n\t// \"title\", \"slider\" or \"columns\".\n\tType string `json:\"type\"`\n\t// Key is the stable widget identity. It is empty for non-widget\n\t// elements. Widget interaction events reference this value.\n\tKey string `json:\"key,omitempty\"`\n\t// Props holds the element's rendered attributes (labels, values, SVG\n\t// markup, table rows, and so on).\n\tProps map[string]any `json:\"props,omitempty\"`\n\t// Children holds nested elements for layout containers.\n\tChildren []*Element `json:\"children,omitempty\"`\n}",
+          "doc": "Element is a single node in the page's element tree.\n\nThe element tree is the serializable description of everything the app\nwants the browser to display for the current run. Each call such as\n[Container.Title] or [Container.Slider] appends one Element to the tree.\nElements are marshalled to JSON and shipped to the embedded frontend, which\nrenders them and, for widgets, sends interaction events back to the server.\n\nAn Element carries a Type (interpreted by the frontend renderer), an\narbitrary Props bag, an optional Key (stable identity used for widgets), and\nnested Children (used by layout containers such as columns and expanders).\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "MapPoint",
+          "signature": "type MapPoint struct {\n\tLat float64\n\tLng float64\n}",
+          "doc": "MapPoint is a single latitude/longitude coordinate plotted by\n[Container.Map]. Latitude is in the range [-90, 90] and longitude in\n[-180, 180].\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Session",
+          "signature": "type Session struct {\n\n\t// State is the persistent per-session key/value store.\n\tState *State\n\t// contains filtered or unexported fields\n}",
+          "doc": "Session represents a single browser connection to the app. It embeds the\nroot [Container], so every display and widget method may be called directly\non the session (for example s.Title or s.Slider). A fresh Session is created\nfor each new browser and reused for every rerun triggered by that browser.\n\nThe app function receives a *Session and builds the page by calling methods\non it. On each run the element tree is rebuilt from scratch while widget\nvalues and [State] persist, faithfully reproducing Streamlit's\nrerun-on-interaction model.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Cache",
+              "recv": "*Session",
+              "signature": "func (s *Session) Cache(key string, compute func() any, ttl ...time.Duration) any",
+              "doc": "Cache returns the value memoised under key, computing it with compute on the\nfirst call (or after the entry has expired) and returning the stored value on\nsubsequent calls. The cache is process-wide and shared across sessions, so an\nexpensive computation runs once and is reused by every rerun and every\nbrowser, mirroring Streamlit's st.cache_data.\n\nAn optional time-to-live may be supplied as the final argument; a positive\nTTL causes the entry to be recomputed once it has aged past the duration. A\nzero or omitted TTL caches for the lifetime of the process.\n\n\trows := s.Cache(\"report\", func() any { return loadReport() }, time.Minute)\n\treport := rows.([]Row)\n"
+            },
+            {
+              "name": "ID",
+              "recv": "*Session",
+              "signature": "func (s *Session) ID() string",
+              "doc": "ID returns the session's opaque identifier.\n"
+            },
+            {
+              "name": "SetPageConfig",
+              "recv": "*Session",
+              "signature": "func (s *Session) SetPageConfig(title, icon string)",
+              "doc": "SetPageConfig sets page-level metadata for the app, mirroring Streamlit's\nst.set_page_config. title is the browser tab title and icon is an optional\nfavicon (typically an emoji). The values are attached to the root of the\nelement tree. Call it once, at the top of the app function.\n"
+            },
+            {
+              "name": "Sidebar",
+              "recv": "*Session",
+              "signature": "func (s *Session) Sidebar() *Container",
+              "doc": "Sidebar returns the container for the app's sidebar region. Elements added\nto it render in a fixed panel beside the main content.\n"
+            },
+            {
+              "name": "Stop",
+              "recv": "*Session",
+              "signature": "func (s *Session) Stop()",
+              "doc": "Stop immediately halts execution of the current run of the app function,\nmirroring Streamlit's st.stop. Elements added before the call remain on the\npage; nothing after it runs. It is implemented by panicking with an internal\nsentinel that the run loop recovers, so it must be called from within the app\nfunction (not from a separate goroutine).\n\n\tif !authenticated {\n\t\ts.Error(\"Please log in\")\n\t\ts.Stop() // the rest of the app does not run\n\t}\n"
+            }
+          ]
+        },
+        {
+          "name": "State",
+          "signature": "type State struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "State is a per-session key/value store that persists across reruns of the\napp function. It is the Go analogue of Streamlit's st.session_state and is a\nconvenient place to keep data (counters, accumulated history, cached\ncomputations) that must survive the top-to-bottom re-execution of the app.\n\nState is safe to use only from within a single run of the app function; the\nserver serialises runs of a given session, so no additional locking is\nrequired by app code.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Delete",
+              "recv": "*State",
+              "signature": "func (s *State) Delete(key string)",
+              "doc": "Delete removes key from the store.\n"
+            },
+            {
+              "name": "Get",
+              "recv": "*State",
+              "signature": "func (s *State) Get(key string) (any, bool)",
+              "doc": "Get returns the value stored under key and whether it was present.\n"
+            },
+            {
+              "name": "GetFloat",
+              "recv": "*State",
+              "signature": "func (s *State) GetFloat(key string, def float64) float64",
+              "doc": "GetFloat returns the float64 stored under key, or def if absent or not\nnumeric.\n"
+            },
+            {
+              "name": "GetInt",
+              "recv": "*State",
+              "signature": "func (s *State) GetInt(key string, def int) int",
+              "doc": "GetInt returns the int stored under key, or def if absent or not numeric.\n"
+            },
+            {
+              "name": "GetString",
+              "recv": "*State",
+              "signature": "func (s *State) GetString(key, def string) string",
+              "doc": "GetString returns the string stored under key, or def if absent or not a\nstring.\n"
+            },
+            {
+              "name": "Set",
+              "recv": "*State",
+              "signature": "func (s *State) Set(key string, value any)",
+              "doc": "Set stores value under key.\n"
+            }
+          ]
+        },
+        {
+          "name": "UploadedFile",
+          "signature": "type UploadedFile struct {\n\t// Name is the client-supplied filename.\n\tName string\n\t// Size is the length of Data in bytes.\n\tSize int\n\t// Data is the file's raw content.\n\tData []byte\n}",
+          "doc": "UploadedFile is a single file received from a [Container.FileUploader]. Data\nholds the raw bytes uploaded by the browser.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        }
+      ],
+      "funcs": [
+        {
+          "name": "CacheClear",
+          "signature": "func CacheClear()",
+          "doc": "CacheClear removes all entries from the process-wide cache used by\n[Session.Cache]. It is primarily useful in tests and for manual\ninvalidation.\n"
+        },
+        {
+          "name": "Handler",
+          "signature": "func Handler(app func(*Session)) http.Handler",
+          "doc": "Handler returns the http.Handler that serves the app. It is exposed so the\napp can be mounted inside a larger server or driven in tests; most callers\nshould use [Run] instead.\n"
+        },
+        {
+          "name": "Run",
+          "signature": "func Run(app func(*Session), addr string) error",
+          "doc": "Run starts an HTTP server that serves the app on addr (for example\n\":8501\"). Each browser connection is assigned its own [Session]; widget\ninteractions rerun the app function and push the updated element tree back.\nRun blocks until the server exits.\n"
+        }
+      ],
+      "examples": [
+        {
+          "name": "Session",
+          "code": "app := func(s *Session) {\n\ts.Title(\"Report\")\n\tn := s.Slider(\"Count\", 0, 10, 3, 1)\n\ts.Metric(\"Count\", fmt.Sprintf(\"%.0f\", n), \"+1\")\n}\n\ns := newSession()\ntree := s.run(app)\n\nmain := tree.Children[1]\nfor _, el := range main.Children {\n\tfmt.Println(el.Type)\n}",
+          "output": "title\nslider\nmetric",
+          "doc": "ExampleSession demonstrates building a page and inspecting the resulting\nelement tree without an HTTP server. Rendering an app function against a\nsession produces a deterministic tree that can be walked and asserted on.\n"
+        }
+      ]
+    }
+  ]
+}

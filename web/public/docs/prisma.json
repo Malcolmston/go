@@ -1,0 +1,1098 @@
+{
+  "module": "github.com/malcolmston/prisma",
+  "generatedAt": "2026-07-19T02:05:53Z",
+  "packages": [
+    {
+      "importPath": "github.com/malcolmston/prisma",
+      "name": "prisma",
+      "synopsis": "Package prisma is a small, type-safe query builder and lightweight ORM over the standard database/sql package, inspired by the ergonomics of Prisma.",
+      "doc": "Package prisma is a small, type-safe query builder and lightweight ORM over\nthe standard database/sql package, inspired by the ergonomics of Prisma. It\nhas no dependencies beyond the Go standard library.\n\n# Overview\n\nThere are three layers:\n\n  - The model layer compiles a Go struct into a [Model] using reflection and\n    struct tags. A [Registry] stores compiled models and resolves them by\n    type or name.\n  - The builder layer is a generic, chainable [Query] that produces\n    parameterized SQL. Literal values are always bound as arguments and never\n    concatenated into the SQL text.\n  - The runtime layer executes queries against a *sql.DB through a [Client]\n    and scans result rows back into structs.\n\n# Defining a model\n\nModels are ordinary structs annotated with the \"prisma\" struct tag:\n\n\ttype User struct {\n\t    ID    int64  `prisma:\"col=id,pk,auto\"`\n\t    Name  string `prisma:\"col=name\"`\n\t    Email string `prisma:\"col=email\"`\n\t    Posts []Post `prisma:\"relation,fk=author_id,references=id\"`\n\t}\n\n\ttype Post struct {\n\t    ID       int64  `prisma:\"col=id,pk,auto\"`\n\t    Title    string `prisma:\"col=title\"`\n\t    AuthorID int64  `prisma:\"col=author_id\"`\n\t    Author   *User  `prisma:\"relation,fk=author_id,references=id\"`\n\t}\n\nRecognized tag options are documented on [Registry.Register]. Column and table\nnames default to snake_case (tables are also pluralized) unless overridden by\na tag or a [TableNamer] implementation.\n\n# Building queries\n\nCreate a [Client], register the models, then start a query with the generic\n[NewQuery] constructor:\n\n\tclient := prisma.NewClient(db)\n\tclient.Register(User{})\n\n\tq := prisma.NewQuery[User](client).\n\t    Where(prisma.Equals(\"email\", \"a@b.com\"), prisma.Gt(\"id\", 10)).\n\t    OrderBy(\"name\", prisma.Asc).\n\t    Take(20)\n\nPredicates are built with the operator helpers ([Equals], [Not], [In], [Lt],\n[Lte], [Gt], [Gte], [Contains], [StartsWith], [EndsWith]) and combined with\n[And], [Or] and [NotGroup].\n\n# SQL generation\n\nEvery terminal operation has a matching *SQL method that returns the exact\nstatement and argument slice without touching the database, which makes the\noutput easy to assert in tests:\n\n\tsqlStr, args, _ := q.FindManySQL()\n\t// SELECT id, name, email FROM users WHERE email = ? AND id \u003e ?\n\t//   ORDER BY name ASC LIMIT ?\n\t// args: [\"a@b.com\", 10, 20]\n\nThe available terminal operations are [Query.FindMany], [Query.FindFirst],\n[Query.FindUnique], [Query.Count], [Query.Create], [Query.CreateMany],\n[Query.Update], [Query.Delete] and [Query.Upsert].\n\n# Beyond basic CRUD\n\nThe builder also supports:\n\n  - Aggregations via [Query.Aggregate] and grouped aggregation via\n    [Query.GroupBy] (with HAVING).\n  - Relation filters [Some], [Every], [None] and [Is], compiling to\n    correlated EXISTS subqueries that compose inside [And]/[Or].\n  - [Query.Distinct], keyset [Query.Cursor] pagination and NULLS-aware\n    [Query.OrderByNulls] ordering.\n  - Nested writes through [Query.NestedCreate] (create / connect /\n    connectOrCreate / update on to-many relations).\n  - Interactive and batched transactions via [Client.Transaction] and\n    [Client.Batch], with queries started by [NewTxQuery].\n  - Raw SQL via [Client.QueryRaw], [QueryRawInto] and [Client.ExecuteRaw].\n  - JSON path filters [JSONPath] / [JSONEquals].\n  - Typed error codes ([Error]) such as P2002 (unique) and P2025 (not found).\n\n# Execution\n\nThe executing methods run the generated SQL against the client's *sql.DB and,\nfor reads, scan each row into a struct (including a to-one relation loaded via\n[Query.Include]). Placeholder style is controlled by the [Dialect]: [Question]\n(\"?\") is the default and [Dollar] (\"$1\", \"$2\", ...) targets PostgreSQL.\n",
+      "consts": [
+        {
+          "names": [
+            "CodeUniqueViolation",
+            "CodeForeignKeyViolation",
+            "CodeNotNullViolation",
+            "CodeValueTooLong",
+            "CodeRecordNotFound"
+          ],
+          "signature": "const (\n\t// CodeUniqueViolation (P2002) is a unique-constraint violation.\n\tCodeUniqueViolation = \"P2002\"\n\t// CodeForeignKeyViolation (P2003) is a foreign-key-constraint violation.\n\tCodeForeignKeyViolation = \"P2003\"\n\t// CodeNotNullViolation (P2011) is a NOT NULL constraint violation.\n\tCodeNotNullViolation = \"P2011\"\n\t// CodeValueTooLong (P2000) means a value exceeded the column's length.\n\tCodeValueTooLong = \"P2000\"\n\t// CodeRecordNotFound (P2025) means a required record was not found.\n\tCodeRecordNotFound = \"P2025\"\n)",
+          "doc": "Prisma-style error codes surfaced by [Error.Code]. Only the subset that this\ndriver-agnostic library can reliably detect from database/sql errors is\nmapped; the codes mirror Prisma's client error reference so callers familiar\nwith Prisma can branch on the same values.\n"
+        }
+      ],
+      "vars": [
+        {
+          "names": [
+            "ErrUniqueViolation",
+            "ErrForeignKeyViolation",
+            "ErrNotNullViolation",
+            "ErrValueTooLong",
+            "ErrRecordNotFound"
+          ],
+          "signature": "var (\n\t// ErrUniqueViolation matches any P2002 unique-constraint error.\n\tErrUniqueViolation = \u0026Error{Code: CodeUniqueViolation, Message: \"unique constraint violation\"}\n\t// ErrForeignKeyViolation matches any P2003 foreign-key error.\n\tErrForeignKeyViolation = \u0026Error{Code: CodeForeignKeyViolation, Message: \"foreign key constraint violation\"}\n\t// ErrNotNullViolation matches any P2011 NOT NULL error.\n\tErrNotNullViolation = \u0026Error{Code: CodeNotNullViolation, Message: \"null constraint violation\"}\n\t// ErrValueTooLong matches any P2000 value-too-long error.\n\tErrValueTooLong = \u0026Error{Code: CodeValueTooLong, Message: \"value too long for column\"}\n\t// ErrRecordNotFound matches any P2025 record-not-found error.\n\tErrRecordNotFound = \u0026Error{Code: CodeRecordNotFound, Message: \"record not found\"}\n)",
+          "doc": "Sentinel errors for matching a mapped [Error] by code with [errors.Is].\n"
+        },
+        {
+          "names": [
+            "Dollar"
+          ],
+          "signature": "var Dollar = Dialect{\n\tName:        \"dollar\",\n\tPlaceholder: func(n int) string { return \"$\" + strconv.Itoa(n) },\n\tDistinctOn:  true,\n\tNativeNulls: true,\n\tJSONExtract: jsonExtractPostgres,\n\tUpsert:      OnConflict,\n}",
+          "doc": "Dollar uses \"$1\", \"$2\", ... placeholders (PostgreSQL, pq/pgx). It supports\nDISTINCT ON, native NULLS FIRST/LAST ordering and #\u003e\u003e JSON extraction.\n"
+        },
+        {
+          "names": [
+            "ErrNotFound"
+          ],
+          "signature": "var ErrNotFound = errors.New(\"prisma: record not found\")",
+          "doc": "ErrNotFound is returned by FindUnique and FindFirst when no row matches. It\nwraps the P2025 \"record not found\" code (see [Error]).\n"
+        },
+        {
+          "names": [
+            "MySQLDialect"
+          ],
+          "signature": "var MySQLDialect = Dialect{\n\tName:        \"mysql\",\n\tPlaceholder: question,\n\tDistinctOn:  false,\n\tNativeNulls: false,\n\tJSONExtract: jsonExtractSQLite,\n\tUpsert:      OnDuplicateKey,\n}",
+          "doc": "MySQLDialect uses \"?\" placeholders with MySQL's \"ON DUPLICATE KEY UPDATE\"\nupsert syntax and \"INSERT IGNORE\" for skip-duplicate inserts.\n"
+        },
+        {
+          "names": [
+            "Question"
+          ],
+          "signature": "var Question = Dialect{\n\tName:        \"question\",\n\tPlaceholder: question,\n\tDistinctOn:  false,\n\tNativeNulls: false,\n\tJSONExtract: jsonExtractSQLite,\n\tUpsert:      OnConflict,\n}",
+          "doc": "Question is the default dialect using \"?\" placeholders (MySQL, SQLite, and\nthe standard database/sql convention for many drivers). It uses ON CONFLICT\nupsert syntax (SQLite-compatible) and json_extract for JSON paths.\n"
+        }
+      ],
+      "types": [
+        {
+          "name": "AggregateQuery",
+          "signature": "type AggregateQuery[T any] struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "AggregateQuery builds an aggregation over the rows selected by a base\n[Query]. Chain [AggregateQuery.Count], [AggregateQuery.Sum],\n[AggregateQuery.Avg], [AggregateQuery.Min] and [AggregateQuery.Max], then call\n[AggregateQuery.Exec] (or [AggregateQuery.SQL] to inspect the statement).\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Avg",
+              "recv": "*AggregateQuery[T]",
+              "signature": "func (a *AggregateQuery[T]) Avg(columns ...string) *AggregateQuery[T]",
+              "doc": "Avg adds AVG(column) for each column.\n"
+            },
+            {
+              "name": "Count",
+              "recv": "*AggregateQuery[T]",
+              "signature": "func (a *AggregateQuery[T]) Count() *AggregateQuery[T]",
+              "doc": "Count adds COUNT(*) to the aggregation.\n"
+            },
+            {
+              "name": "Exec",
+              "recv": "*AggregateQuery[T]",
+              "signature": "func (a *AggregateQuery[T]) Exec(ctx context.Context) (AggregateResult, error)",
+              "doc": "Exec runs the aggregation and returns the scalar results.\n"
+            },
+            {
+              "name": "Max",
+              "recv": "*AggregateQuery[T]",
+              "signature": "func (a *AggregateQuery[T]) Max(columns ...string) *AggregateQuery[T]",
+              "doc": "Max adds MAX(column) for each column.\n"
+            },
+            {
+              "name": "Min",
+              "recv": "*AggregateQuery[T]",
+              "signature": "func (a *AggregateQuery[T]) Min(columns ...string) *AggregateQuery[T]",
+              "doc": "Min adds MIN(column) for each column.\n"
+            },
+            {
+              "name": "SQL",
+              "recv": "*AggregateQuery[T]",
+              "signature": "func (a *AggregateQuery[T]) SQL() (string, []any, error)",
+              "doc": "SQL returns the aggregate SELECT statement and bound arguments without\nexecuting it.\n"
+            },
+            {
+              "name": "Sum",
+              "recv": "*AggregateQuery[T]",
+              "signature": "func (a *AggregateQuery[T]) Sum(columns ...string) *AggregateQuery[T]",
+              "doc": "Sum adds SUM(column) for each column.\n"
+            }
+          ]
+        },
+        {
+          "name": "AggregateResult",
+          "signature": "type AggregateResult struct {\n\t// Count is the number of matching rows (COUNT(*)).\n\tCount int64\n\t// Sum holds SUM(column) per requested column.\n\tSum map[string]float64\n\t// Avg holds AVG(column) per requested column.\n\tAvg map[string]float64\n\t// Min holds MIN(column) per requested column.\n\tMin map[string]float64\n\t// Max holds MAX(column) per requested column.\n\tMax map[string]float64\n}",
+          "doc": "AggregateResult holds the scalar results of an [AggregateQuery]. Count is the\nrow count (present only when Count was requested). The maps are keyed by\ncolumn name and present only for the functions that were requested.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "BatchFunc",
+          "signature": "type BatchFunc func(ctx context.Context, tx *Tx) (int64, error)",
+          "doc": "BatchFunc is a single operation in a [Client.Batch]. It receives the shared\ntransaction and returns a per-operation result (typically a rows-affected\ncount) or an error that aborts the whole batch.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Client",
+          "signature": "type Client struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Client is the entry point for building and executing queries. It bundles a\n*sql.DB, a model Registry and a Dialect. A Client with a nil DB can still\nbuild SQL (via the *SQL methods) but cannot execute.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewClient",
+              "signature": "func NewClient(db *sql.DB, opts ...Option) *Client",
+              "doc": "NewClient constructs a Client around db (which may be nil for SQL-only use).\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Batch",
+              "recv": "*Client",
+              "signature": "func (c *Client) Batch(ctx context.Context, ops ...BatchFunc) ([]int64, error)",
+              "doc": "Batch runs ops sequentially inside one transaction and returns each op's\nresult. If any op returns an error the transaction is rolled back and no\nresults are returned. This mirrors Prisma's array form of $transaction, where\na list of independent writes commit or roll back together.\n"
+            },
+            {
+              "name": "DB",
+              "recv": "*Client",
+              "signature": "func (c *Client) DB() *sql.DB",
+              "doc": "DB returns the underlying *sql.DB (may be nil).\n"
+            },
+            {
+              "name": "ExecuteRaw",
+              "recv": "*Client",
+              "signature": "func (c *Client) ExecuteRaw(ctx context.Context, query string, args ...any) (int64, error)",
+              "doc": "ExecuteRaw runs an arbitrary non-query statement (INSERT/UPDATE/DELETE/DDL)\nwith positional parameter binding and returns the number of rows affected.\nThis is Prisma's $executeRaw.\n"
+            },
+            {
+              "name": "QueryRaw",
+              "recv": "*Client",
+              "signature": "func (c *Client) QueryRaw(ctx context.Context, query string, args ...any) ([]map[string]any, error)",
+              "doc": "QueryRaw runs an arbitrary SQL query with positional parameter binding and\nreturns each row as a map from column name to value. Placeholders in the SQL\nmust match the client's [Dialect]. This is Prisma's $queryRaw with dynamic\n(map) results.\n"
+            },
+            {
+              "name": "Register",
+              "recv": "*Client",
+              "signature": "func (c *Client) Register(v any) (*Model, error)",
+              "doc": "Register compiles and stores the schema for v on this client's registry.\n"
+            },
+            {
+              "name": "Registry",
+              "recv": "*Client",
+              "signature": "func (c *Client) Registry() *Registry",
+              "doc": "Registry returns the client's model registry.\n"
+            },
+            {
+              "name": "Transaction",
+              "recv": "*Client",
+              "signature": "func (c *Client) Transaction(ctx context.Context, fn func(tx *Tx) error) (err error)",
+              "doc": "Transaction runs fn inside a database transaction. If fn returns an error, or\npanics, the transaction is rolled back and the error (or a re-raised panic)\nis propagated; otherwise it is committed. This is the interactive transaction\nmodel: fn may issue any number of queries, inspect their results, and decide\nwhat to do next.\n\n\terr := client.Transaction(ctx, func(tx *prisma.Tx) error {\n\t    from, err := prisma.NewTxQuery[Account](tx).\n\t        Where(prisma.Equals(\"id\", 1)).FindUnique(ctx)\n\t    if err != nil {\n\t        return err\n\t    }\n\t    _, err = prisma.NewTxQuery[Account](tx).\n\t        Where(prisma.Equals(\"id\", 1)).\n\t        Update(ctx, map[string]any{\"balance\": from.Balance - 100})\n\t    return err\n\t})\n"
+            }
+          ]
+        },
+        {
+          "name": "Condition",
+          "signature": "type Condition interface {\n\t// contains filtered or unexported methods\n}",
+          "doc": "Condition is a boolean predicate used in WHERE clauses. Conditions compile\nto parameterized SQL fragments; literal values are always bound as arguments,\nnever concatenated into the SQL text.\n\nConstruct conditions with the operator helpers (Equals, Not, In, Lt, Gt,\nContains, ...) and combine them with And, Or and NotGroup.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "And",
+              "signature": "func And(conds ...Condition) Condition",
+              "doc": "And combines conditions with logical AND.\n"
+            },
+            {
+              "name": "Between",
+              "signature": "func Between(column string, low, high any) Condition",
+              "doc": "Between matches rows where column is within the inclusive range [low, high].\nIt is shorthand for combining [Gte] and [Lte] and compiles to a single SQL\nBETWEEN term with both bounds bound as arguments.\n"
+            },
+            {
+              "name": "Contains",
+              "signature": "func Contains(column, substr string) Condition",
+              "doc": "Contains matches rows where column contains the substring (LIKE %s%).\n"
+            },
+            {
+              "name": "EndsWith",
+              "signature": "func EndsWith(column, suffix string) Condition",
+              "doc": "EndsWith matches rows where column ends with the suffix (LIKE %s).\n"
+            },
+            {
+              "name": "Equals",
+              "signature": "func Equals(column string, value any) Condition",
+              "doc": "Equals matches rows where column = value.\n"
+            },
+            {
+              "name": "Every",
+              "signature": "func Every(relation string, conds ...Condition) Condition",
+              "doc": "Every matches base rows for which every related row satisfies conds\n(vacuously true when there are no related rows), mirroring Prisma's \"every\".\n"
+            },
+            {
+              "name": "Gt",
+              "signature": "func Gt(column string, value any) Condition",
+              "doc": "Gt matches rows where column \u003e value.\n"
+            },
+            {
+              "name": "Gte",
+              "signature": "func Gte(column string, value any) Condition",
+              "doc": "Gte matches rows where column \u003e= value.\n"
+            },
+            {
+              "name": "IContains",
+              "signature": "func IContains(column, substr string) Condition",
+              "doc": "IContains is the case-insensitive form of [Contains], mirroring Prisma's\n`contains` with `mode: \"insensitive\"`. Matching is performed by lowercasing\nboth the column (via SQL LOWER) and the bound pattern (via Go\nstrings.ToLower), so it is reliable for ASCII text on any engine.\n"
+            },
+            {
+              "name": "IEndsWith",
+              "signature": "func IEndsWith(column, suffix string) Condition",
+              "doc": "IEndsWith is the case-insensitive form of [EndsWith] (Prisma's `endsWith`\nwith `mode: \"insensitive\"`).\n"
+            },
+            {
+              "name": "IEquals",
+              "signature": "func IEquals(column, value string) Condition",
+              "doc": "IEquals is the case-insensitive form of [Equals] for string columns,\nmirroring Prisma's `equals` with `mode: \"insensitive\"`. Both sides are\nlowercased (SQL LOWER and Go strings.ToLower) before comparison.\n"
+            },
+            {
+              "name": "IStartsWith",
+              "signature": "func IStartsWith(column, prefix string) Condition",
+              "doc": "IStartsWith is the case-insensitive form of [StartsWith] (Prisma's\n`startsWith` with `mode: \"insensitive\"`).\n"
+            },
+            {
+              "name": "In",
+              "signature": "func In(column string, values ...any) Condition",
+              "doc": "In matches rows where column is any of values.\n"
+            },
+            {
+              "name": "Is",
+              "signature": "func Is(relation string, conds ...Condition) Condition",
+              "doc": "Is matches base rows whose single related row (of a to-one relation)\nsatisfies conds, mirroring Prisma's \"is\".\n"
+            },
+            {
+              "name": "IsNotNull",
+              "signature": "func IsNotNull(column string) Condition",
+              "doc": "IsNotNull matches rows where column IS NOT NULL, mirroring Prisma's\n`not: null` scalar filter.\n"
+            },
+            {
+              "name": "IsNull",
+              "signature": "func IsNull(column string) Condition",
+              "doc": "IsNull matches rows where column IS NULL. This mirrors Prisma's `equals: null`\nscalar filter and cannot be expressed with [Equals] (SQL \"= NULL\" never\nmatches).\n"
+            },
+            {
+              "name": "JSONContains",
+              "signature": "func JSONContains(column string, path []string, substr string) Condition",
+              "doc": "JSONContains matches rows where the extracted JSON string value contains\nsubstr, mirroring Prisma's `string_contains` JSON filter. Wildcards in substr\nare escaped.\n"
+            },
+            {
+              "name": "JSONEndsWith",
+              "signature": "func JSONEndsWith(column string, path []string, suffix string) Condition",
+              "doc": "JSONEndsWith matches rows where the extracted JSON string value ends with\nsuffix, mirroring Prisma's `string_ends_with` JSON filter.\n"
+            },
+            {
+              "name": "JSONEquals",
+              "signature": "func JSONEquals(column string, path []string, value any) Condition",
+              "doc": "JSONEquals matches rows where the value at path within the JSON column equals\nvalue. It is shorthand for [JSONPath] with the \"=\" operator.\n"
+            },
+            {
+              "name": "JSONGt",
+              "signature": "func JSONGt(column string, path []string, value any) Condition",
+              "doc": "JSONGt matches rows where the extracted JSON value is greater than value,\nmirroring Prisma's `gt` JSON filter.\n"
+            },
+            {
+              "name": "JSONGte",
+              "signature": "func JSONGte(column string, path []string, value any) Condition",
+              "doc": "JSONGte matches rows where the extracted JSON value is greater than or equal\nto value, mirroring Prisma's `gte` JSON filter.\n"
+            },
+            {
+              "name": "JSONIsNotNull",
+              "signature": "func JSONIsNotNull(column string, path []string) Condition",
+              "doc": "JSONIsNotNull matches rows where the value at path within the JSON column is\npresent and not null.\n"
+            },
+            {
+              "name": "JSONIsNull",
+              "signature": "func JSONIsNull(column string, path []string) Condition",
+              "doc": "JSONIsNull matches rows where the value at path within the JSON column is\nabsent or JSON null (the extraction yields SQL NULL).\n"
+            },
+            {
+              "name": "JSONLt",
+              "signature": "func JSONLt(column string, path []string, value any) Condition",
+              "doc": "JSONLt matches rows where the extracted JSON value is less than value,\nmirroring Prisma's `lt` JSON filter.\n"
+            },
+            {
+              "name": "JSONLte",
+              "signature": "func JSONLte(column string, path []string, value any) Condition",
+              "doc": "JSONLte matches rows where the extracted JSON value is less than or equal to\nvalue, mirroring Prisma's `lte` JSON filter.\n"
+            },
+            {
+              "name": "JSONNotContains",
+              "signature": "func JSONNotContains(column string, path []string, substr string) Condition",
+              "doc": "JSONNotContains matches rows where the extracted JSON string value does not\ncontain substr, mirroring Prisma's `not: { string_contains }` JSON filter.\n"
+            },
+            {
+              "name": "JSONNotEquals",
+              "signature": "func JSONNotEquals(column string, path []string, value any) Condition",
+              "doc": "JSONNotEquals matches rows where the value at path within the JSON column does\nnot equal value. It is shorthand for [JSONPath] with the \"\u003c\u003e\" operator and\nmirrors Prisma's `not` JSON filter.\n"
+            },
+            {
+              "name": "JSONPath",
+              "signature": "func JSONPath(column string, path []string, op string, value any) Condition",
+              "doc": "JSONPath matches rows where the value at path within the JSON column compares\nto value using op (e.g. \"=\", \"\u003c\u003e\", \"\u003c\", \"\u003e\"). The extraction syntax adapts to\nthe dialect (json_extract for SQLite/MySQL, #\u003e\u003e for PostgreSQL).\n\n\tprisma.JSONPath(\"data\", []string{\"address\", \"city\"}, \"=\", \"Paris\")\n"
+            },
+            {
+              "name": "JSONStartsWith",
+              "signature": "func JSONStartsWith(column string, path []string, prefix string) Condition",
+              "doc": "JSONStartsWith matches rows where the extracted JSON string value begins with\nprefix, mirroring Prisma's `string_starts_with` JSON filter.\n"
+            },
+            {
+              "name": "Lt",
+              "signature": "func Lt(column string, value any) Condition",
+              "doc": "Lt matches rows where column \u003c value.\n"
+            },
+            {
+              "name": "Lte",
+              "signature": "func Lte(column string, value any) Condition",
+              "doc": "Lte matches rows where column \u003c= value.\n"
+            },
+            {
+              "name": "None",
+              "signature": "func None(relation string, conds ...Condition) Condition",
+              "doc": "None matches base rows for which no related row satisfies conds (or that have\nno related rows at all), mirroring Prisma's \"none\".\n"
+            },
+            {
+              "name": "Not",
+              "signature": "func Not(column string, value any) Condition",
+              "doc": "Not matches rows where column \u003c\u003e value.\n"
+            },
+            {
+              "name": "NotBetween",
+              "signature": "func NotBetween(column string, low, high any) Condition",
+              "doc": "NotBetween matches rows where column falls outside the inclusive range\n[low, high], compiling to a SQL NOT BETWEEN term.\n"
+            },
+            {
+              "name": "NotContains",
+              "signature": "func NotContains(column, substr string) Condition",
+              "doc": "NotContains matches rows where column does not contain the substring,\nmirroring Prisma's `not: { contains }`. Wildcard characters in substr are\nescaped so only literal matching is performed.\n"
+            },
+            {
+              "name": "NotEndsWith",
+              "signature": "func NotEndsWith(column, suffix string) Condition",
+              "doc": "NotEndsWith matches rows where column does not end with suffix, mirroring\nPrisma's `not: { endsWith }`.\n"
+            },
+            {
+              "name": "NotGroup",
+              "signature": "func NotGroup(cond Condition) Condition",
+              "doc": "NotGroup negates a (possibly compound) condition: NOT ( ... ).\n"
+            },
+            {
+              "name": "NotIn",
+              "signature": "func NotIn(column string, values ...any) Condition",
+              "doc": "NotIn matches rows where column is none of values.\n"
+            },
+            {
+              "name": "NotStartsWith",
+              "signature": "func NotStartsWith(column, prefix string) Condition",
+              "doc": "NotStartsWith matches rows where column does not begin with prefix, mirroring\nPrisma's `not: { startsWith }`.\n"
+            },
+            {
+              "name": "Or",
+              "signature": "func Or(conds ...Condition) Condition",
+              "doc": "Or combines conditions with logical OR.\n"
+            },
+            {
+              "name": "RawCondition",
+              "signature": "func RawCondition(expr string, args ...any) Condition",
+              "doc": "RawCondition is an escape hatch for predicates the typed operators cannot\nexpress. The expr is an arbitrary boolean SQL fragment using \"?\" placeholders;\neach \"?\" is re-rendered in the client's [Dialect] placeholder style and the\ncorresponding arg is bound safely (never concatenated). The number of \"?\"\nmarkers must equal len(args).\n\n\tprisma.RawCondition(\"length(name) \u003e ?\", 3)\n"
+            },
+            {
+              "name": "Some",
+              "signature": "func Some(relation string, conds ...Condition) Condition",
+              "doc": "Some matches base rows for which at least one related row (of the named\nto-many relation) satisfies conds. With no conditions it matches base rows\nthat have any related row.\n"
+            },
+            {
+              "name": "StartsWith",
+              "signature": "func StartsWith(column, prefix string) Condition",
+              "doc": "StartsWith matches rows where column begins with the prefix (LIKE s%).\n"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "name": "Dialect",
+          "signature": "type Dialect struct {\n\t// Name identifies the dialect (for debugging).\n\tName string\n\t// Placeholder renders the bind marker for the n-th parameter (1-based).\n\tPlaceholder func(n int) string\n\t// DistinctOn reports whether the engine supports \"SELECT DISTINCT ON (cols)\"\n\t// (PostgreSQL). When false, [Query.Distinct] falls back to a plain\n\t// \"SELECT DISTINCT\".\n\tDistinctOn bool\n\t// NativeNulls reports whether the engine supports \"NULLS FIRST\"/\"NULLS LAST\"\n\t// ordering syntax (PostgreSQL). When false it is emulated with a leading\n\t// \"column IS NULL\" sort term.\n\tNativeNulls bool\n\t// JSONExtract renders an expression extracting the value at path from a JSON\n\t// column. If nil, the [Question] default (json_extract) is used.\n\tJSONExtract func(column string, path []string) string\n\t// Upsert selects the upsert / skip-duplicate SQL family.\n\tUpsert UpsertStyle\n}",
+          "doc": "Dialect controls SQL syntax that varies between database engines: placeholder\nrendering, DISTINCT ON support, NULLS ordering, JSON extraction and upsert\nsyntax. The three built-in dialects ([Question], [Dollar], [MySQLDialect])\ncover SQLite, PostgreSQL and MySQL respectively.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Direction",
+          "signature": "type Direction string",
+          "doc": "Direction is a sort order for OrderBy.\n",
+          "consts": [
+            {
+              "names": [
+                "Asc",
+                "Desc"
+              ],
+              "signature": "const (\n\t// Asc sorts ascending.\n\tAsc Direction = \"ASC\"\n\t// Desc sorts descending.\n\tDesc Direction = \"DESC\"\n)",
+              "doc": ""
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Error",
+          "signature": "type Error struct {\n\t// Code is the Prisma-style error code (e.g. \"P2002\").\n\tCode string\n\t// Message is a human-readable description.\n\tMessage string\n\t// Cause is the underlying driver error, if any.\n\tCause error\n}",
+          "doc": "Error is a typed database error with a Prisma-style [Error.Code]. Execution\nmethods wrap driver errors in an *Error so callers can branch on the code\n(via [errors.As]) or match a sentinel (via [errors.Is]) instead of parsing\nvendor-specific message strings.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Error",
+              "recv": "*Error",
+              "signature": "func (e *Error) Error() string",
+              "doc": "Error implements the error interface.\n"
+            },
+            {
+              "name": "Is",
+              "recv": "*Error",
+              "signature": "func (e *Error) Is(target error) bool",
+              "doc": "Is reports whether target is an *Error with the same Code, which lets the\npackage's sentinel errors ([ErrUniqueViolation] and friends) match any\nwrapped error carrying that code.\n"
+            },
+            {
+              "name": "Unwrap",
+              "recv": "*Error",
+              "signature": "func (e *Error) Unwrap() error",
+              "doc": "Unwrap returns the underlying driver error so [errors.Is] and [errors.As] can\ntraverse to it.\n"
+            }
+          ]
+        },
+        {
+          "name": "Field",
+          "signature": "type Field struct {\n\t// GoName is the exported Go struct field name.\n\tGoName string\n\t// Column is the SQL column name (empty for relation fields).\n\tColumn string\n\t// Index is the reflect field index path used to read/write the value.\n\tIndex []int\n\t// IsPK reports whether this column is the primary key.\n\tIsPK bool\n\t// IsAuto reports whether the database generates this column's value, in\n\t// which case it is omitted from INSERT statements.\n\tIsAuto bool\n\t// Relation, when non-nil, describes a link to another model.\n\tRelation *Relation\n}",
+          "doc": "Field describes a single mapped struct field. A Field is either a column\n(Relation == nil) or a relation to another model (Relation != nil).\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "GroupQuery",
+          "signature": "type GroupQuery[T any] struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "GroupQuery builds a GROUP BY aggregation over the rows selected by a base\n[Query]. It selects the grouping columns plus any requested aggregates, and\nsupports a HAVING filter over the aggregated rows.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Avg",
+              "recv": "*GroupQuery[T]",
+              "signature": "func (g *GroupQuery[T]) Avg(columns ...string) *GroupQuery[T]",
+              "doc": "Avg adds AVG(column) to each group for every column.\n"
+            },
+            {
+              "name": "Count",
+              "recv": "*GroupQuery[T]",
+              "signature": "func (g *GroupQuery[T]) Count() *GroupQuery[T]",
+              "doc": "Count adds COUNT(*) to each group.\n"
+            },
+            {
+              "name": "Exec",
+              "recv": "*GroupQuery[T]",
+              "signature": "func (g *GroupQuery[T]) Exec(ctx context.Context) ([]map[string]any, error)",
+              "doc": "Exec runs the grouped aggregation and returns one row per group. Each row maps\ncolumn/alias names to their scanned values (grouping keys and aggregates).\n"
+            },
+            {
+              "name": "Having",
+              "recv": "*GroupQuery[T]",
+              "signature": "func (g *GroupQuery[T]) Having(conds ...Condition) *GroupQuery[T]",
+              "doc": "Having adds a filter applied after grouping. Conditions typically reference\nan aggregate alias (e.g. prisma.Gt(\"_count\", 1)) or a raw aggregate\nexpression.\n"
+            },
+            {
+              "name": "Max",
+              "recv": "*GroupQuery[T]",
+              "signature": "func (g *GroupQuery[T]) Max(columns ...string) *GroupQuery[T]",
+              "doc": "Max adds MAX(column) to each group for every column.\n"
+            },
+            {
+              "name": "Min",
+              "recv": "*GroupQuery[T]",
+              "signature": "func (g *GroupQuery[T]) Min(columns ...string) *GroupQuery[T]",
+              "doc": "Min adds MIN(column) to each group for every column.\n"
+            },
+            {
+              "name": "SQL",
+              "recv": "*GroupQuery[T]",
+              "signature": "func (g *GroupQuery[T]) SQL() (string, []any, error)",
+              "doc": "SQL returns the GROUP BY SELECT statement and bound arguments without\nexecuting it.\n"
+            },
+            {
+              "name": "Sum",
+              "recv": "*GroupQuery[T]",
+              "signature": "func (g *GroupQuery[T]) Sum(columns ...string) *GroupQuery[T]",
+              "doc": "Sum adds SUM(column) to each group for every column.\n"
+            }
+          ]
+        },
+        {
+          "name": "Model",
+          "signature": "type Model struct {\n\t// Name is the Go type name.\n\tName string\n\t// Table is the SQL table name.\n\tTable string\n\t// Type is the underlying struct type.\n\tType reflect.Type\n\t// Fields holds the column fields in declaration order.\n\tFields []*Field\n\t// Relations holds the relation fields in declaration order.\n\tRelations []*Field\n\t// PK is the primary-key field, or nil if none was found.\n\tPK *Field\n\t// contains filtered or unexported fields\n}",
+          "doc": "Model is the compiled schema for a Go struct: its table, columns, primary\nkey and relations. Models are produced by a Registry.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Columns",
+              "recv": "*Model",
+              "signature": "func (m *Model) Columns() []string",
+              "doc": "Columns returns the SQL column names in declaration order.\n"
+            },
+            {
+              "name": "FieldByColumn",
+              "recv": "*Model",
+              "signature": "func (m *Model) FieldByColumn(col string) (*Field, bool)",
+              "doc": "FieldByColumn returns the column field with the given SQL name.\n"
+            },
+            {
+              "name": "RelationByName",
+              "recv": "*Model",
+              "signature": "func (m *Model) RelationByName(name string) (*Field, bool)",
+              "doc": "Relation returns the relation field with the given Go field name.\n"
+            }
+          ]
+        },
+        {
+          "name": "NestedCreate",
+          "signature": "type NestedCreate[T any] struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "NestedCreate builds a parent INSERT together with dependent writes on its\nto-many relations (create / connect / connectOrCreate / nested update),\nexecuted as one transaction. The parent's generated primary key is propagated\ninto each child statement's foreign key.\n\n\tres, err := prisma.NewQuery[User](client).\n\t    NestedCreate(User{Name: \"Ada\"}).\n\t    Create(\"Posts\", Post{Title: \"Hello\"}).\n\t    Connect(\"Posts\", prisma.Equals(\"id\", 7)).\n\t    Exec(ctx)\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Connect",
+              "recv": "*NestedCreate[T]",
+              "signature": "func (n *NestedCreate[T]) Connect(relation string, where ...Condition) *NestedCreate[T]",
+              "doc": "Connect schedules linking existing related rows matching where to the new\nparent (an UPDATE of their foreign key).\n"
+            },
+            {
+              "name": "ConnectOrCreate",
+              "recv": "*NestedCreate[T]",
+              "signature": "func (n *NestedCreate[T]) ConnectOrCreate(relation string, where []Condition, child any) *NestedCreate[T]",
+              "doc": "ConnectOrCreate links the related row matching where if it exists, otherwise\ninserts child. The choice is made at execution time via a existence check.\n"
+            },
+            {
+              "name": "Create",
+              "recv": "*NestedCreate[T]",
+              "signature": "func (n *NestedCreate[T]) Create(relation string, children ...any) *NestedCreate[T]",
+              "doc": "Create schedules inserting each child into the named relation, with its\nforeign key set to the new parent's primary key.\n"
+            },
+            {
+              "name": "Exec",
+              "recv": "*NestedCreate[T]",
+              "signature": "func (n *NestedCreate[T]) Exec(ctx context.Context) (T, error)",
+              "doc": "Exec runs the nested write in a transaction: the parent is inserted first,\nthen each dependent operation runs with the parent's generated primary key.\nThe returned value is the parent with its auto primary key populated.\n"
+            },
+            {
+              "name": "Statements",
+              "recv": "*NestedCreate[T]",
+              "signature": "func (n *NestedCreate[T]) Statements(parentID any) ([]Statement, error)",
+              "doc": "Statements returns the parent INSERT followed by the deterministic child\nstatements, using parentID as the linking foreign-key value. A\nconnectOrCreate operation is rendered as its create (INSERT) branch; at\nexecution time [NestedCreate.Exec] chooses connect or create per row.\n"
+            },
+            {
+              "name": "Update",
+              "recv": "*NestedCreate[T]",
+              "signature": "func (n *NestedCreate[T]) Update(relation string, where []Condition, data map[string]any) *NestedCreate[T]",
+              "doc": "Update schedules updating related rows matching where (scoped to the new\nparent) with data.\n"
+            }
+          ]
+        },
+        {
+          "name": "Nulls",
+          "signature": "type Nulls int",
+          "doc": "Nulls controls where NULL values sort relative to non-NULL values in an\nORDER BY term.\n",
+          "consts": [
+            {
+              "names": [
+                "NullsDefault",
+                "NullsFirst",
+                "NullsLast"
+              ],
+              "signature": "const (\n\t// NullsDefault leaves NULL ordering to the engine's default.\n\tNullsDefault Nulls = iota\n\t// NullsFirst sorts NULL values before non-NULL values.\n\tNullsFirst\n\t// NullsLast sorts NULL values after non-NULL values.\n\tNullsLast\n)",
+              "doc": ""
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Option",
+          "signature": "type Option func(*Client)",
+          "doc": "Option configures a Client.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "WithDialect",
+              "signature": "func WithDialect(d Dialect) Option",
+              "doc": "WithDialect sets the SQL dialect (default: Question).\n"
+            },
+            {
+              "name": "WithRegistry",
+              "signature": "func WithRegistry(r *Registry) Option",
+              "doc": "WithRegistry uses an existing registry instead of a fresh one.\n"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "name": "Query",
+          "signature": "type Query[T any] struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Query is a fluent, type-safe builder for a single model T. Methods return the\nreceiver so calls can be chained. Nothing touches the database until a\nterminal method (FindMany, Create, Count, ...) is called; the *SQL variants\nreturn the generated SQL and arguments without executing.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewQuery",
+              "signature": "func NewQuery[T any](c *Client) *Query[T]",
+              "doc": "NewQuery starts a new query for the model T. If T is not yet registered on\nthe client it is registered lazily; any registration error is deferred and\nsurfaced by the terminal method.\n"
+            },
+            {
+              "name": "NewTxQuery",
+              "signature": "func NewTxQuery[T any](tx *Tx) *Query[T]",
+              "doc": "NewTxQuery starts a new query for model T that executes against the\ntransaction tx instead of the client's connection pool. It is otherwise\nidentical to [NewQuery].\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Aggregate",
+              "recv": "*Query[T]",
+              "signature": "func (q *Query[T]) Aggregate() *AggregateQuery[T]",
+              "doc": "Aggregate begins an aggregation over the query's WHERE predicate.\n"
+            },
+            {
+              "name": "Clone",
+              "recv": "*Query[T]",
+              "signature": "func (q *Query[T]) Clone() *Query[T]",
+              "doc": "Clone returns an independent copy of the query whose slice-valued state\n(conditions, ordering, selection, includes, distinct columns) can be extended\nwithout affecting the original. It lets a partially-built query serve as a\nreusable base for several derived queries.\n"
+            },
+            {
+              "name": "Count",
+              "recv": "*Query[T]",
+              "signature": "func (q *Query[T]) Count(ctx context.Context) (int64, error)",
+              "doc": "Count executes SELECT COUNT(*) and returns the number of matching rows.\n"
+            },
+            {
+              "name": "CountDistinct",
+              "recv": "*Query[T]",
+              "signature": "func (q *Query[T]) CountDistinct(ctx context.Context, column string) (int64, error)",
+              "doc": "CountDistinct executes [Query.CountDistinctSQL] and returns the number of\ndistinct non-NULL values of column among the matching rows, mirroring\nPrisma's `_count` on a distinct field.\n"
+            },
+            {
+              "name": "CountDistinctSQL",
+              "recv": "*Query[T]",
+              "signature": "func (q *Query[T]) CountDistinctSQL(column string) (string, []any, error)",
+              "doc": "CountDistinctSQL returns a \"SELECT COUNT(DISTINCT column) FROM table WHERE ...\"\nstatement and its bound arguments without executing it. The column must be a\nmapped column of the model.\n"
+            },
+            {
+              "name": "CountSQL",
+              "recv": "*Query[T]",
+              "signature": "func (q *Query[T]) CountSQL() (string, []any, error)",
+              "doc": "CountSQL returns the COUNT(*) statement and bound arguments.\n"
+            },
+            {
+              "name": "Create",
+              "recv": "*Query[T]",
+              "signature": "func (q *Query[T]) Create(ctx context.Context, value T) (T, error)",
+              "doc": "Create inserts a single row. If the model's primary key is auto-generated and\ninteger-typed, the generated id is written back into the returned value.\n"
+            },
+            {
+              "name": "CreateMany",
+              "recv": "*Query[T]",
+              "signature": "func (q *Query[T]) CreateMany(ctx context.Context, values []T) (int64, error)",
+              "doc": "CreateMany inserts multiple rows in one statement and returns the number of\nrows affected.\n"
+            },
+            {
+              "name": "CreateManySQL",
+              "recv": "*Query[T]",
+              "signature": "func (q *Query[T]) CreateManySQL(values []T) (string, []any, error)",
+              "doc": "CreateManySQL returns a multi-row INSERT statement and bound arguments.\n"
+            },
+            {
+              "name": "CreateSQL",
+              "recv": "*Query[T]",
+              "signature": "func (q *Query[T]) CreateSQL(value T) (string, []any, error)",
+              "doc": "CreateSQL returns the single-row INSERT statement and bound arguments.\n"
+            },
+            {
+              "name": "Cursor",
+              "recv": "*Query[T]",
+              "signature": "func (q *Query[T]) Cursor(column string, value any) *Query[T]",
+              "doc": "Cursor sets a keyset pagination anchor: only rows strictly after value in the\nsort direction of column are returned. The column should also appear in an\n[Query.OrderBy] term; its direction determines whether the anchor uses \"\u0026gt;\"\n(Asc) or \"\u0026lt;\" (Desc). Combine with [Query.Skip] and [Query.Take] for\nforward pagination.\n"
+            },
+            {
+              "name": "Delete",
+              "recv": "*Query[T]",
+              "signature": "func (q *Query[T]) Delete(ctx context.Context) (int64, error)",
+              "doc": "Delete removes every matching row and returns the number of rows affected.\n"
+            },
+            {
+              "name": "DeleteMany",
+              "recv": "*Query[T]",
+              "signature": "func (q *Query[T]) DeleteMany(ctx context.Context) (int64, error)",
+              "doc": "DeleteMany is an alias for [Query.Delete] using Prisma's method name: it\nremoves every matching row and returns the number affected.\n"
+            },
+            {
+              "name": "DeleteSQL",
+              "recv": "*Query[T]",
+              "signature": "func (q *Query[T]) DeleteSQL() (string, []any, error)",
+              "doc": "DeleteSQL returns the DELETE statement and bound arguments.\n"
+            },
+            {
+              "name": "Distinct",
+              "recv": "*Query[T]",
+              "signature": "func (q *Query[T]) Distinct(columns ...string) *Query[T]",
+              "doc": "Distinct restricts the result to distinct rows. With no columns it emits a\nplain SELECT DISTINCT; with columns on a dialect that supports it (see\n[Dialect.DistinctOn]) it emits SELECT DISTINCT ON (columns), otherwise it\nfalls back to SELECT DISTINCT.\n"
+            },
+            {
+              "name": "Exists",
+              "recv": "*Query[T]",
+              "signature": "func (q *Query[T]) Exists(ctx context.Context) (bool, error)",
+              "doc": "Exists reports whether at least one row matches the query's WHERE predicate,\nevaluating the [Query.ExistsSQL] statement. It is a convenience over counting\nwhen only presence matters.\n"
+            },
+            {
+              "name": "ExistsSQL",
+              "recv": "*Query[T]",
+              "signature": "func (q *Query[T]) ExistsSQL() (string, []any, error)",
+              "doc": "ExistsSQL returns a statement that evaluates to a single boolean-ish row\nreporting whether any row matches the query's WHERE predicate, of the form\n\"SELECT EXISTS(SELECT 1 FROM table WHERE ...)\". It does not touch the\ndatabase.\n"
+            },
+            {
+              "name": "FindFirst",
+              "recv": "*Query[T]",
+              "signature": "func (q *Query[T]) FindFirst(ctx context.Context) (T, error)",
+              "doc": "FindFirst executes the SELECT with LIMIT 1 and returns the first matching\nrow, or ErrNotFound.\n"
+            },
+            {
+              "name": "FindFirstOrThrow",
+              "recv": "*Query[T]",
+              "signature": "func (q *Query[T]) FindFirstOrThrow(ctx context.Context) (T, error)",
+              "doc": "FindFirstOrThrow executes the query like [Query.FindFirst] but returns the\ntyped [ErrRecordNotFound] (Prisma code P2025) instead of a plain sentinel when\nno row matches, mirroring Prisma's findFirstOrThrow. Any other error is\nreturned unchanged.\n"
+            },
+            {
+              "name": "FindMany",
+              "recv": "*Query[T]",
+              "signature": "func (q *Query[T]) FindMany(ctx context.Context) ([]T, error)",
+              "doc": "FindMany executes the SELECT and scans every row into a slice of T.\n"
+            },
+            {
+              "name": "FindManySQL",
+              "recv": "*Query[T]",
+              "signature": "func (q *Query[T]) FindManySQL() (string, []any, error)",
+              "doc": "FindManySQL returns the SELECT statement and bound arguments for FindMany.\n"
+            },
+            {
+              "name": "FindUnique",
+              "recv": "*Query[T]",
+              "signature": "func (q *Query[T]) FindUnique(ctx context.Context) (T, error)",
+              "doc": "FindUnique is an alias for FindFirst intended for lookups by a unique column;\ncallers supply the uniqueness via Where.\n"
+            },
+            {
+              "name": "FindUniqueOrThrow",
+              "recv": "*Query[T]",
+              "signature": "func (q *Query[T]) FindUniqueOrThrow(ctx context.Context) (T, error)",
+              "doc": "FindUniqueOrThrow executes the query like [Query.FindUnique] but returns the\ntyped [ErrRecordNotFound] (Prisma code P2025) when no row matches, mirroring\nPrisma's findUniqueOrThrow.\n"
+            },
+            {
+              "name": "GroupBy",
+              "recv": "*Query[T]",
+              "signature": "func (q *Query[T]) GroupBy(columns ...string) *GroupQuery[T]",
+              "doc": "GroupBy begins a grouped aggregation keyed by the given columns.\n"
+            },
+            {
+              "name": "Include",
+              "recv": "*Query[T]",
+              "signature": "func (q *Query[T]) Include(relation string) *Query[T]",
+              "doc": "Include eagerly loads a to-one relation by its Go field name using a LEFT\nJOIN, selecting the related model's columns alongside the base row.\n"
+            },
+            {
+              "name": "NestedCreate",
+              "recv": "*Query[T]",
+              "signature": "func (q *Query[T]) NestedCreate(value T) *NestedCreate[T]",
+              "doc": "NestedCreate starts a nested write whose root inserts value.\n"
+            },
+            {
+              "name": "OrWhere",
+              "recv": "*Query[T]",
+              "signature": "func (q *Query[T]) OrWhere(conds ...Condition) *Query[T]",
+              "doc": "OrWhere adds a single predicate that is the logical OR of conds, combined with\nthe rest of the query's predicate using AND. It is shorthand for\nWhere([Or](conds...)) and mirrors Prisma's top-level `OR` array.\n\n\tq.Where(prisma.Equals(\"active\", true)).\n\t  OrWhere(prisma.Equals(\"role\", \"admin\"), prisma.Equals(\"role\", \"owner\"))\n\t// ... WHERE active = ? AND (role = ? OR role = ?)\n"
+            },
+            {
+              "name": "OrderBy",
+              "recv": "*Query[T]",
+              "signature": "func (q *Query[T]) OrderBy(column string, dir Direction) *Query[T]",
+              "doc": "OrderBy adds an ORDER BY term. Multiple calls accumulate, producing a\nmulti-column ordering in call order.\n"
+            },
+            {
+              "name": "OrderByNulls",
+              "recv": "*Query[T]",
+              "signature": "func (q *Query[T]) OrderByNulls(column string, dir Direction, nulls Nulls) *Query[T]",
+              "doc": "OrderByNulls adds an ORDER BY term with explicit NULL placement. On engines\nwithout native NULLS syntax (see [Dialect.NativeNulls]) the placement is\nemulated with a leading \"column IS NULL\" sort term.\n"
+            },
+            {
+              "name": "Paginate",
+              "recv": "*Query[T]",
+              "signature": "func (q *Query[T]) Paginate(page, size int) *Query[T]",
+              "doc": "Paginate sets LIMIT/OFFSET for 1-based offset pagination: page 1 returns the\nfirst size rows, page 2 the next size, and so on. It is a convenience over\nsetting [Query.Take] and [Query.Skip] by hand. page and size are clamped to a\nminimum of 1 and 0 respectively.\n"
+            },
+            {
+              "name": "Select",
+              "recv": "*Query[T]",
+              "signature": "func (q *Query[T]) Select(columns ...string) *Query[T]",
+              "doc": "Select restricts the projection to the named columns. Without it, all mapped\ncolumns are selected.\n"
+            },
+            {
+              "name": "Skip",
+              "recv": "*Query[T]",
+              "signature": "func (q *Query[T]) Skip(n int) *Query[T]",
+              "doc": "Skip offsets the returned rows (SQL OFFSET).\n"
+            },
+            {
+              "name": "SkipDuplicates",
+              "recv": "*Query[T]",
+              "signature": "func (q *Query[T]) SkipDuplicates() *Query[T]",
+              "doc": "SkipDuplicates makes the next [Query.CreateMany] ignore rows that violate a\nunique constraint instead of failing (ON CONFLICT DO NOTHING / INSERT IGNORE,\nper the dialect's [Dialect.Upsert] style).\n"
+            },
+            {
+              "name": "Take",
+              "recv": "*Query[T]",
+              "signature": "func (q *Query[T]) Take(n int) *Query[T]",
+              "doc": "Take limits the number of rows returned (SQL LIMIT).\n"
+            },
+            {
+              "name": "Update",
+              "recv": "*Query[T]",
+              "signature": "func (q *Query[T]) Update(ctx context.Context, data map[string]any) (int64, error)",
+              "doc": "Update applies the column assignments to every matching row and returns the\nnumber of rows affected.\n"
+            },
+            {
+              "name": "UpdateMany",
+              "recv": "*Query[T]",
+              "signature": "func (q *Query[T]) UpdateMany(ctx context.Context, data map[string]any) (int64, error)",
+              "doc": "UpdateMany is an alias for [Query.Update] using Prisma's method name: it\napplies data to every matching row and returns the number affected.\n"
+            },
+            {
+              "name": "UpdateSQL",
+              "recv": "*Query[T]",
+              "signature": "func (q *Query[T]) UpdateSQL(data map[string]any) (string, []any, error)",
+              "doc": "UpdateSQL returns the UPDATE statement and bound arguments for the given\ncolumn assignments. Column keys are sorted so the output is deterministic.\n"
+            },
+            {
+              "name": "Upsert",
+              "recv": "*Query[T]",
+              "signature": "func (q *Query[T]) Upsert(ctx context.Context, conflictColumns []string, create T, update map[string]any) (int64, error)",
+              "doc": "Upsert executes an insert-or-update (see [Query.UpsertSQL]) and returns the\nnumber of rows affected.\n"
+            },
+            {
+              "name": "UpsertSQL",
+              "recv": "*Query[T]",
+              "signature": "func (q *Query[T]) UpsertSQL(conflictColumns []string, create T, update map[string]any) (string, []any, error)",
+              "doc": "UpsertSQL returns an \"insert-or-update\" statement and its bound arguments. If\na row conflicting on conflictColumns already exists, the update assignments\nare applied; otherwise create is inserted. The syntax follows the dialect's\n[Dialect.Upsert] style: ON CONFLICT (PostgreSQL/SQLite) or ON DUPLICATE KEY\nUPDATE (MySQL). Update column keys are sorted for deterministic output.\n"
+            },
+            {
+              "name": "Where",
+              "recv": "*Query[T]",
+              "signature": "func (q *Query[T]) Where(conds ...Condition) *Query[T]",
+              "doc": "Where appends conditions, combined with the existing predicate using AND.\n"
+            },
+            {
+              "name": "WhereRaw",
+              "recv": "*Query[T]",
+              "signature": "func (q *Query[T]) WhereRaw(expr string, args ...any) *Query[T]",
+              "doc": "WhereRaw appends a raw SQL boolean fragment to the query's predicate,\ncombined with any existing conditions using AND. The expr uses \"?\"\nplaceholders that are re-rendered in the client's [Dialect] and whose args are\nbound safely; it is the [Query]-level shorthand for\nWhere([RawCondition](expr, args...)).\n"
+            }
+          ]
+        },
+        {
+          "name": "Registry",
+          "signature": "type Registry struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Registry stores compiled models and lets them be resolved by type or name.\nThe zero value is not usable; construct one with NewRegistry.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewRegistry",
+              "signature": "func NewRegistry() *Registry",
+              "doc": "NewRegistry returns an empty registry.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "ModelOf",
+              "recv": "*Registry",
+              "signature": "func (r *Registry) ModelOf(t reflect.Type) (*Model, bool)",
+              "doc": "ModelOf returns the compiled model for the given type, if registered.\n"
+            },
+            {
+              "name": "Register",
+              "recv": "*Registry",
+              "signature": "func (r *Registry) Register(v any) (*Model, error)",
+              "doc": "Register compiles the schema for v (a struct or pointer to struct) via\nreflection and struct tags, stores it, and returns the model. Re-registering\nthe same type returns the previously compiled model.\n\nStruct tags use the key \"prisma\" with comma-separated options:\n\n\tcol=\u003cname\u003e    explicit column name (default: snake_case of the field)\n\tpk            marks the primary key\n\tauto          value is generated by the DB (skipped on INSERT)\n\t-             skip the field entirely\n\trelation      the field links to another model\n\tfk=\u003ccol\u003e      relation: foreign-key column on this model\n\treferences=\u003ccol\u003e relation: referenced column on the target (default: its PK)\n\nA field whose type is a pointer-to-struct or slice-of-struct and is tagged\n\"relation\" becomes a relation rather than a column.\n"
+            }
+          ]
+        },
+        {
+          "name": "Relation",
+          "signature": "type Relation struct {\n\t// Target is the related struct type (with pointer/slice stripped).\n\tTarget reflect.Type\n\t// ForeignKey is the column on the owning model.\n\tForeignKey string\n\t// References is the column on the target model (defaults to its PK).\n\tReferences string\n\t// Many reports whether the relation is a collection (slice field).\n\tMany bool\n}",
+          "doc": "Relation describes a to-one or to-many link between two models.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Statement",
+          "signature": "type Statement struct {\n\t// SQL is the statement text.\n\tSQL string\n\t// Args are the bound arguments, in placeholder order.\n\tArgs []any\n}",
+          "doc": "Statement is a single generated SQL statement with its bound arguments, as\nproduced by a nested write's planning method.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "TableNamer",
+          "signature": "type TableNamer interface {\n\tTableName() string\n}",
+          "doc": "TableNamer lets a model type override the table name derived from its Go\ntype name. Implement it on the struct (value or pointer receiver) to control\nthe exact table used in generated SQL.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Tx",
+          "signature": "type Tx struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Tx is a handle to an in-progress database transaction. Start queries against\nit with [NewTxQuery]; every statement they run participates in the same\ntransaction. A Tx is created by [Client.Transaction] (interactive) or\n[Client.Batch] (batched) and must not be used after the enclosing call\nreturns.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Client",
+              "recv": "*Tx",
+              "signature": "func (t *Tx) Client() *Client",
+              "doc": "Client returns the owning [Client].\n"
+            },
+            {
+              "name": "ExecuteRaw",
+              "recv": "*Tx",
+              "signature": "func (t *Tx) ExecuteRaw(ctx context.Context, query string, args ...any) (int64, error)",
+              "doc": "ExecuteRaw runs a raw statement within the transaction; see\n[Client.ExecuteRaw].\n"
+            },
+            {
+              "name": "QueryRaw",
+              "recv": "*Tx",
+              "signature": "func (t *Tx) QueryRaw(ctx context.Context, query string, args ...any) ([]map[string]any, error)",
+              "doc": "QueryRaw runs a raw query within the transaction; see [Client.QueryRaw].\n"
+            },
+            {
+              "name": "SQLTx",
+              "recv": "*Tx",
+              "signature": "func (t *Tx) SQLTx() *sql.Tx",
+              "doc": "SQLTx returns the underlying *sql.Tx for escape-hatch use (e.g. raw\nstatements not expressible through the builder).\n"
+            }
+          ]
+        },
+        {
+          "name": "UpdateOp",
+          "signature": "type UpdateOp struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "UpdateOp is an atomic column update expression used as a value in the map\npassed to [Query.Update] / [Query.UpdateSQL]. Instead of assigning a literal,\nit computes the new value from the column's current value, mirroring Prisma's\nnumeric atomic operations ({ increment }, { decrement }, { multiply },\n{ divide }, { set }). The generated SQL is always parameterized, e.g.\n\"balance = balance + ?\".\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "Decrement",
+              "signature": "func Decrement(delta any) UpdateOp",
+              "doc": "Decrement returns an [UpdateOp] that subtracts delta from the column's current\nvalue (\"col = col - ?\"), mirroring Prisma's `{ decrement: delta }`.\n"
+            },
+            {
+              "name": "Divide",
+              "signature": "func Divide(divisor any) UpdateOp",
+              "doc": "Divide returns an [UpdateOp] that divides the column's current value by\ndivisor (\"col = col / ?\"), mirroring Prisma's `{ divide: divisor }`.\n"
+            },
+            {
+              "name": "Increment",
+              "signature": "func Increment(delta any) UpdateOp",
+              "doc": "Increment returns an [UpdateOp] that adds delta to the column's current value\n(\"col = col + ?\"), mirroring Prisma's `{ increment: delta }`.\n"
+            },
+            {
+              "name": "Multiply",
+              "signature": "func Multiply(factor any) UpdateOp",
+              "doc": "Multiply returns an [UpdateOp] that multiplies the column's current value by\nfactor (\"col = col * ?\"), mirroring Prisma's `{ multiply: factor }`.\n"
+            },
+            {
+              "name": "SetTo",
+              "signature": "func SetTo(value any) UpdateOp",
+              "doc": "SetTo returns an [UpdateOp] that assigns value directly (\"col = ?\"). It is the\nexplicit form of Prisma's `{ set: value }` and is equivalent to placing value\nin the update map unwrapped; it exists so a set can sit alongside other\n[UpdateOp] values uniformly.\n"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "name": "UpsertStyle",
+          "signature": "type UpsertStyle int",
+          "doc": "UpsertStyle selects the SQL syntax a dialect uses for upserts and\nskip-duplicate inserts. The two dominant families are supported.\n",
+          "consts": [
+            {
+              "names": [
+                "OnConflict",
+                "OnDuplicateKey"
+              ],
+              "signature": "const (\n\t// OnConflict is the PostgreSQL/SQLite family:\n\t// \"INSERT ... ON CONFLICT (cols) DO UPDATE SET ...\" and\n\t// \"INSERT ... ON CONFLICT DO NOTHING\".\n\tOnConflict UpsertStyle = iota\n\t// OnDuplicateKey is the MySQL family:\n\t// \"INSERT ... ON DUPLICATE KEY UPDATE ...\" and \"INSERT IGNORE INTO ...\".\n\tOnDuplicateKey\n)",
+              "doc": ""
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        }
+      ],
+      "funcs": [
+        {
+          "name": "QueryRawInto",
+          "signature": "func QueryRawInto[T any](ctx context.Context, c *Client, query string, args ...any) ([]T, error)",
+          "doc": "QueryRawInto runs a raw query and scans each row into a value of type T,\nmatching result columns to T's mapped columns by name (unmatched columns are\nignored, missing ones left zero). T must be registered on the client, or\nregistrable. This is the typed form of [Client.QueryRaw].\n"
+        }
+      ],
+      "examples": [
+        {
+          "name": "",
+          "code": "client := NewClient(nil)\nif _, err := client.Register(User{}); err != nil {\n\tpanic(err)\n}\n\nq := NewQuery[User](client).\n\tWhere(Equals(\"email\", \"a@b.com\"), Gt(\"id\", 10)).\n\tOrderBy(\"name\", Asc).\n\tTake(5)\n\nsqlStr, args, err := q.FindManySQL()\nif err != nil {\n\tpanic(err)\n}\nfmt.Println(sqlStr)\nfmt.Println(args...)",
+          "output": "SELECT id, name, email FROM users WHERE email = ? AND id \u003e ? ORDER BY name ASC LIMIT ?\na@b.com 10 5",
+          "doc": "Example builds a query and prints the parameterized SQL and arguments it\ngenerates, without touching a database.\n"
+        },
+        {
+          "name": "Some",
+          "code": "client := NewClient(nil)\nif _, err := client.Register(User{}); err != nil {\n\tpanic(err)\n}\nif _, err := client.Register(Post{}); err != nil {\n\tpanic(err)\n}\n\nsqlStr, args, err := NewQuery[User](client).\n\tWhere(Some(\"Posts\", Equals(\"title\", \"Hello\"))).\n\tFindManySQL()\nif err != nil {\n\tpanic(err)\n}\nfmt.Println(sqlStr)\nfmt.Println(args...)",
+          "output": "SELECT id, name, email FROM users WHERE EXISTS (SELECT 1 FROM posts WHERE posts.author_id = users.id AND title = ?)\nHello",
+          "doc": "ExampleSome shows a relation filter compiling to a correlated EXISTS\nsubquery: users who have at least one published post.\n"
+        },
+        {
+          "name": "Query (Aggregate)",
+          "code": "client := NewClient(nil)\nif _, err := client.Register(Order{}); err != nil {\n\tpanic(err)\n}\n\nsqlStr, args, err := NewQuery[Order](client).\n\tWhere(Equals(\"status\", \"paid\")).\n\tAggregate().Count().Sum(\"amount\").Avg(\"amount\").\n\tSQL()\nif err != nil {\n\tpanic(err)\n}\nfmt.Println(sqlStr)\nfmt.Println(args...)",
+          "output": "SELECT COUNT(*) AS _count, SUM(amount) AS _sum_amount, AVG(amount) AS _avg_amount FROM orders WHERE status = ?\npaid",
+          "doc": "ExampleQuery_Aggregate shows building an aggregation over a filtered set.\n"
+        },
+        {
+          "name": "Query (UpsertSQL)",
+          "code": "client := NewClient(nil)\nif _, err := client.Register(User{}); err != nil {\n\tpanic(err)\n}\n\nsqlStr, args, err := NewQuery[User](client).UpsertSQL(\n\t[]string{\"email\"},\n\tUser{Name: \"Ada\", Email: \"ada@example.com\"},\n\tmap[string]any{\"name\": \"Ada Lovelace\"},\n)\nif err != nil {\n\tpanic(err)\n}\nfmt.Println(sqlStr)\nfmt.Println(args...)",
+          "output": "INSERT INTO users (name, email) VALUES (?, ?) ON CONFLICT (email) DO UPDATE SET name = ?\nAda ada@example.com Ada Lovelace",
+          "doc": "ExampleQuery_UpsertSQL shows an insert-or-update statement.\n"
+        }
+      ]
+    }
+  ]
+}

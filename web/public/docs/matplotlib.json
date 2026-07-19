@@ -1,0 +1,874 @@
+{
+  "module": "github.com/malcolmston/matplotlib",
+  "generatedAt": "2026-07-19T02:05:52Z",
+  "packages": [
+    {
+      "importPath": "github.com/malcolmston/matplotlib",
+      "name": "matplotlib",
+      "synopsis": "Package matplotlib is a small, dependency-free plotting and charting library for Go, inspired by Python's matplotlib.",
+      "doc": "Package matplotlib is a small, dependency-free plotting and charting library\nfor Go, inspired by Python's matplotlib. It renders charts to both PNG\n(raster) and SVG (vector) using only the Go standard library — there is no\ncgo and no third-party code.\n\n# Model\n\nThe drawing model has two levels:\n\n  - A [Figure] is the top-level canvas. It owns the output size in pixels,\n    the background color, the DPI and a color cycle shared by its series.\n  - An [Axes] is a coordinate system within a figure. It holds one or more\n    plot items (series) and the surrounding decorations: title, axis labels,\n    numeric ticks, an optional grid and an optional legend.\n\nA figure may contain a single axes (the common case, via [Figure.AddAxes] or\n[Figure.Axes]) or a grid of them (via [Figure.Subplots]).\n\n# Chart types\n\nThe following chart types are available as methods on [Axes]:\n\n  - [Axes.Plot]    — line plot, one call per series (multiple series overlay)\n  - [Axes.Scatter] — scatter plot with configurable markers\n  - [Axes.Bar]     — vertical bar chart over string categories\n  - [Axes.BarH]    — horizontal bar chart\n  - [Axes.Hist]    — histogram with automatic equal-width binning\n  - [Axes.Pie]     — pie chart\n\nEach returns a typed value ([LinePlot], [ScatterPlot], [BarChart],\n[Histogram], [PieChart]) whose fields — color, line width, marker, label —\ncan be customized with fluent setters.\n\n# Styling\n\nNew series are automatically assigned successive colors from [DefaultColors]\n(matplotlib's \"tab10\" palette). Colors are [Color] values and can be built\nwith [RGB], [RGBA] or [Hex]. Line width and marker style are per series.\n\n# Output\n\nRendering is deterministic: identical input always produces identical bytes.\n\n  - PNG is produced with image and image/png. Lines use a Bresenham routine,\n    bars are filled rectangles, markers and pie wedges are filled shapes, and\n    text is drawn with a built-in 5x7 bitmap font.\n  - SVG is produced by emitting \u003cline\u003e, \u003crect\u003e, \u003ccircle\u003e, \u003cpolyline\u003e,\n    \u003cpolygon\u003e and \u003ctext\u003e elements.\n\nUse [Figure.SavePNG], [Figure.SaveSVG] or the extension-sensitive\n[Figure.Save] to write files; [Figure.WritePNG] and [Figure.WriteSVG] to\nstream to any io.Writer; and [Figure.RenderImage] / [Figure.RenderSVG] to\nobtain the in-memory image or SVG string.\n\n# Quick start\n\n\tfig := matplotlib.NewFigure(640, 480)\n\tax := fig.AddAxes()\n\tax.Plot([]float64{0, 1, 2, 3}, []float64{0, 1, 4, 9}).SetLabel(\"x^2\")\n\tax.SetTitle(\"Demo\").SetXLabel(\"x\").SetYLabel(\"y\").Legend().Grid(true)\n\t_ = fig.SavePNG(\"demo.png\")\n\t_ = fig.SaveSVG(\"demo.svg\")\n\nA pyplot-style stateful API ([Plot], [Bar], [Title], [Save], …) is also\nprovided for quick scripts; see pyplot.go.\n",
+      "consts": [],
+      "vars": [
+        {
+          "names": [
+            "Black",
+            "White",
+            "Red",
+            "Green",
+            "Blue",
+            "Transparent"
+          ],
+          "signature": "var (\n\tBlack       = Color{0, 0, 0, 255}\n\tWhite       = Color{255, 255, 255, 255}\n\tRed         = Color{214, 39, 40, 255}\n\tGreen       = Color{44, 160, 44, 255}\n\tBlue        = Color{31, 119, 180, 255}\n\tTransparent = Color{0, 0, 0, 0}\n)",
+          "doc": "Common named colors.\n"
+        },
+        {
+          "names": [
+            "DefaultColors"
+          ],
+          "signature": "var DefaultColors = []Color{\n\t{31, 119, 180, 255},\n\t{255, 127, 14, 255},\n\t{44, 160, 44, 255},\n\t{214, 39, 40, 255},\n\t{148, 103, 189, 255},\n\t{140, 86, 75, 255},\n\t{227, 119, 194, 255},\n\t{127, 127, 127, 255},\n\t{188, 189, 34, 255},\n\t{23, 190, 207, 255},\n}",
+          "doc": "DefaultColors is the default color cycle, matching matplotlib's \"tab10\"\ncategorical palette. New series are assigned successive colors from this\nslice, wrapping around when exhausted.\n"
+        }
+      ],
+      "types": [
+        {
+          "name": "Annotation",
+          "signature": "type Annotation struct {\n\tX, Y   float64\n\tText   string\n\tColor  Color\n\tSize   float64\n\tAnchor TextAnchor\n}",
+          "doc": "Annotation is a text label placed at a data-space coordinate, the equivalent\nof matplotlib's Axes.text. It does not participate in autoscaling.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Axes",
+          "signature": "type Axes struct {\n\tTitle      string\n\tXLabel     string\n\tYLabel     string\n\tShowLegend bool\n\tShowGrid   bool\n\t// contains filtered or unexported fields\n}",
+          "doc": "Axes is a single set of coordinate axes within a Figure. It holds the plot\nitems (series) drawn against it together with titles, labels and display\noptions. Create one with Figure.AddAxes or Figure.Subplots.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "Gca",
+              "signature": "func Gca() *Axes",
+              "doc": "Gca returns the current axes, creating a default figure if needed.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "AxHLine",
+              "recv": "*Axes",
+              "signature": "func (ax *Axes) AxHLine(y float64) *RefLine",
+              "doc": "AxHLine adds a horizontal reference line spanning the axes at data y.\n"
+            },
+            {
+              "name": "AxVLine",
+              "recv": "*Axes",
+              "signature": "func (ax *Axes) AxVLine(x float64) *RefLine",
+              "doc": "AxVLine adds a vertical reference line spanning the axes at data x.\n"
+            },
+            {
+              "name": "Bar",
+              "recv": "*Axes",
+              "signature": "func (ax *Axes) Bar(labels []string, values []float64) *BarChart",
+              "doc": "Bar adds a vertical bar chart with the given category labels and values.\n"
+            },
+            {
+              "name": "BarH",
+              "recv": "*Axes",
+              "signature": "func (ax *Axes) BarH(labels []string, values []float64) *BarChart",
+              "doc": "BarH adds a horizontal bar chart with the given category labels and values.\n"
+            },
+            {
+              "name": "ErrorBar",
+              "recv": "*Axes",
+              "signature": "func (ax *Axes) ErrorBar(x, y, yerr []float64) *ErrorBar",
+              "doc": "ErrorBar adds a series at (x[i], y[i]) with symmetric vertical error bars of\nhalf-height yerr[i]. yerr may be shorter than x/y; missing entries are zero.\n"
+            },
+            {
+              "name": "FillBetween",
+              "recv": "*Axes",
+              "signature": "func (ax *Axes) FillBetween(x, y1, y2 []float64) *FillBetween",
+              "doc": "FillBetween shades the area between the curves y1 and y2 over the x\npositions. Passing nil for y2 fills down to zero.\n"
+            },
+            {
+              "name": "Grid",
+              "recv": "*Axes",
+              "signature": "func (ax *Axes) Grid(on bool) *Axes",
+              "doc": "Grid enables or disables the background grid and returns the axes.\n"
+            },
+            {
+              "name": "Hist",
+              "recv": "*Axes",
+              "signature": "func (ax *Axes) Hist(data []float64, bins int) *Histogram",
+              "doc": "Hist adds a histogram of data using the given number of bins (\u003c=0 selects a\ndefault of 10 bins).\n"
+            },
+            {
+              "name": "Legend",
+              "recv": "*Axes",
+              "signature": "func (ax *Axes) Legend() *Axes",
+              "doc": "Legend enables the legend and returns the axes for chaining.\n"
+            },
+            {
+              "name": "Pie",
+              "recv": "*Axes",
+              "signature": "func (ax *Axes) Pie(values []float64, labels []string) *PieChart",
+              "doc": "Pie adds a pie chart. Labels may be nil. Colors are taken from the figure's\ncolor cycle.\n"
+            },
+            {
+              "name": "Plot",
+              "recv": "*Axes",
+              "signature": "func (ax *Axes) Plot(x, y []float64) *LinePlot",
+              "doc": "Plot adds a line series through the (x[i], y[i]) points.\n"
+            },
+            {
+              "name": "Scatter",
+              "recv": "*Axes",
+              "signature": "func (ax *Axes) Scatter(x, y []float64) *ScatterPlot",
+              "doc": "Scatter adds an unconnected marker series at the (x[i], y[i]) points.\n"
+            },
+            {
+              "name": "SetTitle",
+              "recv": "*Axes",
+              "signature": "func (ax *Axes) SetTitle(s string) *Axes",
+              "doc": "SetTitle sets the axes title and returns the axes for chaining.\n"
+            },
+            {
+              "name": "SetXLabel",
+              "recv": "*Axes",
+              "signature": "func (ax *Axes) SetXLabel(s string) *Axes",
+              "doc": "SetXLabel sets the x-axis label and returns the axes for chaining.\n"
+            },
+            {
+              "name": "SetXLim",
+              "recv": "*Axes",
+              "signature": "func (ax *Axes) SetXLim(lo, hi float64) *Axes",
+              "doc": "SetXLim fixes the x-axis limits and returns the axes for chaining.\n"
+            },
+            {
+              "name": "SetYLabel",
+              "recv": "*Axes",
+              "signature": "func (ax *Axes) SetYLabel(s string) *Axes",
+              "doc": "SetYLabel sets the y-axis label and returns the axes for chaining.\n"
+            },
+            {
+              "name": "SetYLim",
+              "recv": "*Axes",
+              "signature": "func (ax *Axes) SetYLim(lo, hi float64) *Axes",
+              "doc": "SetYLim fixes the y-axis limits and returns the axes for chaining.\n"
+            },
+            {
+              "name": "Stem",
+              "recv": "*Axes",
+              "signature": "func (ax *Axes) Stem(x, y []float64) *StemPlot",
+              "doc": "Stem adds a stem plot with vertical lines from y = 0 to each (x[i], y[i]).\n"
+            },
+            {
+              "name": "Step",
+              "recv": "*Axes",
+              "signature": "func (ax *Axes) Step(x, y []float64) *StepPlot",
+              "doc": "Step adds a piecewise-constant step series through the (x[i], y[i]) points.\n"
+            },
+            {
+              "name": "Text",
+              "recv": "*Axes",
+              "signature": "func (ax *Axes) Text(x, y float64, s string) *Annotation",
+              "doc": "Text places the given string at data-space coordinate (x, y) on the axes.\n"
+            }
+          ]
+        },
+        {
+          "name": "BarChart",
+          "signature": "type BarChart struct {\n\tLabels     []string\n\tValues     []float64\n\tColor      Color\n\tHorizontal bool\n\tLabel      string\n}",
+          "doc": "BarChart is a categorical bar series. When Horizontal is true bars extend\nalong the x axis and categories are placed on the y axis.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "Bar",
+              "signature": "func Bar(labels []string, values []float64) *BarChart",
+              "doc": "Bar adds a vertical bar chart to the current axes.\n"
+            },
+            {
+              "name": "BarH",
+              "signature": "func BarH(labels []string, values []float64) *BarChart",
+              "doc": "BarH adds a horizontal bar chart to the current axes.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "SetColor",
+              "recv": "*BarChart",
+              "signature": "func (b *BarChart) SetColor(c Color) *BarChart",
+              "doc": "SetColor sets the bar color and returns the chart for chaining.\n"
+            },
+            {
+              "name": "SetLabel",
+              "recv": "*BarChart",
+              "signature": "func (b *BarChart) SetLabel(s string) *BarChart",
+              "doc": "SetLabel sets the legend label and returns the chart for chaining.\n"
+            }
+          ]
+        },
+        {
+          "name": "Color",
+          "signature": "type Color struct {\n\tR, G, B, A uint8\n}",
+          "doc": "Color is an 8-bit-per-channel RGBA color used throughout the package.\nThe zero value is fully transparent black.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "Blend",
+              "signature": "func Blend(a, b Color, t float64) Color",
+              "doc": "Blend linearly interpolates between colors a and b, returning a when t \u003c= 0,\nb when t \u003e= 1 and a per-channel mix (including alpha) in between.\n"
+            },
+            {
+              "name": "ColorFromHSV",
+              "signature": "func ColorFromHSV(h, s, v float64) Color",
+              "doc": "ColorFromHSV builds an opaque 8-bit Color from HSV components in [0, 1],\nrounding each resulting channel to the nearest 8-bit value. It is the\nColor-typed counterpart of HSVToRGB.\n"
+            },
+            {
+              "name": "Hex",
+              "signature": "func Hex(s string) (Color, error)",
+              "doc": "Hex parses a color from a \"#rrggbb\" or \"#rgb\" style string. On any parse\nerror it returns opaque black and a non-nil error.\n"
+            },
+            {
+              "name": "RGB",
+              "signature": "func RGB(r, g, b uint8) Color",
+              "doc": "RGB returns an opaque color with the given red, green and blue components.\n"
+            },
+            {
+              "name": "RGBA",
+              "signature": "func RGBA(r, g, b, a uint8) Color",
+              "doc": "RGBA returns a color with the given components (alpha included).\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Darken",
+              "recv": "Color",
+              "signature": "func (c Color) Darken(f float64) Color",
+              "doc": "Darken returns a copy of the color scaled a fraction f of the way toward\nblack, leaving alpha unchanged. f is clamped to [0, 1]; f == 0 returns the\ncolor unchanged and f == 1 returns black (at the original alpha).\n"
+            },
+            {
+              "name": "Grayscale",
+              "recv": "Color",
+              "signature": "func (c Color) Grayscale() Color",
+              "doc": "Grayscale returns the color converted to a shade of gray whose intensity is\nits luminance, preserving the original alpha.\n"
+            },
+            {
+              "name": "HSV",
+              "recv": "Color",
+              "signature": "func (c Color) HSV() (h, s, v float64)",
+              "doc": "HSV returns the color's red, green and blue channels converted to HSV, each\nas a float in [0, 1]. The alpha channel is ignored. It is a convenience\nwrapper over RGBToHSV for the 8-bit Color type.\n"
+            },
+            {
+              "name": "Hex",
+              "recv": "Color",
+              "signature": "func (c Color) Hex() string",
+              "doc": "Hex returns the color as a \"#rrggbb\" string (the alpha channel is not\nincluded), suitable for CSS or SVG.\n"
+            },
+            {
+              "name": "Lighten",
+              "recv": "Color",
+              "signature": "func (c Color) Lighten(f float64) Color",
+              "doc": "Lighten returns a copy of the color moved a fraction f of the way toward\nwhite, leaving alpha unchanged. f is clamped to [0, 1]; f == 0 returns the\ncolor unchanged and f == 1 returns white (at the original alpha).\n"
+            },
+            {
+              "name": "Luminance",
+              "recv": "Color",
+              "signature": "func (c Color) Luminance() float64",
+              "doc": "Luminance returns the relative luminance of the color in [0, 1] using the\nRec. 709 weights (0.2126 R + 0.7152 G + 0.0722 B) over the sRGB channel\nvalues. Black returns 0 and white returns 1; alpha is ignored.\n"
+            },
+            {
+              "name": "RGBA",
+              "recv": "Color",
+              "signature": "func (c Color) RGBA() (r, g, b, a uint32)",
+              "doc": "RGBA implements the standard library image/color.Color interface so a Color\ncan be used directly with the image package.\n"
+            },
+            {
+              "name": "WithAlpha",
+              "recv": "Color",
+              "signature": "func (c Color) WithAlpha(a uint8) Color",
+              "doc": "WithAlpha returns a copy of the color with its alpha channel replaced by a.\n"
+            }
+          ]
+        },
+        {
+          "name": "Colormap",
+          "signature": "type Colormap struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Colormap maps a scalar in the closed interval [0, 1] to a Color by piecewise\nlinear interpolation between a sequence of evenly spaced anchor colors. It is\nthe equivalent of matplotlib's LinearSegmentedColormap and lets scalar data\n(heatmap values, series indices, gradients) be turned into colors.\n\nThe zero value is not usable; construct a Colormap with NewColormap or one of\nthe named-colormap constructors such as Viridis.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "Coolwarm",
+              "signature": "func Coolwarm() Colormap",
+              "doc": "Coolwarm returns an approximation of matplotlib's diverging \"coolwarm\"\ncolormap, running from cool blue through neutral gray to warm red.\n"
+            },
+            {
+              "name": "Grays",
+              "signature": "func Grays() Colormap",
+              "doc": "Grays returns a simple grayscale colormap from black at 0 to white at 1.\n"
+            },
+            {
+              "name": "Jet",
+              "signature": "func Jet() Colormap",
+              "doc": "Jet returns an approximation of the classic \"jet\" colormap, running from dark\nblue through cyan, yellow and red to dark red.\n"
+            },
+            {
+              "name": "NewColormap",
+              "signature": "func NewColormap(colors []Color) Colormap",
+              "doc": "NewColormap builds a Colormap from two or more anchor colors. The anchors are\ntreated as being equally spaced across [0, 1], and Colormap.At interpolates\nlinearly between neighbouring anchors. Fewer than two colors are padded so\nthe result is always usable; the input slice is copied.\n"
+            },
+            {
+              "name": "Plasma",
+              "signature": "func Plasma() Colormap",
+              "doc": "Plasma returns an approximation of matplotlib's \"plasma\" colormap, running\nfrom dark blue through magenta and orange to yellow.\n"
+            },
+            {
+              "name": "Viridis",
+              "signature": "func Viridis() Colormap",
+              "doc": "Viridis returns matplotlib's default perceptually uniform colormap,\napproximated by five anchor colors from dark purple through teal and green to\nyellow.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "At",
+              "recv": "Colormap",
+              "signature": "func (m Colormap) At(t float64) Color",
+              "doc": "At returns the color at position t. Values of t are clamped to [0, 1], so\nt \u003c= 0 yields the first anchor and t \u003e= 1 yields the last. Interpolation is\nperformed independently per channel (including alpha) and rounded to the\nnearest 8-bit value.\n"
+            },
+            {
+              "name": "Reversed",
+              "recv": "Colormap",
+              "signature": "func (m Colormap) Reversed() Colormap",
+              "doc": "Reversed returns a new Colormap whose anchor colors are in the opposite\norder, equivalent to appending \"_r\" to a matplotlib colormap name.\n"
+            }
+          ]
+        },
+        {
+          "name": "ErrorBar",
+          "signature": "type ErrorBar struct {\n\tX, Y, YErr []float64\n\tColor      Color\n\tMarker     Marker\n\tLabel      string\n}",
+          "doc": "ErrorBar draws markers at (x, y) with symmetric vertical error bars of\nhalf-height yerr[i] and horizontal caps, connected by a line, mirroring\nmatplotlib's Axes.errorbar.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "SetColor",
+              "recv": "*ErrorBar",
+              "signature": "func (e *ErrorBar) SetColor(c Color) *ErrorBar",
+              "doc": "SetColor sets the series color and returns the plot for chaining.\n"
+            },
+            {
+              "name": "SetLabel",
+              "recv": "*ErrorBar",
+              "signature": "func (e *ErrorBar) SetLabel(l string) *ErrorBar",
+              "doc": "SetLabel sets the legend label and returns the plot for chaining.\n"
+            }
+          ]
+        },
+        {
+          "name": "Figure",
+          "signature": "type Figure struct {\n\tWidth      int\n\tHeight     int\n\tDPI        float64\n\tBackground Color\n\t// contains filtered or unexported fields\n}",
+          "doc": "Figure is the top-level container for one or more Axes. It owns the output\ndimensions (in pixels), background color and the color cycle shared by the\nseries it contains.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "FigSize",
+              "signature": "func FigSize(width, height int) *Figure",
+              "doc": "FigSize starts a fresh current figure with the given pixel dimensions,\ndiscarding any previous global state.\n"
+            },
+            {
+              "name": "Gcf",
+              "signature": "func Gcf() *Figure",
+              "doc": "Gcf returns the current figure, creating a default 640x480 one if needed.\n"
+            },
+            {
+              "name": "NewFigure",
+              "signature": "func NewFigure(width, height int) *Figure",
+              "doc": "NewFigure creates a figure of the given pixel size with a white background\nand 100 DPI. A width or height less than 1 is clamped to a small default.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "AddAxes",
+              "recv": "*Figure",
+              "signature": "func (f *Figure) AddAxes() *Axes",
+              "doc": "AddAxes appends a new Axes filling the entire figure and returns it.\n"
+            },
+            {
+              "name": "Axes",
+              "recv": "*Figure",
+              "signature": "func (f *Figure) Axes() *Axes",
+              "doc": "Axes returns the figure's first Axes, creating one if none exist. This is a\nconvenience for the common single-plot case.\n"
+            },
+            {
+              "name": "PNGBytes",
+              "recv": "*Figure",
+              "signature": "func (f *Figure) PNGBytes() ([]byte, error)",
+              "doc": "PNGBytes returns the figure encoded as a PNG byte slice.\n"
+            },
+            {
+              "name": "RenderImage",
+              "recv": "*Figure",
+              "signature": "func (f *Figure) RenderImage() *image.RGBA",
+              "doc": "RenderImage renders the figure to an in-memory RGBA image.\n"
+            },
+            {
+              "name": "RenderSVG",
+              "recv": "*Figure",
+              "signature": "func (f *Figure) RenderSVG() string",
+              "doc": "RenderSVG renders the figure to an SVG document string.\n"
+            },
+            {
+              "name": "Save",
+              "recv": "*Figure",
+              "signature": "func (f *Figure) Save(path string) error",
+              "doc": "Save renders the figure to path, choosing the format from the file\nextension (\".svg\" for SVG, anything else for PNG).\n"
+            },
+            {
+              "name": "SavePNG",
+              "recv": "*Figure",
+              "signature": "func (f *Figure) SavePNG(path string) error",
+              "doc": "SavePNG renders and writes the figure to a PNG file at path.\n"
+            },
+            {
+              "name": "SaveSVG",
+              "recv": "*Figure",
+              "signature": "func (f *Figure) SaveSVG(path string) error",
+              "doc": "SaveSVG renders and writes the figure to an SVG file at path.\n"
+            },
+            {
+              "name": "Subplots",
+              "recv": "*Figure",
+              "signature": "func (f *Figure) Subplots(rows, cols int) []*Axes",
+              "doc": "Subplots creates a rows x cols grid of Axes and returns them in row-major\norder. Each Axes occupies its cell of the figure.\n"
+            },
+            {
+              "name": "WritePNG",
+              "recv": "*Figure",
+              "signature": "func (f *Figure) WritePNG(w io.Writer) error",
+              "doc": "WritePNG encodes the figure as PNG to w.\n"
+            },
+            {
+              "name": "WriteSVG",
+              "recv": "*Figure",
+              "signature": "func (f *Figure) WriteSVG(w io.Writer) error",
+              "doc": "WriteSVG writes the figure's SVG document to w.\n"
+            }
+          ]
+        },
+        {
+          "name": "FillBetween",
+          "signature": "type FillBetween struct {\n\tX, Y1, Y2 []float64\n\tColor     Color\n\tLabel     string\n}",
+          "doc": "FillBetween shades the region between two curves y1 and y2 sampled at the\nsame x positions, the equivalent of matplotlib's Axes.fill_between. When Y2\nis nil the region is filled down to zero.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "SetColor",
+              "recv": "*FillBetween",
+              "signature": "func (f *FillBetween) SetColor(c Color) *FillBetween",
+              "doc": "SetColor sets the fill color and returns the area for chaining. Use\nColor.WithAlpha to make the fill translucent.\n"
+            },
+            {
+              "name": "SetLabel",
+              "recv": "*FillBetween",
+              "signature": "func (f *FillBetween) SetLabel(l string) *FillBetween",
+              "doc": "SetLabel sets the legend label and returns the area for chaining.\n"
+            }
+          ]
+        },
+        {
+          "name": "Histogram",
+          "signature": "type Histogram struct {\n\tData  []float64\n\tBins  int\n\tColor Color\n\tLabel string\n\t// contains filtered or unexported fields\n}",
+          "doc": "Histogram bins raw data into equal-width bins and draws the counts as bars.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "Hist",
+              "signature": "func Hist(data []float64, bins int) *Histogram",
+              "doc": "Hist adds a histogram to the current axes.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "SetColor",
+              "recv": "*Histogram",
+              "signature": "func (h *Histogram) SetColor(c Color) *Histogram",
+              "doc": "SetColor sets the histogram color and returns it for chaining.\n"
+            },
+            {
+              "name": "SetLabel",
+              "recv": "*Histogram",
+              "signature": "func (h *Histogram) SetLabel(s string) *Histogram",
+              "doc": "SetLabel sets the legend label and returns the histogram for chaining.\n"
+            }
+          ]
+        },
+        {
+          "name": "LinePlot",
+          "signature": "type LinePlot struct {\n\tX, Y      []float64\n\tColor     Color\n\tLineWidth float64\n\tMarker    Marker\n\tLabel     string\n}",
+          "doc": "LinePlot is a connected line series with optional markers.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "Plot",
+              "signature": "func Plot(x, y []float64) *LinePlot",
+              "doc": "Plot adds a line series to the current axes.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "SetColor",
+              "recv": "*LinePlot",
+              "signature": "func (l *LinePlot) SetColor(c Color) *LinePlot",
+              "doc": "SetColor sets the series color and returns the plot for chaining.\n"
+            },
+            {
+              "name": "SetLabel",
+              "recv": "*LinePlot",
+              "signature": "func (l *LinePlot) SetLabel(s string) *LinePlot",
+              "doc": "SetLabel sets the legend label and returns the plot for chaining.\n"
+            },
+            {
+              "name": "SetLineWidth",
+              "recv": "*LinePlot",
+              "signature": "func (l *LinePlot) SetLineWidth(w float64) *LinePlot",
+              "doc": "SetLineWidth sets the line width in pixels and returns the plot for chaining.\n"
+            },
+            {
+              "name": "SetMarker",
+              "recv": "*LinePlot",
+              "signature": "func (l *LinePlot) SetMarker(m Marker) *LinePlot",
+              "doc": "SetMarker sets the point marker and returns the plot for chaining.\n"
+            }
+          ]
+        },
+        {
+          "name": "LogNorm",
+          "signature": "type LogNorm struct {\n\tMin, Max float64\n}",
+          "doc": "LogNorm maps positive data values onto the unit interval [0, 1] on a\nlogarithmic (base-10) scale, the counterpart of matplotlib's colors.LogNorm.\nIt is typically paired with a Colormap to color data that spans several\norders of magnitude. Both Min and Max must be strictly positive.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewLogNorm",
+              "signature": "func NewLogNorm(min, max float64) LogNorm",
+              "doc": "NewLogNorm returns a LogNorm spanning [min, max]. Both bounds should be\nstrictly positive; a non-positive or degenerate range makes Norm return 0.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Map",
+              "recv": "LogNorm",
+              "signature": "func (n LogNorm) Map(cm Colormap, v float64) Color",
+              "doc": "Map normalizes v with n and looks the result up in cm, returning the color a\nlogarithmic scalar-mappable would assign to v.\n"
+            },
+            {
+              "name": "Norm",
+              "recv": "LogNorm",
+              "signature": "func (n LogNorm) Norm(v float64) float64",
+              "doc": "Norm maps v to [0, 1] by the transform\n(log10(v)-log10(Min))/(log10(Max)-log10(Min)), clamped to the unit interval.\nNon-positive v, or a degenerate/invalid range, returns 0. This reproduces\nmatplotlib.colors.LogNorm for in-range values.\n"
+            }
+          ]
+        },
+        {
+          "name": "Marker",
+          "signature": "type Marker int",
+          "doc": "Marker identifies the glyph drawn at data points for line and scatter plots.\n",
+          "consts": [
+            {
+              "names": [
+                "MarkerNone",
+                "MarkerCircle",
+                "MarkerSquare",
+                "MarkerTriangle",
+                "MarkerCross",
+                "MarkerPlus"
+              ],
+              "signature": "const (\n\t// MarkerNone draws no marker.\n\tMarkerNone Marker = iota\n\t// MarkerCircle draws a filled circle.\n\tMarkerCircle\n\t// MarkerSquare draws a filled square.\n\tMarkerSquare\n\t// MarkerTriangle draws a filled upward triangle.\n\tMarkerTriangle\n\t// MarkerCross draws an \"x\" shaped cross.\n\tMarkerCross\n\t// MarkerPlus draws a \"+\" shaped cross.\n\tMarkerPlus\n)",
+              "doc": ""
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Normalize",
+          "signature": "type Normalize struct {\n\tMin, Max float64\n}",
+          "doc": "Normalize maps data values in a fixed range onto the unit interval [0, 1],\nthe counterpart of matplotlib's colors.Normalize. It is typically paired with\na Colormap to color scalar data.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewNormalize",
+              "signature": "func NewNormalize(min, max float64) Normalize",
+              "doc": "NewNormalize returns a Normalize spanning [min, max]. If min == max the range\nis treated as degenerate and Norm always returns 0.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Map",
+              "recv": "Normalize",
+              "signature": "func (n Normalize) Map(cm Colormap, v float64) Color",
+              "doc": "Map normalizes v with n and looks the result up in cm, returning the color\nthat a scalar-mappable would assign to v.\n"
+            },
+            {
+              "name": "Norm",
+              "recv": "Normalize",
+              "signature": "func (n Normalize) Norm(v float64) float64",
+              "doc": "Norm maps v to [0, 1] by the linear transform (v-Min)/(Max-Min), clamped to\nthe unit interval. A degenerate range (Min == Max) returns 0.\n"
+            }
+          ]
+        },
+        {
+          "name": "PieChart",
+          "signature": "type PieChart struct {\n\tValues []float64\n\tLabels []string\n\tColors []Color\n}",
+          "doc": "PieChart draws proportional wedges. It does not use the axis coordinate\nsystem; the enclosing axes renders it specially.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "Pie",
+              "signature": "func Pie(values []float64, labels []string) *PieChart",
+              "doc": "Pie adds a pie chart to the current axes.\n"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "name": "Point",
+          "signature": "type Point struct {\n\tX, Y float64\n}",
+          "doc": "Point is a 2-D coordinate in device (pixel) space, with the origin at the\ntop-left corner and y increasing downward.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "RefLine",
+          "signature": "type RefLine struct {\n\tValue     float64\n\tVertical  bool\n\tColor     Color\n\tLineWidth float64\n\tLabel     string\n}",
+          "doc": "RefLine is a full-width horizontal or full-height vertical reference line at\na fixed data coordinate, the equivalent of matplotlib's axhline and axvline.\nA reference line does not participate in autoscaling.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "SetColor",
+              "recv": "*RefLine",
+              "signature": "func (r *RefLine) SetColor(c Color) *RefLine",
+              "doc": "SetColor sets the line color and returns the reference line for chaining.\n"
+            },
+            {
+              "name": "SetLabel",
+              "recv": "*RefLine",
+              "signature": "func (r *RefLine) SetLabel(l string) *RefLine",
+              "doc": "SetLabel sets the legend label and returns the reference line for chaining.\n"
+            }
+          ]
+        },
+        {
+          "name": "ScatterPlot",
+          "signature": "type ScatterPlot struct {\n\tX, Y   []float64\n\tColor  Color\n\tSize   float64\n\tMarker Marker\n\tLabel  string\n}",
+          "doc": "ScatterPlot is a set of unconnected markers.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "Scatter",
+              "signature": "func Scatter(x, y []float64) *ScatterPlot",
+              "doc": "Scatter adds a scatter series to the current axes.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "SetColor",
+              "recv": "*ScatterPlot",
+              "signature": "func (s *ScatterPlot) SetColor(c Color) *ScatterPlot",
+              "doc": "SetColor sets the marker color and returns the plot for chaining.\n"
+            },
+            {
+              "name": "SetLabel",
+              "recv": "*ScatterPlot",
+              "signature": "func (s *ScatterPlot) SetLabel(l string) *ScatterPlot",
+              "doc": "SetLabel sets the legend label and returns the plot for chaining.\n"
+            },
+            {
+              "name": "SetMarker",
+              "recv": "*ScatterPlot",
+              "signature": "func (s *ScatterPlot) SetMarker(m Marker) *ScatterPlot",
+              "doc": "SetMarker sets the marker glyph and returns the plot for chaining.\n"
+            },
+            {
+              "name": "SetSize",
+              "recv": "*ScatterPlot",
+              "signature": "func (s *ScatterPlot) SetSize(sz float64) *ScatterPlot",
+              "doc": "SetSize sets the marker size in pixels and returns the plot for chaining.\n"
+            }
+          ]
+        },
+        {
+          "name": "StemPlot",
+          "signature": "type StemPlot struct {\n\tX, Y   []float64\n\tColor  Color\n\tMarker Marker\n\tLabel  string\n}",
+          "doc": "StemPlot draws a vertical stem from a baseline at y = 0 up to each data\npoint, with a marker at the tip, mirroring matplotlib's Axes.stem.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "SetColor",
+              "recv": "*StemPlot",
+              "signature": "func (s *StemPlot) SetColor(c Color) *StemPlot",
+              "doc": "SetColor sets the stem color and returns the plot for chaining.\n"
+            },
+            {
+              "name": "SetLabel",
+              "recv": "*StemPlot",
+              "signature": "func (s *StemPlot) SetLabel(l string) *StemPlot",
+              "doc": "SetLabel sets the legend label and returns the plot for chaining.\n"
+            }
+          ]
+        },
+        {
+          "name": "StepPlot",
+          "signature": "type StepPlot struct {\n\tX, Y      []float64\n\tColor     Color\n\tLineWidth float64\n\tWhere     string\n\tLabel     string\n}",
+          "doc": "StepPlot is a piecewise-constant (\"staircase\") line, the equivalent of\nmatplotlib's Axes.step. The Where field selects where the step transition\noccurs relative to the data points: \"pre\", \"post\" (the default) or \"mid\".\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "SetColor",
+              "recv": "*StepPlot",
+              "signature": "func (s *StepPlot) SetColor(c Color) *StepPlot",
+              "doc": "SetColor sets the step color and returns the plot for chaining.\n"
+            },
+            {
+              "name": "SetLabel",
+              "recv": "*StepPlot",
+              "signature": "func (s *StepPlot) SetLabel(l string) *StepPlot",
+              "doc": "SetLabel sets the legend label and returns the plot for chaining.\n"
+            },
+            {
+              "name": "SetWhere",
+              "recv": "*StepPlot",
+              "signature": "func (s *StepPlot) SetWhere(w string) *StepPlot",
+              "doc": "SetWhere sets the step placement (\"pre\", \"post\" or \"mid\") and returns the\nplot for chaining. Unrecognized values are treated as \"post\".\n"
+            }
+          ]
+        },
+        {
+          "name": "TextAnchor",
+          "signature": "type TextAnchor int",
+          "doc": "TextAnchor controls horizontal alignment of rendered text relative to its\nanchor point.\n",
+          "consts": [
+            {
+              "names": [
+                "AnchorStart",
+                "AnchorMiddle",
+                "AnchorEnd"
+              ],
+              "signature": "const (\n\t// AnchorStart left-aligns text at the anchor point.\n\tAnchorStart TextAnchor = iota\n\t// AnchorMiddle centers text on the anchor point.\n\tAnchorMiddle\n\t// AnchorEnd right-aligns text at the anchor point.\n\tAnchorEnd\n)",
+              "doc": ""
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        }
+      ],
+      "funcs": [
+        {
+          "name": "Arange",
+          "signature": "func Arange(start, stop, step float64) []float64",
+          "doc": "Arange returns evenly spaced values over the half-open interval [start, stop)\nusing the given step, mirroring numpy.arange. A positive step walks upward\nuntil reaching or passing stop; a negative step walks downward. A zero step\n(or a step whose sign cannot reach stop) yields an empty slice.\n"
+        },
+        {
+          "name": "Clf",
+          "signature": "func Clf()",
+          "doc": "Clf clears the current figure, resetting the global state.\n"
+        },
+        {
+          "name": "Grid",
+          "signature": "func Grid(on bool)",
+          "doc": "Grid toggles the grid on the current axes.\n"
+        },
+        {
+          "name": "HSVToRGB",
+          "signature": "func HSVToRGB(h, s, v float64) (r, g, b float64)",
+          "doc": "HSVToRGB converts an HSV color, with each component given as a float in\n[0, 1], back to RGB. The returned red, green and blue are each in [0, 1]. It\nmirrors matplotlib.colors.hsv_to_rgb and is the inverse of RGBToHSV, so\nround-tripping a color through both reproduces the original channels.\n"
+        },
+        {
+          "name": "Legend",
+          "signature": "func Legend()",
+          "doc": "Legend enables the legend on the current axes.\n"
+        },
+        {
+          "name": "Linspace",
+          "signature": "func Linspace(start, stop float64, num int) []float64",
+          "doc": "Linspace returns num evenly spaced values covering the closed interval\n[start, stop]. It mirrors numpy.linspace, which matplotlib users routinely\nreach for when constructing plot coordinates.\n\nThe endpoints are always included exactly: the first element equals start\nand, when num \u003e 1, the last element equals stop. If num \u003c= 0 an empty slice\nis returned; if num == 1 the single-element slice {start} is returned.\n"
+        },
+        {
+          "name": "Logspace",
+          "signature": "func Logspace(start, stop float64, num int, base float64) []float64",
+          "doc": "Logspace returns num values spaced evenly on a logarithmic scale, mirroring\nnumpy.logspace. The returned values are base raised to the exponents\nLinspace(start, stop, num); that is, the exponents (not the values\nthemselves) are linearly spaced. A base \u003c= 0 is treated as 10.\n"
+        },
+        {
+          "name": "RGBToHSV",
+          "signature": "func RGBToHSV(r, g, b float64) (h, s, v float64)",
+          "doc": "RGBToHSV converts an RGB color, with each component given as a float in\n[0, 1], to the HSV color space. The returned hue, saturation and value are\neach in [0, 1] (hue is the fraction of a full turn, so 1/3 is green and 2/3\nis blue). It mirrors matplotlib.colors.rgb_to_hsv exactly, including its\nconvention that a fully unsaturated color reports a hue of 0.\n"
+        },
+        {
+          "name": "Save",
+          "signature": "func Save(path string) error",
+          "doc": "Save renders the current figure to path (format chosen by extension).\n"
+        },
+        {
+          "name": "Title",
+          "signature": "func Title(s string)",
+          "doc": "Title sets the current axes title.\n"
+        },
+        {
+          "name": "Xlabel",
+          "signature": "func Xlabel(s string)",
+          "doc": "Xlabel sets the current axes x-axis label.\n"
+        },
+        {
+          "name": "Xlim",
+          "signature": "func Xlim(lo, hi float64)",
+          "doc": "Xlim fixes the current axes x-limits.\n"
+        },
+        {
+          "name": "Ylabel",
+          "signature": "func Ylabel(s string)",
+          "doc": "Ylabel sets the current axes y-axis label.\n"
+        },
+        {
+          "name": "Ylim",
+          "signature": "func Ylim(lo, hi float64)",
+          "doc": "Ylim fixes the current axes y-limits.\n"
+        }
+      ],
+      "examples": [
+        {
+          "name": "",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n\n\t\"github.com/malcolmston/matplotlib\"\n)\n\nfunc main() {\n\tfig := matplotlib.NewFigure(320, 240)\n\tax := fig.AddAxes()\n\tax.Plot([]float64{0, 1, 2, 3}, []float64{0, 1, 4, 9}).SetLabel(\"x^2\")\n\tax.SetTitle(\"Squares\").SetXLabel(\"x\").SetYLabel(\"y\").Legend()\n\n\tsvg := fig.RenderSVG()\n\tfmt.Printf(\"size: %dx%d\\n\", fig.Width, fig.Height)\n\tfmt.Println(\"has polyline:\", strings.Contains(svg, \"\u003cpolyline\"))\n\tfmt.Println(\"has title:\", strings.Contains(svg, \"Squares\"))\n}",
+          "output": "size: 320x240\nhas polyline: true\nhas title: true",
+          "doc": "Example renders a tiny line plot to SVG and prints its dimensions and a\nsnippet of the output, demonstrating the basic Figure/Axes workflow.\n"
+        },
+        {
+          "name": "Figure (Save)",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/matplotlib\"\n)\n\nfunc main() {\n\tfig := matplotlib.NewFigure(400, 300)\n\tax := fig.AddAxes()\n\tax.Bar([]string{\"a\", \"b\", \"c\"}, []float64{3, 7, 2})\n\tax.SetTitle(\"Counts\")\n\n\timg := fig.RenderImage()\n\tfmt.Printf(\"%dx%d\\n\", img.Bounds().Dx(), img.Bounds().Dy())\n}",
+          "output": "400x300",
+          "doc": "ExampleFigure_Save writes a bar chart to a PNG file using the pyplot-style\nconvenience API.\n"
+        }
+      ]
+    }
+  ]
+}

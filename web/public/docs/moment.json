@@ -1,0 +1,1192 @@
+{
+  "module": "github.com/malcolmston/moment",
+  "generatedAt": "2026-07-19T02:05:53Z",
+  "packages": [
+    {
+      "importPath": "github.com/malcolmston/moment",
+      "name": "moment",
+      "synopsis": "Package moment provides a moment.js-style date and time API layered on top of the Go standard library's time package.",
+      "doc": "Package moment provides a moment.js-style date and time API layered on top of\nthe Go standard library's time package. It is implemented purely with the\nstandard library: no cgo and no third-party dependencies.\n\n# The Moment type\n\nA Moment is an immutable wrapper around time.Time. Every manipulation method\nreturns a new Moment and never mutates the receiver, so values are safe to\nshare. Construct one with New, FromTime, Now, Unix, UnixMilli, DateTime, or\nby parsing a string:\n\n\tm := moment.Now()\n\tm := moment.Unix(1500000000)\n\tm, err := moment.Parse(\"2017-07-14T02:40:00Z\")\n\tm, err := moment.ParseFormat(\"14/07/2017\", \"DD/MM/YYYY\")\n\n# Deterministic clock\n\nRelative-time helpers such as FromNow and Calendar consult a Clock. The\ndefault is backed by time.Now, but tests can inject a fixed clock so the\noutput is deterministic:\n\n\tclock := moment.FixedClock(reference)\n\tm := moment.New(t).WithClock(clock)\n\tfmt.Println(m.FromNow())\n\n# Format tokens\n\nFormat and ParseFormat use moment.js-style tokens which are translated to Go\nreference layouts internally. The supported tokens are:\n\n\tYYYY  four-digit year        2006\n\tYY    two-digit year         06\n\tMMMM  full month name        January\n\tMMM   short month name       Jan\n\tMM    two-digit month        01\n\tM     month                  1\n\tDD    two-digit day          02\n\tD     day of month           2\n\tdddd  full weekday name      Monday\n\tddd   short weekday name     Mon\n\tHH    two-digit 24h hour     15\n\tH     24h hour               (padded; Go has no unpadded form)\n\thh    two-digit 12h hour     03\n\th     12h hour               3\n\tmm    two-digit minute       04\n\tm     minute                 4\n\tss    two-digit second       05\n\ts     second                 5\n\tSSS   milliseconds           000\n\tA     upper meridiem         PM\n\ta     lower meridiem         pm\n\tZ     numeric zone offset    -07:00\n\tZZ    numeric zone offset    -0700\n\nText wrapped in square brackets is emitted literally, for example\n\"YYYY [year]\". FormatLayout and ParseLayout accept a raw Go layout instead.\n\n# Manipulation\n\nAdd and Subtract move a Moment by a number of units; StartOf and EndOf snap\nto unit boundaries; Set replaces a single component; Clone copies the value.\nUnits are the Unit constants (Year, Month, Week, Day, Hour, Minute, Second,\nMillisecond) and common moment.js aliases such as \"days\" or \"h\" are accepted.\n\n\tm.Add(3, moment.Day)\n\tm.Subtract(1, moment.Month)\n\tm.StartOf(moment.Month)\n\tm.EndOf(moment.Year)\n\tm.Set(moment.Hour, 9)\n\n# Comparison and query\n\nIsBefore, IsAfter, IsSame, IsSameOrBefore, IsSameOrAfter and IsBetween\ncompare Moments. Getters include Year, Month, Date, Hour, Minute, Second,\nMillisecond, Weekday, DayOfYear and ISOWeek.\n\n# Difference and relative time\n\nDiff reports the signed difference between two Moments in any unit as a\nfloat64; DiffInt truncates toward zero and DiffDuration returns a\ntime.Duration. FromNow, From, To and ToNow produce humanized phrases such as\n\"in 3 days\" or \"2 hours ago\", Humanize renders a bare duration, and Calendar\nyields strings like \"Today at 2:30 PM\".\n\n# Time zones\n\nIn, UTC and Local reinterpret a Moment in another time zone using\ntime.Location values obtained from time.UTC, time.Local or\ntime.LoadLocation. UTCOffset and SetUTCOffset get and set the zone offset in\nminutes, and IsDST reports daylight-saving time.\n\n# Locales\n\nFormat, Calendar, FromNow and the humanized relative-time helpers are\nlocale-aware. Select a locale per Moment with Locale, or set the process-wide\ndefault with SetGlobalLocale. A representative set of about twenty common\nlocales is bundled (en, en-gb, fr, de, es, it, pt, pt-br, nl, ru, zh-cn,\nzh-tw, ja, ko, ar, hi, tr, pl, sv, cs); the full moment.js catalogue of ~140\nlocales is not bundled, but the Locale type and RegisterLocale let you add\nany locale you need. See AvailableLocales for the shipped set.\n\n\tm.Locale(\"fr\").Format(\"LLLL\") // mardi 4 juillet 2017 14:05\n\tm.Locale(\"de\").FromNow()      // in 3 Tagen\n\nThe full moment token set is supported by Format and ParseFormat, including\nQ/Qo, Do, DDD/DDDo, w/wo/ww, W/Wo/WW, e/E, gg/gggg, GG/GGGG, k/kk, x/X, z/zz,\nruns of S for fractional seconds, and the long-date tokens LT, LTS, L, LL,\nLLL and LLLL.\n\n# Durations\n\nDuration is the moment.js duration analogue. Construct one with NewDuration\nor DurationBetween, convert it with As, read components with Get, do\narithmetic with Add and Subtract, humanize it with Humanize, and serialize it\nto and from ISO-8601 with ISOString and ParseDuration.\n\n\td := moment.NewDuration(90, moment.Minute)\n\td.AsHours()        // 1.5\n\td.Humanize(true)   // in an hour\n\td.ISOString()      // PT1H30M\n\n# Parsing and validity\n\nBeyond Parse (ISO/RFC auto-detection), ParseFormat parses moment tokens,\nParseFormatStrict requires an exact match, ParseFormats tries a list of\nformats, and ParseRFC2822, ParseISO and ParseDuration handle their named\nformats. FromArray and FromObject build a Moment from components. A failed\nparse yields an invalid Moment (see Invalid, Moment.IsValid and\nMoment.CreationData).\n",
+      "consts": [],
+      "vars": [],
+      "types": [
+        {
+          "name": "CalendarFormats",
+          "signature": "type CalendarFormats struct {\n\tSameDay  string\n\tNextDay  string\n\tNextWeek string\n\tLastDay  string\n\tLastWeek string\n\tSameElse string\n}",
+          "doc": "CalendarFormats holds the moment.js calendar templates used by Calendar to\ndescribe a Moment relative to a reference day. Each value is a format string\n(tokens plus [bracketed] literals), for example \"[Today at] LT\".\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Clock",
+          "signature": "type Clock interface {\n\t// Now returns the current time.\n\tNow() time.Time\n}",
+          "doc": "Clock is the source of the current time. It is injected into Moment values so\nthat relative-time helpers such as FromNow and Calendar are deterministic in\ntests. The standard implementation is backed by time.Now.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "FixedClock",
+              "signature": "func FixedClock(t time.Time) Clock",
+              "doc": "FixedClock returns a Clock that always reports the same instant. It is handy\nfor deterministic tests.\n"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "name": "ClockFunc",
+          "signature": "type ClockFunc func() time.Time",
+          "doc": "ClockFunc adapts an ordinary function to the Clock interface.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Now",
+              "recv": "ClockFunc",
+              "signature": "func (f ClockFunc) Now() time.Time",
+              "doc": "Now calls the underlying function.\n"
+            }
+          ]
+        },
+        {
+          "name": "CreationData",
+          "signature": "type CreationData struct {\n\t// Input is the original string (or a description of the input) supplied to\n\t// the parser.\n\tInput string\n\t// Format is the format string that produced the Moment, if any.\n\tFormat string\n\t// Locale is the locale name in effect during parsing.\n\tLocale string\n\t// IsUTC reports whether the Moment was created in UTC.\n\tIsUTC bool\n\t// Valid reports whether parsing succeeded.\n\tValid bool\n}",
+          "doc": "CreationData records how a Moment was constructed by a parsing function,\nmirroring moment.js's creationData(). It is returned by Moment.CreationData.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "DateSpec",
+          "signature": "type DateSpec struct {\n\tYear, Month, Day        *int\n\tHour, Minute, Second    *int\n\tMillisecond, Nanosecond *int\n}",
+          "doc": "DateSpec holds calendar and clock components used by SetAll and FromObject.\nA nil pointer leaves that component unchanged (SetAll) or at its default\n(FromObject). Month is 1-based (time.January == 1).\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Duration",
+          "signature": "type Duration struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Duration is a length of time, the moment.js Duration analogue. It stores\nmonths, days and milliseconds separately (because months and days have\nvariable lengths) and offers conversion (As), component access (Get),\narithmetic, ISO-8601 serialization and locale-aware humanization.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "DurationBetween",
+              "signature": "func DurationBetween(from, to Moment) Duration",
+              "doc": "DurationBetween returns the Duration from from to to (that is, to − from),\nmeasured in milliseconds.\n"
+            },
+            {
+              "name": "DurationFromTime",
+              "signature": "func DurationFromTime(td time.Duration) Duration",
+              "doc": "DurationFromTime returns a Duration equal to the given time.Duration, stored\nentirely as milliseconds.\n"
+            },
+            {
+              "name": "NewDuration",
+              "signature": "func NewDuration(n int, unit Unit) Duration",
+              "doc": "NewDuration returns a Duration of n of the given unit. Recognized units are\nYear, Quarter, Month, Week, Day, Hour, Minute, Second and Millisecond (plus\ntheir moment.js aliases).\n"
+            },
+            {
+              "name": "NewDurationFromObject",
+              "signature": "func NewDurationFromObject(obj map[string]int) Duration",
+              "doc": "NewDurationFromObject builds a Duration from a map of unit names to amounts,\nmirroring moment.js's moment.duration({...}) object form. Recognized keys are\nthe moment.js unit names and their aliases, for example \"years\"/\"y\",\n\"months\"/\"M\", \"weeks\"/\"w\", \"days\"/\"d\", \"hours\"/\"h\", \"minutes\"/\"m\",\n\"seconds\"/\"s\" and \"milliseconds\"/\"ms\". Unknown keys are ignored; an empty map\nyields a zero Duration.\n"
+            },
+            {
+              "name": "ParseDuration",
+              "signature": "func ParseDuration(s string) (Duration, error)",
+              "doc": "ParseDuration parses an ISO-8601 duration string (for example\n\"P1Y2M10DT2H30M\" or \"PT1.5S\") into a Duration. Weeks (W) are folded into\ndays. It returns an error for input that is not a valid ISO-8601 duration.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Abs",
+              "recv": "Duration",
+              "signature": "func (d Duration) Abs() Duration",
+              "doc": "Abs returns the Duration with all components made non-negative.\n"
+            },
+            {
+              "name": "Add",
+              "recv": "Duration",
+              "signature": "func (d Duration) Add(other Duration) Duration",
+              "doc": "Add returns the sum of the two Durations, component by component.\n"
+            },
+            {
+              "name": "As",
+              "recv": "Duration",
+              "signature": "func (d Duration) As(unit Unit) float64",
+              "doc": "As returns the whole Duration expressed in the given unit as a float64.\n"
+            },
+            {
+              "name": "AsDays",
+              "recv": "Duration",
+              "signature": "func (d Duration) AsDays() float64",
+              "doc": "AsDays returns the Duration in fractional days.\n"
+            },
+            {
+              "name": "AsHours",
+              "recv": "Duration",
+              "signature": "func (d Duration) AsHours() float64",
+              "doc": "AsHours returns the Duration in fractional hours.\n"
+            },
+            {
+              "name": "AsMilliseconds",
+              "recv": "Duration",
+              "signature": "func (d Duration) AsMilliseconds() float64",
+              "doc": "AsMilliseconds returns the Duration in whole milliseconds.\n"
+            },
+            {
+              "name": "AsMinutes",
+              "recv": "Duration",
+              "signature": "func (d Duration) AsMinutes() float64",
+              "doc": "AsMinutes returns the Duration in fractional minutes.\n"
+            },
+            {
+              "name": "AsMonths",
+              "recv": "Duration",
+              "signature": "func (d Duration) AsMonths() float64",
+              "doc": "AsMonths returns the Duration in fractional months.\n"
+            },
+            {
+              "name": "AsSeconds",
+              "recv": "Duration",
+              "signature": "func (d Duration) AsSeconds() float64",
+              "doc": "AsSeconds returns the Duration in fractional seconds.\n"
+            },
+            {
+              "name": "AsWeeks",
+              "recv": "Duration",
+              "signature": "func (d Duration) AsWeeks() float64",
+              "doc": "AsWeeks returns the Duration in fractional weeks.\n"
+            },
+            {
+              "name": "AsYears",
+              "recv": "Duration",
+              "signature": "func (d Duration) AsYears() float64",
+              "doc": "AsYears returns the Duration in fractional years.\n"
+            },
+            {
+              "name": "Clone",
+              "recv": "Duration",
+              "signature": "func (d Duration) Clone() Duration",
+              "doc": "Clone returns an independent copy of the Duration.\n"
+            },
+            {
+              "name": "Days",
+              "recv": "Duration",
+              "signature": "func (d Duration) Days() int",
+              "doc": "Days returns the days component.\n"
+            },
+            {
+              "name": "Get",
+              "recv": "Duration",
+              "signature": "func (d Duration) Get(unit Unit) int",
+              "doc": "Get returns the Duration's value for the given unit as a normalized component\n(for example, Get(Minute) is 0–59, and Get(Month) is 0–11).\n"
+            },
+            {
+              "name": "Hours",
+              "recv": "Duration",
+              "signature": "func (d Duration) Hours() int",
+              "doc": "Hours returns the hours component (0–23).\n"
+            },
+            {
+              "name": "Humanize",
+              "recv": "Duration",
+              "signature": "func (d Duration) Humanize(withSuffix bool) string",
+              "doc": "Humanize renders the Duration as a locale-aware phrase such as \"2 days\". When\nwithSuffix is true the locale's future/past wrapper is applied, yielding\nphrases like \"in 2 days\" or \"2 days ago\".\n"
+            },
+            {
+              "name": "ISOString",
+              "recv": "Duration",
+              "signature": "func (d Duration) ISOString() string",
+              "doc": "ISOString serializes the Duration as an ISO-8601 duration such as\n\"P1Y2M10DT2H30M\". A zero Duration is \"P0D\". The output uses the stored\nmonths, days and milliseconds without converting between them. Matching\nmoment.js, a mixed-sign Duration carries an overall sign taken from the\ntotal length, and any component group whose own sign differs from that total\nis rendered with its own leading minus, e.g. {years:-1, hours:1} renders as\n\"-P1YT-1H\".\n"
+            },
+            {
+              "name": "Locale",
+              "recv": "Duration",
+              "signature": "func (d Duration) Locale(name string) Duration",
+              "doc": "Locale returns a copy of the Duration bound to the named locale, affecting\nHumanize. An unknown name falls back to the global default.\n"
+            },
+            {
+              "name": "Milliseconds",
+              "recv": "Duration",
+              "signature": "func (d Duration) Milliseconds() int",
+              "doc": "Milliseconds returns the milliseconds component (0–999).\n"
+            },
+            {
+              "name": "Minutes",
+              "recv": "Duration",
+              "signature": "func (d Duration) Minutes() int",
+              "doc": "Minutes returns the minutes component (0–59).\n"
+            },
+            {
+              "name": "Months",
+              "recv": "Duration",
+              "signature": "func (d Duration) Months() int",
+              "doc": "Months returns the months component (0–11).\n"
+            },
+            {
+              "name": "Seconds",
+              "recv": "Duration",
+              "signature": "func (d Duration) Seconds() int",
+              "doc": "Seconds returns the seconds component (0–59).\n"
+            },
+            {
+              "name": "String",
+              "recv": "Duration",
+              "signature": "func (d Duration) String() string",
+              "doc": "String returns the Duration's ISO-8601 representation.\n"
+            },
+            {
+              "name": "Subtract",
+              "recv": "Duration",
+              "signature": "func (d Duration) Subtract(other Duration) Duration",
+              "doc": "Subtract returns d minus other, component by component.\n"
+            },
+            {
+              "name": "ToDuration",
+              "recv": "Duration",
+              "signature": "func (d Duration) ToDuration() time.Duration",
+              "doc": "ToDuration returns the Duration as a time.Duration (nanosecond precision from\nits total-milliseconds length).\n"
+            },
+            {
+              "name": "ToJSON",
+              "recv": "Duration",
+              "signature": "func (d Duration) ToJSON() string",
+              "doc": "ToJSON returns the Duration serialized for JSON as an ISO-8601 duration\nstring, mirroring moment.js's Duration.toJSON (which aliases toISOString).\n"
+            },
+            {
+              "name": "ValueOf",
+              "recv": "Duration",
+              "signature": "func (d Duration) ValueOf() int64",
+              "doc": "ValueOf returns the Duration's total length in whole milliseconds, mirroring\nmoment.js's Duration.valueOf. Month and day components are converted using\nthe same mean-month length As uses, then truncated toward zero.\n"
+            },
+            {
+              "name": "Weeks",
+              "recv": "Duration",
+              "signature": "func (d Duration) Weeks() int",
+              "doc": "Weeks returns the whole-weeks component derived from the days component.\n"
+            },
+            {
+              "name": "Years",
+              "recv": "Duration",
+              "signature": "func (d Duration) Years() int",
+              "doc": "Years returns the years component (Get(Year)).\n"
+            }
+          ]
+        },
+        {
+          "name": "Locale",
+          "signature": "type Locale struct {\n\t// Name is the canonical, lower-case locale identifier, e.g. \"en\" or \"pt-br\".\n\tName string\n\n\t// Months and MonthsShort hold the 12 month names, January first.\n\tMonths      []string\n\tMonthsShort []string\n\n\t// Weekdays, WeekdaysShort and WeekdaysMin hold the 7 weekday names, Sunday\n\t// first (index 0 == Sunday), matching time.Weekday ordering.\n\tWeekdays      []string\n\tWeekdaysShort []string\n\tWeekdaysMin   []string\n\n\t// AM and PM are the simple meridiem strings used when Meridiem is nil.\n\tAM string\n\tPM string\n\t// Meridiem, when non-nil, computes the meridiem string for the given hour\n\t// and minute; isLower requests the lower-case form. Locales such as Chinese\n\t// and Japanese use this for time-of-day words rather than AM/PM.\n\tMeridiem func(hour, minute int, isLower bool) string\n\n\t// Ordinal renders an ordinal number for the given format token (e.g. \"D\",\n\t// \"Do\", \"M\", \"w\"). English yields \"1st\", \"2nd\"; German yields \"1.\".\n\tOrdinal func(number int, token string) string\n\n\t// FirstDayOfWeek is the locale's first weekday (0 == Sunday, 1 == Monday),\n\t// used by week-of-year tokens and StartOf(Week). FirstWeekContainsDate is\n\t// moment's \"doy\": the January date that is always in week 1.\n\tFirstDayOfWeek        int\n\tFirstWeekContainsDate int\n\n\t// RelativeTime, Calendar and LongDateFormats supply the templates used by\n\t// FromNow/Humanize, Calendar and the long-date format tokens respectively.\n\tRelativeTime    RelativeTime\n\tCalendar        CalendarFormats\n\tLongDateFormats LongDateFormats\n}",
+          "doc": "Locale describes everything language- and region-specific about rendering and\nparsing a Moment: month and weekday names, the meridiem, ordinals, the week\nnumbering rules, and the relative-time, calendar and long-date templates. Use\nRegisterLocale to make a Locale available by name and Moment.Locale to select\none per value.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "LookupLocale",
+              "signature": "func LookupLocale(name string) (*Locale, bool)",
+              "doc": "LookupLocale returns the registered Locale for name and whether it was found.\nLookup is case-insensitive and falls back from a regional variant to its base\nlanguage (for example \"en-au\" falls back to \"en\").\n"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "name": "LongDateFormats",
+          "signature": "type LongDateFormats struct {\n\tLT   string // time, e.g. \"h:mm A\"\n\tLTS  string // time with seconds, e.g. \"h:mm:ss A\"\n\tL    string // numeric date, e.g. \"MM/DD/YYYY\"\n\tLL   string // long date, e.g. \"MMMM D, YYYY\"\n\tLLL  string // long date and time, e.g. \"MMMM D, YYYY h:mm A\"\n\tLLLL string // full date and time, e.g. \"dddd, MMMM D, YYYY h:mm A\"\n}",
+          "doc": "LongDateFormats holds the locale's named long date/time patterns, referenced\nfrom format strings and calendar templates by the tokens LT, LTS, L, LL, LLL\nand LLLL.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Moment",
+          "signature": "type Moment struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Moment is an immutable wrapper around time.Time offering a moment.js-style\nAPI for parsing, formatting, manipulation and comparison. All manipulation\nmethods return a new Moment and never mutate the receiver.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "DateTime",
+              "signature": "func DateTime(year int, month time.Month, day, hour, min, sec, nsec int, loc *time.Location) Moment",
+              "doc": "DateTime builds a Moment from calendar components in the given location. A\nnil location is treated as UTC.\n"
+            },
+            {
+              "name": "FromArray",
+              "signature": "func FromArray(parts []int) Moment",
+              "doc": "FromArray builds a Moment from a component slice in UTC, following moment.js's\narray form [year, month, day, hour, minute, second, millisecond]. As in\nmoment, the month is 0-based (0 == January). Missing trailing components\ndefault to the start of their range (day and month default to 1). An empty\nslice yields an invalid Moment.\n"
+            },
+            {
+              "name": "FromArrayInLocation",
+              "signature": "func FromArrayInLocation(parts []int, loc *time.Location) Moment",
+              "doc": "FromArrayInLocation is FromArray in the given location. A nil location is\ntreated as UTC.\n"
+            },
+            {
+              "name": "FromObject",
+              "signature": "func FromObject(obj map[string]int) Moment",
+              "doc": "FromObject builds a Moment from a map of component names to values in UTC,\nmirroring moment.js's object form. Recognized keys are \"year\"/\"years\"/\"y\",\n\"month\"/\"months\"/\"M\" (0-based), \"day\"/\"days\"/\"date\"/\"D\", \"hour\"/\"hours\"/\"h\",\n\"minute\"/\"minutes\"/\"m\", \"second\"/\"seconds\"/\"s\" and\n\"millisecond\"/\"milliseconds\"/\"ms\". Unset components default to the start of\ntheir range.\n"
+            },
+            {
+              "name": "FromObjectInLocation",
+              "signature": "func FromObjectInLocation(obj map[string]int, loc *time.Location) Moment",
+              "doc": "FromObjectInLocation is FromObject in the given location. A nil location is\ntreated as UTC.\n"
+            },
+            {
+              "name": "FromTime",
+              "signature": "func FromTime(t time.Time) Moment",
+              "doc": "FromTime is an alias for New, wrapping a time.Time value.\n"
+            },
+            {
+              "name": "Invalid",
+              "signature": "func Invalid() Moment",
+              "doc": "Invalid returns an explicitly invalid Moment, the moral equivalent of\nmoment.invalid(). Its IsValid reports false and Format returns \"Invalid\ndate\".\n"
+            },
+            {
+              "name": "Max",
+              "signature": "func Max(moments ...Moment) Moment",
+              "doc": "Max returns the latest of the given Moments. Invalid Moments are ignored;\nif no valid Moment is supplied the result is Invalid.\n"
+            },
+            {
+              "name": "Min",
+              "signature": "func Min(moments ...Moment) Moment",
+              "doc": "Min returns the earliest of the given Moments. Invalid Moments are ignored;\nif no valid Moment is supplied the result is Invalid.\n"
+            },
+            {
+              "name": "New",
+              "signature": "func New(t time.Time) Moment",
+              "doc": "New wraps an existing time.Time in a Moment using the system clock.\n"
+            },
+            {
+              "name": "Now",
+              "signature": "func Now() Moment",
+              "doc": "Now returns a Moment for the current instant according to the system clock.\n"
+            },
+            {
+              "name": "NowWith",
+              "signature": "func NowWith(clock Clock) Moment",
+              "doc": "NowWith returns a Moment for the current instant according to the supplied\nclock. The returned Moment carries that clock so relative-time helpers stay\ndeterministic.\n"
+            },
+            {
+              "name": "Parse",
+              "signature": "func Parse(value string) (Moment, error)",
+              "doc": "Parse attempts to interpret value using a list of common ISO-8601 and RFC\nlayouts. It returns an error if none of them match.\n"
+            },
+            {
+              "name": "ParseFormat",
+              "signature": "func ParseFormat(value, format string) (Moment, error)",
+              "doc": "ParseFormat parses value using a moment.js-style token format string in the\nMoment's global locale, interpreting zone-less input as UTC.\n"
+            },
+            {
+              "name": "ParseFormatLocale",
+              "signature": "func ParseFormatLocale(value, format, locale string) (Moment, error)",
+              "doc": "ParseFormatLocale parses value using format and the named locale (so that\nlocalized month and weekday names are recognized).\n"
+            },
+            {
+              "name": "ParseFormatStrict",
+              "signature": "func ParseFormatStrict(value, format string) (Moment, error)",
+              "doc": "ParseFormatStrict parses value against format in strict mode: the value must\nmatch the format exactly, with no extra or missing characters.\n"
+            },
+            {
+              "name": "ParseFormats",
+              "signature": "func ParseFormats(value string, formats []string) (Moment, error)",
+              "doc": "ParseFormats tries each format in turn (moment.js's multiple-format parsing)\nand returns the first that succeeds. It returns an error if none match.\n"
+            },
+            {
+              "name": "ParseISO",
+              "signature": "func ParseISO(value string) (Moment, error)",
+              "doc": "ParseISO parses an ISO-8601 date/time string. It is a synonym for Parse that\ndocuments intent when the input is known to be ISO-8601.\n"
+            },
+            {
+              "name": "ParseInLocation",
+              "signature": "func ParseInLocation(value, format string, loc *time.Location) (Moment, error)",
+              "doc": "ParseInLocation parses value using a moment-style token format, interpreting\nzone-less input as being in loc. A nil location is treated as UTC.\n"
+            },
+            {
+              "name": "ParseLayout",
+              "signature": "func ParseLayout(value, layout string) (Moment, error)",
+              "doc": "ParseLayout parses value using a raw Go reference layout.\n"
+            },
+            {
+              "name": "ParseRFC2822",
+              "signature": "func ParseRFC2822(value string) (Moment, error)",
+              "doc": "ParseRFC2822 parses an RFC 2822 formatted date, e.g.\n\"Tue, 01 Nov 2016 13:23:12 +0630\".\n"
+            },
+            {
+              "name": "ParseZone",
+              "signature": "func ParseZone(value string) (Moment, error)",
+              "doc": "ParseZone parses an ISO-8601 or RFC date/time string and keeps the UTC offset\ncarried by the input, mirroring moment.js's moment.parseZone. Whereas some\nconstructors normalise to UTC or local time, the Moment returned here is\npinned to a fixed zone equal to the parsed offset, so Format, ISO and\nUTCOffset report that offset. Inputs without an explicit offset are treated as\nUTC. It returns an invalid Moment and an error when no layout matches.\n"
+            },
+            {
+              "name": "Unix",
+              "signature": "func Unix(sec int64) Moment",
+              "doc": "Unix returns a Moment for the given Unix timestamp in seconds, in UTC.\n"
+            },
+            {
+              "name": "UnixMilli",
+              "signature": "func UnixMilli(ms int64) Moment",
+              "doc": "UnixMilli returns a Moment for the given Unix timestamp in milliseconds, in\nUTC.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Add",
+              "recv": "Moment",
+              "signature": "func (m Moment) Add(n int, unit Unit) Moment",
+              "doc": "Add returns a new Moment advanced by n of the given unit. Calendar units\n(years, months, weeks, days) use civil arithmetic; year, quarter and month\narithmetic clamps the day of the month like moment.js (January 31 + 1 month\nis February 28/29). Clock units use fixed durations.\n"
+            },
+            {
+              "name": "AddDuration",
+              "recv": "Moment",
+              "signature": "func (m Moment) AddDuration(d time.Duration) Moment",
+              "doc": "AddDuration returns a new Moment advanced by an arbitrary time.Duration.\n"
+            },
+            {
+              "name": "Calendar",
+              "recv": "Moment",
+              "signature": "func (m Moment) Calendar(reference Moment) string",
+              "doc": "Calendar returns a locale-aware calendar string describing m relative to\nreference, such as \"Today at 2:30 PM\" or \"Last Friday at 9:00 AM\". Days\noutside a one-week window fall back to the locale's numeric date (sameElse).\n"
+            },
+            {
+              "name": "CalendarNow",
+              "recv": "Moment",
+              "signature": "func (m Moment) CalendarNow() string",
+              "doc": "CalendarNow is Calendar relative to the Moment's clock.\n"
+            },
+            {
+              "name": "CalendarWith",
+              "recv": "Moment",
+              "signature": "func (m Moment) CalendarWith(reference Moment, formats CalendarFormats) string",
+              "doc": "CalendarWith is Calendar with caller-supplied templates, mirroring moment.js's\ncalendar(referenceDay, formats). Each non-empty field of formats overrides the\ncorresponding locale template for that bucket (same day, next day, and so on);\nempty fields fall back to the Moment locale's default calendar templates. This\nlets callers customise the phrasing without registering a whole locale.\n"
+            },
+            {
+              "name": "Clone",
+              "recv": "Moment",
+              "signature": "func (m Moment) Clone() Moment",
+              "doc": "Clone returns an independent copy of the Moment.\n"
+            },
+            {
+              "name": "CreationData",
+              "recv": "Moment",
+              "signature": "func (m Moment) CreationData() *CreationData",
+              "doc": "CreationData returns how the Moment was produced by a parsing constructor, or\nnil when it was not created by one.\n"
+            },
+            {
+              "name": "Date",
+              "recv": "Moment",
+              "signature": "func (m Moment) Date() int",
+              "doc": "Date returns the day of the month (1-31).\n"
+            },
+            {
+              "name": "Day",
+              "recv": "Moment",
+              "signature": "func (m Moment) Day() int",
+              "doc": "Day is an alias for Date, returning the day of the month.\n"
+            },
+            {
+              "name": "DayOfYear",
+              "recv": "Moment",
+              "signature": "func (m Moment) DayOfYear() int",
+              "doc": "DayOfYear returns the 1-based day of the year (1-366).\n"
+            },
+            {
+              "name": "DaysInMonth",
+              "recv": "Moment",
+              "signature": "func (m Moment) DaysInMonth() int",
+              "doc": "DaysInMonth returns the number of days in the Moment's month (28–31).\n"
+            },
+            {
+              "name": "DaysInYear",
+              "recv": "Moment",
+              "signature": "func (m Moment) DaysInYear() int",
+              "doc": "DaysInYear returns the number of days in the Moment's year: 366 in a leap\nyear and 365 otherwise.\n"
+            },
+            {
+              "name": "Diff",
+              "recv": "Moment",
+              "signature": "func (m Moment) Diff(other Moment, unit Unit) float64",
+              "doc": "Diff returns the signed difference m - other expressed in the given unit as a\nfloating-point value. Years and months use civil arithmetic; smaller units\nuse exact durations.\n"
+            },
+            {
+              "name": "DiffDuration",
+              "recv": "Moment",
+              "signature": "func (m Moment) DiffDuration(other Moment) time.Duration",
+              "doc": "DiffDuration returns the signed difference m - other as a time.Duration.\n"
+            },
+            {
+              "name": "DiffInt",
+              "recv": "Moment",
+              "signature": "func (m Moment) DiffInt(other Moment, unit Unit) int",
+              "doc": "DiffInt returns Diff truncated toward zero, matching moment.js's default\ninteger diff behaviour.\n"
+            },
+            {
+              "name": "EndOf",
+              "recv": "Moment",
+              "signature": "func (m Moment) EndOf(unit Unit) Moment",
+              "doc": "EndOf returns a new Moment set to the last nanosecond of the given unit.\n"
+            },
+            {
+              "name": "Format",
+              "recv": "Moment",
+              "signature": "func (m Moment) Format(format string) string",
+              "doc": "Format renders the Moment using a moment.js-style token string, resolving\ntokens against the Moment's effective locale. Text wrapped in square brackets\nis emitted literally, e.g. \"YYYY [year]\".\n"
+            },
+            {
+              "name": "FormatLayout",
+              "recv": "Moment",
+              "signature": "func (m Moment) FormatLayout(layout string) string",
+              "doc": "FormatLayout renders the Moment using a raw Go reference layout\n(for example \"2006-01-02 15:04:05\").\n"
+            },
+            {
+              "name": "From",
+              "recv": "Moment",
+              "signature": "func (m Moment) From(other Moment) string",
+              "doc": "From returns a humanized, locale-aware description of m relative to other,\nfor example \"in 3 days\" or \"2 hours ago\".\n"
+            },
+            {
+              "name": "FromNow",
+              "recv": "Moment",
+              "signature": "func (m Moment) FromNow() string",
+              "doc": "FromNow returns a humanized description of m relative to the current time as\nreported by the Moment's clock.\n"
+            },
+            {
+              "name": "Get",
+              "recv": "Moment",
+              "signature": "func (m Moment) Get(unit Unit) int",
+              "doc": "Get returns a single component of the Moment identified by unit, the getter\ncompanion to Set and the analogue of moment.js's get. Recognized units are\nYear, Quarter, Month, Week, ISOWeek, Day/Date, DayOfYear, Hour, Minute,\nSecond and Millisecond (plus their aliases). Unlike moment's 0-based month,\nGet(Month) returns the 1-based month to stay consistent with Month and\nSet(Month, …). Unknown units yield 0.\n"
+            },
+            {
+              "name": "Hour",
+              "recv": "Moment",
+              "signature": "func (m Moment) Hour() int",
+              "doc": "Hour returns the hour within the day (0-23).\n"
+            },
+            {
+              "name": "ISO",
+              "recv": "Moment",
+              "signature": "func (m Moment) ISO() string",
+              "doc": "ISO returns the RFC3339 (ISO-8601) representation of the Moment, preserving\nits location and any fractional seconds.\n"
+            },
+            {
+              "name": "ISOWeek",
+              "recv": "Moment",
+              "signature": "func (m Moment) ISOWeek() (year, week int)",
+              "doc": "ISOWeek returns the ISO 8601 year and week number.\n"
+            },
+            {
+              "name": "ISOWeekNumber",
+              "recv": "Moment",
+              "signature": "func (m Moment) ISOWeekNumber() int",
+              "doc": "ISOWeekNumber returns just the ISO 8601 week number (1–53).\n"
+            },
+            {
+              "name": "ISOWeekYear",
+              "recv": "Moment",
+              "signature": "func (m Moment) ISOWeekYear() int",
+              "doc": "ISOWeekYear returns the ISO 8601 week-numbering year (moment's GGGG), which\ncan differ from the calendar year near the start or end of a year.\n"
+            },
+            {
+              "name": "ISOWeekday",
+              "recv": "Moment",
+              "signature": "func (m Moment) ISOWeekday() int",
+              "doc": "ISOWeekday returns the ISO 8601 day of the week: 1 for Monday through 7 for\nSunday.\n"
+            },
+            {
+              "name": "ISOWeeksInYear",
+              "recv": "Moment",
+              "signature": "func (m Moment) ISOWeeksInYear() int",
+              "doc": "ISOWeeksInYear returns the number of ISO weeks (52 or 53) in the Moment's ISO\nweek-year.\n"
+            },
+            {
+              "name": "In",
+              "recv": "Moment",
+              "signature": "func (m Moment) In(loc *time.Location) Moment",
+              "doc": "In returns a copy of the Moment representing the same instant in the given\nlocation. A nil location is treated as UTC.\n"
+            },
+            {
+              "name": "IsAfter",
+              "recv": "Moment",
+              "signature": "func (m Moment) IsAfter(other Moment) bool",
+              "doc": "IsAfter reports whether m is strictly after other.\n"
+            },
+            {
+              "name": "IsBefore",
+              "recv": "Moment",
+              "signature": "func (m Moment) IsBefore(other Moment) bool",
+              "doc": "IsBefore reports whether m is strictly before other.\n"
+            },
+            {
+              "name": "IsBetween",
+              "recv": "Moment",
+              "signature": "func (m Moment) IsBetween(start, end Moment, inclusive bool) bool",
+              "doc": "IsBetween reports whether m lies within (start, end). When inclusive is true\nthe bounds themselves count as inside the range. The bounds may be supplied\nin either order.\n"
+            },
+            {
+              "name": "IsDST",
+              "recv": "Moment",
+              "signature": "func (m Moment) IsDST() bool",
+              "doc": "IsDST reports whether the Moment falls in daylight saving time, detected by\ncomparing its offset with the standard offsets in January and July.\n"
+            },
+            {
+              "name": "IsLeapYear",
+              "recv": "Moment",
+              "signature": "func (m Moment) IsLeapYear() bool",
+              "doc": "IsLeapYear reports whether the Moment falls in a leap year.\n"
+            },
+            {
+              "name": "IsLocal",
+              "recv": "Moment",
+              "signature": "func (m Moment) IsLocal() bool",
+              "doc": "IsLocal reports whether the Moment's location is the system local zone,\nmirroring moment.js's isLocal.\n"
+            },
+            {
+              "name": "IsSame",
+              "recv": "Moment",
+              "signature": "func (m Moment) IsSame(other Moment) bool",
+              "doc": "IsSame reports whether m and other represent the same instant.\n"
+            },
+            {
+              "name": "IsSameOrAfter",
+              "recv": "Moment",
+              "signature": "func (m Moment) IsSameOrAfter(other Moment) bool",
+              "doc": "IsSameOrAfter reports whether m is after or equal to other.\n"
+            },
+            {
+              "name": "IsSameOrBefore",
+              "recv": "Moment",
+              "signature": "func (m Moment) IsSameOrBefore(other Moment) bool",
+              "doc": "IsSameOrBefore reports whether m is before or equal to other.\n"
+            },
+            {
+              "name": "IsSameUnit",
+              "recv": "Moment",
+              "signature": "func (m Moment) IsSameUnit(other Moment, unit Unit) bool",
+              "doc": "IsSameUnit reports whether m and other fall in the same calendar unit (for\nexample the same day or the same month), comparing after truncation.\n"
+            },
+            {
+              "name": "IsUTC",
+              "recv": "Moment",
+              "signature": "func (m Moment) IsUTC() bool",
+              "doc": "IsUTC reports whether the Moment's location is UTC, mirroring moment.js's\nisUTC.\n"
+            },
+            {
+              "name": "IsValid",
+              "recv": "Moment",
+              "signature": "func (m Moment) IsValid() bool",
+              "doc": "IsValid reports whether the Moment holds a usable instant. It is false for\nthe zero value and for Moments returned by failed parses (see Invalid),\nmirroring moment.js's isValid.\n"
+            },
+            {
+              "name": "IsZero",
+              "recv": "Moment",
+              "signature": "func (m Moment) IsZero() bool",
+              "doc": "IsZero reports whether the underlying instant is the zero time.\n"
+            },
+            {
+              "name": "Local",
+              "recv": "Moment",
+              "signature": "func (m Moment) Local() Moment",
+              "doc": "Local returns a copy of the Moment in the local location.\n"
+            },
+            {
+              "name": "Locale",
+              "recv": "Moment",
+              "signature": "func (m Moment) Locale(name string) Moment",
+              "doc": "Locale returns a copy of the Moment bound to the named locale, affecting\nFormat, Calendar, FromNow and the humanized relative-time helpers. An unknown\nname leaves the Moment on the global default; use LookupLocale to test first.\n"
+            },
+            {
+              "name": "LocaleData",
+              "recv": "Moment",
+              "signature": "func (m Moment) LocaleData() *Locale",
+              "doc": "LocaleData returns the effective Locale for the Moment: its bound locale, or\nthe global default. The returned pointer must not be mutated.\n"
+            },
+            {
+              "name": "LocaleName",
+              "recv": "Moment",
+              "signature": "func (m Moment) LocaleName() string",
+              "doc": "LocaleName returns the name of the locale bound to the Moment, or the global\ndefault when none is set.\n"
+            },
+            {
+              "name": "LocaleWeekday",
+              "recv": "Moment",
+              "signature": "func (m Moment) LocaleWeekday() int",
+              "doc": "LocaleWeekday returns the day of the week numbered from the Moment locale's\nfirst day of the week (0 == the locale's first weekday), matching moment.js's\nlocale-aware weekday getter. Compare ISOWeekday, which is always Monday-based.\n"
+            },
+            {
+              "name": "Location",
+              "recv": "Moment",
+              "signature": "func (m Moment) Location() *time.Location",
+              "doc": "Location returns the time zone associated with the Moment.\n"
+            },
+            {
+              "name": "Millisecond",
+              "recv": "Moment",
+              "signature": "func (m Moment) Millisecond() int",
+              "doc": "Millisecond returns the millisecond offset within the second (0-999).\n"
+            },
+            {
+              "name": "Minute",
+              "recv": "Moment",
+              "signature": "func (m Moment) Minute() int",
+              "doc": "Minute returns the minute offset within the hour (0-59).\n"
+            },
+            {
+              "name": "Month",
+              "recv": "Moment",
+              "signature": "func (m Moment) Month() time.Month",
+              "doc": "Month returns the month.\n"
+            },
+            {
+              "name": "Nanosecond",
+              "recv": "Moment",
+              "signature": "func (m Moment) Nanosecond() int",
+              "doc": "Nanosecond returns the nanosecond offset within the second.\n"
+            },
+            {
+              "name": "Quarter",
+              "recv": "Moment",
+              "signature": "func (m Moment) Quarter() int",
+              "doc": "Quarter returns the calendar quarter of the year (1–4).\n"
+            },
+            {
+              "name": "Second",
+              "recv": "Moment",
+              "signature": "func (m Moment) Second() int",
+              "doc": "Second returns the second offset within the minute (0-59).\n"
+            },
+            {
+              "name": "Set",
+              "recv": "Moment",
+              "signature": "func (m Moment) Set(unit Unit, value int) Moment",
+              "doc": "Set returns a new Moment with a single component replaced by value. The\nQuarter unit keeps the month's position within the quarter; DayOfYear sets\nthe 1-based day of the year. Changing the year, quarter or month clamps the\nday of the month like moment.js: setting May 31 to April yields April 30\nrather than overflowing into May.\n"
+            },
+            {
+              "name": "SetAll",
+              "recv": "Moment",
+              "signature": "func (m Moment) SetAll(spec DateSpec) Moment",
+              "doc": "SetAll returns a new Moment with every non-nil component of spec applied.\n"
+            },
+            {
+              "name": "SetDate",
+              "recv": "Moment",
+              "signature": "func (m Moment) SetDate(d int) Moment",
+              "doc": "SetDate returns a new Moment with the day of the month replaced by d, the\nsetter companion to Date and the analogue of moment.js's date(value).\n"
+            },
+            {
+              "name": "SetDayOfYear",
+              "recv": "Moment",
+              "signature": "func (m Moment) SetDayOfYear(d int) Moment",
+              "doc": "SetDayOfYear returns a new Moment set to the d-th day of its year (1-based),\nmatching moment.js's dayOfYear(value).\n"
+            },
+            {
+              "name": "SetHour",
+              "recv": "Moment",
+              "signature": "func (m Moment) SetHour(h int) Moment",
+              "doc": "SetHour returns a new Moment with the hour replaced by h, matching\nmoment.js's hour(value).\n"
+            },
+            {
+              "name": "SetISOWeekday",
+              "recv": "Moment",
+              "signature": "func (m Moment) SetISOWeekday(d int) Moment",
+              "doc": "SetISOWeekday returns a new Moment moved to ISO weekday d (1 == Monday, 7 ==\nSunday) within the same ISO week, matching moment.js's isoWeekday(value).\n"
+            },
+            {
+              "name": "SetMillisecond",
+              "recv": "Moment",
+              "signature": "func (m Moment) SetMillisecond(ms int) Moment",
+              "doc": "SetMillisecond returns a new Moment with the millisecond replaced by ms,\nmatching moment.js's millisecond(value).\n"
+            },
+            {
+              "name": "SetMinute",
+              "recv": "Moment",
+              "signature": "func (m Moment) SetMinute(mi int) Moment",
+              "doc": "SetMinute returns a new Moment with the minute replaced by mi, matching\nmoment.js's minute(value).\n"
+            },
+            {
+              "name": "SetMonth",
+              "recv": "Moment",
+              "signature": "func (m Moment) SetMonth(mo time.Month) Moment",
+              "doc": "SetMonth returns a new Moment with the month replaced by mo, the setter\ncompanion to Month and the analogue of moment.js's month(value). Overflow\nbeyond a month's length rolls forward as in time.Date.\n"
+            },
+            {
+              "name": "SetQuarter",
+              "recv": "Moment",
+              "signature": "func (m Moment) SetQuarter(q int) Moment",
+              "doc": "SetQuarter returns a new Moment moved to quarter q, matching moment.js's\nquarter(value). Following moment, the month keeps its position within the\nquarter (its month-mod-3 offset) rather than snapping to the first month, and\nvalues outside 1–4 bubble the year forward or backward.\n"
+            },
+            {
+              "name": "SetSecond",
+              "recv": "Moment",
+              "signature": "func (m Moment) SetSecond(s int) Moment",
+              "doc": "SetSecond returns a new Moment with the second replaced by s, matching\nmoment.js's second(value).\n"
+            },
+            {
+              "name": "SetUTCOffset",
+              "recv": "Moment",
+              "signature": "func (m Moment) SetUTCOffset(minutes int) Moment",
+              "doc": "SetUTCOffset returns a new Moment shifted to the given zone offset (in\nminutes east of UTC) while representing the same instant. It is the setter\ncompanion to the UTCOffset getter.\n"
+            },
+            {
+              "name": "SetWeekday",
+              "recv": "Moment",
+              "signature": "func (m Moment) SetWeekday(w time.Weekday) Moment",
+              "doc": "SetWeekday returns a new Moment moved to weekday w within the same\nSunday-based week, matching moment.js's day(value): the result stays in the\ncurrent week and only the day of the week changes.\n"
+            },
+            {
+              "name": "SetYear",
+              "recv": "Moment",
+              "signature": "func (m Moment) SetYear(y int) Moment",
+              "doc": "SetYear returns a new Moment with the year replaced by y, the setter\ncompanion to Year and the analogue of moment.js's year(value).\n"
+            },
+            {
+              "name": "StartOf",
+              "recv": "Moment",
+              "signature": "func (m Moment) StartOf(unit Unit) Moment",
+              "doc": "StartOf returns a new Moment truncated to the start of the given unit,\npreserving the time zone. The Week unit honours the Moment's locale first day\nof the week; ISOWeek always starts on Monday.\n"
+            },
+            {
+              "name": "String",
+              "recv": "Moment",
+              "signature": "func (m Moment) String() string",
+              "doc": "String implements fmt.Stringer, returning the ISO-8601 representation.\n"
+            },
+            {
+              "name": "Subtract",
+              "recv": "Moment",
+              "signature": "func (m Moment) Subtract(n int, unit Unit) Moment",
+              "doc": "Subtract returns a new Moment moved back by n of the given unit.\n"
+            },
+            {
+              "name": "Time",
+              "recv": "Moment",
+              "signature": "func (m Moment) Time() time.Time",
+              "doc": "Time returns the underlying time.Time value.\n"
+            },
+            {
+              "name": "To",
+              "recv": "Moment",
+              "signature": "func (m Moment) To(other Moment) string",
+              "doc": "To returns a humanized description of other relative to m. It is the inverse\nof From.\n"
+            },
+            {
+              "name": "ToArray",
+              "recv": "Moment",
+              "signature": "func (m Moment) ToArray() []int",
+              "doc": "ToArray returns the Moment's calendar and clock components as a slice in the\nmoment.js toArray order: [year, month, day, hour, minute, second,\nmillisecond]. As in moment.js the month is 0-based (0 == January), matching\nFromArray. An invalid Moment yields nil.\n"
+            },
+            {
+              "name": "ToDate",
+              "recv": "Moment",
+              "signature": "func (m Moment) ToDate() time.Time",
+              "doc": "ToDate returns the underlying time.Time value, mirroring moment.js's\ntoDate(). It is an alias for Time.\n"
+            },
+            {
+              "name": "ToISOString",
+              "recv": "Moment",
+              "signature": "func (m Moment) ToISOString() string",
+              "doc": "ToISOString returns the moment.js toISOString representation: the instant in\nUTC with millisecond precision and a trailing \"Z\", e.g.\n\"2017-07-14T02:40:00.000Z\".\n"
+            },
+            {
+              "name": "ToISOStringZone",
+              "recv": "Moment",
+              "signature": "func (m Moment) ToISOStringZone() string",
+              "doc": "ToISOStringZone returns the moment.js toISOString(true) representation: the\ninstant with millisecond precision but keeping the Moment's own zone offset\nrather than converting to UTC, e.g. \"2017-07-14T02:40:00.000-05:00\". An\ninvalid Moment yields the empty string.\n"
+            },
+            {
+              "name": "ToJSON",
+              "recv": "Moment",
+              "signature": "func (m Moment) ToJSON() string",
+              "doc": "ToJSON returns the Moment serialized for JSON as a UTC ISO-8601 string with\nmillisecond precision, matching moment.js's toJSON (which aliases\ntoISOString). An invalid Moment yields the empty string, mirroring moment's\nnull.\n"
+            },
+            {
+              "name": "ToNow",
+              "recv": "Moment",
+              "signature": "func (m Moment) ToNow() string",
+              "doc": "ToNow returns a humanized description of the current time relative to m.\n"
+            },
+            {
+              "name": "ToObject",
+              "recv": "Moment",
+              "signature": "func (m Moment) ToObject() map[string]int",
+              "doc": "ToObject returns the Moment's components keyed by moment.js's toObject names:\n\"years\", \"months\" (0-based), \"date\", \"hours\", \"minutes\", \"seconds\" and\n\"milliseconds\". The keys mirror FromObject. An invalid Moment yields nil.\n"
+            },
+            {
+              "name": "UTC",
+              "recv": "Moment",
+              "signature": "func (m Moment) UTC() Moment",
+              "doc": "UTC returns a copy of the Moment in the UTC location.\n"
+            },
+            {
+              "name": "UTCOffset",
+              "recv": "Moment",
+              "signature": "func (m Moment) UTCOffset() int",
+              "doc": "UTCOffset returns the Moment's zone offset east of UTC in minutes.\n"
+            },
+            {
+              "name": "Unix",
+              "recv": "Moment",
+              "signature": "func (m Moment) Unix() int64",
+              "doc": "Unix returns the Moment as a Unix timestamp in seconds.\n"
+            },
+            {
+              "name": "UnixMilli",
+              "recv": "Moment",
+              "signature": "func (m Moment) UnixMilli() int64",
+              "doc": "UnixMilli returns the Moment as a Unix timestamp in milliseconds.\n"
+            },
+            {
+              "name": "ValueOf",
+              "recv": "Moment",
+              "signature": "func (m Moment) ValueOf() int64",
+              "doc": "ValueOf returns the Moment as a Unix timestamp in milliseconds, matching\nmoment.js's valueOf.\n"
+            },
+            {
+              "name": "Week",
+              "recv": "Moment",
+              "signature": "func (m Moment) Week() int",
+              "doc": "Week returns the locale-aware week-of-year number under the Moment's locale.\n"
+            },
+            {
+              "name": "WeekYear",
+              "recv": "Moment",
+              "signature": "func (m Moment) WeekYear() int",
+              "doc": "WeekYear returns the locale-aware week-numbering year under the Moment's\nlocale (moment's gggg).\n"
+            },
+            {
+              "name": "Weekday",
+              "recv": "Moment",
+              "signature": "func (m Moment) Weekday() time.Weekday",
+              "doc": "Weekday returns the day of the week.\n"
+            },
+            {
+              "name": "WeeksInYear",
+              "recv": "Moment",
+              "signature": "func (m Moment) WeeksInYear() int",
+              "doc": "WeeksInYear returns the number of locale weeks in the Moment's year.\n"
+            },
+            {
+              "name": "WithClock",
+              "recv": "Moment",
+              "signature": "func (m Moment) WithClock(clock Clock) Moment",
+              "doc": "WithClock returns a copy of the Moment that uses the supplied clock for\nrelative-time helpers. A nil clock resets to the system clock.\n"
+            },
+            {
+              "name": "Year",
+              "recv": "Moment",
+              "signature": "func (m Moment) Year() int",
+              "doc": "Year returns the year.\n"
+            },
+            {
+              "name": "ZoneAbbr",
+              "recv": "Moment",
+              "signature": "func (m Moment) ZoneAbbr() string",
+              "doc": "ZoneAbbr returns the abbreviated zone name in effect at the Moment, such as\n\"UTC\" or \"EST\", matching moment.js's zoneAbbr. The abbreviation comes from\nthe Moment's time.Location and may be a numeric offset for fixed zones.\n"
+            },
+            {
+              "name": "ZoneName",
+              "recv": "Moment",
+              "signature": "func (m Moment) ZoneName() string",
+              "doc": "ZoneName returns the Moment's full time-zone identifier, for example \"UTC\" or\n\"America/New_York\". It is the loaded location name; use ZoneAbbr for the\nshort form that moment.js prints.\n"
+            }
+          ]
+        },
+        {
+          "name": "RelativeTime",
+          "signature": "type RelativeTime struct {\n\tFuture  string // wraps a future phrase, e.g. \"in %s\"\n\tPast    string // wraps a past phrase, e.g. \"%s ago\"\n\tSecond  string // key \"s\"  – a few seconds\n\tSeconds string // key \"ss\" – \"%d seconds\"\n\tMinute  string // key \"m\"  – a minute\n\tMinutes string // key \"mm\" – \"%d minutes\"\n\tHour    string // key \"h\"  – an hour\n\tHours   string // key \"hh\" – \"%d hours\"\n\tDay     string // key \"d\"  – a day\n\tDays    string // key \"dd\" – \"%d days\"\n\tWeek    string // key \"w\"  – a week\n\tWeeks   string // key \"ww\" – \"%d weeks\"\n\tMonth   string // key \"M\"  – a month\n\tMonths  string // key \"MM\" – \"%d months\"\n\tYear    string // key \"y\"  – a year\n\tYears   string // key \"yy\" – \"%d years\"\n\n\t// Pluralize, when non-nil, overrides the field templates above. It is used\n\t// by locales with non-trivial plural rules (Slavic languages, Arabic). key\n\t// is one of \"s\",\"ss\",\"m\",\"mm\",\"h\",\"hh\",\"d\",\"dd\",\"w\",\"ww\",\"M\",\"MM\",\"y\",\"yy\".\n\tPluralize func(number int, withoutSuffix bool, key string, isFuture bool) string\n}",
+          "doc": "RelativeTime holds the phrase templates a locale uses to render humanized\ndurations such as \"in 3 days\" or \"2 hours ago\". Each field corresponds to a\nmoment.js relative-time key; templates may contain the verb \"%d\" placeholder,\nwhich is replaced by the magnitude. Future and Past wrap the resulting phrase\n(their \"%s\" placeholder is replaced by the rendered magnitude).\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Unit",
+          "signature": "type Unit string",
+          "doc": "Unit identifies a calendar or clock unit used by Add, Subtract, StartOf,\nEndOf, Set and Diff.\n",
+          "consts": [
+            {
+              "names": [
+                "Year",
+                "Quarter",
+                "Month",
+                "Week",
+                "ISOWeek",
+                "Day",
+                "Date",
+                "DayOfYear",
+                "Hour",
+                "Minute",
+                "Second",
+                "Millisecond"
+              ],
+              "signature": "const (\n\tYear        Unit = \"year\"\n\tQuarter     Unit = \"quarter\"\n\tMonth       Unit = \"month\"\n\tWeek        Unit = \"week\"\n\tISOWeek     Unit = \"isoWeek\"\n\tDay         Unit = \"day\"\n\tDate        Unit = \"date\"\n\tDayOfYear   Unit = \"dayOfYear\"\n\tHour        Unit = \"hour\"\n\tMinute      Unit = \"minute\"\n\tSecond      Unit = \"second\"\n\tMillisecond Unit = \"millisecond\"\n)",
+              "doc": "Supported units. Manipulation and diff helpers also accept common moment.js\naliases (plural and short forms) via normalizeUnit.\n"
+            }
+          ],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NormalizeUnit",
+              "signature": "func NormalizeUnit(unit string) (Unit, bool)",
+              "doc": "NormalizeUnit resolves a moment.js unit alias (plural or short form such as\n\"days\", \"d\" or \"M\") to its canonical Unit, reporting whether it was\nrecognized. It is the analogue of moment.js's moment.normalizeUnits.\n"
+            }
+          ],
+          "methods": []
+        }
+      ],
+      "funcs": [
+        {
+          "name": "AvailableLocales",
+          "signature": "func AvailableLocales() []string",
+          "doc": "AvailableLocales returns the sorted names of every registered locale. The\nstandard build ships a representative set of about twenty common locales;\napplications may register additional ones with RegisterLocale.\n"
+        },
+        {
+          "name": "FirstDayOfWeek",
+          "signature": "func FirstDayOfWeek(locale string) int",
+          "doc": "FirstDayOfWeek returns the named locale's first day of the week (0 == Sunday,\n1 == Monday), mirroring moment.js's localeData().firstDayOfWeek.\n"
+        },
+        {
+          "name": "FirstWeekContainsDate",
+          "signature": "func FirstWeekContainsDate(locale string) int",
+          "doc": "FirstWeekContainsDate returns the January date that always falls in week 1\nunder the named locale's week-numbering rules (moment's \"doy\"), mirroring\nlocaleData().firstDayOfYear.\n"
+        },
+        {
+          "name": "GlobalLocale",
+          "signature": "func GlobalLocale() string",
+          "doc": "GlobalLocale returns the name of the current global default locale.\n"
+        },
+        {
+          "name": "Humanize",
+          "signature": "func Humanize(d time.Duration) string",
+          "doc": "Humanize renders a bare time.Duration as a human-friendly phrase such as\n\"2 hours\" or \"a few seconds\", without any past/future suffix, using the\nglobal default locale.\n"
+        },
+        {
+          "name": "IsDate",
+          "signature": "func IsDate(v any) bool",
+          "doc": "IsDate reports whether v is a time.Time value, the Go analogue of moment.js's\nmoment.isDate (which tests for a JavaScript Date).\n"
+        },
+        {
+          "name": "IsDuration",
+          "signature": "func IsDuration(v any) bool",
+          "doc": "IsDuration reports whether v is a Duration value, mirroring moment.js's\nmoment.isDuration.\n"
+        },
+        {
+          "name": "IsMoment",
+          "signature": "func IsMoment(v any) bool",
+          "doc": "IsMoment reports whether v is a Moment value, mirroring moment.js's\nmoment.isMoment.\n"
+        },
+        {
+          "name": "LongDateFormat",
+          "signature": "func LongDateFormat(locale, token string) string",
+          "doc": "LongDateFormat returns the named locale's pattern for one of the long-date\ntokens LT, LTS, L, LL, LLL or LLLL, mirroring moment.js's\nlocaleData().longDateFormat. An unknown token yields the empty string.\n"
+        },
+        {
+          "name": "Meridiem",
+          "signature": "func Meridiem(locale string, hour, minute int, isLower bool) string",
+          "doc": "Meridiem returns the named locale's meridiem string for the given clock time;\nisLower requests the lower-case form. It mirrors moment.js's\nlocaleData().meridiem and honours locales (such as Chinese and Japanese) that\nuse time-of-day words instead of AM/PM.\n"
+        },
+        {
+          "name": "MonthName",
+          "signature": "func MonthName(locale string, m time.Month) string",
+          "doc": "MonthName returns the full name of month m in the named locale.\n"
+        },
+        {
+          "name": "MonthShortName",
+          "signature": "func MonthShortName(locale string, m time.Month) string",
+          "doc": "MonthShortName returns the abbreviated name of month m in the named locale.\n"
+        },
+        {
+          "name": "Months",
+          "signature": "func Months(locale string) []string",
+          "doc": "Months returns a copy of the twelve month names (January first) for the named\nlocale, mirroring moment.js's moment.months(). An unknown locale falls back\nto the global default.\n"
+        },
+        {
+          "name": "MonthsShort",
+          "signature": "func MonthsShort(locale string) []string",
+          "doc": "MonthsShort returns a copy of the twelve abbreviated month names (January\nfirst) for the named locale, mirroring moment.js's moment.monthsShort().\n"
+        },
+        {
+          "name": "Ordinal",
+          "signature": "func Ordinal(locale string, n int) string",
+          "doc": "Ordinal renders n as an ordinal in the named locale, for example \"1st\" in\nEnglish or \"1.\" in German, mirroring moment.js's localeData().ordinal.\n"
+        },
+        {
+          "name": "RegisterLocale",
+          "signature": "func RegisterLocale(l *Locale)",
+          "doc": "RegisterLocale adds or replaces a Locale in the global registry, keyed by its\nlower-cased Name. It is safe for concurrent use. Registering a locale named\n\"en\" replaces the built-in English default.\n"
+        },
+        {
+          "name": "RelativeTimeThreshold",
+          "signature": "func RelativeTimeThreshold(unit string) int",
+          "doc": "RelativeTimeThreshold returns the current cutoff for a relative-time unit, or\n-1 for an unknown unit.\n"
+        },
+        {
+          "name": "SetGlobalLocale",
+          "signature": "func SetGlobalLocale(name string) bool",
+          "doc": "SetGlobalLocale sets the default locale used by Moments that do not carry an\nexplicit locale. It reports whether the name was found; an unknown name\nleaves the global default unchanged.\n"
+        },
+        {
+          "name": "SetRelativeTimeThreshold",
+          "signature": "func SetRelativeTimeThreshold(unit string, limit int) bool",
+          "doc": "SetRelativeTimeThreshold overrides the cutoff for one relative-time unit, as\nmoment.relativeTimeThreshold does. Recognized units are \"ss\", \"s\", \"m\", \"h\",\n\"d\", \"w\" and \"M\". It reports whether the unit name was recognized.\n"
+        },
+        {
+          "name": "SupportedTokens",
+          "signature": "func SupportedTokens() []string",
+          "doc": "SupportedTokens returns the moment-style format tokens understood by Format\nand ParseFormat, ordered longest-first. In addition, a run of \"S\" characters\nrenders that many digits of the fractional second.\n"
+        },
+        {
+          "name": "WeekdayMinName",
+          "signature": "func WeekdayMinName(locale string, w time.Weekday) string",
+          "doc": "WeekdayMinName returns the minimal name of weekday w in the named locale.\n"
+        },
+        {
+          "name": "WeekdayName",
+          "signature": "func WeekdayName(locale string, w time.Weekday) string",
+          "doc": "WeekdayName returns the full name of weekday w in the named locale.\n"
+        },
+        {
+          "name": "WeekdayShortName",
+          "signature": "func WeekdayShortName(locale string, w time.Weekday) string",
+          "doc": "WeekdayShortName returns the abbreviated name of weekday w in the named\nlocale.\n"
+        },
+        {
+          "name": "Weekdays",
+          "signature": "func Weekdays(locale string) []string",
+          "doc": "Weekdays returns a copy of the seven weekday names (Sunday first, index 0 ==\nSunday) for the named locale, mirroring moment.js's moment.weekdays().\n"
+        },
+        {
+          "name": "WeekdaysMin",
+          "signature": "func WeekdaysMin(locale string) []string",
+          "doc": "WeekdaysMin returns a copy of the seven minimal weekday names (Sunday first)\nfor the named locale, mirroring moment.js's moment.weekdaysMin().\n"
+        },
+        {
+          "name": "WeekdaysShort",
+          "signature": "func WeekdaysShort(locale string) []string",
+          "doc": "WeekdaysShort returns a copy of the seven abbreviated weekday names (Sunday\nfirst) for the named locale, mirroring moment.js's moment.weekdaysShort().\n"
+        }
+      ],
+      "examples": [
+        {
+          "name": "",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"time\"\n\n\t\"github.com/malcolmston/moment\"\n)\n\nfunc main() {\n\t// A fixed instant: Friday, 14 July 2017 02:40:00 UTC.\n\tref := time.Date(2017, time.July, 14, 2, 40, 0, 0, time.UTC)\n\tm := moment.New(ref).WithClock(moment.FixedClock(ref))\n\n\tfmt.Println(m.Format(\"dddd, MMMM D, YYYY [at] h:mm A\"))\n\tfmt.Println(m.Add(3, moment.Day).Format(\"YYYY-MM-DD\"))\n\tfmt.Println(m.StartOf(moment.Month).ISO())\n\tfmt.Println(m.Add(2, moment.Hour).FromNow())\n\tfmt.Println(m.Subtract(1, moment.Day).Calendar(m))\n\n}",
+          "output": "Friday, July 14, 2017 at 2:40 AM\n2017-07-17\n2017-07-01T00:00:00Z\nin 2 hours\nYesterday at 2:40 AM",
+          "doc": "Example demonstrates formatting, manipulation and deterministic relative time\nusing a fixed clock so the output is stable.\n"
+        },
+        {
+          "name": "Duration",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/moment\"\n)\n\nfunc main() {\n\td := moment.NewDuration(1, moment.Year).\n\t\tAdd(moment.NewDuration(2, moment.Month)).\n\t\tAdd(moment.NewDuration(10, moment.Day))\n\n\tfmt.Println(d.ISOString())\n\tfmt.Println(d.AsMonths() \u003e 14)\n\tfmt.Println(moment.NewDuration(2, moment.Hour).Humanize(true))\n\n\tparsed, _ := moment.ParseDuration(\"P1Y2M10DT2H30M\")\n\tfmt.Println(parsed.ISOString())\n\n}",
+          "output": "P1Y2M10D\ntrue\nin 2 hours\nP1Y2M10DT2H30M",
+          "doc": "ExampleDuration demonstrates durations, conversion and ISO-8601 round-trips.\n"
+        },
+        {
+          "name": "Moment (Locale)",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"time\"\n\n\t\"github.com/malcolmston/moment\"\n)\n\nfunc main() {\n\tref := time.Date(2017, time.July, 4, 14, 5, 0, 0, time.UTC)\n\tm := moment.New(ref).WithClock(moment.FixedClock(ref))\n\n\tfmt.Println(m.Locale(\"fr\").Format(\"LLLL\"))\n\tfmt.Println(m.Locale(\"de\").Format(\"LL\"))\n\tfmt.Println(m.Locale(\"fr\").Add(3, moment.Day).FromNow())\n\n}",
+          "output": "mardi 4 juillet 2017 14:05\n4. Juli 2017\ndans 3 jours",
+          "doc": "ExampleMoment_Locale shows locale-aware formatting and relative time.\n"
+        }
+      ]
+    }
+  ]
+}

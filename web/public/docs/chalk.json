@@ -1,0 +1,1079 @@
+{
+  "module": "github.com/malcolmston/chalk",
+  "generatedAt": "2026-07-19T02:05:52Z",
+  "packages": [
+    {
+      "importPath": "github.com/malcolmston/chalk",
+      "name": "chalk",
+      "synopsis": "Package chalk is a Go port of Node's chalk — expressive terminal string styling.",
+      "doc": "Package chalk is a Go port of Node's chalk — expressive terminal string\nstyling. Like the original JavaScript library, it wraps text in ANSI SGR\n(Select Graphic Rendition) escape sequences so that terminals render it with\ncolor, weight and other attributes. Styles are chainable and compose\nnaturally:\n\n\tfmt.Println(chalk.New().Red().Bold().Sprint(\"error!\"))\n\tfmt.Println(chalk.Green(\"ok\"))                 // package shortcut\n\tfmt.Println(chalk.New().Hex(\"#ff8800\").Sprint(\"orange\"))\n\nReach for chalk whenever a command-line program wants to highlight output —\nerrors in red, success in green, hints in a dim gray — without hand-writing\nescape codes or pulling in a dependency. The package is standard-library only.\nEvery entry point comes in two flavors: a fluent [Style] built with [New] and\nchained methods for reuse, and package-level shortcuts such as [Red] or [Hex]\nfor one-off styling. A [Style] is immutable — each method returns a new value\n— so a configured style is safe to store and share across goroutines.\n\nInternally a [Style] records a list of open/close SGR code pairs. At render\ntime each pair is emitted as an escape sequence of the form ESC[\u003ccodes\u003em\naround the text, applying the innermost style first so that outer styles\nre-assert themselves. When a piece of text already contains a matching close\ncode (from a nested style), chalk re-opens the outer style immediately after\nit, mirroring the \"style bleed\" fix in Node chalk so nested colors survive.\nForeground and background colors, the 16 basic and 16 bright ANSI colors, the\n256-color palette ([Style.Ansi256]), 24-bit truecolor ([Style.RGB]) and hex\nstrings ([Style.Hex]) are all supported.\n\nColor output is enabled automatically when stdout is a terminal and NO_COLOR\nis unset. Detection follows the same conventions as the Node ecosystem: the\n[Level] is derived from NO_COLOR, FORCE_COLOR, COLORTERM and TERM (see\n[GetLevel] and [SetLevel]). Truecolor and 256-color requests degrade\ngracefully down to the nearest color the terminal actually supports, so an\n[Style.RGB] call still produces reasonable output on a 16-color terminal and\nemits nothing at all when the level is [LevelNone]. Detection happens once and\nis cached; [ResetDetection] forces a re-detect and [SetLevel] pins a fixed\nlevel, which is the recommended way to get deterministic output in tests.\n\nA handful of edge cases are worth knowing. When color is disabled the render\nmethods return the input text unchanged, so it is always safe to wrap output\nin a style. [Strip] removes SGR sequences from a string and [VisibleLength]\nreports the on-screen width (counting runes, not bytes, and ignoring escape\ncodes), which is useful for laying out tables or padding colored columns.\nBecause detection keys off os.Stdout, redirecting output to a file or pipe\ndisables color automatically unless FORCE_COLOR overrides it.\n\nParity with Node chalk is close but not exact. The chainable API, automatic\nlevel detection, the NO_COLOR/FORCE_COLOR conventions and the truecolor→256→16\ndowngrade all match. The differences are idiomatic: styling is applied with\nSprint/Sprintf/Println methods (and package shortcuts) rather than by calling\nthe style as a function, template literal tagging is not provided, and the\nglobal level is process-wide rather than per-instance. Rarely supported\nattributes such as [Style.Italic] and [Style.Overline] are included for\ncompleteness even though not every terminal honors them.\n",
+      "consts": [],
+      "vars": [],
+      "types": [
+        {
+          "name": "Level",
+          "signature": "type Level int",
+          "doc": "Level is the color capability of the output terminal.\n",
+          "consts": [
+            {
+              "names": [
+                "LevelNone",
+                "LevelBasic",
+                "Level256",
+                "LevelTrueColor"
+              ],
+              "signature": "const (\n\t// LevelNone disables color output.\n\tLevelNone Level = iota\n\t// LevelBasic supports the 16 ANSI colors.\n\tLevelBasic\n\t// Level256 supports the 256-color palette.\n\tLevel256\n\t// LevelTrueColor supports 24-bit color.\n\tLevelTrueColor\n)",
+              "doc": ""
+            }
+          ],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "GetLevel",
+              "signature": "func GetLevel() Level",
+              "doc": "GetLevel returns the current global color level.\n"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "name": "Style",
+          "signature": "type Style struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Style is an immutable, chainable set of terminal styles. Build one with New()\nand the fluent methods, then render with Sprint/Sprintf/Print/Println.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "New",
+              "signature": "func New() *Style",
+              "doc": "New returns an empty Style.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Ansi256",
+              "recv": "*Style",
+              "signature": "func (s *Style) Ansi256(n int) *Style",
+              "doc": "Ansi256 sets the foreground to a 256-palette color (0–255), degrading to 16\ncolors on limited terminals.\n"
+            },
+            {
+              "name": "BgAnsi256",
+              "recv": "*Style",
+              "signature": "func (s *Style) BgAnsi256(n int) *Style",
+              "doc": "BgAnsi256 sets the background to a 256-palette color (0–255).\n"
+            },
+            {
+              "name": "BgBlack",
+              "recv": "*Style",
+              "signature": "func (s *Style) BgBlack() *Style",
+              "doc": "BgBlack sets a black background.\n"
+            },
+            {
+              "name": "BgBlue",
+              "recv": "*Style",
+              "signature": "func (s *Style) BgBlue() *Style",
+              "doc": "BgBlue sets a blue background.\n"
+            },
+            {
+              "name": "BgBrightBlack",
+              "recv": "*Style",
+              "signature": "func (s *Style) BgBrightBlack() *Style",
+              "doc": "BgBrightBlack sets a bright black background.\n"
+            },
+            {
+              "name": "BgBrightBlue",
+              "recv": "*Style",
+              "signature": "func (s *Style) BgBrightBlue() *Style",
+              "doc": "BgBrightBlue sets a bright blue background.\n"
+            },
+            {
+              "name": "BgBrightCyan",
+              "recv": "*Style",
+              "signature": "func (s *Style) BgBrightCyan() *Style",
+              "doc": "BgBrightCyan sets a bright cyan background.\n"
+            },
+            {
+              "name": "BgBrightGreen",
+              "recv": "*Style",
+              "signature": "func (s *Style) BgBrightGreen() *Style",
+              "doc": "BgBrightGreen sets a bright green background.\n"
+            },
+            {
+              "name": "BgBrightMagenta",
+              "recv": "*Style",
+              "signature": "func (s *Style) BgBrightMagenta() *Style",
+              "doc": "BgBrightMagenta sets a bright magenta background.\n"
+            },
+            {
+              "name": "BgBrightRed",
+              "recv": "*Style",
+              "signature": "func (s *Style) BgBrightRed() *Style",
+              "doc": "BgBrightRed sets a bright red background.\n"
+            },
+            {
+              "name": "BgBrightWhite",
+              "recv": "*Style",
+              "signature": "func (s *Style) BgBrightWhite() *Style",
+              "doc": "BgBrightWhite sets a bright white background.\n"
+            },
+            {
+              "name": "BgBrightYellow",
+              "recv": "*Style",
+              "signature": "func (s *Style) BgBrightYellow() *Style",
+              "doc": "BgBrightYellow sets a bright yellow background.\n"
+            },
+            {
+              "name": "BgCyan",
+              "recv": "*Style",
+              "signature": "func (s *Style) BgCyan() *Style",
+              "doc": "BgCyan sets a cyan background.\n"
+            },
+            {
+              "name": "BgGray",
+              "recv": "*Style",
+              "signature": "func (s *Style) BgGray() *Style",
+              "doc": "BgGray is an alias for BgBrightBlack.\n"
+            },
+            {
+              "name": "BgGreen",
+              "recv": "*Style",
+              "signature": "func (s *Style) BgGreen() *Style",
+              "doc": "BgGreen sets a green background.\n"
+            },
+            {
+              "name": "BgHSL",
+              "recv": "*Style",
+              "signature": "func (s *Style) BgHSL(h, sat, l int) *Style",
+              "doc": "BgHSL sets the background from an HSL color: hue 0–360, saturation 0–100 and\nlightness 0–100.\n"
+            },
+            {
+              "name": "BgHSV",
+              "recv": "*Style",
+              "signature": "func (s *Style) BgHSV(h, sat, v int) *Style",
+              "doc": "BgHSV sets the background from an HSV color: hue 0–360, saturation 0–100 and\nvalue/brightness 0–100.\n"
+            },
+            {
+              "name": "BgHWB",
+              "recv": "*Style",
+              "signature": "func (s *Style) BgHWB(h, w, bl int) *Style",
+              "doc": "BgHWB sets the background from an HWB color: hue 0–360, whiteness 0–100 and\nblackness 0–100.\n"
+            },
+            {
+              "name": "BgHex",
+              "recv": "*Style",
+              "signature": "func (s *Style) BgHex(hex string) *Style",
+              "doc": "BgHex sets the background from a hex color.\n"
+            },
+            {
+              "name": "BgMagenta",
+              "recv": "*Style",
+              "signature": "func (s *Style) BgMagenta() *Style",
+              "doc": "BgMagenta sets a magenta background.\n"
+            },
+            {
+              "name": "BgRGB",
+              "recv": "*Style",
+              "signature": "func (s *Style) BgRGB(r, g, b int) *Style",
+              "doc": "BgRGB sets the background to a 24-bit color.\n"
+            },
+            {
+              "name": "BgRed",
+              "recv": "*Style",
+              "signature": "func (s *Style) BgRed() *Style",
+              "doc": "BgRed sets a red background.\n"
+            },
+            {
+              "name": "BgWhite",
+              "recv": "*Style",
+              "signature": "func (s *Style) BgWhite() *Style",
+              "doc": "BgWhite sets a white background.\n"
+            },
+            {
+              "name": "BgYellow",
+              "recv": "*Style",
+              "signature": "func (s *Style) BgYellow() *Style",
+              "doc": "BgYellow sets a yellow background.\n"
+            },
+            {
+              "name": "Black",
+              "recv": "*Style",
+              "signature": "func (s *Style) Black() *Style",
+              "doc": "Black colors text black.\n"
+            },
+            {
+              "name": "Blue",
+              "recv": "*Style",
+              "signature": "func (s *Style) Blue() *Style",
+              "doc": "Blue colors text blue.\n"
+            },
+            {
+              "name": "Bold",
+              "recv": "*Style",
+              "signature": "func (s *Style) Bold() *Style",
+              "doc": "Bold makes text bold.\n"
+            },
+            {
+              "name": "BrightBlack",
+              "recv": "*Style",
+              "signature": "func (s *Style) BrightBlack() *Style",
+              "doc": "BrightBlack colors text bright black (gray).\n"
+            },
+            {
+              "name": "BrightBlue",
+              "recv": "*Style",
+              "signature": "func (s *Style) BrightBlue() *Style",
+              "doc": "BrightBlue colors text bright blue.\n"
+            },
+            {
+              "name": "BrightCyan",
+              "recv": "*Style",
+              "signature": "func (s *Style) BrightCyan() *Style",
+              "doc": "BrightCyan colors text bright cyan.\n"
+            },
+            {
+              "name": "BrightGreen",
+              "recv": "*Style",
+              "signature": "func (s *Style) BrightGreen() *Style",
+              "doc": "BrightGreen colors text bright green.\n"
+            },
+            {
+              "name": "BrightMagenta",
+              "recv": "*Style",
+              "signature": "func (s *Style) BrightMagenta() *Style",
+              "doc": "BrightMagenta colors text bright magenta.\n"
+            },
+            {
+              "name": "BrightRed",
+              "recv": "*Style",
+              "signature": "func (s *Style) BrightRed() *Style",
+              "doc": "BrightRed colors text bright red.\n"
+            },
+            {
+              "name": "BrightWhite",
+              "recv": "*Style",
+              "signature": "func (s *Style) BrightWhite() *Style",
+              "doc": "BrightWhite colors text bright white.\n"
+            },
+            {
+              "name": "BrightYellow",
+              "recv": "*Style",
+              "signature": "func (s *Style) BrightYellow() *Style",
+              "doc": "BrightYellow colors text bright yellow.\n"
+            },
+            {
+              "name": "Cyan",
+              "recv": "*Style",
+              "signature": "func (s *Style) Cyan() *Style",
+              "doc": "Cyan colors text cyan.\n"
+            },
+            {
+              "name": "Dim",
+              "recv": "*Style",
+              "signature": "func (s *Style) Dim() *Style",
+              "doc": "Dim makes text dim/faint.\n"
+            },
+            {
+              "name": "Gray",
+              "recv": "*Style",
+              "signature": "func (s *Style) Gray() *Style",
+              "doc": "Gray is an alias for BrightBlack.\n"
+            },
+            {
+              "name": "Green",
+              "recv": "*Style",
+              "signature": "func (s *Style) Green() *Style",
+              "doc": "Green colors text green.\n"
+            },
+            {
+              "name": "Grey",
+              "recv": "*Style",
+              "signature": "func (s *Style) Grey() *Style",
+              "doc": "Grey is an alias for BrightBlack.\n"
+            },
+            {
+              "name": "HSL",
+              "recv": "*Style",
+              "signature": "func (s *Style) HSL(h, sat, l int) *Style",
+              "doc": "HSL sets the foreground from an HSL color: hue 0–360, saturation 0–100 and\nlightness 0–100.\n"
+            },
+            {
+              "name": "HSV",
+              "recv": "*Style",
+              "signature": "func (s *Style) HSV(h, sat, v int) *Style",
+              "doc": "HSV sets the foreground from an HSV color: hue 0–360, saturation 0–100 and\nvalue/brightness 0–100.\n"
+            },
+            {
+              "name": "HWB",
+              "recv": "*Style",
+              "signature": "func (s *Style) HWB(h, w, bl int) *Style",
+              "doc": "HWB sets the foreground from an HWB color: hue 0–360, whiteness 0–100 and\nblackness 0–100.\n"
+            },
+            {
+              "name": "Hex",
+              "recv": "*Style",
+              "signature": "func (s *Style) Hex(hex string) *Style",
+              "doc": "Hex sets the foreground from a hex color like \"#ff8800\" or \"f80\".\n"
+            },
+            {
+              "name": "Hidden",
+              "recv": "*Style",
+              "signature": "func (s *Style) Hidden() *Style",
+              "doc": "Hidden hides text.\n"
+            },
+            {
+              "name": "Inverse",
+              "recv": "*Style",
+              "signature": "func (s *Style) Inverse() *Style",
+              "doc": "Inverse swaps foreground and background.\n"
+            },
+            {
+              "name": "Italic",
+              "recv": "*Style",
+              "signature": "func (s *Style) Italic() *Style",
+              "doc": "Italic makes text italic (not widely supported).\n"
+            },
+            {
+              "name": "Level",
+              "recv": "*Style",
+              "signature": "func (s *Style) Level(l Level) *Style",
+              "doc": "Level pins this style to a specific color level regardless of the global\nsetting (useful for testing or forcing output).\n"
+            },
+            {
+              "name": "Magenta",
+              "recv": "*Style",
+              "signature": "func (s *Style) Magenta() *Style",
+              "doc": "Magenta colors text magenta.\n"
+            },
+            {
+              "name": "Overline",
+              "recv": "*Style",
+              "signature": "func (s *Style) Overline() *Style",
+              "doc": "Overline draws a line above text.\n"
+            },
+            {
+              "name": "Print",
+              "recv": "*Style",
+              "signature": "func (s *Style) Print(a ...any) (int, error)",
+              "doc": "Print writes the styled operands to stdout.\n"
+            },
+            {
+              "name": "Printf",
+              "recv": "*Style",
+              "signature": "func (s *Style) Printf(format string, a ...any) (int, error)",
+              "doc": "Printf writes a styled formatted string to stdout.\n"
+            },
+            {
+              "name": "Println",
+              "recv": "*Style",
+              "signature": "func (s *Style) Println(a ...any) (int, error)",
+              "doc": "Println writes the styled operands and a newline to stdout.\n"
+            },
+            {
+              "name": "RGB",
+              "recv": "*Style",
+              "signature": "func (s *Style) RGB(r, g, b int) *Style",
+              "doc": "RGB sets the foreground to a 24-bit color, degrading to 256/16 colors as\nneeded.\n"
+            },
+            {
+              "name": "Red",
+              "recv": "*Style",
+              "signature": "func (s *Style) Red() *Style",
+              "doc": "Red colors text red.\n"
+            },
+            {
+              "name": "Reset",
+              "recv": "*Style",
+              "signature": "func (s *Style) Reset() *Style",
+              "doc": "Reset clears all styles.\n"
+            },
+            {
+              "name": "Sprint",
+              "recv": "*Style",
+              "signature": "func (s *Style) Sprint(a ...any) string",
+              "doc": "Sprint styles the concatenation of its operands (like fmt.Sprint).\n"
+            },
+            {
+              "name": "Sprintf",
+              "recv": "*Style",
+              "signature": "func (s *Style) Sprintf(format string, a ...any) string",
+              "doc": "Sprintf styles a formatted string.\n"
+            },
+            {
+              "name": "Sprintln",
+              "recv": "*Style",
+              "signature": "func (s *Style) Sprintln(a ...any) string",
+              "doc": "Sprintln styles its operands with a trailing newline (the newline is outside\nthe style codes).\n"
+            },
+            {
+              "name": "Strikethrough",
+              "recv": "*Style",
+              "signature": "func (s *Style) Strikethrough() *Style",
+              "doc": "Strikethrough draws a line through text.\n"
+            },
+            {
+              "name": "Underline",
+              "recv": "*Style",
+              "signature": "func (s *Style) Underline() *Style",
+              "doc": "Underline underlines text.\n"
+            },
+            {
+              "name": "Visible",
+              "recv": "*Style",
+              "signature": "func (s *Style) Visible() *Style",
+              "doc": "Visible returns a style that emits its text only when color output is enabled\n(the color level is greater than [LevelNone]). When color is disabled the\nrender methods return an empty string instead of the raw text. This mirrors\nNode chalk's \".visible\" modifier, handy for decorations that should vanish in\nplain, piped output.\n"
+            },
+            {
+              "name": "White",
+              "recv": "*Style",
+              "signature": "func (s *Style) White() *Style",
+              "doc": "White colors text white.\n"
+            },
+            {
+              "name": "Yellow",
+              "recv": "*Style",
+              "signature": "func (s *Style) Yellow() *Style",
+              "doc": "Yellow colors text yellow.\n"
+            }
+          ]
+        }
+      ],
+      "funcs": [
+        {
+          "name": "Ansi256",
+          "signature": "func Ansi256(n int, a ...any) string",
+          "doc": "Ansi256 colors text with a 256-palette index.\n"
+        },
+        {
+          "name": "Ansi256ToAnsi16",
+          "signature": "func Ansi256ToAnsi16(n int) int",
+          "doc": "Ansi256ToAnsi16 reduces an xterm 256-color palette index to the nearest basic\n16-color SGR foreground code (30–37 or 90–97).\n"
+        },
+        {
+          "name": "Ansi256ToRGB",
+          "signature": "func Ansi256ToRGB(n int) (r, g, b int)",
+          "doc": "Ansi256ToRGB converts an xterm 256-color palette index (0–255) back to an\napproximate RGB triple.\n"
+        },
+        {
+          "name": "BgAnsi256",
+          "signature": "func BgAnsi256(n int, a ...any) string",
+          "doc": "BgAnsi256 styles text on a 256-palette background color.\n"
+        },
+        {
+          "name": "BgBlack",
+          "signature": "func BgBlack(a ...any) string",
+          "doc": "BgBlack styles text on a black background.\n"
+        },
+        {
+          "name": "BgBlue",
+          "signature": "func BgBlue(a ...any) string",
+          "doc": "BgBlue styles text on a blue background.\n"
+        },
+        {
+          "name": "BgCyan",
+          "signature": "func BgCyan(a ...any) string",
+          "doc": "BgCyan styles text on a cyan background.\n"
+        },
+        {
+          "name": "BgGray",
+          "signature": "func BgGray(a ...any) string",
+          "doc": "BgGray styles text on a gray (bright black) background.\n"
+        },
+        {
+          "name": "BgGreen",
+          "signature": "func BgGreen(a ...any) string",
+          "doc": "BgGreen styles text on a green background.\n"
+        },
+        {
+          "name": "BgHex",
+          "signature": "func BgHex(hex string, a ...any) string",
+          "doc": "BgHex styles text on a background color from a hex string like \"#ff8800\".\n"
+        },
+        {
+          "name": "BgMagenta",
+          "signature": "func BgMagenta(a ...any) string",
+          "doc": "BgMagenta styles text on a magenta background.\n"
+        },
+        {
+          "name": "BgRGB",
+          "signature": "func BgRGB(r, g, b int, a ...any) string",
+          "doc": "BgRGB styles text on a 24-bit background color.\n"
+        },
+        {
+          "name": "BgRed",
+          "signature": "func BgRed(a ...any) string",
+          "doc": "BgRed styles text on a red background.\n"
+        },
+        {
+          "name": "BgWhite",
+          "signature": "func BgWhite(a ...any) string",
+          "doc": "BgWhite styles text on a white background.\n"
+        },
+        {
+          "name": "BgYellow",
+          "signature": "func BgYellow(a ...any) string",
+          "doc": "BgYellow styles text on a yellow background.\n"
+        },
+        {
+          "name": "Black",
+          "signature": "func Black(a ...any) string",
+          "doc": "Black colors text black.\n"
+        },
+        {
+          "name": "Blue",
+          "signature": "func Blue(a ...any) string",
+          "doc": "Blue colors text blue.\n"
+        },
+        {
+          "name": "Bold",
+          "signature": "func Bold(a ...any) string",
+          "doc": "Bold styles text bold.\n"
+        },
+        {
+          "name": "BrightBlack",
+          "signature": "func BrightBlack(a ...any) string",
+          "doc": "BrightBlack colors text bright black (gray).\n"
+        },
+        {
+          "name": "BrightBlue",
+          "signature": "func BrightBlue(a ...any) string",
+          "doc": "BrightBlue colors text bright blue.\n"
+        },
+        {
+          "name": "BrightCyan",
+          "signature": "func BrightCyan(a ...any) string",
+          "doc": "BrightCyan colors text bright cyan.\n"
+        },
+        {
+          "name": "BrightGreen",
+          "signature": "func BrightGreen(a ...any) string",
+          "doc": "BrightGreen colors text bright green.\n"
+        },
+        {
+          "name": "BrightMagenta",
+          "signature": "func BrightMagenta(a ...any) string",
+          "doc": "BrightMagenta colors text bright magenta.\n"
+        },
+        {
+          "name": "BrightRed",
+          "signature": "func BrightRed(a ...any) string",
+          "doc": "BrightRed colors text bright red.\n"
+        },
+        {
+          "name": "BrightWhite",
+          "signature": "func BrightWhite(a ...any) string",
+          "doc": "BrightWhite colors text bright white.\n"
+        },
+        {
+          "name": "BrightYellow",
+          "signature": "func BrightYellow(a ...any) string",
+          "doc": "BrightYellow colors text bright yellow.\n"
+        },
+        {
+          "name": "Cyan",
+          "signature": "func Cyan(a ...any) string",
+          "doc": "Cyan colors text cyan.\n"
+        },
+        {
+          "name": "Dim",
+          "signature": "func Dim(a ...any) string",
+          "doc": "Dim styles text dim.\n"
+        },
+        {
+          "name": "Enabled",
+          "signature": "func Enabled() bool",
+          "doc": "Enabled reports whether any color will be emitted.\n"
+        },
+        {
+          "name": "Gray",
+          "signature": "func Gray(a ...any) string",
+          "doc": "Gray colors text gray (bright black).\n"
+        },
+        {
+          "name": "Green",
+          "signature": "func Green(a ...any) string",
+          "doc": "Green colors text green.\n"
+        },
+        {
+          "name": "HSL",
+          "signature": "func HSL(h, sat, l int, a ...any) string",
+          "doc": "HSL styles text with an HSL foreground color (hue 0–360, saturation 0–100,\nlightness 0–100).\n"
+        },
+        {
+          "name": "HSLToRGB",
+          "signature": "func HSLToRGB(h, s, l int) (r, g, b int)",
+          "doc": "HSLToRGB converts hue (0–360), saturation (0–100) and lightness (0–100) to an\nRGB triple (0–255).\n"
+        },
+        {
+          "name": "HSV",
+          "signature": "func HSV(h, sat, v int, a ...any) string",
+          "doc": "HSV styles text with an HSV foreground color (hue 0–360, saturation 0–100,\nvalue 0–100).\n"
+        },
+        {
+          "name": "HSVToRGB",
+          "signature": "func HSVToRGB(h, s, v int) (r, g, b int)",
+          "doc": "HSVToRGB converts hue (0–360), saturation (0–100) and value/brightness\n(0–100) to an RGB triple (0–255).\n"
+        },
+        {
+          "name": "HWB",
+          "signature": "func HWB(h, w, bl int, a ...any) string",
+          "doc": "HWB styles text with an HWB foreground color (hue 0–360, whiteness 0–100,\nblackness 0–100).\n"
+        },
+        {
+          "name": "HWBToRGB",
+          "signature": "func HWBToRGB(h, w, bl int) (r, g, b int)",
+          "doc": "HWBToRGB converts hue (0–360), whiteness (0–100) and blackness (0–100) to an\nRGB triple (0–255).\n"
+        },
+        {
+          "name": "Has256",
+          "signature": "func Has256() bool",
+          "doc": "Has256 reports whether the terminal supports the 256-color palette\n([Level256] or higher). This is Node chalk's supportsColor.has256.\n"
+        },
+        {
+          "name": "HasBasic",
+          "signature": "func HasBasic() bool",
+          "doc": "HasBasic reports whether the terminal supports at least the 16 basic ANSI\ncolors ([LevelBasic] or higher). This is Node chalk's supportsColor.hasBasic.\n"
+        },
+        {
+          "name": "HasTrueColor",
+          "signature": "func HasTrueColor() bool",
+          "doc": "HasTrueColor reports whether the terminal supports 24-bit truecolor\n([LevelTrueColor]). This is Node chalk's supportsColor.has16m.\n"
+        },
+        {
+          "name": "Hex",
+          "signature": "func Hex(hex string, a ...any) string",
+          "doc": "Hex colors text from a hex string like \"#ff8800\".\n"
+        },
+        {
+          "name": "HexToRGB",
+          "signature": "func HexToRGB(hex string) (r, g, b int)",
+          "doc": "HexToRGB parses a hex color such as \"#ff8800\", \"ff8800\" or the shorthand\n\"#f80\" and returns its red, green and blue channels (each 0–255). Invalid\ninput yields (0, 0, 0).\n"
+        },
+        {
+          "name": "Hidden",
+          "signature": "func Hidden(a ...any) string",
+          "doc": "Hidden styles text hidden (not displayed).\n"
+        },
+        {
+          "name": "Inverse",
+          "signature": "func Inverse(a ...any) string",
+          "doc": "Inverse styles text inverted.\n"
+        },
+        {
+          "name": "Italic",
+          "signature": "func Italic(a ...any) string",
+          "doc": "Italic styles text italic.\n"
+        },
+        {
+          "name": "Magenta",
+          "signature": "func Magenta(a ...any) string",
+          "doc": "Magenta colors text magenta.\n"
+        },
+        {
+          "name": "Overline",
+          "signature": "func Overline(a ...any) string",
+          "doc": "Overline styles text with an overline.\n"
+        },
+        {
+          "name": "RGB",
+          "signature": "func RGB(r, g, b int, a ...any) string",
+          "doc": "RGB colors text with a 24-bit color.\n"
+        },
+        {
+          "name": "RGBToAnsi16",
+          "signature": "func RGBToAnsi16(r, g, b int) int",
+          "doc": "RGBToAnsi16 maps a 24-bit color to the nearest basic 16-color SGR foreground\ncode (30–37 for normal colors, 90–97 for the bright variants).\n"
+        },
+        {
+          "name": "RGBToAnsi256",
+          "signature": "func RGBToAnsi256(r, g, b int) int",
+          "doc": "RGBToAnsi256 maps a 24-bit color to the nearest xterm 256-color palette index\n(0–255), using the same 6×6×6 color cube and grayscale ramp as color-convert.\n"
+        },
+        {
+          "name": "RGBToHSL",
+          "signature": "func RGBToHSL(r, g, b int) (h, s, l int)",
+          "doc": "RGBToHSL converts an RGB triple (0–255) to hue (0–360), saturation (0–100)\nand lightness (0–100).\n"
+        },
+        {
+          "name": "RGBToHSV",
+          "signature": "func RGBToHSV(r, g, b int) (h, s, v int)",
+          "doc": "RGBToHSV converts an RGB triple (0–255) to hue (0–360), saturation (0–100)\nand value/brightness (0–100).\n"
+        },
+        {
+          "name": "RGBToHWB",
+          "signature": "func RGBToHWB(r, g, b int) (h, w, bl int)",
+          "doc": "RGBToHWB converts an RGB triple (0–255) to hue (0–360), whiteness (0–100) and\nblackness (0–100), the HWB color model used by CSS Color 4 and color-convert.\n"
+        },
+        {
+          "name": "RGBToHex",
+          "signature": "func RGBToHex(r, g, b int) string",
+          "doc": "RGBToHex formats an RGB triple as a lowercase \"#rrggbb\" hex string. Channels\nare clamped to the 0–255 range first.\n"
+        },
+        {
+          "name": "Red",
+          "signature": "func Red(a ...any) string",
+          "doc": "Red colors text red.\n"
+        },
+        {
+          "name": "Reset",
+          "signature": "func Reset(a ...any) string",
+          "doc": "Reset styles text with all attributes reset.\n"
+        },
+        {
+          "name": "ResetDetection",
+          "signature": "func ResetDetection()",
+          "doc": "ResetDetection clears any forced level so the next use re-detects.\n"
+        },
+        {
+          "name": "SetEnabled",
+          "signature": "func SetEnabled(on bool)",
+          "doc": "SetEnabled turns color on (auto-detected level, minimum basic) or off.\n"
+        },
+        {
+          "name": "SetLevel",
+          "signature": "func SetLevel(l Level)",
+          "doc": "SetLevel forces the global color level, overriding auto-detection.\n"
+        },
+        {
+          "name": "Strikethrough",
+          "signature": "func Strikethrough(a ...any) string",
+          "doc": "Strikethrough styles text struck through.\n"
+        },
+        {
+          "name": "Strip",
+          "signature": "func Strip(s string) string",
+          "doc": "Strip removes all ANSI SGR escape sequences from s.\n"
+        },
+        {
+          "name": "SupportsColor",
+          "signature": "func SupportsColor() bool",
+          "doc": "SupportsColor reports whether any color will be emitted, i.e. the current\nlevel is greater than [LevelNone]. It is an alias for [Enabled] provided for\nparity with Node chalk's supportsColor.\n"
+        },
+        {
+          "name": "Underline",
+          "signature": "func Underline(a ...any) string",
+          "doc": "Underline styles text underlined.\n"
+        },
+        {
+          "name": "Visible",
+          "signature": "func Visible(a ...any) string",
+          "doc": "Visible styles text so that it renders only when color output is enabled,\nreturning an empty string otherwise.\n"
+        },
+        {
+          "name": "VisibleLength",
+          "signature": "func VisibleLength(s string) int",
+          "doc": "VisibleLength returns the number of visible characters in s, ignoring ANSI\nescape codes (counts runes, not bytes).\n"
+        },
+        {
+          "name": "White",
+          "signature": "func White(a ...any) string",
+          "doc": "White colors text white.\n"
+        },
+        {
+          "name": "Yellow",
+          "signature": "func Yellow(a ...any) string",
+          "doc": "Yellow colors text yellow.\n"
+        }
+      ],
+      "examples": [
+        {
+          "name": "Green",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/chalk\"\n)\n\nfunc main() {\n\tchalk.SetLevel(chalk.LevelBasic)\n\tdefer chalk.ResetDetection()\n\n\tstyled := chalk.Green(\"ok\")\n\tfmt.Printf(\"%q\\n\", styled)\n\tfmt.Printf(\"%q\\n\", chalk.Strip(styled))\n}",
+          "output": "\"\\x1b[32mok\\x1b[39m\"\n\"ok\"",
+          "doc": "ExampleGreen demonstrates the package-level shortcuts for one-off styling. It\nforces the basic color level so the output is deterministic, then colors a\nshort string green using the Green shortcut, which is equivalent to\nNew().Green().Sprint. It also shows Strip, which removes every ANSI escape\nsequence from a styled string, recovering the original plain text. Printing\nboth the quoted styled form and the stripped form side by side highlights the\ndifference between the on-the-wire bytes and what the user sees. The takeaway\nis that shortcuts are a concise way to style a single value and that Strip\nreverses the styling for measurement or logging.\n"
+        },
+        {
+          "name": "RGBToHex",
+          "code": "fmt.Println(RGBToHex(255, 136, 0))",
+          "output": "#ff8800"
+        },
+        {
+          "name": "Style",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/chalk\"\n)\n\nfunc main() {\n\tchalk.SetLevel(chalk.LevelBasic)\n\tdefer chalk.ResetDetection()\n\n\tstyled := chalk.New().Red().Bold().Sprint(\"error!\")\n\tfmt.Printf(\"%q\\n\", styled)\n}",
+          "output": "\"\\x1b[31m\\x1b[1merror!\\x1b[22m\\x1b[39m\"",
+          "doc": "ExampleStyle demonstrates the fluent styling API end to end. It pins the\nglobal color level to LevelBasic with SetLevel so the emitted ANSI escape\ncodes are deterministic regardless of the terminal running the test, then\nresets detection afterward so other tests are unaffected. A single Style is\nbuilt by chaining Red and Bold and rendered with Sprint, which wraps the text\nin the corresponding open/close SGR sequences. The result is printed with the\n%q verb so the normally invisible escape bytes show up literally, making clear\nthat Red opens code 31 and Bold opens code 1, each closed in reverse order.\nThe takeaway is that a chained Style is immutable and produces predictable\nescape sequences once the color level is fixed.\n"
+        }
+      ]
+    },
+    {
+      "importPath": "github.com/malcolmston/chalk/figlet",
+      "name": "figlet",
+      "synopsis": "Package figlet renders text as ASCII-art banners using FIGfont, a Go port of the classic figlet program and the Node figlet library.",
+      "doc": "Package figlet renders text as ASCII-art banners using FIGfont, a Go port of\nthe classic figlet program and the Node figlet library. It ships a built-in\nblock font plus a large registry of bundled variants, and it can load any\nstandard .flf FIGfont from a file, directory or reader.\n\n\tfmt.Println(figlet.Render(\"Hi!\"))                    // built-in font\n\tf, _ := figlet.LoadFontFile(\"slant.flf\")\n\tfmt.Println(f.Render(\"Hello\"))\n\nUse figlet to draw large banner text for CLI splash screens, section headers\nin logs, or generated README art. The simplest entry point is [Render], which\nrenders a string with the built-in font; [RenderFont] renders with a named\nfont from the registry (see [Fonts] and [GetFont]); and a [Font] value\nobtained from [LoadFont], [LoadFontFile] or [ParseFont] can render directly\nwith [Font.Render]. The companion helpers [RenderRainbow] and [RenderGradient]\n(and the lower-level [Rainbow] and [Gradient]) colorize a finished banner with\nthe sibling chalk package.\n\nA FIGfont describes each printable character as a small block of text rows,\nall the same height. Rendering lays the glyphs for the input left to right and\ncombines each pair of adjacent glyphs according to a [Layout]: full width\nleaves them separate, kerning slides them together until they touch, and\nsmushing overlaps their touching edges and fuses the overlapping cells using\nthe font's \"smushing rules\". [LayoutDefault] honors whatever the font's header\nspecifies. Fonts may use a \"hardblank\" character that occupies space during\nlayout but prints as a blank, which is how figlet keeps letters from fusing\ninto an unreadable blob; hardblanks are replaced with spaces in the final\noutput.\n\nImportant semantics and edge cases: input is split on newlines and each line\nis rendered as its own block, so multi-line input produces stacked banners.\nCharacters the font does not define fall back to the uppercase form (so fonts\nthat only define capitals still render mixed-case text) and finally to a\nspace, meaning unknown runes never abort a render. [ParseFont] validates the\nflf2a signature and header and returns an error for a malformed font, but it\ntolerates a truncated glyph table by rendering whatever characters it managed\nto read. Output is plain text containing no ANSI codes unless you pass it\nthrough one of the color helpers.\n\nParity with the original tools is partial and deliberate. The .flf format,\nthe four layout modes and the standard horizontal smushing rules (equal\ncharacter, underscore, hierarchy, opposite pair, big-X and hardblank) are all\nimplemented, so real-world fonts render faithfully. What is intentionally left\nout is vertical smushing, right-to-left print direction, control files (.flc)\nand character-code remapping. In exchange this port bundles its own fonts and\nprogrammatically generates roughly a thousand named variants (see\nfonts_generated.go) so useful output is available with zero external font\nfiles.\n",
+      "consts": [],
+      "vars": [],
+      "types": [
+        {
+          "name": "Font",
+          "signature": "type Font struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Font is a parsed FIGfont.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "BuiltinFont",
+              "signature": "func BuiltinFont() *Font",
+              "doc": "BuiltinFont returns the built-in block font.\n"
+            },
+            {
+              "name": "FontFromGlyphs",
+              "signature": "func FontFromGlyphs(height, layout int, glyphs map[rune][]string) *Font",
+              "doc": "FontFromGlyphs builds a *Font from a glyph map of the given row height. Rows\nwithin a glyph need not be equal width (they are padded at render time), but\nevery glyph must have exactly height rows. layout selects horizontal spacing:\nuse 0 for kerning (characters slide together until they touch, the natural\nlook for proportional fonts) or -1 for full fixed width.\n\nLowercase input automatically falls back to the uppercase glyph, so fonts\nthat define only capitals still render mixed-case text.\n"
+            },
+            {
+              "name": "GetFont",
+              "signature": "func GetFont(name string) (*Font, bool)",
+              "doc": "GetFont returns a registered font by name (case-insensitive).\n"
+            },
+            {
+              "name": "LoadFont",
+              "signature": "func LoadFont(r io.Reader) (*Font, error)",
+              "doc": "LoadFont parses a FIGfont from a reader.\n"
+            },
+            {
+              "name": "LoadFontFile",
+              "signature": "func LoadFontFile(path string) (*Font, error)",
+              "doc": "LoadFontFile parses a FIGfont from a .flf file on disk.\n"
+            },
+            {
+              "name": "ParseFont",
+              "signature": "func ParseFont(r io.Reader) (*Font, error)",
+              "doc": "ParseFont reads a FIGfont from r.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Height",
+              "recv": "*Font",
+              "signature": "func (f *Font) Height() int",
+              "doc": "Height returns the number of rows in a rendered line.\n"
+            },
+            {
+              "name": "Render",
+              "recv": "*Font",
+              "signature": "func (f *Font) Render(text string, opts ...Options) string",
+              "doc": "Render renders text using the font.\n"
+            }
+          ]
+        },
+        {
+          "name": "Layout",
+          "signature": "type Layout int",
+          "doc": "Layout selects how adjacent characters are combined horizontally.\n",
+          "consts": [
+            {
+              "names": [
+                "LayoutDefault",
+                "LayoutFull",
+                "LayoutKerning",
+                "LayoutSmush"
+              ],
+              "signature": "const (\n\t// LayoutDefault uses the font's own layout settings.\n\tLayoutDefault Layout = iota\n\t// LayoutFull places characters at full width (no overlap).\n\tLayoutFull\n\t// LayoutKerning moves characters together until they touch.\n\tLayoutKerning\n\t// LayoutSmush overlaps and smushes adjacent characters.\n\tLayoutSmush\n)",
+              "doc": ""
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Options",
+          "signature": "type Options struct {\n\t// Layout selects how adjacent characters are combined horizontally;\n\t// LayoutDefault uses the font's own settings.\n\tLayout Layout\n\t// Width, when \u003e 0, wraps output to this many columns.\n\tWidth int\n}",
+          "doc": "Options configures a render.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        }
+      ],
+      "funcs": [
+        {
+          "name": "Fonts",
+          "signature": "func Fonts() []string",
+          "doc": "Fonts returns the sorted names of all registered fonts.\n"
+        },
+        {
+          "name": "Gradient",
+          "signature": "func Gradient(banner, startHex, endHex string) string",
+          "doc": "Gradient colors a rendered banner with a left-to-right color gradient from\nstartHex to endHex (e.g. \"#ff0080\" → \"#00d7ff\"). Each column is tinted by its\nhorizontal position.\n"
+        },
+        {
+          "name": "LoadFontDir",
+          "signature": "func LoadFontDir(dir string) ([]string, error)",
+          "doc": "LoadFontDir parses every .flf FIGfont in dir and registers each under its\nbase file name (without extension). It returns the names loaded.\n"
+        },
+        {
+          "name": "Rainbow",
+          "signature": "func Rainbow(banner string) string",
+          "doc": "Rainbow colors a rendered banner across the full hue spectrum by column.\n"
+        },
+        {
+          "name": "Register",
+          "signature": "func Register(name string, f *Font)",
+          "doc": "Register adds a named font to the registry, making it available to\nRenderFont and GetFont.\n"
+        },
+        {
+          "name": "Render",
+          "signature": "func Render(text string, opts ...Options) string",
+          "doc": "Render renders text with the built-in font.\n"
+        },
+        {
+          "name": "RenderFont",
+          "signature": "func RenderFont(name, text string, opts ...Options) (string, error)",
+          "doc": "RenderFont renders text with a named registered font.\n"
+        },
+        {
+          "name": "RenderGradient",
+          "signature": "func RenderGradient(text, startHex, endHex string) string",
+          "doc": "RenderGradient renders text with the built-in font and applies a gradient.\n"
+        },
+        {
+          "name": "RenderRainbow",
+          "signature": "func RenderRainbow(text string) string",
+          "doc": "RenderRainbow renders text with the built-in font and applies rainbow colors.\n"
+        }
+      ],
+      "examples": [
+        {
+          "name": "Render",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n\n\t\"github.com/malcolmston/chalk/figlet\"\n)\n\nfunc main() {\n\tbanner := figlet.Render(\"Hi\")\n\tfor _, line := range strings.Split(banner, \"\\n\") {\n\t\tfmt.Println(strings.TrimRight(line, \" \"))\n\t}\n}",
+          "output": "#   # ###\n#   #  #\n#####  #\n#   #  #\n#   # ###",
+          "doc": "ExampleRender demonstrates rendering a word as an ASCII-art banner with the\nbuilt-in block font. It calls Render on the two-character string \"Hi\", which\nlays out the glyph for each letter side by side and joins their rows into a\nfive-line block. Because the built-in font is deterministic, the exact art is\nknown ahead of time and checked with an Output comment. Each rendered row is\nright-trimmed before printing so that the font's internal padding spaces do\nnot appear as trailing whitespace, which keeps the expected output stable. The\ntakeaway is that Render turns ordinary text into multi-row banner art using\nthe bundled font with no font files or configuration required.\n"
+        },
+        {
+          "name": "RenderFont",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n\n\t\"github.com/malcolmston/chalk/figlet\"\n)\n\nfunc main() {\n\tbanner, err := figlet.RenderFont(\"banner\", \"Go\")\n\tif err != nil {\n\t\tfmt.Println(\"error:\", err)\n\t\treturn\n\t}\n\tfmt.Println(strings.Count(banner, \"\\n\") + 1)\n}",
+          "output": "5",
+          "doc": "ExampleRenderFont demonstrates rendering with a named font drawn from the\nregistry rather than the default. It renders the word \"Go\" with the bundled\n\"banner\" outline font by calling RenderFont, which looks the font up by\ncase-insensitive name and returns an error if the name is unknown. The number\nof output rows equals the font's Height, so the code prints that height to\nshow the render succeeded without depending on the exact glyph art, which is\nless stable across fonts. This also illustrates the two-value contract of\nRenderFont: a rendered string plus an error that is nil on success. The\ntakeaway is that many named fonts are available through the registry via a\nsingle call.\n"
+        }
+      ]
+    },
+    {
+      "importPath": "github.com/malcolmston/chalk/prompts",
+      "name": "prompts",
+      "synopsis": "Package prompts provides interactive terminal prompts in the spirit of Node's inquirer / @inquirer/prompts, styled with the sibling chalk package.",
+      "doc": "Package prompts provides interactive terminal prompts in the spirit of Node's\ninquirer / @inquirer/prompts, styled with the sibling chalk package. It offers\ntext input, password, confirm, number, single-select, and multi-select\nprompts.\n\n\tname, _ := prompts.Input(prompts.InputConfig{Message: \"Your name?\"})\n\tok, _ := prompts.Confirm(prompts.ConfirmConfig{Message: \"Continue?\", Default: true})\n\ti, choice, _ := prompts.Select(prompts.SelectConfig{\n\t\tMessage: \"Pick one\",\n\t\tChoices: []prompts.Choice{{Name: \"Red\"}, {Name: \"Green\"}, {Name: \"Blue\"}},\n\t})\n\nUse this package to ask a user questions from a command-line program: collect\na value ([Input]), read a secret without echoing it ([Password]), confirm a\nyes/no decision ([Confirm]), read a bounded number ([Number]), or let the user\npick from a list with the arrow keys ([Select] and [MultiSelect]). Each prompt\nis driven by a small config struct — [InputConfig], [ConfirmConfig] and the\nrest — that carries the message, defaults, validation and the input/output\nstreams, so the API stays flat and there is no shared prompt object to\nconstruct first.\n\nInternally every prompt runs the same loop. It puts the terminal into raw mode\n(via golang.org/x/term) so keystrokes arrive one at a time, decodes each\nkeypress — including arrow-key escape sequences — with an internal key reader,\nupdates its in-memory state, and repaints. The line prompts echo characters as\nthey are typed (or a mask rune, or nothing for a hidden password) and\nre-prompt when a Validate function rejects the input. The list prompts redraw\ntheir whole frame in place using ANSI cursor-movement codes, moving a pointer\nand, for [MultiSelect], toggling checkboxes. On acceptance the prompt clears\nits frame and prints a one-line summary of the answer.\n\nTwo semantics matter most. First, cancellation: pressing Ctrl-C or Esc makes a\nprompt return [ErrCanceled], which callers should treat distinctly from a\nnormal answer. Second, input handling in non-interactive contexts: because the\nkey reader works on any io.Reader, raw mode is skipped automatically when the\ninput is not a real terminal. Setting the config's In field to something like\nstrings.NewReader lets you script a prompt for tests or piped input, where the\nscripted bytes drive the same code path a live keyboard would, and reaching\nend of input behaves like pressing Enter on the current buffer. An empty\nsubmission falls back to the configured default, and [Number] additionally\nenforces optional Min/Max bounds and integer-only mode.\n\nParity with inquirer is by feel rather than by API. The prompt types, the\ngreen \"?\" prefix, the pointer and checkbox styling, default values, validation\nwith inline error messages and the answer summary all echo the Node\nexperience. The differences are that configuration is a Go struct instead of\nan options object, prompts are called as ordinary functions returning\n(value, error) instead of returning promises, and inquirer features such as\nseparators, paged/filtered lists, editors and a plugin architecture are not\nincluded. Styling is fixed by this package rather than themeable.\n",
+      "consts": [],
+      "vars": [
+        {
+          "names": [
+            "ErrCanceled"
+          ],
+          "signature": "var ErrCanceled = errors.New(\"prompts: canceled\")",
+          "doc": "ErrCanceled is returned when the user cancels a prompt (Ctrl-C or Esc).\n"
+        }
+      ],
+      "types": [
+        {
+          "name": "Choice",
+          "signature": "type Choice struct {\n\t// Name is the label shown to the user.\n\tName string\n\t// Value is an arbitrary value associated with the choice (defaults to Name\n\t// when nil).\n\tValue any\n\t// Disabled marks the choice as unselectable.\n\tDisabled bool\n\t// Checked pre-selects the choice in a MultiSelect.\n\tChecked bool\n}",
+          "doc": "Choice is a selectable option for Select / MultiSelect.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "MultiSelect",
+              "signature": "func MultiSelect(cfg MultiSelectConfig) ([]int, []Choice, error)",
+              "doc": "MultiSelect presents a checkbox list: arrows to move, space to toggle, enter\nto confirm. It returns the selected indices and choices.\n"
+            },
+            {
+              "name": "Select",
+              "signature": "func Select(cfg SelectConfig) (int, Choice, error)",
+              "doc": "Select presents a single-choice list navigated with the arrow keys. It\nreturns the selected index and choice.\n"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "name": "ConfirmConfig",
+          "signature": "type ConfirmConfig struct {\n\t// Message is the question shown to the user.\n\tMessage string\n\t// Default is the answer used when the user submits an empty line.\n\tDefault bool\n\t// In is the input source (defaults to os.Stdin).\n\tIn io.Reader\n\t// Out is the output destination (defaults to os.Stdout).\n\tOut io.Writer\n}",
+          "doc": "ConfirmConfig configures Confirm.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "InputConfig",
+          "signature": "type InputConfig struct {\n\t// Message is the question shown to the user.\n\tMessage string\n\t// Default is returned when the user submits an empty line.\n\tDefault string\n\t// Validate, when set, must return nil to accept the input; a non-nil error\n\t// re-prompts with the error message.\n\tValidate func(string) error\n\t// Transform, when set, post-processes the accepted value before it is returned.\n\tTransform func(string) string\n\t// In is the input source (defaults to os.Stdin).\n\tIn io.Reader\n\t// Out is the output destination (defaults to os.Stdout).\n\tOut io.Writer\n}",
+          "doc": "InputConfig configures Input.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "MultiSelectConfig",
+          "signature": "type MultiSelectConfig struct {\n\t// Message is the question shown to the user.\n\tMessage string\n\t// Choices are the selectable options.\n\tChoices []Choice\n\t// In is the input source (defaults to os.Stdin).\n\tIn io.Reader\n\t// Out is the output destination (defaults to os.Stdout).\n\tOut io.Writer\n}",
+          "doc": "MultiSelectConfig configures MultiSelect.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "NumberConfig",
+          "signature": "type NumberConfig struct {\n\t// Message is the question shown to the user.\n\tMessage string\n\t// Default, when non-nil, is returned for an empty line.\n\tDefault *float64\n\t// Min, when non-nil, is the inclusive lower bound.\n\tMin *float64\n\t// Max, when non-nil, is the inclusive upper bound.\n\tMax *float64\n\t// Integer requires the value to be a whole number.\n\tInteger bool\n\t// Validate, when set, is an extra check applied to the parsed value.\n\tValidate func(float64) error\n\t// In is the input source (defaults to os.Stdin).\n\tIn io.Reader\n\t// Out is the output destination (defaults to os.Stdout).\n\tOut io.Writer\n}",
+          "doc": "NumberConfig configures Number.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "PasswordConfig",
+          "signature": "type PasswordConfig struct {\n\t// Message is the question shown to the user.\n\tMessage string\n\t// Validate, when set, must return nil to accept the input; a non-nil error\n\t// re-prompts with the error message.\n\tValidate func(string) error\n\t// Mask, when non-zero, echoes this rune for each character; when zero the\n\t// input is hidden entirely.\n\tMask rune\n\t// In is the input source (defaults to os.Stdin).\n\tIn io.Reader\n\t// Out is the output destination (defaults to os.Stdout).\n\tOut io.Writer\n}",
+          "doc": "PasswordConfig configures Password.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "SelectConfig",
+          "signature": "type SelectConfig struct {\n\t// Message is the question shown to the user.\n\tMessage string\n\t// Choices are the selectable options.\n\tChoices []Choice\n\t// Default is the initially highlighted index.\n\tDefault int\n\t// In is the input source (defaults to os.Stdin).\n\tIn io.Reader\n\t// Out is the output destination (defaults to os.Stdout).\n\tOut io.Writer\n}",
+          "doc": "SelectConfig configures Select.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        }
+      ],
+      "funcs": [
+        {
+          "name": "Confirm",
+          "signature": "func Confirm(cfg ConfirmConfig) (bool, error)",
+          "doc": "Confirm prompts for a yes/no answer, returning the boolean result.\n"
+        },
+        {
+          "name": "Input",
+          "signature": "func Input(cfg InputConfig) (string, error)",
+          "doc": "Input prompts for a line of text.\n"
+        },
+        {
+          "name": "Number",
+          "signature": "func Number(cfg NumberConfig) (float64, error)",
+          "doc": "Number prompts for a numeric answer with optional bounds.\n"
+        },
+        {
+          "name": "Password",
+          "signature": "func Password(cfg PasswordConfig) (string, error)",
+          "doc": "Password prompts for a hidden (or masked) secret.\n"
+        }
+      ],
+      "examples": [
+        {
+          "name": "Confirm",
+          "code": "package main\n\nimport (\n\t\"bytes\"\n\t\"fmt\"\n\t\"strings\"\n\n\t\"github.com/malcolmston/chalk/prompts\"\n)\n\nfunc main() {\n\tok, err := prompts.Confirm(prompts.ConfirmConfig{\n\t\tMessage: \"Continue?\",\n\t\tDefault: false,\n\t\tIn:      strings.NewReader(\"y\\r\"),\n\t\tOut:     \u0026bytes.Buffer{},\n\t})\n\tif err != nil {\n\t\tfmt.Println(\"error:\", err)\n\t\treturn\n\t}\n\tfmt.Println(ok)\n}",
+          "output": "true",
+          "doc": "ExampleConfirm demonstrates a scripted yes/no prompt. The config sets a\nDefault of false, and the scripted input \"y\\r\" answers yes and submits, so\nConfirm returns true. As with the other prompts, In is a strings.Reader and\nOut is a throwaway buffer, so no real terminal is involved and the result is\nfully deterministic. Confirm interprets \"y\" and \"yes\" (case-insensitively) as\ntrue, \"n\" and \"no\" as false, and an empty line as the configured Default. The\ntakeaway is that Confirm reduces a line of input to a boolean while still\nhonoring a default for empty submissions.\n"
+        },
+        {
+          "name": "Input",
+          "code": "package main\n\nimport (\n\t\"bytes\"\n\t\"fmt\"\n\t\"strings\"\n\n\t\"github.com/malcolmston/chalk/prompts\"\n)\n\nfunc main() {\n\tanswer, err := prompts.Input(prompts.InputConfig{\n\t\tMessage: \"Your name?\",\n\t\tIn:      strings.NewReader(\"Ada\\r\"),\n\t\tOut:     \u0026bytes.Buffer{},\n\t})\n\tif err != nil {\n\t\tfmt.Println(\"error:\", err)\n\t\treturn\n\t}\n\tfmt.Printf(\"got %q\\n\", answer)\n}",
+          "output": "got \"Ada\"",
+          "doc": "ExampleInput demonstrates driving a text prompt non-interactively. Instead of\nreading from a real terminal, it points the config's In field at a\nstrings.Reader that supplies the scripted keystrokes \"Ada\" followed by a\ncarriage return, which stands in for the user typing a name and pressing\nEnter. The rendered prompt is sent to a discarded bytes.Buffer via Out so the\nexample does not depend on terminal styling. Because the input is not a TTY,\nthe prompt skips raw mode and simply consumes the scripted bytes, returning\nthe typed value and a nil error. The takeaway is that any prompt can be tested\nor scripted by supplying In and Out, exercising the exact code path a live\nkeyboard would.\n"
+        }
+      ]
+    }
+  ]
+}

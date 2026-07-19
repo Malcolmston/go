@@ -1,0 +1,446 @@
+{
+  "module": "github.com/malcolmston/handlebars",
+  "generatedAt": "2026-07-19T02:05:52Z",
+  "packages": [
+    {
+      "importPath": "github.com/malcolmston/handlebars",
+      "name": "handlebars",
+      "synopsis": "Package handlebars is a dependency-free Handlebars/Mustache templating engine implemented in pure Go.",
+      "doc": "Package handlebars is a dependency-free Handlebars/Mustache templating engine\nimplemented in pure Go. It compiles a template source into an abstract syntax\ntree via its own lexer and parser, then renders that tree against a data value\nusing reflection. It does not wrap text/template; the Handlebars semantics are\nimplemented directly.\n\n# Quick start\n\n\tout, err := handlebars.Render(\"Hello {{name}}!\", map[string]any{\"name\": \"World\"})\n\t// out == \"Hello World!\"\n\nFor repeated rendering, compile once and reuse:\n\n\tt := handlebars.MustParse(\"{{#each items}}{{@index}}:{{this}} {{/each}}\")\n\tout := t.MustRender(map[string]any{\"items\": []string{\"a\", \"b\"}})\n\t// out == \"0:a 1:b \"\n\n# Mustaches\n\nA double mustache interpolates and HTML-escapes a value:\n\n\t{{expr}}\n\nA triple mustache, or the ampersand form, emits the value without escaping:\n\n\t{{{expr}}}\n\t{{\u0026 expr}}\n\nThe escaping set matches Handlebars.js: \u0026 \u003c \u003e \" ' ` and =.\n\n# Path expressions\n\nPaths address values within the current context:\n\n\tfoo            field or map key \"foo\"\n\tfoo.bar.baz    nested lookup\n\tfoo.0          slice/array index\n\tthis or .      the current context itself\n\t../foo         a value in the parent (enclosing block) context\n\t@index @key    data variables (see #each)\n\t@root          the top-level context\n\t[a b]          bracketed segment containing spaces or dots\n\n# Data model\n\nTemplates render against Go maps (any string- or integer-keyed map), structs\nand slices/arrays. Struct fields are matched first by exact exported name,\nthen by json struct tag, then case-insensitively. Pointers and interfaces are\ndereferenced automatically. Values are stringified as follows: strings as-is,\nbooleans as \"true\"/\"false\", integers and floats via strconv (floats without a\ntrailing \".0\"), []byte as text, and anything implementing fmt.Stringer or\nerror via those methods.\n\nTruthiness for if/unless/with and plain sections follows JavaScript: nil,\nfalse, 0, \"\" and empty collections are falsy; everything else is truthy.\n\n# Built-in block helpers\n\n\t{{#if cond}}...{{else}}...{{/if}}\n\t{{#unless cond}}...{{/unless}}\n\t{{#each collection}}...{{else}}...{{/each}}\n\t{{#with object}}...{{/with}}\n\n{{#each}} iterates slices, arrays and maps. Within the body it exposes the\ndata variables @index, @key, @first and @last, and rebinds this/. to the\ncurrent element. Map keys are visited in sorted order so output is\ndeterministic. An {{else}} section renders when the collection is empty.\n\nInverse sections are written {{^cond}}...{{/cond}} and render when cond is\nfalsy; a bare {{else}} (or {{^}}) separates the main and inverse bodies of any\nblock.\n\nChained conditionals are written with {{else if}} (and {{else unless}} /\n{{else with}}):\n\n\t{{#if a}}A{{else if b}}B{{else}}C{{/if}}\n\n# Block parameters\n\nBlocks may name the values they yield with an \"as |a b|\" clause. {{#each}}\nbinds the element and the index (or key); {{#with}} binds the value:\n\n\t{{#each items as |item index|}}{{index}}:{{item}}{{/each}}\n\t{{#with obj as |o|}}{{o.field}}{{/with}}\n\nBlock parameters are lexically scoped and shadow the surrounding context.\nCustom block helpers pass them via Options.FnWithBlockParams.\n\n# Data variables\n\nWithin blocks the following @-data variables are available: @root (the\ntop-level context), @index and @key (position/key in an #each), @first and\n@last (loop-edge flags), and @level (block nesting depth). A parent loop's\ndata is reached with the ../ prefix, e.g. @../index. Data variables can be\ndisabled at compile time with the NoData option.\n\n# Inline partials, partial blocks and decorators\n\nInline partials are declared with the built-in inline decorator and are\nvisible to the surrounding scope:\n\n\t{{#*inline \"row\"}}[{{name}}]{{/inline}}\n\t{{#each people}}{{\u003e row}}{{/each}}\n\nA partial block passes its body to the invoked partial as @partial-block, the\nmechanism behind layout templates:\n\n\t{{#\u003e layout}}page body{{/layout}}   with layout = \"\u003cmain\u003e{{\u003e @partial-block}}\u003c/main\u003e\"\n\nIf the partial is undefined the block body renders as a fallback. Decorators\nare registered with RegisterDecorator and invoked as {{* name}} (inline) or\n{{#*name}}...{{/name}} (block); the built-in inline decorator implements\ninline partials.\n\n# Helper-missing hooks\n\nRegistering a helper named \"helperMissing\" or \"blockHelperMissing\" intercepts\nreferences to unknown helpers and unknown block helpers respectively, matching\nthe Handlebars.js hooks. Without a hook, a bare {{foo}} for an unknown name is\nempty, {{foo arg}} is an error, and {{#foo}} falls back to Mustache section\nbehaviour.\n\n# Compile options\n\nCompile accepts options mirroring Handlebars.compile: NoEscape (emit {{expr}}\nunescaped), Strict (missing paths/helpers are errors), NoData (disable\n@-data), and KnownHelpers / KnownHelpersOnly (restrict which names are treated\nas helper calls).\n\n# Built-in inline helpers\n\nThese are handy on their own and inside subexpressions: lookup, eq, ne, not,\nand, or, gt, lt, gte and lte. For example:\n\n\t{{#if (eq status \"active\")}}on{{else}}off{{/if}}\n\t{{lookup map key}}\n\n# Custom helpers\n\nRegister helpers with RegisterHelper. A helper receives an *Options carrying\nthe positional Args, the Hash (key=value) arguments, and, for block helpers,\nthe Fn and Inverse callbacks that render the block body and its else section:\n\n\tt.RegisterHelper(\"shout\", func(o *handlebars.Options) any {\n\t    return strings.ToUpper(handlebars.EscapeHTML(fmt.Sprint(o.Arg(0)))) + \"!\"\n\t})\n\n\tt.RegisterHelper(\"bold\", func(o *handlebars.Options) any {\n\t    return \"\u003cb\u003e\" + o.Fn(o.Arg(0)) + \"\u003c/b\u003e\"\n\t})\n\nReturn a SafeString to bypass HTML escaping of a helper's result. Hash\narguments are read via o.Hash or o.HashStr. Subexpressions such as\n{{outer (inner x) y}} evaluate the inner helper first and pass its result as\nan argument.\n\n# Partials\n\nRegister reusable fragments with RegisterPartial and invoke them with the\npartial syntax:\n\n\t{{\u003e name}}            render partial \"name\" with the current context\n\t{{\u003e name context}}    render with an explicit context value\n\t{{\u003e name key=value}}  render with extra named values overlaid on the context\n\t{{\u003e (expr)}}          dynamic partial whose name is computed at render time\n\nStandalone partials preserve indentation: the whitespace preceding the tag is\napplied to every line of the partial's output.\n\n# Comments and whitespace control\n\nComments produce no output and come in two forms:\n\n\t{{! inline comment }}\n\t{{!-- may contain }} and other mustaches --}}\n\nBlock, comment and partial tags that occupy a line on their own have that\nline's surrounding whitespace stripped (the standalone rule). Explicit control\nis available with the tilde: {{~expr}} trims whitespace to the left and\n{{expr~}} trims to the right.\n",
+      "consts": [],
+      "vars": [],
+      "types": [
+        {
+          "name": "BlockNode",
+          "signature": "type BlockNode struct {\n\tExpr     *Expr\n\tProgram  *Program\n\tInverse  *Program\n\tInverted bool\n\tParams   []string\n}",
+          "doc": "BlockNode is a block helper invocation such as {{#each items}}...{{/each}}.\n\nProgram holds the main body. Inverse holds the {{else}} body (or the body of\nan {{^inverse}} form). Inverted is true when the block was written using the\n{{^name}} shorthand, in which case Program and Inverse are conceptually\nswapped by the parser (body lives in Inverse). Params holds the names declared\nby a block-parameter clause such as {{#each xs as |item index|}}.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "CommentNode",
+          "signature": "type CommentNode struct {\n\tValue string\n}",
+          "doc": "CommentNode is a Handlebars comment; it produces no output.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "ContentNode",
+          "signature": "type ContentNode struct {\n\tValue string\n}",
+          "doc": "ContentNode is literal template text emitted verbatim.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Decorator",
+          "signature": "type Decorator func(*DecoratorOptions)",
+          "doc": "Decorator is the signature for a decorator, registered with RegisterDecorator\nand invoked via {{* name}} or {{#*name}}...{{/name}}. The canonical example is\nthe built-in inline decorator, which registers its block body as a partial.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "DecoratorNode",
+          "signature": "type DecoratorNode struct {\n\tExpr    *Expr\n\tProgram *Program\n}",
+          "doc": "DecoratorNode is a decorator invocation. The inline form {{* name args}} has a\nnil Program; the block form {{#*name args}}...{{/name}} carries its body in\nProgram. The built-in inline decorator registers Program as a named partial.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "DecoratorOptions",
+          "signature": "type DecoratorOptions struct {\n\t// Name is the decorator's registered name.\n\tName string\n\t// Args holds the evaluated positional arguments.\n\tArgs []interface{}\n\t// Hash holds the evaluated key=value arguments.\n\tHash map[string]interface{}\n\t// Program is the decorator block's body, or nil for the inline form.\n\tProgram *Program\n\t// contains filtered or unexported fields\n}",
+          "doc": "DecoratorOptions is passed to every decorator invocation. It exposes the\npositional Args, the Hash arguments, the decorator's block body (Program, nil\nfor the inline {{* name}} form) and a means to register in-scope partials.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Arg",
+              "recv": "*DecoratorOptions",
+              "signature": "func (o *DecoratorOptions) Arg(i int) interface{}",
+              "doc": "Arg returns the positional argument at index i, or nil if out of range.\n"
+            },
+            {
+              "name": "RegisterPartial",
+              "recv": "*DecoratorOptions",
+              "signature": "func (o *DecoratorOptions) RegisterPartial(name string, prog *Program)",
+              "doc": "RegisterPartial registers prog as an in-scope partial visible to the current\nblock and its descendants. The built-in inline decorator uses this.\n"
+            }
+          ]
+        },
+        {
+          "name": "Expr",
+          "signature": "type Expr struct {\n\tKind   exprKind\n\tPath   *Path\n\tStr    string\n\tNum    float64\n\tBool   bool\n\tParams []*Expr\n\tHash   []HashPair\n}",
+          "doc": "Expr is an expression: a path, a literal, or a helper/subexpression call.\n\nFor a mustache like {{helper a b key=c}} the Expr has Kind exprPath, Path set\nto the callee, Params holding the positional arguments and Hash holding the\nnamed arguments. A plain variable {{foo.bar}} is simply an exprPath with no\nParams or Hash.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "HashPair",
+          "signature": "type HashPair struct {\n\tKey   string\n\tValue *Expr\n}",
+          "doc": "HashPair is a single key=value hash argument.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Helper",
+          "signature": "type Helper func(*Options) interface{}",
+          "doc": "Helper is the signature for all helpers, both inline and block. The return\nvalue is stringified for output; return a SafeString to bypass HTML escaping.\nBlock helpers render their body via the Options.Fn and Options.Inverse\ncallbacks.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "MustacheNode",
+          "signature": "type MustacheNode struct {\n\tExpr      *Expr\n\tUnescaped bool\n}",
+          "doc": "MustacheNode is an interpolation such as {{expr}} or {{{expr}}}.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Node",
+          "signature": "type Node interface {\n\t// contains filtered or unexported methods\n}",
+          "doc": "Node is any element of a parsed template's abstract syntax tree.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Option",
+          "signature": "type Option func(*config)",
+          "doc": "Option configures a Template's compile behaviour. Options are passed to\nCompile and mirror the flags accepted by Handlebars.compile in Handlebars.js.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "KnownHelpers",
+              "signature": "func KnownHelpers(names ...string) Option",
+              "doc": "KnownHelpers marks the given names as helpers known at compile time. Combined\nwith KnownHelpersOnly it restricts which names are treated as helper calls.\n"
+            },
+            {
+              "name": "KnownHelpersOnly",
+              "signature": "func KnownHelpersOnly() Option",
+              "doc": "KnownHelpersOnly restricts helper resolution to the built-ins plus any names\nregistered with KnownHelpers; every other identifier is treated as a path\n(Handlebars' knownHelpersOnly: true).\n"
+            },
+            {
+              "name": "NoData",
+              "signature": "func NoData() Option",
+              "doc": "NoData disables @-data variables such as @index and @root (Handlebars'\ndata: false). Data variables are enabled by default.\n"
+            },
+            {
+              "name": "NoEscape",
+              "signature": "func NoEscape() Option",
+              "doc": "NoEscape disables HTML escaping of {{expr}} mustaches so their output is\nemitted verbatim (equivalent to Handlebars' noEscape: true).\n"
+            },
+            {
+              "name": "Strict",
+              "signature": "func Strict() Option",
+              "doc": "Strict enables strict mode: referencing a missing value or helper is an error\ninstead of rendering the empty string (Handlebars' strict: true).\n"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "name": "Options",
+          "signature": "type Options struct {\n\t// Name is the helper's registered name.\n\tName string\n\t// Args holds the evaluated positional arguments.\n\tArgs []interface{}\n\t// Hash holds the evaluated key=value arguments.\n\tHash map[string]interface{}\n\t// contains filtered or unexported fields\n}",
+          "doc": "Options is passed to every helper invocation. It exposes the positional\narguments, the hash (named) arguments, and, for block helpers, the means to\nrender the block body (Fn) and its inverse/else section (Inverse).\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Arg",
+              "recv": "*Options",
+              "signature": "func (o *Options) Arg(i int) interface{}",
+              "doc": "Arg returns the positional argument at index i, or nil if out of range.\n"
+            },
+            {
+              "name": "BlockParams",
+              "recv": "*Options",
+              "signature": "func (o *Options) BlockParams() []string",
+              "doc": "BlockParams returns the names declared by the block's \"as |a b|\" clause.\n"
+            },
+            {
+              "name": "Fn",
+              "recv": "*Options",
+              "signature": "func (o *Options) Fn(ctx interface{}) string",
+              "doc": "Fn renders the block body with ctx as the new current context. For a plain\nhelper (non-block) it returns the empty string.\n"
+            },
+            {
+              "name": "FnWith",
+              "recv": "*Options",
+              "signature": "func (o *Options) FnWith(ctx interface{}, data map[string]interface{}) string",
+              "doc": "FnWith renders the block body with ctx as context and the supplied\n@-variables layered onto the frame's data.\n"
+            },
+            {
+              "name": "FnWithBlockParams",
+              "recv": "*Options",
+              "signature": "func (o *Options) FnWithBlockParams(ctx interface{}, params ...interface{}) string",
+              "doc": "FnWithBlockParams renders the block body binding the block's declared \"as |a\nb|\" parameters to params, in declaration order.\n"
+            },
+            {
+              "name": "HashStr",
+              "recv": "*Options",
+              "signature": "func (o *Options) HashStr(key, def string) string",
+              "doc": "HashStr returns the hash argument key as a string, or def if absent.\n"
+            },
+            {
+              "name": "Inverse",
+              "recv": "*Options",
+              "signature": "func (o *Options) Inverse(ctx interface{}) string",
+              "doc": "Inverse renders the block's else/inverse section with ctx as context.\n"
+            }
+          ]
+        },
+        {
+          "name": "PartialNode",
+          "signature": "type PartialNode struct {\n\tName    *Expr // literal name, path, or subexpression (dynamic partial)\n\tContext *Expr // optional explicit context argument\n\tHash    []HashPair\n\tIndent  string   // leading indentation for standalone partials\n\tProgram *Program // partial-block body, or nil for a simple partial\n}",
+          "doc": "PartialNode is a partial invocation such as {{\u003e name}} or {{\u003e name ctx}}.\n\nProgram is non-nil for a partial block ({{#\u003e layout}}...{{/layout}}); its\nbody becomes the @partial-block available inside the invoked partial.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Path",
+          "signature": "type Path struct {\n\tData     bool     // leading @ (data variable such as @index)\n\tDepth    int      // number of leading ../ segments\n\tThis     bool     // explicit this or . reference\n\tSegments []string // dotted segments, e.g. [\"foo\",\"bar\",\"0\"]\n\tOriginal string   // source text, for diagnostics\n}",
+          "doc": "Path is a resolved path expression such as foo.bar.0, ../name, this or @index.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Program",
+          "signature": "type Program struct {\n\tBody []Node\n}",
+          "doc": "Program is a sequence of nodes forming a template or a block body.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "SafeString",
+          "signature": "type SafeString string",
+          "doc": "SafeString marks a string returned by a helper as already-escaped so the\nrenderer emits it verbatim instead of HTML-escaping it.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Template",
+          "signature": "type Template struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Template is a compiled Handlebars template together with its own registry of\nhelpers, partials and decorators. Templates are safe for concurrent use once\ncompiled and fully configured (register helpers, partials and options before\nrendering).\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "Compile",
+              "signature": "func Compile(source string, opts ...Option) (*Template, error)",
+              "doc": "Compile is like Parse but applies the given compile options (NoEscape, Strict,\nKnownHelpers and so on), mirroring Handlebars.compile's options argument.\n"
+            },
+            {
+              "name": "MustParse",
+              "signature": "func MustParse(source string) *Template",
+              "doc": "MustParse is like Parse but panics on error. It is convenient for templates\ncompiled from constant strings at start-up.\n"
+            },
+            {
+              "name": "New",
+              "signature": "func New() *Template",
+              "doc": "New creates an empty Template pre-populated with the built-in helpers and\ndecorators. Use Parse to attach a source, or compile in one step with the\npackage-level Parse.\n"
+            },
+            {
+              "name": "Parse",
+              "signature": "func Parse(source string) (*Template, error)",
+              "doc": "Parse compiles source into a new Template that includes the built-in helpers.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Clone",
+              "recv": "*Template",
+              "signature": "func (t *Template) Clone() *Template",
+              "doc": "Clone returns an independent copy of the template: its compiled program,\ncompile options, logger and its helper, partial and decorator registries are\nduplicated so that subsequent registrations or unregistrations on either the\noriginal or the clone do not affect the other. It mirrors the isolated\nenvironment produced by Handlebars.create in Handlebars.js and is useful for\nderiving a specialised template from a shared base without mutating it.\n"
+            },
+            {
+              "name": "HasHelper",
+              "recv": "*Template",
+              "signature": "func (t *Template) HasHelper(name string) bool",
+              "doc": "HasHelper reports whether a helper is registered under name, including the\nbuilt-in inline helpers.\n"
+            },
+            {
+              "name": "HasPartial",
+              "recv": "*Template",
+              "signature": "func (t *Template) HasPartial(name string) bool",
+              "doc": "HasPartial reports whether a partial is registered under name. It does not\naccount for inline partials, which exist only during rendering.\n"
+            },
+            {
+              "name": "HelperNames",
+              "recv": "*Template",
+              "signature": "func (t *Template) HelperNames() []string",
+              "doc": "HelperNames returns the names of all registered helpers (built-in and custom)\nin sorted order, so the result is deterministic.\n"
+            },
+            {
+              "name": "MustRender",
+              "recv": "*Template",
+              "signature": "func (t *Template) MustRender(data interface{}) string",
+              "doc": "MustRender is like Render but panics on error.\n"
+            },
+            {
+              "name": "ParseString",
+              "recv": "*Template",
+              "signature": "func (t *Template) ParseString(source string) error",
+              "doc": "ParseString compiles source and stores it as this template's program,\nreplacing any previously parsed source.\n"
+            },
+            {
+              "name": "PartialNames",
+              "recv": "*Template",
+              "signature": "func (t *Template) PartialNames() []string",
+              "doc": "PartialNames returns the names of all registered partials in sorted order, so\nthe result is deterministic. Inline partials are not included.\n"
+            },
+            {
+              "name": "RegisterDecorator",
+              "recv": "*Template",
+              "signature": "func (t *Template) RegisterDecorator(name string, fn Decorator) *Template",
+              "doc": "RegisterDecorator registers (or replaces) a decorator by name. It returns the\ntemplate for chaining.\n"
+            },
+            {
+              "name": "RegisterHelper",
+              "recv": "*Template",
+              "signature": "func (t *Template) RegisterHelper(name string, fn Helper) *Template",
+              "doc": "RegisterHelper registers (or replaces) a helper by name. It returns the\ntemplate for chaining.\n"
+            },
+            {
+              "name": "RegisterHelpers",
+              "recv": "*Template",
+              "signature": "func (t *Template) RegisterHelpers(helpers map[string]Helper) *Template",
+              "doc": "RegisterHelpers registers (or replaces) several helpers at once. It mirrors\nthe object form of Handlebars.js registerHelper, where a map of name→function\nis registered in a single call. Registering a nil function removes any helper\npreviously registered under that name. It returns the template for chaining.\n"
+            },
+            {
+              "name": "RegisterPartial",
+              "recv": "*Template",
+              "signature": "func (t *Template) RegisterPartial(name, source string) error",
+              "doc": "RegisterPartial compiles and registers a partial template by name. It returns\nan error if the partial source fails to parse.\n"
+            },
+            {
+              "name": "RegisterPartials",
+              "recv": "*Template",
+              "signature": "func (t *Template) RegisterPartials(partials map[string]string) error",
+              "doc": "RegisterPartials compiles and registers several partials at once, mirroring\nthe object form of Handlebars.js registerPartial. Each value is a partial\nsource. If any source fails to parse the corresponding partial is skipped and\nthe first such error is returned; all parseable partials are still registered.\n"
+            },
+            {
+              "name": "Render",
+              "recv": "*Template",
+              "signature": "func (t *Template) Render(data interface{}) (string, error)",
+              "doc": "Render executes the template against data and returns the produced string.\n"
+            },
+            {
+              "name": "SetLogger",
+              "recv": "*Template",
+              "signature": "func (t *Template) SetLogger(l *log.Logger) *Template",
+              "doc": "SetLogger overrides the logger used by the built-in {{log}} helper. It returns\nthe template for chaining. Passing nil restores the default stderr logger.\n"
+            },
+            {
+              "name": "UnregisterDecorator",
+              "recv": "*Template",
+              "signature": "func (t *Template) UnregisterDecorator(name string) *Template",
+              "doc": "UnregisterDecorator removes the named decorator. It is the symmetric\ncounterpart to RegisterDecorator. Removing an absent name is a no-op. It\nreturns the template for chaining.\n"
+            },
+            {
+              "name": "UnregisterHelper",
+              "recv": "*Template",
+              "signature": "func (t *Template) UnregisterHelper(name string) *Template",
+              "doc": "UnregisterHelper removes the named helper, mirroring Handlebars.js\nunregisterHelper. Removing an absent name is a no-op. It returns the template\nfor chaining.\n"
+            },
+            {
+              "name": "UnregisterPartial",
+              "recv": "*Template",
+              "signature": "func (t *Template) UnregisterPartial(name string) *Template",
+              "doc": "UnregisterPartial removes the named partial, mirroring Handlebars.js\nunregisterPartial. Removing an absent name is a no-op. It returns the template\nfor chaining.\n"
+            }
+          ]
+        }
+      ],
+      "funcs": [
+        {
+          "name": "CreateFrame",
+          "signature": "func CreateFrame(data map[string]interface{}) map[string]interface{}",
+          "doc": "CreateFrame builds a new data frame from an existing one, mirroring\nHandlebars.js Utils.createFrame. The returned map is a shallow copy of data\nwith an added \"_parent\" entry pointing at the original, which is the mechanism\nHandlebars uses to layer @-variables (such as @index) onto a child scope while\nkeeping the parent frame reachable. Passing nil yields a frame whose \"_parent\"\nis nil.\n"
+        },
+        {
+          "name": "EscapeExpression",
+          "signature": "func EscapeExpression(v interface{}) string",
+          "doc": "EscapeExpression renders a value the way Handlebars.js Utils.escapeExpression\ndoes: a SafeString is returned verbatim, nil becomes the empty string, and any\nother value is stringified (using the same rules as {{expr}} output) and then\nHTML-escaped with the Handlebars character set. Unlike EscapeHTML, which takes\nan already-stringified argument, EscapeExpression accepts any value and\nhonours the SafeString opt-out, making it the correct choice for helpers that\nbuild HTML from untrusted values.\n"
+        },
+        {
+          "name": "EscapeHTML",
+          "signature": "func EscapeHTML(s string) string",
+          "doc": "EscapeHTML escapes a string using the same character set as Handlebars.js.\n"
+        },
+        {
+          "name": "Extend",
+          "signature": "func Extend(dst map[string]interface{}, sources ...map[string]interface{}) map[string]interface{}",
+          "doc": "Extend copies the entries of each source map into dst and returns dst,\nmirroring Handlebars.js Utils.extend. Later sources overwrite earlier ones on\nkey collisions. If dst is nil a new map is allocated and returned, so the\nresult is always safe to use.\n"
+        },
+        {
+          "name": "IsArray",
+          "signature": "func IsArray(v interface{}) bool",
+          "doc": "IsArray reports whether a value is a Go slice or array, mirroring\nHandlebars.js Utils.isArray. It returns false for nil, maps, strings and every\nscalar type.\n"
+        },
+        {
+          "name": "IsEmpty",
+          "signature": "func IsEmpty(v interface{}) bool",
+          "doc": "IsEmpty reports whether a value is \"empty\" using the same definition as\nHandlebars.js Utils.isEmpty, which drives the falsy branch of built-in block\nhelpers. nil, false and the empty string are empty; an empty slice or array is\nempty; every number (including 0), every non-empty collection and every map or\nstruct is not empty. Note that, matching Handlebars, an empty map is NOT\nconsidered empty. Pointers and interfaces are dereferenced first.\n"
+        },
+        {
+          "name": "Render",
+          "signature": "func Render(source string, data interface{}) (string, error)",
+          "doc": "Render is a convenience that parses source and renders it against data in one\ncall. For repeated rendering, compile once with Parse and reuse the Template.\n"
+        },
+        {
+          "name": "Stringify",
+          "signature": "func Stringify(v interface{}) string",
+          "doc": "Stringify converts a value to the exact string representation the renderer\nwould emit for {{{expr}}} (before any HTML escaping). Strings pass through\nunchanged, booleans become \"true\"/\"false\", integers and floats are formatted\nvia strconv (floats without a trailing \".0\"), []byte is treated as text, and\nvalues implementing fmt.Stringer or error use those methods. It exposes the\nengine's canonical stringification so helper authors can match template output\nexactly.\n"
+        }
+      ],
+      "examples": [
+        {
+          "name": "",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n\n\t\"github.com/malcolmston/handlebars\"\n)\n\nfunc main() {\n\tt := handlebars.New()\n\n\t// A custom inline helper returning a SafeString (not re-escaped).\n\tt.RegisterHelper(\"shout\", func(o *handlebars.Options) interface{} {\n\t\treturn handlebars.SafeString(strings.ToUpper(fmt.Sprint(o.Arg(0))) + \"!\")\n\t})\n\n\t// A partial reused inside an #each loop.\n\tif err := t.RegisterPartial(\"row\", \"{{@index}}. {{name}} ({{team}})\\n\"); err != nil {\n\t\tpanic(err)\n\t}\n\n\tconst src = `Report for {{shout title}}\nOwner: {{owner}}\n{{#each people}}\n{{\u003e row team=../team}}\n{{else}}\nNo people.\n{{/each}}\n{{#if count}}Total: {{count}}{{else}}Empty{{/if}}`\n\n\tif err := t.ParseString(src); err != nil {\n\t\tpanic(err)\n\t}\n\n\tout, err := t.Render(map[string]interface{}{\n\t\t\"title\": \"q3\",\n\t\t\"owner\": \"A\u0026B\",\n\t\t\"team\":  \"Blue\",\n\t\t\"count\": 2,\n\t\t\"people\": []map[string]interface{}{\n\t\t\t{\"name\": \"Ada\"},\n\t\t\t{\"name\": \"Lin\"},\n\t\t},\n\t})\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Println(out)\n\n}",
+          "output": "Report for Q3!\nOwner: A\u0026amp;B\n0. Ada (Blue)\n1. Lin (Blue)\nTotal: 2",
+          "doc": "Example demonstrates interpolation, escaping, blocks, each with data\nvariables, a custom helper and a partial.\n"
+        },
+        {
+          "name": "advanced",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/handlebars\"\n)\n\nfunc main() {\n\tconst src = `{{#*inline \"badge\"}}[{{label}}]{{/inline}}` +\n\t\t`{{#each users as |user index|}}` +\n\t\t`{{index}}:{{user.name}} ` +\n\t\t`{{#if (gt user.score 90)}}A{{else if (gt user.score 80)}}B{{else}}C{{/if}} ` +\n\t\t`{{\u003e badge label=user.role}}` + \"\\n\" +\n\t\t`{{/each}}`\n\n\tout, err := handlebars.Render(src, map[string]interface{}{\n\t\t\"users\": []map[string]interface{}{\n\t\t\t{\"name\": \"Ada\", \"score\": 95, \"role\": \"lead\"},\n\t\t\t{\"name\": \"Lin\", \"score\": 84, \"role\": \"dev\"},\n\t\t\t{\"name\": \"Sam\", \"score\": 70, \"role\": \"intern\"},\n\t\t},\n\t})\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Print(out)\n\n}",
+          "output": "0:Ada A [lead]\n1:Lin B [dev]\n2:Sam C [intern]",
+          "doc": "Example_advanced demonstrates block parameters, an {{else if}} chain, inline\npartials and a partial block with @partial-block.\n"
+        },
+        {
+          "name": "partialBlock",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/handlebars\"\n)\n\nfunc main() {\n\tt := handlebars.New()\n\tif err := t.RegisterPartial(\"layout\", \"\u003cmain\u003e{{\u003e @partial-block}}\u003c/main\u003e\"); err != nil {\n\t\tpanic(err)\n\t}\n\tif err := t.ParseString(\"{{#\u003e layout}}Hello {{name}}{{/layout}}\"); err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Println(t.MustRender(map[string]interface{}{\"name\": \"World\"}))\n\n}",
+          "output": "\u003cmain\u003eHello World\u003c/main\u003e",
+          "doc": "Example_partialBlock shows a layout partial wrapping caller-supplied content\nvia @partial-block.\n"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,929 @@
+{
+  "module": "github.com/malcolmston/cheerio",
+  "generatedAt": "2026-07-19T02:05:52Z",
+  "packages": [
+    {
+      "importPath": "github.com/malcolmston/cheerio",
+      "name": "cheerio",
+      "synopsis": "Package cheerio is a dependency-free, standard-library-only HTML parsing and jQuery-style traversal library for Go, inspired by the Node.js \"cheerio\" package.",
+      "doc": "Package cheerio is a dependency-free, standard-library-only HTML parsing and\njQuery-style traversal library for Go, inspired by the Node.js \"cheerio\"\npackage.\n\nIt provides three cooperating layers, all implemented from scratch without\ngolang.org/x/net or any other third-party code:\n\n  - a hand-written HTML tokenizer and tree-construction parser;\n  - a CSS selector engine covering the selectors used in everyday scraping;\n  - a chainable, jQuery-style Selection API for querying and lightly\n    mutating the resulting DOM.\n\n# Parsing\n\nLoad parses an HTML string into a Document. Parsing is tolerant: void\nelements (br, img, hr, input, meta, link, ...) never receive children,\nself-closing syntax is honored, comments and doctypes are preserved, and\nunclosed or improperly nested tags are recovered using implicit-close rules\nsimilar to a browser (for example an open \u003cp\u003e is closed when a block element\nor a new \u003cp\u003e begins, and \u003cli\u003e, \u003ctd\u003e, \u003ctr\u003e and friends close open siblings).\nRaw-text elements (script, style, textarea, title) capture their content\nverbatim. HTML character references — named (\u0026amp;), decimal (\u0026#38;) and\nhexadecimal (\u0026#x26;) — are decoded in text and attribute values.\n\nThe parse tree is made of Node values. Each Node has a Type (DocumentNode,\nElementNode, TextNode, CommentNode or DoctypeNode), a Data field (the\nlower-cased tag name for elements, otherwise the raw content), an ordered\nslice of Attribute values, and Parent/Children links.\n\n# Selectors\n\nThe selector engine supports:\n\n  - type selectors (div), the universal selector (*), #id and .class;\n  - namespace-qualified type selectors (svg|rect, *|title), matched on the\n    local name;\n  - attribute selectors [attr], [attr=v], [attr^=v], [attr$=v], [attr*=v],\n    [attr~=v] and [attr|=v], with an optional case-insensitivity flag\n    ([attr=v i]);\n  - selector lists separated by commas;\n  - combinators: descendant (space), child (\u003e), adjacent sibling (+) and\n    general sibling (~);\n  - structural pseudo-classes :first-child, :last-child, :only-child,\n    :first-of-type, :last-of-type, :only-of-type, :empty, :root, :parent,\n    :nth-child(n), :nth-last-child(n), :nth-of-type(n) and\n    :nth-last-of-type(n) (each with the an+b microsyntax plus the odd/even\n    keywords);\n  - functional pseudo-classes :not(selector), :has(selector) and\n    :contains(text);\n  - form and content pseudo-classes :input, :checked, :selected, :enabled,\n    :disabled and :header.\n\nCompound selectors combine any of the above (for example\n\"ul.menu \u003e li:first-child a[href^=\\\"/\\\"]\").\n\n# Selection API\n\nDocument.Find runs a selector over the whole document and returns a\nSelection: an ordered, de-duplicated set of matched nodes. Selections are\nchainable.\n\nTraversal: Find, Children, Contents, Parent, Parents, ParentsUntil, Closest,\nSiblings, Next, Prev, NextAll, PrevAll, NextUntil, PrevUntil, Filter,\nFilterFunc, Not, Is, Has, Add, AddSelection, AddNodes, AddBack, End, Eq,\nFirst, Last, Even, Odd, Slice, Index, IndexSelector, IndexOfNode, Each, Map,\nGet and Length.\n\nAccessors: Attr, AttrOr, Prop, Text, Html (inner HTML), OuterHtml, ToString,\nHasClass, Css, Data, DataOr, DataMap, Val and TagName.\n\nManipulation: SetAttr, SetAttrs, RemoveAttr, AddClass, RemoveClass,\nToggleClass, SetText, SetHtml, SetVal, SetProp, SetCss, SetCssMap, SetData,\nAppend, Prepend, Before, After, AppendTo, PrependTo, InsertBefore,\nInsertAfter, ReplaceWith, Remove, Empty, Clone, Wrap, WrapAll, WrapInner and\nUnwrap. Each content method has string, node and Selection accepting forms.\n\nForms: SerializeArray returns the successful form controls of a selection as\nname/value pairs, and Serialize encodes them as an\napplication/x-www-form-urlencoded string.\n\n# Example\n\n\tdoc := cheerio.Load(`\u003cul\u003e\u003cli class=\"a\"\u003eOne\u003c/li\u003e\u003cli\u003eTwo\u003c/li\u003e\u003c/ul\u003e`)\n\tdoc.Find(\"li.a\").Each(func(i int, n *cheerio.Node) {\n\t\t// ...\n\t})\n\tfmt.Println(doc.Find(\"li\").First().Text()) // One\n\nThe library is deterministic: identical input always yields identical\noutput, and Selections preserve document order.\n",
+      "consts": [],
+      "vars": [],
+      "types": [
+        {
+          "name": "Attribute",
+          "signature": "type Attribute struct {\n\tKey string\n\tVal string\n}",
+          "doc": "Attribute is a single HTML attribute. Attributes preserve their source\norder within an element.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Document",
+          "signature": "type Document struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Document is a parsed HTML document. It is the entry point for querying and\nwraps the synthetic root node produced by the parser.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "Load",
+              "signature": "func Load(html string) *Document",
+              "doc": "Load parses an HTML fragment or full document and returns a Document.\nParsing never fails: malformed input is recovered as a browser would.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Find",
+              "recv": "*Document",
+              "signature": "func (d *Document) Find(selector string) *Selection",
+              "doc": "Find returns all elements in the document matching the selector.\n"
+            },
+            {
+              "name": "FindMatcher",
+              "recv": "*Document",
+              "signature": "func (d *Document) FindMatcher(m *Matcher) *Selection",
+              "doc": "FindMatcher returns all elements in the document that satisfy the compiled\nmatcher. It is the pre-compiled equivalent of Find.\n"
+            },
+            {
+              "name": "Html",
+              "recv": "*Document",
+              "signature": "func (d *Document) Html() string",
+              "doc": "Html returns the serialized HTML of the whole document, including doctype,\ncomments and top-level elements, in document order. It mirrors the static\ncheerio $.html() call on a loaded document.\n"
+            },
+            {
+              "name": "Render",
+              "recv": "*Document",
+              "signature": "func (d *Document) Render(w io.Writer) error",
+              "doc": "Render writes the document's serialized HTML (see Html) to w and returns any\nerror reported by w.\n"
+            },
+            {
+              "name": "Root",
+              "recv": "*Document",
+              "signature": "func (d *Document) Root() *Selection",
+              "doc": "Root returns a Selection containing the document root node's element\nchildren (the top-level elements of the parsed input).\n"
+            },
+            {
+              "name": "Text",
+              "recv": "*Document",
+              "signature": "func (d *Document) Text() string",
+              "doc": "Text returns the concatenated text content of the entire document, in\ndocument order. It mirrors the static cheerio $.text() call.\n"
+            }
+          ]
+        },
+        {
+          "name": "FormField",
+          "signature": "type FormField struct {\n\tName  string // the control's name attribute\n\tValue string // the control's submitted value\n}",
+          "doc": "FormField is a single successful form control name/value pair produced by\nSerializeArray.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Matcher",
+          "signature": "type Matcher struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Matcher is a compiled CSS selector. Compiling a selector once and reusing the\nresulting Matcher across many nodes or documents avoids the cost of parsing\nthe selector string on every call, which matters in tight scraping loops.\n\nA Matcher is immutable after construction and safe for concurrent use by\nmultiple goroutines.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "Compile",
+              "signature": "func Compile(selector string) (*Matcher, error)",
+              "doc": "Compile parses selector into a reusable Matcher. It returns an error if\nselector is empty or cannot be parsed. Unlike the string-accepting methods\n(which silently treat an unparseable selector as matching nothing), Compile\nreports malformed selectors so they can be caught at startup.\n"
+            },
+            {
+              "name": "MustCompile",
+              "signature": "func MustCompile(selector string) *Matcher",
+              "doc": "MustCompile is like Compile but panics if selector cannot be parsed. It is\nintended for package-level Matcher variables initialized with known-good\nselectors.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Match",
+              "recv": "*Matcher",
+              "signature": "func (m *Matcher) Match(n *Node) bool",
+              "doc": "Match reports whether n satisfies the compiled selector.\n"
+            },
+            {
+              "name": "String",
+              "recv": "*Matcher",
+              "signature": "func (m *Matcher) String() string",
+              "doc": "String returns the original selector text the Matcher was compiled from.\n"
+            }
+          ]
+        },
+        {
+          "name": "Node",
+          "signature": "type Node struct {\n\tType     NodeType\n\tData     string      // tag name for elements, text content for text/comment/doctype\n\tAttr     []Attribute // ordered attributes (elements only)\n\tParent   *Node\n\tChildren []*Node\n}",
+          "doc": "Node is a single node in the parsed DOM tree. Elements carry a lower-cased\nData (tag name) and an ordered slice of attributes; text, comment and\ndoctype nodes carry their content in Data.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "Merge",
+              "signature": "func Merge(head []*Node, tail ...*Node) []*Node",
+              "doc": "Merge appends the nodes of tail to head, removing duplicates while preserving\nfirst-seen order, and returns the combined slice. The input slices are not\nmodified. It mirrors the static cheerio.merge helper for combining node sets.\n"
+            },
+            {
+              "name": "ParseHTML",
+              "signature": "func ParseHTML(html string) []*Node",
+              "doc": "ParseHTML parses an HTML fragment and returns its top-level nodes, detached\nfrom any document root (each returned node has a nil Parent). It mirrors the\nstatic cheerio.parseHTML helper and is convenient for building content to\nhand to the manipulation methods (AppendNodes, BeforeNodes, ...).\n\nParsing never fails: malformed input is recovered the way a browser would.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "AppendChild",
+              "recv": "*Node",
+              "signature": "func (n *Node) AppendChild(c *Node)",
+              "doc": "AppendChild adds c as the last child of n and sets c's parent.\n"
+            },
+            {
+              "name": "AttrValue",
+              "recv": "*Node",
+              "signature": "func (n *Node) AttrValue(key string) (string, bool)",
+              "doc": "AttrValue returns the value of the named attribute and whether it exists.\nAttribute names are matched case-insensitively.\n"
+            },
+            {
+              "name": "Clone",
+              "recv": "*Node",
+              "signature": "func (n *Node) Clone() *Node",
+              "doc": "Clone returns a deep copy of n. The copy has a nil Parent and fully\nindependent Children and Attr slices, so mutating either tree leaves the\nother unchanged.\n"
+            },
+            {
+              "name": "FirstChild",
+              "recv": "*Node",
+              "signature": "func (n *Node) FirstChild() *Node",
+              "doc": "FirstChild returns the first child of n (of any node type), or nil if n has\nno children.\n"
+            },
+            {
+              "name": "HasClass",
+              "recv": "*Node",
+              "signature": "func (n *Node) HasClass(class string) bool",
+              "doc": "HasClass reports whether n is an element carrying the given class token in\nits class attribute.\n"
+            },
+            {
+              "name": "InnerHTML",
+              "recv": "*Node",
+              "signature": "func (n *Node) InnerHTML() string",
+              "doc": "InnerHTML returns the serialized HTML of n's children (everything inside the\nelement, excluding its own start and end tags). It corresponds to the DOM\ninnerHTML property and to Selection.Html.\n"
+            },
+            {
+              "name": "LastChild",
+              "recv": "*Node",
+              "signature": "func (n *Node) LastChild() *Node",
+              "doc": "LastChild returns the last child of n (of any node type), or nil if n has no\nchildren.\n"
+            },
+            {
+              "name": "Matches",
+              "recv": "*Node",
+              "signature": "func (n *Node) Matches(selector string) bool",
+              "doc": "Matches reports whether n satisfies the given CSS selector. It compiles the\nselector on each call; use Compile with Matcher.Match to reuse a selector\nacross many nodes.\n"
+            },
+            {
+              "name": "NextElementSibling",
+              "recv": "*Node",
+              "signature": "func (n *Node) NextElementSibling() *Node",
+              "doc": "NextElementSibling returns the nearest following sibling of n that is an\nelement, skipping text and comment nodes, or nil.\n"
+            },
+            {
+              "name": "NextSibling",
+              "recv": "*Node",
+              "signature": "func (n *Node) NextSibling() *Node",
+              "doc": "NextSibling returns the sibling immediately following n in its parent's child\nlist (of any node type, including text and comment nodes), or nil.\n"
+            },
+            {
+              "name": "OuterHTML",
+              "recv": "*Node",
+              "signature": "func (n *Node) OuterHTML() string",
+              "doc": "OuterHTML returns the serialized HTML of n including its own tags. It\ncorresponds to the DOM outerHTML property and to Selection.OuterHtml.\n"
+            },
+            {
+              "name": "PrevElementSibling",
+              "recv": "*Node",
+              "signature": "func (n *Node) PrevElementSibling() *Node",
+              "doc": "PrevElementSibling returns the nearest preceding sibling of n that is an\nelement, skipping text and comment nodes, or nil.\n"
+            },
+            {
+              "name": "PrevSibling",
+              "recv": "*Node",
+              "signature": "func (n *Node) PrevSibling() *Node",
+              "doc": "PrevSibling returns the sibling immediately preceding n in its parent's child\nlist (of any node type, including text and comment nodes), or nil.\n"
+            },
+            {
+              "name": "RemoveAttr",
+              "recv": "*Node",
+              "signature": "func (n *Node) RemoveAttr(key string)",
+              "doc": "RemoveAttr deletes the named attribute from n if present. The name is matched\ncase-insensitively.\n"
+            },
+            {
+              "name": "Render",
+              "recv": "*Node",
+              "signature": "func (n *Node) Render(w io.Writer) error",
+              "doc": "Render writes the serialized outer HTML of n to w. It returns any error\nreported by w. This is the streaming form of OuterHTML, useful for writing a\nsubtree directly to an http.ResponseWriter or file.\n"
+            },
+            {
+              "name": "SetAttr",
+              "recv": "*Node",
+              "signature": "func (n *Node) SetAttr(key, val string)",
+              "doc": "SetAttr sets (or inserts) the named attribute on n, preserving the source\norder of existing attributes. The name is lower-cased. It has no effect on\nnon-element nodes.\n"
+            },
+            {
+              "name": "TagName",
+              "recv": "*Node",
+              "signature": "func (n *Node) TagName() string",
+              "doc": "TagName returns the lower-cased tag name of n if it is an element, otherwise\nthe empty string.\n"
+            },
+            {
+              "name": "Text",
+              "recv": "*Node",
+              "signature": "func (n *Node) Text() string",
+              "doc": "Text returns the concatenated character data of n and all of its\ndescendants, in document order. It is the node-level counterpart of\nSelection.Text and mirrors the DOM textContent property.\n"
+            }
+          ]
+        },
+        {
+          "name": "NodeType",
+          "signature": "type NodeType int",
+          "doc": "NodeType identifies the kind of a Node in the DOM tree.\n",
+          "consts": [
+            {
+              "names": [
+                "DocumentNode",
+                "ElementNode",
+                "TextNode",
+                "CommentNode",
+                "DoctypeNode"
+              ],
+              "signature": "const (\n\t// DocumentNode is the synthetic root node produced by Load.\n\tDocumentNode NodeType = iota\n\t// ElementNode is an HTML element such as \u003cdiv\u003e or \u003cp\u003e.\n\tElementNode\n\t// TextNode is a run of character data.\n\tTextNode\n\t// CommentNode is an HTML comment (\u003c!-- ... --\u003e).\n\tCommentNode\n\t// DoctypeNode is a \u003c!DOCTYPE ...\u003e declaration.\n\tDoctypeNode\n)",
+              "doc": ""
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Selection",
+          "signature": "type Selection struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Selection is a set of matched DOM nodes with jQuery-style traversal and\naccessor methods. Selections are immutable with respect to their node set:\ntraversal methods return new Selections. The order of nodes is document\norder and duplicates are removed.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Add",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Add(selector string) *Selection",
+              "doc": "Add returns a new Selection combining the receiver with nodes matching the\nselector across the whole document.\n"
+            },
+            {
+              "name": "AddBack",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) AddBack(selector ...string) *Selection",
+              "doc": "AddBack adds the previous set of matched elements (the Selection this one was\nderived from) to the current set, optionally filtered by a selector. It is\nthe inverse companion to End: where End discards the current stage, AddBack\nmerges it with the prior one.\n"
+            },
+            {
+              "name": "AddClass",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) AddClass(classes string) *Selection",
+              "doc": "AddClass adds one or more space-separated classes to every selected element.\n"
+            },
+            {
+              "name": "AddNodes",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) AddNodes(nodes ...*Node) *Selection",
+              "doc": "AddNodes returns a new Selection combining the receiver with the given nodes,\nin document order with duplicates removed.\n"
+            },
+            {
+              "name": "AddSelection",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) AddSelection(other *Selection) *Selection",
+              "doc": "AddSelection returns a new Selection combining the receiver with the nodes of\nother, in document order with duplicates removed.\n"
+            },
+            {
+              "name": "After",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) After(html ...string) *Selection",
+              "doc": "After parses each HTML string and inserts the resulting nodes after every\nselected node in the tree.\n"
+            },
+            {
+              "name": "AfterNodes",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) AfterNodes(nodes ...*Node) *Selection",
+              "doc": "AfterNodes inserts the given nodes after every selected node.\n"
+            },
+            {
+              "name": "AfterSelection",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) AfterSelection(other *Selection) *Selection",
+              "doc": "AfterSelection inserts the nodes of other after every selected node.\n"
+            },
+            {
+              "name": "Append",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Append(html ...string) *Selection",
+              "doc": "Append parses each HTML string and appends the resulting nodes to the end of\nthe children of every selected element.\n"
+            },
+            {
+              "name": "AppendNodes",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) AppendNodes(nodes ...*Node) *Selection",
+              "doc": "AppendNodes appends the given nodes to the end of the children of every\nselected element.\n"
+            },
+            {
+              "name": "AppendSelection",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) AppendSelection(other *Selection) *Selection",
+              "doc": "AppendSelection appends the nodes of other to the end of the children of\nevery selected element.\n"
+            },
+            {
+              "name": "AppendTo",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) AppendTo(selector string) *Selection",
+              "doc": "AppendTo appends the selected nodes to every element matching selector and\nreturns the receiver.\n"
+            },
+            {
+              "name": "Attr",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Attr(name string) (string, bool)",
+              "doc": "Attr returns the value of the named attribute of the first selected node and\nwhether it exists.\n"
+            },
+            {
+              "name": "AttrOr",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) AttrOr(name, def string) string",
+              "doc": "AttrOr returns the value of the named attribute of the first node, or def if\nit is absent (or the selection is empty).\n"
+            },
+            {
+              "name": "Attrs",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Attrs() map[string]string",
+              "doc": "Attrs returns every attribute of the first selected element as a map keyed by\nattribute name. It returns an empty (non-nil) map when the selection is empty\nor the first node is not an element. This is the no-argument form of jQuery's\n.attr() that returns the whole attribute set.\n"
+            },
+            {
+              "name": "Before",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Before(html ...string) *Selection",
+              "doc": "Before parses each HTML string and inserts the resulting nodes before every\nselected node in the tree.\n"
+            },
+            {
+              "name": "BeforeNodes",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) BeforeNodes(nodes ...*Node) *Selection",
+              "doc": "BeforeNodes inserts the given nodes before every selected node.\n"
+            },
+            {
+              "name": "BeforeSelection",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) BeforeSelection(other *Selection) *Selection",
+              "doc": "BeforeSelection inserts the nodes of other before every selected node.\n"
+            },
+            {
+              "name": "Children",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Children(selector ...string) *Selection",
+              "doc": "Children returns the immediate element children of the selected nodes,\noptionally filtered by a selector.\n"
+            },
+            {
+              "name": "Clone",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Clone() *Selection",
+              "doc": "Clone returns a new Selection containing deep copies of the selected nodes.\nThe clones are detached from the document.\n"
+            },
+            {
+              "name": "Closest",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Closest(selector string) *Selection",
+              "doc": "Closest returns, for each selected node, the nearest ancestor-or-self that\nmatches the selector.\n"
+            },
+            {
+              "name": "Contents",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Contents() *Selection",
+              "doc": "Contents returns the children of each selected node, including text and\ncomment nodes (not only elements). This mirrors jQuery's .contents().\n"
+            },
+            {
+              "name": "Css",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Css(prop string) string",
+              "doc": "Css returns the value of the named inline CSS property of the first selected\nelement, or \"\" if the property (or the selection) is absent.\n"
+            },
+            {
+              "name": "Data",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Data(key string) (string, bool)",
+              "doc": "Data returns the value of the data-* attribute for key on the first selected\nelement and whether it exists. The key may be given in camelCase (\"fooBar\")\nor dashed (\"foo-bar\") form; both map to the data-foo-bar attribute.\n"
+            },
+            {
+              "name": "DataMap",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) DataMap() map[string]string",
+              "doc": "DataMap returns all data-* attributes of the first selected element as a map\nkeyed by camelCase name (data-foo-bar becomes \"fooBar\"). It returns an empty\nmap when the selection is empty or has no data attributes.\n"
+            },
+            {
+              "name": "DataOr",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) DataOr(key, def string) string",
+              "doc": "DataOr returns the data-* value for key on the first selected element, or def\nif it is absent.\n"
+            },
+            {
+              "name": "Each",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Each(fn func(i int, n *Node)) *Selection",
+              "doc": "Each invokes fn for every selected node in order and returns the receiver\nfor chaining.\n"
+            },
+            {
+              "name": "Empty",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Empty() *Selection",
+              "doc": "Empty removes all child nodes from every selected element and returns the\nreceiver.\n"
+            },
+            {
+              "name": "End",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) End() *Selection",
+              "doc": "End returns the Selection that this one was derived from, restoring the\nprevious stage of a traversal chain (jQuery's .end()). If the receiver was\nnot derived from another Selection (for example a top-level Document.Find),\nEnd returns the document root selection.\n"
+            },
+            {
+              "name": "Eq",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Eq(i int) *Selection",
+              "doc": "Eq returns a Selection containing only the node at index i (negative counts\nfrom the end). An out-of-range index yields an empty Selection.\n"
+            },
+            {
+              "name": "Even",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Even() *Selection",
+              "doc": "Even returns the even-indexed nodes of the selection (0, 2, 4, ...).\n"
+            },
+            {
+              "name": "Filter",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Filter(selector string) *Selection",
+              "doc": "Filter returns the subset of selected nodes that match the selector.\n"
+            },
+            {
+              "name": "FilterFunc",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) FilterFunc(pred func(i int, n *Node) bool) *Selection",
+              "doc": "FilterFunc returns the subset for which the predicate returns true. The\nindex is the position within the current selection.\n"
+            },
+            {
+              "name": "FilterMatcher",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) FilterMatcher(m *Matcher) *Selection",
+              "doc": "FilterMatcher returns the subset of selected nodes that satisfy the compiled\nmatcher. It is the pre-compiled equivalent of Filter.\n"
+            },
+            {
+              "name": "Find",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Find(selector string) *Selection",
+              "doc": "Find returns the descendants of the selected nodes that match the selector.\n\nA selector member that begins with a combinator is treated as relative to\neach selected node (its :scope): \"\u003e li\" matches immediate element children,\n\"+ .b\" the immediately following sibling and \"~ .b\" any following sibling.\nOrdinary members continue to match descendants only.\n"
+            },
+            {
+              "name": "FindMatcher",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) FindMatcher(m *Matcher) *Selection",
+              "doc": "FindMatcher returns the descendants of the selected nodes that satisfy the\ncompiled matcher. It is the pre-compiled equivalent of Find.\n"
+            },
+            {
+              "name": "First",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) First() *Selection",
+              "doc": "First returns the first node as a Selection.\n"
+            },
+            {
+              "name": "Get",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Get(i int) *Node",
+              "doc": "Get returns the node at index i (negative counts from the end), or nil.\n"
+            },
+            {
+              "name": "Has",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Has(selector string) *Selection",
+              "doc": "Has returns the selected nodes that have a descendant matching the selector.\n"
+            },
+            {
+              "name": "HasClass",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) HasClass(class string) bool",
+              "doc": "HasClass reports whether any selected element carries the given class.\n"
+            },
+            {
+              "name": "Html",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Html() string",
+              "doc": "Html returns the inner HTML of the first selected node (its serialized\nchildren).\n"
+            },
+            {
+              "name": "Index",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Index() int",
+              "doc": "Index returns the position of the first selected node among its element\nsiblings (0-based), or -1 if the selection is empty. It is the zero-argument\nform of jQuery's .index().\n"
+            },
+            {
+              "name": "IndexOfNode",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) IndexOfNode(node *Node) int",
+              "doc": "IndexOfNode returns the 0-based position of node within the current\nselection, or -1 if it is not present. It corresponds to jQuery's\n.index(element).\n"
+            },
+            {
+              "name": "IndexSelector",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) IndexSelector(selector string) int",
+              "doc": "IndexSelector returns the 0-based position of the first selected node within\nthe set of elements matching selector across the document, or -1 if it is not\nfound. It corresponds to jQuery's .index(selector).\n"
+            },
+            {
+              "name": "InsertAfter",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) InsertAfter(selector string) *Selection",
+              "doc": "InsertAfter inserts the selected nodes after every element matching selector\nand returns the receiver.\n"
+            },
+            {
+              "name": "InsertBefore",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) InsertBefore(selector string) *Selection",
+              "doc": "InsertBefore inserts the selected nodes before every element matching\nselector and returns the receiver.\n"
+            },
+            {
+              "name": "Is",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Is(selector string) bool",
+              "doc": "Is reports whether at least one selected node matches the selector.\n"
+            },
+            {
+              "name": "IsMatcher",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) IsMatcher(m *Matcher) bool",
+              "doc": "IsMatcher reports whether at least one selected node satisfies the compiled\nmatcher. It is the pre-compiled equivalent of Is.\n"
+            },
+            {
+              "name": "Last",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Last() *Selection",
+              "doc": "Last returns the last node as a Selection.\n"
+            },
+            {
+              "name": "Length",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Length() int",
+              "doc": "Length returns the number of nodes in the selection.\n"
+            },
+            {
+              "name": "Map",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Map(fn func(i int, n *Node) string) []string",
+              "doc": "Map applies fn to each node and returns the collected results.\n"
+            },
+            {
+              "name": "MapNodes",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) MapNodes(fn func(i int, n *Node) *Node) []*Node",
+              "doc": "MapNodes applies fn to each selected node in order and returns the collected\nnon-nil results as a slice of nodes. It is the node-returning companion of\nMap (which collects strings), matching jQuery's .map() when the callback\nyields elements.\n"
+            },
+            {
+              "name": "Next",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Next(selector ...string) *Selection",
+              "doc": "Next returns the immediately following element sibling of each node.\n"
+            },
+            {
+              "name": "NextAll",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) NextAll(selector ...string) *Selection",
+              "doc": "NextAll returns all following element siblings of each node.\n"
+            },
+            {
+              "name": "NextUntil",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) NextUntil(selector string, filter ...string) *Selection",
+              "doc": "NextUntil returns the following element siblings of each selected node, up to\n(but not including) the first sibling that matches selector. An optional\nsecond selector filters the collected elements.\n"
+            },
+            {
+              "name": "Nodes",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Nodes() []*Node",
+              "doc": "Nodes returns the underlying nodes. Callers must not mutate the slice.\n"
+            },
+            {
+              "name": "Not",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Not(selector string) *Selection",
+              "doc": "Not returns the selected nodes that do NOT match the selector.\n"
+            },
+            {
+              "name": "Odd",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Odd() *Selection",
+              "doc": "Odd returns the odd-indexed nodes of the selection (1, 3, 5, ...).\n"
+            },
+            {
+              "name": "OuterHtml",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) OuterHtml() string",
+              "doc": "OuterHtml returns the serialized HTML of the first selected node, including\nthe node itself.\n"
+            },
+            {
+              "name": "Parent",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Parent(selector ...string) *Selection",
+              "doc": "Parent returns the direct parent of each selected node (elements only).\n"
+            },
+            {
+              "name": "Parents",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Parents(selector ...string) *Selection",
+              "doc": "Parents returns all ancestors of each selected node, nearest first within\neach node's chain, optionally filtered by a selector.\n"
+            },
+            {
+              "name": "ParentsUntil",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) ParentsUntil(selector string, filter ...string) *Selection",
+              "doc": "ParentsUntil returns the ancestors of each selected node, nearest first, up\nto (but not including) the first ancestor that matches selector. An optional\nsecond selector filters the collected elements.\n"
+            },
+            {
+              "name": "Prepend",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Prepend(html ...string) *Selection",
+              "doc": "Prepend parses each HTML string and inserts the resulting nodes at the start\nof the children of every selected element.\n"
+            },
+            {
+              "name": "PrependNodes",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) PrependNodes(nodes ...*Node) *Selection",
+              "doc": "PrependNodes inserts the given nodes at the start of the children of every\nselected element.\n"
+            },
+            {
+              "name": "PrependSelection",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) PrependSelection(other *Selection) *Selection",
+              "doc": "PrependSelection inserts the nodes of other at the start of the children of\nevery selected element.\n"
+            },
+            {
+              "name": "PrependTo",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) PrependTo(selector string) *Selection",
+              "doc": "PrependTo prepends the selected nodes to every element matching selector and\nreturns the receiver.\n"
+            },
+            {
+              "name": "Prev",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Prev(selector ...string) *Selection",
+              "doc": "Prev returns the immediately preceding element sibling of each node.\n"
+            },
+            {
+              "name": "PrevAll",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) PrevAll(selector ...string) *Selection",
+              "doc": "PrevAll returns all preceding element siblings of each node.\n"
+            },
+            {
+              "name": "PrevUntil",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) PrevUntil(selector string, filter ...string) *Selection",
+              "doc": "PrevUntil returns the preceding element siblings of each selected node, up to\n(but not including) the first sibling that matches selector. An optional\nsecond selector filters the collected elements.\n"
+            },
+            {
+              "name": "Prop",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Prop(name string) (string, bool)",
+              "doc": "Prop returns a property of the first selected element and whether it is\ndefined. Boolean properties (checked, selected, disabled, ...) return \"true\"\nor \"false\" based on the presence of the corresponding attribute. The special\nproperties \"tagName\"/\"nodeName\" return the upper-cased tag; \"outerHTML\",\n\"innerHTML\" and \"textContent\" return the serialized or text content. Any\nother name falls back to the attribute of the same name.\n"
+            },
+            {
+              "name": "Remove",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Remove(selector ...string) *Selection",
+              "doc": "Remove detaches every selected node (optionally filtered by selector) from\nthe document and returns the receiver.\n"
+            },
+            {
+              "name": "RemoveAttr",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) RemoveAttr(name string) *Selection",
+              "doc": "RemoveAttr removes an attribute from every selected element.\n"
+            },
+            {
+              "name": "RemoveClass",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) RemoveClass(classes string) *Selection",
+              "doc": "RemoveClass removes one or more space-separated classes from every selected\nelement. Removing all classes leaves an empty class attribute.\n"
+            },
+            {
+              "name": "RemoveData",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) RemoveData(keys ...string) *Selection",
+              "doc": "RemoveData removes data-* attributes from every selected element and returns\nthe receiver. With no arguments it removes all data-* attributes; otherwise\nonly the named keys are removed. Keys may be given in camelCase (\"fooBar\") or\ndashed (\"foo-bar\") form.\n"
+            },
+            {
+              "name": "Render",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Render(w io.Writer) error",
+              "doc": "Render writes the serialized outer HTML of every selected node, in document\norder, to w. It returns any error reported by w. Render is the streaming form\nof ToString, avoiding an intermediate string when writing to an\nhttp.ResponseWriter, a file, or any other io.Writer.\n"
+            },
+            {
+              "name": "ReplaceWith",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) ReplaceWith(html ...string) *Selection",
+              "doc": "ReplaceWith replaces every selected node with the nodes parsed from html and\nreturns the receiver (whose nodes are now detached).\n"
+            },
+            {
+              "name": "ReplaceWithNodes",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) ReplaceWithNodes(nodes ...*Node) *Selection",
+              "doc": "ReplaceWithNodes replaces every selected node with the given nodes. For every\ntarget but the last the replacement nodes are cloned.\n"
+            },
+            {
+              "name": "ReplaceWithSelection",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) ReplaceWithSelection(other *Selection) *Selection",
+              "doc": "ReplaceWithSelection replaces every selected node with the nodes of other.\n"
+            },
+            {
+              "name": "Serialize",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Serialize() string",
+              "doc": "Serialize returns the selection's successful form controls encoded as an\napplication/x-www-form-urlencoded string (e.g. \"a=1\u0026b=2\"), matching jQuery's\n.serialize().\n"
+            },
+            {
+              "name": "SerializeArray",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) SerializeArray() []FormField",
+              "doc": "SerializeArray collects the successful form controls within the selection\nand returns them as name/value pairs, following the HTML form-submission\nrules used by jQuery's .serializeArray():\n\n  - controls without a name, and disabled controls, are skipped;\n  - buttons and submit/reset/image/file inputs are skipped;\n  - checkboxes and radios contribute only when checked;\n  - a multiple-select contributes one entry per selected option;\n  - other selects contribute their current value.\n\nWhen a selected node is itself a form (or other container) its descendant\ncontrols are gathered; when it is a control it is considered directly.\n"
+            },
+            {
+              "name": "SetAttr",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) SetAttr(name, val string) *Selection",
+              "doc": "SetAttr sets an attribute on every selected element and returns the receiver.\n"
+            },
+            {
+              "name": "SetAttrs",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) SetAttrs(attrs map[string]string) *Selection",
+              "doc": "SetAttrs sets every key/value pair of attrs on all selected elements and\nreturns the receiver.\n"
+            },
+            {
+              "name": "SetCss",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) SetCss(prop, val string) *Selection",
+              "doc": "SetCss sets a single inline CSS property on every selected element and\nreturns the receiver. Setting an empty value removes the property.\n"
+            },
+            {
+              "name": "SetCssMap",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) SetCssMap(styles map[string]string) *Selection",
+              "doc": "SetCssMap sets every property/value pair of styles on all selected elements\nand returns the receiver. Because Go maps have no order, callers that require\na specific declaration order should use SetCss for each property.\n"
+            },
+            {
+              "name": "SetData",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) SetData(key, val string) *Selection",
+              "doc": "SetData sets the data-* attribute for key on every selected element and\nreturns the receiver. The key is normalized to dashed form.\n"
+            },
+            {
+              "name": "SetHtml",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) SetHtml(html string) *Selection",
+              "doc": "SetHtml parses html and replaces the children of every selected element with\nthe resulting nodes. For every target but the first the nodes are cloned.\n"
+            },
+            {
+              "name": "SetProp",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) SetProp(name, val string) *Selection",
+              "doc": "SetProp sets a property on every selected element and returns the receiver.\nFor boolean properties a value of \"\" or \"false\" removes the attribute and any\nother value adds it; other properties set the attribute of the same name.\n"
+            },
+            {
+              "name": "SetText",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) SetText(text string) *Selection",
+              "doc": "SetText replaces the children of every selected element with a single text\nnode.\n"
+            },
+            {
+              "name": "SetVal",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) SetVal(val string) *Selection",
+              "doc": "SetVal sets the value of every selected form control and returns the\nreceiver. For textarea elements the value replaces the text content; for a\nselect the matching option is marked selected (others deselected); for other\ncontrols the \"value\" attribute is set.\n"
+            },
+            {
+              "name": "Siblings",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Siblings(selector ...string) *Selection",
+              "doc": "Siblings returns the element siblings of each selected node (excluding the\nnode itself), optionally filtered by a selector.\n"
+            },
+            {
+              "name": "Slice",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Slice(start, end int) *Selection",
+              "doc": "Slice returns the nodes in [start, end) as a Selection. Negative indices\ncount from the end; out-of-range bounds are clamped.\n"
+            },
+            {
+              "name": "TagName",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) TagName() string",
+              "doc": "TagName returns the tag name of the first selected element, or \"\".\n"
+            },
+            {
+              "name": "Text",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Text() string",
+              "doc": "Text returns the concatenated text content of every selected node and its\ndescendants, in document order.\n"
+            },
+            {
+              "name": "ToArray",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) ToArray() []*Node",
+              "doc": "ToArray returns a copy of the selected nodes as a slice. Unlike Nodes, the\nreturned slice is safe to mutate; it mirrors jQuery's .toArray().\n"
+            },
+            {
+              "name": "ToString",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) ToString() string",
+              "doc": "ToString returns the serialized outer HTML of every selected node,\nconcatenated in document order.\n"
+            },
+            {
+              "name": "ToggleClass",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) ToggleClass(classes string) *Selection",
+              "doc": "ToggleClass toggles each space-separated class on every selected element.\n"
+            },
+            {
+              "name": "Unwrap",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Unwrap() *Selection",
+              "doc": "Unwrap removes the parent of every selected node, promoting the node (and its\nsiblings) into the grandparent. Each distinct parent is unwrapped once.\n"
+            },
+            {
+              "name": "Val",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Val() string",
+              "doc": "Val returns the value of a form control: the \"value\" attribute for inputs,\nthe selected option for selects, or the text content for textareas.\n"
+            },
+            {
+              "name": "Wrap",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) Wrap(html string) *Selection",
+              "doc": "Wrap wraps every selected node in a clone of the structure described by html.\nEach node is placed inside the innermost descendant of its wrapper.\n"
+            },
+            {
+              "name": "WrapAll",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) WrapAll(html string) *Selection",
+              "doc": "WrapAll wraps all selected nodes together in a single structure described by\nhtml, placed at the position of the first node.\n"
+            },
+            {
+              "name": "WrapInner",
+              "recv": "*Selection",
+              "signature": "func (s *Selection) WrapInner(html string) *Selection",
+              "doc": "WrapInner wraps the contents (child nodes) of every selected element in a\nclone of the structure described by html.\n"
+            }
+          ]
+        }
+      ],
+      "funcs": [
+        {
+          "name": "Contains",
+          "signature": "func Contains(container, contained *Node) bool",
+          "doc": "Contains reports whether contained is a descendant of container (the two must\nbe distinct nodes). It mirrors the static cheerio.contains helper and the DOM\nNode.contains method restricted to strict descendants.\n"
+        },
+        {
+          "name": "RenderNodes",
+          "signature": "func RenderNodes(nodes ...*Node) string",
+          "doc": "RenderNodes returns the serialized outer HTML of every supplied node,\nconcatenated in argument order. It mirrors the static cheerio.html helper\napplied to a set of nodes.\n"
+        },
+        {
+          "name": "TextOf",
+          "signature": "func TextOf(nodes ...*Node) string",
+          "doc": "TextOf returns the concatenated text content of every supplied node and its\ndescendants, in argument order. It mirrors the static cheerio.text helper.\n"
+        }
+      ],
+      "examples": [
+        {
+          "name": "",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/cheerio\"\n)\n\nfunc main() {\n\tconst html = `\n\t\u003chtml\u003e\u003cbody\u003e\n\t  \u003cul id=\"fruit\"\u003e\n\t    \u003cli class=\"a\"\u003eApple\u003c/li\u003e\n\t    \u003cli class=\"b\"\u003eBanana\u003c/li\u003e\n\t    \u003cli class=\"c\"\u003eCherry\u003c/li\u003e\n\t  \u003c/ul\u003e\n\t  \u003ca href=\"https://example.com/go\"\u003eGo\u003c/a\u003e\n\t\u003c/body\u003e\u003c/html\u003e`\n\n\tdoc := cheerio.Load(html)\n\n\t// Text of the first list item.\n\tfmt.Println(doc.Find(\"#fruit li\").First().Text())\n\n\t// Count of list items.\n\tfmt.Println(doc.Find(\"li\").Length())\n\n\t// Attribute access.\n\thref, _ := doc.Find(\"a\").Attr(\"href\")\n\tfmt.Println(href)\n\n\t// Selecting by class and combinator.\n\tfmt.Println(doc.Find(\"li.b + li\").Text())\n\n}",
+          "output": "Apple\n3\nhttps://example.com/go\nCherry"
+        },
+        {
+          "name": "Selection (Append)",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/cheerio\"\n)\n\nfunc main() {\n\tdoc := cheerio.Load(`\u003cul\u003e\u003cli\u003ea\u003c/li\u003e\u003c/ul\u003e`)\n\tdoc.Find(\"ul\").Append(`\u003cli\u003eb\u003c/li\u003e`).Prepend(`\u003cli\u003ez\u003c/li\u003e`)\n\tfmt.Println(doc.Find(\"ul\").Html())\n}",
+          "output": "\u003cli\u003ez\u003c/li\u003e\u003cli\u003ea\u003c/li\u003e\u003cli\u003eb\u003c/li\u003e"
+        },
+        {
+          "name": "Selection (Map)",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/cheerio\"\n)\n\nfunc main() {\n\tdoc := cheerio.Load(`\u003col\u003e\u003cli\u003eone\u003c/li\u003e\u003cli\u003etwo\u003c/li\u003e\u003cli\u003ethree\u003c/li\u003e\u003c/ol\u003e`)\n\titems := doc.Find(\"li\").Map(func(i int, n *cheerio.Node) string {\n\t\treturn fmt.Sprintf(\"%d:%s\", i, n.Children[0].Data)\n\t})\n\tfmt.Println(items)\n}",
+          "output": "[0:one 1:two 2:three]"
+        },
+        {
+          "name": "Selection (SerializeArray)",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/cheerio\"\n)\n\nfunc main() {\n\tdoc := cheerio.Load(`\u003cform\u003e\n\t\t\u003cinput type=\"text\" name=\"user\" value=\"ada\"\u003e\n\t\t\u003cinput type=\"checkbox\" name=\"admin\" value=\"yes\" checked\u003e\n\t\u003c/form\u003e`)\n\tfmt.Println(doc.Find(\"form\").Serialize())\n}",
+          "output": "user=ada\u0026admin=yes"
+        },
+        {
+          "name": "Selection (Wrap)",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/cheerio\"\n)\n\nfunc main() {\n\tdoc := cheerio.Load(`\u003cdiv\u003e\u003cspan\u003ex\u003c/span\u003e\u003c/div\u003e`)\n\tdoc.Find(\"span\").Wrap(`\u003cb class=\"hl\"\u003e\u003c/b\u003e`)\n\tfmt.Println(doc.Find(\"div\").Html())\n}",
+          "output": "\u003cb class=\"hl\"\u003e\u003cspan\u003ex\u003c/span\u003e\u003c/b\u003e"
+        }
+      ]
+    }
+  ]
+}

@@ -1,10 +1,17 @@
 import type { CSSProperties } from 'react';
-import { CodeBlock, CompareCard, VersionBadge, hi, hx, ghrepo } from 'go-ui';
+import { CodeBlock, CompareCard, DocsApp, VersionBadge, hi, hx, ghrepo } from 'go-ui';
 import type { Lib } from '../data';
 import { Html } from './Html';
 
 export interface LibViewProps {
   lib: Lib;
+}
+
+// docKey derives the bundled doc-index filename for a library from its GitHub
+// repo URL (its last path segment), matching what gendocs writes into
+// web/public/docs/<repo>.json — e.g. ".../socket.io" -> "socket.io".
+function docKey(lib: Lib): string {
+  return lib.repo.replace(/\/+$/, '').split('/').pop() ?? lib.id;
 }
 
 // LibView renders a single library's full documentation tab.
@@ -37,6 +44,7 @@ export function LibView({ lib }: LibViewProps) {
         <a href={`#${idb}-cmp`}>{source} → Go</a>
         <a href={`#${idb}-more`}>Going further</a>
         <a href={`#${idb}-feat`}>Features</a>
+        <a href={`#${idb}-api`}>API reference</a>
       </div>
 
       <div className="sec-h" id={`${idb}-install`}><span className="bar" /><h3 style={{ margin: 0 }}>Install</h3></div>
@@ -59,7 +67,14 @@ export function LibView({ lib }: LibViewProps) {
         {lib.features.map((f, i) => <Html tag="li" html={f} key={i} />)}
       </ul>
 
-      <div className="note">Full API reference &amp; runnable examples: <a href={lib.docs} target="_blank" rel="noopener">{lib.docs}</a></div>
+      <div className="sec-h" id={`${idb}-api`}><span className="bar" /><h3 style={{ margin: 0 }}>API reference</h3></div>
+      <p className="muted">The complete package-by-package Go API reference, generated from source — every exported type, function and method, with signatures, doc comments and runnable examples. Rendered inline below; also browsable on the dedicated docs site.</p>
+      {/* Full Javadoc-style reference rendered inline. hashRouting is off so the
+          renderer does not fight the aggregator's hash-based tab router. The
+          doc index is the per-library file bundled by gendocs at build time. */}
+      <DocsApp url={`${import.meta.env.BASE_URL}docs/${docKey(lib)}.json`} title={lib.pkg} hashRouting={false} />
+
+      <div className="note">Standalone API docs &amp; runnable examples: <a href={lib.docs} target="_blank" rel="noopener">{lib.docs}</a></div>
     </section>
   );
 }

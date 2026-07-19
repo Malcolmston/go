@@ -1,0 +1,1019 @@
+{
+  "module": "github.com/malcolmston/pdfkit",
+  "generatedAt": "2026-07-19T02:05:53Z",
+  "packages": [
+    {
+      "importPath": "github.com/malcolmston/pdfkit",
+      "name": "pdfkit",
+      "synopsis": "Package pdfkit is a small, dependency-free library for generating PDF documents in pure Go.",
+      "doc": "Package pdfkit is a small, dependency-free library for generating PDF\ndocuments in pure Go. It uses only the Go standard library: no cgo and no\nthird-party modules.\n\n# Overview\n\nA [Document] is a container of [Page] values plus document metadata. You\nbuild a document by adding pages, drawing text, vector graphics and images\nonto each page, and then serializing the result:\n\n\tdoc := pdfkit.New()\n\tdoc.SetTitle(\"Hello\")\n\tpage := doc.AddPage(pdfkit.A4)\n\tpage.SetFont(pdfkit.Helvetica, 24)\n\tpage.DrawText(72, 720, \"Hello, PDF!\")\n\tdata, _ := doc.Bytes() // or doc.Write(w) / doc.Save(\"out.pdf\")\n\n# The PDF object model\n\nThe generated file is a conforming PDF 1.7 document. Internally pdfkit emits\nthe standard indirect-object structure:\n\n  - a %PDF-1.7 header and a binary marker comment;\n  - a document catalog (/Type /Catalog) referencing the page tree;\n  - a page tree (/Type /Pages) with one page node per [Page];\n  - one content stream per page holding the drawing operators;\n  - font, image (XObject) and /Info dictionaries as needed;\n  - a cross-reference (xref) table, a trailer and %%EOF.\n\nOutput is deterministic: given the same drawing calls, the byte stream is\nidentical, which makes golden-file testing straightforward. The [Reader] type\nprovides a minimal xref parser that can read the structure back.\n\n# Coordinate system\n\nPages use native PDF user space. The origin (0, 0) is the bottom-left corner,\nx increases rightward and y increases upward, with distances in points\n(1/72 inch). Standard page sizes ([A4], [Letter], [Legal] and others) are\nprovided, along with [Custom] sizes and [PageSize.Landscape] orientation.\n\n# Fonts and text\n\nAll 14 standard PDF Type1 fonts are available as package variables\n([Helvetica], [TimesRoman], [Courier], [Symbol], [ZapfDingbats] and their\nbold/italic variants) and by name via [StandardFont]. Each font ships with a\nbuilt-in Adobe Font Metrics width table, so [Font.Width] and [Page.TextWidth]\nreturn accurate text widths for layout. [Page.DrawText] draws a single line,\n[Page.DrawLines] draws several, and [Page.DrawParagraph] performs greedy word\nwrapping to a maximum width. Text color follows the current fill color set\nwith [Page.SetFillColor].\n\n# Vector graphics\n\nPaths are built with [Page.MoveTo], [Page.LineTo], [Page.CurveTo] (cubic\nBézier), [Page.Rect], [Page.Circle] and [Page.Ellipse], then painted with\n[Page.Stroke], [Page.Fill] or [Page.FillStroke]. Line width is set with\n[Page.SetLineWidth] and colors with [Page.SetStrokeColor] and\n[Page.SetFillColor]. Colors are RGB values constructed with [RGB] or [Gray].\n\n# Images\n\nPNG and JPEG images are embedded as image XObjects. JPEG data is stored\ndirectly using the DCTDecode filter; PNG pixels are re-encoded as\nzlib-compressed RGB samples (FlateDecode) with an automatically generated soft\nmask when the source has transparency. Load images with [LoadImage],\n[LoadPNG] or [LoadJPEG] and place them with [Page.DrawImage].\n",
+      "consts": [],
+      "vars": [
+        {
+          "names": [
+            "Black",
+            "White",
+            "Red",
+            "Green",
+            "Blue"
+          ],
+          "signature": "var (\n\tBlack = Color{0, 0, 0}\n\tWhite = Color{1, 1, 1}\n\tRed   = Color{1, 0, 0}\n\tGreen = Color{0, 1, 0}\n\tBlue  = Color{0, 0, 1}\n)",
+          "doc": "Common colors.\n"
+        },
+        {
+          "names": [
+            "Helvetica",
+            "HelveticaBold",
+            "HelveticaOblique",
+            "HelveticaBoldOblique",
+            "TimesRoman",
+            "TimesBold",
+            "TimesItalic",
+            "TimesBoldItalic",
+            "Courier",
+            "CourierBold",
+            "CourierOblique",
+            "CourierBoldOblique",
+            "Symbol",
+            "ZapfDingbats"
+          ],
+          "signature": "var (\n\tHelvetica            = \u0026Font{BaseFont: \"Helvetica\", widths: \u0026helveticaWidths, defWidth: 278}\n\tHelveticaBold        = \u0026Font{BaseFont: \"Helvetica-Bold\", widths: \u0026helveticaBoldWidths, defWidth: 278}\n\tHelveticaOblique     = \u0026Font{BaseFont: \"Helvetica-Oblique\", widths: \u0026helveticaWidths, defWidth: 278}\n\tHelveticaBoldOblique = \u0026Font{BaseFont: \"Helvetica-BoldOblique\", widths: \u0026helveticaBoldWidths, defWidth: 278}\n\n\tTimesRoman      = \u0026Font{BaseFont: \"Times-Roman\", widths: \u0026timesRomanWidths, defWidth: 250}\n\tTimesBold       = \u0026Font{BaseFont: \"Times-Bold\", widths: \u0026timesBoldWidths, defWidth: 250}\n\tTimesItalic     = \u0026Font{BaseFont: \"Times-Italic\", widths: \u0026timesItalicWidths, defWidth: 250}\n\tTimesBoldItalic = \u0026Font{BaseFont: \"Times-BoldItalic\", widths: \u0026timesBoldItalicWidths, defWidth: 250}\n\n\tCourier            = \u0026Font{BaseFont: \"Courier\", fixed: courierWidth, defWidth: courierWidth}\n\tCourierBold        = \u0026Font{BaseFont: \"Courier-Bold\", fixed: courierWidth, defWidth: courierWidth}\n\tCourierOblique     = \u0026Font{BaseFont: \"Courier-Oblique\", fixed: courierWidth, defWidth: courierWidth}\n\tCourierBoldOblique = \u0026Font{BaseFont: \"Courier-BoldOblique\", fixed: courierWidth, defWidth: courierWidth}\n\n\tSymbol       = \u0026Font{BaseFont: \"Symbol\", symbolic: true, widths: \u0026symbolWidths, defWidth: 500}\n\tZapfDingbats = \u0026Font{BaseFont: \"ZapfDingbats\", symbolic: true, widths: \u0026zapfDingbatsWidths, defWidth: 500}\n)",
+          "doc": "The 14 standard fonts. These are always available in every conforming PDF\nviewer and never need to be embedded.\n"
+        },
+        {
+          "names": [
+            "A3",
+            "A4",
+            "A5",
+            "Letter",
+            "Legal",
+            "Tabloid"
+          ],
+          "signature": "var (\n\tA3      = PageSize{841.89, 1190.55}\n\tA4      = PageSize{595.28, 841.89}\n\tA5      = PageSize{419.53, 595.28}\n\tLetter  = PageSize{612, 792}\n\tLegal   = PageSize{612, 1008}\n\tTabloid = PageSize{792, 1224}\n)",
+          "doc": "Standard page sizes in points (1 point = 1/72 inch). Sizes are given in\nportrait orientation; use Landscape to rotate.\n"
+        }
+      ],
+      "types": [
+        {
+          "name": "BlendMode",
+          "signature": "type BlendMode string",
+          "doc": "BlendMode names a PDF separable or non-separable blend mode used when\ncompositing transparent content.\n",
+          "consts": [
+            {
+              "names": [
+                "BlendNormal",
+                "BlendMultiply",
+                "BlendScreen",
+                "BlendOverlay",
+                "BlendDarken",
+                "BlendLighten",
+                "BlendColorDodge",
+                "BlendColorBurn",
+                "BlendHardLight",
+                "BlendSoftLight",
+                "BlendDifference",
+                "BlendExclusion",
+                "BlendHue",
+                "BlendSaturation",
+                "BlendColor",
+                "BlendLuminosity"
+              ],
+              "signature": "const (\n\tBlendNormal     BlendMode = \"Normal\"\n\tBlendMultiply   BlendMode = \"Multiply\"\n\tBlendScreen     BlendMode = \"Screen\"\n\tBlendOverlay    BlendMode = \"Overlay\"\n\tBlendDarken     BlendMode = \"Darken\"\n\tBlendLighten    BlendMode = \"Lighten\"\n\tBlendColorDodge BlendMode = \"ColorDodge\"\n\tBlendColorBurn  BlendMode = \"ColorBurn\"\n\tBlendHardLight  BlendMode = \"HardLight\"\n\tBlendSoftLight  BlendMode = \"SoftLight\"\n\tBlendDifference BlendMode = \"Difference\"\n\tBlendExclusion  BlendMode = \"Exclusion\"\n\tBlendHue        BlendMode = \"Hue\"\n\tBlendSaturation BlendMode = \"Saturation\"\n\tBlendColor      BlendMode = \"Color\"\n\tBlendLuminosity BlendMode = \"Luminosity\"\n)",
+              "doc": "The standard PDF blend modes (PDF 1.4+).\n"
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Bookmark",
+          "signature": "type Bookmark struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Bookmark is a handle to a single outline entry, used to attach child entries.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Add",
+              "recv": "*Bookmark",
+              "signature": "func (bm *Bookmark) Add(title string, page *Page, y float64) *Bookmark",
+              "doc": "Add appends a child bookmark beneath this one.\n"
+            }
+          ]
+        },
+        {
+          "name": "CMYKColor",
+          "signature": "type CMYKColor struct {\n\tC, M, Y, K float64\n}",
+          "doc": "CMYKColor is a color in the subtractive CMYK (cyan, magenta, yellow, key/black)\ncolor space, with each component in the range [0, 1]. CMYK is the native color\nmodel of most print workflows; PDF supports it directly through the\nDeviceCMYK color space and the \"k\"/\"K\" content operators. Construct one with\nCMYK and paint with Page.SetFillCMYK or Page.SetStrokeCMYK.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "CMYK",
+              "signature": "func CMYK(c, m, y, k float64) CMYKColor",
+              "doc": "CMYK constructs a CMYKColor from four components, each clamped to [0, 1].\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "RGB",
+              "recv": "CMYKColor",
+              "signature": "func (c CMYKColor) RGB() Color",
+              "doc": "RGB converts the CMYK color to its RGB equivalent using the standard naive\nconversion R=(1-C)(1-K), G=(1-M)(1-K), B=(1-Y)(1-K). The result is suitable\nfor on-screen preview; exact print reproduction depends on the output device's\ncolor profile.\n"
+            }
+          ]
+        },
+        {
+          "name": "Color",
+          "signature": "type Color struct {\n\tR, G, B float64\n}",
+          "doc": "Color is an RGB color with components in the range [0, 1].\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "Gray",
+              "signature": "func Gray(level uint8) Color",
+              "doc": "Gray constructs a grayscale Color from an 8-bit level (0=black, 255=white).\n"
+            },
+            {
+              "name": "HSL",
+              "signature": "func HSL(h, s, l float64) Color",
+              "doc": "HSL constructs an RGB Color from hue (in degrees, wrapped to [0, 360)),\nsaturation and lightness (each in [0, 1]). HSL(0,1,0.5) is pure red,\nHSL(120,1,0.5) is green and HSL(240,1,0.5) is blue.\n"
+            },
+            {
+              "name": "Hex",
+              "signature": "func Hex(s string) (Color, error)",
+              "doc": "Hex parses a CSS-style hex color string such as \"#ff8800\", \"ff8800\", \"#f80\"\nor \"f80\" into a Color. A leading '#' is optional; both 3-digit shorthand and\n6-digit forms are accepted. It returns an error for any other length or for\nnon-hexadecimal digits.\n"
+            },
+            {
+              "name": "NamedColor",
+              "signature": "func NamedColor(name string) (Color, bool)",
+              "doc": "NamedColor returns the RGB Color for one of the CSS color keywords PDFKit\nships (for example \"aliceblue\", \"black\", \"cornflowerblue\" or \"yellowgreen\").\nThe lookup is case-sensitive and expects the lowercase spelling used by CSS\nand PDFKit. The second result reports whether name was recognised.\n"
+            },
+            {
+              "name": "RGB",
+              "signature": "func RGB(r, g, b uint8) Color",
+              "doc": "RGB constructs a Color from 8-bit components (0..255).\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "CMYK",
+              "recv": "Color",
+              "signature": "func (c Color) CMYK() CMYKColor",
+              "doc": "CMYK converts an RGB color to CMYK. The black component K is derived as\n1-max(R,G,B) and the chromatic components are computed relative to it. Pure\nblack (0,0,0) maps to K=1 with zero chroma.\n"
+            },
+            {
+              "name": "Hex",
+              "recv": "Color",
+              "signature": "func (c Color) Hex() string",
+              "doc": "Hex formats the color as a lowercase 6-digit \"#rrggbb\" hex string. Each\ncomponent is rounded to the nearest 8-bit value.\n"
+            }
+          ]
+        },
+        {
+          "name": "Document",
+          "signature": "type Document struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Document is a PDF document under construction. Create one with New, add pages\nwith AddPage, draw on each returned Page, then serialize with Write, Bytes or\nSave.\n\nThe zero value is not usable; always start from New.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "New",
+              "signature": "func New() *Document",
+              "doc": "New creates an empty document with default metadata (a Producer/Creator of\n\"pdfkit\").\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "AddNamedDest",
+              "recv": "*Document",
+              "signature": "func (d *Document) AddNamedDest(name string, page *Page, y float64)",
+              "doc": "AddNamedDest registers a named destination that points at (implicitly the top\nof) page, scrolled so y is near the top. Named destinations can be targeted by\nPage.AddLinkToDest and are exposed in the document's /Names /Dests tree.\n"
+            },
+            {
+              "name": "AddPage",
+              "recv": "*Document",
+              "signature": "func (d *Document) AddPage(size PageSize) *Page",
+              "doc": "AddPage appends a new page of the given size (portrait orientation as given)\nand returns it for drawing.\n"
+            },
+            {
+              "name": "Bytes",
+              "recv": "*Document",
+              "signature": "func (d *Document) Bytes() ([]byte, error)",
+              "doc": "Bytes serializes the document to a byte slice of valid PDF-1.7 content.\n"
+            },
+            {
+              "name": "EnableXMP",
+              "recv": "*Document",
+              "signature": "func (d *Document) EnableXMP()",
+              "doc": "EnableXMP generates and attaches an XMP metadata packet built from the current\n/Info metadata (Title, Author, Subject, Keywords, Creator, Producer). Call it\nafter setting metadata and before writing.\n"
+            },
+            {
+              "name": "Outline",
+              "recv": "*Document",
+              "signature": "func (d *Document) Outline() *Outline",
+              "doc": "Outline returns the document outline, creating it on first use.\n"
+            },
+            {
+              "name": "PageCount",
+              "recv": "*Document",
+              "signature": "func (d *Document) PageCount() int",
+              "doc": "PageCount returns the number of pages added so far.\n"
+            },
+            {
+              "name": "Save",
+              "recv": "*Document",
+              "signature": "func (d *Document) Save(filename string) error",
+              "doc": "Save writes the document to the named file, creating or truncating it.\n"
+            },
+            {
+              "name": "SetAuthor",
+              "recv": "*Document",
+              "signature": "func (d *Document) SetAuthor(s string)",
+              "doc": "SetAuthor sets the document author (/Author).\n"
+            },
+            {
+              "name": "SetCreator",
+              "recv": "*Document",
+              "signature": "func (d *Document) SetCreator(s string)",
+              "doc": "SetCreator sets the creating application name (/Creator).\n"
+            },
+            {
+              "name": "SetEncryption",
+              "recv": "*Document",
+              "signature": "func (d *Document) SetEncryption(opts EncryptOptions)",
+              "doc": "SetEncryption enables standard security on the document using the given\noptions. It must be called before Write/Bytes/Save. RC4-128 is used by\ndefault; set EncryptOptions.UseAES for AES-128.\n"
+            },
+            {
+              "name": "SetKeywords",
+              "recv": "*Document",
+              "signature": "func (d *Document) SetKeywords(s string)",
+              "doc": "SetKeywords sets the document keywords (/Keywords).\n"
+            },
+            {
+              "name": "SetProducer",
+              "recv": "*Document",
+              "signature": "func (d *Document) SetProducer(s string)",
+              "doc": "SetProducer sets the producing application name (/Producer).\n"
+            },
+            {
+              "name": "SetSubject",
+              "recv": "*Document",
+              "signature": "func (d *Document) SetSubject(s string)",
+              "doc": "SetSubject sets the document subject (/Subject).\n"
+            },
+            {
+              "name": "SetTitle",
+              "recv": "*Document",
+              "signature": "func (d *Document) SetTitle(s string)",
+              "doc": "SetTitle sets the document title (/Title in the Info dictionary).\n"
+            },
+            {
+              "name": "SetXMP",
+              "recv": "*Document",
+              "signature": "func (d *Document) SetXMP(xmp string)",
+              "doc": "SetXMP attaches a custom XMP metadata packet verbatim, overriding EnableXMP.\n"
+            },
+            {
+              "name": "Write",
+              "recv": "*Document",
+              "signature": "func (d *Document) Write(w io.Writer) error",
+              "doc": "Write serializes the document as PDF-1.7 to w. The output begins with the\n\"%PDF-1.7\" header and ends with \"%%EOF\", and includes a cross-reference table\nand trailer describing every indirect object. Advanced features (annotations,\noutlines, form fields, shadings, patterns, transparency, metadata and\nencryption) are emitted only when used.\n"
+            }
+          ]
+        },
+        {
+          "name": "EncryptOptions",
+          "signature": "type EncryptOptions struct {\n\t// UserPassword must be supplied to open the document (may be empty).\n\tUserPassword string\n\t// OwnerPassword grants full access; defaults to UserPassword if empty.\n\tOwnerPassword string\n\t// UseAES selects AES-128 (V4/R4) instead of 128-bit RC4 (V2/R3).\n\tUseAES bool\n\n\t// Permission flags. When all are false the document is maximally locked\n\t// (subject to viewer honor).\n\tAllowPrinting    bool\n\tAllowModify      bool\n\tAllowCopying     bool\n\tAllowAnnotations bool\n}",
+          "doc": "EncryptOptions configures standard PDF document encryption. An empty\nUserPassword produces a document that opens without a password but still has\nits permission flags and (optionally) an owner password enforced.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "ExtGState",
+          "signature": "type ExtGState struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "ExtGState is a graphics-state parameter dictionary controlling constant alpha\n(transparency) and blend mode. Build one with NewExtGState and apply it to a\npage with Page.ApplyExtGState, or use the Page.SetAlpha and Page.SetBlendMode\nconvenience methods.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewExtGState",
+              "signature": "func NewExtGState(fillAlpha, strokeAlpha float64, blend BlendMode) *ExtGState",
+              "doc": "NewExtGState builds a graphics-state dictionary. fillAlpha and strokeAlpha are\nconstant alpha values in [0, 1]; pass a negative value to leave one unset. An\nempty blend mode is treated as unset.\n"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "name": "Font",
+          "signature": "type Font struct {\n\t// BaseFont is the PDF /BaseFont name, e.g. \"Helvetica\" or \"Times-Bold\".\n\tBaseFont string\n\t// contains filtered or unexported fields\n}",
+          "doc": "Font represents one of the 14 standard PDF Type1 fonts. Each font carries a\nbuilt-in glyph-width table (in 1000-unit glyph space) so that text widths can\nbe measured without embedding or parsing external font files.\n\nFonts are immutable and safe for concurrent use. Obtain them through the\npackage-level font variables (for example Helvetica or TimesBold) or via\nStandardFont.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "LoadTrueType",
+              "signature": "func LoadTrueType(r io.Reader) (*Font, error)",
+              "doc": "LoadTrueType parses a TrueType or glyf-based OpenType font from r and returns\na Font that will be embedded (with only the glyphs actually used) when the\ndocument is written. Unicode text drawn with this font is encoded via the\nfont's cmap and mapped back for extraction with a ToUnicode CMap.\n"
+            },
+            {
+              "name": "LoadTrueTypeFile",
+              "signature": "func LoadTrueTypeFile(path string) (*Font, error)",
+              "doc": "LoadTrueTypeFile is a convenience wrapper around LoadTrueType that reads from a\nfile path.\n"
+            },
+            {
+              "name": "StandardFont",
+              "signature": "func StandardFont(name string) *Font",
+              "doc": "StandardFont returns the standard font with the given PDF base-font name\n(for example \"Helvetica-Bold\" or \"Times-Roman\"). It returns nil if name does\nnot identify one of the 14 standard fonts.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Ascent",
+              "recv": "*Font",
+              "signature": "func (f *Font) Ascent(size float64) float64",
+              "doc": "Ascent returns the font ascender — the maximum extent above the baseline — in\npoints at the given size. This is the recommended distance from the baseline\nto the top of the tallest glyphs.\n"
+            },
+            {
+              "name": "CapHeight",
+              "recv": "*Font",
+              "signature": "func (f *Font) CapHeight(size float64) float64",
+              "doc": "CapHeight returns the cap height (the height of a flat capital letter such as\n'H' above the baseline) in points at the given size.\n"
+            },
+            {
+              "name": "Descent",
+              "recv": "*Font",
+              "signature": "func (f *Font) Descent(size float64) float64",
+              "doc": "Descent returns the font descender — the maximum extent below the baseline —\nin points at the given size. The value is negative for fonts whose glyphs\ndescend below the baseline.\n"
+            },
+            {
+              "name": "Embedded",
+              "recv": "*Font",
+              "signature": "func (f *Font) Embedded() bool",
+              "doc": "Embedded reports whether this font is an embedded, subset TrueType/OpenType\nfont (as opposed to one of the 14 standard fonts).\n"
+            },
+            {
+              "name": "HeightOfString",
+              "recv": "*Font",
+              "signature": "func (f *Font) HeightOfString(text string, size, maxWidth, lineGap float64) float64",
+              "doc": "HeightOfString returns the total height in points needed to render text set in\nfont f at the given size, wrapped to maxWidth, with lineGap points of extra\nleading added between (and after) each line. It measures the number of wrapped\nlines and multiplies by the per-line advance, mirroring the accounting used\nwhen laying paragraphs out with Page.DrawTextBox.\n"
+            },
+            {
+              "name": "LineHeight",
+              "recv": "*Font",
+              "signature": "func (f *Font) LineHeight(size float64) float64",
+              "doc": "LineHeight returns the natural single-line height in points at the given size:\nthe ascent minus the (negative) descent. Add extra leading between lines as\ndesired; DrawParagraph and DrawTextBox take an explicit leading value.\n"
+            },
+            {
+              "name": "Width",
+              "recv": "*Font",
+              "signature": "func (f *Font) Width(text string, size float64) float64",
+              "doc": "Width returns the rendered width, in points, of text set in this font at the\ngiven size (in points). It sums the built-in glyph advances; characters\noutside the built-in table fall back to the font's default width.\n"
+            },
+            {
+              "name": "XHeight",
+              "recv": "*Font",
+              "signature": "func (f *Font) XHeight(size float64) float64",
+              "doc": "XHeight returns the x-height (the height of the lowercase 'x' above the\nbaseline) in points at the given size. It is zero for fonts that do not report\nan x-height, including embedded fonts, Symbol and ZapfDingbats.\n"
+            }
+          ]
+        },
+        {
+          "name": "FormField",
+          "signature": "type FormField struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "FormField is an interactive AcroForm field (a text field, checkbox or push\nbutton) placed on a page as a widget annotation. Create fields with\nPage.AddTextField, Page.AddCheckbox or Page.AddPushButton.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "GradientStop",
+          "signature": "type GradientStop struct {\n\tOffset float64\n\tColor  Color\n}",
+          "doc": "GradientStop is one color stop of a gradient: a color positioned at an offset\nin [0, 1] along the gradient axis.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Image",
+          "signature": "type Image struct {\n\tWidth  int\n\tHeight int\n\t// contains filtered or unexported fields\n}",
+          "doc": "Image is a decoded raster image ready to be embedded in a PDF document as an\nXObject. Load one with LoadImage, LoadPNG or LoadJPEG, then draw it onto a\npage with Page.DrawImage.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "LoadImage",
+              "signature": "func LoadImage(r io.Reader) (*Image, error)",
+              "doc": "LoadImage reads an image from r, auto-detecting PNG or JPEG encoding.\n"
+            },
+            {
+              "name": "LoadJPEG",
+              "signature": "func LoadJPEG(r io.Reader) (*Image, error)",
+              "doc": "LoadJPEG loads a JPEG image. The original JPEG bytes are embedded directly\nusing the PDF DCTDecode filter, so no re-encoding occurs.\n"
+            },
+            {
+              "name": "LoadPNG",
+              "signature": "func LoadPNG(r io.Reader) (*Image, error)",
+              "doc": "LoadPNG loads a PNG image. The pixels are decoded and re-encoded as raw,\nzlib-compressed RGB samples (PDF FlateDecode). If the source has an alpha\nchannel, a soft mask (SMask) is generated so transparency is preserved.\n"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "name": "LineCap",
+          "signature": "type LineCap int",
+          "doc": "LineCap selects the shape drawn at the open ends of a stroked path (the PDF\nline cap style, set with the \"J\" operator).\n",
+          "consts": [
+            {
+              "names": [
+                "CapButt",
+                "CapRound",
+                "CapSquare"
+              ],
+              "signature": "const (\n\t// CapButt squares the stroke off flush with the endpoint (default).\n\tCapButt LineCap = 0\n\t// CapRound draws a semicircular arc centered on the endpoint.\n\tCapRound LineCap = 1\n\t// CapSquare extends the stroke by half its width past the endpoint.\n\tCapSquare LineCap = 2\n)",
+              "doc": "The three PDF line cap styles.\n"
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "LineJoin",
+          "signature": "type LineJoin int",
+          "doc": "LineJoin selects the shape drawn where two path segments meet (the PDF line\njoin style, set with the \"j\" operator).\n",
+          "consts": [
+            {
+              "names": [
+                "JoinMiter",
+                "JoinRound",
+                "JoinBevel"
+              ],
+              "signature": "const (\n\t// JoinMiter extends the outer edges to a sharp point (default).\n\tJoinMiter LineJoin = 0\n\t// JoinRound fills the corner with a circular arc.\n\tJoinRound LineJoin = 1\n\t// JoinBevel fills the corner with a straight edge.\n\tJoinBevel LineJoin = 2\n)",
+              "doc": "The three PDF line join styles.\n"
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Outline",
+          "signature": "type Outline struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Outline is a document outline (bookmark tree). Obtain the document's outline\nwith Document.Outline, then add top-level bookmarks with Add; each returned\nBookmark can nest further bookmarks beneath it.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Add",
+              "recv": "*Outline",
+              "signature": "func (o *Outline) Add(title string, page *Page, y float64) *Bookmark",
+              "doc": "Add appends a top-level bookmark titled title that jumps to page at vertical\nposition y, and returns a handle for nesting children beneath it.\n"
+            }
+          ]
+        },
+        {
+          "name": "Page",
+          "signature": "type Page struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Page is a single page of a Document and the surface onto which text, vector\ngraphics and images are drawn.\n\nThe coordinate system is native PDF user space: the origin (0, 0) is at the\nbottom-left corner of the page, x increases to the right and y increases\nupward. Distances are in points (1/72 inch). This matches the underlying PDF\ncontent-stream semantics exactly.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "AddCheckbox",
+              "recv": "*Page",
+              "signature": "func (p *Page) AddCheckbox(name string, x, y, size float64, checked bool) *FormField",
+              "doc": "AddCheckbox adds a checkbox named name at (x, y) with the given side length,\ninitially checked or not. It returns the field.\n"
+            },
+            {
+              "name": "AddLinkTo",
+              "recv": "*Page",
+              "signature": "func (p *Page) AddLinkTo(x, y, w, h float64, target *Page, atY float64)",
+              "doc": "AddLinkTo adds an internal hyperlink over the rectangle at (x, y) that jumps\nto target page, scrolled so that atY is near the top of the view.\n"
+            },
+            {
+              "name": "AddLinkToDest",
+              "recv": "*Page",
+              "signature": "func (p *Page) AddLinkToDest(x, y, w, h float64, name string)",
+              "doc": "AddLinkToDest adds an internal hyperlink over the rectangle at (x, y) that\njumps to the named destination (see Document.AddNamedDest).\n"
+            },
+            {
+              "name": "AddLinkURI",
+              "recv": "*Page",
+              "signature": "func (p *Page) AddLinkURI(x, y, w, h float64, uri string)",
+              "doc": "AddLinkURI adds a hyperlink over the rectangle at (x, y) with width w and\nheight h that opens the given URI when clicked.\n"
+            },
+            {
+              "name": "AddPushButton",
+              "recv": "*Page",
+              "signature": "func (p *Page) AddPushButton(name string, x, y, w, h float64, caption string) *FormField",
+              "doc": "AddPushButton adds a push button named name over the rectangle at (x, y) with\nthe given caption. It returns the field.\n"
+            },
+            {
+              "name": "AddTextAnnotation",
+              "recv": "*Page",
+              "signature": "func (p *Page) AddTextAnnotation(x, y float64, contents string)",
+              "doc": "AddTextAnnotation adds a \"sticky note\" text annotation with its icon at\n(x, y) showing the given contents when opened.\n"
+            },
+            {
+              "name": "AddTextField",
+              "recv": "*Page",
+              "signature": "func (p *Page) AddTextField(name string, x, y, w, h float64, value string) *FormField",
+              "doc": "AddTextField adds a text input field named name over the rectangle at (x, y)\nwith width w and height h, pre-filled with value. It returns the field.\n"
+            },
+            {
+              "name": "ApplyExtGState",
+              "recv": "*Page",
+              "signature": "func (p *Page) ApplyExtGState(g *ExtGState)",
+              "doc": "ApplyExtGState registers g with the document and applies it to the current\ngraphics state (the \"gs\" operator). Wrap it in Save/Restore to scope its\neffect.\n"
+            },
+            {
+              "name": "Circle",
+              "recv": "*Page",
+              "signature": "func (p *Page) Circle(cx, cy, r float64)",
+              "doc": "Circle adds a circle subpath centered at (cx, cy) with the given radius,\napproximated by four Bézier curves.\n"
+            },
+            {
+              "name": "Clip",
+              "recv": "*Page",
+              "signature": "func (p *Page) Clip()",
+              "doc": "Clip intersects the current clipping path with the current path using the\nnonzero winding rule, then ends the path without painting it (the \"W n\"\nsequence). Construct a path first, call Clip, then draw the content to be\nclipped, typically inside a Save/Restore pair.\n"
+            },
+            {
+              "name": "ClipEvenOdd",
+              "recv": "*Page",
+              "signature": "func (p *Page) ClipEvenOdd()",
+              "doc": "ClipEvenOdd is like Clip but uses the even-odd rule (\"W* n\").\n"
+            },
+            {
+              "name": "ClosePath",
+              "recv": "*Page",
+              "signature": "func (p *Page) ClosePath()",
+              "doc": "ClosePath closes the current subpath back to its start point (\"h\").\n"
+            },
+            {
+              "name": "CurveTo",
+              "recv": "*Page",
+              "signature": "func (p *Page) CurveTo(x1, y1, x2, y2, x3, y3 float64)",
+              "doc": "CurveTo appends a cubic Bézier curve from the current point to (x3, y3) using\n(x1, y1) and (x2, y2) as control points.\n"
+            },
+            {
+              "name": "DrawImage",
+              "recv": "*Page",
+              "signature": "func (p *Page) DrawImage(img *Image, x, y, width, height float64)",
+              "doc": "DrawImage draws img so that it fills the rectangle with lower-left corner at\n(x, y) and the given width and height (in points). The image is registered\nwith the document and referenced from the page resources.\n"
+            },
+            {
+              "name": "DrawLine",
+              "recv": "*Page",
+              "signature": "func (p *Page) DrawLine(x1, y1, x2, y2 float64)",
+              "doc": "DrawLine strokes a straight line between two points using the current stroke\ncolor and line width.\n"
+            },
+            {
+              "name": "DrawLines",
+              "recv": "*Page",
+              "signature": "func (p *Page) DrawLines(x, y, leading float64, lines []string)",
+              "doc": "DrawLines draws multiple lines of text starting with the first baseline at\n(x, y) and advancing downward by leading points per line.\n"
+            },
+            {
+              "name": "DrawParagraph",
+              "recv": "*Page",
+              "signature": "func (p *Page) DrawParagraph(x, y, maxWidth, leading float64, text string) float64",
+              "doc": "DrawParagraph lays out text into lines no wider than maxWidth points, breaking\non spaces, and draws it starting at (x, y) advancing downward by leading\npoints per line. It returns the y coordinate of the baseline following the\nlast drawn line.\n"
+            },
+            {
+              "name": "DrawStrikethrough",
+              "recv": "*Page",
+              "signature": "func (p *Page) DrawStrikethrough(x, y, width float64)",
+              "doc": "DrawStrikethrough strokes a horizontal line through the middle of a line of\ntext of the given width starting at baseline (x, y), using the current stroke\ncolor. The line is positioned near the font's x-height midpoint.\n"
+            },
+            {
+              "name": "DrawText",
+              "recv": "*Page",
+              "signature": "func (p *Page) DrawText(x, y float64, text string)",
+              "doc": "DrawText draws a single line of text with its baseline origin at (x, y) using\nthe font and size set by SetFont and the current fill color. It is a no-op if\nSetFont has not been called.\n"
+            },
+            {
+              "name": "DrawTextAligned",
+              "recv": "*Page",
+              "signature": "func (p *Page) DrawTextAligned(x, y, width float64, text string, align TextAlign)",
+              "doc": "DrawTextAligned draws a single line of text within a box of the given width\nwhose left edge is at x, positioning the baseline at y and aligning the line\nhorizontally per align. AlignJustify behaves like AlignLeft for a single line.\nIt is a no-op if no font has been set.\n"
+            },
+            {
+              "name": "DrawTextBox",
+              "recv": "*Page",
+              "signature": "func (p *Page) DrawTextBox(x, y, width, leading float64, text string, opts TextOptions) float64",
+              "doc": "DrawTextBox lays text out into a box whose left edge is at x and top baseline\nis at y, wrapping to width points and advancing downward by leading points per\nline. If leading is 0 the font's natural line height plus opts.LineGap is\nused. Lines are aligned per opts.Align, and optionally underlined or struck\nthrough. It returns the y coordinate of the baseline just past the last drawn\nline. It is a no-op returning y unchanged if no font has been set.\n"
+            },
+            {
+              "name": "DrawTextCentered",
+              "recv": "*Page",
+              "signature": "func (p *Page) DrawTextCentered(cx, y float64, text string)",
+              "doc": "DrawTextCentered draws a single line of text centered horizontally on cx, with\nits baseline at y. It is a no-op if no font has been set.\n"
+            },
+            {
+              "name": "DrawTextRight",
+              "recv": "*Page",
+              "signature": "func (p *Page) DrawTextRight(x, y float64, text string)",
+              "doc": "DrawTextRight draws a single line of text so that its right edge ends at x,\nwith the baseline at y. It is a no-op if no font has been set.\n"
+            },
+            {
+              "name": "DrawUnderline",
+              "recv": "*Page",
+              "signature": "func (p *Page) DrawUnderline(x, y, width float64)",
+              "doc": "DrawUnderline strokes a horizontal underline of the given width starting at\n(x, y), using the current stroke color. The stroke width scales with the\ncurrent font size. It draws relative to a baseline at y, placing the line\nslightly below it.\n"
+            },
+            {
+              "name": "Ellipse",
+              "recv": "*Page",
+              "signature": "func (p *Page) Ellipse(cx, cy, rx, ry float64)",
+              "doc": "Ellipse adds an ellipse subpath centered at (cx, cy) with horizontal radius rx\nand vertical radius ry, approximated by four Bézier curves.\n"
+            },
+            {
+              "name": "Fill",
+              "recv": "*Page",
+              "signature": "func (p *Page) Fill()",
+              "doc": "Fill fills the current path using the nonzero winding rule (\"f\").\n"
+            },
+            {
+              "name": "FillEvenOdd",
+              "recv": "*Page",
+              "signature": "func (p *Page) FillEvenOdd()",
+              "doc": "FillEvenOdd fills the current path using the even-odd rule (\"f*\").\n"
+            },
+            {
+              "name": "FillStroke",
+              "recv": "*Page",
+              "signature": "func (p *Page) FillStroke()",
+              "doc": "FillStroke fills and then strokes the current path (\"B\").\n"
+            },
+            {
+              "name": "LineTo",
+              "recv": "*Page",
+              "signature": "func (p *Page) LineTo(x, y float64)",
+              "doc": "LineTo appends a straight line segment from the current point to (x, y).\n"
+            },
+            {
+              "name": "MoveTo",
+              "recv": "*Page",
+              "signature": "func (p *Page) MoveTo(x, y float64)",
+              "doc": "MoveTo begins a new subpath at (x, y).\n"
+            },
+            {
+              "name": "Polygon",
+              "recv": "*Page",
+              "signature": "func (p *Page) Polygon(pts ...float64)",
+              "doc": "Polygon adds a closed path through the given points to the current path. pts\nis a flat list of alternating x, y coordinates, so len(pts) must be even and\ndescribe at least three points; otherwise Polygon is a no-op. Paint it with\nFill, Stroke or FillStroke.\n"
+            },
+            {
+              "name": "Polyline",
+              "recv": "*Page",
+              "signature": "func (p *Page) Polyline(pts ...float64)",
+              "doc": "Polyline adds a connected open path through the given points to the current\npath. pts is a flat list of alternating x, y coordinates, so len(pts) must be\neven and describe at least two points; otherwise Polyline is a no-op. Paint it\nwith Stroke.\n"
+            },
+            {
+              "name": "Rect",
+              "recv": "*Page",
+              "signature": "func (p *Page) Rect(x, y, w, h float64)",
+              "doc": "Rect adds a rectangle subpath with its lower-left corner at (x, y).\n"
+            },
+            {
+              "name": "RegularPolygon",
+              "recv": "*Page",
+              "signature": "func (p *Page) RegularPolygon(cx, cy, r float64, sides int)",
+              "doc": "RegularPolygon adds a closed regular polygon with the given number of sides,\ncentered at (cx, cy) with circumradius r, to the current path. The first\nvertex is placed at the top (straight up from the center). It is a no-op for\nfewer than 3 sides. Paint it with Fill, Stroke or FillStroke.\n"
+            },
+            {
+              "name": "Restore",
+              "recv": "*Page",
+              "signature": "func (p *Page) Restore()",
+              "doc": "Restore pops the graphics state saved by the matching Save (\"Q\").\n"
+            },
+            {
+              "name": "RoundedRect",
+              "recv": "*Page",
+              "signature": "func (p *Page) RoundedRect(x, y, w, h, r float64)",
+              "doc": "RoundedRect adds a rectangle subpath with rounded corners of radius r to the\ncurrent path. The rectangle's lower-left corner is at (x, y). The radius is\nclamped to at most half of the shorter side. Paint it afterwards with Stroke,\nFill or FillStroke.\n"
+            },
+            {
+              "name": "SVGPath",
+              "recv": "*Page",
+              "signature": "func (p *Page) SVGPath(data string) error",
+              "doc": "SVGPath parses the SVG path \"d\" mini-language in data and appends the\nequivalent PDF path-construction operators (moveto, lineto, curveto, close) to\nthe page's content stream in the current user space. After calling SVGPath,\npaint the path with Fill, Stroke or FillStroke.\n\nAll SVG commands are supported: M/m, L/l, H/h, V/v, C/c, S/s, Q/q, T/t\n(quadratic curves are elevated to cubic), A/a (elliptical arcs are flattened\nto cubic Béziers) and Z/z. Coordinates are used verbatim; because SVG's y-axis\npoints down while PDF's points up, apply a flipping transform (for example\nPage.Scale(1, -1) within a Save/Restore) if you need SVG's orientation.\n\nIt returns an error if the path data is malformed.\n"
+            },
+            {
+              "name": "Save",
+              "recv": "*Page",
+              "signature": "func (p *Page) Save()",
+              "doc": "Save pushes a copy of the current graphics state (the PDF \"q\" operator).\n"
+            },
+            {
+              "name": "Scale",
+              "recv": "*Page",
+              "signature": "func (p *Page) Scale(sx, sy float64)",
+              "doc": "Scale concatenates a scale onto the current transformation matrix.\n"
+            },
+            {
+              "name": "SetAlpha",
+              "recv": "*Page",
+              "signature": "func (p *Page) SetAlpha(fill, stroke float64)",
+              "doc": "SetAlpha sets the constant fill and stroke alpha (transparency) for subsequent\ndrawing by applying a fresh ExtGState. Values are clamped to [0, 1].\n"
+            },
+            {
+              "name": "SetBlendMode",
+              "recv": "*Page",
+              "signature": "func (p *Page) SetBlendMode(mode BlendMode)",
+              "doc": "SetBlendMode sets the blend mode for subsequent compositing by applying a\nfresh ExtGState.\n"
+            },
+            {
+              "name": "SetDash",
+              "recv": "*Page",
+              "signature": "func (p *Page) SetDash(phase float64, pattern ...float64)",
+              "doc": "SetDash sets the line dash pattern. The pattern is a list of on/off segment\nlengths (in points); an empty pattern restores a solid line. phase offsets the\nstart of the pattern.\n"
+            },
+            {
+              "name": "SetFillCMYK",
+              "recv": "*Page",
+              "signature": "func (p *Page) SetFillCMYK(c CMYKColor)",
+              "doc": "SetFillCMYK sets the non-stroking (fill) color to a DeviceCMYK color for\nsubsequent fills and text, emitting the \"k\" operator.\n"
+            },
+            {
+              "name": "SetFillColor",
+              "recv": "*Page",
+              "signature": "func (p *Page) SetFillColor(c Color)",
+              "doc": "SetFillColor sets the color used for filling paths and drawing text.\n"
+            },
+            {
+              "name": "SetFillPattern",
+              "recv": "*Page",
+              "signature": "func (p *Page) SetFillPattern(pat *Pattern)",
+              "doc": "SetFillPattern selects pat as the non-stroking (fill) color source. Subsequent\nFill calls paint with the pattern until another fill color or pattern is set.\n"
+            },
+            {
+              "name": "SetFont",
+              "recv": "*Page",
+              "signature": "func (p *Page) SetFont(f *Font, size float64)",
+              "doc": "SetFont selects the font and size (in points) for subsequent text drawing.\nThe font is registered with the document and included in the page resources.\n"
+            },
+            {
+              "name": "SetLineCap",
+              "recv": "*Page",
+              "signature": "func (p *Page) SetLineCap(c LineCap)",
+              "doc": "SetLineCap sets the line cap style used at the ends of subsequently stroked\nopen subpaths.\n"
+            },
+            {
+              "name": "SetLineJoin",
+              "recv": "*Page",
+              "signature": "func (p *Page) SetLineJoin(j LineJoin)",
+              "doc": "SetLineJoin sets the line join style used at the corners of subsequently\nstroked paths.\n"
+            },
+            {
+              "name": "SetLineWidth",
+              "recv": "*Page",
+              "signature": "func (p *Page) SetLineWidth(w float64)",
+              "doc": "SetLineWidth sets the stroke line width in points.\n"
+            },
+            {
+              "name": "SetMiterLimit",
+              "recv": "*Page",
+              "signature": "func (p *Page) SetMiterLimit(m float64)",
+              "doc": "SetMiterLimit sets the miter limit: the maximum ratio of miter length to line\nwidth before a JoinMiter corner is converted to a bevel. Values below 1 are\nclamped to 1.\n"
+            },
+            {
+              "name": "SetStrokeCMYK",
+              "recv": "*Page",
+              "signature": "func (p *Page) SetStrokeCMYK(c CMYKColor)",
+              "doc": "SetStrokeCMYK sets the stroking color to a DeviceCMYK color for subsequent\nstrokes, emitting the \"K\" operator.\n"
+            },
+            {
+              "name": "SetStrokeColor",
+              "recv": "*Page",
+              "signature": "func (p *Page) SetStrokeColor(c Color)",
+              "doc": "SetStrokeColor sets the color used for stroking paths and text outlines.\n"
+            },
+            {
+              "name": "SetStrokePattern",
+              "recv": "*Page",
+              "signature": "func (p *Page) SetStrokePattern(pat *Pattern)",
+              "doc": "SetStrokePattern selects pat as the stroking color source.\n"
+            },
+            {
+              "name": "Shade",
+              "recv": "*Page",
+              "signature": "func (p *Page) Shade(s *Shading)",
+              "doc": "Shade paints shading s across the current clipping region using the \"sh\"\noperator. Because \"sh\" fills the whole clip, first construct a path and call\nClip (inside a Save/Restore pair) to bound the gradient.\n"
+            },
+            {
+              "name": "Size",
+              "recv": "*Page",
+              "signature": "func (p *Page) Size() PageSize",
+              "doc": "Size returns the page dimensions in points.\n"
+            },
+            {
+              "name": "Stroke",
+              "recv": "*Page",
+              "signature": "func (p *Page) Stroke()",
+              "doc": "Stroke strokes the current path (\"S\").\n"
+            },
+            {
+              "name": "TextWidth",
+              "recv": "*Page",
+              "signature": "func (p *Page) TextWidth(text string) float64",
+              "doc": "TextWidth returns the width in points of text in the current font and size.\nIt returns 0 if no font has been set.\n"
+            },
+            {
+              "name": "Transform",
+              "recv": "*Page",
+              "signature": "func (p *Page) Transform(a, b, c, dd, e, f float64)",
+              "doc": "Transform concatenates the affine matrix [a b c d e f] onto the current\ntransformation matrix (the \"cm\" operator).\n"
+            },
+            {
+              "name": "Translate",
+              "recv": "*Page",
+              "signature": "func (p *Page) Translate(tx, ty float64)",
+              "doc": "Translate concatenates a translation onto the current transformation matrix.\n"
+            }
+          ]
+        },
+        {
+          "name": "PageSize",
+          "signature": "type PageSize struct {\n\tWidth  float64\n\tHeight float64\n}",
+          "doc": "PageSize describes the dimensions of a page in PDF points (1/72 inch).\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "Custom",
+              "signature": "func Custom(width, height float64) PageSize",
+              "doc": "Custom builds a PageSize from an explicit width and height in points.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Landscape",
+              "recv": "PageSize",
+              "signature": "func (s PageSize) Landscape() PageSize",
+              "doc": "Landscape returns the page size rotated to landscape orientation (width and\nheight swapped so that width \u003e= height).\n"
+            },
+            {
+              "name": "Portrait",
+              "recv": "PageSize",
+              "signature": "func (s PageSize) Portrait() PageSize",
+              "doc": "Portrait returns the page size in portrait orientation (width \u003c= height).\n"
+            }
+          ]
+        },
+        {
+          "name": "Pattern",
+          "signature": "type Pattern struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Pattern is a fill source: either a shading pattern (a gradient usable to fill\narbitrary paths) built with NewShadingPattern, or a tiling pattern built with\nNewTilingPattern (a small cell repeated across the fill area).\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewShadingPattern",
+              "signature": "func NewShadingPattern(s *Shading) *Pattern",
+              "doc": "NewShadingPattern wraps a gradient as a fill pattern so it can fill arbitrary\npaths (via Page.SetFillPattern followed by Page.Fill).\n"
+            },
+            {
+              "name": "NewTilingPattern",
+              "signature": "func NewTilingPattern(width, height float64, draw func(*Page)) *Pattern",
+              "doc": "NewTilingPattern builds a tiling pattern whose cell is width x height points.\nThe draw callback receives a detached page onto which vector graphics and\ncolors may be drawn (text and images are not supported in a tiling cell). The\ncell is repeated on a width x height grid to fill any path painted with the\npattern.\n"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "name": "Reader",
+          "signature": "type Reader struct {\n\n\t// Size is the /Size entry from the trailer (object count including the\n\t// free object 0).\n\tSize int\n\t// Root is the object number of the document catalog (/Root).\n\tRoot int\n\t// Info is the object number of the /Info dictionary (0 if absent).\n\tInfo int\n\t// Offsets maps object number -\u003e byte offset of \"N 0 obj\". Index 0 is the\n\t// free list head and is always 0.\n\tOffsets []int\n\t// contains filtered or unexported fields\n}",
+          "doc": "Reader is a deliberately minimal cross-reference reader. It parses the trailer,\nthe classic (uncompressed) xref table and the object offsets of a PDF produced\nby this package. It is intended for validation and testing rather than as a\ngeneral-purpose PDF parser.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "Parse",
+              "signature": "func Parse(data []byte) (*Reader, error)",
+              "doc": "Parse parses the cross-reference structure of a PDF document held in data.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Object",
+              "recv": "*Reader",
+              "signature": "func (r *Reader) Object(n int) []byte",
+              "doc": "Object returns the raw bytes of indirect object n, from \"N 0 obj\" up to (but\nnot including) \"endobj\". It returns nil if n is out of range.\n"
+            },
+            {
+              "name": "ObjectCount",
+              "recv": "*Reader",
+              "signature": "func (r *Reader) ObjectCount() int",
+              "doc": "ObjectCount returns the number of indirect objects (excluding free object 0).\n"
+            }
+          ]
+        },
+        {
+          "name": "Shading",
+          "signature": "type Shading struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Shading is a smooth color transition (an axial/linear or radial gradient)\nusable as a paint source. Create one with LinearGradient or RadialGradient,\nthen paint it with Page.Shade (fills the current clip region) or use it as a\nfill via NewShadingPattern and Page.SetFillPattern.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "LinearGradient",
+              "signature": "func LinearGradient(x0, y0, x1, y1 float64, stops ...GradientStop) *Shading",
+              "doc": "LinearGradient builds an axial gradient running from (x0, y0) to (x1, y1) with\nthe given color stops (at least two, ordered by offset).\n"
+            },
+            {
+              "name": "RadialGradient",
+              "signature": "func RadialGradient(x0, y0, r0, x1, y1, r1 float64, stops ...GradientStop) *Shading",
+              "doc": "RadialGradient builds a radial gradient between two circles: one centered at\n(x0, y0) with radius r0 and one at (x1, y1) with radius r1.\n"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "name": "SizeContext",
+          "signature": "type SizeContext struct {\n\t// Font is the current font, used to resolve the \"ex\" unit (its line\n\t// height) and the \"ch\" unit (the advance width of '0'). If nil, those\n\t// units evaluate to zero, as they would with no font selected.\n\tFont *Font\n\t// FontSize is the current font size in points, used for the \"em\" unit and\n\t// as the default percentage basis for \"%\".\n\tFontSize float64\n\t// Page is the current page size, used for the viewport units \"vw\", \"vh\",\n\t// \"vmin\" and \"vmax\".\n\tPage PageSize\n\t// RemSize is the root em size for the \"rem\" unit. When zero, PDFKit's\n\t// default of 12 points is used.\n\tRemSize float64\n}",
+          "doc": "SizeContext supplies the document/page state that PDFKit's sizeToPoint uses to\nresolve relative CSS units. It mirrors the fields the upstream method reads\noff the document and current page.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "TextAlign",
+          "signature": "type TextAlign int",
+          "doc": "TextAlign selects how lines of text are positioned horizontally within a box\nof a given width by Page.DrawTextAligned and Page.DrawTextBox.\n",
+          "consts": [
+            {
+              "names": [
+                "AlignLeft",
+                "AlignCenter",
+                "AlignRight",
+                "AlignJustify"
+              ],
+              "signature": "const (\n\t// AlignLeft aligns each line to the left edge of the box (default).\n\tAlignLeft TextAlign = iota\n\t// AlignCenter centers each line within the box.\n\tAlignCenter\n\t// AlignRight aligns each line to the right edge of the box.\n\tAlignRight\n\t// AlignJustify stretches inter-word spacing so every line except the last\n\t// of each paragraph fills the full box width.\n\tAlignJustify\n)",
+              "doc": "The supported horizontal text alignments.\n"
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "TextOptions",
+          "signature": "type TextOptions struct {\n\t// Align sets the horizontal alignment of each line.\n\tAlign TextAlign\n\t// Underline draws a line beneath each rendered line of text.\n\tUnderline bool\n\t// Strike draws a line through the middle of each rendered line of text.\n\tStrike bool\n\t// LineGap adds extra leading (in points) between lines on top of the font's\n\t// natural line height. It is used only when leading is not supplied to\n\t// DrawTextBox (a leading of 0 means \"use the font line height plus LineGap\").\n\tLineGap float64\n}",
+          "doc": "TextOptions controls how Page.DrawTextBox lays out and decorates a block of\nwrapped text.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        }
+      ],
+      "funcs": [
+        {
+          "name": "NormalizeColor",
+          "signature": "func NormalizeColor(color any) []float64",
+          "doc": "NormalizeColor reproduces PDFKit's _normalizeColor exactly, returning the\ncomponent slice PDFKit would compute for a color specifier. It accepts:\n\n  - a string beginning with '#': a 3- or 6-digit hex color, expanded and\n    scaled to [0,1] as [r/255, g/255, b/255];\n  - a string naming a CSS color keyword: resolved through the named-color\n    table and scaled to [0,1];\n  - a []float64 or []int of length 3 (RGB): each component divided by 255;\n  - a []float64 or []int of length 4 (CMYK): each component divided by 100.\n\nExactly like the upstream routine, the numeric-slice branches perform no\nrange clamping, so out-of-range inputs (for example a CMYK value of 128)\nproduce out-of-range outputs (1.28). Unrecognised specifiers return nil.\n\nNote that PDFKit interprets a length-4 numeric slice as CMYK scaled by 100,\nwhich is why [255,255,255,255] normalizes to [2.55,2.55,2.55,2.55] rather than\nan RGBA color.\n"
+        },
+        {
+          "name": "SizeToPoint",
+          "signature": "func SizeToPoint(size string, defaultValue float64, ctx SizeContext) (float64, bool)",
+          "doc": "SizeToPoint converts a CSS-style size specifier to PDF points, reproducing\nPDFKit's sizeToPoint (lib/mixins/fonts.js). The size may be a bare number\nstring (\"1\", \"12.5\"), a boolean literal (\"true\"→1, \"false\"→0), or a number\nwith a unit suffix drawn from:\n\n\tem in px cm mm pc ex ch rem vw vh vmin vmax % pt\n\nThe units resolve as PDFKit specifies: em and % are relative to ctx.FontSize,\nrem to ctx.RemSize (defaulting to 12), ex to the current font's line height,\nch to the advance of '0', and vw/vh/vmin/vmax to the page dimensions. An\nunrecognised or missing unit is treated as points. It returns defaultValue for\nan empty input and an ok flag reporting whether the input was understood.\n"
+        },
+        {
+          "name": "TruncateToWidth",
+          "signature": "func TruncateToWidth(f *Font, size, maxWidth float64, text, ellipsis string) string",
+          "doc": "TruncateToWidth returns text shortened so that, with ellipsis appended, it\nfits within maxWidth points in font f at the given size. If the full text\nalready fits it is returned unchanged. Truncation happens at rune boundaries.\nIf even the ellipsis alone does not fit, the ellipsis is returned.\n"
+        },
+        {
+          "name": "WrapText",
+          "signature": "func WrapText(f *Font, size, maxWidth float64, text string) []string",
+          "doc": "WrapText greedily breaks text into lines no wider than maxWidth points when\nset in font f at the given size, breaking only at spaces and tabs. Existing\nnewline characters force a break. A single word longer than maxWidth is kept\non its own line rather than split mid-word. It is the exported form of the\nword-wrapping used by Page.DrawParagraph.\n"
+        }
+      ],
+      "examples": [
+        {
+          "name": "",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/pdfkit\"\n)\n\nfunc main() {\n\tdoc := pdfkit.New()\n\tdoc.SetTitle(\"Quick Start\")\n\n\tpage := doc.AddPage(pdfkit.A4)\n\tpage.SetFont(pdfkit.Helvetica, 24)\n\tpage.DrawText(72, 720, \"Hello, PDF!\")\n\n\tdata, err := doc.Bytes()\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\n\tr, err := pdfkit.Parse(data)\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\n\tfmt.Printf(\"header: %s\\n\", string(data[:8]))\n\tfmt.Printf(\"pages: %d\\n\", doc.PageCount())\n\tfmt.Printf(\"objects: %d\\n\", r.ObjectCount())\n\tfmt.Printf(\"ends with EOF: %t\\n\", string(data[len(data)-6:]) == \"%%EOF\\n\")\n\n}",
+          "output": "header: %PDF-1.7\npages: 1\nobjects: 6\nends with EOF: true",
+          "doc": "Example builds a one-page document and reports structural facts about the\ngenerated PDF bytes.\n"
+        },
+        {
+          "name": "Font (Width)",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/pdfkit\"\n)\n\nfunc main() {\n\tw := pdfkit.Helvetica.Width(\"AV\", 10)\n\tfmt.Printf(\"%.2f\", w)\n}",
+          "output": "13.34",
+          "doc": "ExampleFont_Width demonstrates measuring text width using the built-in AFM\nmetrics.\n"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,946 @@
+{
+  "module": "github.com/malcolmston/pandas",
+  "generatedAt": "2026-07-19T02:05:53Z",
+  "packages": [
+    {
+      "importPath": "github.com/malcolmston/pandas",
+      "name": "pandas",
+      "synopsis": "Package pandas provides pandas-style data structures for Go: a typed, one-dimensional Series and a two-dimensional DataFrame, built entirely on the Go standard library.",
+      "doc": "Package pandas provides pandas-style data structures for Go: a typed,\none-dimensional Series and a two-dimensional DataFrame, built entirely on the\nGo standard library.\n\n# Series\n\nA Series is a named, typed column of values with an associated index and\nfirst-class support for missing values (NA). The supported element types\n(see DType) are Float64, Int64, String and Bool, plus a fallback Object type\nfor anything else. Values are coerced to the column dtype on construction; a\nnil input or a value that cannot be coerced becomes NA.\n\n\ts := pandas.NewSeries(\"price\", []any{10.0, 20.0, nil, 40.0})\n\tmean, ok := s.Mean() // 23.333..., true (NA is skipped)\n\nSeries offers element access (At, Values, IsNA), transformation (Apply, Map,\nFillNA, DropNA, Sort, Filter, Head, Tail), set operations (Unique,\nValueCounts) and reductions (Sum, Mean, Min, Max, Std, Count).\n\n# DataFrame\n\nA DataFrame is an ordered set of equal-length named columns sharing one row\nindex. Construct one from Series (NewDataFrame), a map of column to values\n(FromMap), a slice of structs (FromRecords) or CSV data (ReadCSV,\nReadCSVFile). Write it back out with WriteCSV and WriteCSVFile.\n\n\tdf, _ := pandas.FromMap(map[string][]any{\n\t    \"city\": {\"NYC\", \"LA\", \"NYC\"},\n\t    \"temp\": {31.0, 28.0, 33.0},\n\t}, []string{\"city\", \"temp\"})\n\n# Selection and indexing\n\nColumns are selected by name (Select, Col, Drop). Rows are selected by\nposition range (ILoc, Head, Tail), by index label (Loc), by explicit\npositions (Take) or by a boolean mask (Filter, FilterFunc). The Row type\ngives a keyed, read-only view of a single row.\n\n# Transformation\n\nDataFrames support adding and replacing columns (WithColumn), dropping and\nrenaming (Drop, Rename), sorting by one or more keys (SortBy), and missing\nvalue handling (FillNA, DropNA).\n\n# GroupBy and aggregation\n\nGroupBy partitions a DataFrame by one or more key columns, with deterministic\ngroup ordering. Aggregate with the AggFunc set — Sum, Mean, Min, Max, Count,\nStd — either through the typed convenience methods or the general Agg method,\nwhich computes several aggregations at once.\n\n\tgb, _ := df.GroupBy(\"city\")\n\tmeans, _ := gb.Mean(\"temp\") // one row per city\n\n# Join and merge\n\nMerge joins two DataFrames on a shared key column with inner or left join\nsemantics (InnerJoin, LeftJoin). Colliding non-key columns are disambiguated\nwith _left and _right suffixes.\n\n# Describe\n\nDescribe returns count, mean, std, min and max for every numeric column.\n\n# Determinism\n\nEvery operation produces a stable, reproducible ordering: grouping,\nvalue_counts and sorting all break ties deterministically, and missing\nvalues sort last.\n",
+      "consts": [],
+      "vars": [],
+      "types": [
+        {
+          "name": "AggFunc",
+          "signature": "type AggFunc int",
+          "doc": "AggFunc names a supported aggregation.\n",
+          "consts": [
+            {
+              "names": [
+                "AggSum",
+                "AggMean",
+                "AggMin",
+                "AggMax",
+                "AggCount",
+                "AggStd"
+              ],
+              "signature": "const (\n\t// AggSum sums the present numeric values.\n\tAggSum AggFunc = iota\n\t// AggMean averages the present numeric values.\n\tAggMean\n\t// AggMin is the minimum present numeric value.\n\tAggMin\n\t// AggMax is the maximum present numeric value.\n\tAggMax\n\t// AggCount counts the present values.\n\tAggCount\n\t// AggStd is the sample standard deviation of present numeric values.\n\tAggStd\n)",
+              "doc": ""
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "DType",
+          "signature": "type DType int",
+          "doc": "DType enumerates the element types a Series can hold.\n",
+          "consts": [
+            {
+              "names": [
+                "Float64",
+                "Int64",
+                "String",
+                "Bool",
+                "Object"
+              ],
+              "signature": "const (\n\t// Float64 is a column of float64 values.\n\tFloat64 DType = iota\n\t// Int64 is a column of int64 values.\n\tInt64\n\t// String is a column of string values.\n\tString\n\t// Bool is a column of bool values.\n\tBool\n\t// Object is a column of arbitrary values whose concrete type is not one\n\t// of the specialised kinds above.\n\tObject\n)",
+              "doc": ""
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "String",
+              "recv": "DType",
+              "signature": "func (d DType) String() string",
+              "doc": "String returns the human readable name of the dtype.\n"
+            }
+          ]
+        },
+        {
+          "name": "DataFrame",
+          "signature": "type DataFrame struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "DataFrame is an ordered collection of equal-length named columns (each a\nSeries) sharing a single row index.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "Concat",
+              "signature": "func Concat(dfs ...*DataFrame) (*DataFrame, error)",
+              "doc": "Concat vertically stacks DataFrames into a single frame. The output columns\nare the union of the inputs' columns, ordered by first appearance; a frame\nlacking a column contributes missing values for it. The output index is the\nconcatenation of the inputs' index labels. Concat of no frames returns an\nempty DataFrame.\n"
+            },
+            {
+              "name": "FromMap",
+              "signature": "func FromMap(data map[string][]any, order []string) (*DataFrame, error)",
+              "doc": "FromMap builds a DataFrame from a map of column name to values. Because Go\nmap iteration is unordered, the resulting columns are ordered by the supplied\norder slice; any names present in data but absent from order are appended in\nsorted order for determinism.\n"
+            },
+            {
+              "name": "FromRecords",
+              "signature": "func FromRecords(records any) (*DataFrame, error)",
+              "doc": "FromRecords builds a DataFrame from a slice of structs. Exported fields become\ncolumns, in declaration order, using the field name (or the `pandas` struct\ntag when present). A tag of \"-\" skips the field.\n"
+            },
+            {
+              "name": "NewDataFrame",
+              "signature": "func NewDataFrame(columns ...*Series) (*DataFrame, error)",
+              "doc": "NewDataFrame builds a DataFrame from an ordered list of columns. Every column\nmust have the same length; the first column's length defines the number of\nrows. Column names must be unique. The shared index is taken from the first\ncolumn, or the default positional index when there are no columns.\n"
+            },
+            {
+              "name": "ReadCSV",
+              "signature": "func ReadCSV(r io.Reader, opts *ReadCSVOptions) (*DataFrame, error)",
+              "doc": "ReadCSV parses CSV data from r into a DataFrame. Column dtypes are inferred:\na column is Int64 if every present value parses as an integer, Float64 if\nevery present value parses as a float, Bool if every value is a boolean\nliteral, and String otherwise.\n"
+            },
+            {
+              "name": "ReadCSVFile",
+              "signature": "func ReadCSVFile(path string, opts *ReadCSVOptions) (*DataFrame, error)",
+              "doc": "ReadCSVFile reads and parses a CSV file at path.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Abs",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) Abs() *DataFrame",
+              "doc": "Abs returns a copy of the DataFrame with every numeric column replaced by its\nelement-wise absolute value. Non-numeric columns are copied unchanged.\n"
+            },
+            {
+              "name": "Col",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) Col(name string) (*Series, bool)",
+              "doc": "Col returns the named column and whether it exists.\n"
+            },
+            {
+              "name": "Copy",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) Copy() *DataFrame",
+              "doc": "Copy returns a deep copy of the DataFrame.\n"
+            },
+            {
+              "name": "Corr",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) Corr() *DataFrame",
+              "doc": "Corr returns the Pearson correlation matrix of the numeric columns. The result\nis a square DataFrame with one row per numeric column (row index labelled by\ncolumn name) and one column per numeric column. Pairs with fewer than two\njointly present observations, or a column with zero variance, yield a missing\ncell; the diagonal is 1 for columns with non-zero variance.\n"
+            },
+            {
+              "name": "Describe",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) Describe() *DataFrame",
+              "doc": "Describe returns summary statistics (count, mean, std, min, max) for every\nnumeric column. The result has one row per statistic, labelled by the \"stat\"\ncolumn, and one column per numeric source column.\n"
+            },
+            {
+              "name": "Drop",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) Drop(names ...string) *DataFrame",
+              "doc": "Drop returns a new DataFrame without the named columns. Missing names are\nignored.\n"
+            },
+            {
+              "name": "DropDuplicates",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) DropDuplicates() *DataFrame",
+              "doc": "DropDuplicates returns a new DataFrame with duplicate rows removed, keeping the\nfirst occurrence of each distinct row and preserving order. Two rows are equal\nwhen all their columns are equal, with missing values matching missing values.\n"
+            },
+            {
+              "name": "DropNA",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) DropNA() *DataFrame",
+              "doc": "DropNA returns a new DataFrame with rows containing any missing value\nremoved.\n"
+            },
+            {
+              "name": "FillNA",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) FillNA(column string, value any) *DataFrame",
+              "doc": "FillNA returns a new DataFrame with missing values in the named column filled.\nWhen column is empty every column is filled with value.\n"
+            },
+            {
+              "name": "Filter",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) Filter(mask []bool) *DataFrame",
+              "doc": "Filter returns the rows where mask is true. The mask length must equal the\nnumber of rows.\n"
+            },
+            {
+              "name": "FilterFunc",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) FilterFunc(pred func(Row) bool) *DataFrame",
+              "doc": "FilterFunc returns the rows for which pred, applied to a Row view, is true.\n"
+            },
+            {
+              "name": "GroupBy",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) GroupBy(keys ...string) (*GroupBy, error)",
+              "doc": "GroupBy groups the DataFrame by the given key columns. Groups are ordered\ndeterministically by their key values.\n"
+            },
+            {
+              "name": "HasColumn",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) HasColumn(name string) bool",
+              "doc": "HasColumn reports whether a column with the given name exists.\n"
+            },
+            {
+              "name": "Head",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) Head(n int) *DataFrame",
+              "doc": "Head returns the first n rows.\n"
+            },
+            {
+              "name": "ILoc",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) ILoc(start, end int) *DataFrame",
+              "doc": "ILoc returns the half-open range of rows [start, end) by position, mirroring\npandas iloc slicing. Out-of-range bounds are clamped.\n"
+            },
+            {
+              "name": "Index",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) Index() []any",
+              "doc": "Index returns a copy of the row labels.\n"
+            },
+            {
+              "name": "Loc",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) Loc(labels ...any) *DataFrame",
+              "doc": "Loc returns the rows whose index label is in labels, preserving the order of\nlabels. Labels not present in the index are skipped.\n"
+            },
+            {
+              "name": "Max",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) Max() *Series",
+              "doc": "Max returns the column-wise maximum of every numeric column as a Series\nindexed by column name.\n"
+            },
+            {
+              "name": "Mean",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) Mean() *Series",
+              "doc": "Mean returns the column-wise mean of every numeric column as a Series indexed\nby column name.\n"
+            },
+            {
+              "name": "Median",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) Median() *Series",
+              "doc": "Median returns the column-wise median of every numeric column as a Series\nindexed by column name.\n"
+            },
+            {
+              "name": "Merge",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) Merge(right *DataFrame, on string, how JoinType) (*DataFrame, error)",
+              "doc": "Merge joins df (left) with right on the given key column, which must exist in\nboth frames. Non-key columns that collide are suffixed with \"_left\" and\n\"_right\". The output row order is deterministic: left rows in order, and for\neach left row its matching right rows in their original order.\n"
+            },
+            {
+              "name": "Min",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) Min() *Series",
+              "doc": "Min returns the column-wise minimum of every numeric column as a Series\nindexed by column name.\n"
+            },
+            {
+              "name": "MustCol",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) MustCol(name string) *Series",
+              "doc": "MustCol returns the named column and panics if it is absent.\n"
+            },
+            {
+              "name": "Names",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) Names() []string",
+              "doc": "Names returns the column names in order.\n"
+            },
+            {
+              "name": "NumCols",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) NumCols() int",
+              "doc": "NumCols returns the number of columns.\n"
+            },
+            {
+              "name": "NumRows",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) NumRows() int",
+              "doc": "NumRows returns the number of rows.\n"
+            },
+            {
+              "name": "Nunique",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) Nunique() *Series",
+              "doc": "Nunique returns the number of distinct present values in every column as an\nInt64 Series indexed by column name. Unlike the numeric reductions it covers\ncolumns of all dtypes.\n"
+            },
+            {
+              "name": "Rename",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) Rename(mapping map[string]string) *DataFrame",
+              "doc": "Rename returns a new DataFrame with columns renamed according to mapping\n(old name -\u003e new name). Names absent from the mapping are unchanged.\n"
+            },
+            {
+              "name": "ResetIndex",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) ResetIndex() *DataFrame",
+              "doc": "ResetIndex returns a new DataFrame whose current index labels are inserted as\na leading column named \"index\" and whose row index is replaced by the default\npositional index 0..n-1.\n"
+            },
+            {
+              "name": "Round",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) Round(decimals int) *DataFrame",
+              "doc": "Round returns a copy of the DataFrame with every numeric column rounded to the\ngiven number of decimal places. Non-numeric columns are copied unchanged.\n"
+            },
+            {
+              "name": "Row",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) Row(i int) Row",
+              "doc": "Row returns a view of the row at position i.\n"
+            },
+            {
+              "name": "Select",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) Select(names ...string) (*DataFrame, error)",
+              "doc": "Select returns a new DataFrame containing only the named columns, in the\norder given. An error is returned if any name is missing.\n"
+            },
+            {
+              "name": "SetIndex",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) SetIndex(column string) (*DataFrame, error)",
+              "doc": "SetIndex returns a new DataFrame using the values of the named column as the\nrow index; that column is removed from the result. An error is returned if\nthe column does not exist.\n"
+            },
+            {
+              "name": "Shape",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) Shape() (rows, cols int)",
+              "doc": "Shape returns the number of rows and columns.\n"
+            },
+            {
+              "name": "SortBy",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) SortBy(keys []string, ascending []bool) (*DataFrame, error)",
+              "doc": "SortBy returns a new DataFrame sorted by the named columns. The ascending\nslice, when non-nil, gives the direction per key; missing entries default to\nascending. Sorting is stable and missing values sort last.\n"
+            },
+            {
+              "name": "Std",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) Std() *Series",
+              "doc": "Std returns the column-wise sample standard deviation of every numeric column\nas a Series indexed by column name.\n"
+            },
+            {
+              "name": "String",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) String() string",
+              "doc": "String renders the DataFrame as an aligned text table of its named columns.\nThe row index is not shown; use Index to inspect the labels. Cells are left\naligned and the final column carries no trailing padding, so the output is\nstable for use in tests and examples.\n"
+            },
+            {
+              "name": "Sum",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) Sum() *Series",
+              "doc": "Sum returns the column-wise sum of every numeric column as a Series indexed by\ncolumn name, mirroring the default (axis=0) pandas DataFrame.sum.\n"
+            },
+            {
+              "name": "Tail",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) Tail(n int) *DataFrame",
+              "doc": "Tail returns the last n rows.\n"
+            },
+            {
+              "name": "Take",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) Take(rows []int) *DataFrame",
+              "doc": "Take returns the rows at the given positions, in order.\n"
+            },
+            {
+              "name": "Transpose",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) Transpose() (*DataFrame, error)",
+              "doc": "Transpose returns a new DataFrame with rows and columns swapped: each original\ncolumn name becomes a row index label and each original row (identified by its\nindex label, formatted as text) becomes a column. All resulting columns have\nObject dtype because a row may mix source dtypes. An error is returned if the\noriginal index labels are not unique, since they must form distinct column\nnames.\n"
+            },
+            {
+              "name": "Var",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) Var() *Series",
+              "doc": "Var returns the column-wise sample variance of every numeric column as a\nSeries indexed by column name.\n"
+            },
+            {
+              "name": "WithColumn",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) WithColumn(col *Series) (*DataFrame, error)",
+              "doc": "WithColumn returns a new DataFrame with col added (or replaced if a column of\nthe same name already exists). The column length must match the row count of\na non-empty frame.\n"
+            },
+            {
+              "name": "WriteCSV",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) WriteCSV(w io.Writer, opts *ReadCSVOptions) error",
+              "doc": "WriteCSV writes the DataFrame to w as CSV, including a header row. Missing\nvalues are written as empty fields.\n"
+            },
+            {
+              "name": "WriteCSVFile",
+              "recv": "*DataFrame",
+              "signature": "func (df *DataFrame) WriteCSVFile(path string, opts *ReadCSVOptions) error",
+              "doc": "WriteCSVFile writes the DataFrame to a CSV file at path.\n"
+            }
+          ]
+        },
+        {
+          "name": "GroupBy",
+          "signature": "type GroupBy struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "GroupBy is a lazy grouping of a DataFrame by one or more key columns.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Agg",
+              "recv": "*GroupBy",
+              "signature": "func (gb *GroupBy) Agg(spec map[string][]AggFunc, order []string) (*DataFrame, error)",
+              "doc": "Agg applies aggregations to columns. The spec maps a source column name to\nthe aggregations to compute for it. The result DataFrame has the key columns\nfollowed by one column per (source column, aggregation) named\n\"\u003ccolumn\u003e_\u003cagg\u003e\", one row per group in deterministic order.\n"
+            },
+            {
+              "name": "Count",
+              "recv": "*GroupBy",
+              "signature": "func (gb *GroupBy) Count(columns ...string) (*DataFrame, error)",
+              "doc": "Count returns the per-group count of the given columns (or of every non-key\ncolumn when none are named).\n"
+            },
+            {
+              "name": "Groups",
+              "recv": "*GroupBy",
+              "signature": "func (gb *GroupBy) Groups() int",
+              "doc": "Groups returns the number of groups.\n"
+            },
+            {
+              "name": "Max",
+              "recv": "*GroupBy",
+              "signature": "func (gb *GroupBy) Max(columns ...string) (*DataFrame, error)",
+              "doc": "Max aggregates the given columns with AggMax.\n"
+            },
+            {
+              "name": "Mean",
+              "recv": "*GroupBy",
+              "signature": "func (gb *GroupBy) Mean(columns ...string) (*DataFrame, error)",
+              "doc": "Mean aggregates the given columns with AggMean.\n"
+            },
+            {
+              "name": "Min",
+              "recv": "*GroupBy",
+              "signature": "func (gb *GroupBy) Min(columns ...string) (*DataFrame, error)",
+              "doc": "Min aggregates the given columns with AggMin.\n"
+            },
+            {
+              "name": "Std",
+              "recv": "*GroupBy",
+              "signature": "func (gb *GroupBy) Std(columns ...string) (*DataFrame, error)",
+              "doc": "Std aggregates the given columns with AggStd.\n"
+            },
+            {
+              "name": "Sum",
+              "recv": "*GroupBy",
+              "signature": "func (gb *GroupBy) Sum(columns ...string) (*DataFrame, error)",
+              "doc": "Sum aggregates the given columns with AggSum. It is a convenience wrapper\naround Agg.\n"
+            }
+          ]
+        },
+        {
+          "name": "JoinType",
+          "signature": "type JoinType int",
+          "doc": "JoinType selects the join semantics.\n",
+          "consts": [
+            {
+              "names": [
+                "InnerJoin",
+                "LeftJoin"
+              ],
+              "signature": "const (\n\t// InnerJoin keeps only rows whose key exists in both frames.\n\tInnerJoin JoinType = iota\n\t// LeftJoin keeps every left row, filling unmatched right columns with NA.\n\tLeftJoin\n)",
+              "doc": ""
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "ReadCSVOptions",
+          "signature": "type ReadCSVOptions struct {\n\t// Delimiter is the field separator (defaults to ',').\n\tDelimiter rune\n\t// NoHeader treats the first line as data and generates column names\n\t// \"col0\", \"col1\", ... instead of using it as a header.\n\tNoHeader bool\n\t// NAValues lists raw strings that should be interpreted as missing. An\n\t// empty field is always missing.\n\tNAValues []string\n}",
+          "doc": "ReadCSVOptions controls CSV parsing.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Row",
+          "signature": "type Row struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Row is a read-only view of a single row, keyed by column name.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Float",
+              "recv": "Row",
+              "signature": "func (r Row) Float(name string) (float64, bool)",
+              "doc": "Float returns the named column value as a float64.\n"
+            },
+            {
+              "name": "Get",
+              "recv": "Row",
+              "signature": "func (r Row) Get(name string) (any, bool)",
+              "doc": "Get returns the value of the named column in this row and whether it is\npresent (not NA).\n"
+            },
+            {
+              "name": "Label",
+              "recv": "Row",
+              "signature": "func (r Row) Label() any",
+              "doc": "Label returns the index label of this row.\n"
+            }
+          ]
+        },
+        {
+          "name": "Series",
+          "signature": "type Series struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Series is a named, typed one-dimensional column of values with an associated\nindex. Missing values (NA) are tracked with a validity mask, so a Series of\nany dtype can represent absent data without a sentinel value.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewSeries",
+              "signature": "func NewSeries(name string, values []any) *Series",
+              "doc": "NewSeries builds a Series named name from values. The dtype is inferred from\nthe first non-nil element (defaulting to Object for an all-nil input) and\nevery element is coerced to that dtype. A nil element, or one that cannot be\ncoerced, becomes a missing value.\n"
+            },
+            {
+              "name": "NewSeriesTyped",
+              "signature": "func NewSeriesTyped(name string, dt DType, values []any) *Series",
+              "doc": "NewSeriesTyped builds a Series with an explicit dtype, coercing each value.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Abs",
+              "recv": "*Series",
+              "signature": "func (s *Series) Abs() *Series",
+              "doc": "Abs returns a copy of the series with every present numeric value replaced by\nits absolute value. Missing values are preserved. The result dtype matches\nthe source for Int64 columns and is Float64 otherwise.\n"
+            },
+            {
+              "name": "Add",
+              "recv": "*Series",
+              "signature": "func (s *Series) Add(other *Series) *Series",
+              "doc": "Add returns the element-wise sum of two series, aligned by position up to the\nshorter length. Positions where either operand is missing become missing. The\nresult dtype is Float64.\n"
+            },
+            {
+              "name": "Apply",
+              "recv": "*Series",
+              "signature": "func (s *Series) Apply(fn func(any) any) *Series",
+              "doc": "Apply returns a new Series with fn applied to every present value. Missing\nvalues are passed through untouched. The result dtype is re-inferred.\n"
+            },
+            {
+              "name": "ArgMax",
+              "recv": "*Series",
+              "signature": "func (s *Series) ArgMax() (int, bool)",
+              "doc": "ArgMax returns the position of the maximum present numeric value and whether\none existed. The first occurrence wins on ties.\n"
+            },
+            {
+              "name": "ArgMin",
+              "recv": "*Series",
+              "signature": "func (s *Series) ArgMin() (int, bool)",
+              "doc": "ArgMin returns the position of the minimum present numeric value and whether\none existed. The first occurrence wins on ties.\n"
+            },
+            {
+              "name": "Astype",
+              "recv": "*Series",
+              "signature": "func (s *Series) Astype(dt DType) *Series",
+              "doc": "Astype returns a copy of the series converted to dtype dt. Values that cannot\nbe coerced to the target dtype become missing, matching the coercion rules\nused at construction time.\n"
+            },
+            {
+              "name": "At",
+              "recv": "*Series",
+              "signature": "func (s *Series) At(i int) (any, bool)",
+              "doc": "At returns the value at position i and whether it is present (not NA).\n"
+            },
+            {
+              "name": "Between",
+              "recv": "*Series",
+              "signature": "func (s *Series) Between(low, high float64) []bool",
+              "doc": "Between returns a boolean mask reporting, per position, whether the present\nnumeric value lies in the closed interval [low, high]. Missing or\nnon-numeric values yield false.\n"
+            },
+            {
+              "name": "Clip",
+              "recv": "*Series",
+              "signature": "func (s *Series) Clip(lower, upper float64) *Series",
+              "doc": "Clip returns a copy with present numeric values constrained to the closed\ninterval [lower, upper]. Missing values are preserved and the result dtype is\nFloat64.\n"
+            },
+            {
+              "name": "Copy",
+              "recv": "*Series",
+              "signature": "func (s *Series) Copy() *Series",
+              "doc": "Copy returns a deep copy of the series.\n"
+            },
+            {
+              "name": "Corr",
+              "recv": "*Series",
+              "signature": "func (s *Series) Corr(other *Series) (float64, bool)",
+              "doc": "Corr returns the Pearson correlation coefficient between this series and\nother, computed over positions where both hold a present numeric value. It\nreports false when fewer than two such positions exist or either series has\nzero variance.\n"
+            },
+            {
+              "name": "Count",
+              "recv": "*Series",
+              "signature": "func (s *Series) Count() int",
+              "doc": "Count returns the number of present (non-NA) values.\n"
+            },
+            {
+              "name": "Cov",
+              "recv": "*Series",
+              "signature": "func (s *Series) Cov(other *Series) (float64, bool)",
+              "doc": "Cov returns the sample covariance (n-1 denominator) between this series and\nother, computed over positions where both hold a present numeric value. It\nreports false when fewer than two such positions exist.\n"
+            },
+            {
+              "name": "CumMax",
+              "recv": "*Series",
+              "signature": "func (s *Series) CumMax() *Series",
+              "doc": "CumMax returns the cumulative maximum of the present numeric values. Missing\nvalues remain missing and are skipped. The result dtype is Float64.\n"
+            },
+            {
+              "name": "CumMin",
+              "recv": "*Series",
+              "signature": "func (s *Series) CumMin() *Series",
+              "doc": "CumMin returns the cumulative minimum of the present numeric values. Missing\nvalues remain missing and are skipped. The result dtype is Float64.\n"
+            },
+            {
+              "name": "CumProd",
+              "recv": "*Series",
+              "signature": "func (s *Series) CumProd() *Series",
+              "doc": "CumProd returns the cumulative product of the present numeric values. Missing\nvalues remain missing and are skipped. The result dtype is Float64.\n"
+            },
+            {
+              "name": "CumSum",
+              "recv": "*Series",
+              "signature": "func (s *Series) CumSum() *Series",
+              "doc": "CumSum returns the cumulative sum of the present numeric values. Missing\nvalues remain missing and are skipped when accumulating, mirroring the\npandas Series.cumsum semantics. The result dtype is Float64.\n"
+            },
+            {
+              "name": "DType",
+              "recv": "*Series",
+              "signature": "func (s *Series) DType() DType",
+              "doc": "DType returns the element type of the series.\n"
+            },
+            {
+              "name": "Diff",
+              "recv": "*Series",
+              "signature": "func (s *Series) Diff() *Series",
+              "doc": "Diff returns the first discrete difference: element i minus element i-n. The\nfirst n positions, and any position where either operand is missing, are set\nto missing. The result dtype is Float64.\n"
+            },
+            {
+              "name": "Div",
+              "recv": "*Series",
+              "signature": "func (s *Series) Div(other *Series) *Series",
+              "doc": "Div returns the element-wise quotient (s / other), aligned by position up to\nthe shorter length. A zero divisor yields a missing value. The result dtype\nis Float64.\n"
+            },
+            {
+              "name": "DropNA",
+              "recv": "*Series",
+              "signature": "func (s *Series) DropNA() *Series",
+              "doc": "DropNA returns a copy with missing values removed, preserving index labels.\n"
+            },
+            {
+              "name": "FillNA",
+              "recv": "*Series",
+              "signature": "func (s *Series) FillNA(value any) *Series",
+              "doc": "FillNA returns a copy with every missing value replaced by value (coerced to\nthe series dtype).\n"
+            },
+            {
+              "name": "Filter",
+              "recv": "*Series",
+              "signature": "func (s *Series) Filter(mask []bool) *Series",
+              "doc": "Filter returns the rows where mask is true. The mask must match the length.\n"
+            },
+            {
+              "name": "Head",
+              "recv": "*Series",
+              "signature": "func (s *Series) Head(n int) *Series",
+              "doc": "Head returns the first n rows (all rows when n exceeds the length).\n"
+            },
+            {
+              "name": "Index",
+              "recv": "*Series",
+              "signature": "func (s *Series) Index() []any",
+              "doc": "Index returns a copy of the row labels.\n"
+            },
+            {
+              "name": "IsIn",
+              "recv": "*Series",
+              "signature": "func (s *Series) IsIn(values []any) []bool",
+              "doc": "IsIn returns a boolean mask reporting, per position, whether the present\nvalue equals one of the given values. Comparison uses the canonical stored\nrepresentation, so numeric values are matched after coercion to the column\ndtype.\n"
+            },
+            {
+              "name": "IsNA",
+              "recv": "*Series",
+              "signature": "func (s *Series) IsNA() []bool",
+              "doc": "IsNA reports, per position, whether the value is missing.\n"
+            },
+            {
+              "name": "Len",
+              "recv": "*Series",
+              "signature": "func (s *Series) Len() int",
+              "doc": "Len returns the number of elements.\n"
+            },
+            {
+              "name": "Map",
+              "recv": "*Series",
+              "signature": "func (s *Series) Map(fn func(any) any) *Series",
+              "doc": "Map is an alias for Apply, mirroring the pandas Series.map method.\n"
+            },
+            {
+              "name": "Max",
+              "recv": "*Series",
+              "signature": "func (s *Series) Max() (float64, bool)",
+              "doc": "Max returns the maximum of the present numeric values.\n"
+            },
+            {
+              "name": "Mean",
+              "recv": "*Series",
+              "signature": "func (s *Series) Mean() (float64, bool)",
+              "doc": "Mean returns the arithmetic mean of the present numeric values.\n"
+            },
+            {
+              "name": "Median",
+              "recv": "*Series",
+              "signature": "func (s *Series) Median() (float64, bool)",
+              "doc": "Median returns the median (0.5 quantile) of the present numeric values and\nwhether any existed.\n"
+            },
+            {
+              "name": "Min",
+              "recv": "*Series",
+              "signature": "func (s *Series) Min() (float64, bool)",
+              "doc": "Min returns the minimum of the present numeric values.\n"
+            },
+            {
+              "name": "Mode",
+              "recv": "*Series",
+              "signature": "func (s *Series) Mode() []any",
+              "doc": "Mode returns the most frequently occurring present value(s), in ascending\norder. When several values tie for the highest frequency all of them are\nreturned. An empty slice is returned when there are no present values.\n"
+            },
+            {
+              "name": "Mul",
+              "recv": "*Series",
+              "signature": "func (s *Series) Mul(other *Series) *Series",
+              "doc": "Mul returns the element-wise product of two series, aligned by position up to\nthe shorter length. The result dtype is Float64.\n"
+            },
+            {
+              "name": "NLargest",
+              "recv": "*Series",
+              "signature": "func (s *Series) NLargest(n int) *Series",
+              "doc": "NLargest returns the n largest present values as a new series, ordered from\nlargest to smallest, preserving each value's original index label. Ties are\nbroken by original position. When n exceeds the number of present values all\nof them are returned.\n"
+            },
+            {
+              "name": "NSmallest",
+              "recv": "*Series",
+              "signature": "func (s *Series) NSmallest(n int) *Series",
+              "doc": "NSmallest returns the n smallest present values as a new series, ordered from\nsmallest to largest, preserving each value's original index label. Ties are\nbroken by original position. When n exceeds the number of present values all\nof them are returned.\n"
+            },
+            {
+              "name": "Name",
+              "recv": "*Series",
+              "signature": "func (s *Series) Name() string",
+              "doc": "Name returns the series name.\n"
+            },
+            {
+              "name": "PctChange",
+              "recv": "*Series",
+              "signature": "func (s *Series) PctChange() *Series",
+              "doc": "PctChange returns the fractional change between the current and prior\nelement: (x[i] - x[i-1]) / x[i-1]. The first position, positions with a\nmissing operand, and divisions by zero are set to missing. The result dtype\nis Float64.\n"
+            },
+            {
+              "name": "Prod",
+              "recv": "*Series",
+              "signature": "func (s *Series) Prod() (float64, bool)",
+              "doc": "Prod returns the product of the present numeric values and whether any\nexisted.\n"
+            },
+            {
+              "name": "Quantile",
+              "recv": "*Series",
+              "signature": "func (s *Series) Quantile(q float64) (float64, bool)",
+              "doc": "Quantile returns the q-th quantile (0 \u003c= q \u003c= 1) of the present numeric\nvalues using linear interpolation between the two nearest ranks, matching the\ndefault pandas Series.quantile behaviour. It reports false when there are no\npresent values or q is out of range.\n"
+            },
+            {
+              "name": "Rank",
+              "recv": "*Series",
+              "signature": "func (s *Series) Rank() *Series",
+              "doc": "Rank returns the ranks of the present numeric values using the average\nmethod, matching the pandas Series.rank default: values are ranked from 1\n(smallest) and tied values share the mean of the ranks they span. Missing\nvalues remain missing. The result dtype is Float64.\n"
+            },
+            {
+              "name": "RankBy",
+              "recv": "*Series",
+              "signature": "func (s *Series) RankBy(method string) *Series",
+              "doc": "RankBy returns the ranks of the present numeric values, resolving ties\naccording to method, one of:\n\n  - \"average\": tied values share the mean of the ranks they span (the default).\n  - \"min\":     tied values all take the lowest rank in the group.\n  - \"max\":     tied values all take the highest rank in the group.\n  - \"first\":   ties are broken by original position, giving distinct ranks.\n  - \"dense\":   like \"min\" but group ranks always increase by one, leaving no\n    gaps after ties.\n\nThese mirror the pandas Series.rank method= argument. Missing values remain\nmissing and the result dtype is Float64. An unrecognised method falls back to\n\"average\".\n"
+            },
+            {
+              "name": "Rename",
+              "recv": "*Series",
+              "signature": "func (s *Series) Rename(name string) *Series",
+              "doc": "Rename returns a copy of the series with a new name.\n"
+            },
+            {
+              "name": "Round",
+              "recv": "*Series",
+              "signature": "func (s *Series) Round(decimals int) *Series",
+              "doc": "Round returns a copy with every present numeric value rounded to the given\nnumber of decimal places. Ties (a value exactly halfway between two\ncandidates) are resolved to the nearest even digit — the round-half-to-even\n(\"banker's rounding\") rule that numpy, and therefore pandas Series.round,\napplies. Missing values are preserved and the result dtype is Float64.\n"
+            },
+            {
+              "name": "Shift",
+              "recv": "*Series",
+              "signature": "func (s *Series) Shift(n int) *Series",
+              "doc": "Shift returns a copy with values moved by n positions, introducing missing\nvalues at the vacated end. A positive n shifts values toward higher\npositions (down); a negative n shifts toward lower positions (up). The index\nlabels are unchanged, matching pandas Series.shift.\n"
+            },
+            {
+              "name": "Sort",
+              "recv": "*Series",
+              "signature": "func (s *Series) Sort(ascending bool) *Series",
+              "doc": "Sort returns a copy sorted by value. Missing values are placed last. When\nascending is false the order is reversed (missing values still last).\n"
+            },
+            {
+              "name": "Std",
+              "recv": "*Series",
+              "signature": "func (s *Series) Std() (float64, bool)",
+              "doc": "Std returns the sample standard deviation (n-1 denominator) of the present\nnumeric values. It requires at least two values.\n"
+            },
+            {
+              "name": "Str",
+              "recv": "*Series",
+              "signature": "func (s *Series) Str() StrAccessor",
+              "doc": "Str returns a string accessor for the series. Values are interpreted using\ntheir display form, so a String-dtype series works directly while other\ndtypes are formatted first.\n"
+            },
+            {
+              "name": "String",
+              "recv": "*Series",
+              "signature": "func (s *Series) String() string",
+              "doc": "String renders the series as a simple aligned table.\n"
+            },
+            {
+              "name": "Sub",
+              "recv": "*Series",
+              "signature": "func (s *Series) Sub(other *Series) *Series",
+              "doc": "Sub returns the element-wise difference (s - other), aligned by position up\nto the shorter length. The result dtype is Float64.\n"
+            },
+            {
+              "name": "Sum",
+              "recv": "*Series",
+              "signature": "func (s *Series) Sum() (float64, bool)",
+              "doc": "Sum returns the sum of the present numeric values and whether any existed.\n"
+            },
+            {
+              "name": "Tail",
+              "recv": "*Series",
+              "signature": "func (s *Series) Tail(n int) *Series",
+              "doc": "Tail returns the last n rows.\n"
+            },
+            {
+              "name": "Take",
+              "recv": "*Series",
+              "signature": "func (s *Series) Take(rows []int) *Series",
+              "doc": "Take extracts the given rows from a Series (used by GroupBy aggregation).\n"
+            },
+            {
+              "name": "Unique",
+              "recv": "*Series",
+              "signature": "func (s *Series) Unique() []any",
+              "doc": "Unique returns the distinct present values in first-seen order.\n"
+            },
+            {
+              "name": "ValueCounts",
+              "recv": "*Series",
+              "signature": "func (s *Series) ValueCounts() *Series",
+              "doc": "ValueCounts returns a Series counting occurrences of each present value,\nsorted by descending count and then by ascending value for determinism. The\nresulting index holds the distinct values.\n"
+            },
+            {
+              "name": "Values",
+              "recv": "*Series",
+              "signature": "func (s *Series) Values() []any",
+              "doc": "Values returns the values as a slice; missing entries are nil.\n"
+            },
+            {
+              "name": "Var",
+              "recv": "*Series",
+              "signature": "func (s *Series) Var() (float64, bool)",
+              "doc": "Var returns the sample variance (n-1 denominator) of the present numeric\nvalues and whether at least two existed.\n"
+            }
+          ]
+        },
+        {
+          "name": "StrAccessor",
+          "signature": "type StrAccessor struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "StrAccessor provides vectorised string operations over a Series, mirroring\nthe pandas Series.str accessor. Operations that return a Series preserve the\nindex and leave missing values missing; operations that return a boolean mask\nyield false for missing or non-string values.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Contains",
+              "recv": "StrAccessor",
+              "signature": "func (a StrAccessor) Contains(sub string) []bool",
+              "doc": "Contains returns a boolean mask reporting, per position, whether the present\nvalue contains the substring sub.\n"
+            },
+            {
+              "name": "EndsWith",
+              "recv": "StrAccessor",
+              "signature": "func (a StrAccessor) EndsWith(suffix string) []bool",
+              "doc": "EndsWith returns a boolean mask reporting, per position, whether the present\nvalue ends with suffix.\n"
+            },
+            {
+              "name": "Len",
+              "recv": "StrAccessor",
+              "signature": "func (a StrAccessor) Len() *Series",
+              "doc": "Len returns an Int64 series giving the number of Unicode code points in each\npresent value; missing values remain missing.\n"
+            },
+            {
+              "name": "Lower",
+              "recv": "StrAccessor",
+              "signature": "func (a StrAccessor) Lower() *Series",
+              "doc": "Lower returns a new series with every present value lower-cased.\n"
+            },
+            {
+              "name": "Replace",
+              "recv": "StrAccessor",
+              "signature": "func (a StrAccessor) Replace(old, new string) *Series",
+              "doc": "Replace returns a new series with every non-overlapping occurrence of old\nreplaced by new in each present value.\n"
+            },
+            {
+              "name": "StartsWith",
+              "recv": "StrAccessor",
+              "signature": "func (a StrAccessor) StartsWith(prefix string) []bool",
+              "doc": "StartsWith returns a boolean mask reporting, per position, whether the present\nvalue begins with prefix.\n"
+            },
+            {
+              "name": "Strip",
+              "recv": "StrAccessor",
+              "signature": "func (a StrAccessor) Strip() *Series",
+              "doc": "Strip returns a new series with leading and trailing white space removed from\nevery present value.\n"
+            },
+            {
+              "name": "Title",
+              "recv": "StrAccessor",
+              "signature": "func (a StrAccessor) Title() *Series",
+              "doc": "Title returns a new series with the first letter of each whitespace-separated\nword capitalised and the remaining letters lower-cased.\n"
+            },
+            {
+              "name": "Upper",
+              "recv": "StrAccessor",
+              "signature": "func (a StrAccessor) Upper() *Series",
+              "doc": "Upper returns a new series with every present value upper-cased.\n"
+            }
+          ]
+        }
+      ],
+      "funcs": [],
+      "examples": [
+        {
+          "name": "",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/pandas\"\n)\n\nfunc main() {\n\t// Build a DataFrame from column data.\n\tdf, _ := pandas.FromMap(map[string][]any{\n\t\t\"city\":  {\"NYC\", \"LA\", \"NYC\", \"LA\"},\n\t\t\"month\": {\"Jan\", \"Jan\", \"Feb\", \"Feb\"},\n\t\t\"sales\": {100.0, 80.0, 120.0, 90.0},\n\t}, []string{\"city\", \"month\", \"sales\"})\n\n\t// Group by city and take the mean of sales.\n\tgb, _ := df.GroupBy(\"city\")\n\tmeans, _ := gb.Mean(\"sales\")\n\tfmt.Print(means.String())\n\n}",
+          "output": "city  sales_mean\nLA    85\nNYC   110"
+        },
+        {
+          "name": "ReadCSV",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n\n\t\"github.com/malcolmston/pandas\"\n)\n\nfunc main() {\n\tdata := \"name,age,active\\nAlice,30,true\\nBob,25,false\\n\"\n\tdf, _ := pandas.ReadCSV(strings.NewReader(data), nil)\n\tfmt.Printf(\"rows=%d cols=%d\\n\", df.NumRows(), df.NumCols())\n\n\tage := df.MustCol(\"age\")\n\tmean, _ := age.Mean()\n\tfmt.Printf(\"mean age=%.1f dtype=%s\\n\", mean, age.DType())\n\n\tvar b strings.Builder\n\t_ = df.WriteCSV(\u0026b, nil)\n\tfmt.Print(b.String())\n\n}",
+          "output": "rows=2 cols=3\nmean age=27.5 dtype=int64\nname,age,active\nAlice,30,true\nBob,25,false"
+        },
+        {
+          "name": "DataFrame (Describe)",
+          "code": "package main\n\nimport (\n\t\"os\"\n\n\t\"github.com/malcolmston/pandas\"\n)\n\nfunc main() {\n\tdf, _ := pandas.FromMap(map[string][]any{\n\t\t\"x\": {1.0, 2.0, 3.0, 4.0},\n\t}, []string{\"x\"})\n\tdesc := df.Describe()\n\t// Write to stdout via CSV for a compact, stable rendering.\n\t_ = desc.WriteCSV(os.Stdout, nil)\n\n}",
+          "output": "stat,x\ncount,4\nmean,2.5\nstd,1.2909944487358056\nmin,1\nmax,4"
+        },
+        {
+          "name": "DataFrame (Merge)",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/pandas\"\n)\n\nfunc main() {\n\tleft, _ := pandas.FromMap(map[string][]any{\n\t\t\"id\":   {int64(1), int64(2), int64(3)},\n\t\t\"name\": {\"a\", \"b\", \"c\"},\n\t}, []string{\"id\", \"name\"})\n\tright, _ := pandas.FromMap(map[string][]any{\n\t\t\"id\":  {int64(1), int64(2)},\n\t\t\"qty\": {int64(10), int64(20)},\n\t}, []string{\"id\", \"qty\"})\n\n\tinner, _ := left.Merge(right, \"id\", pandas.InnerJoin)\n\tfmt.Print(inner.String())\n\n}",
+          "output": "id  name  qty\n1   a     10\n2   b     20"
+        }
+      ]
+    }
+  ]
+}

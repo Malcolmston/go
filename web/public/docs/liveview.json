@@ -1,0 +1,1087 @@
+{
+  "module": "github.com/malcolmston/liveview",
+  "generatedAt": "2026-07-19T02:05:52Z",
+  "packages": [
+    {
+      "importPath": "github.com/malcolmston/liveview",
+      "name": "liveview",
+      "synopsis": "Package liveview is a small, dependency-free (standard library only) reactive server-rendered UI framework in the spirit of Phoenix LiveView.",
+      "doc": "Package liveview is a small, dependency-free (standard library only) reactive\nserver-rendered UI framework in the spirit of Phoenix LiveView. Server-held\nstate drives the UI: the client sends events, the server updates state,\nre-renders, and ships back a minimal patch describing only what changed.\n\n# Lifecycle\n\nA UI is a [View]:\n\n\tMount(params, socket)        seed server state (\"assigns\") for a new session\n\tHandleEvent(event, payload, socket)  react to a client event by updating assigns\n\tRender(assigns)              produce HTML as a static/dynamic [Rendered]\n\nA [Session] wires these together for one connection. [Session.Mount] runs\nMount and the first Render; [Session.Event] runs HandleEvent, re-renders, and\nreturns the [Diff] against the previous render. Assigns live in a [Socket],\nwhich also tracks which keys changed since the last render.\n\n# Assigns\n\nAssigns are an arbitrary map[string]any of server-side state. Views read and\nwrite them through the [Socket] (Assign/Get and typed helpers). Render\nreceives an immutable snapshot, so rendering is a pure function of state.\n\n# The static/dynamic diff model\n\nThis is the core idea. Rendering does not yield a flat string; it yields a\n[Rendered]: a template cut into Statics (literal fragments that never change)\nand Dynamics (the interpolated values). The full document is the two\ninterleaved. Because the statics of repeated renders of the same view are\nidentical, a diff only needs to carry the dynamics that actually changed.\n\n\ttemplate:  \u003cspan class=\"value\"\u003e{{ count }}\u003c/span\u003e\n\tstatics:   [\"\u003cspan class=\\\"value\\\"\u003e\", \"\u003c/span\u003e\"]\n\tdynamics:  [\"0\"]                      // count == 0\n\nAfter an \"inc\" event only the dynamic changes, so [DiffRendered] returns the\nsparse patch {\"0\":\"1\"} — the static wrapper is never re-sent. Dynamics may\nthemselves be nested [Rendered] values (components), and the diff recurses\ninto them, so an unchanged component contributes nothing to the patch. On the\nvery first render [FullDiff] additionally includes the statics under the \"s\"\nkey so a fresh client can build the document from scratch. Diffs marshal to\nthe same compact JSON shape LiveView uses, e.g. {\"s\":[...],\"0\":\"1\"}.\n\nValues are HTML-escaped by default; wrap already-trusted markup in [Safe] to\nopt out.\n\n# Runtime and transport\n\n[NewHandler] adapts a View factory into an [http.Handler]: GET serves the full\ninitial HTML page (with a tiny inline JS stub and a per-request session id),\nand POST /event accepts a JSON event and replies with the JSON diff. The\ntransport is deliberately simple (HTTP + JSON); the state -\u003e render -\u003e diff\nengine is independent of it and can be driven directly, as the tests and\nexamples do.\n\n# Example\n\nSee [Counter] for a complete example View, and the package examples for a full\nmount/render/event/diff walkthrough.\n",
+      "consts": [],
+      "vars": [],
+      "types": [
+        {
+          "name": "Component",
+          "signature": "type Component interface {\n\t// ID returns the component's stable identifier. Two references with the\n\t// same ID address the same component instance and state.\n\tID() string\n\t// Mount initializes the component's assigns. It runs once, when the\n\t// component is first referenced.\n\tMount(socket *Socket) error\n\t// HandleEvent processes an event routed to this component by cid.\n\tHandleEvent(event string, payload map[string]any, socket *Socket) error\n\t// Render builds the component's markup from an assigns snapshot.\n\tRender(assigns map[string]any) *Rendered\n}",
+          "doc": "Component is a stateful live component: a self-contained, independently\naddressable piece of UI with its own assigns, lifecycle, and render, embedded\ninside a parent [View]. Components are identified by a stable [Component.ID];\nthe runtime assigns each a numeric component id (\"cid\") and tracks its render\nseparately, so a component's changes travel in the diff under the reserved\n\"c\" key addressed by cid — the parent's statics and unrelated dynamics never\nre-send when only a component updates.\n\nA component is referenced from a view with [Socket.LiveComponent], typically\nduring Mount, storing the returned reference in an assign that the template\ninterpolates. The first reference mounts the component and renders it; its\nper-component socket then persists, so component state survives across parent\nre-renders. Events targeting a component are routed to its HandleEvent by cid.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "ComponentManager",
+          "signature": "type ComponentManager struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "ComponentManager tracks the stateful components referenced by one [Session]:\nit assigns cids, persists each component's socket and renders, routes events\nby cid, and produces the per-cid component diffs shipped under the \"c\" key. It\nis not safe for concurrent use on its own; the owning Session serializes access.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewComponentManager",
+              "signature": "func NewComponentManager() *ComponentManager",
+              "doc": "NewComponentManager returns an empty manager. cids are assigned starting at 1.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "CID",
+              "recv": "*ComponentManager",
+              "signature": "func (m *ComponentManager) CID(id string) int",
+              "doc": "CID returns the numeric component id assigned to the component with the given\nstring ID, or 0 if it has not been referenced yet.\n"
+            },
+            {
+              "name": "EventByID",
+              "recv": "*ComponentManager",
+              "signature": "func (m *ComponentManager) EventByID(id, event string, payload map[string]any) error",
+              "doc": "EventByID routes an event to the component with the given string ID, primarily\nfor tests and direct drivers that address components by name rather than cid.\n"
+            }
+          ]
+        },
+        {
+          "name": "Conn",
+          "signature": "type Conn struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Conn is a minimal RFC 6455 WebSocket connection built directly on a hijacked\nnet.Conn. It implements the framing needed by the liveview transport: reading\nmasked client frames, writing unmasked server frames, and answering ping and\nclose control frames. It is not safe for concurrent readers, nor for\nconcurrent writers; the runtime serializes writes through a single goroutine.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "Upgrade",
+              "signature": "func Upgrade(w http.ResponseWriter, r *http.Request) (*Conn, error)",
+              "doc": "Upgrade performs the server side of the RFC 6455 opening handshake on an\nHTTP request that has already been validated as a WebSocket upgrade. It\nhijacks the underlying TCP connection, writes the 101 Switching Protocols\nresponse with the computed Sec-WebSocket-Accept header, and returns a [Conn]\nready for framing. It returns an error if the request is not an upgrade, the\nResponseWriter does not support hijacking, or the handshake write fails.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Close",
+              "recv": "*Conn",
+              "signature": "func (c *Conn) Close() error",
+              "doc": "Close sends a normal (1000) close frame and tears down the connection. It is\nidempotent.\n"
+            },
+            {
+              "name": "Ping",
+              "recv": "*Conn",
+              "signature": "func (c *Conn) Ping(payload []byte) error",
+              "doc": "Ping sends a ping control frame with an optional payload.\n"
+            },
+            {
+              "name": "ReadMessage",
+              "recv": "*Conn",
+              "signature": "func (c *Conn) ReadMessage() (opcode byte, data []byte, err error)",
+              "doc": "ReadMessage reads the next complete application message, transparently\nhandling fragmentation and answering control frames: a ping is replied to\nwith a pong, a pong is ignored, and a close causes the connection to be\nclosed and [io.EOF] returned. The returned opcode is [opText] or [opBinary].\n"
+            },
+            {
+              "name": "WriteBinary",
+              "recv": "*Conn",
+              "signature": "func (c *Conn) WriteBinary(b []byte) error",
+              "doc": "WriteBinary sends a binary message.\n"
+            },
+            {
+              "name": "WriteText",
+              "recv": "*Conn",
+              "signature": "func (c *Conn) WriteText(s string) error",
+              "doc": "WriteText sends a text (UTF-8) message.\n"
+            }
+          ]
+        },
+        {
+          "name": "Counter",
+          "signature": "type Counter struct {\n\t// Start is the initial count applied at Mount unless params override it.\n\tStart int\n}",
+          "doc": "Counter is a minimal example [View]: a number with increment/decrement\nevents and a free-text label. It exists to exercise and demonstrate the\nframework (mount -\u003e render -\u003e event -\u003e diff) and is used by the package tests\nand examples.\n\nAssigns:\n\n\tcount  int     the current value (event \"inc\" / \"dec\" adjust it, \"set\" assigns payload[\"value\"])\n\tlabel  string  a caption echoed into the page (escaped), settable via event \"label\"\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "HandleEvent",
+              "recv": "*Counter",
+              "signature": "func (c *Counter) HandleEvent(event string, payload map[string]any, socket *Socket) error",
+              "doc": "HandleEvent implements the \"inc\", \"dec\", \"set\" and \"label\" events.\n"
+            },
+            {
+              "name": "Mount",
+              "recv": "*Counter",
+              "signature": "func (c *Counter) Mount(params map[string]any, socket *Socket) error",
+              "doc": "Mount seeds count from params[\"start\"] (if an int) or the Counter's Start,\nand label from params[\"label\"].\n"
+            },
+            {
+              "name": "Render",
+              "recv": "*Counter",
+              "signature": "func (c *Counter) Render(assigns map[string]any) *Rendered",
+              "doc": "Render draws the counter using the shared template.\n"
+            }
+          ]
+        },
+        {
+          "name": "Diff",
+          "signature": "type Diff map[string]any",
+          "doc": "Diff is a minimal patch describing how to turn one [Rendered] into another.\nIt is a sparse map keyed by dynamic-slot index (as a decimal string), holding\nonly the slots whose value changed. This is the whole point of the\nstatic/dynamic split: statics never travel after the first render, and\nunchanged dynamics are omitted.\n\nValue shapes inside a Diff:\n\n  - string        a changed leaf slot; the new escaped HTML for that slot.\n  - Diff          a changed nested [Rendered]; the recursive sub-diff.\n  - int           a component reference; the value is the component's cid and\n    its own diff lives under the top-level \"c\" key keyed by that cid.\n  - the \"s\" key   present only on a full/initial diff, holding []string\n    statics so a fresh client can build the document from scratch.\n  - the \"c\" key   present when the render embeds stateful components, holding\n    a map[string]Diff of per-cid component diffs.\n\nA Diff marshals to JSON as, for example, {\"0\":\"1\",\"2\":{\"1\":\"x\"}} — the same\nwire shape LiveView uses. An empty Diff means nothing changed.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "DiffRendered",
+              "signature": "func DiffRendered(prev, next *Rendered) Diff",
+              "doc": "DiffRendered computes the minimal patch that turns prev into next. Both are\nassumed to be renders of the same view (identical template shape). When prev\nis nil the result is a [FullDiff]. Slots that are equal in both are omitted.\n\nIf the two renders have different static shapes (different template\nstructure, e.g. a conditional that swapped branches), the whole subtree is\nre-sent as a full diff, because the client's cached statics no longer apply.\n"
+            },
+            {
+              "name": "FullDiff",
+              "signature": "func FullDiff(r *Rendered) Diff",
+              "doc": "FullDiff produces the complete patch for an initial render: every dynamic slot\nplus the statics under the \"s\" key. Sending this to a fresh client lets it\nreconstruct the entire document. A component reference contributes only its\ncid at the slot; the component's own diff is shipped separately under \"c\".\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Empty",
+              "recv": "Diff",
+              "signature": "func (d Diff) Empty() bool",
+              "doc": "Empty reports whether the diff carries no changes.\n"
+            }
+          ]
+        },
+        {
+          "name": "Flash",
+          "signature": "type Flash map[string]string",
+          "doc": "Flash is a small map of transient user-facing messages keyed by kind (for\nexample \"info\" or \"error\"), the Go analog of Phoenix LiveView's flash. A view\nputs a message during an event and renders it on the next frame; a typical\nclient clears it after display. Flash is an ordinary map, safe to range over\nand to interpolate into templates by kind.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewFlash",
+              "signature": "func NewFlash() Flash",
+              "doc": "NewFlash returns an empty Flash ready to receive messages.\n"
+            },
+            {
+              "name": "SocketFlash",
+              "signature": "func SocketFlash(s *Socket) Flash",
+              "doc": "SocketFlash returns the [Flash] stored on the socket, creating and attaching\nan empty one on first use so callers always receive a usable map.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Clear",
+              "recv": "Flash",
+              "signature": "func (f Flash) Clear()",
+              "doc": "Clear removes every message, leaving the map empty but non-nil.\n"
+            },
+            {
+              "name": "Delete",
+              "recv": "Flash",
+              "signature": "func (f Flash) Delete(kind string)",
+              "doc": "Delete removes the message stored under kind, if any.\n"
+            },
+            {
+              "name": "Get",
+              "recv": "Flash",
+              "signature": "func (f Flash) Get(kind string) string",
+              "doc": "Get returns the message stored under kind, or \"\" if none is set.\n"
+            },
+            {
+              "name": "Has",
+              "recv": "Flash",
+              "signature": "func (f Flash) Has(kind string) bool",
+              "doc": "Has reports whether a message is set for kind.\n"
+            },
+            {
+              "name": "Kinds",
+              "recv": "Flash",
+              "signature": "func (f Flash) Kinds() []string",
+              "doc": "Kinds returns the kinds currently holding a message, sorted for deterministic\niteration and rendering.\n"
+            },
+            {
+              "name": "Merge",
+              "recv": "Flash",
+              "signature": "func (f Flash) Merge(other Flash) Flash",
+              "doc": "Merge copies every message from other into f, overwriting on key collision,\nand returns f for chaining.\n"
+            },
+            {
+              "name": "Put",
+              "recv": "Flash",
+              "signature": "func (f Flash) Put(kind, msg string)",
+              "doc": "Put stores msg under kind, replacing any existing message for that kind.\n"
+            }
+          ]
+        },
+        {
+          "name": "Form",
+          "signature": "type Form struct {\n\t// Name is the form's parameter namespace (for example \"user\"), used when\n\t// building input names.\n\tName string\n\t// Params holds the current field values, usually the sub-map for Name from\n\t// a decoded submission.\n\tParams map[string]any\n\t// contains filtered or unexported fields\n}",
+          "doc": "Form is a lightweight form abstraction pairing decoded parameters with\nper-field validation errors, the Go analog of Phoenix's form/changeset used to\ndrive phx-change validation and error display. It carries no schema of its own;\na view populates Params (typically from [DecodeForm]) and records errors during\nvalidation, then renders field values and messages from it.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewForm",
+              "signature": "func NewForm(name string, params map[string]any) *Form",
+              "doc": "NewForm returns a Form for the given namespace and initial params. A nil\nparams map is replaced with an empty one.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "AddError",
+              "recv": "*Form",
+              "signature": "func (f *Form) AddError(field, msg string)",
+              "doc": "AddError records a validation message for field. Multiple errors may be added\nto the same field; they are returned in insertion order.\n"
+            },
+            {
+              "name": "Errors",
+              "recv": "*Form",
+              "signature": "func (f *Form) Errors(field string) []string",
+              "doc": "Errors returns the validation messages recorded for field, or nil if the\nfield is valid.\n"
+            },
+            {
+              "name": "Get",
+              "recv": "*Form",
+              "signature": "func (f *Form) Get(field string) any",
+              "doc": "Get returns the raw value of field, or nil if absent.\n"
+            },
+            {
+              "name": "GetString",
+              "recv": "*Form",
+              "signature": "func (f *Form) GetString(field string) string",
+              "doc": "GetString returns field as a string, or \"\" if absent or not a string.\n"
+            },
+            {
+              "name": "HasErrors",
+              "recv": "*Form",
+              "signature": "func (f *Form) HasErrors() bool",
+              "doc": "HasErrors reports whether any field has a validation error.\n"
+            },
+            {
+              "name": "InputName",
+              "recv": "*Form",
+              "signature": "func (f *Form) InputName(field string) string",
+              "doc": "InputName returns the bracket-encoded HTML input name for field within this\nform's namespace, for example \"user[email]\" for a form named \"user\". An empty\nform name yields the bare field.\n"
+            },
+            {
+              "name": "Valid",
+              "recv": "*Form",
+              "signature": "func (f *Form) Valid() bool",
+              "doc": "Valid reports whether the form has no validation errors. It is the negation of\n[Form.HasErrors].\n"
+            }
+          ]
+        },
+        {
+          "name": "Handler",
+          "signature": "type Handler struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Handler is an [http.Handler] that serves a live view over HTTP plus a\nself-implemented RFC 6455 WebSocket. It has these behaviours on its mount\npath:\n\n  - GET (no upgrade)  serves the full initial HTML page: a fresh session is\n    mounted, its rendered HTML is embedded, and the served JS client is\n    inlined.\n  - GET (websocket)   upgrades to a WebSocket, mounts a session, ships the\n    initial full diff, then streams events in and diffs out.\n  - POST {prefix}/event  the legacy JSON event route ({\"session\",\"event\",\n    \"payload\"} in, [Diff] out), kept for non-socket drivers and tests.\n\nSessions are held in memory and share one [PubSub] hub, so views can\nSubscribe/Broadcast across connections. This is a reference transport; a\nproduction deployment would add authentication and session eviction, but the\nstate -\u003e render -\u003e diff core is identical.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewHandler",
+              "signature": "func NewHandler(prefix string, factory func() View) *Handler",
+              "doc": "NewHandler returns a Handler that builds a fresh View (via factory) for each\nmounted session. prefix is the URL path the handler is served under and is\nused to construct the client WebSocket URL; \"\" is treated as \"/\".\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "PubSub",
+              "recv": "*Handler",
+              "signature": "func (h *Handler) PubSub() *PubSub",
+              "doc": "PubSub returns the hub shared by every session this handler mounts, so\napplication code outside a request can broadcast to connected views.\n"
+            },
+            {
+              "name": "ServeHTTP",
+              "recv": "*Handler",
+              "signature": "func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request)",
+              "doc": "ServeHTTP implements http.Handler.\n"
+            },
+            {
+              "name": "Session",
+              "recv": "*Handler",
+              "signature": "func (h *Handler) Session(id string) *Session",
+              "doc": "Session returns a live session by id, or nil.\n"
+            }
+          ]
+        },
+        {
+          "name": "InfoHandler",
+          "signature": "type InfoHandler interface {\n\t// HandleInfo reacts to a server-side message and updates assigns.\n\tHandleInfo(msg any, socket *Socket) error\n}",
+          "doc": "InfoHandler is an optional [View] interface for server-initiated messages.\nWhen implemented, messages delivered to the session (via [Socket.Send],\n[Socket.Subscribe] + [PubSub.Broadcast], or upload progress) are dispatched to\nHandleInfo, which updates assigns; the runtime then re-renders and diffs.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "JS",
+          "signature": "type JS struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "JS builds a client-side command list, mirroring Phoenix LiveView's JS\ncommand API. Instead of a round-trip to the server, a JS value describes DOM\noperations (toggling a class, hiding an element, dispatching an event) that\nthe browser client executes locally, optionally alongside a server push.\n\nA JS value is immutable-per-step: each builder method returns a new JS with\nthe command appended, so chains read left to right:\n\n\tliveview.NewJS().AddClass(\"open\", \"#menu\").Push(\"refresh\").String()\n\nThe resulting string is JSON — an array of [op, args] pairs — suitable for a\nphx-click / phx-* attribute value. The served client parses it and runs each\ncommand in order.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewJS",
+              "signature": "func NewJS() *JS",
+              "doc": "NewJS returns an empty JS command list.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "AddClass",
+              "recv": "*JS",
+              "signature": "func (j *JS) AddClass(names, selector string) *JS",
+              "doc": "AddClass appends a command that adds the space-separated names to the\nselector's class list.\n"
+            },
+            {
+              "name": "Commands",
+              "recv": "*JS",
+              "signature": "func (j *JS) Commands() []jsCmd",
+              "doc": "Commands returns the raw command tuples, primarily for tests.\n"
+            },
+            {
+              "name": "Concat",
+              "recv": "*JS",
+              "signature": "func (j *JS) Concat(other *JS) *JS",
+              "doc": "Concat returns a new JS whose command list is this chain's commands followed\nby other's, letting reusable command fragments be composed. Neither receiver\nis mutated. A nil other yields a copy of j.\n"
+            },
+            {
+              "name": "Dispatch",
+              "recv": "*JS",
+              "signature": "func (j *JS) Dispatch(event, selector string) *JS",
+              "doc": "Dispatch appends a command that dispatches a DOM event of the given type on\nthe selector.\n"
+            },
+            {
+              "name": "Exec",
+              "recv": "*JS",
+              "signature": "func (j *JS) Exec(attr, selector string) *JS",
+              "doc": "Exec appends a command that executes the JS commands encoded in the named\nattribute of the selector, mirroring Phoenix's JS.exec. It lets one element\ntrigger the command chain declared on another.\n"
+            },
+            {
+              "name": "Focus",
+              "recv": "*JS",
+              "signature": "func (j *JS) Focus(selector string) *JS",
+              "doc": "Focus appends a command that moves keyboard focus to the selector, mirroring\nPhoenix's JS.focus.\n"
+            },
+            {
+              "name": "FocusFirst",
+              "recv": "*JS",
+              "signature": "func (j *JS) FocusFirst(selector string) *JS",
+              "doc": "FocusFirst appends a command that focuses the first focusable child of the\nselector, mirroring Phoenix's JS.focus_first.\n"
+            },
+            {
+              "name": "Hide",
+              "recv": "*JS",
+              "signature": "func (j *JS) Hide(selector string) *JS",
+              "doc": "Hide appends a command that hides the selector.\n"
+            },
+            {
+              "name": "IgnoreAttributes",
+              "recv": "*JS",
+              "signature": "func (j *JS) IgnoreAttributes(attrs []string, selector string) *JS",
+              "doc": "IgnoreAttributes appends a command instructing the client DOM patcher to leave\nthe named attributes of the selector untouched during updates, mirroring\nPhoenix's JS.ignore_attributes.\n"
+            },
+            {
+              "name": "MarshalJSON",
+              "recv": "*JS",
+              "signature": "func (j *JS) MarshalJSON() ([]byte, error)",
+              "doc": "MarshalJSON encodes the command list as a JSON array.\n"
+            },
+            {
+              "name": "Navigate",
+              "recv": "*JS",
+              "signature": "func (j *JS) Navigate(href string, replace bool) *JS",
+              "doc": "Navigate appends a command that performs a live navigation (full remount of\nthe target route) to href, mirroring Phoenix's JS.navigate. Pass replace to\nreplace the current history entry instead of pushing a new one.\n"
+            },
+            {
+              "name": "Patch",
+              "recv": "*JS",
+              "signature": "func (j *JS) Patch(href string, replace bool) *JS",
+              "doc": "Patch appends a command that performs a live patch (same view, re-runs\nHandleParams) to href, mirroring Phoenix's JS.patch. Pass replace to replace\nthe current history entry instead of pushing a new one.\n"
+            },
+            {
+              "name": "PopFocus",
+              "recv": "*JS",
+              "signature": "func (j *JS) PopFocus() *JS",
+              "doc": "PopFocus appends a command that restores focus to the element saved by the\nmost recent [JS.PushFocus], mirroring Phoenix's JS.pop_focus.\n"
+            },
+            {
+              "name": "Push",
+              "recv": "*JS",
+              "signature": "func (j *JS) Push(event string) *JS",
+              "doc": "Push appends a command that sends event to the server with an optional target\nselector (the phx element the payload is gathered from).\n"
+            },
+            {
+              "name": "PushFocus",
+              "recv": "*JS",
+              "signature": "func (j *JS) PushFocus(selector string) *JS",
+              "doc": "PushFocus appends a command that stores the currently focused element (or the\nselector's, when non-empty) on a stack so it can later be restored with\n[JS.PopFocus], mirroring Phoenix's JS.push_focus.\n"
+            },
+            {
+              "name": "PushTo",
+              "recv": "*JS",
+              "signature": "func (j *JS) PushTo(event, target string) *JS",
+              "doc": "PushTo is like [JS.Push] but scopes the event to a specific component or DOM\ntarget selector.\n"
+            },
+            {
+              "name": "RemoveAttribute",
+              "recv": "*JS",
+              "signature": "func (j *JS) RemoveAttribute(attr, selector string) *JS",
+              "doc": "RemoveAttribute appends a command that removes attr from the selector,\nmirroring Phoenix's JS.remove_attribute.\n"
+            },
+            {
+              "name": "RemoveClass",
+              "recv": "*JS",
+              "signature": "func (j *JS) RemoveClass(names, selector string) *JS",
+              "doc": "RemoveClass appends a command that removes the space-separated names from the\nselector's class list.\n"
+            },
+            {
+              "name": "Safe",
+              "recv": "*JS",
+              "signature": "func (j *JS) Safe() Safe",
+              "doc": "Safe returns the command list as a [Safe] string for direct interpolation\ninto a template attribute without double-escaping the JSON.\n"
+            },
+            {
+              "name": "SetAttribute",
+              "recv": "*JS",
+              "signature": "func (j *JS) SetAttribute(attr, value, selector string) *JS",
+              "doc": "SetAttribute appends a command that sets attr=value on the selector.\n"
+            },
+            {
+              "name": "Show",
+              "recv": "*JS",
+              "signature": "func (j *JS) Show(selector string) *JS",
+              "doc": "Show appends a command that shows the selector.\n"
+            },
+            {
+              "name": "String",
+              "recv": "*JS",
+              "signature": "func (j *JS) String() string",
+              "doc": "String returns the JSON encoding of the command list, ready to embed in a\nphx-* attribute value. It is also a [Safe] string when used in templates via\n[JS.Safe].\n"
+            },
+            {
+              "name": "Toggle",
+              "recv": "*JS",
+              "signature": "func (j *JS) Toggle(selector string) *JS",
+              "doc": "Toggle appends a command that toggles the visibility of the selector.\n"
+            },
+            {
+              "name": "ToggleAttribute",
+              "recv": "*JS",
+              "signature": "func (j *JS) ToggleAttribute(attr, val1, val2, selector string) *JS",
+              "doc": "ToggleAttribute appends a command that toggles attr between val1 and val2 on\nthe selector (setting it to val1 when absent or equal to val2, otherwise\nval2), mirroring Phoenix's JS.toggle_attribute.\n"
+            },
+            {
+              "name": "ToggleClass",
+              "recv": "*JS",
+              "signature": "func (j *JS) ToggleClass(names, selector string) *JS",
+              "doc": "ToggleClass appends a command that toggles the space-separated names on the\nselector.\n"
+            },
+            {
+              "name": "Transition",
+              "recv": "*JS",
+              "signature": "func (j *JS) Transition(transition, selector string, timeMS int) *JS",
+              "doc": "Transition appends a command that applies the space-separated transition\nclasses to the selector for the given duration in milliseconds, mirroring\nPhoenix's JS.transition. A time of 0 uses the client default.\n"
+            }
+          ]
+        },
+        {
+          "name": "Nav",
+          "signature": "type Nav struct {\n\t// Kind is \"patch\" (same view, handle_params) or \"navigate\" (live redirect).\n\tKind string `json:\"kind\"`\n\t// To is the destination URL or path.\n\tTo string `json:\"to\"`\n\t// Replace requests history replacement rather than a push.\n\tReplace bool `json:\"replace\"`\n}",
+          "doc": "Nav is a pending live navigation requested by a view during an event. A patch\nstays on the same view and re-invokes [ParamsHandler.HandleParams] with the\nnew URL's params; a navigate performs a full live redirect to a new URL. The\nruntime relays it to the client, which updates the browser history.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "ParamsHandler",
+          "signature": "type ParamsHandler interface {\n\t// HandleParams reacts to the connection's URL parameters and updates assigns.\n\tHandleParams(params map[string]any, uri string, socket *Socket) error\n}",
+          "doc": "ParamsHandler is an optional [View] interface. When implemented, the runtime\ncalls HandleParams after Mount and on every live patch, passing the current\nURL params and the full request URI. It lets a view react to URL changes\n(pagination, tabs, filters) without a full remount.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "PubSub",
+          "signature": "type PubSub struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "PubSub is a tiny in-process publish/subscribe hub. Subscribers register an\ninbox channel against a topic; a broadcast delivers a message to every\ninbox currently subscribed to that topic. It is the mechanism behind\nserver-initiated updates: a [Session] subscribes its inbox to topics of\ninterest, and any code holding the PubSub can broadcast an event that the\nsession then processes through HandleInfo.\n\nPubSub is safe for concurrent use. Delivery is non-blocking: if a\nsubscriber's inbox is full the message is dropped for that subscriber rather\nthan stalling the broadcaster, matching the \"at most once, best effort\"\nsemantics appropriate for UI refresh signals.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewPubSub",
+              "signature": "func NewPubSub() *PubSub",
+              "doc": "NewPubSub returns an empty hub ready for subscriptions.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Broadcast",
+              "recv": "*PubSub",
+              "signature": "func (p *PubSub) Broadcast(topic string, msg any) int",
+              "doc": "Broadcast delivers msg to every inbox subscribed to topic. Delivery is\nbest-effort and non-blocking. It returns the number of subscribers the\nmessage was successfully queued to.\n"
+            },
+            {
+              "name": "Subscribe",
+              "recv": "*PubSub",
+              "signature": "func (p *PubSub) Subscribe(topic string, inbox chan any)",
+              "doc": "Subscribe registers inbox to receive messages broadcast on topic. Subscribing\nthe same inbox to the same topic twice is a no-op.\n"
+            },
+            {
+              "name": "SubscriberCount",
+              "recv": "*PubSub",
+              "signature": "func (p *PubSub) SubscriberCount(topic string) int",
+              "doc": "SubscriberCount returns the number of inboxes currently subscribed to topic,\nprimarily for tests and introspection.\n"
+            },
+            {
+              "name": "Unsubscribe",
+              "recv": "*PubSub",
+              "signature": "func (p *PubSub) Unsubscribe(topic string, inbox chan any)",
+              "doc": "Unsubscribe removes inbox from topic. It is safe to call for a subscription\nthat does not exist.\n"
+            },
+            {
+              "name": "UnsubscribeAll",
+              "recv": "*PubSub",
+              "signature": "func (p *PubSub) UnsubscribeAll(inbox chan any)",
+              "doc": "UnsubscribeAll removes inbox from every topic it is subscribed to. The\nruntime calls this when a session ends so stale channels are not retained.\n"
+            }
+          ]
+        },
+        {
+          "name": "PushEvent",
+          "signature": "type PushEvent struct {\n\t// Name is the event name dispatched on the client.\n\tName string `json:\"event\"`\n\t// Payload is the arbitrary JSON data delivered with the event.\n\tPayload map[string]any `json:\"payload\"`\n}",
+          "doc": "PushEvent is a server-initiated client-side event, the analog of Phoenix's\npush_event: it names a browser event and carries an arbitrary JSON payload for\na client hook to react to. Pending push events are drained into the diff reply.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Rendered",
+          "signature": "type Rendered struct {\n\t// Statics holds the literal template fragments surrounding each dynamic\n\t// slot. It always has exactly one more element than Dynamics.\n\tStatics []string\n\t// Dynamics holds the value for each dynamic slot. Each element is either\n\t// a string (escaped, render-ready) or a *Rendered (nested component).\n\tDynamics []any\n}",
+          "doc": "Rendered is the result of rendering a [View]. It is deliberately NOT a flat\nstring: it is the classic Phoenix LiveView \"static/dynamic\" split.\n\nA template is cut into Statics, the literal parts that never change between\nrenders, and Dynamics, the values that are substituted between the static\nparts. The invariant is:\n\n\tlen(Statics) == len(Dynamics) + 1\n\nand the full document is reconstructed by interleaving them:\n\n\tStatics[0] + Dynamics[0] + Statics[1] + Dynamics[1] + ... + Statics[n]\n\nEach entry in Dynamics is either a string (already HTML-escaped, ready to be\nwritten verbatim) or a nested *Rendered (a sub-template / component). Because\nthe statics are known to be identical for repeated renders of the same view,\na diff only needs to transmit the dynamics that actually changed. See [Diff].\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "HTML",
+              "recv": "*Rendered",
+              "signature": "func (r *Rendered) HTML() string",
+              "doc": "HTML materializes the Rendered tree into a single HTML string by interleaving\nstatics and dynamics (recursing into nested *Rendered values).\n"
+            }
+          ]
+        },
+        {
+          "name": "Safe",
+          "signature": "type Safe string",
+          "doc": "Safe wraps a string that is already valid, trusted HTML and therefore should\nnot be HTML-escaped when interpolated into a template. Use it deliberately;\nwrapping attacker-controlled data in Safe defeats the framework's automatic\nescaping.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "AttrList",
+              "signature": "func AttrList(attrs map[string]any) Safe",
+              "doc": "AttrList renders an HTML attribute string from a map of attribute name -\u003e\nvalue, sorted by name for deterministic output. Values are HTML-escaped;\na bool value renders as a bare boolean attribute when true and is omitted when\nfalse (for example {\"disabled\": true} -\u003e ` disabled`). The result always\nbegins with a leading space when non-empty so it can be concatenated directly\nafter a tag name. It is returned as [Safe] because it is already escaped.\n"
+            },
+            {
+              "name": "HiddenInputs",
+              "signature": "func HiddenInputs(fields map[string]string) Safe",
+              "doc": "HiddenInputs renders a sorted set of hidden \u003cinput\u003e elements from a map of\nname -\u003e value, the Go analog of Phoenix's hidden form inputs (used for tokens,\nids, and method overrides). Names and values are HTML-escaped and the output\nis deterministic. It is returned as [Safe] for direct template interpolation.\n"
+            },
+            {
+              "name": "LiveNavigate",
+              "signature": "func LiveNavigate(text, href string) Safe",
+              "doc": "LiveNavigate renders an anchor that performs a live navigation to href when\nclicked, the Go analog of Phoenix's live_redirect link. The href and text are\nHTML-escaped. The served client interprets the data-phx-link attribute to\nmount the target route without a full page load.\n"
+            },
+            {
+              "name": "LivePatch",
+              "signature": "func LivePatch(text, href string) Safe",
+              "doc": "LivePatch renders an anchor that performs a live patch to href when clicked,\nthe Go analog of Phoenix's live_patch link. The href and text are\nHTML-escaped. The served client interprets the data-phx-link attribute to\npatch the current view without a full navigation.\n"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "name": "Session",
+          "signature": "type Session struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Session is the per-connection runtime for one mounted [View]. It owns the\n[Socket], remembers the last render, and drives the state -\u003e render -\u003e diff\ncycle: Mount produces the first render, then each Event re-renders and returns\nonly the diff against the previous render.\n\nA Session is safe for concurrent use; events on the same session are\nserialized by an internal mutex so assigns and the cached render stay\nconsistent.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewSession",
+              "signature": "func NewSession(view View) *Session",
+              "doc": "NewSession creates a session bound to view with a fresh, empty socket, its own\nserver-push mailbox, and a component manager. Call [Session.Mount] before\ndispatching events.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "AttachPubSub",
+              "recv": "*Session",
+              "signature": "func (s *Session) AttachPubSub(p *PubSub)",
+              "doc": "AttachPubSub wires a [PubSub] hub into the session so views can call\n[Socket.Subscribe]. The transport typically shares one hub across sessions.\n"
+            },
+            {
+              "name": "Close",
+              "recv": "*Session",
+              "signature": "func (s *Session) Close()",
+              "doc": "Close unsubscribes the session from all PubSub topics. Call it when the\ntransport disconnects so stale mailbox channels are not retained.\n"
+            },
+            {
+              "name": "ComponentEvent",
+              "recv": "*Session",
+              "signature": "func (s *Session) ComponentEvent(cid int, event string, payload map[string]any) (Diff, error)",
+              "doc": "ComponentEvent routes an event to a stateful component by cid, then re-renders\nthe parent view and returns the resulting diff (which carries the component's\nchange under the \"c\" key).\n"
+            },
+            {
+              "name": "Event",
+              "recv": "*Session",
+              "signature": "func (s *Session) Event(event string, payload map[string]any) (Diff, error)",
+              "doc": "Event dispatches a client event: it runs HandleEvent, applies any live patch\nthe handler requested, re-renders, computes the minimal [Diff] against the\nprevious render (including component, stream, push-event, and navigation\nside-channels), caches the new render, and returns the diff.\n"
+            },
+            {
+              "name": "ID",
+              "recv": "*Session",
+              "signature": "func (s *Session) ID() string",
+              "doc": "ID returns the session identifier (set by the runtime/handler that created\nit), or \"\" if unset.\n"
+            },
+            {
+              "name": "Inbox",
+              "recv": "*Session",
+              "signature": "func (s *Session) Inbox() \u003c-chan any",
+              "doc": "Inbox returns the session's server-push mailbox. The transport loop selects on\nit to deliver [Socket.Send] and [PubSub] messages into [Session.Info].\n"
+            },
+            {
+              "name": "Info",
+              "recv": "*Session",
+              "signature": "func (s *Session) Info(msg any) (Diff, error)",
+              "doc": "Info dispatches a server-side message to [InfoHandler.HandleInfo] (if the view\nimplements it), then re-renders and returns the diff. Messages arrive via\n[Socket.Send], [PubSub] broadcasts, or upload progress.\n"
+            },
+            {
+              "name": "InitialDiff",
+              "recv": "*Session",
+              "signature": "func (s *Session) InitialDiff() Diff",
+              "doc": "InitialDiff returns the full diff for the current render plus any side\nchannels (streams, push events, navigation) set during Mount. The WebSocket\ntransport ships it as the first frame so a fresh client can build the\ndocument.\n"
+            },
+            {
+              "name": "Mount",
+              "recv": "*Session",
+              "signature": "func (s *Session) Mount(params map[string]any) (*Rendered, error)",
+              "doc": "Mount runs the view's Mount with the given params, invokes HandleParams if the\nview implements [ParamsHandler], performs the initial render, caches it, and\nreturns it.\n"
+            },
+            {
+              "name": "Params",
+              "recv": "*Session",
+              "signature": "func (s *Session) Params(params map[string]any, uri string) (Diff, error)",
+              "doc": "Params dispatches a live patch: it updates the recorded URI and invokes\n[ParamsHandler.HandleParams] (if implemented), then re-renders and returns the\ndiff.\n"
+            },
+            {
+              "name": "RegisterUploadEntry",
+              "recv": "*Session",
+              "signature": "func (s *Session) RegisterUploadEntry(name, ref, fileName string, size int64, mime string) error",
+              "doc": "RegisterUploadEntry announces an upload entry's metadata (before its chunks\narrive) on the named slot.\n"
+            },
+            {
+              "name": "Render",
+              "recv": "*Session",
+              "signature": "func (s *Session) Render() *Rendered",
+              "doc": "Render returns the most recent render without dispatching an event.\n"
+            },
+            {
+              "name": "SetConnected",
+              "recv": "*Session",
+              "signature": "func (s *Session) SetConnected(v bool)",
+              "doc": "SetConnected marks whether a live transport is attached, so views can gate\nwork on [Socket.Connected].\n"
+            },
+            {
+              "name": "SetURI",
+              "recv": "*Session",
+              "signature": "func (s *Session) SetURI(uri string)",
+              "doc": "SetURI records the connection's current request URI, used as the base for\n[ParamsHandler.HandleParams] and live navigation.\n"
+            },
+            {
+              "name": "Socket",
+              "recv": "*Session",
+              "signature": "func (s *Session) Socket() *Socket",
+              "doc": "Socket exposes the session's socket, primarily for tests and introspection.\n"
+            },
+            {
+              "name": "UploadChunk",
+              "recv": "*Session",
+              "signature": "func (s *Session) UploadChunk(name, ref string, data []byte, last bool) (Diff, error)",
+              "doc": "UploadChunk feeds a chunk of an upload entry's bytes into the named slot,\nupdates progress, and, when the entry completes or on any progress step,\nre-renders and returns the diff so the client reflects the new progress.\n"
+            }
+          ]
+        },
+        {
+          "name": "Socket",
+          "signature": "type Socket struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Socket holds the server-side state for a single connected view: its \"assigns\"\n(an arbitrary key/value map) plus per-render change tracking. A View reads and\nwrites assigns through the socket during Mount and HandleEvent; Render is then\ngiven a snapshot of those assigns.\n\nChange tracking records which keys were written since the last time [Socket.ResetChanges]\nwas called (the runtime resets after every render). This lets a View cheaply\nask whether it needs to recompute derived state, and mirrors how LiveView\ntracks assign changes to decide what to re-render.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewSocket",
+              "signature": "func NewSocket() *Socket",
+              "doc": "NewSocket returns an empty Socket ready to receive assigns. The runtime\nside-channels (inbox, pubsub, components) are left nil; [NewSession] wires\nthem up for a live connection.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "AllowUpload",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) AllowUpload(name string, opts UploadOptions)",
+              "doc": "AllowUpload declares a named upload slot with the given options, enabling the\nclient to stream files to it. Re-declaring an existing slot keeps its\nin-flight entries.\n"
+            },
+            {
+              "name": "AnyChanged",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) AnyChanged() bool",
+              "doc": "AnyChanged reports whether any assign changed since the last ResetChanges.\n"
+            },
+            {
+              "name": "Assign",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) Assign(key string, value any)",
+              "doc": "Assign sets a single assign and marks it changed.\n"
+            },
+            {
+              "name": "AssignAll",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) AssignAll(values map[string]any)",
+              "doc": "AssignAll sets many assigns at once, marking each changed.\n"
+            },
+            {
+              "name": "Assigns",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) Assigns() map[string]any",
+              "doc": "Assigns returns a shallow copy of the current assigns, safe to hand to a\nRender method without exposing the socket's internal map.\n"
+            },
+            {
+              "name": "Changed",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) Changed(key string) bool",
+              "doc": "Changed reports whether key was assigned since the last ResetChanges.\n"
+            },
+            {
+              "name": "Components",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) Components() *ComponentManager",
+              "doc": "Components returns the socket's component manager, lazily creating one so a\nbare socket (constructed with NewSocket, e.g. in tests) can still reference\ncomponents.\n"
+            },
+            {
+              "name": "Connected",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) Connected() bool",
+              "doc": "Connected reports whether a live (websocket) transport is attached. A view can\nuse this to defer expensive work until the socket connects, mirroring\nPhoenix's connected?/1.\n"
+            },
+            {
+              "name": "Get",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) Get(key string) (any, bool)",
+              "doc": "Get returns the value for key and whether it was present.\n"
+            },
+            {
+              "name": "GetInt",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) GetInt(key string) int",
+              "doc": "GetInt returns the assign for key as an int, or 0 if absent or not an int.\n"
+            },
+            {
+              "name": "GetString",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) GetString(key string) string",
+              "doc": "GetString returns the assign for key as a string, or \"\" if absent or not a\nstring.\n"
+            },
+            {
+              "name": "LiveComponent",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) LiveComponent(c Component) *componentRef",
+              "doc": "LiveComponent references a stateful [Component] from a view's render. The first\nreference mounts the component; later references reuse its persisted state. The\nreturned value is embedded in the render tree and diffs by cid under the \"c\"\nkey. It panics only if the component's Mount returns an error, which is a\nprogramming error in Render; use [Socket.TryLiveComponent] to handle it.\n"
+            },
+            {
+              "name": "Nav",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) Nav() *Nav",
+              "doc": "Nav returns the pending navigation, or nil if none was requested.\n"
+            },
+            {
+              "name": "PushEvent",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) PushEvent(name string, payload map[string]any)",
+              "doc": "PushEvent queues a client-side event with the given name and payload, to be\ndispatched in the browser after the next diff is applied.\n"
+            },
+            {
+              "name": "PushNavigate",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) PushNavigate(to string)",
+              "doc": "PushNavigate requests a live redirect to the given path, mounting the target\nroute fresh. It is the Go analog of Phoenix's push_navigate.\n"
+            },
+            {
+              "name": "PushPatch",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) PushPatch(to string)",
+              "doc": "PushPatch requests a live patch to the given path: the URL changes and\n[ParamsHandler.HandleParams] runs, but the view is not remounted. It is the\nGo analog of Phoenix's push_patch.\n"
+            },
+            {
+              "name": "ResetChanges",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) ResetChanges()",
+              "doc": "ResetChanges clears the change set. The runtime calls this after each render.\n"
+            },
+            {
+              "name": "Send",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) Send(msg any)",
+              "doc": "Send delivers msg to this session's own mailbox, to be processed by\n[InfoHandler.HandleInfo]. It is the Go analog of Phoenix's send(self(), msg)\nand is a no-op if the socket is not attached to a live session.\n"
+            },
+            {
+              "name": "Stream",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) Stream(name string) *Stream",
+              "doc": "Stream returns the named stream, creating it on first use. A stream lets a\nview push append/prepend/delete operations to a phx-update=\"stream\" container\nwithout retaining the full item list server-side.\n"
+            },
+            {
+              "name": "StreamDelete",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) StreamDelete(name, dom string)",
+              "doc": "StreamDelete queues removal of an item from the named stream.\n"
+            },
+            {
+              "name": "StreamInsert",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) StreamInsert(name, dom string, at int, r *Rendered)",
+              "doc": "StreamInsert queues an item insert on the named stream (at == -1 appends,\n0 prepends), a convenience over Stream(name).Insert.\n"
+            },
+            {
+              "name": "Subscribe",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) Subscribe(topic string)",
+              "doc": "Subscribe subscribes this session's mailbox to a PubSub topic. Messages\nbroadcast on the topic are delivered to [InfoHandler.HandleInfo]. It is a\nno-op if no PubSub is attached.\n"
+            },
+            {
+              "name": "TryLiveComponent",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) TryLiveComponent(c Component) (*componentRef, error)",
+              "doc": "TryLiveComponent is like [Socket.LiveComponent] but returns an error instead\nof panicking when the component's Mount fails.\n"
+            },
+            {
+              "name": "Upload",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) Upload(name string) *UploadConfig",
+              "doc": "Upload returns the config for a declared upload slot, or nil.\n"
+            },
+            {
+              "name": "UploadEntries",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) UploadEntries(name string) []*UploadEntry",
+              "doc": "UploadEntries returns the in-flight entries for the named upload slot.\n"
+            }
+          ]
+        },
+        {
+          "name": "Stream",
+          "signature": "type Stream struct {\n\t// Name is the stream's identifier, used as the DOM container id prefix.\n\tName string\n\t// contains filtered or unexported fields\n}",
+          "doc": "Stream accumulates pending [StreamOp] values for one named collection since\nthe last render. The runtime drains the queue after each render and ships the\noperations in the diff; the server never retains the item list itself.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Append",
+              "recv": "*Stream",
+              "signature": "func (s *Stream) Append(dom string, r *Rendered)",
+              "doc": "Append queues an item at the end of the stream container.\n"
+            },
+            {
+              "name": "Delete",
+              "recv": "*Stream",
+              "signature": "func (s *Stream) Delete(dom string)",
+              "doc": "Delete queues removal of the item with the given dom id.\n"
+            },
+            {
+              "name": "Insert",
+              "recv": "*Stream",
+              "signature": "func (s *Stream) Insert(dom string, at int, r *Rendered)",
+              "doc": "Insert queues an append (at == -1), prepend (at == 0), or positional insert\nof an item with the given stable dom id and rendered HTML.\n"
+            },
+            {
+              "name": "Pending",
+              "recv": "*Stream",
+              "signature": "func (s *Stream) Pending() int",
+              "doc": "Pending returns the number of queued operations, primarily for tests.\n"
+            },
+            {
+              "name": "Prepend",
+              "recv": "*Stream",
+              "signature": "func (s *Stream) Prepend(dom string, r *Rendered)",
+              "doc": "Prepend queues an item at the start of the stream container.\n"
+            },
+            {
+              "name": "Reset",
+              "recv": "*Stream",
+              "signature": "func (s *Stream) Reset()",
+              "doc": "Reset queues clearing the whole stream container. Inserts queued after a\nreset in the same batch repopulate it.\n"
+            }
+          ]
+        },
+        {
+          "name": "StreamOp",
+          "signature": "type StreamOp struct {\n\t// Action is \"insert\", \"delete\", or \"reset\".\n\tAction string `json:\"action\"`\n\t// DOM is the stable element id the operation targets (empty for reset).\n\tDOM string `json:\"id,omitempty\"`\n\t// HTML is the rendered item markup for an insert.\n\tHTML string `json:\"html,omitempty\"`\n\t// At is the insert index: -1 appends, 0 prepends, n inserts before n.\n\tAt int `json:\"at,omitempty\"`\n}",
+          "doc": "StreamOp is a single stream mutation queued for the client. Streams let a\nview manage a large, append-only or windowed collection (a chat log, a table)\nwithout the server holding the whole list in assigns: the server emits only\nthe delta operations, and the client applies them to the DOM container marked\nphx-update=\"stream\".\n\nThe Action is one of \"insert\", \"delete\", or \"reset\". For an insert, DOM is\nthe stable per-item id, HTML is the rendered markup, and At is the insert\nposition (-1 appends, 0 prepends). For a delete, only DOM is meaningful. A\nreset clears the container before applying any inserts in the same batch.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Template",
+          "signature": "type Template struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Template is a compiled template: a fixed list of static fragments plus, for\neach dynamic slot, the name of the assign to substitute there. Compiling once\nand rendering many times is what makes the static/dynamic split cheap: the\nStatics of every render produced by the same Template are identical, so the\ndiff engine can ignore them entirely.\n\nTemplate syntax is intentionally tiny. Text is copied verbatim; a dynamic\nslot is written as {{ name }} where name is a key looked up in the socket\nassigns at render time. Whitespace inside the braces is trimmed. A literal\n\"{{\" is written as \"{{{{\". Values are HTML-escaped unless they implement\n[Safe] or are a *Rendered.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "MustParse",
+              "signature": "func MustParse(src string) *Template",
+              "doc": "MustParse is like [Parse] but panics on error. It is meant for package-level\ntemplate variables where a parse failure is a programming error.\n"
+            },
+            {
+              "name": "Parse",
+              "signature": "func Parse(src string) (*Template, error)",
+              "doc": "Parse compiles a template source string into a [Template]. It returns an\nerror if a \"{{\" is not matched by a closing \"}}\".\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Render",
+              "recv": "*Template",
+              "signature": "func (t *Template) Render(assigns map[string]any) *Rendered",
+              "doc": "Render produces a [Rendered] by looking up each dynamic slot's field in\nassigns and escaping it. Missing assigns render as the empty string. The\nreturned Statics are shared (read-only) with the Template, so callers must\nnot mutate them.\n"
+            }
+          ]
+        },
+        {
+          "name": "UploadConfig",
+          "signature": "type UploadConfig struct {\n\t// Name is the upload's identifier, referenced by the client and by\n\t// [ConsumeUploadedEntries].\n\tName string\n\t// Accept is an optional list of acceptable extensions or MIME types\n\t// (advisory; enforcement is best-effort and client-side).\n\tAccept []string\n\t// MaxEntries caps how many files may be uploaded at once (0 means 1).\n\tMaxEntries int\n\t// MaxFileSize caps the byte size of a single entry (0 means unlimited).\n\tMaxFileSize int64\n\t// contains filtered or unexported fields\n}",
+          "doc": "UploadConfig describes a named upload slot declared by a view via\n[Socket.AllowUpload]. It bounds what the client may send and holds the\nin-flight [UploadEntry] values as their chunks arrive over the socket.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Entries",
+              "recv": "*UploadConfig",
+              "signature": "func (u *UploadConfig) Entries() []*UploadEntry",
+              "doc": "Entries returns the current upload entries in a stable order (by Ref), so a\nview's Render is deterministic across calls.\n"
+            }
+          ]
+        },
+        {
+          "name": "UploadEntry",
+          "signature": "type UploadEntry struct {\n\t// Ref is the client-assigned reference identifying this entry.\n\tRef string\n\t// Name is the original file name.\n\tName string\n\t// Size is the declared total size in bytes.\n\tSize int64\n\t// Type is the declared MIME type.\n\tType string\n\t// Progress is the percentage received so far, 0..100.\n\tProgress int\n\t// Done reports whether all bytes have been received.\n\tDone bool\n\t// contains filtered or unexported fields\n}",
+          "doc": "UploadEntry is a single file being uploaded. The client announces it (name,\nsize, type) and then streams its bytes in chunks; the server assembles them\nand tracks progress until the entry is complete.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Bytes",
+              "recv": "*UploadEntry",
+              "signature": "func (e *UploadEntry) Bytes() []byte",
+              "doc": "Bytes returns the assembled content received so far. For a completed entry\nthis is the full file.\n"
+            }
+          ]
+        },
+        {
+          "name": "UploadOptions",
+          "signature": "type UploadOptions struct {\n\t// Accept lists acceptable extensions or MIME types (advisory).\n\tAccept []string\n\t// MaxEntries caps concurrent files (defaults to 1 when \u003c= 0).\n\tMaxEntries int\n\t// MaxFileSize caps a single entry's byte size (0 means unlimited).\n\tMaxFileSize int64\n}",
+          "doc": "UploadOptions configures an upload slot at [Socket.AllowUpload] time.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "View",
+          "signature": "type View interface {\n\t// Mount initializes assigns for a new session.\n\tMount(params map[string]any, socket *Socket) error\n\t// HandleEvent processes a client event and updates the socket's assigns.\n\tHandleEvent(event string, payload map[string]any, socket *Socket) error\n\t// Render builds the current view from an assigns snapshot.\n\tRender(assigns map[string]any) *Rendered\n}",
+          "doc": "View is the interface a live view implements. Its lifecycle is:\n\n 1. Mount is called once when a session is established. It seeds the socket's\n    assigns from the connection params (route params, query, etc.).\n 2. Render is called to produce the current HTML as a static/dynamic\n    [Rendered]. It is a pure function of the assigns snapshot and must not\n    mutate the socket.\n 3. HandleEvent is called for each client event (a button click, form submit,\n    ...). It reads the event name and payload, updates assigns on the socket,\n    and returns. The runtime then re-renders and diffs.\n\nA View should be safe to construct fresh per session; per-connection state\nlives in the [Socket], not in the View value.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        }
+      ],
+      "funcs": [
+        {
+          "name": "AcceptKey",
+          "signature": "func AcceptKey(key string) string",
+          "doc": "AcceptKey computes the Sec-WebSocket-Accept value for a given\nSec-WebSocket-Key per RFC 6455: base64(sha1(key + GUID)). It is exported so\nthe handshake can be verified independently in tests against the RFC's\nknown-answer vector.\n"
+        },
+        {
+          "name": "ClassList",
+          "signature": "func ClassList(classes map[string]bool) string",
+          "doc": "ClassList builds a space-separated CSS class string from a set of\nclass-name -\u003e enabled flags, the Go analog of Phoenix's dynamic class list\nhelper. Only classes mapped to true are included, and the result is sorted so\nthe same input always yields the same string (important for the diff engine,\nwhich compares rendered output byte for byte). Class names are emitted\nverbatim and are assumed to be developer-controlled, not user input.\n"
+        },
+        {
+          "name": "ClearFlash",
+          "signature": "func ClearFlash(s *Socket)",
+          "doc": "ClearFlash removes every flash message from the socket and marks the flash\nassign changed. It is the Go analog of Phoenix's clear_flash.\n"
+        },
+        {
+          "name": "ConsumeUploadedEntries",
+          "signature": "func ConsumeUploadedEntries(s *Socket, name string, fn func(*UploadEntry) any) []any",
+          "doc": "ConsumeUploadedEntries invokes fn for each completed entry of the named upload\nslot, removing them, and returns fn's results. Incomplete entries are left in\nplace. It is the Go analog of Phoenix's consume_uploaded_entries.\n"
+        },
+        {
+          "name": "DecodeForm",
+          "signature": "func DecodeForm(values url.Values) map[string]any",
+          "doc": "DecodeForm decodes flat, bracket-encoded form values into a nested map, the Go\nanalog of Phoenix's (Plug.Conn.Query) form parameter decoding used by\nphx-change and phx-submit. Keys use the conventional bracket syntax:\n\n\tuser[name]=Ada           -\u003e {\"user\": {\"name\": \"Ada\"}}\n\tuser[address][city]=Bath -\u003e {\"user\": {\"address\": {\"city\": \"Bath\"}}}\n\ttags[]=a\u0026tags[]=b        -\u003e {\"tags\": [\"a\", \"b\"]}\n\nA bare \"[]\" suffix accumulates repeated values into a []string in encounter\norder. Named subkeys build nested map[string]any values. When the same scalar\nkey repeats, the last value wins, matching browser form semantics. Malformed\nkeys (unbalanced brackets) are treated as flat keys.\n"
+        },
+        {
+          "name": "DecodeFormString",
+          "signature": "func DecodeFormString(query string) (map[string]any, error)",
+          "doc": "DecodeFormString parses a URL-encoded query string and decodes it with\n[DecodeForm]. It returns an error only if the query string itself is malformed\n(per net/url).\n"
+        },
+        {
+          "name": "GetFlash",
+          "signature": "func GetFlash(s *Socket, kind string) string",
+          "doc": "GetFlash returns the socket's flash message for kind, or \"\" if none is set.\n"
+        },
+        {
+          "name": "PutFlash",
+          "signature": "func PutFlash(s *Socket, kind, msg string)",
+          "doc": "PutFlash stores a flash message of the given kind on the socket and marks the\nflash assign changed so the message is included in the next diff. It is the Go\nanalog of Phoenix's put_flash.\n"
+        }
+      ],
+      "examples": [
+        {
+          "name": "",
+          "code": "package main\n\nimport (\n\t\"encoding/json\"\n\t\"fmt\"\n\n\t\"github.com/malcolmston/liveview\"\n)\n\nfunc main() {\n\tsess := liveview.NewSession(\u0026liveview.Counter{Start: 0})\n\n\tinitial, _ := sess.Mount(map[string]any{\"label\": \"Clicks\"})\n\tfmt.Println(\"initial:\", initial.HTML())\n\n\tdiff, _ := sess.Event(\"inc\", nil)\n\tout, _ := json.Marshal(diff)\n\tfmt.Println(\"diff:\", string(out))\n\tfmt.Println(\"now:\", sess.Render().HTML())\n\n}",
+          "output": "initial: \u003cdiv class=\"counter\"\u003e\u003ch1\u003eClicks\u003c/h1\u003e\u003cspan class=\"value\"\u003e0\u003c/span\u003e\u003c/div\u003e\ndiff: {\"1\":\"1\"}\nnow: \u003cdiv class=\"counter\"\u003e\u003ch1\u003eClicks\u003c/h1\u003e\u003cspan class=\"value\"\u003e1\u003c/span\u003e\u003c/div\u003e",
+          "doc": "Example walks the full lifecycle: mount a counter, render it, dispatch an\nevent, and print the minimal diff — showing that only the changed dynamic\nslot travels, not the surrounding statics.\n"
+        },
+        {
+          "name": "DiffRendered",
+          "code": "package main\n\nimport (\n\t\"encoding/json\"\n\t\"fmt\"\n\n\t\"github.com/malcolmston/liveview\"\n)\n\nfunc main() {\n\ttmpl := liveview.MustParse(`\u003cspan\u003e{{ count }}\u003c/span\u003e`)\n\tprev := tmpl.Render(map[string]any{\"count\": 41})\n\tnext := tmpl.Render(map[string]any{\"count\": 42})\n\n\tdiff := liveview.DiffRendered(prev, next)\n\tout, _ := json.Marshal(diff)\n\tfmt.Println(string(out))\n\n}",
+          "output": "{\"0\":\"42\"}",
+          "doc": "ExampleDiffRendered shows the static/dynamic split directly: identical\ntemplates rendered with one differing value diff down to a single slot.\n"
+        },
+        {
+          "name": "FullDiff",
+          "code": "package main\n\nimport (\n\t\"bytes\"\n\t\"encoding/json\"\n\t\"fmt\"\n\n\t\"github.com/malcolmston/liveview\"\n)\n\nfunc main() {\n\tr := liveview.MustParse(`\u003cb\u003e{{ x }}\u003c/b\u003e`).Render(map[string]any{\"x\": \"hi\"})\n\n\t// Encode with HTML escaping off so the statics read naturally in docs; the\n\t// wire format is ordinary JSON either way.\n\tvar buf bytes.Buffer\n\tenc := json.NewEncoder(\u0026buf)\n\tenc.SetEscapeHTML(false)\n\t_ = enc.Encode(liveview.FullDiff(r))\n\tfmt.Print(buf.String())\n\n}",
+          "output": "{\"0\":\"hi\",\"s\":[\"\u003cb\u003e\",\"\u003c/b\u003e\"]}",
+          "doc": "ExampleFullDiff shows the initial patch: it carries the statics (under \"s\")\nso a fresh client can build the document, plus every dynamic value.\n"
+        },
+        {
+          "name": "Safe",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/liveview\"\n)\n\nfunc main() {\n\ttmpl := liveview.MustParse(`\u003cp\u003e{{ a }}\u003c/p\u003e\u003cp\u003e{{ b }}\u003c/p\u003e`)\n\tr := tmpl.Render(map[string]any{\n\t\t\"a\": `\u003cscript\u003ealert(1)\u003c/script\u003e`, // escaped\n\t\t\"b\": liveview.Safe(`\u003cem\u003etrusted\u003c/em\u003e`),\n\t})\n\tfmt.Println(r.HTML())\n\n}",
+          "output": "\u003cp\u003e\u0026lt;script\u0026gt;alert(1)\u0026lt;/script\u0026gt;\u003c/p\u003e\u003cp\u003e\u003cem\u003etrusted\u003c/em\u003e\u003c/p\u003e",
+          "doc": "ExampleSafe demonstrates HTML escaping and the Safe opt-out.\n"
+        }
+      ]
+    }
+  ]
+}

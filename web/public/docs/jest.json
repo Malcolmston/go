@@ -1,0 +1,837 @@
+{
+  "module": "github.com/malcolmston/jest",
+  "generatedAt": "2026-07-19T02:05:52Z",
+  "packages": [
+    {
+      "importPath": "github.com/malcolmston/jest",
+      "name": "jest",
+      "synopsis": "Package jest provides a Jest-style assertion and mocking framework layered on top of Go's standard testing package.",
+      "doc": "Package jest provides a Jest-style assertion and mocking framework layered\non top of Go's standard testing package. It aims to give Go tests the same\nexpressive, fluent feel that the JavaScript Jest framework offers, while\nremaining 100% standard-library only and fully integrated with `go test`.\n\n# Expectations\n\nThe entry point for assertions is [Expect], a generic function that returns a\nfluent [Matcher]. Every matcher reports failures through the supplied\n[TestReporter] (satisfied by *testing.T), so assertions plug straight into\nthe normal `go test` flow:\n\n\tfunc TestNumbers(t *testing.T) {\n\t    jest.Expect(t, 2+2).ToBe(4)\n\t    jest.Expect(t, []int{1, 2, 3}).ToHaveLen(3)\n\t    jest.Expect(t, \"hello world\").ToContain(\"world\")\n\t    jest.Expect(t, 3.14159).ToBeCloseTo(3.14, 0.01)\n\t}\n\nAvailable matchers:\n\n  - ToBe(expected)                    – shallow equality (== semantics)\n  - ToEqual(expected)                 – deep equality (reflect.DeepEqual) with a diff\n  - ToBeNil()                         – nil check (typed and untyped nils)\n  - ToBeTrue() / ToBeFalse()          – boolean checks\n  - ToBeGreaterThan(n)                – numeric ordering (\u003e)\n  - ToBeGreaterThanOrEqual(n)         – numeric ordering (\u003e=)\n  - ToBeLessThan(n)                   – numeric ordering (\u003c)\n  - ToBeLessThanOrEqual(n)            – numeric ordering (\u003c=)\n  - ToContain(item)                   – substring / slice element / map key\n  - ToHaveLen(n)                      – length of string, slice, array, map or channel\n  - ToMatch(pattern)                  – regular-expression match on a string\n  - ToBeCloseTo(expected, epsilon...) – float comparison within an epsilon\n  - ToThrow(msg...) / ToPanic(msg...) – assert that a func value panics\n  - ToMatchObject(subset)             – recursive subset match (maps/structs)\n  - ToStrictEqual(expected)           – deep equality that is also type-strict\n  - ToHaveProperty(path, value...)    – dotted/indexed property lookup\n  - ToBeInstanceOf(type)              – dynamic-type / interface check\n  - ToBeDefined() / ToBeUndefined()   – non-nil / nil checks\n  - ToBeNaN()                         – floating-point NaN check\n  - ToMatchSnapshot(name...)          – on-disk snapshot comparison\n\nAny matcher can be inverted with [Matcher.Not]:\n\n\tjest.Expect(t, 5).Not().ToBe(6)\n\tjest.Expect(t, \"abc\").Not().ToContain(\"z\")\n\n# Asymmetric matchers\n\nAsymmetric matchers ([Any], [Anything], [StringContaining], [StringMatching],\n[ArrayContaining], [ObjectContaining]) match a range of values rather than one\nfixed value, and may be placed anywhere on the expected side of [Matcher.ToEqual],\n[Matcher.ToMatchObject], [Matcher.ToHaveProperty] and the call-argument matchers:\n\n\tjest.Expect[any](t, resp).ToEqual(map[string]any{\n\t    \"id\":   jest.Any(0),\n\t    \"name\": jest.StringContaining(\"bo\"),\n\t    \"tags\": jest.ArrayContaining(\"admin\"),\n\t})\n\n# Snapshots\n\n[Matcher.ToMatchSnapshot] serializes the value and stores it under\n__snapshots__ on the first run, comparing against it on subsequent runs. Set\nthe JEST_UPDATE_SNAPSHOTS environment variable (or call [SetUpdateSnapshots])\nto refresh stored snapshots.\n\n# Fake timers\n\n[Clock] is a manually-advanced replacement for real time. Code schedules work\nwith [Clock.SetTimeout] / [Clock.SetInterval] and the test drives it with\n[Clock.AdvanceTimersByTime], [Clock.RunAllTimers] or [Clock.RunOnlyPendingTimers].\n\n# Mocks and spies\n\n[Mock] records the calls made to it (arguments and call count) and can be\nconfigured to return canned values, either a single fixed result set via\n[Mock.Return] or a sequence via [Mock.ReturnValues]. Recorded calls are\ninspected with [Mock.CallCount], [Mock.CalledWith] and [Mock.LastCall].\n\n\tm := jest.NewMock(\"adder\")\n\tm.Return(42)\n\tm.Call(1, 2) // -\u003e [42]\n\tjest.Expect(t, m.CallCount()).ToBe(1)\n\tjest.Expect(t, m.CalledWith(1, 2)).ToBeTrue()\n\nType-safe function mocks are produced with the generic [Fn0], [Fn1] and\n[Fn2] helpers, which return a real Go function plus the backing [Mock]:\n\n\tfn, m := jest.Fn1[int, string](\"stringify\")\n\tm.Return(\"hi\")\n\tgot := fn(7) // \"hi\"\n\tjest.Expect(t, m.CalledWith(7)).ToBeTrue()\n\nMocks can be given behavior with [Mock.MockImplementation],\n[Mock.MockImplementationOnce], [Mock.MockReturnValueOnce],\n[Mock.MockResolvedValue] and [Mock.MockRejectedValue], and inspected with the\nmock-oriented matchers ([Matcher.ToHaveBeenCalledTimes],\n[Matcher.ToHaveBeenCalledWith], [Matcher.ToHaveReturnedWith] and friends).\n\nSpies ([Spy0], [Spy1], [Spy2]) wrap an existing function, recording calls\nwhile delegating to the real implementation. [SpyOn] replaces a function\nvariable or struct field in place, and [RestoreAllMocks] reinstates every\nspied original.\n\n# Test organization\n\n[Describe], [It] (and its alias [Test]) organize tests using t.Run under the\nhood, and [BeforeEach]/[AfterEach] register setup/teardown hooks scoped to\nthe enclosing Describe block:\n\n\tfunc TestSuite(t *testing.T) {\n\t    var counter int\n\t    jest.Describe(t, \"counter\", func() {\n\t        jest.BeforeEach(func() { counter = 0 })\n\t        jest.It(t, \"starts at zero\", func(t *testing.T) {\n\t            jest.Expect(t, counter).ToBe(0)\n\t        })\n\t        jest.It(t, \"increments\", func(t *testing.T) {\n\t            counter++\n\t            jest.Expect(t, counter).ToBe(1)\n\t        })\n\t    })\n\t}\n\n[BeforeAll]/[AfterAll] run once per Describe block, [ItSkip], [ItOnly] and\n[ItTodo] mark individual cases, and [Each]/[DescribeEach] drive table-based\nparameterized tests. Custom matchers are registered with [Extend] and invoked\nthrough [Matcher.To], and [Assertions]/[HasAssertions] guard the number of\nassertions a test runs.\n",
+      "consts": [],
+      "vars": [],
+      "types": [
+        {
+          "name": "AsymmetricMatcher",
+          "signature": "type AsymmetricMatcher interface {\n\t// Matches reports whether actual satisfies the matcher.\n\tMatches(actual any) bool\n\t// String returns a human-readable description used in failure messages.\n\tString() string\n}",
+          "doc": "AsymmetricMatcher is a value that matches a range of actual values rather than\na single fixed one. Asymmetric matchers are placed on the expected side of\n[Matcher.ToEqual], [Matcher.ToMatchObject], [Matcher.ToHaveProperty] and the\ncall-argument matchers, where they are consulted instead of a direct value\ncomparison. The built-in matchers are produced by [Any], [Anything],\n[StringContaining], [StringMatching], [ArrayContaining] and [ObjectContaining].\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "Any",
+              "signature": "func Any(typ any) AsymmetricMatcher",
+              "doc": "Any returns an [AsymmetricMatcher] that matches any value whose dynamic type\nis assignable to the type of typ. typ may be a sample value (its type is\nused) or a [reflect.Type]. Any(nil) matches any non-nil value.\n"
+            },
+            {
+              "name": "Anything",
+              "signature": "func Anything() AsymmetricMatcher",
+              "doc": "Anything returns an [AsymmetricMatcher] that matches any non-nil value.\n"
+            },
+            {
+              "name": "ArrayContaining",
+              "signature": "func ArrayContaining(elems ...any) AsymmetricMatcher",
+              "doc": "ArrayContaining returns an [AsymmetricMatcher] that matches any slice or\narray containing every one of elems (each compared with asymmetric-aware\nequality, so elems may themselves be asymmetric matchers).\n"
+            },
+            {
+              "name": "CloseTo",
+              "signature": "func CloseTo(expected float64, precision ...int) AsymmetricMatcher",
+              "doc": "CloseTo returns an [AsymmetricMatcher] that matches any numeric value within\nhalf a unit of the last requested decimal place of expected, mirroring Jest's\nexpect.closeTo. precision is the number of decimal digits checked and defaults\nto 2, so CloseTo(0.3) matches values within 0.005 of 0.3. It is useful for\nfloating-point fields nested inside [Matcher.ToEqual] or [Matcher.ToMatchObject].\n"
+            },
+            {
+              "name": "NotArrayContaining",
+              "signature": "func NotArrayContaining(elems ...any) AsymmetricMatcher",
+              "doc": "NotArrayContaining returns an [AsymmetricMatcher] that matches any slice or\narray that does NOT contain all of elems, mirroring Jest's\nexpect.not.arrayContaining.\n"
+            },
+            {
+              "name": "NotObjectContaining",
+              "signature": "func NotObjectContaining(fields map[string]any) AsymmetricMatcher",
+              "doc": "NotObjectContaining returns an [AsymmetricMatcher] that matches any map or\nstruct that does NOT contain all of fields with matching values, mirroring\nJest's expect.not.objectContaining.\n"
+            },
+            {
+              "name": "NotStringContaining",
+              "signature": "func NotStringContaining(sub string) AsymmetricMatcher",
+              "doc": "NotStringContaining returns an [AsymmetricMatcher] that matches any string\nthat does NOT contain sub, mirroring Jest's expect.not.stringContaining. A\nnon-string value also fails to match (it is not a string containing sub), so\nthe negation matches it.\n"
+            },
+            {
+              "name": "NotStringMatching",
+              "signature": "func NotStringMatching(pattern string) AsymmetricMatcher",
+              "doc": "NotStringMatching returns an [AsymmetricMatcher] that matches any string that\ndoes NOT match the given regular expression, mirroring Jest's\nexpect.not.stringMatching. It panics if pattern is not a valid regular\nexpression.\n"
+            },
+            {
+              "name": "ObjectContaining",
+              "signature": "func ObjectContaining(fields map[string]any) AsymmetricMatcher",
+              "doc": "ObjectContaining returns an [AsymmetricMatcher] that matches any map with\nstring keys, or any struct, that contains every key in fields with a value\nsatisfying the corresponding expected value (compared with asymmetric-aware\nequality). Extra keys or fields on the actual value are ignored.\n"
+            },
+            {
+              "name": "StringContaining",
+              "signature": "func StringContaining(sub string) AsymmetricMatcher",
+              "doc": "StringContaining returns an [AsymmetricMatcher] that matches any string\nvalue containing sub as a substring.\n"
+            },
+            {
+              "name": "StringMatching",
+              "signature": "func StringMatching(pattern string) AsymmetricMatcher",
+              "doc": "StringMatching returns an [AsymmetricMatcher] that matches any string value\nmatching the given regular expression. It panics if pattern is not a valid\nregular expression.\n"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "name": "Call",
+          "signature": "type Call struct {\n\tArgs     []any\n\tResults  []any\n\tPanicked bool\n}",
+          "doc": "Call is a single recorded invocation of a [Mock]: the arguments it was called\nwith, the results it returned, and whether the invocation panicked.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Clock",
+          "signature": "type Clock struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Clock is a deterministic, manually-advanced replacement for real time. Instead\nof relying on the wall clock, code under test schedules work with\n[Clock.SetTimeout] and [Clock.SetInterval] (or waits on [Clock.After]) and the\ntest drives time forward with [Clock.AdvanceTimersByTime], [Clock.RunAllTimers]\nor [Clock.RunOnlyPendingTimers]. A Clock is safe for concurrent use.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewClock",
+              "signature": "func NewClock() *Clock",
+              "doc": "NewClock creates a Clock whose current time starts at the Unix epoch.\n"
+            },
+            {
+              "name": "NewClockAt",
+              "signature": "func NewClockAt(start time.Time) *Clock",
+              "doc": "NewClockAt creates a Clock whose current time starts at start.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "AdvanceTimersByTime",
+              "recv": "*Clock",
+              "signature": "func (c *Clock) AdvanceTimersByTime(d time.Duration) int",
+              "doc": "AdvanceTimersByTime advances the clock by d, firing every timer whose deadline\nfalls within the interval in chronological order. Repeating timers are\nrescheduled and may fire multiple times. It returns the number of callbacks\ninvoked.\n"
+            },
+            {
+              "name": "AdvanceTimersToNextTimer",
+              "recv": "*Clock",
+              "signature": "func (c *Clock) AdvanceTimersToNextTimer(steps ...int) int",
+              "doc": "AdvanceTimersToNextTimer advances virtual time to the deadline of the next\nscheduled timer and fires it, repeating for the given number of steps (default\n1), mirroring Jest's advanceTimersToNextTimer. Repeating timers are\nrescheduled and may be fired again by a later step. It stops early if no\ntimers remain and returns the number of callbacks invoked.\n"
+            },
+            {
+              "name": "After",
+              "recv": "*Clock",
+              "signature": "func (c *Clock) After(delay time.Duration) \u003c-chan time.Time",
+              "doc": "After returns a channel that receives the clock's virtual time once delay has\nelapsed, mirroring time.After for code driven by a Clock.\n"
+            },
+            {
+              "name": "ClearAllTimers",
+              "recv": "*Clock",
+              "signature": "func (c *Clock) ClearAllTimers() int",
+              "doc": "ClearAllTimers cancels every pending timer without firing it, mirroring Jest's\nclearAllTimers. It returns the number of timers removed.\n"
+            },
+            {
+              "name": "ClearTimer",
+              "recv": "*Clock",
+              "signature": "func (c *Clock) ClearTimer(id int) bool",
+              "doc": "ClearTimer cancels the timer with the given id (from [Clock.SetTimeout] or\n[Clock.SetInterval]), reporting whether a pending timer was removed.\n"
+            },
+            {
+              "name": "GetTimerCount",
+              "recv": "*Clock",
+              "signature": "func (c *Clock) GetTimerCount() int",
+              "doc": "GetTimerCount returns the number of timers currently scheduled, mirroring\nJest's getTimerCount. It is the Jest spelling of [Clock.PendingCount].\n"
+            },
+            {
+              "name": "Now",
+              "recv": "*Clock",
+              "signature": "func (c *Clock) Now() time.Time",
+              "doc": "Now returns the clock's current (virtual) time.\n"
+            },
+            {
+              "name": "PendingCount",
+              "recv": "*Clock",
+              "signature": "func (c *Clock) PendingCount() int",
+              "doc": "PendingCount returns the number of timers currently scheduled.\n"
+            },
+            {
+              "name": "RunAllTimers",
+              "recv": "*Clock",
+              "signature": "func (c *Clock) RunAllTimers() int",
+              "doc": "RunAllTimers runs scheduled timers until none remain, advancing virtual time\nto each timer's deadline. To avoid looping forever on repeating timers it\nstops after a large safety bound and returns the number of callbacks invoked.\n"
+            },
+            {
+              "name": "RunOnlyPendingTimers",
+              "recv": "*Clock",
+              "signature": "func (c *Clock) RunOnlyPendingTimers() int",
+              "doc": "RunOnlyPendingTimers runs exactly the timers scheduled at the moment of the\ncall (advancing time to each), without running callbacks that those callbacks\nthemselves schedule. It returns the number of callbacks invoked.\n"
+            },
+            {
+              "name": "SetInterval",
+              "recv": "*Clock",
+              "signature": "func (c *Clock) SetInterval(interval time.Duration, fn func()) int",
+              "doc": "SetInterval schedules fn to run repeatedly every interval of virtual time,\nreturning an id that can be passed to [Clock.ClearTimer] to cancel it. A\nnon-positive interval is treated as a single [Clock.SetTimeout].\n"
+            },
+            {
+              "name": "SetSystemTime",
+              "recv": "*Clock",
+              "signature": "func (c *Clock) SetSystemTime(t time.Time)",
+              "doc": "SetSystemTime sets the clock's current virtual time to t without firing any\ntimers, mirroring Jest's setSystemTime. Timers scheduled relative to the old\ntime keep their absolute deadlines, so moving time forward past a deadline and\nthen advancing will fire them.\n"
+            },
+            {
+              "name": "SetTimeout",
+              "recv": "*Clock",
+              "signature": "func (c *Clock) SetTimeout(delay time.Duration, fn func()) int",
+              "doc": "SetTimeout schedules fn to run once after delay of virtual time elapses,\nreturning an id that can be passed to [Clock.ClearTimer] to cancel it.\n"
+            }
+          ]
+        },
+        {
+          "name": "CustomMatcher",
+          "signature": "type CustomMatcher func(actual any, args ...any) MatcherResult",
+          "doc": "CustomMatcher implements a user-defined matcher registered with [Extend] and\ninvoked through [Matcher.To]. It receives the actual value under test and any\nextra arguments passed at the call site.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Matcher",
+          "signature": "type Matcher[T any] struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Matcher is a fluent assertion builder produced by [Expect]. It carries the\nactual value under test, the reporter that failures are sent to, and a flag\nindicating whether the assertion has been negated with [Matcher.Not].\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "Expect",
+              "signature": "func Expect[T any](t TestReporter, actual T) *Matcher[T]",
+              "doc": "Expect begins a fluent assertion for the given actual value, reporting any\nfailures through t (typically a *testing.T).\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "LastCalledWith",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) LastCalledWith(args ...any)",
+              "doc": "LastCalledWith is an alias for [Matcher.ToHaveBeenLastCalledWith], provided\nfor familiarity with Jest's lastCalledWith spelling.\n"
+            },
+            {
+              "name": "Not",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) Not() *Matcher[T]",
+              "doc": "Not returns a new matcher that inverts the sense of the assertion that\nfollows it. For example jest.Expect(t, 1).Not().ToBe(2) passes.\n"
+            },
+            {
+              "name": "NthCalledWith",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) NthCalledWith(n int, args ...any)",
+              "doc": "NthCalledWith is an alias for [Matcher.ToHaveBeenNthCalledWith], provided for\nfamiliarity with Jest's nthCalledWith spelling.\n"
+            },
+            {
+              "name": "To",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) To(name string, args ...any)",
+              "doc": "To invokes a custom matcher previously registered with [Extend], passing the\nvalue under test and any extra arguments. Negation via [Matcher.Not] is\nhonored. It reports a failure if no matcher with the given name is registered.\n"
+            },
+            {
+              "name": "ToBe",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToBe(expected T)",
+              "doc": "ToBe asserts shallow equality using == semantics. For pointers this compares\nidentity; for structs and other comparable values it compares by value.\nNon-comparable values fall back to a deep comparison.\n"
+            },
+            {
+              "name": "ToBeCalled",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToBeCalled()",
+              "doc": "ToBeCalled is an alias for [Matcher.ToHaveBeenCalled], provided for\nfamiliarity with Jest's toBeCalled spelling.\n"
+            },
+            {
+              "name": "ToBeCalledTimes",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToBeCalledTimes(n int)",
+              "doc": "ToBeCalledTimes is an alias for [Matcher.ToHaveBeenCalledTimes], provided for\nfamiliarity with Jest's toBeCalledTimes spelling.\n"
+            },
+            {
+              "name": "ToBeCalledWith",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToBeCalledWith(args ...any)",
+              "doc": "ToBeCalledWith is an alias for [Matcher.ToHaveBeenCalledWith], provided for\nfamiliarity with Jest's toBeCalledWith spelling.\n"
+            },
+            {
+              "name": "ToBeCloseTo",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToBeCloseTo(expected float64, epsilon ...float64)",
+              "doc": "ToBeCloseTo asserts that a floating-point value is within epsilon of expected.\nIf epsilon is omitted it defaults to 1e-9.\n"
+            },
+            {
+              "name": "ToBeDefined",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToBeDefined()",
+              "doc": "ToBeDefined asserts that the value is not nil (Go's closest analogue to a\ndefined JavaScript value).\n"
+            },
+            {
+              "name": "ToBeFalse",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToBeFalse()",
+              "doc": "ToBeFalse asserts that the value is the boolean false.\n"
+            },
+            {
+              "name": "ToBeFalsy",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToBeFalsy()",
+              "doc": "ToBeFalsy asserts that the value is falsy in the JavaScript sense used by\nJest: nil, the boolean false, a numeric zero, the empty string and NaN are\nthe falsy values.\n"
+            },
+            {
+              "name": "ToBeGreaterThan",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToBeGreaterThan(n T)",
+              "doc": "ToBeGreaterThan asserts that the numeric value is strictly greater than n.\n"
+            },
+            {
+              "name": "ToBeGreaterThanOrEqual",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToBeGreaterThanOrEqual(n T)",
+              "doc": "ToBeGreaterThanOrEqual asserts that the numeric value is greater than or\nequal to n.\n"
+            },
+            {
+              "name": "ToBeInstanceOf",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToBeInstanceOf(target any)",
+              "doc": "ToBeInstanceOf asserts that the actual value's dynamic type is assignable to\nthe type of target (which may be a sample value or a [reflect.Type]). For an\ninterface target it checks that the actual value implements the interface.\n"
+            },
+            {
+              "name": "ToBeLessThan",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToBeLessThan(n T)",
+              "doc": "ToBeLessThan asserts that the numeric value is strictly less than n.\n"
+            },
+            {
+              "name": "ToBeLessThanOrEqual",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToBeLessThanOrEqual(n T)",
+              "doc": "ToBeLessThanOrEqual asserts that the numeric value is less than or equal to n.\n"
+            },
+            {
+              "name": "ToBeNaN",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToBeNaN()",
+              "doc": "ToBeNaN asserts that the value is a floating-point NaN.\n"
+            },
+            {
+              "name": "ToBeNil",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToBeNil()",
+              "doc": "ToBeNil asserts that the value is nil, handling both untyped nil interfaces\nand typed nil pointers, slices, maps, channels and functions.\n"
+            },
+            {
+              "name": "ToBeNull",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToBeNull()",
+              "doc": "ToBeNull asserts that the value is nil, the Go analogue of Jest's toBeNull.\nIt handles both untyped nil interfaces and typed nil pointers, slices, maps,\nchannels and functions.\n"
+            },
+            {
+              "name": "ToBeOneOf",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToBeOneOf(candidates ...any)",
+              "doc": "ToBeOneOf asserts that the value is deeply equal to one of the supplied\ncandidates, mirroring Jest's toBeOneOf. Each candidate is compared with\nasymmetric-aware equality, so candidates may be asymmetric matchers.\n"
+            },
+            {
+              "name": "ToBeTrue",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToBeTrue()",
+              "doc": "ToBeTrue asserts that the value is the boolean true.\n"
+            },
+            {
+              "name": "ToBeTruthy",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToBeTruthy()",
+              "doc": "ToBeTruthy asserts that the value is truthy in the JavaScript sense used by\nJest: everything except nil, the boolean false, a numeric zero, the empty\nstring and NaN is considered truthy.\n"
+            },
+            {
+              "name": "ToBeUndefined",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToBeUndefined()",
+              "doc": "ToBeUndefined asserts that the value is nil (Go's closest analogue to an\nundefined JavaScript value).\n"
+            },
+            {
+              "name": "ToContain",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToContain(item any)",
+              "doc": "ToContain asserts containment. For strings it checks for a substring; for\nslices and arrays it checks for an element (deep equality); for maps it\nchecks for a key.\n"
+            },
+            {
+              "name": "ToContainEqual",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToContainEqual(item any)",
+              "doc": "ToContainEqual asserts that the actual value contains an element deeply equal\nto item. Unlike [Matcher.ToContain], the comparison is asymmetric-aware, so\nitem may itself be an [AsymmetricMatcher]. It works for slices and arrays\n(element membership) and for maps (value membership).\n"
+            },
+            {
+              "name": "ToEqual",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToEqual(expected T)",
+              "doc": "ToEqual asserts deep equality using reflect.DeepEqual. On failure it includes\na small structural diff between the expected and actual values.\n"
+            },
+            {
+              "name": "ToHaveBeenCalled",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToHaveBeenCalled()",
+              "doc": "ToHaveBeenCalled asserts that the mock under test was called at least once.\n"
+            },
+            {
+              "name": "ToHaveBeenCalledTimes",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToHaveBeenCalledTimes(n int)",
+              "doc": "ToHaveBeenCalledTimes asserts that the mock under test was called exactly n times.\n"
+            },
+            {
+              "name": "ToHaveBeenCalledWith",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToHaveBeenCalledWith(args ...any)",
+              "doc": "ToHaveBeenCalledWith asserts that the mock under test was called at least once\nwith arguments matching args (compared with asymmetric-aware equality, so\nasymmetric matchers may be used as arguments).\n"
+            },
+            {
+              "name": "ToHaveBeenLastCalledWith",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToHaveBeenLastCalledWith(args ...any)",
+              "doc": "ToHaveBeenLastCalledWith asserts that the mock's most recent call was made\nwith arguments matching args (asymmetric-aware).\n"
+            },
+            {
+              "name": "ToHaveBeenNthCalledWith",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToHaveBeenNthCalledWith(n int, args ...any)",
+              "doc": "ToHaveBeenNthCalledWith asserts that the mock's n-th call (1-based, mirroring\nJest) was made with arguments matching args (asymmetric-aware).\n"
+            },
+            {
+              "name": "ToHaveLastReturnedWith",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToHaveLastReturnedWith(value any)",
+              "doc": "ToHaveLastReturnedWith asserts that the mock's most recent call returned a\nfirst result matching value (asymmetric-aware), mirroring Jest's\ntoHaveLastReturnedWith. A most-recent call that panicked fails the assertion.\n"
+            },
+            {
+              "name": "ToHaveLen",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToHaveLen(n int)",
+              "doc": "ToHaveLen asserts that the value has the given length. It works for strings,\nslices, arrays, maps and channels.\n"
+            },
+            {
+              "name": "ToHaveLength",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToHaveLength(n int)",
+              "doc": "ToHaveLength asserts that the value has the given length, mirroring Jest's\ntoHaveLength. It works for strings, slices, arrays, maps and channels and is\nan alias, using the Jest spelling, of [Matcher.ToHaveLen].\n"
+            },
+            {
+              "name": "ToHaveNthReturnedWith",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToHaveNthReturnedWith(n int, value any)",
+              "doc": "ToHaveNthReturnedWith asserts that the mock's n-th call (1-based, mirroring\nJest) returned a first result matching value (asymmetric-aware), mirroring\nJest's toHaveNthReturnedWith. A missing or panicking call fails the assertion.\n"
+            },
+            {
+              "name": "ToHaveProperty",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToHaveProperty(path string, value ...any)",
+              "doc": "ToHaveProperty asserts that the actual value has a property reachable by path\n(a dotted path such as \"a.b.c\", with numeric segments or \"[i]\" indexing into\nslices and arrays, e.g. \"items[0].name\"). If a value argument is supplied the\nproperty must additionally satisfy it with asymmetric-aware equality.\n"
+            },
+            {
+              "name": "ToHaveReturned",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToHaveReturned()",
+              "doc": "ToHaveReturned asserts that the mock under test returned (completed without\npanicking) on at least one call.\n"
+            },
+            {
+              "name": "ToHaveReturnedTimes",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToHaveReturnedTimes(n int)",
+              "doc": "ToHaveReturnedTimes asserts that the mock under test returned (completed a\ncall without panicking) exactly n times, mirroring Jest's\ntoHaveReturnedTimes.\n"
+            },
+            {
+              "name": "ToHaveReturnedWith",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToHaveReturnedWith(value any)",
+              "doc": "ToHaveReturnedWith asserts that the mock returned a first result matching\nvalue (asymmetric-aware) on at least one non-panicking call.\n"
+            },
+            {
+              "name": "ToMatch",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToMatch(pattern string)",
+              "doc": "ToMatch asserts that the value, rendered as a string, matches the given\nregular expression.\n"
+            },
+            {
+              "name": "ToMatchInlineSnapshot",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToMatchInlineSnapshot(expected string)",
+              "doc": "ToMatchInlineSnapshot compares the serialized form of the value against an\ninline expected snapshot supplied at the call site, mirroring Jest's\ntoMatchInlineSnapshot. Both the stored and the actual serializations are\ncompared after trimming surrounding whitespace, so the expected literal may be\nwritten across multiple indented lines. The value is serialized with the same\ndeterministic, sorted-key serializer used by [Matcher.ToMatchSnapshot].\n"
+            },
+            {
+              "name": "ToMatchObject",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToMatchObject(expected any)",
+              "doc": "ToMatchObject asserts that the actual value (a map with string keys or a\nstruct) contains every key/field present in expected, each satisfying the\ncorresponding value with asymmetric-aware equality. Extra keys or fields on\nthe actual value are ignored, and nested maps/structs are matched recursively.\nAsymmetric matchers (see [AsymmetricMatcher]) may appear anywhere in expected.\n"
+            },
+            {
+              "name": "ToMatchSnapshot",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToMatchSnapshot(name ...string)",
+              "doc": "ToMatchSnapshot compares the actual value against a snapshot stored on disk.\nOn the first run (or in update mode) the serialized value is written to the\nsnapshot store and the assertion passes; on subsequent runs the value is\ncompared against the stored snapshot and a failure is reported on any\ndifference. An optional explicit name overrides the snapshot key (which\notherwise derives from the test name plus a per-test counter), making the\nsnapshot stable regardless of test-execution order.\n"
+            },
+            {
+              "name": "ToPanic",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToPanic(msg ...string)",
+              "doc": "ToPanic calls the actual value (which must be a func with no arguments) and\nasserts that it panics. If a message argument is supplied, the panic value's\nstring form must contain that substring.\n"
+            },
+            {
+              "name": "ToReturn",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToReturn()",
+              "doc": "ToReturn is an alias for [Matcher.ToHaveReturned], provided for familiarity\nwith Jest's toReturn spelling.\n"
+            },
+            {
+              "name": "ToReturnWith",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToReturnWith(value any)",
+              "doc": "ToReturnWith is an alias for [Matcher.ToHaveReturnedWith], provided for\nfamiliarity with Jest's toReturnWith spelling.\n"
+            },
+            {
+              "name": "ToStrictEqual",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToStrictEqual(expected T)",
+              "doc": "ToStrictEqual asserts deep equality that is also strict about dynamic types:\nlike [Matcher.ToEqual] it walks the value recursively and honors asymmetric\nmatchers, but it additionally requires the actual and expected values to have\nidentical types at every level (so, for example, two structurally identical\nbut differently named struct types are not considered equal).\n"
+            },
+            {
+              "name": "ToThrow",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToThrow(msg ...string)",
+              "doc": "ToThrow is an alias for [Matcher.ToPanic] provided for familiarity with the\nJest API.\n"
+            },
+            {
+              "name": "ToThrowMatchingSnapshot",
+              "recv": "*Matcher[T]",
+              "signature": "func (m *Matcher[T]) ToThrowMatchingSnapshot(name ...string)",
+              "doc": "ToThrowMatchingSnapshot calls the actual value (which must be a func with no\narguments), captures the string form of the panic it raises, and compares it\nagainst an on-disk snapshot, mirroring Jest's toThrowErrorMatchingSnapshot. On\nthe first run (or in snapshot update mode) the message is written to the\nsnapshot store; on later runs it is compared. If the function does not panic,\nthe assertion fails. An optional explicit name overrides the snapshot key.\n"
+            }
+          ]
+        },
+        {
+          "name": "MatcherResult",
+          "signature": "type MatcherResult struct {\n\t// Pass reports whether the assertion succeeded.\n\tPass bool\n\t// Message is the failure message (used when the assertion fails, or when it\n\t// unexpectedly passes under negation).\n\tMessage string\n}",
+          "doc": "MatcherResult is returned by a [CustomMatcher] to report whether the\nassertion passed and to supply the message used on failure.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Mock",
+          "signature": "type Mock struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Mock records the calls made to it and can be configured with canned return\nvalues. It is safe for concurrent use.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "Fn0",
+              "signature": "func Fn0[R any](name string) (func() R, *Mock)",
+              "doc": "Fn0 returns a type-safe mock function taking no arguments and returning R,\ntogether with the backing [Mock] used to configure and inspect it.\n"
+            },
+            {
+              "name": "Fn1",
+              "signature": "func Fn1[A any, R any](name string) (func(A) R, *Mock)",
+              "doc": "Fn1 returns a type-safe mock function taking one argument and returning R,\ntogether with the backing [Mock].\n"
+            },
+            {
+              "name": "Fn2",
+              "signature": "func Fn2[A any, B any, R any](name string) (func(A, B) R, *Mock)",
+              "doc": "Fn2 returns a type-safe mock function taking two arguments and returning R,\ntogether with the backing [Mock].\n"
+            },
+            {
+              "name": "NewMock",
+              "signature": "func NewMock(name string) *Mock",
+              "doc": "NewMock creates a new mock with the given descriptive name. The mock is\nregistered in the global registry consulted by [ClearAllMocks] and\n[ResetAllMocks].\n"
+            },
+            {
+              "name": "Spy0",
+              "signature": "func Spy0[R any](name string, fn func() R) (func() R, *Mock)",
+              "doc": "Spy0 wraps a zero-argument function, recording each call (and its result)\nwhile delegating to fn. It returns the wrapper and the backing [Mock].\n"
+            },
+            {
+              "name": "Spy1",
+              "signature": "func Spy1[A any, R any](name string, fn func(A) R) (func(A) R, *Mock)",
+              "doc": "Spy1 wraps a one-argument function, recording each call while delegating to\nfn. It returns the wrapper and the backing [Mock].\n"
+            },
+            {
+              "name": "Spy2",
+              "signature": "func Spy2[A any, B any, R any](name string, fn func(A, B) R) (func(A, B) R, *Mock)",
+              "doc": "Spy2 wraps a two-argument function, recording each call while delegating to\nfn. It returns the wrapper and the backing [Mock].\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Call",
+              "recv": "*Mock",
+              "signature": "func (m *Mock) Call(args ...any) []any",
+              "doc": "Call records an invocation with the given arguments and returns the\nconfigured results. Resolution order is: a one-shot implementation queued by\n[Mock.MockImplementationOnce] or [Mock.MockReturnValueOnce]; then a live\nimplementation set by [Mock.MockImplementation] (or a spy); then the next\nentry of a sequence configured with [Mock.ReturnValues]; then the fixed value\nfrom [Mock.Return]; and finally the last sequence entry if one exists.\n"
+            },
+            {
+              "name": "CallCount",
+              "recv": "*Mock",
+              "signature": "func (m *Mock) CallCount() int",
+              "doc": "CallCount returns the number of times the mock has been called.\n"
+            },
+            {
+              "name": "Called",
+              "recv": "*Mock",
+              "signature": "func (m *Mock) Called() bool",
+              "doc": "Called reports whether the mock has been called at least once.\n"
+            },
+            {
+              "name": "CalledWith",
+              "recv": "*Mock",
+              "signature": "func (m *Mock) CalledWith(args ...any) bool",
+              "doc": "CalledWith reports whether the mock was ever called with exactly the given\narguments (compared with reflect.DeepEqual).\n"
+            },
+            {
+              "name": "Calls",
+              "recv": "*Mock",
+              "signature": "func (m *Mock) Calls() []Call",
+              "doc": "Calls returns a copy of all recorded calls in invocation order.\n"
+            },
+            {
+              "name": "LastCall",
+              "recv": "*Mock",
+              "signature": "func (m *Mock) LastCall() (Call, bool)",
+              "doc": "LastCall returns the most recent recorded call and true, or a zero Call and\nfalse if the mock has not been called.\n"
+            },
+            {
+              "name": "MockClear",
+              "recv": "*Mock",
+              "signature": "func (m *Mock) MockClear() *Mock",
+              "doc": "MockClear resets the mock's recorded call history (its calls and results)\nwithout changing any configured implementation or return values, mirroring\nJest's mockFn.mockClear. It returns the mock to allow chaining.\n"
+            },
+            {
+              "name": "MockImplementation",
+              "recv": "*Mock",
+              "signature": "func (m *Mock) MockImplementation(fn func(args ...any) []any) *Mock",
+              "doc": "MockImplementation sets a live implementation invoked on every call (until a\none-shot implementation queued by [Mock.MockImplementationOnce] takes\nprecedence). The implementation receives the call arguments and returns the\nresult set. It returns the mock to allow chaining.\n"
+            },
+            {
+              "name": "MockImplementationOnce",
+              "recv": "*Mock",
+              "signature": "func (m *Mock) MockImplementationOnce(fn func(args ...any) []any) *Mock",
+              "doc": "MockImplementationOnce queues a one-shot implementation consumed by the next\ncall only. Multiple queued implementations are consumed in order, ahead of\nany implementation set by [Mock.MockImplementation]. It returns the mock to\nallow chaining.\n"
+            },
+            {
+              "name": "MockName",
+              "recv": "*Mock",
+              "signature": "func (m *Mock) MockName(name string) *Mock",
+              "doc": "MockName sets the mock's descriptive name (used in matcher failure messages)\nand returns the mock to allow chaining, mirroring Jest's mockFn.mockName. The\ncurrent name is read back with [Mock.Name].\n"
+            },
+            {
+              "name": "MockRejectedValue",
+              "recv": "*Mock",
+              "signature": "func (m *Mock) MockRejectedValue(err error) *Mock",
+              "doc": "MockRejectedValue configures the mock to return the pair (nil, err),\nmodelling a function that returns a zero result and a non-nil error. It\nreturns the mock to allow chaining.\n"
+            },
+            {
+              "name": "MockReset",
+              "recv": "*Mock",
+              "signature": "func (m *Mock) MockReset() *Mock",
+              "doc": "MockReset restores the mock to its freshly-created state: it clears the call\nhistory and removes every configured implementation, one-shot behavior and\nreturn value, mirroring Jest's mockFn.mockReset. It returns the mock to allow\nchaining.\n"
+            },
+            {
+              "name": "MockResolvedValue",
+              "recv": "*Mock",
+              "signature": "func (m *Mock) MockResolvedValue(value any) *Mock",
+              "doc": "MockResolvedValue configures the mock to return the pair (value, nil),\nmodelling a function that returns a result and a nil error. It returns the\nmock to allow chaining.\n"
+            },
+            {
+              "name": "MockReturnValueOnce",
+              "recv": "*Mock",
+              "signature": "func (m *Mock) MockReturnValueOnce(values ...any) *Mock",
+              "doc": "MockReturnValueOnce queues a one-shot result set returned by the next call\nonly, ahead of any value configured with [Mock.Return]. It returns the mock\nto allow chaining.\n"
+            },
+            {
+              "name": "Name",
+              "recv": "*Mock",
+              "signature": "func (m *Mock) Name() string",
+              "doc": "Name returns the mock's descriptive name.\n"
+            },
+            {
+              "name": "NthCall",
+              "recv": "*Mock",
+              "signature": "func (m *Mock) NthCall(i int) (Call, bool)",
+              "doc": "NthCall returns the call at the given zero-based index and true, or a zero\nCall and false if the index is out of range.\n"
+            },
+            {
+              "name": "Reset",
+              "recv": "*Mock",
+              "signature": "func (m *Mock) Reset()",
+              "doc": "Reset clears the recorded call history without changing the configured return\nvalues.\n"
+            },
+            {
+              "name": "Results",
+              "recv": "*Mock",
+              "signature": "func (m *Mock) Results() [][]any",
+              "doc": "Results returns the result set of every recorded call, in invocation order.\nA panicking call contributes a nil entry.\n"
+            },
+            {
+              "name": "Return",
+              "recv": "*Mock",
+              "signature": "func (m *Mock) Return(values ...any) *Mock",
+              "doc": "Return configures the mock to return the given values from every call\n(unless a sequence configured with [Mock.ReturnValues] still has entries\nleft). It returns the mock to allow chaining.\n"
+            },
+            {
+              "name": "ReturnValues",
+              "recv": "*Mock",
+              "signature": "func (m *Mock) ReturnValues(sets ...[]any) *Mock",
+              "doc": "ReturnValues configures a sequence of result sets, one consumed per call. Once\nthe sequence is exhausted, subsequent calls fall back to the value configured\nwith [Mock.Return], or to the last sequence entry if Return was never called.\nIt returns the mock to allow chaining.\n"
+            }
+          ]
+        },
+        {
+          "name": "Spy",
+          "signature": "type Spy struct {\n\t*Mock\n\t// contains filtered or unexported fields\n}",
+          "doc": "Spy wraps a function value (typically stored in a package-level variable or an\nexported struct field) so that calls through it are recorded, while still\ndelegating to the original implementation. The embedded [Mock] provides the\nfull inspection API ([Mock.CallCount], [Mock.CalledWith], and so on), and the\noriginal function is reinstated with [Spy.Restore] (or [RestoreAllMocks]).\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "SpyOn",
+              "signature": "func SpyOn[T any](target *T) *Spy",
+              "doc": "SpyOn replaces the function value pointed to by target with a recording\nwrapper of the same type and returns a [Spy] for inspection and restoration.\ntarget must point to a variable or addressable struct field of func type;\nSpyOn panics otherwise. By default the wrapper delegates to the original\nimplementation; set a replacement with [Mock.MockImplementation] (or the\none-shot / return-value variants) on the returned spy's mock. Every spy is\nregistered so that [RestoreAllMocks] can undo it.\n\n\tvar greet = func(name string) string { return \"hi \" + name }\n\tspy := jest.SpyOn(\u0026greet)\n\tdefer spy.Restore()\n\tgreet(\"bob\")\n\tjest.Expect(t, spy).ToHaveBeenCalledWith(\"bob\")\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Restore",
+              "recv": "*Spy",
+              "signature": "func (s *Spy) Restore()",
+              "doc": "Restore reinstates the original function value that was replaced by [SpyOn].\n"
+            }
+          ]
+        },
+        {
+          "name": "TestReporter",
+          "signature": "type TestReporter interface {\n\t// Errorf reports a non-fatal failure, mirroring (*testing.T).Errorf.\n\tErrorf(format string, args ...any)\n\t// Fatalf reports a fatal failure, mirroring (*testing.T).Fatalf.\n\tFatalf(format string, args ...any)\n\t// Helper marks the calling function as a test helper, mirroring\n\t// (*testing.T).Helper.\n\tHelper()\n}",
+          "doc": "TestReporter is the minimal subset of *testing.T that the jest matchers need\nin order to report failures. It is satisfied by *testing.T, so in production\ntests you simply pass your test's t. In jest's own tests a fake reporter that\nrecords failures is passed instead, which makes it possible to exercise the\nfailure branch of every matcher without failing the surrounding test.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        }
+      ],
+      "funcs": [
+        {
+          "name": "AfterAll",
+          "signature": "func AfterAll(fn func())",
+          "doc": "AfterAll registers a teardown function that runs once, after the last [It] in\nthe enclosing Describe scope. It panics if called outside of a Describe block.\n"
+        },
+        {
+          "name": "AfterEach",
+          "signature": "func AfterEach(fn func())",
+          "doc": "AfterEach registers a teardown function that runs after each [It] in the\nenclosing Describe scope. It panics if called outside of a Describe block.\n"
+        },
+        {
+          "name": "Assertions",
+          "signature": "func Assertions(t cleanuper, n int)",
+          "doc": "Assertions declares that exactly n assertions are expected to run during the\ntest, mirroring Jest's expect.assertions(n). The count is verified when the\ntest finishes. t must provide a Cleanup method (as *testing.T does).\n"
+        },
+        {
+          "name": "BeforeAll",
+          "signature": "func BeforeAll(fn func())",
+          "doc": "BeforeAll registers a setup function that runs once, before the first [It] in\nthe enclosing Describe scope. Declare it before the tests it prepares. It\npanics if called outside of a Describe block.\n"
+        },
+        {
+          "name": "BeforeEach",
+          "signature": "func BeforeEach(fn func())",
+          "doc": "BeforeEach registers a setup function that runs before each [It] in the\nenclosing Describe scope. It panics if called outside of a Describe block.\n"
+        },
+        {
+          "name": "ClearAllMocks",
+          "signature": "func ClearAllMocks()",
+          "doc": "ClearAllMocks clears the recorded call history of every mock created through\n[NewMock] and its wrappers, mirroring Jest's jest.clearAllMocks. Configured\nimplementations and return values are preserved; use [ResetAllMocks] to also\ndiscard those.\n"
+        },
+        {
+          "name": "Describe",
+          "signature": "func Describe(t *testing.T, name string, fn func())",
+          "doc": "Describe groups related tests under a named subtest (via t.Run) and\nestablishes a scope in which [BeforeEach] and [AfterEach] hooks may be\nregistered. Describe blocks may be nested; inner blocks run under their\nparent's subtest.\n"
+        },
+        {
+          "name": "DescribeEach",
+          "signature": "func DescribeEach[C any](t *testing.T, name string, cases []C, fn func(tc C))",
+          "doc": "DescribeEach runs a parameterized [Describe] block once per case, mirroring\nJest's describe.each. The supplied fn receives the case value and registers\ntests inside the block.\n"
+        },
+        {
+          "name": "Each",
+          "signature": "func Each[C any](t *testing.T, name string, cases []C, fn func(t *testing.T, tc C))",
+          "doc": "Each runs a table-driven test: for every entry in cases it invokes fn as a\nseparate [It] subtest, mirroring Jest's it.each. If name contains a fmt verb\n(a '%'), the subtest name is formatted with the case value; otherwise the\ncase index is appended.\n\n\tjest.Each(t, \"square of %v\", []struct{ In, Out int }{{2, 4}, {3, 9}},\n\t    func(t *testing.T, tc struct{ In, Out int }) {\n\t        jest.Expect(t, tc.In*tc.In).ToBe(tc.Out)\n\t    })\n"
+        },
+        {
+          "name": "Extend",
+          "signature": "func Extend(matchers map[string]CustomMatcher)",
+          "doc": "Extend registers custom matchers by name, mirroring Jest's expect.extend.\nRegistered matchers are invoked with [Matcher.To]. Calling Extend again with\nan existing name replaces that matcher.\n"
+        },
+        {
+          "name": "HasAssertions",
+          "signature": "func HasAssertions(t cleanuper)",
+          "doc": "HasAssertions declares that at least one assertion is expected to run during\nthe test, mirroring Jest's expect.hasAssertions. The expectation is verified\nwhen the test finishes. t must provide a Cleanup method (as *testing.T does).\n"
+        },
+        {
+          "name": "It",
+          "signature": "func It(t *testing.T, name string, fn func(t *testing.T))",
+          "doc": "It defines a single test case, run as a subtest (via t.Run) beneath the\nenclosing Describe block (if any). BeforeAll hooks from enclosing scopes run\nonce before the first test, BeforeEach hooks run before fn, and AfterEach\nhooks run afterwards in reverse order.\n"
+        },
+        {
+          "name": "ItOnly",
+          "signature": "func ItOnly(t *testing.T, name string, fn func(t *testing.T))",
+          "doc": "ItOnly focuses a test case within its enclosing Describe block: when at least\none ItOnly is declared before the other tests in a block, the plain [It] cases\nin that block are skipped, mirroring Jest's it.only. Focus applies within a\nDescribe block; top-level ItOnly simply runs.\n"
+        },
+        {
+          "name": "ItSkip",
+          "signature": "func ItSkip(t *testing.T, name string, fn func(t *testing.T))",
+          "doc": "ItSkip registers a test case that is always skipped, mirroring Jest's it.skip.\n"
+        },
+        {
+          "name": "ItTodo",
+          "signature": "func ItTodo(t *testing.T, name string)",
+          "doc": "ItTodo registers a placeholder test that is reported as skipped, mirroring\nJest's it.todo. The function argument may be nil.\n"
+        },
+        {
+          "name": "ResetAllMocks",
+          "signature": "func ResetAllMocks()",
+          "doc": "ResetAllMocks resets every mock created through [NewMock] and its wrappers to\nits freshly-created state, clearing call history and removing configured\nimplementations and return values, mirroring Jest's jest.resetAllMocks. To\nalso reinstate the originals replaced by [SpyOn], use [RestoreAllMocks].\n"
+        },
+        {
+          "name": "RestoreAllMocks",
+          "signature": "func RestoreAllMocks()",
+          "doc": "RestoreAllMocks reinstates the original function values for every spy created\nwith [SpyOn] since the last call, then clears the registry.\n"
+        },
+        {
+          "name": "SetUpdateSnapshots",
+          "signature": "func SetUpdateSnapshots(on bool)",
+          "doc": "SetUpdateSnapshots enables or disables snapshot update mode. In update mode\n[Matcher.ToMatchSnapshot] (re)writes the stored snapshot instead of comparing\nagainst it. Update mode is also enabled by setting the JEST_UPDATE_SNAPSHOTS\nenvironment variable.\n"
+        },
+        {
+          "name": "Test",
+          "signature": "func Test(t *testing.T, name string, fn func(t *testing.T))",
+          "doc": "Test is an alias for [It], provided for readability.\n"
+        }
+      ],
+      "examples": [
+        {
+          "name": "",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/jest\"\n)\n\nfunc main() {\n\tm := jest.NewMock(\"greeter\")\n\tm.Return(\"hello\")\n\n\tfmt.Println(m.Call(\"world\")[0])\n\tfmt.Println(m.CallCount())\n\tfmt.Println(m.CalledWith(\"world\"))\n\n\tfn, mock := jest.Fn1[int, int](\"square\")\n\tmock.ReturnValues([]any{1}, []any{4}, []any{9})\n\tfmt.Println(fn(1), fn(2), fn(3))\n\tfmt.Println(mock.CallCount())\n\n}",
+          "output": "hello\n1\ntrue\n1 4 9\n3",
+          "doc": "Example demonstrates configuring and inspecting a mock. Because mocks report\nthrough their own methods rather than *testing.T, they can be exercised in a\nrunnable example with verified output.\n"
+        },
+        {
+          "name": "Clock",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"time\"\n\n\t\"github.com/malcolmston/jest\"\n)\n\nfunc main() {\n\tc := jest.NewClock()\n\tticks := 0\n\tc.SetInterval(time.Second, func() { ticks++ })\n\n\tc.AdvanceTimersByTime(3 * time.Second)\n\tfmt.Println(\"ticks:\", ticks)\n\tfmt.Println(\"now:\", c.Now().Sub(time.Unix(0, 0)))\n\n}",
+          "output": "ticks: 3\nnow: 3s",
+          "doc": "ExampleClock demonstrates driving virtual time with a fake clock.\n"
+        },
+        {
+          "name": "Mock (mockImplementationOnce)",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/jest\"\n)\n\nfunc main() {\n\tm := jest.NewMock(\"fetch\")\n\tm.MockImplementation(func(_ ...any) []any { return []any{\"live\"} })\n\tm.MockReturnValueOnce(\"cached\")\n\n\tfmt.Println(m.Call()[0])\n\tfmt.Println(m.Call()[0])\n\n}",
+          "output": "cached\nlive",
+          "doc": "ExampleMock_mockImplementationOnce demonstrates one-shot implementations\nfalling back to a base implementation.\n"
+        }
+      ]
+    }
+  ]
+}

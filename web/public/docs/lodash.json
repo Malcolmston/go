@@ -1,0 +1,1923 @@
+{
+  "module": "github.com/malcolmston/lodash",
+  "generatedAt": "2026-07-19T02:05:52Z",
+  "packages": [
+    {
+      "importPath": "github.com/malcolmston/lodash",
+      "name": "lodash",
+      "synopsis": "Package lodash is a comprehensive, type-safe functional utility library for Go, inspired by the JavaScript library lodash.",
+      "doc": "Package lodash is a comprehensive, type-safe functional utility library for\nGo, inspired by the JavaScript library lodash. It is implemented entirely\nwith the Go standard library and leans on Go 1.24 generics so that helpers\nstay type-safe without external dependencies.\n\nAll functions are pure and non-mutating unless explicitly documented\notherwise: they return new slices or maps rather than modifying their\narguments. Any randomness is injected via a *math/rand.Rand so that behavior\nis fully deterministic and testable.\n\n# Collections and slices\n\nTransform, query and reshape slices:\n\n\tMap, MapI, Filter, Reject, Reduce, ReduceRight, ForEach, ForEachI,\n\tForEachRight, Find, FindLast, FindIndex, FindLastIndex, Every, Some, None,\n\tIncludes, IndexOf, LastIndexOf, IndexOfFrom, LastIndexOfFrom, GroupBy,\n\tKeyBy, CountBy, Partition, Uniq, UniqBy, SortedUniq, SortedUniqBy, Chunk,\n\tFlatten, FlattenDeep, FlattenDepth, FlatMap, Compact, Reverse, Zip, ZipWith,\n\tUnzip, UnzipWith, ZipObject, Difference, DifferenceBy, DifferenceWith,\n\tIntersection, IntersectionBy, IntersectionWith, Union, UnionBy, UnionWith,\n\tXor, XorBy, XorWith, Without, Pull, PullAll, PullAllBy, PullAt, Remove,\n\tTake, TakeRight, TakeWhile, TakeRightWhile, Drop, DropRight, DropWhile,\n\tDropRightWhile, Head, First, Last, Nth, Initial, Tail, Slice, Join, Sample,\n\tSampleN, Shuffle, SortBy, OrderBy, SortedIndex, SortedIndexBy, SortedIndexOf,\n\tSortedLastIndex, SortedLastIndexBy, SortedLastIndexOf, Concat, Fill.\n\n# Math and numbers\n\nAggregate, constrain and compute over numeric data:\n\n\tSum, SumBy, Mean, MeanBy, Min, MinBy, Max, MaxBy, Add, Subtract, Multiply,\n\tDivide, Clamp, Round, Floor, Ceil, Random, RandomFloat, Range, RangeStep,\n\tRangeRight, InRange.\n\n# Objects and maps\n\nInspect and reshape maps, including nested map[string]any access with dotted\nand bracket paths:\n\n\tKeys, SortedKeys, Values, Entries, FromEntries, ToPairs, FromPairs,\n\tZipObject, Pick, PickBy, Omit, OmitBy, MapKeys, MapValues, Invert, InvertBy,\n\tMerge, MergeWith, Assign, AssignWith, Defaults, DefaultsDeep, Transform,\n\tForOwn, FindKey, Size, Get, GetOr, Has, At, Result, Set, Unset, Update,\n\tToPath.\n\n# Strings\n\nCase conversion, formatting, escaping and templating:\n\n\tWords, CamelCase, PascalCase, SnakeCase, KebabCase, StartCase, LowerCase,\n\tUpperCase, ToLower, ToUpper, Capitalize, UpperFirst, LowerFirst, Pad,\n\tPadStart, PadEnd, Truncate, Repeat, Deburr, Trim, TrimStart, TrimEnd,\n\tEscape, Unescape, EscapeRegExp, Replace, Split, StartsWith, EndsWith,\n\tTemplate.\n\n# Lang and value helpers\n\nClone, compare and interrogate arbitrary values:\n\n\tClone, CloneDeep, IsEqual, Eq, IsEmpty, IsMatch, IsNil, IsPlainObject,\n\tIsString, IsBool, IsNumber, IsInteger, IsSlice, IsMap, IsError,\n\tIsObjectLike, IsNaN, IsFinite, CastArray, ToArray, DefaultTo, Gt, Gte, Lt,\n\tLte, ToNumber, ToInteger, ToFinite, ToSafeInteger, ToString, Conforms,\n\tConformsTo.\n\n# Function combinators\n\nCompose, adapt and constrain functions:\n\n\tCurry, Curry3, Partial, PartialRight, Flow, FlowRight, Compose, Cond, Over,\n\tOverEvery, OverSome, OverArgs, Negate, Ary, Unary, Flip, Rearg, Spread,\n\tNthArg, Wrap, Once, Memoize, MemoizeBy, NewDebouncer, NewThrottler, After,\n\tBefore.\n\n# Utilities and sequences\n\nGeneral-purpose helpers and a lazy value wrapper for method chaining:\n\n\tIdentity, Constant, Noop, Times, UniqueID, Property, PropertyOf, Matches,\n\tAttempt, StubArray, StubObject, StubString, StubTrue, StubFalse, Chain\n\t(with Value, Thru and Tap).\n",
+      "consts": [],
+      "vars": [],
+      "types": [
+        {
+          "name": "CondPair",
+          "signature": "type CondPair[T, R any] struct {\n\t// Pred reports whether Result should be applied to the input.\n\tPred func(T) bool\n\t// Result produces the output when Pred matches.\n\tResult func(T) R\n}",
+          "doc": "CondPair couples a predicate with the transform to run when it matches, for\nuse with Cond.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Debouncer",
+          "signature": "type Debouncer struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Debouncer wraps a function so that it only runs after calls have stopped for a\nspecified quiet period. Each call to Call resets the timer; the wrapped\nfunction runs once, wait after the final call. Use Cancel to abort a pending\ninvocation. Debouncer is safe for concurrent use and schedules the call on a\nseparate goroutine via a time.Timer.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewDebouncer",
+              "signature": "func NewDebouncer(wait time.Duration, fn func()) *Debouncer",
+              "doc": "NewDebouncer creates a Debouncer that will invoke fn once calls have been\nquiet for wait.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Call",
+              "recv": "*Debouncer",
+              "signature": "func (d *Debouncer) Call()",
+              "doc": "Call schedules the wrapped function to run after the quiet period, resetting\nany previously scheduled invocation.\n"
+            },
+            {
+              "name": "Cancel",
+              "recv": "*Debouncer",
+              "signature": "func (d *Debouncer) Cancel() bool",
+              "doc": "Cancel stops any pending invocation. It reports whether a pending call was\ncancelled.\n"
+            }
+          ]
+        },
+        {
+          "name": "Entry",
+          "signature": "type Entry[K comparable, V any] struct {\n\tKey   K\n\tValue V\n}",
+          "doc": "Entry is a single key/value pair from a map.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "Entries",
+              "signature": "func Entries[K comparable, V any](m map[K]V) []Entry[K, V]",
+              "doc": "Entries returns the key/value pairs of the map in unspecified order.\n"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "name": "Number",
+          "signature": "type Number interface {\n\t~int | ~int8 | ~int16 | ~int32 | ~int64 |\n\t\t~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr |\n\t\t~float32 | ~float64\n}",
+          "doc": "Number is a constraint permitting any built-in numeric type.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Order",
+          "signature": "type Order int",
+          "doc": "Order describes a sort direction for OrderBy.\n",
+          "consts": [
+            {
+              "names": [
+                "Asc",
+                "Desc"
+              ],
+              "signature": "const (\n\t// Asc sorts in ascending order.\n\tAsc Order = iota\n\t// Desc sorts in descending order.\n\tDesc\n)",
+              "doc": ""
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Ordered",
+          "signature": "type Ordered interface {\n\t~int | ~int8 | ~int16 | ~int32 | ~int64 |\n\t\t~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr |\n\t\t~float32 | ~float64 | ~string\n}",
+          "doc": "Ordered constrains the types that support the relational operators used by\nGt, Gte, Lt and Lte.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Pair",
+          "signature": "type Pair[A, B any] struct {\n\tFirst  A\n\tSecond B\n}",
+          "doc": "Pair holds two related values produced by Zip.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "ToPairs",
+              "signature": "func ToPairs[K comparable, V any](m map[K]V) []Pair[K, V]",
+              "doc": "ToPairs returns the key/value pairs of the map as a slice of Pair values in\nunspecified order.\n"
+            },
+            {
+              "name": "Zip",
+              "signature": "func Zip[A, B any](a []A, b []B) []Pair[A, B]",
+              "doc": "Zip combines two slices into a slice of pairs. The result length equals the\nlength of the shorter input.\n"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "name": "Seq",
+          "signature": "type Seq[T any] struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Seq is a lightweight value wrapper that enables lodash-style method chaining.\nA Seq carries a single value through a pipeline of transforms; call Value to\nunwrap the final result. Because Go methods cannot introduce new type\nparameters, transforms that change the value's type are provided as the\npackage-level functions Thru and Tap.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "Chain",
+              "signature": "func Chain[T any](value T) Seq[T]",
+              "doc": "Chain wraps value in a Seq so that transforms can be applied fluently.\n"
+            },
+            {
+              "name": "Tap",
+              "signature": "func Tap[T any](s Seq[T], fn func(T)) Seq[T]",
+              "doc": "Tap invokes fn with the value wrapped by s for its side effects and returns\nthe Seq unchanged.\n"
+            },
+            {
+              "name": "Thru",
+              "signature": "func Thru[T, R any](s Seq[T], fn func(T) R) Seq[R]",
+              "doc": "Thru applies fn to the value wrapped by s and returns a new Seq holding the\n(possibly differently typed) result.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Tap",
+              "recv": "Seq[T]",
+              "signature": "func (s Seq[T]) Tap(fn func(T)) Seq[T]",
+              "doc": "Tap invokes fn with the wrapped value for its side effects and returns the\nSeq unchanged, allowing you to observe an intermediate value mid-chain.\n"
+            },
+            {
+              "name": "Thru",
+              "recv": "Seq[T]",
+              "signature": "func (s Seq[T]) Thru(fn func(T) T) Seq[T]",
+              "doc": "Thru applies a same-typed transform to the wrapped value and returns a new\nSeq holding the result. Use the package-level Thru function to transform the\nvalue into a different type.\n"
+            },
+            {
+              "name": "Value",
+              "recv": "Seq[T]",
+              "signature": "func (s Seq[T]) Value() T",
+              "doc": "Value returns the wrapped value, terminating the chain.\n"
+            }
+          ]
+        },
+        {
+          "name": "SetSeq",
+          "signature": "type SetSeq[T comparable] struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "SetSeq is a fluent wrapper around a slice of comparable elements. It\ncomplements SliceSeq with the set-oriented operations that require the\nelement type to be comparable (deduplication, membership and the algebraic\nset combinators). Call Value to unwrap the final slice.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "ChainSet",
+              "signature": "func ChainSet[T comparable](s []T) SetSeq[T]",
+              "doc": "ChainSet wraps s in a SetSeq so that set-oriented transforms can be applied\nfluently.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Compact",
+              "recv": "SetSeq[T]",
+              "signature": "func (s SetSeq[T]) Compact() SetSeq[T]",
+              "doc": "Compact removes zero-valued elements (for example 0, \"\" or false).\n"
+            },
+            {
+              "name": "Difference",
+              "recv": "SetSeq[T]",
+              "signature": "func (s SetSeq[T]) Difference(others ...[]T) SetSeq[T]",
+              "doc": "Difference removes the elements that appear in any of others.\n"
+            },
+            {
+              "name": "Filter",
+              "recv": "SetSeq[T]",
+              "signature": "func (s SetSeq[T]) Filter(pred func(T) bool) SetSeq[T]",
+              "doc": "Filter keeps only the elements for which pred returns true.\n"
+            },
+            {
+              "name": "Includes",
+              "recv": "SetSeq[T]",
+              "signature": "func (s SetSeq[T]) Includes(value T) bool",
+              "doc": "Includes reports whether value is present in the wrapped slice. It terminates\nthe chain.\n"
+            },
+            {
+              "name": "IndexOf",
+              "recv": "SetSeq[T]",
+              "signature": "func (s SetSeq[T]) IndexOf(value T) int",
+              "doc": "IndexOf returns the index of the first occurrence of value, or -1 when it is\nabsent. It terminates the chain.\n"
+            },
+            {
+              "name": "Intersection",
+              "recv": "SetSeq[T]",
+              "signature": "func (s SetSeq[T]) Intersection(others ...[]T) SetSeq[T]",
+              "doc": "Intersection keeps only the elements that also appear in every one of others.\n"
+            },
+            {
+              "name": "Reverse",
+              "recv": "SetSeq[T]",
+              "signature": "func (s SetSeq[T]) Reverse() SetSeq[T]",
+              "doc": "Reverse reverses the order of the wrapped elements.\n"
+            },
+            {
+              "name": "Size",
+              "recv": "SetSeq[T]",
+              "signature": "func (s SetSeq[T]) Size() int",
+              "doc": "Size returns the number of wrapped elements.\n"
+            },
+            {
+              "name": "Union",
+              "recv": "SetSeq[T]",
+              "signature": "func (s SetSeq[T]) Union(others ...[]T) SetSeq[T]",
+              "doc": "Union returns the unique union of the wrapped slice with others, preserving\nfirst-seen order.\n"
+            },
+            {
+              "name": "Uniq",
+              "recv": "SetSeq[T]",
+              "signature": "func (s SetSeq[T]) Uniq() SetSeq[T]",
+              "doc": "Uniq removes duplicate elements, keeping the first occurrence of each in\norder.\n"
+            },
+            {
+              "name": "Value",
+              "recv": "SetSeq[T]",
+              "signature": "func (s SetSeq[T]) Value() []T",
+              "doc": "Value returns the wrapped slice, terminating the chain.\n"
+            },
+            {
+              "name": "Without",
+              "recv": "SetSeq[T]",
+              "signature": "func (s SetSeq[T]) Without(values ...T) SetSeq[T]",
+              "doc": "Without removes every element equal to any of values.\n"
+            }
+          ]
+        },
+        {
+          "name": "SliceSeq",
+          "signature": "type SliceSeq[T any] struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "SliceSeq is a fluent wrapper around a slice that enables lodash-style method\nchaining for transforms that preserve the element type. Because Go methods\ncannot introduce new type parameters, element-type-changing operations (such\nas mapping []T to []R) remain package-level functions; SliceSeq covers the\nlarge family of slice operations that keep the same element type. Call Value\nto unwrap the final slice.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "ChainSlice",
+              "signature": "func ChainSlice[T any](s []T) SliceSeq[T]",
+              "doc": "ChainSlice wraps s in a SliceSeq so that same-type slice transforms can be\napplied fluently.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Chunk",
+              "recv": "SliceSeq[T]",
+              "signature": "func (s SliceSeq[T]) Chunk(size int) [][]T",
+              "doc": "Chunk splits the wrapped slice into groups of at most size elements. It\nreturns the groups directly, terminating the chain, because Go's type system\ndisallows a method returning a SliceSeq re-parameterised over []T.\n"
+            },
+            {
+              "name": "Concat",
+              "recv": "SliceSeq[T]",
+              "signature": "func (s SliceSeq[T]) Concat(others ...[]T) SliceSeq[T]",
+              "doc": "Concat appends the elements of others after the wrapped elements.\n"
+            },
+            {
+              "name": "Drop",
+              "recv": "SliceSeq[T]",
+              "signature": "func (s SliceSeq[T]) Drop(n int) SliceSeq[T]",
+              "doc": "Drop removes the first n elements.\n"
+            },
+            {
+              "name": "DropRight",
+              "recv": "SliceSeq[T]",
+              "signature": "func (s SliceSeq[T]) DropRight(n int) SliceSeq[T]",
+              "doc": "DropRight removes the last n elements.\n"
+            },
+            {
+              "name": "DropWhile",
+              "recv": "SliceSeq[T]",
+              "signature": "func (s SliceSeq[T]) DropWhile(pred func(T) bool) SliceSeq[T]",
+              "doc": "DropWhile removes leading elements while pred returns true.\n"
+            },
+            {
+              "name": "Filter",
+              "recv": "SliceSeq[T]",
+              "signature": "func (s SliceSeq[T]) Filter(pred func(T) bool) SliceSeq[T]",
+              "doc": "Filter keeps only the elements for which pred returns true.\n"
+            },
+            {
+              "name": "ForEach",
+              "recv": "SliceSeq[T]",
+              "signature": "func (s SliceSeq[T]) ForEach(fn func(T)) SliceSeq[T]",
+              "doc": "ForEach invokes fn for each element and returns the SliceSeq unchanged,\nallowing side effects mid-chain.\n"
+            },
+            {
+              "name": "Head",
+              "recv": "SliceSeq[T]",
+              "signature": "func (s SliceSeq[T]) Head() (T, bool)",
+              "doc": "Head returns the first element and true, or the zero value and false when the\nslice is empty. It terminates the chain.\n"
+            },
+            {
+              "name": "Initial",
+              "recv": "SliceSeq[T]",
+              "signature": "func (s SliceSeq[T]) Initial() SliceSeq[T]",
+              "doc": "Initial removes the last element.\n"
+            },
+            {
+              "name": "IsEmpty",
+              "recv": "SliceSeq[T]",
+              "signature": "func (s SliceSeq[T]) IsEmpty() bool",
+              "doc": "IsEmpty reports whether the wrapped slice has no elements.\n"
+            },
+            {
+              "name": "Join",
+              "recv": "SliceSeq[T]",
+              "signature": "func (s SliceSeq[T]) Join(sep string) string",
+              "doc": "Join concatenates the string forms of the wrapped elements separated by sep.\nIt terminates the chain.\n"
+            },
+            {
+              "name": "Last",
+              "recv": "SliceSeq[T]",
+              "signature": "func (s SliceSeq[T]) Last() (T, bool)",
+              "doc": "Last returns the final element and true, or the zero value and false when the\nslice is empty. It terminates the chain.\n"
+            },
+            {
+              "name": "Nth",
+              "recv": "SliceSeq[T]",
+              "signature": "func (s SliceSeq[T]) Nth(n int) (T, bool)",
+              "doc": "Nth returns the element at index n (negative counts from the end) and true,\nor the zero value and false when out of range. It terminates the chain.\n"
+            },
+            {
+              "name": "Reject",
+              "recv": "SliceSeq[T]",
+              "signature": "func (s SliceSeq[T]) Reject(pred func(T) bool) SliceSeq[T]",
+              "doc": "Reject removes the elements for which pred returns true.\n"
+            },
+            {
+              "name": "Reverse",
+              "recv": "SliceSeq[T]",
+              "signature": "func (s SliceSeq[T]) Reverse() SliceSeq[T]",
+              "doc": "Reverse reverses the order of the wrapped elements.\n"
+            },
+            {
+              "name": "Sample",
+              "recv": "SliceSeq[T]",
+              "signature": "func (s SliceSeq[T]) Sample(rng *rand.Rand) (T, bool)",
+              "doc": "Sample returns a random element and true, or the zero value and false when\nthe slice is empty, drawing from rng. It terminates the chain.\n"
+            },
+            {
+              "name": "Shuffle",
+              "recv": "SliceSeq[T]",
+              "signature": "func (s SliceSeq[T]) Shuffle(rng *rand.Rand) SliceSeq[T]",
+              "doc": "Shuffle returns a randomly reordered copy of the wrapped slice using rng, so\nresults are deterministic when rng is seeded.\n"
+            },
+            {
+              "name": "Size",
+              "recv": "SliceSeq[T]",
+              "signature": "func (s SliceSeq[T]) Size() int",
+              "doc": "Size returns the number of wrapped elements.\n"
+            },
+            {
+              "name": "Slice",
+              "recv": "SliceSeq[T]",
+              "signature": "func (s SliceSeq[T]) Slice(start, end int) SliceSeq[T]",
+              "doc": "Slice keeps the half-open index range [start, end).\n"
+            },
+            {
+              "name": "Tail",
+              "recv": "SliceSeq[T]",
+              "signature": "func (s SliceSeq[T]) Tail() SliceSeq[T]",
+              "doc": "Tail removes the first element.\n"
+            },
+            {
+              "name": "Take",
+              "recv": "SliceSeq[T]",
+              "signature": "func (s SliceSeq[T]) Take(n int) SliceSeq[T]",
+              "doc": "Take keeps the first n elements.\n"
+            },
+            {
+              "name": "TakeRight",
+              "recv": "SliceSeq[T]",
+              "signature": "func (s SliceSeq[T]) TakeRight(n int) SliceSeq[T]",
+              "doc": "TakeRight keeps the last n elements.\n"
+            },
+            {
+              "name": "TakeWhile",
+              "recv": "SliceSeq[T]",
+              "signature": "func (s SliceSeq[T]) TakeWhile(pred func(T) bool) SliceSeq[T]",
+              "doc": "TakeWhile keeps leading elements while pred returns true.\n"
+            },
+            {
+              "name": "Tap",
+              "recv": "SliceSeq[T]",
+              "signature": "func (s SliceSeq[T]) Tap(fn func([]T)) SliceSeq[T]",
+              "doc": "Tap invokes fn with the wrapped slice for its side effects and returns the\nSliceSeq unchanged.\n"
+            },
+            {
+              "name": "Value",
+              "recv": "SliceSeq[T]",
+              "signature": "func (s SliceSeq[T]) Value() []T",
+              "doc": "Value returns the wrapped slice, terminating the chain.\n"
+            }
+          ]
+        },
+        {
+          "name": "TemplateOptions",
+          "signature": "type TemplateOptions struct {\n\t// Open is the opening delimiter (default \"\u003c%\").\n\tOpen string\n\t// Close is the closing delimiter (default \"%\u003e\").\n\tClose string\n}",
+          "doc": "TemplateOptions configures the delimiters recognized by Template. Zero-value\nfields fall back to the lodash defaults: \"\u003c%=\" ... \"%\u003e\" for interpolation,\n\"\u003c%-\" ... \"%\u003e\" for HTML-escaped interpolation and \"\u003c%\" ... \"%\u003e\" for evaluate\nblocks.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Throttler",
+          "signature": "type Throttler struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Throttler wraps a function so that it runs at most once per interval. The\nfirst call runs immediately; subsequent calls within the interval are\nsuppressed. Throttler is safe for concurrent use.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewThrottler",
+              "signature": "func NewThrottler(interval time.Duration, fn func()) *Throttler",
+              "doc": "NewThrottler creates a Throttler that permits fn to run at most once per\ninterval.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Call",
+              "recv": "*Throttler",
+              "signature": "func (t *Throttler) Call() bool",
+              "doc": "Call runs the wrapped function if at least interval has elapsed since the last\nsuccessful run (or if this is the first call). It reports whether the function\nwas invoked.\n"
+            }
+          ]
+        }
+      ],
+      "funcs": [
+        {
+          "name": "Add",
+          "signature": "func Add[T Number](a, b T) T",
+          "doc": "Add returns the sum of a and b.\n"
+        },
+        {
+          "name": "After",
+          "signature": "func After[R any](n int, fn func() R) func() (R, bool)",
+          "doc": "After returns a function that only invokes fn beginning with the nth call. The\nfirst n-1 calls do nothing. It is safe for concurrent use.\n"
+        },
+        {
+          "name": "Ary",
+          "signature": "func Ary[T, R any](fn func(...T) R, n int) func(...T) R",
+          "doc": "Ary caps a variadic function so that it receives at most n arguments; any\nextra arguments are dropped. A negative n is treated as zero.\n"
+        },
+        {
+          "name": "Assign",
+          "signature": "func Assign[K comparable, V any](dst map[K]V, sources ...map[K]V) map[K]V",
+          "doc": "Assign copies all key/value pairs from sources into dst, overwriting existing\nkeys, and returns dst.\n"
+        },
+        {
+          "name": "AssignWith",
+          "signature": "func AssignWith[K comparable, V any](dst map[K]V, fn func(dstV, srcV V) V, sources ...map[K]V) map[K]V",
+          "doc": "AssignWith copies key/value pairs from sources into a new map seeded with dst.\nWhen a key already has a value, the resolver fn decides the result from the\ndestination value and the incoming source value. The input maps are not\nmutated.\n"
+        },
+        {
+          "name": "At",
+          "signature": "func At(m map[string]any, paths ...string) []any",
+          "doc": "At returns the values found at each of the given paths, in order. Paths that\ndo not resolve yield a nil entry.\n"
+        },
+        {
+          "name": "Attempt",
+          "signature": "func Attempt[R any](fn func() R) (result R, err error)",
+          "doc": "Attempt invokes fn and recovers any panic, returning the panic value as an\nerror. On success it returns the function's result and a nil error.\n"
+        },
+        {
+          "name": "Before",
+          "signature": "func Before[R any](n int, fn func() R) func() R",
+          "doc": "Before returns a function that invokes fn only for the first n-1 calls. From\nthe nth call onward it returns the result of the last successful invocation.\nIt is safe for concurrent use.\n"
+        },
+        {
+          "name": "CamelCase",
+          "signature": "func CamelCase(s string) string",
+          "doc": "CamelCase converts a string to camelCase.\n"
+        },
+        {
+          "name": "Capitalize",
+          "signature": "func Capitalize(s string) string",
+          "doc": "Capitalize upper-cases the first character of the string and lower-cases the\nrest.\n"
+        },
+        {
+          "name": "CastArray",
+          "signature": "func CastArray[T any](values ...T) []T",
+          "doc": "CastArray wraps the provided values into a slice. Called with a single value\nit yields a one-element slice; called with none it yields an empty slice.\n"
+        },
+        {
+          "name": "Ceil",
+          "signature": "func Ceil(value float64, precision int) float64",
+          "doc": "Ceil rounds value up to precision decimal places. A negative precision rounds\nto the left of the decimal point. Like lodash's _.ceil it shifts the decimal\nexponent to avoid floating-point error, so Ceil(4.016, 2) is exactly 4.02.\n"
+        },
+        {
+          "name": "Chunk",
+          "signature": "func Chunk[T any](s []T, size int) [][]T",
+          "doc": "Chunk splits the slice into groups of at most size elements. It panics if\nsize is less than 1.\n"
+        },
+        {
+          "name": "Clamp",
+          "signature": "func Clamp[T cmp.Ordered](value, lower, upper T) T",
+          "doc": "Clamp constrains value to lie within the inclusive range [lower, upper]. If\nlower is greater than upper the bounds are swapped.\n"
+        },
+        {
+          "name": "Clone",
+          "signature": "func Clone[T any](value T) T",
+          "doc": "Clone returns a shallow copy of value. For maps and slices a new top-level\ncontainer is allocated whose elements are copied by assignment; nested\ncontainers are shared with the original. For all other types the value is\nreturned unchanged (Go value semantics already copy it).\n"
+        },
+        {
+          "name": "CloneDeep",
+          "signature": "func CloneDeep[T any](value T) T",
+          "doc": "CloneDeep returns a deep copy of value. Maps, slices, arrays, pointers and\nstructs are recursively cloned so the result shares no mutable state with the\noriginal. Channels, functions and unsafe pointers are copied by reference.\n"
+        },
+        {
+          "name": "Compact",
+          "signature": "func Compact[T comparable](s []T) []T",
+          "doc": "Compact returns a new slice with all zero values removed.\n"
+        },
+        {
+          "name": "Compose",
+          "signature": "func Compose[T any](fns ...func(T) T) func(T) T",
+          "doc": "Compose composes the given same-typed transforms right to left. It is an alias\nfor FlowRight, matching the common functional-programming name.\n"
+        },
+        {
+          "name": "Concat",
+          "signature": "func Concat[T any](slices ...[]T) []T",
+          "doc": "Concat returns a new slice with all provided slices concatenated together.\n"
+        },
+        {
+          "name": "Cond",
+          "signature": "func Cond[T, R any](pairs ...CondPair[T, R]) func(T) (R, bool)",
+          "doc": "Cond returns a function that runs the input through the first CondPair whose\npredicate matches, returning that pair's transformed result. If none match it\nreturns the zero value of R and false.\n"
+        },
+        {
+          "name": "Conforms",
+          "signature": "func Conforms(spec map[string]func(any) bool) func(map[string]any) bool",
+          "doc": "Conforms builds a predicate that reports whether a map[string]any satisfies\nevery predicate in spec. Each spec entry names a key that must be present and\nwhose value must satisfy the associated predicate.\n"
+        },
+        {
+          "name": "ConformsTo",
+          "signature": "func ConformsTo(object map[string]any, spec map[string]func(any) bool) bool",
+          "doc": "ConformsTo reports whether object satisfies every predicate in spec.\n"
+        },
+        {
+          "name": "Constant",
+          "signature": "func Constant[T any](value T) func() T",
+          "doc": "Constant returns a function that always returns value, ignoring any later\nchanges to the surrounding state.\n"
+        },
+        {
+          "name": "CountBy",
+          "signature": "func CountBy[T any, K comparable](s []T, fn func(T) K) map[K]int",
+          "doc": "CountBy counts elements by the key returned by fn.\n"
+        },
+        {
+          "name": "Curry",
+          "signature": "func Curry[A, B, R any](fn func(A, B) R) func(A) func(B) R",
+          "doc": "Curry converts a two-argument function into a sequence of unary functions, so\nthat fn(a, b) can be called as Curry(fn)(a)(b).\n"
+        },
+        {
+          "name": "Curry3",
+          "signature": "func Curry3[A, B, C, R any](fn func(A, B, C) R) func(A) func(B) func(C) R",
+          "doc": "Curry3 converts a three-argument function into a sequence of unary functions,\nso that fn(a, b, c) can be called as Curry3(fn)(a)(b)(c).\n"
+        },
+        {
+          "name": "Curry4",
+          "signature": "func Curry4[A, B, C, D, R any](fn func(A, B, C, D) R) func(A) func(B) func(C) func(D) R",
+          "doc": "Curry4 transforms a four-argument function into a sequence of unary functions\nthat supply the arguments from left to right. It extends the Curry/Curry3\nfamily to arity four.\n"
+        },
+        {
+          "name": "CurryRight",
+          "signature": "func CurryRight[A, B, R any](fn func(A, B) R) func(B) func(A) R",
+          "doc": "CurryRight transforms a two-argument function into a sequence of unary\nfunctions that supply the arguments from right to left: the returned function\ntakes the last argument first. It is the right-to-left analogue of Curry.\n"
+        },
+        {
+          "name": "CurryRight3",
+          "signature": "func CurryRight3[A, B, C, R any](fn func(A, B, C) R) func(C) func(B) func(A) R",
+          "doc": "CurryRight3 transforms a three-argument function into a sequence of unary\nfunctions that supply the arguments from right to left. It is the\nright-to-left analogue of Curry3.\n"
+        },
+        {
+          "name": "Deburr",
+          "signature": "func Deburr(s string) string",
+          "doc": "Deburr converts Latin-1 Supplement and Latin Extended-A letters in s to their\nbasic Latin equivalents and removes combining diacritical marks, matching\nlodash's _.deburr. Ligatures expand to multiple characters (e.g. 'Æ' -\u003e \"Ae\")\nand Latin mathematical operators such as '×' and '÷' are left unchanged.\n"
+        },
+        {
+          "name": "DefaultTo",
+          "signature": "func DefaultTo[T comparable](value, fallback T) T",
+          "doc": "DefaultTo returns value unless it is the zero value for its type, in which\ncase it returns fallback.\n"
+        },
+        {
+          "name": "Defaults",
+          "signature": "func Defaults[K comparable, V any](dst map[K]V, sources ...map[K]V) map[K]V",
+          "doc": "Defaults returns a new map seeded with dst and filled in with entries from\nsources for any keys that are not already present. Earlier sources take\nprecedence over later ones. The inputs are not mutated.\n"
+        },
+        {
+          "name": "DefaultsDeep",
+          "signature": "func DefaultsDeep(dst map[string]any, sources ...map[string]any) map[string]any",
+          "doc": "DefaultsDeep is like Defaults but recurses into nested map[string]any values,\nfilling in missing keys at every level. The inputs are not mutated.\n"
+        },
+        {
+          "name": "Defer",
+          "signature": "func Defer(fn func()) *time.Timer",
+          "doc": "Defer schedules fn to run as soon as possible on a separate goroutine and\nreturns the underlying *time.Timer, whose Stop method cancels the pending\ninvocation. It mirrors lodash's defer.\n"
+        },
+        {
+          "name": "Delay",
+          "signature": "func Delay(fn func(), wait time.Duration) *time.Timer",
+          "doc": "Delay schedules fn to run after wait has elapsed and returns the underlying\n*time.Timer. Call the timer's Stop method to cancel the pending invocation\nbefore it fires. It mirrors lodash's delay.\n"
+        },
+        {
+          "name": "Difference",
+          "signature": "func Difference[T comparable](s []T, others ...[]T) []T",
+          "doc": "Difference returns the elements of s that are not present in any of the\nothers slices, preserving order and de-duplicating.\n"
+        },
+        {
+          "name": "DifferenceBy",
+          "signature": "func DifferenceBy[T any, K comparable](fn func(T) K, s []T, others ...[]T) []T",
+          "doc": "DifferenceBy returns the elements of s whose key (as produced by fn) does not\nappear among the keys of any of the others slices, de-duplicated by key.\n"
+        },
+        {
+          "name": "DifferenceWith",
+          "signature": "func DifferenceWith[T any](eq func(a, b T) bool, s []T, others ...[]T) []T",
+          "doc": "DifferenceWith returns the elements of s that are not considered equal, by the\neq comparator, to any element of the others slices.\n"
+        },
+        {
+          "name": "Divide",
+          "signature": "func Divide[T Number](a, b T) T",
+          "doc": "Divide returns the quotient a divided by b.\n"
+        },
+        {
+          "name": "Drop",
+          "signature": "func Drop[T any](s []T, n int) []T",
+          "doc": "Drop returns the slice with the first n elements removed.\n"
+        },
+        {
+          "name": "DropRight",
+          "signature": "func DropRight[T any](s []T, n int) []T",
+          "doc": "DropRight returns the slice with the last n elements removed.\n"
+        },
+        {
+          "name": "DropRightWhile",
+          "signature": "func DropRightWhile[T any](s []T, pred func(T) bool) []T",
+          "doc": "DropRightWhile drops the trailing run of elements for which pred returns true\nand returns the rest.\n"
+        },
+        {
+          "name": "DropWhile",
+          "signature": "func DropWhile[T any](s []T, pred func(T) bool) []T",
+          "doc": "DropWhile drops the leading run of elements for which pred returns true and\nreturns the rest.\n"
+        },
+        {
+          "name": "EndsWith",
+          "signature": "func EndsWith(s, suffix string) bool",
+          "doc": "EndsWith reports whether s ends with suffix.\n"
+        },
+        {
+          "name": "Eq",
+          "signature": "func Eq[T comparable](a, b T) bool",
+          "doc": "Eq reports whether two comparable values are equal. It is the typed\ncounterpart to IsEqual for values whose type is known at compile time.\n"
+        },
+        {
+          "name": "Escape",
+          "signature": "func Escape(s string) string",
+          "doc": "Escape converts the characters \"\u0026\", \"\u003c\", \"\u003e\", '\"' and \"'\" in s to their\ncorresponding HTML entities.\n"
+        },
+        {
+          "name": "EscapeRegExp",
+          "signature": "func EscapeRegExp(s string) string",
+          "doc": "EscapeRegExp escapes the characters that have special meaning in regular\nexpressions so that s can be matched literally.\n"
+        },
+        {
+          "name": "Every",
+          "signature": "func Every[T any](s []T, fn func(T) bool) bool",
+          "doc": "Every reports whether fn returns true for every element. It returns true for\nan empty slice.\n"
+        },
+        {
+          "name": "EveryMap",
+          "signature": "func EveryMap[K comparable, V any](m map[K]V, pred func(V, K) bool) bool",
+          "doc": "EveryMap reports whether pred returns true for every value/key pair in m.\nIt returns true for an empty map.\n"
+        },
+        {
+          "name": "Fill",
+          "signature": "func Fill[T any](value T, n int) []T",
+          "doc": "Fill returns a new slice of length n where every element is value.\n"
+        },
+        {
+          "name": "FillRange",
+          "signature": "func FillRange[T any](s []T, value T, start, end int) []T",
+          "doc": "FillRange returns a copy of s with the elements in the half-open index range\n[start, end) replaced by value. Negative indexes count from the end of the\nslice, and the range is clamped to the bounds of s. The input slice is not\nmodified. It mirrors lodash's fill with explicit start and end arguments.\n"
+        },
+        {
+          "name": "Filter",
+          "signature": "func Filter[T any](s []T, fn func(T) bool) []T",
+          "doc": "Filter returns a new slice containing every element for which fn returns true.\n"
+        },
+        {
+          "name": "FilterMap",
+          "signature": "func FilterMap[K comparable, V any](m map[K]V, pred func(V, K) bool) []V",
+          "doc": "FilterMap returns the values of m for which pred returns true. The result\norder is unspecified.\n"
+        },
+        {
+          "name": "Find",
+          "signature": "func Find[T any](s []T, fn func(T) bool) (T, bool)",
+          "doc": "Find returns the first element for which fn returns true, along with true.\nIf no element matches, it returns the zero value and false.\n"
+        },
+        {
+          "name": "FindIndex",
+          "signature": "func FindIndex[T any](s []T, fn func(T) bool) int",
+          "doc": "FindIndex returns the index of the first element for which fn returns true,\nor -1 if none match.\n"
+        },
+        {
+          "name": "FindKey",
+          "signature": "func FindKey[K comparable, V any](m map[K]V, pred func(K, V) bool) (K, bool)",
+          "doc": "FindKey returns the first key whose key/value pair satisfies pred, along with\ntrue. Because Go map iteration is unordered, \"first\" is not deterministic\nacross runs when multiple keys match. It returns the zero key and false when\nnothing matches.\n"
+        },
+        {
+          "name": "FindLast",
+          "signature": "func FindLast[T any](s []T, fn func(T) bool) (T, bool)",
+          "doc": "FindLast returns the last element for which fn returns true.\n"
+        },
+        {
+          "name": "FindLastIndex",
+          "signature": "func FindLastIndex[T any](s []T, fn func(T) bool) int",
+          "doc": "FindLastIndex returns the index of the last element for which fn returns true,\nor -1 if none match.\n"
+        },
+        {
+          "name": "FindMap",
+          "signature": "func FindMap[K comparable, V any](m map[K]V, pred func(V, K) bool) (V, bool)",
+          "doc": "FindMap returns a value for which pred returns true, along with true. When\nmultiple pairs match, which one is returned is unspecified. It returns the\nzero value and false when nothing matches.\n"
+        },
+        {
+          "name": "First",
+          "signature": "func First[T any](s []T) (T, bool)",
+          "doc": "First is an alias for Head: it returns the first element of the slice.\n"
+        },
+        {
+          "name": "FlatMap",
+          "signature": "func FlatMap[T, R any](s []T, fn func(T) []R) []R",
+          "doc": "FlatMap maps each element to a slice via fn and flattens the results by one\nlevel.\n"
+        },
+        {
+          "name": "FlatMapDeep",
+          "signature": "func FlatMapDeep[T any](s []any, fn func(any) []any) []T",
+          "doc": "FlatMapDeep maps every element of s through fn and then recursively flattens\nthe collected results to any depth, returning a flat []T. Each result of fn\nmay itself contain nested []any values, which are flattened as well. It\nmirrors lodash's flatMapDeep.\n"
+        },
+        {
+          "name": "FlatMapDepth",
+          "signature": "func FlatMapDepth[T any](s []any, fn func(any) []any, depth int) []T",
+          "doc": "FlatMapDepth maps every element of s through fn and then flattens the\ncollected results by up to depth levels, returning a flat []T. A depth of 0\nperforms no flattening. It mirrors lodash's flatMapDepth.\n"
+        },
+        {
+          "name": "Flatten",
+          "signature": "func Flatten[T any](s [][]T) []T",
+          "doc": "Flatten flattens a slice of slices by a single level.\n"
+        },
+        {
+          "name": "FlattenDeep",
+          "signature": "func FlattenDeep[T any](s []any) []T",
+          "doc": "FlattenDeep recursively flattens a nested structure into a flat slice. The\nnested value must be either a T or a []any of the same shape.\n"
+        },
+        {
+          "name": "FlattenDepth",
+          "signature": "func FlattenDepth[T any](s []any, depth int) []T",
+          "doc": "FlattenDepth flattens a nested structure up to depth levels deep. A depth of 0\nreturns a copy of the input unchanged; higher depths flatten further.\n"
+        },
+        {
+          "name": "Flip",
+          "signature": "func Flip[A, B, R any](fn func(A, B) R) func(B, A) R",
+          "doc": "Flip returns a function that invokes fn with its two arguments swapped.\n"
+        },
+        {
+          "name": "Floor",
+          "signature": "func Floor(value float64, precision int) float64",
+          "doc": "Floor rounds value down to precision decimal places. A negative precision\nrounds to the left of the decimal point. Like lodash's _.floor it shifts the\ndecimal exponent to avoid floating-point error, so Floor(4.1, 2) is exactly\n4.1 rather than 4.09.\n"
+        },
+        {
+          "name": "Flow",
+          "signature": "func Flow[T any](fns ...func(T) T) func(T) T",
+          "doc": "Flow composes the given same-typed transforms into a single function that\napplies them left to right: the output of each becomes the input of the next.\nFlow with no functions returns the identity function.\n"
+        },
+        {
+          "name": "FlowRight",
+          "signature": "func FlowRight[T any](fns ...func(T) T) func(T) T",
+          "doc": "FlowRight composes the given same-typed transforms into a single function that\napplies them right to left (mathematical composition).\n"
+        },
+        {
+          "name": "ForEach",
+          "signature": "func ForEach[T any](s []T, fn func(T))",
+          "doc": "ForEach invokes fn once for each element of the slice.\n"
+        },
+        {
+          "name": "ForEachI",
+          "signature": "func ForEachI[T any](s []T, fn func(T, int))",
+          "doc": "ForEachI invokes fn once for each element, passing the element and its index.\n"
+        },
+        {
+          "name": "ForEachRight",
+          "signature": "func ForEachRight[T any](s []T, fn func(T))",
+          "doc": "ForEachRight invokes fn once for each element from right to left.\n"
+        },
+        {
+          "name": "ForOwn",
+          "signature": "func ForOwn[K comparable, V any](m map[K]V, fn func(K, V))",
+          "doc": "ForOwn invokes fn for each key/value pair of the map. Iteration order is\nunspecified.\n"
+        },
+        {
+          "name": "FromEntries",
+          "signature": "func FromEntries[K comparable, V any](entries []Entry[K, V]) map[K]V",
+          "doc": "FromEntries builds a map from a slice of entries.\n"
+        },
+        {
+          "name": "FromPairs",
+          "signature": "func FromPairs[K comparable, V any](pairs []Pair[K, V]) map[K]V",
+          "doc": "FromPairs builds a map from a slice of key/value Pair values. Later pairs\noverwrite earlier ones with the same key.\n"
+        },
+        {
+          "name": "Get",
+          "signature": "func Get(m map[string]any, path string) (any, bool)",
+          "doc": "Get retrieves a nested value from a map[string]any using a property path.\nThe path may use dotted and bracket notation (see ToPath) and may traverse\n[]any slices via integer indices. The second return value reports whether the\nfull path resolved to a value.\n"
+        },
+        {
+          "name": "GetOr",
+          "signature": "func GetOr(m map[string]any, path string, fallback any) any",
+          "doc": "GetOr is like Get but returns fallback when the path does not resolve.\n"
+        },
+        {
+          "name": "GroupBy",
+          "signature": "func GroupBy[T any, K comparable](s []T, fn func(T) K) map[K][]T",
+          "doc": "GroupBy groups the slice elements into a map keyed by the result of fn.\n"
+        },
+        {
+          "name": "GroupByMap",
+          "signature": "func GroupByMap[K comparable, V any, G comparable](m map[K]V, fn func(V) G) map[G][]V",
+          "doc": "GroupByMap groups the values of m by the key returned by fn, producing a map\nfrom group key to the slice of values in that group. Element order within\neach group is unspecified.\n"
+        },
+        {
+          "name": "Gt",
+          "signature": "func Gt[T Ordered](a, b T) bool",
+          "doc": "Gt reports whether a is greater than b.\n"
+        },
+        {
+          "name": "Gte",
+          "signature": "func Gte[T Ordered](a, b T) bool",
+          "doc": "Gte reports whether a is greater than or equal to b.\n"
+        },
+        {
+          "name": "Has",
+          "signature": "func Has(m map[string]any, path string) bool",
+          "doc": "Has reports whether path resolves to a value in the nested map.\n"
+        },
+        {
+          "name": "Head",
+          "signature": "func Head[T any](s []T) (T, bool)",
+          "doc": "Head returns the first element of the slice and true, or the zero value and\nfalse when the slice is empty.\n"
+        },
+        {
+          "name": "Identity",
+          "signature": "func Identity[T any](value T) T",
+          "doc": "Identity returns its argument unchanged. It is useful as a default transform.\n"
+        },
+        {
+          "name": "InRange",
+          "signature": "func InRange[T Number](value, lower, upper T) bool",
+          "doc": "InRange reports whether value lies within the half-open interval [lower, upper).\nIf lower is greater than upper the bounds are swapped.\n"
+        },
+        {
+          "name": "Includes",
+          "signature": "func Includes[T comparable](s []T, value T) bool",
+          "doc": "Includes reports whether value is present in the slice.\n"
+        },
+        {
+          "name": "IncludesValue",
+          "signature": "func IncludesValue[K, V comparable](m map[K]V, value V) bool",
+          "doc": "IncludesValue reports whether value is one of the values stored in m. It\nmirrors lodash's _.includes applied to an object.\n"
+        },
+        {
+          "name": "IndexOf",
+          "signature": "func IndexOf[T comparable](s []T, value T) int",
+          "doc": "IndexOf returns the index of the first occurrence of value, or -1.\n"
+        },
+        {
+          "name": "IndexOfFrom",
+          "signature": "func IndexOfFrom[T comparable](s []T, value T, from int) int",
+          "doc": "IndexOfFrom returns the index of the first occurrence of value at or after\nindex from, or -1 if it is absent. A negative from counts from the end.\n"
+        },
+        {
+          "name": "Initial",
+          "signature": "func Initial[T any](s []T) []T",
+          "doc": "Initial returns a new slice containing all but the last element.\n"
+        },
+        {
+          "name": "Intersection",
+          "signature": "func Intersection[T comparable](slices ...[]T) []T",
+          "doc": "Intersection returns the unique elements common to all provided slices,\nordered by their first appearance in the first slice.\n"
+        },
+        {
+          "name": "IntersectionBy",
+          "signature": "func IntersectionBy[T any, K comparable](fn func(T) K, slices ...[]T) []T",
+          "doc": "IntersectionBy returns the elements present (by key) in every provided slice,\nordered by first appearance in the first slice and de-duplicated by key.\n"
+        },
+        {
+          "name": "IntersectionWith",
+          "signature": "func IntersectionWith[T any](eq func(a, b T) bool, slices ...[]T) []T",
+          "doc": "IntersectionWith returns the elements of the first slice that are equal, by\nthe eq comparator, to some element of every other slice.\n"
+        },
+        {
+          "name": "Invert",
+          "signature": "func Invert[K comparable, V comparable](m map[K]V) map[V]K",
+          "doc": "Invert returns a new map with keys and values swapped. When multiple keys map\nto the same value, later iterations overwrite earlier ones.\n"
+        },
+        {
+          "name": "InvertBy",
+          "signature": "func InvertBy[K comparable, V any, G comparable](m map[K]V, fn func(V) G) map[G][]K",
+          "doc": "InvertBy groups the keys of m by the group value produced by fn from each\nvalue, returning a map from group to the slice of keys that produced it.\n"
+        },
+        {
+          "name": "IsArrayLike",
+          "signature": "func IsArrayLike(value any) bool",
+          "doc": "IsArrayLike reports whether value has a length: a slice, array or string.\nFunctions and maps are not array-like. It mirrors lodash's isArrayLike.\n"
+        },
+        {
+          "name": "IsArrayLikeObject",
+          "signature": "func IsArrayLikeObject(value any) bool",
+          "doc": "IsArrayLikeObject reports whether value is array-like and also an object,\ni.e. a slice or array but not a string. It mirrors lodash's\nisArrayLikeObject.\n"
+        },
+        {
+          "name": "IsBool",
+          "signature": "func IsBool(value any) bool",
+          "doc": "IsBool reports whether value's dynamic type is a boolean.\n"
+        },
+        {
+          "name": "IsBuffer",
+          "signature": "func IsBuffer(value any) bool",
+          "doc": "IsBuffer reports whether value is a byte slice ([]byte), the closest Go\nanalogue of a Node.js Buffer.\n"
+        },
+        {
+          "name": "IsDate",
+          "signature": "func IsDate(value any) bool",
+          "doc": "IsDate reports whether value is a time.Time (or a non-nil *time.Time),\nthe closest Go analogue of a JavaScript Date.\n"
+        },
+        {
+          "name": "IsEmpty",
+          "signature": "func IsEmpty(value any) bool",
+          "doc": "IsEmpty reports whether value is empty. Nil, empty strings, and empty maps,\nslices, arrays and channels are considered empty. Following lodash semantics,\nnumbers, booleans and other scalar values are always reported as empty.\n"
+        },
+        {
+          "name": "IsEqual",
+          "signature": "func IsEqual(a, b any) bool",
+          "doc": "IsEqual reports whether a and b are deeply equal, recursively comparing the\ncontents of maps, slices, arrays, structs and pointers. It is a thin,\nwell-defined wrapper over reflect.DeepEqual.\n"
+        },
+        {
+          "name": "IsEqualWith",
+          "signature": "func IsEqualWith(a, b any, customizer func(a, b any) (equal bool, handled bool)) bool",
+          "doc": "IsEqualWith performs a deep equality comparison like IsEqual, but first\nconsults customizer. When customizer's second return value (handled) is true,\nits first return value is used as the comparison result; otherwise the\ndefault deep comparison is applied.\n"
+        },
+        {
+          "name": "IsError",
+          "signature": "func IsError(value any) bool",
+          "doc": "IsError reports whether value implements the error interface and is non-nil.\n"
+        },
+        {
+          "name": "IsFinite",
+          "signature": "func IsFinite(value any) bool",
+          "doc": "IsFinite reports whether value is a finite number (not NaN and not an\ninfinity). Non-numeric values are not finite.\n"
+        },
+        {
+          "name": "IsFunction",
+          "signature": "func IsFunction(value any) bool",
+          "doc": "IsFunction reports whether value is a function.\n"
+        },
+        {
+          "name": "IsInteger",
+          "signature": "func IsInteger(value any) bool",
+          "doc": "IsInteger reports whether value is an integer-valued number: an integer type,\nor a float with no fractional part.\n"
+        },
+        {
+          "name": "IsLength",
+          "signature": "func IsLength(value any) bool",
+          "doc": "IsLength reports whether value is a valid array-like length: an integer-valued\nnumber that is non-negative and no greater than 2^53-1.\n"
+        },
+        {
+          "name": "IsMap",
+          "signature": "func IsMap(value any) bool",
+          "doc": "IsMap reports whether value's dynamic type is a map.\n"
+        },
+        {
+          "name": "IsMatch",
+          "signature": "func IsMatch(object, source map[string]any) bool",
+          "doc": "IsMatch reports whether object contains all of the key/value pairs in source,\ncomparing nested map[string]any values recursively. Extra keys in object are\nignored.\n"
+        },
+        {
+          "name": "IsMatchWith",
+          "signature": "func IsMatchWith(object, source map[string]any, customizer func(objValue, srcValue any) bool) bool",
+          "doc": "IsMatchWith reports whether object matches the shape of source using a custom\ncomparator for each source key. Every key in source must be present in object\nand satisfy customizer(objectValue, sourceValue). An empty source always\nmatches.\n"
+        },
+        {
+          "name": "IsNaN",
+          "signature": "func IsNaN(value any) bool",
+          "doc": "IsNaN reports whether value is the floating-point Not-a-Number value.\n"
+        },
+        {
+          "name": "IsNil",
+          "signature": "func IsNil(value any) bool",
+          "doc": "IsNil reports whether value is nil, including typed nil pointers, maps,\nslices, channels, functions and interfaces.\n"
+        },
+        {
+          "name": "IsNull",
+          "signature": "func IsNull(value any) bool",
+          "doc": "IsNull reports whether value is nil, either as an untyped nil interface or as\na typed nil pointer, map, slice, channel or function. It is the Go analogue\nof a JavaScript null check.\n"
+        },
+        {
+          "name": "IsNumber",
+          "signature": "func IsNumber(value any) bool",
+          "doc": "IsNumber reports whether value's dynamic type is any built-in numeric type\n(integer, unsigned, or floating point).\n"
+        },
+        {
+          "name": "IsObject",
+          "signature": "func IsObject(value any) bool",
+          "doc": "IsObject reports whether value is a non-primitive, non-nil value: a map,\nslice, array, struct, pointer, channel or function. Strings, booleans and\nnumbers return false. It mirrors lodash's isObject.\n"
+        },
+        {
+          "name": "IsObjectLike",
+          "signature": "func IsObjectLike(value any) bool",
+          "doc": "IsObjectLike reports whether value is non-nil and of a composite kind: a map,\nslice, array, struct or pointer.\n"
+        },
+        {
+          "name": "IsPlainObject",
+          "signature": "func IsPlainObject(value any) bool",
+          "doc": "IsPlainObject reports whether value is a plain map keyed by strings, i.e. the\nGo analogue of a JavaScript plain object such as map[string]any.\n"
+        },
+        {
+          "name": "IsRegExp",
+          "signature": "func IsRegExp(value any) bool",
+          "doc": "IsRegExp reports whether value is a compiled *regexp.Regexp.\n"
+        },
+        {
+          "name": "IsSafeInteger",
+          "signature": "func IsSafeInteger(value any) bool",
+          "doc": "IsSafeInteger reports whether value is an integer-valued number that can be\nrepresented exactly as a float64, i.e. within the inclusive range\n[-(2^53-1), 2^53-1]. It mirrors lodash's isSafeInteger.\n"
+        },
+        {
+          "name": "IsSlice",
+          "signature": "func IsSlice(value any) bool",
+          "doc": "IsSlice reports whether value's dynamic type is a slice.\n"
+        },
+        {
+          "name": "IsString",
+          "signature": "func IsString(value any) bool",
+          "doc": "IsString reports whether value's dynamic type is a string.\n"
+        },
+        {
+          "name": "IsUndefined",
+          "signature": "func IsUndefined(value any) bool",
+          "doc": "IsUndefined reports whether value is an untyped nil interface. Unlike IsNull\nit does not consider typed nil values (such as a nil *T) to be undefined,\nmirroring the distinction JavaScript draws between undefined and null.\n"
+        },
+        {
+          "name": "Join",
+          "signature": "func Join[T any](s []T, sep string) string",
+          "doc": "Join concatenates the string forms of the elements using sep. Elements are\nrendered with ToString.\n"
+        },
+        {
+          "name": "KebabCase",
+          "signature": "func KebabCase(s string) string",
+          "doc": "KebabCase converts a string to kebab-case.\n"
+        },
+        {
+          "name": "KeyBy",
+          "signature": "func KeyBy[T any, K comparable](s []T, fn func(T) K) map[K]T",
+          "doc": "KeyBy builds a map keyed by the result of fn. When multiple elements produce\nthe same key, later elements overwrite earlier ones.\n"
+        },
+        {
+          "name": "Keys",
+          "signature": "func Keys[K comparable, V any](m map[K]V) []K",
+          "doc": "Keys returns the keys of the map in unspecified order.\n"
+        },
+        {
+          "name": "Last",
+          "signature": "func Last[T any](s []T) (T, bool)",
+          "doc": "Last returns the final element of the slice and true, or the zero value and\nfalse when the slice is empty.\n"
+        },
+        {
+          "name": "LastIndexOf",
+          "signature": "func LastIndexOf[T comparable](s []T, value T) int",
+          "doc": "LastIndexOf returns the index of the last occurrence of value, or -1.\n"
+        },
+        {
+          "name": "LastIndexOfFrom",
+          "signature": "func LastIndexOfFrom[T comparable](s []T, value T, from int) int",
+          "doc": "LastIndexOfFrom returns the index of the last occurrence of value at or before\nindex from, or -1 if it is absent. A negative from counts from the end.\n"
+        },
+        {
+          "name": "LowerCase",
+          "signature": "func LowerCase(s string) string",
+          "doc": "LowerCase converts s to space-separated lower case words, splitting on case,\ndigit and separator boundaries. Like lodash's _.lowerCase it deburrs Latin\nletters and removes contraction apostrophes before splitting (see\ncompoundWords), so e.g. LowerCase(\"À\") yields \"a\".\n"
+        },
+        {
+          "name": "LowerFirst",
+          "signature": "func LowerFirst(s string) string",
+          "doc": "LowerFirst lower-cases the first character of the string, leaving the rest\nunchanged.\n"
+        },
+        {
+          "name": "Lt",
+          "signature": "func Lt[T Ordered](a, b T) bool",
+          "doc": "Lt reports whether a is less than b.\n"
+        },
+        {
+          "name": "Lte",
+          "signature": "func Lte[T Ordered](a, b T) bool",
+          "doc": "Lte reports whether a is less than or equal to b.\n"
+        },
+        {
+          "name": "Map",
+          "signature": "func Map[T, R any](s []T, fn func(T) R) []R",
+          "doc": "Map returns a new slice populated with the results of calling fn on every\nelement of the input slice. The callback receives each element.\n"
+        },
+        {
+          "name": "MapI",
+          "signature": "func MapI[T, R any](s []T, fn func(T, int) R) []R",
+          "doc": "MapI is like Map but the callback also receives the element index.\n"
+        },
+        {
+          "name": "MapKeys",
+          "signature": "func MapKeys[K comparable, V any, K2 comparable](m map[K]V, fn func(K, V) K2) map[K2]V",
+          "doc": "MapKeys returns a new map whose keys are produced by applying fn to each\noriginal key/value pair.\n"
+        },
+        {
+          "name": "MapToSlice",
+          "signature": "func MapToSlice[K comparable, V, R any](m map[K]V, fn func(V, K) R) []R",
+          "doc": "MapToSlice applies fn to every value/key pair in m and returns the results as\na slice. The result order is unspecified. It mirrors lodash's _.map applied\nto an object.\n"
+        },
+        {
+          "name": "MapValues",
+          "signature": "func MapValues[K comparable, V any, V2 any](m map[K]V, fn func(K, V) V2) map[K]V2",
+          "doc": "MapValues returns a new map whose values are produced by applying fn to each\noriginal key/value pair.\n"
+        },
+        {
+          "name": "Matches",
+          "signature": "func Matches(source map[string]any) func(map[string]any) bool",
+          "doc": "Matches returns a predicate that reports whether its argument contains all of\nthe key/value pairs in source, using IsMatch semantics.\n"
+        },
+        {
+          "name": "MatchesProperty",
+          "signature": "func MatchesProperty(path string, srcValue any) func(map[string]any) bool",
+          "doc": "MatchesProperty returns a predicate that reports whether the value found at\npath (see ToPath) within a map[string]any is deeply equal to srcValue. It is\nthe property-path analogue of Matches and mirrors lodash's matchesProperty.\n"
+        },
+        {
+          "name": "Max",
+          "signature": "func Max[T cmp.Ordered](s []T) (T, bool)",
+          "doc": "Max returns the largest element and true, or the zero value and false when\nthe slice is empty.\n"
+        },
+        {
+          "name": "MaxBy",
+          "signature": "func MaxBy[T any, K cmp.Ordered](s []T, fn func(T) K) (T, bool)",
+          "doc": "MaxBy returns the element whose key (as produced by fn) is largest.\n"
+        },
+        {
+          "name": "MaxByMap",
+          "signature": "func MaxByMap[K comparable, V any, R cmp.Ordered](m map[K]V, fn func(V) R) (V, bool)",
+          "doc": "MaxByMap returns the value of m for which fn yields the largest ordered key,\nalong with true, or the zero value and false when m is empty. Ties are broken\narbitrarily.\n"
+        },
+        {
+          "name": "Mean",
+          "signature": "func Mean[T Number](s []T) float64",
+          "doc": "Mean returns the arithmetic mean of the elements as a float64. It returns 0\nfor an empty slice.\n"
+        },
+        {
+          "name": "MeanBy",
+          "signature": "func MeanBy[T any, R Number](s []T, fn func(T) R) float64",
+          "doc": "MeanBy returns the mean of applying fn to each element as a float64.\n"
+        },
+        {
+          "name": "Memoize",
+          "signature": "func Memoize[K comparable, R any](fn func(K) R) func(K) R",
+          "doc": "Memoize returns a function that caches the result of fn for each distinct\nargument. The cache is safe for concurrent use.\n"
+        },
+        {
+          "name": "MemoizeBy",
+          "signature": "func MemoizeBy[A any, K comparable, R any](fn func(A) R, keyFn func(A) K) func(A) R",
+          "doc": "MemoizeBy is like Memoize but derives the cache key from arg via keyFn,\nallowing memoization over non-comparable argument types.\n"
+        },
+        {
+          "name": "Merge",
+          "signature": "func Merge[K comparable, V any](maps ...map[K]V) map[K]V",
+          "doc": "Merge returns a new map combining all provided maps. Later maps override\nearlier ones for duplicate keys.\n"
+        },
+        {
+          "name": "MergeWith",
+          "signature": "func MergeWith[K comparable, V any](fn func(existing, incoming V) V, maps ...map[K]V) map[K]V",
+          "doc": "MergeWith combines all provided maps into a new map. When a key appears in\nmore than one map, the resolver fn decides the merged value from the existing\n(accumulated) value and the incoming one.\n"
+        },
+        {
+          "name": "Min",
+          "signature": "func Min[T cmp.Ordered](s []T) (T, bool)",
+          "doc": "Min returns the smallest element and true, or the zero value and false when\nthe slice is empty.\n"
+        },
+        {
+          "name": "MinBy",
+          "signature": "func MinBy[T any, K cmp.Ordered](s []T, fn func(T) K) (T, bool)",
+          "doc": "MinBy returns the element whose key (as produced by fn) is smallest.\n"
+        },
+        {
+          "name": "MinByMap",
+          "signature": "func MinByMap[K comparable, V any, R cmp.Ordered](m map[K]V, fn func(V) R) (V, bool)",
+          "doc": "MinByMap returns the value of m for which fn yields the smallest ordered key,\nalong with true, or the zero value and false when m is empty. Ties are broken\narbitrarily.\n"
+        },
+        {
+          "name": "Multiply",
+          "signature": "func Multiply[T Number](a, b T) T",
+          "doc": "Multiply returns the product of a and b.\n"
+        },
+        {
+          "name": "Negate",
+          "signature": "func Negate[T any](pred func(T) bool) func(T) bool",
+          "doc": "Negate returns a predicate that reports the logical negation of pred.\n"
+        },
+        {
+          "name": "None",
+          "signature": "func None[T any](s []T, pred func(T) bool) bool",
+          "doc": "None reports whether pred returns false for every element. It is the negation\nof Some and returns true for an empty slice.\n"
+        },
+        {
+          "name": "NoneMap",
+          "signature": "func NoneMap[K comparable, V any](m map[K]V, pred func(V, K) bool) bool",
+          "doc": "NoneMap reports whether pred returns false for every value/key pair in m. It\nreturns true for an empty map.\n"
+        },
+        {
+          "name": "Noop",
+          "signature": "func Noop()",
+          "doc": "Noop does nothing. It is handy as a default callback.\n"
+        },
+        {
+          "name": "Nth",
+          "signature": "func Nth[T any](s []T, n int) (T, bool)",
+          "doc": "Nth returns the element at index n and true. Negative indices count from the\nend (-1 is the last element). An out-of-range index yields the zero value and\nfalse.\n"
+        },
+        {
+          "name": "NthArg",
+          "signature": "func NthArg[T any](n int) func(...T) T",
+          "doc": "NthArg returns a function that returns the argument at position n from its\nvariadic arguments. A negative n counts from the end. When n is out of range\nthe zero value is returned.\n"
+        },
+        {
+          "name": "Omit",
+          "signature": "func Omit[K comparable, V any](m map[K]V, keys ...K) map[K]V",
+          "doc": "Omit returns a new map with the given keys removed.\n"
+        },
+        {
+          "name": "OmitBy",
+          "signature": "func OmitBy[K comparable, V any](m map[K]V, fn func(K, V) bool) map[K]V",
+          "doc": "OmitBy returns a new map excluding entries for which fn returns true.\n"
+        },
+        {
+          "name": "Once",
+          "signature": "func Once[R any](fn func() R) func() R",
+          "doc": "Once returns a function that invokes fn at most once. Subsequent calls return\nthe value produced by the first invocation. It is safe for concurrent use.\n"
+        },
+        {
+          "name": "OrderBy",
+          "signature": "func OrderBy[T any](s []T, keys []func(a, b T) int, orders []Order) []T",
+          "doc": "OrderBy returns a new slice sorted by multiple key functions with per-key sort\ndirections. The keys are compared in order until a difference is found. The\nnumber of orders may be shorter than keys; missing directions default to Asc.\n"
+        },
+        {
+          "name": "Over",
+          "signature": "func Over[T, R any](fns ...func(T) R) func(T) []R",
+          "doc": "Over returns a function that runs its input through every transform in fns and\ncollects the results into a slice, preserving order.\n"
+        },
+        {
+          "name": "OverArgs",
+          "signature": "func OverArgs[T, R any](fn func(...T) R, transforms ...func(T) T) func(...T) R",
+          "doc": "OverArgs returns a function that transforms its variadic arguments with the\ncorresponding transform in transforms (by position) before passing them to\nfn. Arguments without a matching transform are passed through unchanged.\n"
+        },
+        {
+          "name": "OverEvery",
+          "signature": "func OverEvery[T any](preds ...func(T) bool) func(T) bool",
+          "doc": "OverEvery returns a predicate that reports whether the input satisfies every\npredicate in preds. With no predicates it always returns true.\n"
+        },
+        {
+          "name": "OverSome",
+          "signature": "func OverSome[T any](preds ...func(T) bool) func(T) bool",
+          "doc": "OverSome returns a predicate that reports whether the input satisfies at least\none predicate in preds. With no predicates it always returns false.\n"
+        },
+        {
+          "name": "Pad",
+          "signature": "func Pad(s string, length int, chars string) string",
+          "doc": "Pad pads a string on both sides with chars until it reaches length. If the\nstring is already at least length long it is returned unchanged.\n"
+        },
+        {
+          "name": "PadEnd",
+          "signature": "func PadEnd(s string, length int, chars string) string",
+          "doc": "PadEnd pads a string on the right with chars until it reaches length.\n"
+        },
+        {
+          "name": "PadStart",
+          "signature": "func PadStart(s string, length int, chars string) string",
+          "doc": "PadStart pads a string on the left with chars until it reaches length.\n"
+        },
+        {
+          "name": "ParseFloat",
+          "signature": "func ParseFloat(s string) (float64, error)",
+          "doc": "ParseFloat parses s as a floating-point number and returns the result as a\nfloat64. Surrounding whitespace is ignored. It complements ParseInt for\nfractional input, delegating to strconv.ParseFloat.\n"
+        },
+        {
+          "name": "ParseInt",
+          "signature": "func ParseInt(s string, base int) (int64, error)",
+          "doc": "ParseInt parses s as an integer in the given base and returns the result as\nan int64. Surrounding whitespace is ignored. A base of 0 infers the base from\nany \"0x\", \"0o\" or \"0b\" prefix (defaulting to decimal). It mirrors lodash's\nparseInt, delegating to strconv.ParseInt for the conversion.\n"
+        },
+        {
+          "name": "Partial",
+          "signature": "func Partial[A, B, R any](fn func(A, B) R, a A) func(B) R",
+          "doc": "Partial binds the first argument of a two-argument function, returning a unary\nfunction of the remaining argument.\n"
+        },
+        {
+          "name": "PartialRight",
+          "signature": "func PartialRight[A, B, R any](fn func(A, B) R, b B) func(A) R",
+          "doc": "PartialRight binds the last argument of a two-argument function, returning a\nunary function of the remaining (first) argument.\n"
+        },
+        {
+          "name": "Partition",
+          "signature": "func Partition[T any](s []T, fn func(T) bool) (truthy, falsy []T)",
+          "doc": "Partition splits the slice into two slices: elements for which fn is true and\nelements for which it is false.\n"
+        },
+        {
+          "name": "PartitionMap",
+          "signature": "func PartitionMap[K comparable, V any](m map[K]V, pred func(V, K) bool) (truthy, falsy []V)",
+          "doc": "PartitionMap splits the values of m into two slices: truthy holds the values\nfor which pred returns true and falsy holds the rest. Element order within\neach slice is unspecified.\n"
+        },
+        {
+          "name": "PascalCase",
+          "signature": "func PascalCase(s string) string",
+          "doc": "PascalCase converts a string to PascalCase (a.k.a. UpperCamelCase).\n"
+        },
+        {
+          "name": "Pick",
+          "signature": "func Pick[K comparable, V any](m map[K]V, keys ...K) map[K]V",
+          "doc": "Pick returns a new map containing only the given keys that are present in m.\n"
+        },
+        {
+          "name": "PickBy",
+          "signature": "func PickBy[K comparable, V any](m map[K]V, fn func(K, V) bool) map[K]V",
+          "doc": "PickBy returns a new map containing entries for which fn returns true.\n"
+        },
+        {
+          "name": "Property",
+          "signature": "func Property(path string) func(map[string]any) (any, bool)",
+          "doc": "Property returns a function that reads the value at path from a nested\nmap[string]any using Get semantics (dotted and bracketed paths).\n"
+        },
+        {
+          "name": "PropertyOf",
+          "signature": "func PropertyOf(object map[string]any) func(string) (any, bool)",
+          "doc": "PropertyOf returns a function that reads the value at a given path from the\nbound object using Get semantics.\n"
+        },
+        {
+          "name": "Pull",
+          "signature": "func Pull[T comparable](s []T, values ...T) []T",
+          "doc": "Pull returns a new slice with every occurrence of the given values removed.\nIt is the variadic form of PullAll.\n"
+        },
+        {
+          "name": "PullAll",
+          "signature": "func PullAll[T comparable](s []T, values []T) []T",
+          "doc": "PullAll returns a new slice with every occurrence of the given values removed.\nThe input is not mutated (unlike lodash's mutating _.pullAll).\n"
+        },
+        {
+          "name": "PullAllBy",
+          "signature": "func PullAllBy[T any, K comparable](s []T, values []T, fn func(T) K) []T",
+          "doc": "PullAllBy is like PullAll but elements are matched by the key produced by fn.\n"
+        },
+        {
+          "name": "PullAllWith",
+          "signature": "func PullAllWith[T any](s []T, values []T, eq func(a, b T) bool) []T",
+          "doc": "PullAllWith returns a new slice with every element of s that is equal to any\nelement of values removed, using eq for comparison. The input slice is not\nmodified. It is the comparator-based analogue of PullAll.\n"
+        },
+        {
+          "name": "PullAt",
+          "signature": "func PullAt[T any](s []T, indexes ...int) []T",
+          "doc": "PullAt returns a new slice with the elements at the given indices removed.\nNegative and out-of-range indices are ignored. The input is not mutated.\n"
+        },
+        {
+          "name": "Random",
+          "signature": "func Random(min, max int, rng *rand.Rand) int",
+          "doc": "Random returns a pseudo-random integer in the inclusive range [min, max]\ndrawn from rng, so results are deterministic when rng is seeded. If min is\ngreater than max the bounds are swapped.\n"
+        },
+        {
+          "name": "RandomFloat",
+          "signature": "func RandomFloat(min, max float64, rng *rand.Rand) float64",
+          "doc": "RandomFloat returns a pseudo-random float64 in the half-open range [min, max)\ndrawn from rng. If min is greater than max the bounds are swapped.\n"
+        },
+        {
+          "name": "Range",
+          "signature": "func Range(end int) []int",
+          "doc": "Range returns a slice of integers from 0 up to (but not including) end. If end\nis negative it counts down.\n"
+        },
+        {
+          "name": "RangeRight",
+          "signature": "func RangeRight(end int) []int",
+          "doc": "RangeRight is like Range but the returned integers are in descending order.\n"
+        },
+        {
+          "name": "RangeStep",
+          "signature": "func RangeStep(start, end, step int) []int",
+          "doc": "RangeStep returns a slice of integers from start up to (but not including) end\nadvancing by step. The step must be non-zero; the direction is inferred from\nthe sign of (end - start) when step's sign disagrees.\n"
+        },
+        {
+          "name": "Rearg",
+          "signature": "func Rearg[T, R any](fn func(...T) R, indexes ...int) func(...T) R",
+          "doc": "Rearg returns a function that reorders its variadic arguments according to\nindexes before calling fn: the i-th argument passed to fn is the argument at\nposition indexes[i] of the call. Out-of-range indexes contribute the zero\nvalue.\n"
+        },
+        {
+          "name": "Reduce",
+          "signature": "func Reduce[T, A any](s []T, fn func(acc A, cur T) A, init A) A",
+          "doc": "Reduce boils the slice down to a single accumulated value by iterating from\nleft to right, seeded with init.\n"
+        },
+        {
+          "name": "ReduceMap",
+          "signature": "func ReduceMap[K comparable, V, A any](m map[K]V, fn func(acc A, v V, k K) A, init A) A",
+          "doc": "ReduceMap boils m down to a single accumulated value by applying fn to each\nvalue/key pair, seeded with init. Because iteration order is unspecified, fn\nshould be associative and commutative for a deterministic result.\n"
+        },
+        {
+          "name": "ReduceRight",
+          "signature": "func ReduceRight[T, A any](s []T, fn func(acc A, cur T) A, init A) A",
+          "doc": "ReduceRight is like Reduce but iterates from right to left.\n"
+        },
+        {
+          "name": "Reject",
+          "signature": "func Reject[T any](s []T, fn func(T) bool) []T",
+          "doc": "Reject is the opposite of Filter: it keeps elements for which fn returns false.\n"
+        },
+        {
+          "name": "RejectMap",
+          "signature": "func RejectMap[K comparable, V any](m map[K]V, pred func(V, K) bool) []V",
+          "doc": "RejectMap returns the values of m for which pred returns false. The result\norder is unspecified.\n"
+        },
+        {
+          "name": "Remove",
+          "signature": "func Remove[T any](s []T, pred func(T) bool) []T",
+          "doc": "Remove returns a new slice containing only the elements for which pred returns\nfalse, i.e. the elements that lodash's mutating _.remove would leave behind.\nThe input is not mutated.\n"
+        },
+        {
+          "name": "Repeat",
+          "signature": "func Repeat(s string, n int) string",
+          "doc": "Repeat returns a string consisting of n copies of s.\n"
+        },
+        {
+          "name": "Replace",
+          "signature": "func Replace(s, old, replacement string) string",
+          "doc": "Replace returns s with the first non-overlapping occurrence of old replaced by\nreplacement.\n"
+        },
+        {
+          "name": "Rest",
+          "signature": "func Rest[T, R any](fn func([]T) R) func(...T) R",
+          "doc": "Rest wraps fn, which takes a single slice argument, so that it can be called\nwith variadic arguments instead. It is the inverse of Spread and mirrors\nlodash's rest with the collected arguments passed as one slice.\n"
+        },
+        {
+          "name": "Result",
+          "signature": "func Result(m map[string]any, path string) (any, bool)",
+          "doc": "Result is like Get but, when the resolved value is a func() any, it invokes\nthat function and returns its result. This mirrors lodash's _.result.\n"
+        },
+        {
+          "name": "Reverse",
+          "signature": "func Reverse[T any](s []T) []T",
+          "doc": "Reverse returns a new slice with the elements in reverse order. The input is\nnot mutated.\n"
+        },
+        {
+          "name": "Round",
+          "signature": "func Round(value float64, precision int) float64",
+          "doc": "Round rounds value to precision decimal places using round-half-away-from-zero.\nA negative precision rounds to the left of the decimal point. Like lodash's\n_.round it shifts the decimal exponent rather than scaling by a power of ten,\nso Round(4.006, 2) is exactly 4.01.\n"
+        },
+        {
+          "name": "Sample",
+          "signature": "func Sample[T any](s []T, rng *rand.Rand) (T, bool)",
+          "doc": "Sample returns a single random element from the slice using the provided\nrandom source, making it deterministic when seeded. The second return value\nis false when the slice is empty.\n"
+        },
+        {
+          "name": "SampleN",
+          "signature": "func SampleN[T any](s []T, n int, rng *rand.Rand) []T",
+          "doc": "SampleN returns n unique random elements from the slice using the provided\nrandom source. If n exceeds the length, a shuffled copy of the whole slice is\nreturned.\n"
+        },
+        {
+          "name": "Set",
+          "signature": "func Set(m map[string]any, path string, value any) map[string]any",
+          "doc": "Set returns a copy of m with the value at path set to value, creating\nintermediate maps as needed. The input map is not mutated; only the\ncontainers along the path are cloned (copy-on-write).\n"
+        },
+        {
+          "name": "SetWith",
+          "signature": "func SetWith(m map[string]any, path string, value any, customizer func(key string) any) map[string]any",
+          "doc": "SetWith returns a copy of m with value assigned at path, using customizer to\ncreate any intermediate containers that do not yet exist. For each missing\nsegment, customizer is called with the key of the segment about to be\ncreated; if it returns a non-nil map[string]any that container is used,\notherwise a fresh map[string]any is created. The input map is not mutated. It\nmirrors lodash's setWith.\n"
+        },
+        {
+          "name": "Shuffle",
+          "signature": "func Shuffle[T any](s []T, rng *rand.Rand) []T",
+          "doc": "Shuffle returns a new slice with the elements randomly reordered using the\nprovided random source. The input is not mutated.\n"
+        },
+        {
+          "name": "Size",
+          "signature": "func Size(collection any) int",
+          "doc": "Size returns the number of elements in collection, which may be a map, slice,\narray, string or channel. Any other type reports 0.\n"
+        },
+        {
+          "name": "Slice",
+          "signature": "func Slice[T any](s []T, start, end int) []T",
+          "doc": "Slice returns the portion of s between start (inclusive) and end (exclusive).\nNegative indices count from the end. Out-of-range bounds are clamped. The\ninput is not mutated.\n"
+        },
+        {
+          "name": "SnakeCase",
+          "signature": "func SnakeCase(s string) string",
+          "doc": "SnakeCase converts a string to snake_case.\n"
+        },
+        {
+          "name": "Some",
+          "signature": "func Some[T any](s []T, fn func(T) bool) bool",
+          "doc": "Some reports whether fn returns true for at least one element. It returns\nfalse for an empty slice.\n"
+        },
+        {
+          "name": "SomeMap",
+          "signature": "func SomeMap[K comparable, V any](m map[K]V, pred func(V, K) bool) bool",
+          "doc": "SomeMap reports whether pred returns true for at least one value/key pair in\nm. It returns false for an empty map.\n"
+        },
+        {
+          "name": "SortBy",
+          "signature": "func SortBy[T any, K cmp.Ordered](s []T, fn func(T) K) []T",
+          "doc": "SortBy returns a new slice sorted in ascending order by the key returned by\nfn. The sort is stable and the input is not mutated.\n"
+        },
+        {
+          "name": "SortedIndex",
+          "signature": "func SortedIndex[T cmp.Ordered](s []T, value T) int",
+          "doc": "SortedIndex returns the lowest index at which value can be inserted into the\nsorted slice s to keep it sorted.\n"
+        },
+        {
+          "name": "SortedIndexBy",
+          "signature": "func SortedIndexBy[T any, K cmp.Ordered](s []T, value T, fn func(T) K) int",
+          "doc": "SortedIndexBy returns the lowest insertion index for value in s, comparing\nelements by the key produced by fn.\n"
+        },
+        {
+          "name": "SortedIndexOf",
+          "signature": "func SortedIndexOf[T cmp.Ordered](s []T, value T) int",
+          "doc": "SortedIndexOf returns the index of the first occurrence of value in the sorted\nslice s using binary search, or -1 if it is absent.\n"
+        },
+        {
+          "name": "SortedKeys",
+          "signature": "func SortedKeys[K cmp.Ordered, V any](m map[K]V) []K",
+          "doc": "SortedKeys returns the keys of the map sorted in ascending order.\n"
+        },
+        {
+          "name": "SortedLastIndex",
+          "signature": "func SortedLastIndex[T cmp.Ordered](s []T, value T) int",
+          "doc": "SortedLastIndex returns the highest index at which value can be inserted into\nthe sorted slice s to keep it sorted.\n"
+        },
+        {
+          "name": "SortedLastIndexBy",
+          "signature": "func SortedLastIndexBy[T any, K cmp.Ordered](s []T, value T, fn func(T) K) int",
+          "doc": "SortedLastIndexBy returns the highest insertion index for value in s,\ncomparing elements by the key produced by fn.\n"
+        },
+        {
+          "name": "SortedLastIndexOf",
+          "signature": "func SortedLastIndexOf[T cmp.Ordered](s []T, value T) int",
+          "doc": "SortedLastIndexOf returns the index of the last occurrence of value in the\nsorted slice s using binary search, or -1 if it is absent.\n"
+        },
+        {
+          "name": "SortedUniq",
+          "signature": "func SortedUniq[T comparable](s []T) []T",
+          "doc": "SortedUniq removes duplicate values from a sorted slice, keeping one of each\nrun of equal elements. The input is not mutated.\n"
+        },
+        {
+          "name": "SortedUniqBy",
+          "signature": "func SortedUniqBy[T any, K comparable](s []T, fn func(T) K) []T",
+          "doc": "SortedUniqBy removes duplicates from a sorted slice, comparing elements by the\nkey produced by fn. The input is not mutated.\n"
+        },
+        {
+          "name": "Split",
+          "signature": "func Split(s, sep string, limit int) []string",
+          "doc": "Split divides s around each instance of sep. When limit is greater than zero\nat most limit substrings are returned (the final one holding the unsplit\nremainder is dropped beyond the limit); a non-positive limit returns all\nsubstrings.\n"
+        },
+        {
+          "name": "Spread",
+          "signature": "func Spread[T, R any](fn func(...T) R) func([]T) R",
+          "doc": "Spread converts a variadic function into one that takes its arguments as a\nsingle slice.\n"
+        },
+        {
+          "name": "StartCase",
+          "signature": "func StartCase(s string) string",
+          "doc": "StartCase converts a string to Start Case, upper-casing the first letter of\neach word and separating words with single spaces. Unlike Capitalize it does\nnot lower-case the remaining letters, so acronyms such as \"FOO\" are\npreserved. This mirrors lodash's _.startCase, which composes upperFirst over\neach detected word (e.g. \"__FOO_BAR__\" -\u003e \"FOO BAR\").\n"
+        },
+        {
+          "name": "StartsWith",
+          "signature": "func StartsWith(s, prefix string) bool",
+          "doc": "StartsWith reports whether s begins with prefix.\n"
+        },
+        {
+          "name": "StubArray",
+          "signature": "func StubArray[T any]() []T",
+          "doc": "StubArray returns a new empty slice of T on every call.\n"
+        },
+        {
+          "name": "StubFalse",
+          "signature": "func StubFalse() bool",
+          "doc": "StubFalse always returns false.\n"
+        },
+        {
+          "name": "StubObject",
+          "signature": "func StubObject() map[string]any",
+          "doc": "StubObject returns a new empty map[string]any on every call.\n"
+        },
+        {
+          "name": "StubString",
+          "signature": "func StubString() string",
+          "doc": "StubString returns the empty string.\n"
+        },
+        {
+          "name": "StubTrue",
+          "signature": "func StubTrue() bool",
+          "doc": "StubTrue always returns true.\n"
+        },
+        {
+          "name": "Subtract",
+          "signature": "func Subtract[T Number](a, b T) T",
+          "doc": "Subtract returns the difference a minus b.\n"
+        },
+        {
+          "name": "Sum",
+          "signature": "func Sum[T Number](s []T) T",
+          "doc": "Sum returns the sum of all elements. It returns the zero value for an empty\nslice.\n"
+        },
+        {
+          "name": "SumBy",
+          "signature": "func SumBy[T any, R Number](s []T, fn func(T) R) R",
+          "doc": "SumBy returns the sum of applying fn to each element.\n"
+        },
+        {
+          "name": "Tail",
+          "signature": "func Tail[T any](s []T) []T",
+          "doc": "Tail returns a new slice containing all but the first element.\n"
+        },
+        {
+          "name": "Take",
+          "signature": "func Take[T any](s []T, n int) []T",
+          "doc": "Take returns the first n elements of the slice. If n exceeds the length, the\nwhole slice is returned. Negative n yields an empty slice.\n"
+        },
+        {
+          "name": "TakeRight",
+          "signature": "func TakeRight[T any](s []T, n int) []T",
+          "doc": "TakeRight returns the last n elements of the slice.\n"
+        },
+        {
+          "name": "TakeRightWhile",
+          "signature": "func TakeRightWhile[T any](s []T, pred func(T) bool) []T",
+          "doc": "TakeRightWhile returns the trailing run of elements for which pred returns\ntrue, in their original order.\n"
+        },
+        {
+          "name": "TakeWhile",
+          "signature": "func TakeWhile[T any](s []T, pred func(T) bool) []T",
+          "doc": "TakeWhile returns the leading run of elements for which pred returns true.\n"
+        },
+        {
+          "name": "Template",
+          "signature": "func Template(tmpl string, opts ...TemplateOptions) func(data map[string]any) string",
+          "doc": "Template compiles a text template into a renderer function. Within the\ntemplate, \"\u003c%= path %\u003e\" interpolates the value at path from the data map,\n\"\u003c%- path %\u003e\" interpolates it HTML-escaped, and \"\u003c% ... %\u003e\" evaluate blocks\nare recognized and removed (they are not executed, since no scripting engine\nis embedded). Paths are resolved with Get, so dotted and bracket notation are\nsupported.\n"
+        },
+        {
+          "name": "Times",
+          "signature": "func Times[R any](n int, fn func(int) R) []R",
+          "doc": "Times invokes fn n times, collecting the results into a slice. The call index\n(0-based) is passed to fn. A non-positive n yields an empty slice.\n"
+        },
+        {
+          "name": "ToArray",
+          "signature": "func ToArray[T any](s []T) []T",
+          "doc": "ToArray returns a copy of the given slice. It is the slice-typed analogue of\nlodash's toArray for the common case of converting/copying a collection.\n"
+        },
+        {
+          "name": "ToFinite",
+          "signature": "func ToFinite(value any) float64",
+          "doc": "ToFinite converts value to a finite float64, mapping NaN to 0 and infinities\nto the largest representable magnitudes.\n"
+        },
+        {
+          "name": "ToInteger",
+          "signature": "func ToInteger(value any) int",
+          "doc": "ToInteger converts value to an int by truncating toward zero. Non-numeric and\nnon-finite inputs yield 0.\n"
+        },
+        {
+          "name": "ToLength",
+          "signature": "func ToLength(value any) int",
+          "doc": "ToLength converts value to a valid array-like length by truncating it to an\ninteger and clamping the result to the inclusive range [0, 2^53-1]. It\nmirrors lodash's toLength.\n"
+        },
+        {
+          "name": "ToLower",
+          "signature": "func ToLower(s string) string",
+          "doc": "ToLower returns s with all Unicode letters mapped to their lower case,\nwithout any word splitting.\n"
+        },
+        {
+          "name": "ToNumber",
+          "signature": "func ToNumber(value any) float64",
+          "doc": "ToNumber converts value to a float64. Booleans become 0 or 1, numeric types\nare converted directly, and strings are parsed (with surrounding whitespace\ntrimmed). Anything that cannot be interpreted as a number yields NaN.\n"
+        },
+        {
+          "name": "ToPath",
+          "signature": "func ToPath(path string) []string",
+          "doc": "ToPath splits a property path string into its component keys. It understands\ndotted notation (\"a.b.c\") and bracket notation with optional quotes\n(\"a[0].b\", \"a['b.c']\"), yielding [\"a\", \"0\", \"b\"] and [\"a\", \"b.c\"]\nrespectively.\n"
+        },
+        {
+          "name": "ToSafeInteger",
+          "signature": "func ToSafeInteger(value any) int",
+          "doc": "ToSafeInteger clamps ToInteger(value) to the range of integers that float64\ncan represent exactly, i.e. [-(2^53-1), 2^53-1].\n"
+        },
+        {
+          "name": "ToString",
+          "signature": "func ToString(value any) string",
+          "doc": "ToString converts value to its string representation. Nil becomes the empty\nstring; all other values use fmt.Sprint.\n"
+        },
+        {
+          "name": "ToUpper",
+          "signature": "func ToUpper(s string) string",
+          "doc": "ToUpper returns s with all Unicode letters mapped to their upper case,\nwithout any word splitting.\n"
+        },
+        {
+          "name": "Transform",
+          "signature": "func Transform[K comparable, V, A any](m map[K]V, fn func(acc A, v V, k K) A, init A) A",
+          "doc": "Transform reduces the map into a single accumulated value by applying fn to\neach key/value pair, seeded with init.\n"
+        },
+        {
+          "name": "Trim",
+          "signature": "func Trim(s, cutset string) string",
+          "doc": "Trim removes leading and trailing characters found in cutset from s. When\ncutset is empty it trims whitespace.\n"
+        },
+        {
+          "name": "TrimEnd",
+          "signature": "func TrimEnd(s, cutset string) string",
+          "doc": "TrimEnd removes trailing characters found in cutset from s. When cutset is\nempty it trims trailing whitespace.\n"
+        },
+        {
+          "name": "TrimStart",
+          "signature": "func TrimStart(s, cutset string) string",
+          "doc": "TrimStart removes leading characters found in cutset from s. When cutset is\nempty it trims leading whitespace.\n"
+        },
+        {
+          "name": "Truncate",
+          "signature": "func Truncate(s string, length int, omission string) string",
+          "doc": "Truncate shortens a string to at most length runes, appending omission (which\ncounts toward the length) when truncation occurs.\n"
+        },
+        {
+          "name": "Unary",
+          "signature": "func Unary[T, R any](fn func(...T) R) func(T) R",
+          "doc": "Unary caps a variadic function so that it receives at most a single argument.\n"
+        },
+        {
+          "name": "Unescape",
+          "signature": "func Unescape(s string) string",
+          "doc": "Unescape reverses Escape, converting the HTML entities for \"\u0026\", \"\u003c\", \"\u003e\", '\"'\nand \"'\" back into their characters.\n"
+        },
+        {
+          "name": "Union",
+          "signature": "func Union[T comparable](slices ...[]T) []T",
+          "doc": "Union returns the unique elements from all provided slices, preserving the\norder of first appearance.\n"
+        },
+        {
+          "name": "UnionBy",
+          "signature": "func UnionBy[T any, K comparable](fn func(T) K, slices ...[]T) []T",
+          "doc": "UnionBy returns the unique elements (by key) from all provided slices,\npreserving order of first appearance.\n"
+        },
+        {
+          "name": "UnionWith",
+          "signature": "func UnionWith[T any](eq func(a, b T) bool, slices ...[]T) []T",
+          "doc": "UnionWith returns the unique elements from all provided slices using the eq\ncomparator to detect duplicates, preserving order of first appearance.\n"
+        },
+        {
+          "name": "Uniq",
+          "signature": "func Uniq[T comparable](s []T) []T",
+          "doc": "Uniq returns a new slice with duplicate values removed, preserving the order\nof first appearance.\n"
+        },
+        {
+          "name": "UniqBy",
+          "signature": "func UniqBy[T any, K comparable](s []T, fn func(T) K) []T",
+          "doc": "UniqBy is like Uniq but uniqueness is determined by the key produced by fn.\n"
+        },
+        {
+          "name": "UniqWith",
+          "signature": "func UniqWith[T any](s []T, eq func(a, b T) bool) []T",
+          "doc": "UniqWith returns a new slice with duplicate elements removed, using eq to\ndecide whether two elements are equal. The first occurrence of each distinct\nelement is kept, in order. It is the comparator-based analogue of Uniq for\nelement types that are not comparable with ==.\n"
+        },
+        {
+          "name": "UniqueID",
+          "signature": "func UniqueID(prefix string) string",
+          "doc": "UniqueID returns a process-unique identifier string composed of the optional\nprefix followed by a monotonically increasing counter. It is safe for\nconcurrent use.\n"
+        },
+        {
+          "name": "Unset",
+          "signature": "func Unset(m map[string]any, path string) (map[string]any, bool)",
+          "doc": "Unset returns a copy of m with the value at path removed, along with a boolean\nreporting whether anything was removed. The input map is not mutated.\n"
+        },
+        {
+          "name": "Unzip",
+          "signature": "func Unzip[A, B any](pairs []Pair[A, B]) ([]A, []B)",
+          "doc": "Unzip splits a slice of pairs back into two slices.\n"
+        },
+        {
+          "name": "UnzipWith",
+          "signature": "func UnzipWith[A, B, R any](pairs []Pair[A, B], fn func(A, B) R) []R",
+          "doc": "UnzipWith splits a slice of pairs into two slices, then combines them\nelement-wise using fn.\n"
+        },
+        {
+          "name": "Update",
+          "signature": "func Update(m map[string]any, path string, updater func(old any) any) map[string]any",
+          "doc": "Update returns a copy of m with the value at path replaced by the result of\nupdater applied to the existing value (or nil when the path is absent).\nIntermediate maps are created as needed and the input is not mutated.\n"
+        },
+        {
+          "name": "UpdateWith",
+          "signature": "func UpdateWith(m map[string]any, path string, updater func(old any) any, customizer func(key string) any) map[string]any",
+          "doc": "UpdateWith returns a copy of m with the value at path replaced by the result\nof updater applied to the existing value (or nil when the path is absent),\nusing customizer to create any intermediate containers exactly as SetWith\ndoes. The input map is not mutated. It mirrors lodash's updateWith.\n"
+        },
+        {
+          "name": "UpperCase",
+          "signature": "func UpperCase(s string) string",
+          "doc": "UpperCase converts s to space-separated UPPER CASE words. Like lodash's\n_.upperCase it deburrs Latin letters and removes contraction apostrophes\nbefore splitting (see compoundWords), so e.g. UpperCase(\"À\") yields \"A\".\n"
+        },
+        {
+          "name": "UpperFirst",
+          "signature": "func UpperFirst(s string) string",
+          "doc": "UpperFirst upper-cases the first character of the string, leaving the rest\nunchanged.\n"
+        },
+        {
+          "name": "Values",
+          "signature": "func Values[K comparable, V any](m map[K]V) []V",
+          "doc": "Values returns the values of the map in unspecified order.\n"
+        },
+        {
+          "name": "Without",
+          "signature": "func Without[T comparable](s []T, values ...T) []T",
+          "doc": "Without returns a new slice excluding all the given values.\n"
+        },
+        {
+          "name": "Words",
+          "signature": "func Words(s string) []string",
+          "doc": "Words splits a string into its component words. It understands spaces,\npunctuation, snake_case, kebab-case and camelCase / PascalCase boundaries as\nwell as runs of digits.\n"
+        },
+        {
+          "name": "Wrap",
+          "signature": "func Wrap[T, A, R any](value T, wrapper func(T, A) R) func(A) R",
+          "doc": "Wrap returns a function that calls wrapper with value followed by the caller's\nargument, letting wrapper decorate or intercept the bound value.\n"
+        },
+        {
+          "name": "Xor",
+          "signature": "func Xor[T comparable](slices ...[]T) []T",
+          "doc": "Xor returns the symmetric difference of the provided slices: the unique values\nthat appear in exactly one of the slices.\n"
+        },
+        {
+          "name": "XorBy",
+          "signature": "func XorBy[T any, K comparable](fn func(T) K, slices ...[]T) []T",
+          "doc": "XorBy is like Xor but element identity is determined by the key produced by\nfn.\n"
+        },
+        {
+          "name": "XorWith",
+          "signature": "func XorWith[T any](eq func(a, b T) bool, slices ...[]T) []T",
+          "doc": "XorWith is like Xor but element identity is determined by the eq comparator.\n"
+        },
+        {
+          "name": "ZipObject",
+          "signature": "func ZipObject[K comparable, V any](keys []K, values []V) map[K]V",
+          "doc": "ZipObject builds a map by pairing each key with the value at the same index.\nExtra keys map to the zero value; extra values are ignored.\n"
+        },
+        {
+          "name": "ZipObjectDeep",
+          "signature": "func ZipObjectDeep(paths []string, values []any) map[string]any",
+          "doc": "ZipObjectDeep builds a nested map[string]any by treating each element of\npaths as a property path (see ToPath) and assigning the corresponding element\nof values at that path. Paths without a matching value receive nil. It\nmirrors lodash's zipObjectDeep.\n"
+        },
+        {
+          "name": "ZipWith",
+          "signature": "func ZipWith[A, B, R any](a []A, b []B, fn func(A, B) R) []R",
+          "doc": "ZipWith combines two slices element-wise using fn, producing a slice whose\nlength equals the shorter input.\n"
+        }
+      ],
+      "examples": [
+        {
+          "name": "",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\tlodash \"github.com/malcolmston/lodash\"\n)\n\nfunc main() {\n\tnums := []int{1, 2, 3, 4, 5, 6}\n\tevens := lodash.Filter(nums, func(n int) bool { return n%2 == 0 })\n\tdoubled := lodash.Map(evens, func(n int) int { return n * 2 })\n\ttotal := lodash.Sum(doubled)\n\tfmt.Println(evens)\n\tfmt.Println(doubled)\n\tfmt.Println(total)\n}",
+          "output": "[2 4 6]\n[4 8 12]\n24",
+          "doc": "Example demonstrates chaining a few of the collection helpers together.\n"
+        },
+        {
+          "name": "CamelCase",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\tlodash \"github.com/malcolmston/lodash\"\n)\n\nfunc main() {\n\tfmt.Println(lodash.CamelCase(\"Foo Bar-baz\"))\n\tfmt.Println(lodash.SnakeCase(\"fooBarBaz\"))\n}",
+          "output": "fooBarBaz\nfoo_bar_baz",
+          "doc": "ExampleCamelCase demonstrates string case conversion.\n"
+        },
+        {
+          "name": "Flow",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\tlodash \"github.com/malcolmston/lodash\"\n)\n\nfunc main() {\n\tpipeline := lodash.Flow(\n\t\tfunc(n int) int { return n + 1 },\n\t\tfunc(n int) int { return n * 2 },\n\t)\n\tfmt.Println(pipeline(3))\n}",
+          "output": "8",
+          "doc": "ExampleFlow demonstrates composing transforms left to right.\n"
+        },
+        {
+          "name": "Get",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\tlodash \"github.com/malcolmston/lodash\"\n)\n\nfunc main() {\n\tdata := map[string]any{\n\t\t\"user\": map[string]any{\n\t\t\t\"roles\": []any{\"admin\", \"editor\"},\n\t\t},\n\t}\n\trole, _ := lodash.Get(data, \"user.roles[0]\")\n\tfmt.Println(role)\n}",
+          "output": "admin",
+          "doc": "ExampleGet demonstrates deep-path access into a nested map using bracket and\ndotted notation.\n"
+        },
+        {
+          "name": "GroupBy",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\tlodash \"github.com/malcolmston/lodash\"\n)\n\nfunc main() {\n\twords := []string{\"apple\", \"banana\", \"avocado\", \"cherry\", \"blueberry\"}\n\tgroups := lodash.GroupBy(words, func(s string) byte { return s[0] })\n\tfmt.Println(groups['a'])\n\tfmt.Println(groups['b'])\n}",
+          "output": "[apple avocado]\n[banana blueberry]",
+          "doc": "ExampleGroupBy shows grouping elements by a computed key.\n"
+        },
+        {
+          "name": "Chain",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\tlodash \"github.com/malcolmston/lodash\"\n)\n\nfunc main() {\n\tresult := lodash.Chain([]int{1, 2, 3, 4}).\n\t\tThru(func(s []int) []int { return lodash.Filter(s, func(n int) bool { return n%2 == 0 }) }).\n\t\tThru(func(s []int) []int { return lodash.Map(s, func(n int) int { return n * n }) }).\n\t\tValue()\n\tfmt.Println(result)\n}",
+          "output": "[4 16]",
+          "doc": "ExampleChain demonstrates the lazy Seq wrapper terminated by Value.\n"
+        }
+      ]
+    }
+  ]
+}

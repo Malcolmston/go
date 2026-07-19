@@ -1,0 +1,627 @@
+{
+  "module": "github.com/malcolmston/puppeteer",
+  "generatedAt": "2026-07-19T02:05:53Z",
+  "packages": [
+    {
+      "importPath": "github.com/malcolmston/puppeteer",
+      "name": "puppeteer",
+      "synopsis": "Package puppeteer is a pure-Go, standard-library-only page-automation toolkit inspired by the Node.js Puppeteer API.",
+      "doc": "Package puppeteer is a pure-Go, standard-library-only page-automation toolkit\ninspired by the Node.js Puppeteer API. It fetches pages over net/http, parses\nthe returned HTML with its own tokenizer and DOM builder, and lets you query\nand traverse the resulting document with a real CSS selector engine.\n\n# No JavaScript, no rendering\n\nThis package deliberately does NOT run a browser and does NOT execute\nJavaScript. A dependency-free Go library cannot embed a JavaScript engine or\na layout/rendering engine, so there is:\n\n  - no script execution: content injected or mutated by client-side JS is\n    never present in the DOM you query;\n  - no rendering, layout, or painting: there are no element geometries,\n    computed styles, screenshots, or visibility calculations;\n  - no live DOM: the tree is a static snapshot of the bytes the server sent.\n\nIn practical terms, puppeteer here behaves like an HTTP client married to an\nHTML parser and selector engine. It is ideal for scraping and automating\nserver-rendered pages, following links, submitting forms, and managing\ncookies and headers. It is NOT a substitute for a headless Chromium when a\nsite's content depends on JavaScript. The WaitForSelector helper polls by\nre-fetching the URL rather than observing a live DOM (see its documentation).\n\n# Model\n\nLaunch returns a [Browser], which owns an *http.Client, a cookie jar\n(net/http/cookiejar), shared headers, a user agent and a per-navigation\ntimeout. Browser.NewPage returns a [Page]. Page.Goto fetches a URL (following\nredirects, updating cookies), reads the body and parses it into a DOM tree.\n\nFrom a Page you can:\n\n  - select nodes with QuerySelector / QuerySelectorAll;\n  - read Content (raw HTML), HTML (re-serialized DOM), Title and URL;\n  - enumerate resolved Links;\n  - discover and fill Forms, then build or submit the resulting request.\n\nSelected nodes are returned as [Element] handles offering TextContent,\nInnerHTML, OuterHTML, Attr/Attributes, class helpers and DOM traversal\n(Children, Parent, Next, Prev, Closest, Matches) plus node-relative\nQuerySelector/QuerySelectorAll.\n\n# Supported CSS selectors\n\nThe selector engine ([compileSelector] and the QuerySelector methods)\nimplements:\n\n  - type selectors (div), the universal selector (*);\n  - #id and .class;\n  - attribute selectors [attr], [attr=val], [attr^=val], [attr$=val],\n    [attr*=val], [attr~=val], [attr|=val];\n  - combinators: descendant (space), child (\u003e), adjacent sibling (+) and\n    general sibling (~);\n  - selector lists (grouping with commas);\n  - structural pseudo-classes :first-child, :last-child and :nth-child(),\n    including the An+B microsyntax (odd, even, 2n+1, -n+3, ...).\n\n# HTML parsing\n\nThe tokenizer and parser are original code (they do not use golang.org/x/net).\nThey handle tags, quoted/unquoted attributes, comments, doctypes, void\nelements, raw-text elements (script, style), common character references and\nthe most frequent implicit end-tag rules (for example \u003cli\u003e closing a previous\n\u003cli\u003e). Parse never fails; malformed input is recovered the way browsers do.\n\n# Example\n\nA minimal end-to-end use looks like this:\n\n\tbrowser, _ := puppeteer.Launch(nil)\n\tpage := browser.NewPage()\n\tif _, err := page.Goto(\"https://example.com\"); err != nil {\n\t\tlog.Fatal(err)\n\t}\n\tfmt.Println(page.Title())\n\tlinks := page.Links()\n\t_ = links\n\nSee the package examples for a runnable version backed by httptest.\n",
+      "consts": [
+        {
+          "names": [
+            "DefaultUserAgent"
+          ],
+          "signature": "const DefaultUserAgent = \"puppeteer-go/0.1.0 (+https://github.com/malcolmston/puppeteer)\"",
+          "doc": "DefaultUserAgent is sent when LaunchOptions does not override it.\n"
+        }
+      ],
+      "vars": [],
+      "types": [
+        {
+          "name": "Attribute",
+          "signature": "type Attribute struct {\n\tName  string\n\tValue string\n}",
+          "doc": "Attribute is a single name/value pair on an element. Attribute names are\nnormalized to lower case during parsing.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Browser",
+          "signature": "type Browser struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Browser is a lightweight HTTP client with a cookie jar, shared headers and a\nuser agent. It is the entry point of the package and models Puppeteer's\nBrowser, minus any real rendering engine.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "Launch",
+              "signature": "func Launch(opts *LaunchOptions) (*Browser, error)",
+              "doc": "Launch creates a Browser. Passing nil uses all defaults.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Close",
+              "recv": "*Browser",
+              "signature": "func (b *Browser) Close() error",
+              "doc": "Close releases idle connections. The browser must not be used afterwards.\n"
+            },
+            {
+              "name": "Cookies",
+              "recv": "*Browser",
+              "signature": "func (b *Browser) Cookies(rawurl string) ([]*http.Cookie, error)",
+              "doc": "Cookies returns the cookies the jar would send for rawurl.\n"
+            },
+            {
+              "name": "NewPage",
+              "recv": "*Browser",
+              "signature": "func (b *Browser) NewPage() *Page",
+              "doc": "NewPage returns a fresh Page bound to this browser.\n"
+            },
+            {
+              "name": "SetCookies",
+              "recv": "*Browser",
+              "signature": "func (b *Browser) SetCookies(rawurl string, cookies []*http.Cookie) error",
+              "doc": "SetCookies stores cookies in the jar for rawurl.\n"
+            },
+            {
+              "name": "SetExtraHTTPHeaders",
+              "recv": "*Browser",
+              "signature": "func (b *Browser) SetExtraHTTPHeaders(h map[string]string)",
+              "doc": "SetExtraHTTPHeaders replaces the browser-level extra headers.\n"
+            },
+            {
+              "name": "SetUserAgent",
+              "recv": "*Browser",
+              "signature": "func (b *Browser) SetUserAgent(ua string)",
+              "doc": "SetUserAgent changes the user-agent sent on subsequent navigations.\n"
+            },
+            {
+              "name": "UserAgent",
+              "recv": "*Browser",
+              "signature": "func (b *Browser) UserAgent() string",
+              "doc": "UserAgent returns the browser's configured user-agent string.\n"
+            }
+          ]
+        },
+        {
+          "name": "Element",
+          "signature": "type Element struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Element is a handle to an ElementNode in a parsed document. It offers the\nconvenience accessors and traversal helpers familiar from Puppeteer's\nElementHandle, adapted to a static (non-JavaScript) DOM.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Ancestors",
+              "recv": "*Element",
+              "signature": "func (e *Element) Ancestors() []*Element",
+              "doc": "Ancestors returns the element's ancestor elements from the immediate parent up\nto the document root's outermost element, nearest first. The document node\nitself is not included.\n"
+            },
+            {
+              "name": "Attr",
+              "recv": "*Element",
+              "signature": "func (e *Element) Attr(name string) (string, bool)",
+              "doc": "Attr returns the value of the named attribute and whether it exists.\n"
+            },
+            {
+              "name": "AttrOr",
+              "recv": "*Element",
+              "signature": "func (e *Element) AttrOr(name, def string) string",
+              "doc": "AttrOr returns the named attribute's value or def when it is absent.\n"
+            },
+            {
+              "name": "AttributeNames",
+              "recv": "*Element",
+              "signature": "func (e *Element) AttributeNames() []string",
+              "doc": "AttributeNames returns the names of the element's attributes in source order.\n"
+            },
+            {
+              "name": "Attributes",
+              "recv": "*Element",
+              "signature": "func (e *Element) Attributes() map[string]string",
+              "doc": "Attributes returns all attributes as a name/value map.\n"
+            },
+            {
+              "name": "Children",
+              "recv": "*Element",
+              "signature": "func (e *Element) Children() []*Element",
+              "doc": "Children returns the element's child elements (text and comments excluded).\n"
+            },
+            {
+              "name": "ClassList",
+              "recv": "*Element",
+              "signature": "func (e *Element) ClassList() []string",
+              "doc": "ClassList returns the element's class tokens.\n"
+            },
+            {
+              "name": "Closest",
+              "recv": "*Element",
+              "signature": "func (e *Element) Closest(selector string) (*Element, error)",
+              "doc": "Closest returns the nearest ancestor (including the element itself) that\nmatches the selector, or nil.\n"
+            },
+            {
+              "name": "Dataset",
+              "recv": "*Element",
+              "signature": "func (e *Element) Dataset() map[string]string",
+              "doc": "Dataset returns the element's data-* attributes as a map keyed by the DOM\ndataset name: the \"data-\" prefix is stripped and each \"-x\" sequence becomes an\nupper-cased letter, so data-user-id becomes userId. This mirrors the\nHTMLElement.dataset property. Attributes without the data- prefix are omitted.\n"
+            },
+            {
+              "name": "HasAttribute",
+              "recv": "*Element",
+              "signature": "func (e *Element) HasAttribute(name string) bool",
+              "doc": "HasAttribute reports whether the element carries the named attribute,\nregardless of its value. Names are matched case-insensitively.\n"
+            },
+            {
+              "name": "HasClass",
+              "recv": "*Element",
+              "signature": "func (e *Element) HasClass(class string) bool",
+              "doc": "HasClass reports whether the element carries the given class token.\n"
+            },
+            {
+              "name": "ID",
+              "recv": "*Element",
+              "signature": "func (e *Element) ID() string",
+              "doc": "ID returns the element's id attribute.\n"
+            },
+            {
+              "name": "InnerHTML",
+              "recv": "*Element",
+              "signature": "func (e *Element) InnerHTML() string",
+              "doc": "InnerHTML returns the serialized markup of the element's children.\n"
+            },
+            {
+              "name": "InnerText",
+              "recv": "*Element",
+              "signature": "func (e *Element) InnerText() string",
+              "doc": "InnerText is a convenience alias for TextContent with surrounding whitespace\ntrimmed and internal runs collapsed to single spaces.\n"
+            },
+            {
+              "name": "IsEmpty",
+              "recv": "*Element",
+              "signature": "func (e *Element) IsEmpty() bool",
+              "doc": "IsEmpty reports whether the element has no child elements, no comments and no\nnon-whitespace text, approximating the CSS :empty pseudo-class with the\nSelectors Level 4 relaxation that whitespace-only text is treated as empty.\n"
+            },
+            {
+              "name": "Matches",
+              "recv": "*Element",
+              "signature": "func (e *Element) Matches(selector string) (bool, error)",
+              "doc": "Matches reports whether the element matches the selector.\n"
+            },
+            {
+              "name": "Next",
+              "recv": "*Element",
+              "signature": "func (e *Element) Next() *Element",
+              "doc": "Next returns the next sibling element, or nil.\n"
+            },
+            {
+              "name": "NextAll",
+              "recv": "*Element",
+              "signature": "func (e *Element) NextAll() []*Element",
+              "doc": "NextAll returns every following sibling element in document order.\n"
+            },
+            {
+              "name": "Node",
+              "recv": "*Element",
+              "signature": "func (e *Element) Node() *Node",
+              "doc": "Node returns the underlying DOM node.\n"
+            },
+            {
+              "name": "OuterHTML",
+              "recv": "*Element",
+              "signature": "func (e *Element) OuterHTML() string",
+              "doc": "OuterHTML returns the serialized markup of the element including itself.\n"
+            },
+            {
+              "name": "Parent",
+              "recv": "*Element",
+              "signature": "func (e *Element) Parent() *Element",
+              "doc": "Parent returns the element's parent element, or nil.\n"
+            },
+            {
+              "name": "Prev",
+              "recv": "*Element",
+              "signature": "func (e *Element) Prev() *Element",
+              "doc": "Prev returns the previous sibling element, or nil.\n"
+            },
+            {
+              "name": "PrevAll",
+              "recv": "*Element",
+              "signature": "func (e *Element) PrevAll() []*Element",
+              "doc": "PrevAll returns every preceding sibling element in document order (the\nnearest preceding sibling last).\n"
+            },
+            {
+              "name": "QuerySelector",
+              "recv": "*Element",
+              "signature": "func (e *Element) QuerySelector(selector string) (*Element, error)",
+              "doc": "QuerySelector returns the first descendant matching the selector, or nil.\n"
+            },
+            {
+              "name": "QuerySelectorAll",
+              "recv": "*Element",
+              "signature": "func (e *Element) QuerySelectorAll(selector string) ([]*Element, error)",
+              "doc": "QuerySelectorAll returns all descendants matching the selector.\n"
+            },
+            {
+              "name": "Siblings",
+              "recv": "*Element",
+              "signature": "func (e *Element) Siblings() []*Element",
+              "doc": "Siblings returns the element's sibling elements in document order, excluding\nthe element itself. Text and comment nodes are skipped.\n"
+            },
+            {
+              "name": "TagName",
+              "recv": "*Element",
+              "signature": "func (e *Element) TagName() string",
+              "doc": "TagName returns the element's lower-cased tag name.\n"
+            },
+            {
+              "name": "TextContent",
+              "recv": "*Element",
+              "signature": "func (e *Element) TextContent() string",
+              "doc": "TextContent returns the concatenated text of the element and its descendants.\n"
+            }
+          ]
+        },
+        {
+          "name": "Form",
+          "signature": "type Form struct {\n\n\t// Action is the absolute submission URL.\n\tAction string\n\t// Method is the upper-cased HTTP method (\"GET\" or \"POST\").\n\tMethod string\n\t// EncType is the form's encoding; only application/x-www-form-urlencoded is\n\t// produced when building requests.\n\tEncType string\n\t// contains filtered or unexported fields\n}",
+          "doc": "Form is a discovered \u003cform\u003e together with its resolved action, method and the\ncurrent values of its fields. It can build (and optionally send) the request\nthat submitting it would produce.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "BuildRequest",
+              "recv": "*Form",
+              "signature": "func (f *Form) BuildRequest(ctx context.Context) (*http.Request, error)",
+              "doc": "BuildRequest constructs the *http.Request that submitting the form produces.\nFor GET the values are encoded into the query string; for POST they form a\nurlencoded body with the appropriate Content-Type. The request is not sent.\n"
+            },
+            {
+              "name": "FieldNames",
+              "recv": "*Form",
+              "signature": "func (f *Form) FieldNames() []string",
+              "doc": "FieldNames returns the names of all controls in document order.\n"
+            },
+            {
+              "name": "Get",
+              "recv": "*Form",
+              "signature": "func (f *Form) Get(name string) (string, bool)",
+              "doc": "Get returns the current value of the named field and whether it exists.\n"
+            },
+            {
+              "name": "Set",
+              "recv": "*Form",
+              "signature": "func (f *Form) Set(name, value string)",
+              "doc": "Set assigns a value to the named field, marking it for inclusion. A new field\nis created if the name is unknown, which allows adding parameters the static\nmarkup did not declare.\n"
+            },
+            {
+              "name": "Submit",
+              "recv": "*Form",
+              "signature": "func (f *Form) Submit() (*Response, error)",
+              "doc": "Submit builds the form request, sends it through the browser and loads the\nresponse into the originating page.\n"
+            },
+            {
+              "name": "SubmitContext",
+              "recv": "*Form",
+              "signature": "func (f *Form) SubmitContext(ctx context.Context) (*Response, error)",
+              "doc": "SubmitContext is Submit with an explicit context.\n"
+            },
+            {
+              "name": "Values",
+              "recv": "*Form",
+              "signature": "func (f *Form) Values() url.Values",
+              "doc": "Values returns the url.Values that this form would submit.\n"
+            }
+          ]
+        },
+        {
+          "name": "LaunchOptions",
+          "signature": "type LaunchOptions struct {\n\t// UserAgent overrides the default User-Agent header.\n\tUserAgent string\n\t// Timeout bounds each navigation. Zero means 30s; use a negative value for\n\t// no timeout.\n\tTimeout time.Duration\n\t// Headers are extra request headers applied to every navigation.\n\tHeaders map[string]string\n\t// FollowRedirects controls whether 3xx responses are followed. Defaults to\n\t// true.\n\tFollowRedirects *bool\n\t// Jar overrides the cookie jar. When nil a fresh in-memory jar is created.\n\tJar http.CookieJar\n\t// Transport overrides the HTTP transport. This is the seam used by tests to\n\t// point the browser at an httptest.Server.\n\tTransport http.RoundTripper\n}",
+          "doc": "LaunchOptions configures a Browser. The zero value is valid and yields a\nbrowser with sensible defaults.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Node",
+          "signature": "type Node struct {\n\tType     NodeType\n\tData     string\n\tAttr     []Attribute\n\tParent   *Node\n\tChildren []*Node\n}",
+          "doc": "Node is a single node in the DOM tree produced by the parser. The tree is a\nsimple parent/children model: every Node (except the document root) has a\nParent, and Children preserves document order.\n\nFor an ElementNode, Data holds the (lower-cased) tag name. For a TextNode,\nData holds the raw text. For a CommentNode, Data holds the comment body\n(without the \u003c!-- --\u003e delimiters). For a DoctypeNode, Data holds the doctype\nname.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "Parse",
+              "signature": "func Parse(html string) *Node",
+              "doc": "Parse turns an HTML document string into a DOM tree rooted at a DocumentNode.\nIt never returns an error: malformed input is recovered pragmatically (the\nway browsers do) rather than rejected.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "AppendChild",
+              "recv": "*Node",
+              "signature": "func (n *Node) AppendChild(c *Node)",
+              "doc": "AppendChild adds c as the last child of n and sets c.Parent.\n"
+            }
+          ]
+        },
+        {
+          "name": "NodeType",
+          "signature": "type NodeType int",
+          "doc": "NodeType identifies the kind of a DOM Node.\n",
+          "consts": [
+            {
+              "names": [
+                "DocumentNode",
+                "ElementNode",
+                "TextNode",
+                "CommentNode",
+                "DoctypeNode"
+              ],
+              "signature": "const (\n\t// DocumentNode is the synthetic root of a parsed document.\n\tDocumentNode NodeType = iota\n\t// ElementNode is an HTML element such as \u003cdiv\u003e.\n\tElementNode\n\t// TextNode is a run of character data.\n\tTextNode\n\t// CommentNode is an HTML comment (\u003c!-- ... --\u003e).\n\tCommentNode\n\t// DoctypeNode is a \u003c!DOCTYPE ...\u003e declaration.\n\tDoctypeNode\n)",
+              "doc": ""
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Page",
+          "signature": "type Page struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Page is a single navigable document. It holds the most recently fetched HTML,\nits parsed DOM tree and the resolved URL, and exposes selection, link and\nform helpers over that document.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "CanGoBack",
+              "recv": "*Page",
+              "signature": "func (p *Page) CanGoBack() bool",
+              "doc": "CanGoBack reports whether there is an earlier entry in the session history to\nnavigate back to.\n"
+            },
+            {
+              "name": "CanGoForward",
+              "recv": "*Page",
+              "signature": "func (p *Page) CanGoForward() bool",
+              "doc": "CanGoForward reports whether there is a later entry in the session history to\nnavigate forward to.\n"
+            },
+            {
+              "name": "Content",
+              "recv": "*Page",
+              "signature": "func (p *Page) Content() string",
+              "doc": "Content returns the raw HTML body of the current page.\n"
+            },
+            {
+              "name": "Cookies",
+              "recv": "*Page",
+              "signature": "func (p *Page) Cookies() ([]*http.Cookie, error)",
+              "doc": "Cookies returns the cookies the browser's jar would send for the page's\ncurrent URL, mirroring Puppeteer's page.cookies. It returns an error when no\npage has been loaded yet.\n"
+            },
+            {
+              "name": "Count",
+              "recv": "*Page",
+              "signature": "func (p *Page) Count(selector string) (int, error)",
+              "doc": "Count returns the number of elements matching selector in the current\ndocument. It reports an error only when the selector is invalid or no\ndocument is loaded.\n"
+            },
+            {
+              "name": "Document",
+              "recv": "*Page",
+              "signature": "func (p *Page) Document() *Node",
+              "doc": "Document returns the root DocumentNode of the parsed page, or nil.\n"
+            },
+            {
+              "name": "FillForm",
+              "recv": "*Page",
+              "signature": "func (p *Page) FillForm(selector string, values map[string]string) (*Form, error)",
+              "doc": "FillForm looks up a form by selector, applies values and returns it ready to\nbuild or submit. It mirrors Puppeteer's ergonomics of filling a form in one\ncall.\n"
+            },
+            {
+              "name": "FormBySelector",
+              "recv": "*Page",
+              "signature": "func (p *Page) FormBySelector(selector string) (*Form, error)",
+              "doc": "FormBySelector returns the first form matching selector, or an error if none\nmatch.\n"
+            },
+            {
+              "name": "Forms",
+              "recv": "*Page",
+              "signature": "func (p *Page) Forms() ([]*Form, error)",
+              "doc": "Forms discovers every \u003cform\u003e on the page.\n"
+            },
+            {
+              "name": "GetAttribute",
+              "recv": "*Page",
+              "signature": "func (p *Page) GetAttribute(selector, name string) (string, bool, error)",
+              "doc": "GetAttribute returns the value of attribute name on the first element matching\nselector, mirroring Playwright's page.getAttribute. The boolean is false when\nno element matches or the element lacks the attribute; an error is returned\nonly for an invalid selector or a missing document.\n"
+            },
+            {
+              "name": "GoBack",
+              "recv": "*Page",
+              "signature": "func (p *Page) GoBack() (*Response, error)",
+              "doc": "GoBack navigates to the previous entry in the session history, re-fetching it\nlike Puppeteer's page.goBack. It returns (nil, nil) when there is no earlier\nentry, matching Puppeteer's convention of resolving to null.\n"
+            },
+            {
+              "name": "GoBackContext",
+              "recv": "*Page",
+              "signature": "func (p *Page) GoBackContext(ctx context.Context) (*Response, error)",
+              "doc": "GoBackContext is GoBack with an explicit context for cancellation.\n"
+            },
+            {
+              "name": "GoForward",
+              "recv": "*Page",
+              "signature": "func (p *Page) GoForward() (*Response, error)",
+              "doc": "GoForward navigates to the next entry in the session history, re-fetching it\nlike Puppeteer's page.goForward. It returns (nil, nil) when there is no later\nentry.\n"
+            },
+            {
+              "name": "GoForwardContext",
+              "recv": "*Page",
+              "signature": "func (p *Page) GoForwardContext(ctx context.Context) (*Response, error)",
+              "doc": "GoForwardContext is GoForward with an explicit context for cancellation.\n"
+            },
+            {
+              "name": "Goto",
+              "recv": "*Page",
+              "signature": "func (p *Page) Goto(rawurl string) (*Response, error)",
+              "doc": "Goto navigates the page to rawurl using GET and parses the response body as\nHTML. Relative URLs are resolved against the page's current URL when one\nexists.\n"
+            },
+            {
+              "name": "GotoContext",
+              "recv": "*Page",
+              "signature": "func (p *Page) GotoContext(ctx context.Context, rawurl string) (*Response, error)",
+              "doc": "GotoContext is Goto with an explicit context for cancellation.\n"
+            },
+            {
+              "name": "HTML",
+              "recv": "*Page",
+              "signature": "func (p *Page) HTML() string",
+              "doc": "HTML returns the serialized DOM of the current page.\n"
+            },
+            {
+              "name": "History",
+              "recv": "*Page",
+              "signature": "func (p *Page) History() []string",
+              "doc": "History returns a copy of the URLs in the session history, oldest first. The\ncurrent entry is History()[index] where index can be derived from the length\nand the availability reported by CanGoBack/CanGoForward.\n"
+            },
+            {
+              "name": "Images",
+              "recv": "*Page",
+              "signature": "func (p *Page) Images() []string",
+              "doc": "Images returns every \u003cimg\u003e source on the page resolved to an absolute URL,\nde-duplicated while preserving first-seen order.\n"
+            },
+            {
+              "name": "Links",
+              "recv": "*Page",
+              "signature": "func (p *Page) Links() []string",
+              "doc": "Links returns every href on the page resolved to an absolute URL. Duplicates\nare removed while preserving first-seen order.\n"
+            },
+            {
+              "name": "MetaContent",
+              "recv": "*Page",
+              "signature": "func (p *Page) MetaContent(key string) (string, bool)",
+              "doc": "MetaContent returns the content of the first \u003cmeta\u003e tag whose name or property\nattribute equals key (case-insensitive), and whether such a tag was found.\n"
+            },
+            {
+              "name": "Metas",
+              "recv": "*Page",
+              "signature": "func (p *Page) Metas() map[string]string",
+              "doc": "Metas returns the document's \u003cmeta\u003e metadata as a name-to-content map. Both\nthe name attribute and the Open Graph style property attribute act as keys\n(property takes precedence when both are present on one tag); tags without a\ncontent attribute or without either key are skipped. Later duplicates win.\n"
+            },
+            {
+              "name": "NormalizedHTML",
+              "recv": "*Page",
+              "signature": "func (p *Page) NormalizedHTML() string",
+              "doc": "NormalizedHTML serializes the page's document the way a browser would report\ndocument.documentElement.outerHTML — i.e. what Puppeteer's page.content()\nreturns. Any leading \u003c!DOCTYPE\u003e is preserved, a single \u003chtml\u003e element is\nguaranteed, and missing \u003chead\u003e/\u003cbody\u003e elements are synthesized so that, for\nexample, a document set from the fragment \"\u003cdiv\u003ehello\u003c/div\u003e\" serializes as\n\"\u003chtml\u003e\u003chead\u003e\u003c/head\u003e\u003cbody\u003e\u003cdiv\u003ehello\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e\".\n\nUnlike HTML, which serializes the parse tree verbatim, NormalizedHTML applies\nthe head/body structural normalization that a live DOM performs. It does not\nmutate the underlying document. When the page has no document it returns \"\".\n"
+            },
+            {
+              "name": "QuerySelector",
+              "recv": "*Page",
+              "signature": "func (p *Page) QuerySelector(selector string) (*Element, error)",
+              "doc": "QuerySelector returns the first element matching selector, or nil.\n"
+            },
+            {
+              "name": "QuerySelectorAll",
+              "recv": "*Page",
+              "signature": "func (p *Page) QuerySelectorAll(selector string) ([]*Element, error)",
+              "doc": "QuerySelectorAll returns all elements matching selector in document order.\n"
+            },
+            {
+              "name": "Reload",
+              "recv": "*Page",
+              "signature": "func (p *Page) Reload() (*Response, error)",
+              "doc": "Reload re-fetches the current URL and re-parses the document, mirroring\nPuppeteer's page.reload. The history cursor is left unchanged: a reload does\nnot create a new history entry. It returns an error if no page has been\nloaded yet.\n"
+            },
+            {
+              "name": "ReloadContext",
+              "recv": "*Page",
+              "signature": "func (p *Page) ReloadContext(ctx context.Context) (*Response, error)",
+              "doc": "ReloadContext is Reload with an explicit context for cancellation.\n"
+            },
+            {
+              "name": "Scripts",
+              "recv": "*Page",
+              "signature": "func (p *Page) Scripts() []string",
+              "doc": "Scripts returns every external \u003cscript src\u003e on the page resolved to an\nabsolute URL, de-duplicated while preserving first-seen order. Inline scripts\n(which have no src) are omitted.\n"
+            },
+            {
+              "name": "SetExtraHTTPHeaders",
+              "recv": "*Page",
+              "signature": "func (p *Page) SetExtraHTTPHeaders(h map[string]string)",
+              "doc": "SetExtraHTTPHeaders sets page-level headers that augment the browser's.\n"
+            },
+            {
+              "name": "SetUserAgent",
+              "recv": "*Page",
+              "signature": "func (p *Page) SetUserAgent(ua string)",
+              "doc": "SetUserAgent overrides the user agent for this page only.\n"
+            },
+            {
+              "name": "Stylesheets",
+              "recv": "*Page",
+              "signature": "func (p *Page) Stylesheets() []string",
+              "doc": "Stylesheets returns the href of every \u003clink rel=\"stylesheet\"\u003e resolved to an\nabsolute URL, de-duplicated while preserving first-seen order.\n"
+            },
+            {
+              "name": "TextContent",
+              "recv": "*Page",
+              "signature": "func (p *Page) TextContent(selector string) (string, bool, error)",
+              "doc": "TextContent returns the concatenated text of the first element matching\nselector, mirroring Playwright's page.textContent. The boolean is false when\nno element matches; an error is returned only for an invalid selector or a\nmissing document.\n"
+            },
+            {
+              "name": "Title",
+              "recv": "*Page",
+              "signature": "func (p *Page) Title() string",
+              "doc": "Title returns the trimmed text of the document's \u003ctitle\u003e, if any.\n"
+            },
+            {
+              "name": "URL",
+              "recv": "*Page",
+              "signature": "func (p *Page) URL() string",
+              "doc": "URL returns the page's current absolute URL, or \"\" before any navigation.\n"
+            },
+            {
+              "name": "WaitForSelector",
+              "recv": "*Page",
+              "signature": "func (p *Page) WaitForSelector(selector string, opts *WaitForSelectorOptions) (*Element, error)",
+              "doc": "WaitForSelector re-fetches the current URL on an interval until selector\nmatches or the timeout elapses. Because this package executes no JavaScript,\na page's DOM cannot change on its own; this helper is therefore only useful\nfor content that varies across identical requests (polling an endpoint). It\nreturns the first matching element.\n"
+            }
+          ]
+        },
+        {
+          "name": "Response",
+          "signature": "type Response struct {\n\tURL        *url.URL\n\tStatus     string\n\tStatusCode int\n\tHeader     http.Header\n\tBody       []byte\n}",
+          "doc": "Response captures the result of a navigation.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "OK",
+              "recv": "*Response",
+              "signature": "func (r *Response) OK() bool",
+              "doc": "OK reports whether the response status is in the 2xx range.\n"
+            }
+          ]
+        },
+        {
+          "name": "WaitForSelectorOptions",
+          "signature": "type WaitForSelectorOptions struct {\n\t// Timeout bounds the total wait. Zero means 5s.\n\tTimeout time.Duration\n\t// Interval is the delay between re-fetches. Zero means 250ms.\n\tInterval time.Duration\n}",
+          "doc": "WaitForSelectorOptions configures WaitForSelector.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        }
+      ],
+      "funcs": [],
+      "examples": [
+        {
+          "name": "",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"io\"\n\t\"log\"\n\t\"net/http\"\n\t\"net/http/httptest\"\n\n\t\"github.com/malcolmston/puppeteer\"\n)\n\nfunc main() {\n\tsrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {\n\t\t_, _ = io.WriteString(w, `\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003chead\u003e\u003ctitle\u003eDemo\u003c/title\u003e\u003c/head\u003e\n\u003cbody\u003e\n  \u003ch1 class=\"title\"\u003eFruits\u003c/h1\u003e\n  \u003cul\u003e\n    \u003cli class=\"fruit\"\u003eApple\u003c/li\u003e\n    \u003cli class=\"fruit selected\"\u003eBanana\u003c/li\u003e\n    \u003cli class=\"fruit\"\u003eCherry\u003c/li\u003e\n  \u003c/ul\u003e\n\u003c/body\u003e\u003c/html\u003e`)\n\t}))\n\tdefer srv.Close()\n\n\tbrowser, err := puppeteer.Launch(nil)\n\tif err != nil {\n\t\tlog.Fatal(err)\n\t}\n\tdefer func() { _ = browser.Close() }()\n\n\tpage := browser.NewPage()\n\tif _, err := page.Goto(srv.URL); err != nil {\n\t\tlog.Fatal(err)\n\t}\n\n\tfmt.Println(\"title:\", page.Title())\n\n\th1, _ := page.QuerySelector(\"h1.title\")\n\tfmt.Println(\"heading:\", h1.TextContent())\n\n\tfruits, _ := page.QuerySelectorAll(\"li.fruit\")\n\tfor _, f := range fruits {\n\t\tfmt.Println(\"fruit:\", f.TextContent())\n\t}\n\n\tselected, _ := page.QuerySelector(\"li:nth-child(2)\")\n\tfmt.Println(\"selected:\", selected.TextContent())\n\n}",
+          "output": "title: Demo\nheading: Fruits\nfruit: Apple\nfruit: Banana\nfruit: Cherry\nselected: Banana",
+          "doc": "Example demonstrates launching a browser, navigating to a page served by\nhttptest, and selecting nodes with the CSS selector engine.\n"
+        }
+      ]
+    }
+  ]
+}

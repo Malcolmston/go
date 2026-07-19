@@ -1,0 +1,1653 @@
+{
+  "module": "github.com/malcolmston/oban",
+  "generatedAt": "2026-07-19T02:05:53Z",
+  "packages": [
+    {
+      "importPath": "github.com/malcolmston/oban",
+      "name": "oban",
+      "synopsis": "Package oban is a background job processing system for Go in the style of Elixir's Oban and Ruby's Sidekiq.",
+      "doc": "Package oban is a background job processing system for Go in the style of\nElixir's Oban and Ruby's Sidekiq.\n\nJobs are enqueued into a [Store], picked up by an [Oban] engine that runs one\nor more named queues at a configured concurrency, and executed by a [Worker]\nresolved from a name→worker [Registry]. Failed jobs are retried with\nexponential backoff and jitter until they succeed or exhaust their attempts,\nat which point they are discarded. The engine also supports unique-job\nde-duplication, cron-scheduled periodic jobs, middleware/telemetry hooks, and\ngraceful draining shutdown.\n\n# Concepts\n\n  - [Job]: a unit of work with a queue, JSON arguments, attempt bookkeeping,\n    priority, schedule, uniqueness settings and error history. Build one with\n    [NewJob].\n  - [Worker]: the code that runs a job, via Perform(ctx, job). Register\n    workers by name in a [Registry] (or directly on the engine).\n  - [Store]: persistence and the transitions the engine drives. [InMemoryStore]\n    is a complete implementation; implement the interface to back Oban with a\n    database.\n  - [Oban]: the engine. It polls queues, executes workers with a per-attempt\n    timeout, retries with [Backoff], and runs [Periodic] cron jobs.\n\n# Quick start\n\n\tstore := oban.NewInMemoryStore()\n\tengine, _ := oban.New(oban.Config{\n\t\tStore:  store,\n\t\tQueues: map[string]int{\"default\": 5},\n\t})\n\tengine.RegisterFunc(\"email\", func(ctx context.Context, job *oban.Job) error {\n\t\tvar args struct{ To string }\n\t\t_ = job.UnmarshalArgs(\u0026args)\n\t\treturn sendEmail(ctx, args.To)\n\t})\n\n\tctx := context.Background()\n\t_ = engine.Start(ctx)\n\tjob, _ := oban.NewJob(\"email\", map[string]string{\"To\": \"a@b.com\"})\n\t_, _, _ = engine.Enqueue(ctx, job)\n\t// ... later, on shutdown:\n\t_ = engine.Stop(context.Background())\n\n# Determinism and testing\n\nThe engine owns time through an injectable [Clock]; all store methods that\ndepend on the current time receive it explicitly. Retry delays come from a\n[Backoff] whose jitter source can be seeded, and cron scheduling is pure via\n[Schedule.Next]. This makes scheduling, backoff and uniqueness fully testable\nwithout real sleeps.\n\n# Persistence\n\n[InMemoryStore] keeps everything in process memory and is ideal for tests and\nsingle-process use. For durable, multi-process deployments, implement [Store]\nagainst a database; the interface documentation states the atomicity and\nordering guarantees each method must provide (notably SELECT ... FOR UPDATE\nSKIP LOCKED semantics for FetchAvailable).\n",
+      "consts": [
+        {
+          "names": [
+            "DefaultConcurrency",
+            "DefaultPollInterval",
+            "DefaultCronInterval",
+            "DefaultJobTimeout"
+          ],
+          "signature": "const (\n\t// DefaultConcurrency is the per-queue concurrency used when Config.Queues is\n\t// empty.\n\tDefaultConcurrency = 10\n\t// DefaultPollInterval is how often each queue polls the store for work.\n\tDefaultPollInterval = 100 * time.Millisecond\n\t// DefaultCronInterval is how often the cron scheduler checks for due jobs.\n\tDefaultCronInterval = time.Second\n\t// DefaultJobTimeout bounds a single attempt of a job.\n\tDefaultJobTimeout = 30 * time.Second\n)",
+          "doc": "Default engine settings applied when a [Config] field is left zero.\n"
+        },
+        {
+          "names": [
+            "DefaultMaxAttempts"
+          ],
+          "signature": "const DefaultMaxAttempts = 20",
+          "doc": "DefaultMaxAttempts is the number of attempts a [Job] is given when none is\nspecified.\n"
+        },
+        {
+          "names": [
+            "DefaultQueue"
+          ],
+          "signature": "const DefaultQueue = \"default\"",
+          "doc": "DefaultQueue is the queue a [Job] is placed on when none is specified.\n"
+        },
+        {
+          "names": [
+            "DefaultSQLTable"
+          ],
+          "signature": "const DefaultSQLTable = \"oban_jobs\"",
+          "doc": "DefaultSQLTable is the table name an [SQLStore] uses when [WithTableName] is\nnot supplied.\n"
+        }
+      ],
+      "vars": [
+        {
+          "names": [
+            "ErrJobNotFound"
+          ],
+          "signature": "var ErrJobNotFound = errors.New(\"oban: job not found\")",
+          "doc": "ErrJobNotFound is returned by [Store] methods when no job matches the given\nID.\n"
+        },
+        {
+          "names": [
+            "ErrUnsupported"
+          ],
+          "signature": "var ErrUnsupported = errors.New(\"oban: store does not support this operation\")",
+          "doc": "ErrUnsupported is returned by [Controller] methods when the underlying store\ndoes not implement the optional capability the operation requires.\n"
+        }
+      ],
+      "types": [
+        {
+          "name": "AttemptError",
+          "signature": "type AttemptError struct {\n\t// Attempt is the 1-based attempt number that produced this error.\n\tAttempt int `json:\"attempt\"`\n\t// At is the time the error was recorded.\n\tAt time.Time `json:\"at\"`\n\t// Message is the string form of the error returned by the worker.\n\tMessage string `json:\"message\"`\n}",
+          "doc": "AttemptError records a single failed attempt of a [Job].\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Backoff",
+          "signature": "type Backoff interface {\n\t// Next returns the delay before the given 1-based attempt number is retried.\n\t// It is called with the attempt that just failed.\n\tNext(attempt int) time.Duration\n}",
+          "doc": "Backoff computes how long to wait before the next attempt of a failed job.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "BackoffFunc",
+          "signature": "type BackoffFunc func(attempt int) time.Duration",
+          "doc": "BackoffFunc adapts a plain function to the [Backoff] interface, mirroring the\nway [WorkerFunc] adapts a function to [Worker]. It lets a caller supply an\nad-hoc retry policy without declaring a new type.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Next",
+              "recv": "BackoffFunc",
+              "signature": "func (f BackoffFunc) Next(attempt int) time.Duration",
+              "doc": "Next implements [Backoff] by calling f(attempt).\n"
+            }
+          ]
+        },
+        {
+          "name": "CancelError",
+          "signature": "type CancelError struct {\n\t// Reason is an optional human-readable explanation for the cancellation.\n\tReason string\n}",
+          "doc": "CancelError is the result signal a [Worker.Perform] returns to ask the engine\nto move the job to [StateCancelled] instead of retrying it. It mirrors Elixir\nOban's {:cancel, reason} return value.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Error",
+              "recv": "CancelError",
+              "signature": "func (e CancelError) Error() string",
+              "doc": "Error implements the error interface.\n"
+            }
+          ]
+        },
+        {
+          "name": "CancelableStore",
+          "signature": "type CancelableStore interface {\n\t// Cancel moves the job with the given id to StateCancelled as of now.\n\tCancel(ctx context.Context, id int64, now time.Time) error\n}",
+          "doc": "CancelableStore is the optional capability a [Store] implements to support\ncancelling a job. Cancel moves the job with the given id to [StateCancelled].\nIt is implemented by [SQLStore].\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Clock",
+          "signature": "type Clock interface {\n\t// Now returns the current time.\n\tNow() time.Time\n}",
+          "doc": "Clock abstracts the current time so that scheduling, backoff and unique\nwindows can be tested deterministically. Production code uses [SystemClock];\ntests inject a controllable clock.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Config",
+          "signature": "type Config struct {\n\t// Store persists jobs. Defaults to a new InMemoryStore.\n\tStore Store\n\n\t// Registry resolves worker names. Defaults to an empty registry; register\n\t// workers with Oban.Register.\n\tRegistry *Registry\n\n\t// Queues maps queue name to its maximum concurrency. Defaults to\n\t// {DefaultQueue: DefaultConcurrency}.\n\tQueues map[string]int\n\n\t// Backoff computes retry delays. Defaults to an ExponentialBackoff.\n\tBackoff Backoff\n\n\t// Clock supplies the current time. Defaults to SystemClock.\n\tClock Clock\n\n\t// Middleware wraps every attempt. The first element is the outermost\n\t// wrapper (see [Middleware]).\n\tMiddleware []Middleware\n\n\t// Telemetry, if set, is installed as the innermost middleware so its timing\n\t// measures the worker itself.\n\tTelemetry *Telemetry\n\n\t// Periodic declares cron-scheduled jobs.\n\tPeriodic []Periodic\n\n\t// PollInterval is how often queues poll for work. Defaults to\n\t// DefaultPollInterval.\n\tPollInterval time.Duration\n\n\t// CronInterval is how often the scheduler checks for due periodic jobs.\n\t// Defaults to DefaultCronInterval.\n\tCronInterval time.Duration\n\n\t// JobTimeout bounds each attempt. Defaults to DefaultJobTimeout. A job may\n\t// override it per-queue through QueueTimeouts.\n\tJobTimeout time.Duration\n\n\t// QueueTimeouts optionally overrides JobTimeout for specific queues.\n\tQueueTimeouts map[string]time.Duration\n\n\t// ErrorHandler, if set, is called for every failed or discarded attempt.\n\tErrorHandler func(job *Job, err error)\n\n\t// Logger receives operational messages (store errors, unhandled failures).\n\t// Defaults to the standard logger. Set to a discarding logger to silence.\n\tLogger *log.Logger\n}",
+          "doc": "Config configures an [Oban] engine. Only Store is effectively required; every\nother field has a sensible default.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "ConfiguredWorker",
+          "signature": "type ConfiguredWorker interface {\n\t// Config returns the per-worker configuration for this worker.\n\tConfig() WorkerOptions\n}",
+          "doc": "ConfiguredWorker is the optional interface a [Worker] implements to advertise\nits own [WorkerOptions]. It is purely additive: any Worker may implement it,\nand code that does not care about per-worker configuration can ignore it.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "ConstantBackoff",
+          "signature": "type ConstantBackoff struct {\n\t// Delay is the wait before every retry. Defaults to one second when\n\t// non-positive.\n\tDelay time.Duration\n}",
+          "doc": "ConstantBackoff retries with the same fixed delay after every failed attempt,\nregardless of the attempt number. It is the simplest policy and is useful when\na downstream dependency recovers on a fixed cadence.\n\nA zero ConstantBackoff behaves as Delay=1s.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewConstantBackoff",
+              "signature": "func NewConstantBackoff(delay time.Duration) *ConstantBackoff",
+              "doc": "NewConstantBackoff returns a [ConstantBackoff] with the given delay.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Next",
+              "recv": "*ConstantBackoff",
+              "signature": "func (b *ConstantBackoff) Next(attempt int) time.Duration",
+              "doc": "Next implements [Backoff]. It returns the fixed delay for every attempt.\n"
+            }
+          ]
+        },
+        {
+          "name": "ControlledStore",
+          "signature": "type ControlledStore struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "ControlledStore is a [Store] decorator that adds an operator control plane on\ntop of any inner store. It lets an operator pause, resume and scale live\nqueues without restarting the engine: because the engine fetches work by\ncalling the wrapped store's FetchAvailable, changes take effect on the next\npoll.\n\nEvery [Store] method other than FetchAvailable is delegated to the inner store\nunchanged, so uniqueness, ordering and all persistence semantics are\npreserved. FetchAvailable additionally consults the pause and scale state:\na paused queue yields no work, and a scaled queue has its fetch batch capped.\n\nA zero ControlledStore is not usable; construct one with [NewControlledStore].\nControlledStore is safe for concurrent use provided the inner store is.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewControlledStore",
+              "signature": "func NewControlledStore(inner Store) *ControlledStore",
+              "doc": "NewControlledStore returns a [ControlledStore] wrapping inner. The returned\nstore implements [Store] by delegating every method to inner, adding only the\npause/resume/scale behavior to FetchAvailable. All queues start unpaused and\nuncapped.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Complete",
+              "recv": "*ControlledStore",
+              "signature": "func (c *ControlledStore) Complete(ctx context.Context, id int64, now time.Time) error",
+              "doc": "Complete implements [Store] by delegating to the inner store.\n"
+            },
+            {
+              "name": "Discard",
+              "recv": "*ControlledStore",
+              "signature": "func (c *ControlledStore) Discard(ctx context.Context, id int64, lastErr error, now time.Time) error",
+              "doc": "Discard implements [Store] by delegating to the inner store.\n"
+            },
+            {
+              "name": "Enqueue",
+              "recv": "*ControlledStore",
+              "signature": "func (c *ControlledStore) Enqueue(ctx context.Context, job *Job) (*Job, bool, error)",
+              "doc": "Enqueue implements [Store] by delegating to the inner store.\n"
+            },
+            {
+              "name": "FetchAvailable",
+              "recv": "*ControlledStore",
+              "signature": "func (c *ControlledStore) FetchAvailable(ctx context.Context, queue string, limit int, now time.Time) ([]*Job, error)",
+              "doc": "FetchAvailable implements [Store]. It returns nil, nil when queue is paused;\notherwise it delegates to the inner store, capping limit at the queue's scale\ncap (min(limit, cap)) when one is set. Ordering, locking and every other fetch\nguarantee are those of the inner store.\n"
+            },
+            {
+              "name": "Get",
+              "recv": "*ControlledStore",
+              "signature": "func (c *ControlledStore) Get(ctx context.Context, id int64) (*Job, error)",
+              "doc": "Get implements [Store] by delegating to the inner store.\n"
+            },
+            {
+              "name": "IsPaused",
+              "recv": "*ControlledStore",
+              "signature": "func (c *ControlledStore) IsPaused(queue string) bool",
+              "doc": "IsPaused reports whether queue is currently paused.\n"
+            },
+            {
+              "name": "Pause",
+              "recv": "*ControlledStore",
+              "signature": "func (c *ControlledStore) Pause(queue string)",
+              "doc": "Pause marks queue as paused. While paused, FetchAvailable returns no jobs for\nthat queue, so the engine stops handing out new work for it; jobs already\nexecuting are unaffected. Pausing an already-paused queue is a no-op.\n"
+            },
+            {
+              "name": "Resume",
+              "recv": "*ControlledStore",
+              "signature": "func (c *ControlledStore) Resume(queue string)",
+              "doc": "Resume clears the paused state for queue, allowing FetchAvailable to hand out\nwork for it again. Resuming a queue that is not paused is a no-op.\n"
+            },
+            {
+              "name": "Retry",
+              "recv": "*ControlledStore",
+              "signature": "func (c *ControlledStore) Retry(ctx context.Context, id int64, scheduledAt time.Time, lastErr error, now time.Time) error",
+              "doc": "Retry implements [Store] by delegating to the inner store.\n"
+            },
+            {
+              "name": "Scale",
+              "recv": "*ControlledStore",
+              "signature": "func (c *ControlledStore) Scale(queue string, maxBatch int)",
+              "doc": "Scale sets a dynamic cap on the number of jobs FetchAvailable will fetch for\nqueue in a single poll: the effective limit becomes min(limit, maxBatch). A\nnon-positive maxBatch removes the cap, restoring the engine's own limit.\n"
+            }
+          ]
+        },
+        {
+          "name": "Controller",
+          "signature": "type Controller struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Controller is an operator tool for acting on individual jobs: cancelling,\nforcing an immediate retry, or deleting them. It works against any [Store]\nthat implements the corresponding optional capability\n([CancelableStore], [RetryableStore], [DeletableStore]) and returns\n[ErrUnsupported] when the store lacks it, so it degrades gracefully.\n\nConstruct one with [NewController].\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewController",
+              "signature": "func NewController(store Store, clock Clock) *Controller",
+              "doc": "NewController returns a [Controller] that acts on store, using clock to stamp\nthe transition times of the operations it performs. A nil clock defaults to\n[SystemClock].\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Cancel",
+              "recv": "*Controller",
+              "signature": "func (m *Controller) Cancel(ctx context.Context, id int64) error",
+              "doc": "Cancel cancels the job with the given id, moving it to [StateCancelled]. It\nreturns [ErrUnsupported] if the store cannot cancel jobs, or [ErrJobNotFound]\nif no job with that id exists.\n"
+            },
+            {
+              "name": "Delete",
+              "recv": "*Controller",
+              "signature": "func (m *Controller) Delete(ctx context.Context, id int64) error",
+              "doc": "Delete permanently removes the job with the given id. It returns\n[ErrUnsupported] if the store cannot delete jobs, or [ErrJobNotFound] if no\njob with that id exists.\n"
+            },
+            {
+              "name": "Retry",
+              "recv": "*Controller",
+              "signature": "func (m *Controller) Retry(ctx context.Context, id int64) error",
+              "doc": "Retry forces the job with the given id to run again immediately, moving it to\n[StateAvailable] scheduled at the current time. It returns [ErrUnsupported] if\nthe store cannot force a retry, or [ErrJobNotFound] if no job with that id\nexists.\n"
+            }
+          ]
+        },
+        {
+          "name": "CronPlugin",
+          "signature": "type CronPlugin struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "CronPlugin is a [Plugin] that enqueues [Periodic] jobs on their cron\nschedules through an [Enqueuer], detached from Config.Periodic. It reuses the\nsame next-fire min-heap the engine uses so behavior is identical whether cron\nruns in-engine or as a standalone plugin.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewCronPlugin",
+              "signature": "func NewCronPlugin(enq Enqueuer, clock Clock, entries []Periodic, interval time.Duration) *CronPlugin",
+              "doc": "NewCronPlugin returns a CronPlugin that fires entries via enq, checking for\ndue schedules every interval (default 1s) and using clock for all timing.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Name",
+              "recv": "*CronPlugin",
+              "signature": "func (c *CronPlugin) Name() string",
+              "doc": "Name returns the cron plugin's identifier.\n"
+            },
+            {
+              "name": "Start",
+              "recv": "*CronPlugin",
+              "signature": "func (c *CronPlugin) Start(ctx context.Context) error",
+              "doc": "Start launches the cron plugin's background loop.\n"
+            },
+            {
+              "name": "Stop",
+              "recv": "*CronPlugin",
+              "signature": "func (c *CronPlugin) Stop(ctx context.Context) error",
+              "doc": "Stop stops the cron plugin, honoring ctx's deadline.\n"
+            }
+          ]
+        },
+        {
+          "name": "DeletableStore",
+          "signature": "type DeletableStore interface {\n\t// Delete removes the job with the given id from the store.\n\tDelete(ctx context.Context, id int64) error\n}",
+          "doc": "DeletableStore is the optional capability a [Store] implements to support\npermanently removing a job. It is implemented by [SQLStore].\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "DrainOptions",
+          "signature": "type DrainOptions struct {\n\t// Queue names the queue to drain. It is required; Drain returns an error if\n\t// it is empty.\n\tQueue string\n\n\t// WithRecursion keeps draining jobs that become available during the run\n\t// (for example a job that fails, is retried and then becomes ready again)\n\t// until a fetch returns no jobs and the queue is empty. When false, Drain\n\t// makes a single pass over the jobs that are runnable at the start.\n\tWithRecursion bool\n\n\t// WithScheduled also runs jobs whose ScheduledAt is in the future by\n\t// treating the current time as +inf for the duration of this drain, so that\n\t// scheduled and retryable jobs are fetched regardless of their schedule.\n\tWithScheduled bool\n\n\t// Backoff is the retry-delay policy applied to failed jobs that still have\n\t// attempts remaining. It defaults to \u0026ExponentialBackoff{}.\n\tBackoff Backoff\n\n\t// Timeout bounds each attempt's context. It defaults to [DefaultJobTimeout].\n\tTimeout time.Duration\n\n\t// Middleware wraps every attempt in the same chain order the engine uses:\n\t// the first element is the outermost wrapper (see [Middleware]).\n\tMiddleware []Middleware\n}",
+          "doc": "DrainOptions configures a [Drain] run.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "DrainResult",
+          "signature": "type DrainResult struct {\n\t// Completed counts jobs whose worker returned a nil error.\n\tCompleted int\n\t// Retried counts failed jobs that still had attempts remaining and were\n\t// rescheduled with a backoff delay.\n\tRetried int\n\t// Discarded counts failed jobs that exhausted their attempts and were moved\n\t// to the discarded state.\n\tDiscarded int\n\t// Cancelled counts jobs whose worker returned the [CancelError] sentinel and\n\t// whose store implements the cancel capability.\n\tCancelled int\n\t// Snoozed counts jobs whose worker returned the [SnoozeError] sentinel and\n\t// whose store implements the snooze capability.\n\tSnoozed int\n\t// Failed counts jobs that could not be executed because no worker was\n\t// registered for them. Such jobs are discarded so the drain can make\n\t// progress instead of fetching them forever.\n\tFailed int\n}",
+          "doc": "DrainResult tallies the outcomes of a Drain run. Each job that is processed\nincrements exactly one bucket, so [DrainResult.Total] equals the number of\njobs the drain ran.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "Drain",
+              "signature": "func Drain(ctx context.Context, store Store, reg *Registry, clock Clock, opts DrainOptions) (DrainResult, error)",
+              "doc": "Drain synchronously runs the runnable jobs in opts.Queue to completion,\nmirroring the engine's execute logic (fetch, run the worker, then\nComplete/Retry/Discard) without goroutines, polling or sleeps. It is intended\nfor tests that need jobs to run deterministically without calling\n[Oban.Start]/[Oban.Stop].\n\nIt repeatedly calls store.FetchAvailable for the queue with a large limit and,\nfor each returned job, resolves the [Worker] from reg, wraps opts.Middleware\naround the worker invocation using the same chain order the engine uses, runs\nPerform under a context.WithTimeout, then applies the result exactly as the\nengine does: a nil error completes the job; a non-nil error retries it with\nopts.Backoff when attempts remain and discards it once they are exhausted. A\nworker that returns the [SnoozeError] or [CancelError] sentinel is snoozed or\ncancelled when the store supports that capability, otherwise the sentinel is\ntreated as an ordinary error. A job whose worker is not registered is\ndiscarded and counted as Failed.\n\nclock supplies the current time and defaults to [SystemClock] when nil. store\nand reg must be non-nil. Drain returns the aggregate [DrainResult] and the\nfirst fetch error, if any.\n"
+            },
+            {
+              "name": "DrainQueue",
+              "signature": "func DrainQueue(ctx context.Context, o *Oban, queue string) (DrainResult, error)",
+              "doc": "DrainQueue is a convenience wrapper around [Drain] that reads the store,\nregistry, clock, backoff and job timeout from o and drains the named queue\nwith otherwise default options.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Total",
+              "recv": "DrainResult",
+              "signature": "func (r DrainResult) Total() int",
+              "doc": "Total returns the total number of jobs processed across every outcome bucket.\n"
+            }
+          ]
+        },
+        {
+          "name": "Enqueuer",
+          "signature": "type Enqueuer interface {\n\t// Enqueue inserts job, returning the stored job and whether a new row was\n\t// inserted (false indicates unique-job de-duplication).\n\tEnqueue(ctx context.Context, job *Job) (*Job, bool, error)\n}",
+          "doc": "Enqueuer is the capability the [CronPlugin] needs to insert scheduled jobs. It\nis satisfied by *[Oban].\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Event",
+          "signature": "type Event struct {\n\t// Name is the kind of event.\n\tName EventName\n\t// At is the time the event occurred.\n\tAt time.Time\n\t// Job is the job the event concerns, or nil for events not tied to a job.\n\tJob *Job\n\t// Queue is the affected queue name.\n\tQueue string\n\t// Worker is the registry name of the job's worker.\n\tWorker string\n\t// Attempt is the 1-based attempt number at the time of the event.\n\tAttempt int\n\t// MaxAttempts is the job's maximum attempt count.\n\tMaxAttempts int\n\t// Duration is the wall-clock duration of a completed or failed attempt.\n\tDuration time.Duration\n\t// Error is the failure cause for exception, discard or cancel events.\n\tError error\n\t// Tags is an optional set of free-form labels attached by the emitter.\n\tTags []string\n\t// Meta holds optional structured metadata attached by the emitter.\n\tMeta map[string]any\n}",
+          "doc": "Event is a single structured record published on a [Recorder]. Only the\nfields relevant to a given [EventName] are populated; the rest carry their\nzero values.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "EventHandler",
+          "signature": "type EventHandler func(Event)",
+          "doc": "EventHandler consumes an [Event] published on a [Recorder]. Handlers run\nsynchronously on the goroutine that calls Emit and must not block for long.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "EventName",
+          "signature": "type EventName string",
+          "doc": "EventName identifies a kind of event published on a [Recorder]. The defined\nconstants form a superset of the [Telemetry] hooks, covering the full job\nlifecycle plus engine, plugin and queue-control events.\n",
+          "consts": [
+            {
+              "names": [
+                "JobStart",
+                "JobStop",
+                "JobException",
+                "JobRetry",
+                "JobDiscard",
+                "JobCancel",
+                "JobSnooze",
+                "EngineInsert",
+                "PluginPrune",
+                "PluginRescue",
+                "QueuePause",
+                "QueueResume"
+              ],
+              "signature": "const (\n\t// JobStart is emitted just before a job attempt runs.\n\tJobStart EventName = \"job.start\"\n\t// JobStop is emitted after a job attempt completes successfully.\n\tJobStop EventName = \"job.stop\"\n\t// JobException is emitted after a job attempt fails with an error.\n\tJobException EventName = \"job.exception\"\n\t// JobRetry is emitted when a failed job is scheduled for another attempt.\n\tJobRetry EventName = \"job.retry\"\n\t// JobDiscard is emitted when a job is discarded and will not run again.\n\tJobDiscard EventName = \"job.discard\"\n\t// JobCancel is emitted when a job is cancelled before completion.\n\tJobCancel EventName = \"job.cancel\"\n\t// JobSnooze is emitted when a job snoozes itself to run later.\n\tJobSnooze EventName = \"job.snooze\"\n\t// EngineInsert is emitted when the engine inserts one or more jobs.\n\tEngineInsert EventName = \"engine.insert\"\n\t// PluginPrune is emitted when a pruning plugin deletes old jobs.\n\tPluginPrune EventName = \"plugin.prune\"\n\t// PluginRescue is emitted when a rescuing plugin resets stuck jobs.\n\tPluginRescue EventName = \"plugin.rescue\"\n\t// QueuePause is emitted when a queue is paused.\n\tQueuePause EventName = \"queue.pause\"\n\t// QueueResume is emitted when a paused queue is resumed.\n\tQueueResume EventName = \"queue.resume\"\n)",
+              "doc": ""
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "ExponentialBackoff",
+          "signature": "type ExponentialBackoff struct {\n\t// Base is the delay for the first retry. Defaults to one second.\n\tBase time.Duration\n\t// Max caps the computed delay. Defaults to five minutes.\n\tMax time.Duration\n\t// Jitter is the fraction of the delay that may be randomly subtracted. It\n\t// is clamped to [0, 1]. Defaults to zero (no jitter).\n\tJitter float64\n\t// contains filtered or unexported fields\n}",
+          "doc": "ExponentialBackoff retries with an exponentially growing delay and optional\njitter. The base delay for a failed attempt n is:\n\n\tBase * 2^(n-1)\n\ncapped at Max. Jitter (a fraction in [0, 1]) then reduces the delay by a\nrandom amount so that many jobs failing together do not retry in lockstep:\nthe returned delay is uniformly distributed in\n\n\t[ d * (1 - Jitter), d ]\n\nA zero ExponentialBackoff is usable and behaves as Base=1s, Max=5m, no jitter.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewExponentialBackoff",
+              "signature": "func NewExponentialBackoff(base, max time.Duration, jitter float64, seed int64) *ExponentialBackoff",
+              "doc": "NewExponentialBackoff returns an [ExponentialBackoff] with the given\nparameters and a jitter source seeded from seed for reproducibility.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Next",
+              "recv": "*ExponentialBackoff",
+              "signature": "func (b *ExponentialBackoff) Next(attempt int) time.Duration",
+              "doc": "Next implements [Backoff].\n"
+            }
+          ]
+        },
+        {
+          "name": "FibonacciBackoff",
+          "signature": "type FibonacciBackoff struct {\n\t// Unit scales each Fibonacci number into a duration. Defaults to one second\n\t// when non-positive.\n\tUnit time.Duration\n\t// Max caps the computed delay. Defaults to one hour when non-positive.\n\tMax time.Duration\n}",
+          "doc": "FibonacciBackoff retries with a delay that follows the Fibonacci sequence\nscaled by Unit: the wait before retrying failed attempt n is\n\n\tUnit * fib(n)\n\nwhere fib(1)=fib(2)=1, fib(3)=2, fib(4)=3, fib(5)=5, and so on, capped at Max.\nFibonacci growth sits between linear and exponential and is a common retry\nschedule for transient failures.\n\nA zero FibonacciBackoff behaves as Unit=1s, Max=1h.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewFibonacciBackoff",
+              "signature": "func NewFibonacciBackoff(unit, max time.Duration) *FibonacciBackoff",
+              "doc": "NewFibonacciBackoff returns a [FibonacciBackoff] with the given parameters.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Next",
+              "recv": "*FibonacciBackoff",
+              "signature": "func (b *FibonacciBackoff) Next(attempt int) time.Duration",
+              "doc": "Next implements [Backoff]. Attempts below 1 are treated as 1.\n"
+            }
+          ]
+        },
+        {
+          "name": "Handler",
+          "signature": "type Handler func(ctx context.Context, job *Job) error",
+          "doc": "Handler runs a job attempt. It is the unit that [Middleware] wraps; the\ninnermost handler invokes the registered [Worker].\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "InMemoryStore",
+          "signature": "type InMemoryStore struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "InMemoryStore is a complete, concurrency-safe [Store] kept entirely in memory.\nIt is intended for tests, development and small single-process deployments;\nall state is lost when the process exits. For durable, multi-process use,\nimplement [Store] against a database (see the Store documentation).\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewInMemoryStore",
+              "signature": "func NewInMemoryStore() *InMemoryStore",
+              "doc": "NewInMemoryStore returns an empty [InMemoryStore].\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "All",
+              "recv": "*InMemoryStore",
+              "signature": "func (s *InMemoryStore) All() []*Job",
+              "doc": "All returns a snapshot copy of every stored job, ordered by ID. It is a\nconvenience for tests and introspection and is not part of the [Store]\ninterface.\n"
+            },
+            {
+              "name": "Cancel",
+              "recv": "*InMemoryStore",
+              "signature": "func (s *InMemoryStore) Cancel(_ context.Context, id int64, now time.Time) error",
+              "doc": "Cancel moves the job with the given id to [StateCancelled] unless it is\nalready in a terminal state (completed, discarded or cancelled), in which case\nit is a no-op. Cancelling an executing job is permitted: the executing guard\non Complete, Retry and Discard then prevents the finishing runner from\noverwriting the cancellation. A missing id returns [ErrJobNotFound]. It\nimplements [CancelableStore].\n"
+            },
+            {
+              "name": "Clear",
+              "recv": "*InMemoryStore",
+              "signature": "func (s *InMemoryStore) Clear()",
+              "doc": "Clear removes every job, along with all stored tags and meta, resetting the\nstore to empty. The ID counter is not reset, so IDs assigned after Clear do\nnot collide with any that a caller may still hold. It is primarily a testing\nconvenience for reusing a store between cases.\n"
+            },
+            {
+              "name": "Complete",
+              "recv": "*InMemoryStore",
+              "signature": "func (s *InMemoryStore) Complete(_ context.Context, id int64, now time.Time) error",
+              "doc": "Complete implements [Store].\n"
+            },
+            {
+              "name": "CountByQueue",
+              "recv": "*InMemoryStore",
+              "signature": "func (s *InMemoryStore) CountByQueue(queue string) int",
+              "doc": "CountByQueue returns the number of stored jobs on the given queue, across all\nstates.\n"
+            },
+            {
+              "name": "CountByState",
+              "recv": "*InMemoryStore",
+              "signature": "func (s *InMemoryStore) CountByState(state State) int",
+              "doc": "CountByState returns the number of stored jobs in the given state.\n"
+            },
+            {
+              "name": "Delete",
+              "recv": "*InMemoryStore",
+              "signature": "func (s *InMemoryStore) Delete(_ context.Context, id int64) error",
+              "doc": "Delete removes the job with the given id and any tags or meta stored for it.\nDeleting a job that does not exist is a no-op. It implements [DeletableStore].\n"
+            },
+            {
+              "name": "DeleteFinishedBefore",
+              "recv": "*InMemoryStore",
+              "signature": "func (s *InMemoryStore) DeleteFinishedBefore(_ context.Context, states []State, cutoff time.Time, limit int) (int64, error)",
+              "doc": "DeleteFinishedBefore removes up to limit jobs whose State is one of states and\nwhose finishing time is strictly before cutoff, returning the number removed.\nThe finishing time is CompletedAt for completed jobs and DiscardedAt for\ndiscarded or cancelled jobs, falling back to InsertedAt when unset. Jobs are\nconsidered in ascending ID order so the limit is deterministic. A non-positive\nlimit means no bound. It implements [PrunableStore].\n"
+            },
+            {
+              "name": "Discard",
+              "recv": "*InMemoryStore",
+              "signature": "func (s *InMemoryStore) Discard(_ context.Context, id int64, lastErr error, now time.Time) error",
+              "doc": "Discard implements [Store].\n"
+            },
+            {
+              "name": "Enqueue",
+              "recv": "*InMemoryStore",
+              "signature": "func (s *InMemoryStore) Enqueue(_ context.Context, job *Job) (*Job, bool, error)",
+              "doc": "Enqueue implements [Store].\n"
+            },
+            {
+              "name": "FetchAvailable",
+              "recv": "*InMemoryStore",
+              "signature": "func (s *InMemoryStore) FetchAvailable(_ context.Context, queue string, limit int, now time.Time) ([]*Job, error)",
+              "doc": "FetchAvailable implements [Store].\n"
+            },
+            {
+              "name": "FindConflict",
+              "recv": "*InMemoryStore",
+              "signature": "func (s *InMemoryStore) FindConflict(_ context.Context, job *Job, by UniqueBy, now time.Time) (*Job, error)",
+              "doc": "FindConflict returns a copy of the earliest existing job (by ID) that would\nblock a unique insert of job under the resolved rule by, or nil when there is\nno conflict. A candidate conflicts when it is in one of by.States, was inserted\nno earlier than by.Period before now, and matches job on every selected\nby.Field together with any explicit by.Keys. Unset States and Fields take the\nElixir-Oban defaults. It returns nil, nil when by.Period is non-positive. It\nimplements [UniqueStore].\n"
+            },
+            {
+              "name": "Get",
+              "recv": "*InMemoryStore",
+              "signature": "func (s *InMemoryStore) Get(_ context.Context, id int64) (*Job, error)",
+              "doc": "Get implements [Store].\n"
+            },
+            {
+              "name": "Len",
+              "recv": "*InMemoryStore",
+              "signature": "func (s *InMemoryStore) Len() int",
+              "doc": "Len returns the number of jobs currently held by the store, across all states.\n"
+            },
+            {
+              "name": "List",
+              "recv": "*InMemoryStore",
+              "signature": "func (s *InMemoryStore) List(_ context.Context, filter JobFilter) ([]*Job, error)",
+              "doc": "List returns copies of the stored jobs matching filter, ordered by ascending\nID. It implements [ListableStore], letting [ListJobs] and [CountJobs] query an\nInMemoryStore without a full snapshot copy of non-matching jobs.\n"
+            },
+            {
+              "name": "RescueExecuting",
+              "recv": "*InMemoryStore",
+              "signature": "func (s *InMemoryStore) RescueExecuting(_ context.Context, olderThan time.Time, now time.Time) (rescued, discarded int64, err error)",
+              "doc": "RescueExecuting recovers jobs stuck in [StateExecuting] whose AttemptedAt is\nstrictly before olderThan (their runner most likely crashed). A stuck job with\nattempts to spare is returned to [StateAvailable] scheduled at now; a stuck job\nthat has exhausted its attempts is moved to [StateDiscarded] with DiscardedAt\nset to now. It returns how many jobs were rescued and how many were discarded.\nIt implements [RescuableStore].\n"
+            },
+            {
+              "name": "Retry",
+              "recv": "*InMemoryStore",
+              "signature": "func (s *InMemoryStore) Retry(_ context.Context, id int64, scheduledAt time.Time, lastErr error, now time.Time) error",
+              "doc": "Retry implements [Store].\n"
+            },
+            {
+              "name": "RetryNow",
+              "recv": "*InMemoryStore",
+              "signature": "func (s *InMemoryStore) RetryNow(_ context.Context, id int64, now time.Time) error",
+              "doc": "RetryNow makes the job with the given id runnable again immediately: it moves\nthe job to [StateAvailable], schedules it at now and clears its completed and\ndiscarded timestamps. It is intended for retrying a discarded or cancelled job\non demand. A missing id returns [ErrJobNotFound]. It implements\n[RetryableStore].\n"
+            },
+            {
+              "name": "SetTagsMeta",
+              "recv": "*InMemoryStore",
+              "signature": "func (s *InMemoryStore) SetTagsMeta(_ context.Context, id int64, tags []string, meta map[string]any) error",
+              "doc": "SetTagsMeta replaces the stored tags and meta for the job with the given id.\nA nil tags or meta clears the corresponding entry. The values are copied, so\nlater mutation of the caller's slice or map does not affect stored state. It\nimplements [TaggableStore].\n"
+            },
+            {
+              "name": "Snooze",
+              "recv": "*InMemoryStore",
+              "signature": "func (s *InMemoryStore) Snooze(_ context.Context, id int64, until time.Time, _ time.Time) error",
+              "doc": "Snooze reschedules the executing job with the given id to run no earlier than\nuntil, moving it to [StateScheduled] and decrementing its Attempt so the\nsnooze does not consume one of the job's attempts. It is guarded on the\nexecuting state: a job that has already moved on is left untouched (returning\nnil). A missing id returns [ErrJobNotFound]. It implements [SnoozableStore].\n"
+            },
+            {
+              "name": "States",
+              "recv": "*InMemoryStore",
+              "signature": "func (s *InMemoryStore) States() map[State]int",
+              "doc": "States returns a histogram of the stored jobs by [State]. States with no jobs\nare omitted from the returned map, which the caller may freely mutate.\n"
+            },
+            {
+              "name": "TagsMeta",
+              "recv": "*InMemoryStore",
+              "signature": "func (s *InMemoryStore) TagsMeta(_ context.Context, id int64) (tags []string, meta map[string]any, err error)",
+              "doc": "TagsMeta returns copies of the stored tags and meta for the job with the given\nid. Absent entries yield a nil slice and nil map with a nil error. It\nimplements [TaggableStore].\n"
+            }
+          ]
+        },
+        {
+          "name": "InsertOpts",
+          "signature": "type InsertOpts struct {\n\t// Unique, when non-nil, enables unique-job de-duplication for the insert.\n\tUnique *UniqueBy\n\t// Replace lists the fields to overwrite on an existing conflict instead of\n\t// leaving it untouched. It is only consulted when Unique detects a conflict.\n\tReplace []ReplaceField\n\t// Tags are free-form labels persisted alongside the job via a TaggableStore.\n\tTags []string\n\t// Meta is an arbitrary metadata map persisted alongside the job via a\n\t// TaggableStore.\n\tMeta map[string]any\n}",
+          "doc": "InsertOpts carries the rich insert options layered over a plain [Store]\nenqueue: multi-dimension uniqueness, replace-on-conflict, and side-channel\ntags and metadata.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "InsertResult",
+          "signature": "type InsertResult struct {\n\t// Job is the stored job (freshly inserted, or the existing conflict when\n\t// Inserted is false).\n\tJob *Job\n\t// Inserted reports whether a new row was created for this job.\n\tInserted bool\n}",
+          "doc": "InsertResult pairs one job of a batch insert with whether it was newly\ninserted, so callers can tell freshly enqueued jobs apart from ones that were\nde-duplicated against an existing unique job.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "InsertMany",
+              "signature": "func InsertMany(ctx context.Context, store Store, jobs []*Job) ([]InsertResult, error)",
+              "doc": "InsertMany enqueues each job in jobs into store in order, returning a\nper-job [InsertResult]. It is the batch companion to a single\n[Store.Enqueue], mirroring Elixir Oban's insert_all: every job is inserted\nwith the store's own unique-job semantics honored independently.\n\nInsertion stops at the first error, returning the results accumulated so far\nalongside the error. A nil entry in jobs is an error. Each job's InsertedAt,\nwhen unset, is left for the store to stamp.\n"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "name": "Job",
+          "signature": "type Job struct {\n\t// ID is a unique identifier assigned by the Store on enqueue.\n\tID int64 `json:\"id\"`\n\n\t// Queue is the named queue the job belongs to. Defaults to DefaultQueue.\n\tQueue string `json:\"queue\"`\n\n\t// Worker is the registry name of the worker that will execute the job.\n\tWorker string `json:\"worker\"`\n\n\t// Args holds the JSON-encoded arguments passed to the worker. Use\n\t// [Job.UnmarshalArgs] to decode them.\n\tArgs json.RawMessage `json:\"args\"`\n\n\t// MaxAttempts is the maximum number of times the job may run before it is\n\t// discarded. Defaults to DefaultMaxAttempts.\n\tMaxAttempts int `json:\"max_attempts\"`\n\n\t// Attempt is the 1-based count of the current (or most recent) run. It is\n\t// zero before the first fetch and incremented each time the job is fetched.\n\tAttempt int `json:\"attempt\"`\n\n\t// Priority orders jobs within a queue; lower values run first. Defaults to\n\t// 0. Ties are broken by ScheduledAt then ID.\n\tPriority int `json:\"priority\"`\n\n\t// State is the current lifecycle state of the job.\n\tState State `json:\"state\"`\n\n\t// ScheduledAt is the earliest time the job may run. Jobs with a future\n\t// ScheduledAt are not fetched until it passes.\n\tScheduledAt time.Time `json:\"scheduled_at\"`\n\n\t// InsertedAt is the time the job was enqueued.\n\tInsertedAt time.Time `json:\"inserted_at\"`\n\n\t// AttemptedAt is the time of the most recent fetch, or the zero value if\n\t// the job has never run.\n\tAttemptedAt time.Time `json:\"attempted_at,omitempty\"`\n\n\t// CompletedAt is the time the job completed successfully, or the zero value.\n\tCompletedAt time.Time `json:\"completed_at,omitempty\"`\n\n\t// DiscardedAt is the time the job was discarded, or the zero value.\n\tDiscardedAt time.Time `json:\"discarded_at,omitempty\"`\n\n\t// UniqueKey, when non-empty, enables unique-job de-duplication. An enqueue\n\t// is skipped if another unfinished job with the same Queue, Worker and\n\t// UniqueKey was inserted within UniquePeriod.\n\tUniqueKey string `json:\"unique_key,omitempty\"`\n\n\t// UniquePeriod is the window over which UniqueKey de-duplicates. It is only\n\t// consulted when UniqueKey is non-empty.\n\tUniquePeriod time.Duration `json:\"unique_period,omitempty\"`\n\n\t// LastError is the message of the most recent failed attempt.\n\tLastError string `json:\"last_error,omitempty\"`\n\n\t// Errors is the full history of failed attempts, oldest first.\n\tErrors []AttemptError `json:\"errors,omitempty\"`\n\t// contains filtered or unexported fields\n}",
+          "doc": "Job is a unit of background work. Jobs are enqueued into a [Store], fetched by\nthe engine for a specific queue, and executed by the [Worker] registered\nunder Worker.\n\nA zero Job is not valid; construct jobs with [NewJob] which applies defaults\nand marshals arguments to JSON.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "BuildJob",
+              "signature": "func BuildJob(name string, w Worker, args any, opts ...JobOption) (*Job, error)",
+              "doc": "BuildJob builds a [Job] for the worker registered under name, using w only to\nread its [WorkerOptions] when w implements [ConfiguredWorker].\n\nIt starts from [NewJob] and then applies the worker's configured Queue,\nMaxAttempts and Priority as defaults, layering the caller's opts on top so\nthat any option the caller passes overrides the worker default. args is\nmarshaled to JSON exactly as [NewJob] does.\n"
+            },
+            {
+              "name": "Insert",
+              "signature": "func Insert(ctx context.Context, store Store, job *Job, opts InsertOpts) (result *Job, inserted bool, err error)",
+              "doc": "Insert enqueues job with Elixir-Oban-style rich semantics on top of the plain\n[Store] contract.\n\nIt first validates job.Priority with [ValidatePriority]. When opts.Unique is\nset and store implements [UniqueStore], it asks the store for a conflict; on a\nhit it either returns the existing job unchanged (inserted=false) or, when\nopts.Replace is non-empty, overwrites the listed fields on that conflict and\nreturns it (still inserted=false). When the store does not implement\n[UniqueStore], a single-dimension unique request is mapped onto\njob.UniqueKey/UniquePeriod so the built-in de-duplication still applies.\n\nWith no conflict the call delegates to store.Enqueue. On a freshly inserted\njob, opts.Tags and opts.Meta are persisted through [TaggableStore] when the\nstore supports it; stores without that capability simply ignore them.\n"
+            },
+            {
+              "name": "ListJobs",
+              "signature": "func ListJobs(ctx context.Context, store Store, filter JobFilter) ([]*Job, error)",
+              "doc": "ListJobs returns copies of the jobs in store matching filter, ordered by\nascending ID. When store implements [ListableStore] its List method is used;\notherwise, when store exposes an All method (as [InMemoryStore] does), the\nsnapshot is filtered in memory. A store providing neither capability yields a\nnil slice and a nil error.\n"
+            },
+            {
+              "name": "NewJob",
+              "signature": "func NewJob(worker string, args any, opts ...JobOption) (*Job, error)",
+              "doc": "NewJob builds a job for the named worker, marshaling args to JSON. If args is\nnil the job is given an empty JSON object. Options are applied in order.\n\nDefaults: Queue=DefaultQueue, MaxAttempts=DefaultMaxAttempts,\nState=StateAvailable.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Age",
+              "recv": "*Job",
+              "signature": "func (j *Job) Age(now time.Time) time.Duration",
+              "doc": "Age returns how long ago the job was inserted, measured from now: now minus\nInsertedAt. It returns zero when InsertedAt is unset or in the future.\n"
+            },
+            {
+              "name": "AttemptsRemaining",
+              "recv": "*Job",
+              "signature": "func (j *Job) AttemptsRemaining() int",
+              "doc": "AttemptsRemaining returns how many attempts the job has left before it is\ndiscarded: MaxAttempts minus the current Attempt, floored at zero.\n"
+            },
+            {
+              "name": "Clone",
+              "recv": "*Job",
+              "signature": "func (j *Job) Clone() *Job",
+              "doc": "Clone returns a deep copy of the job, safe to hand to callers without\nexposing the store's internal pointer.\n"
+            },
+            {
+              "name": "ExecutionDuration",
+              "recv": "*Job",
+              "signature": "func (j *Job) ExecutionDuration() time.Duration",
+              "doc": "ExecutionDuration returns how long the job's last run took: CompletedAt or\nDiscardedAt minus AttemptedAt. It returns zero when the job has not been\nattempted, has not yet finished, or the timestamps are inconsistent (a\nnegative span is clamped to zero).\n"
+            },
+            {
+              "name": "HasErrored",
+              "recv": "*Job",
+              "signature": "func (j *Job) HasErrored() bool",
+              "doc": "HasErrored reports whether the job has recorded at least one failed attempt.\n"
+            },
+            {
+              "name": "InState",
+              "recv": "*Job",
+              "signature": "func (j *Job) InState(states ...State) bool",
+              "doc": "InState reports whether the job's current state is any of the given states.\nCalling it with no states returns false.\n"
+            },
+            {
+              "name": "IsFinished",
+              "recv": "*Job",
+              "signature": "func (j *Job) IsFinished() bool",
+              "doc": "IsFinished reports whether the job is in a terminal state and will not run\nagain: [StateCompleted], [StateDiscarded] or [StateCancelled].\n"
+            },
+            {
+              "name": "UnmarshalArgs",
+              "recv": "*Job",
+              "signature": "func (j *Job) UnmarshalArgs(v any) error",
+              "doc": "UnmarshalArgs decodes the job's JSON arguments into v.\n"
+            }
+          ]
+        },
+        {
+          "name": "JobFilter",
+          "signature": "type JobFilter struct {\n\t// Queue, when non-empty, requires the job's Queue to match exactly.\n\tQueue string\n\t// Worker, when non-empty, requires the job's Worker to match exactly.\n\tWorker string\n\t// States, when non-empty, requires the job's State to be one of the listed\n\t// states.\n\tStates []State\n\t// MinPriority, when non-nil, requires Priority \u003e= *MinPriority.\n\tMinPriority *int\n\t// MaxPriority, when non-nil, requires Priority \u003c= *MaxPriority.\n\tMaxPriority *int\n\t// InsertedAfter, when non-zero, requires InsertedAt to be strictly after it.\n\tInsertedAfter time.Time\n\t// InsertedBefore, when non-zero, requires InsertedAt to be strictly before\n\t// it.\n\tInsertedBefore time.Time\n}",
+          "doc": "JobFilter selects a subset of stored jobs by common attributes. A zero\nJobFilter matches every job; each set field narrows the match, and all set\nfields must hold (logical AND). It is used by [ListJobs], [CountJobs] and the\ntesting helpers [AssertEnqueued] and [RefuteEnqueued], and mirrors the keyword\nfilters accepted by Elixir Oban's testing and query helpers.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Matches",
+              "recv": "JobFilter",
+              "signature": "func (f JobFilter) Matches(job *Job) bool",
+              "doc": "Matches reports whether job satisfies every set field of the filter. A nil\njob never matches.\n"
+            }
+          ]
+        },
+        {
+          "name": "JobOption",
+          "signature": "type JobOption func(*Job)",
+          "doc": "JobOption customizes a [Job] built with [NewJob].\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "WithMaxAttempts",
+              "signature": "func WithMaxAttempts(n int) JobOption",
+              "doc": "WithMaxAttempts sets the maximum number of attempts for the job.\n"
+            },
+            {
+              "name": "WithPriority",
+              "signature": "func WithPriority(p int) JobOption",
+              "doc": "WithPriority sets the priority for the job; lower values run first.\n"
+            },
+            {
+              "name": "WithQueue",
+              "signature": "func WithQueue(queue string) JobOption",
+              "doc": "WithQueue sets the queue for the job.\n"
+            },
+            {
+              "name": "WithScheduleIn",
+              "signature": "func WithScheduleIn(d time.Duration) JobOption",
+              "doc": "WithScheduleIn schedules the job to run no earlier than d from its insertion\ntime. The delay is resolved against the enqueue time by the engine or store.\n"
+            },
+            {
+              "name": "WithScheduledAt",
+              "signature": "func WithScheduledAt(t time.Time) JobOption",
+              "doc": "WithScheduledAt schedules the job to run no earlier than t.\n"
+            },
+            {
+              "name": "WithUnique",
+              "signature": "func WithUnique(key string, period time.Duration) JobOption",
+              "doc": "WithUnique enables unique-job de-duplication for the job over the given\nperiod. Jobs sharing a Queue, Worker and key de-duplicate against one another.\n"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "name": "Lifeline",
+          "signature": "type Lifeline struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Lifeline is a [Plugin] that periodically recovers jobs orphaned in\n[StateExecuting] — typically because the process running them crashed. Jobs\nstuck longer than cfg.RescueAfter are moved back to [StateAvailable], or to\n[StateDiscarded] once their attempts are exhausted.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewLifeline",
+              "signature": "func NewLifeline(store RescuableStore, clock Clock, cfg LifelineConfig) *Lifeline",
+              "doc": "NewLifeline returns a Lifeline that rescues executing jobs older than\ncfg.RescueAfter from store on cfg.Interval, using clock for the cutoff.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Name",
+              "recv": "*Lifeline",
+              "signature": "func (l *Lifeline) Name() string",
+              "doc": "Name returns the lifeline's identifier.\n"
+            },
+            {
+              "name": "Start",
+              "recv": "*Lifeline",
+              "signature": "func (l *Lifeline) Start(ctx context.Context) error",
+              "doc": "Start launches the lifeline's background loop.\n"
+            },
+            {
+              "name": "Stop",
+              "recv": "*Lifeline",
+              "signature": "func (l *Lifeline) Stop(ctx context.Context) error",
+              "doc": "Stop stops the lifeline, honoring ctx's deadline.\n"
+            }
+          ]
+        },
+        {
+          "name": "LifelineConfig",
+          "signature": "type LifelineConfig struct {\n\t// Interval is how often the lifeline runs. Defaults to 1m when non-positive.\n\tInterval time.Duration\n\t// RescueAfter is how long a job may sit in StateExecuting, relative to the\n\t// clock, before it is rescued or discarded.\n\tRescueAfter time.Duration\n}",
+          "doc": "LifelineConfig configures a [Lifeline].\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "LinearBackoff",
+          "signature": "type LinearBackoff struct {\n\t// Base is the delay for the first retry. Defaults to one second when\n\t// non-positive.\n\tBase time.Duration\n\t// Step is added to the delay for each subsequent attempt. Defaults to one\n\t// second when non-positive.\n\tStep time.Duration\n\t// Max caps the computed delay. Defaults to one hour when non-positive.\n\tMax time.Duration\n}",
+          "doc": "LinearBackoff retries with a delay that grows linearly with the attempt\nnumber: the wait before retrying failed attempt n is\n\n\tBase + Step*(n-1)\n\ncapped at Max. Unlike [ExponentialBackoff] the growth is additive, which\nspreads retries out more gently for jobs expected to recover soon.\n\nA zero LinearBackoff behaves as Base=1s, Step=1s, Max=1h.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewLinearBackoff",
+              "signature": "func NewLinearBackoff(base, step, max time.Duration) *LinearBackoff",
+              "doc": "NewLinearBackoff returns a [LinearBackoff] with the given parameters.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Next",
+              "recv": "*LinearBackoff",
+              "signature": "func (b *LinearBackoff) Next(attempt int) time.Duration",
+              "doc": "Next implements [Backoff]. Attempts below 1 are treated as 1.\n"
+            }
+          ]
+        },
+        {
+          "name": "ListableStore",
+          "signature": "type ListableStore interface {\n\t// List returns copies of the stored jobs matching filter, ordered by\n\t// ascending ID.\n\tList(ctx context.Context, filter JobFilter) ([]*Job, error)\n}",
+          "doc": "ListableStore is the optional capability a [Store] implements to answer\nfiltered job queries directly. Stores that cannot query efficiently may omit\nit, in which case [ListJobs] and [CountJobs] fall back to scanning an\n[InMemoryStore]-style snapshot when one is available.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Middleware",
+          "signature": "type Middleware func(next Handler) Handler",
+          "doc": "Middleware wraps a [Handler] to observe or alter job execution. Middleware is\napplied so that the first element of the configured slice is the outermost\nwrapper:\n\n\tmw[0]( mw[1]( ... worker.Perform ) )\n\nso mw[0] sees the attempt begin first and its result last. Middleware should\ncall next(ctx, job) to run the wrapped handler and may inspect the returned\nerror, but must not retain job after returning.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "WorkerMiddleware",
+              "signature": "func WorkerMiddleware(store Store, clock Clock) Middleware",
+              "doc": "WorkerMiddleware returns a [Middleware] that adds per-worker configuration and\nthe {:snooze}/{:cancel} result signals on top of the engine's default\nexecution. It slots into [Config.Middleware] and cooperates with the store's\nexecuting-state guard: every terminal action it takes moves the job out of\n[StateExecuting] and returns a nil error, so the engine's subsequent guarded\nComplete becomes a no-op.\n\nBefore invoking the next handler, when the running worker implements\n[ConfiguredWorker] and sets a positive Timeout, the middleware tightens the\nattempt context with a [context.WithTimeout] of that duration (never loosening\nthe engine's own deadline).\n\nAfter the handler returns it inspects the error:\n\n  - A [SnoozeError] (see [Snooze]) reschedules the job through\n    [SnoozableStore] at now+For and returns nil, so the snooze does not\n    consume an attempt.\n  - A [CancelError] (see [CancelJob]) cancels the job through\n    [CancelableStore] and returns nil.\n  - Any other error, when the worker configures a per-worker Backoff,\n    reschedules the job through [RetryableStore] at now+Backoff.Next and\n    returns nil; without a per-worker Backoff the error is passed through\n    unchanged for the engine's default retry.\n\nA nil error is passed through unchanged. When a store lacks the capability an\naction requires, or the store call fails, the original error is returned so\nthe engine can still apply its default handling. clock supplies the current\ntime; a nil clock defaults to [SystemClock].\n"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "name": "Oban",
+          "signature": "type Oban struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Oban is a background job engine. It runs a set of queues, each polling a\n[Store] and executing registered [Worker]s with bounded concurrency, retries\nwith backoff, unique-job de-duplication and cron scheduling.\n\nConstruct one with [New], register workers, then [Oban.Start] it. Call\n[Oban.Stop] for a graceful, draining shutdown.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "New",
+              "signature": "func New(cfg Config) (*Oban, error)",
+              "doc": "New builds an engine from cfg, applying defaults. It returns an error only if\ncfg is internally inconsistent (e.g. a non-positive queue concurrency).\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Enqueue",
+              "recv": "*Oban",
+              "signature": "func (o *Oban) Enqueue(ctx context.Context, job *Job) (*Job, bool, error)",
+              "doc": "Enqueue inserts job into the store, stamping its insertion time from the\nengine clock (so unique windows and schedules are deterministic). It returns\nthe stored job and whether a new row was inserted; inserted=false indicates\nthe job was de-duplicated against an existing one.\n"
+            },
+            {
+              "name": "EnqueueMany",
+              "recv": "*Oban",
+              "signature": "func (o *Oban) EnqueueMany(ctx context.Context, jobs []*Job) ([]InsertResult, error)",
+              "doc": "EnqueueMany inserts each job in jobs through the engine in order, stamping any\nunset insertion time from the engine clock exactly as [Oban.Enqueue] does. It\nreturns a per-job [InsertResult] and stops at the first error, returning the\nresults gathered so far. It is the batch companion to [Oban.Enqueue].\n"
+            },
+            {
+              "name": "Register",
+              "recv": "*Oban",
+              "signature": "func (o *Oban) Register(name string, w Worker)",
+              "doc": "Register registers a worker on the engine's registry. It is a convenience for\no.Registry().Register(name, w).\n"
+            },
+            {
+              "name": "RegisterFunc",
+              "recv": "*Oban",
+              "signature": "func (o *Oban) RegisterFunc(name string, f func(ctx context.Context, job *Job) error)",
+              "doc": "RegisterFunc registers a [WorkerFunc] on the engine's registry.\n"
+            },
+            {
+              "name": "Registry",
+              "recv": "*Oban",
+              "signature": "func (o *Oban) Registry() *Registry",
+              "doc": "Registry returns the engine's worker registry.\n"
+            },
+            {
+              "name": "Start",
+              "recv": "*Oban",
+              "signature": "func (o *Oban) Start(ctx context.Context) error",
+              "doc": "Start begins polling every configured queue and running the cron scheduler.\nIt returns immediately; work proceeds in background goroutines until [Oban.Stop]\nis called or ctx is cancelled. Start is not re-entrant.\n"
+            },
+            {
+              "name": "Stop",
+              "recv": "*Oban",
+              "signature": "func (o *Oban) Stop(ctx context.Context) error",
+              "doc": "Stop performs a graceful shutdown: it stops queues from fetching new work,\nthen waits for in-flight attempts to finish. If ctx is cancelled before the\ndrain completes, in-flight attempts are force-cancelled (their contexts are\ncancelled) and Stop returns ctx.Err once they unwind.\n"
+            },
+            {
+              "name": "Store",
+              "recv": "*Oban",
+              "signature": "func (o *Oban) Store() Store",
+              "doc": "Store returns the engine's store.\n"
+            }
+          ]
+        },
+        {
+          "name": "PerformOutcome",
+          "signature": "type PerformOutcome string",
+          "doc": "PerformOutcome classifies the result of running a [Worker] against a [Job]\nwith [RunJob] or [PerformJob], distinguishing an ordinary success or failure\nfrom the {:snooze} and {:cancel} result signals.\n",
+          "consts": [
+            {
+              "names": [
+                "OutcomeComplete",
+                "OutcomeError",
+                "OutcomeSnooze",
+                "OutcomeCancel"
+              ],
+              "signature": "const (\n\t// OutcomeComplete indicates the worker returned nil.\n\tOutcomeComplete PerformOutcome = \"complete\"\n\t// OutcomeError indicates the worker returned an ordinary error (a retry or\n\t// discard in the running engine).\n\tOutcomeError PerformOutcome = \"error\"\n\t// OutcomeSnooze indicates the worker returned a [SnoozeError] (see [Snooze]).\n\tOutcomeSnooze PerformOutcome = \"snooze\"\n\t// OutcomeCancel indicates the worker returned a [CancelError] (see\n\t// [CancelJob]).\n\tOutcomeCancel PerformOutcome = \"cancel\"\n)",
+              "doc": ""
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "PerformResult",
+          "signature": "type PerformResult struct {\n\t// Outcome is the classified result.\n\tOutcome PerformOutcome\n\t// Err is the raw error the worker returned, or nil on success. It is set for\n\t// every non-complete outcome, including snooze and cancel.\n\tErr error\n\t// SnoozeFor is the requested snooze duration when Outcome is\n\t// [OutcomeSnooze], and zero otherwise.\n\tSnoozeFor time.Duration\n\t// CancelReason is the cancellation reason when Outcome is [OutcomeCancel],\n\t// and empty otherwise.\n\tCancelReason string\n}",
+          "doc": "PerformResult captures the classified outcome of running a worker once,\nwithout any store transitions. It lets a test assert on a worker's return\nvalue — including the snooze and cancel signals — the way Elixir Oban's\nperform_job/2 test helper does.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "PerformJob",
+              "signature": "func PerformJob(ctx context.Context, reg *Registry, job *Job) (PerformResult, error)",
+              "doc": "PerformJob resolves the worker registered under job.Worker in reg and runs it\nagainst job with [RunJob]. It returns an error only when no worker is\nregistered for the job's Worker name; the worker's own result is reported in\nthe [PerformResult]. It is the registry-aware companion to [RunJob].\n"
+            },
+            {
+              "name": "RunJob",
+              "signature": "func RunJob(ctx context.Context, w Worker, job *Job) PerformResult",
+              "doc": "RunJob executes w.Perform(ctx, job) once and classifies the result into a\n[PerformResult], recognizing the [Snooze] and [CancelJob] signals via\n[IsSnooze] and [IsCancel]. It performs no store transitions and does not\nmutate job beyond whatever the worker itself does, making it a self-contained\nunit-test helper for a worker's logic.\n"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "name": "Periodic",
+          "signature": "type Periodic struct {\n\t// Schedule determines the tick times. Required.\n\tSchedule *Schedule\n\t// Worker is the registry name of the worker to run. Required.\n\tWorker string\n\t// Args are the arguments for each enqueued job (see [NewJob]).\n\tArgs any\n\t// Options are applied to each enqueued job.\n\tOptions []JobOption\n}",
+          "doc": "Periodic declares a job to be enqueued automatically on a cron [Schedule].\nThe engine enqueues a fresh job from Worker/Args/Options at every tick of\nSchedule. Combine Periodic with a unique option (see [WithUnique]) if you need\nto guard against overlapping enqueues.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Plugin",
+          "signature": "type Plugin interface {\n\t// Name returns a short, stable identifier for the plugin, used in logs.\n\tName() string\n\t// Start launches the plugin's background loop bound to ctx and returns\n\t// immediately. The loop runs until ctx is cancelled or Stop is called.\n\tStart(ctx context.Context) error\n\t// Stop signals the plugin to shut down and blocks until its loop has exited\n\t// or ctx is done, in which case it returns ctx.Err().\n\tStop(ctx context.Context) error\n}",
+          "doc": "Plugin is a background maintenance task that runs alongside the [Oban] engine\nas its own goroutine. Plugins operate against a [Store] (through a narrow\ncapability interface) or an [Enqueuer] and never require changes to the engine\nitself.\n\nA Plugin's Start must return promptly, launching whatever background work is\nneeded; Stop must cancel that work and block until it has drained or the\nsupplied context's deadline elapses. Implementations must be safe to Start and\nStop at most once each.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "PrunableStore",
+          "signature": "type PrunableStore interface {\n\t// DeleteFinishedBefore removes up to limit jobs whose State is one of states\n\t// and whose terminal timestamp is before cutoff, returning the number\n\t// deleted.\n\tDeleteFinishedBefore(ctx context.Context, states []State, cutoff time.Time, limit int) (int64, error)\n}",
+          "doc": "PrunableStore is the capability a [Store] exposes to let the [Pruner] delete\nold finished jobs. It is satisfied by the SQL-backed store.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Pruner",
+          "signature": "type Pruner struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Pruner is a [Plugin] that periodically deletes old finished jobs\n([StateCompleted], [StateDiscarded] and [StateCancelled] by default) from a\n[PrunableStore], keeping table sizes bounded.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewPruner",
+              "signature": "func NewPruner(store PrunableStore, clock Clock, cfg PrunerConfig) *Pruner",
+              "doc": "NewPruner returns a Pruner that deletes finished jobs older than cfg.MaxAge\nfrom store on cfg.Interval, using clock for the age cutoff.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Name",
+              "recv": "*Pruner",
+              "signature": "func (p *Pruner) Name() string",
+              "doc": "Name returns the pruner's identifier.\n"
+            },
+            {
+              "name": "Start",
+              "recv": "*Pruner",
+              "signature": "func (p *Pruner) Start(ctx context.Context) error",
+              "doc": "Start launches the pruner's background loop.\n"
+            },
+            {
+              "name": "Stop",
+              "recv": "*Pruner",
+              "signature": "func (p *Pruner) Stop(ctx context.Context) error",
+              "doc": "Stop stops the pruner, honoring ctx's deadline.\n"
+            }
+          ]
+        },
+        {
+          "name": "PrunerConfig",
+          "signature": "type PrunerConfig struct {\n\t// Interval is how often the pruner runs. Defaults to 30s when non-positive.\n\tInterval time.Duration\n\t// MaxAge is how old a finished job must be, relative to the clock, before it\n\t// is eligible for deletion.\n\tMaxAge time.Duration\n\t// States are the finished states to prune. Defaults to completed, discarded\n\t// and cancelled when empty.\n\tStates []State\n\t// Limit bounds how many jobs are deleted per run. Defaults to 10000 when\n\t// non-positive.\n\tLimit int\n}",
+          "doc": "PrunerConfig configures a [Pruner].\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "RateLimiter",
+          "signature": "type RateLimiter struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "RateLimiter is a deterministic token-bucket rate limiter suitable for\nthrottling job execution against a downstream dependency's capacity. It\nrefills Rate tokens over each Interval and admits work only while tokens\nremain, mirroring the rate-limiting Elixir Oban Pro applies to queues.\n\nThe limiter draws the current time from an injected [Clock], so tests can\nadvance time explicitly and observe exact refill behavior. It is safe for\nconcurrent use.\n\nA zero RateLimiter is not usable; construct one with [NewRateLimiter].\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewRateLimiter",
+              "signature": "func NewRateLimiter(rate int, interval time.Duration, clock Clock) *RateLimiter",
+              "doc": "NewRateLimiter returns a token-bucket limiter that admits up to rate units of\nwork per interval. The bucket starts full (rate tokens). clock supplies the\ncurrent time; a nil clock defaults to [SystemClock]. It panics if rate is not\npositive or interval is not positive, since those are programmer errors.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Allow",
+              "recv": "*RateLimiter",
+              "signature": "func (r *RateLimiter) Allow() bool",
+              "doc": "Allow reports whether one unit of work may proceed now, consuming a token when\nit can. It is shorthand for AllowN(1).\n"
+            },
+            {
+              "name": "AllowN",
+              "recv": "*RateLimiter",
+              "signature": "func (r *RateLimiter) AllowN(n int) bool",
+              "doc": "AllowN reports whether n units of work may proceed now, consuming n tokens\nwhen they can. It first credits the bucket for elapsed time, then consumes n\ntokens only if at least n are available; otherwise it consumes nothing and\nreturns false. A non-positive n always returns true and consumes nothing.\n"
+            },
+            {
+              "name": "Tokens",
+              "recv": "*RateLimiter",
+              "signature": "func (r *RateLimiter) Tokens() int",
+              "doc": "Tokens returns the number of whole tokens currently available, after crediting\nthe bucket for time elapsed since the last call. It is primarily useful for\nintrospection and tests.\n"
+            }
+          ]
+        },
+        {
+          "name": "Recorder",
+          "signature": "type Recorder struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Recorder is a concurrency-safe, multi-subscriber event stream. Handlers are\nattached with [Recorder.Attach] and events are published with\n[Recorder.Emit]; every attached handler receives every event. A Recorder also\nbridges into the engine via [Recorder.Middleware] and [Recorder.AsTelemetry].\n\nThe zero value is not ready for use; construct one with [NewRecorder].\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewRecorder",
+              "signature": "func NewRecorder() *Recorder",
+              "doc": "NewRecorder returns an empty [Recorder] with no subscribers.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "AsTelemetry",
+              "recv": "*Recorder",
+              "signature": "func (r *Recorder) AsTelemetry(clock Clock) *Telemetry",
+              "doc": "AsTelemetry returns a [Telemetry] whose OnStart, OnComplete and OnError hooks\nforward into [Recorder.Emit] as [JobStart], [JobStop] and [JobException]\nevents. This lets a Recorder be installed directly as Config.Telemetry and\nparticipate in the unmodified engine. The clock supplies the timestamp for\nthe start event; if nil, [SystemClock] is used.\n"
+            },
+            {
+              "name": "Attach",
+              "recv": "*Recorder",
+              "signature": "func (r *Recorder) Attach(h EventHandler) (detach func())",
+              "doc": "Attach registers h to receive every subsequent [Event]. It returns a detach\nfunction that removes h; detach is idempotent and safe to call from any\ngoroutine. A nil handler is ignored and detach is a no-op.\n"
+            },
+            {
+              "name": "Counts",
+              "recv": "*Recorder",
+              "signature": "func (r *Recorder) Counts() map[EventName]int",
+              "doc": "Counts returns a snapshot of the cumulative number of events emitted per\n[EventName]. The returned map is a copy and may be freely mutated by the\ncaller.\n"
+            },
+            {
+              "name": "Emit",
+              "recv": "*Recorder",
+              "signature": "func (r *Recorder) Emit(ev Event)",
+              "doc": "Emit publishes ev to every attached handler and increments the cumulative\ncounter for ev.Name. Handlers are invoked synchronously, in an unspecified\norder, on the calling goroutine. It is safe for concurrent use.\n"
+            },
+            {
+              "name": "Middleware",
+              "recv": "*Recorder",
+              "signature": "func (r *Recorder) Middleware(clock Clock) Middleware",
+              "doc": "Middleware returns a [Middleware] that emits a [JobStart] event before the\nwrapped handler runs and a [JobStop] (on success) or [JobException] (on\nerror) event afterwards, populating Duration, Attempt, Queue and Worker from\nthe executing [Job]. If clock is nil, [SystemClock] is used to measure the\nattempt duration.\n"
+            }
+          ]
+        },
+        {
+          "name": "Registry",
+          "signature": "type Registry struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Registry maps worker names to [Worker] implementations. It is safe for\nconcurrent use.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewRegistry",
+              "signature": "func NewRegistry() *Registry",
+              "doc": "NewRegistry returns an empty registry.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Get",
+              "recv": "*Registry",
+              "signature": "func (r *Registry) Get(name string) (Worker, bool)",
+              "doc": "Get returns the worker registered under name.\n"
+            },
+            {
+              "name": "Names",
+              "recv": "*Registry",
+              "signature": "func (r *Registry) Names() []string",
+              "doc": "Names returns the registered worker names in unspecified order.\n"
+            },
+            {
+              "name": "Register",
+              "recv": "*Registry",
+              "signature": "func (r *Registry) Register(name string, w Worker)",
+              "doc": "Register associates name with w. It panics if name is empty, w is nil, or\nname is already registered, since these are programmer errors that should\nsurface at startup.\n"
+            },
+            {
+              "name": "RegisterFunc",
+              "recv": "*Registry",
+              "signature": "func (r *Registry) RegisterFunc(name string, f func(ctx context.Context, job *Job) error)",
+              "doc": "RegisterFunc is a convenience for registering a [WorkerFunc].\n"
+            }
+          ]
+        },
+        {
+          "name": "ReplaceField",
+          "signature": "type ReplaceField string",
+          "doc": "ReplaceField names a job field that a unique insert may overwrite on the\nexisting (conflicting) job instead of skipping the insert entirely.\n",
+          "consts": [
+            {
+              "names": [
+                "ReplaceScheduledAt",
+                "ReplacePriority",
+                "ReplaceMaxAttempts",
+                "ReplaceArgs",
+                "ReplaceTags",
+                "ReplaceMeta"
+              ],
+              "signature": "const (\n\t// ReplaceScheduledAt overwrites the conflict's ScheduledAt.\n\tReplaceScheduledAt ReplaceField = \"scheduled_at\"\n\t// ReplacePriority overwrites the conflict's Priority.\n\tReplacePriority ReplaceField = \"priority\"\n\t// ReplaceMaxAttempts overwrites the conflict's MaxAttempts.\n\tReplaceMaxAttempts ReplaceField = \"max_attempts\"\n\t// ReplaceArgs overwrites the conflict's Args.\n\tReplaceArgs ReplaceField = \"args\"\n\t// ReplaceTags overwrites the conflict's tags (persisted via TaggableStore).\n\tReplaceTags ReplaceField = \"tags\"\n\t// ReplaceMeta overwrites the conflict's meta (persisted via TaggableStore).\n\tReplaceMeta ReplaceField = \"meta\"\n)",
+              "doc": ""
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "RescuableStore",
+          "signature": "type RescuableStore interface {\n\t// RescueExecuting moves jobs stuck in StateExecuting since before olderThan\n\t// back to StateAvailable, or to StateDiscarded when their Attempt has reached\n\t// MaxAttempts. It returns how many were rescued and how many were discarded.\n\tRescueExecuting(ctx context.Context, olderThan time.Time, now time.Time) (rescued, discarded int64, err error)\n}",
+          "doc": "RescuableStore is the capability a [Store] exposes to let the [Lifeline]\nrecover jobs orphaned in [StateExecuting]. It is satisfied by the SQL-backed\nstore.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "RetryableStore",
+          "signature": "type RetryableStore interface {\n\t// RetryNow makes the job with the given id runnable again as of now.\n\tRetryNow(ctx context.Context, id int64, now time.Time) error\n}",
+          "doc": "RetryableStore is the optional capability a [Store] implements to support\nforcing a job to run again immediately. RetryNow moves a retryable or\ndiscarded job back to [StateAvailable] with scheduled_at set to now, clearing\nthe attempt-cap conditions that stopped it. It is implemented by [SQLStore].\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "SQLDialect",
+          "signature": "type SQLDialect int",
+          "doc": "SQLDialect identifies the SQL flavor an [SQLStore] targets. It selects the\nplaceholder syntax, the row-locking clause used by FetchAvailable, and the\nstrategy used to recover the auto-assigned primary key on insert.\n",
+          "consts": [
+            {
+              "names": [
+                "Postgres",
+                "SQLite",
+                "MySQL"
+              ],
+              "signature": "const (\n\t// Postgres targets PostgreSQL: $N placeholders, SELECT ... FOR UPDATE SKIP\n\t// LOCKED, and RETURNING id to recover the inserted primary key.\n\tPostgres SQLDialect = iota\n\t// SQLite targets SQLite: ? placeholders, no SKIP LOCKED (writes are\n\t// serialized by the database), and LastInsertId to recover the primary key.\n\tSQLite\n\t// MySQL targets MySQL/MariaDB: ? placeholders, SELECT ... FOR UPDATE SKIP\n\t// LOCKED, and LastInsertId to recover the primary key.\n\tMySQL\n)",
+              "doc": ""
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "String",
+              "recv": "SQLDialect",
+              "signature": "func (d SQLDialect) String() string",
+              "doc": "String returns the lowercase name of the dialect (\"postgres\", \"sqlite\" or\n\"mysql\"), or \"unknown\" for an unrecognized value.\n"
+            }
+          ]
+        },
+        {
+          "name": "SQLOption",
+          "signature": "type SQLOption func(*SQLStore)",
+          "doc": "SQLOption customizes an [SQLStore] built with [NewSQLStore].\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "WithTableName",
+              "signature": "func WithTableName(name string) SQLOption",
+              "doc": "WithTableName overrides the table an [SQLStore] reads and writes. An empty\nname is ignored and the default ([DefaultSQLTable]) is kept.\n"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "name": "SQLStore",
+          "signature": "type SQLStore struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "SQLStore is a durable [Store] backed by the standard database/sql package. It\nworks against any driver the caller wires up (the driver is never imported\nhere) and speaks one of the dialects enumerated by [SQLDialect].\n\nSQLStore satisfies [Store] and, in addition, the optional capability\ninterfaces the plugins, control and insert areas type-assert for: pruning,\nrescuing, cancelling, deleting, forcing a retry, unique-conflict lookup and\ntag/meta updates. All operations are plain SQL executed with encoding/json for\nthe JSON-typed columns.\n\nA zero SQLStore is not usable; construct one with [NewSQLStore]. SQLStore is\nsafe for concurrent use to the extent the underlying *sql.DB (a connection\npool) is.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewSQLStore",
+              "signature": "func NewSQLStore(db *sql.DB, dialect SQLDialect, opts ...SQLOption) *SQLStore",
+              "doc": "NewSQLStore returns an [SQLStore] that persists jobs in db using the given\ndialect. Options are applied in order. The database schema is not created\nautomatically; call [SQLStore.Migrate] once before use.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Cancel",
+              "recv": "*SQLStore",
+              "signature": "func (s *SQLStore) Cancel(ctx context.Context, id int64, now time.Time) error",
+              "doc": "Cancel moves a job to StateCancelled unless it is already in a terminal state\n(completed, discarded or cancelled), in which case it is a no-op. Cancelling a\njob that is executing is permitted: the guard on Complete/Retry/Discard then\nprevents the finishing runner from overwriting the cancellation. It implements\nthe cancel capability the control area relies on.\n"
+            },
+            {
+              "name": "Complete",
+              "recv": "*SQLStore",
+              "signature": "func (s *SQLStore) Complete(ctx context.Context, id int64, now time.Time) error",
+              "doc": "Complete implements [Store]. It moves the job to StateCompleted only if it is\nstill executing; a job that has already moved on (for example cancelled or\nrescued) is left untouched, which is what makes operator overrides stick.\n"
+            },
+            {
+              "name": "Delete",
+              "recv": "*SQLStore",
+              "signature": "func (s *SQLStore) Delete(ctx context.Context, id int64) error",
+              "doc": "Delete removes the job with the given id from the store. Deleting a job that\ndoes not exist is a no-op. It implements the delete capability the control\narea relies on.\n"
+            },
+            {
+              "name": "DeleteFinishedBefore",
+              "recv": "*SQLStore",
+              "signature": "func (s *SQLStore) DeleteFinishedBefore(ctx context.Context, cutoff time.Time) (int64, error)",
+              "doc": "DeleteFinishedBefore deletes every job in a terminal state (completed,\ndiscarded or cancelled) whose finishing time is strictly before cutoff, and\nreturns the number of rows removed. It implements the pruning capability the\nplugins area relies on.\n"
+            },
+            {
+              "name": "Discard",
+              "recv": "*SQLStore",
+              "signature": "func (s *SQLStore) Discard(ctx context.Context, id int64, lastErr error, now time.Time) error",
+              "doc": "Discard implements [Store]. It records lastErr in the errors JSON and moves\nthe job to StateDiscarded with discarded_at set, but only while the job is\nstill executing; otherwise it is a no-op.\n"
+            },
+            {
+              "name": "Enqueue",
+              "recv": "*SQLStore",
+              "signature": "func (s *SQLStore) Enqueue(ctx context.Context, job *Job) (*Job, bool, error)",
+              "doc": "Enqueue implements [Store]. It resolves any relative schedule against the\ninsert time, normalizes the state to StateScheduled or StateAvailable, honors\nunique-job de-duplication atomically within a transaction, and assigns the id\nvia RETURNING (Postgres) or LastInsertId (SQLite, MySQL).\n"
+            },
+            {
+              "name": "FetchAvailable",
+              "recv": "*SQLStore",
+              "signature": "func (s *SQLStore) FetchAvailable(ctx context.Context, queue string, limit int, now time.Time) ([]*Job, error)",
+              "doc": "FetchAvailable implements [Store]. In a single transaction it selects the\nfetchable rows for queue whose scheduled_at has passed, ordered by priority,\nscheduled_at then id, locking them with FOR UPDATE SKIP LOCKED on Postgres and\nMySQL (and relying on SQLite's serialized writes otherwise). Each selected job\nis transitioned to StateExecuting with its attempt incremented and\nattempted_at set, and returned as a clone.\n"
+            },
+            {
+              "name": "FindConflict",
+              "recv": "*SQLStore",
+              "signature": "func (s *SQLStore) FindConflict(ctx context.Context, job *Job, now time.Time) (*Job, error)",
+              "doc": "FindConflict returns the unfinished job that would block a unique insert of\njob (matching queue, worker and unique_key within job.UniquePeriod, measured\nagainst now), or nil if there is no conflict. It implements the unique-lookup\ncapability the insert area relies on. It returns nil, nil when job carries no\nunique key or period.\n"
+            },
+            {
+              "name": "Get",
+              "recv": "*SQLStore",
+              "signature": "func (s *SQLStore) Get(ctx context.Context, id int64) (*Job, error)",
+              "doc": "Get implements [Store]. It returns a copy of the job with the given id, or\n[ErrJobNotFound].\n"
+            },
+            {
+              "name": "Migrate",
+              "recv": "*SQLStore",
+              "signature": "func (s *SQLStore) Migrate(ctx context.Context) error",
+              "doc": "Migrate creates the jobs table and its indexes if they do not already exist.\nIt issues CREATE TABLE IF NOT EXISTS with a column for every exported [Job]\nfield plus tags and meta JSON side columns, and two indexes: one on\n(queue, state, priority, scheduled_at, id) for fetching and one on\n(state, worker, unique_key) for uniqueness lookups. Migrate is idempotent.\n"
+            },
+            {
+              "name": "RescueExecuting",
+              "recv": "*SQLStore",
+              "signature": "func (s *SQLStore) RescueExecuting(ctx context.Context, olderThan time.Time, now time.Time) (int64, error)",
+              "doc": "RescueExecuting recovers jobs stuck in StateExecuting whose attempted_at is\nbefore olderThan (their runner most likely crashed). Jobs with attempts to\nspare are returned to StateAvailable scheduled at now; jobs that have\nexhausted their attempts are discarded with discarded_at set to now. It\nreturns the number of jobs rescued and implements the rescue capability the\nplugins area relies on.\n"
+            },
+            {
+              "name": "Retry",
+              "recv": "*SQLStore",
+              "signature": "func (s *SQLStore) Retry(ctx context.Context, id int64, scheduledAt time.Time, lastErr error, now time.Time) error",
+              "doc": "Retry implements [Store]. It records lastErr in the errors JSON, moves the job\nto StateRetryable and sets scheduled_at, but only while the job is still\nexecuting; otherwise it is a no-op.\n"
+            },
+            {
+              "name": "RetryNow",
+              "recv": "*SQLStore",
+              "signature": "func (s *SQLStore) RetryNow(ctx context.Context, id int64, now time.Time) error",
+              "doc": "RetryNow makes a job runnable again immediately: it moves the job to\nStateAvailable, schedules it at now and clears completed_at and discarded_at.\nIt is intended for retrying a discarded or cancelled job on demand and\nimplements the retry capability the control area relies on.\n"
+            },
+            {
+              "name": "SetTagsMeta",
+              "recv": "*SQLStore",
+              "signature": "func (s *SQLStore) SetTagsMeta(ctx context.Context, id int64, tags []string, meta map[string]any) error",
+              "doc": "SetTagsMeta replaces the tags and meta side columns of the job with the given\nid. tags is stored as a JSON array and meta as a JSON object; a nil tags or\nmeta is stored as an empty array or object respectively. It implements the\ntagging capability the insert area relies on.\n"
+            }
+          ]
+        },
+        {
+          "name": "Schedule",
+          "signature": "type Schedule struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Schedule is a parsed standard 5-field cron expression:\n\n\t┌───────────── minute       (0-59)\n\t│ ┌─────────── hour         (0-23)\n\t│ │ ┌───────── day of month (1-31)\n\t│ │ │ ┌─────── month        (1-12 or jan-dec)\n\t│ │ │ │ ┌───── day of week  (0-6 or sun-sat; 7 also means Sunday)\n\t│ │ │ │ │\n\t* * * * *\n\nEach field supports a wildcard (*), single values (5), lists (1,2,3), ranges\n(1-5) and steps (*/2 or 1-10/3). Month and day-of-week accept three-letter\nEnglish names.\n\nDay-of-month and day-of-week are combined with AND: a time matches only when\nit satisfies both fields simultaneously. This mirrors Elixir Oban's\nOban.Cron.Expression, which requires every field (month, weekday, day, hour,\nminute) to match. Because a \"*\" field expands to its full range, an\nunrestricted day-of-month or day-of-week is always satisfied and the other\nfield then constrains the day on its own. Note this differs from the\ntraditional Vixie cron OR rule for the two day fields.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "MustParseCron",
+              "signature": "func MustParseCron(expr string) *Schedule",
+              "doc": "MustParseCron is like [ParseCron] but panics on error. It is meant for\npackage-level schedule declarations with known-good expressions.\n"
+            },
+            {
+              "name": "MustParseCronSpec",
+              "signature": "func MustParseCronSpec(spec string) *Schedule",
+              "doc": "MustParseCronSpec is like [ParseCronSpec] but panics on error. It is meant for\npackage-level schedule declarations with known-good expressions.\n"
+            },
+            {
+              "name": "ParseCron",
+              "signature": "func ParseCron(expr string) (*Schedule, error)",
+              "doc": "ParseCron parses a standard 5-field cron expression. It returns an error for\nmalformed input.\n"
+            },
+            {
+              "name": "ParseCronSpec",
+              "signature": "func ParseCronSpec(spec string) (*Schedule, error)",
+              "doc": "ParseCronSpec parses a cron expression that may be either a standard 5-field\nexpression (handed straight to [ParseCron]) or one of the named shorthands\n\"@yearly\", \"@annually\", \"@monthly\", \"@weekly\", \"@daily\", \"@midnight\" and\n\"@hourly\". The shorthand is case-insensitive. It returns an error for an\nunknown macro or a malformed 5-field expression.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Matches",
+              "recv": "*Schedule",
+              "signature": "func (s *Schedule) Matches(t time.Time) bool",
+              "doc": "Matches reports whether t (truncated to the minute) satisfies the schedule.\nSeconds and sub-second components of t are ignored.\n"
+            },
+            {
+              "name": "Next",
+              "recv": "*Schedule",
+              "signature": "func (s *Schedule) Next(t time.Time) time.Time",
+              "doc": "Next returns the earliest time strictly after t that matches the schedule,\ntruncated to the minute and preserving t's location. If no match occurs\nwithin maxCronSearchYears, it returns the zero time.\n"
+            },
+            {
+              "name": "Prev",
+              "recv": "*Schedule",
+              "signature": "func (s *Schedule) Prev(t time.Time) time.Time",
+              "doc": "Prev returns the latest time strictly before t that matches the schedule,\ntruncated to the minute and preserving t's location. If no match occurs\nwithin the search horizon it returns the zero time. It is the mirror of\n[Schedule.Next] and is useful for computing the most recent scheduled run.\n"
+            },
+            {
+              "name": "String",
+              "recv": "*Schedule",
+              "signature": "func (s *Schedule) String() string",
+              "doc": "String returns the original cron expression.\n"
+            },
+            {
+              "name": "Upcoming",
+              "recv": "*Schedule",
+              "signature": "func (s *Schedule) Upcoming(t time.Time, n int) []time.Time",
+              "doc": "Upcoming returns the next n fire times strictly after t, in ascending order,\neach computed with [Schedule.Next]. A non-positive n yields an empty slice.\nIf the schedule stops matching within Next's search horizon the slice is\nreturned short.\n"
+            }
+          ]
+        },
+        {
+          "name": "SnoozableStore",
+          "signature": "type SnoozableStore interface {\n\t// Snooze reschedules the job with the given id to until, treating the\n\t// current attempt as not spent. now is the observation time.\n\tSnooze(ctx context.Context, id int64, until time.Time, now time.Time) error\n}",
+          "doc": "SnoozableStore is the optional capability a [Store] implements to support the\n{:snooze} result signal. Snooze moves the job with the given id to\n[StateScheduled] with scheduled_at set to until and decrements its attempt so\nthat a snooze does not consume one of the job's attempts. Like the other\nfinishing transitions it is guarded on the executing state, so a job that has\nalready moved on is left untouched.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "SnoozeError",
+          "signature": "type SnoozeError struct {\n\t// For is how far into the future the job should be rescheduled, measured\n\t// from the time the signal is observed.\n\tFor time.Duration\n}",
+          "doc": "SnoozeError is the result signal a [Worker.Perform] returns to ask the engine\nto reschedule the job for a later time without counting the attempt as a\nfailure. It mirrors Elixir Oban's {:snooze, seconds} return value.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Error",
+              "recv": "SnoozeError",
+              "signature": "func (e SnoozeError) Error() string",
+              "doc": "Error implements the error interface.\n"
+            }
+          ]
+        },
+        {
+          "name": "State",
+          "signature": "type State string",
+          "doc": "State describes the lifecycle position of a [Job].\n\nThe normal progression is:\n\n\tscheduled ─┐\n\t           ├─▶ available ─▶ executing ─▶ completed\n\t           │                     │\n\t           └──── retryable ◀─────┤ (error, attempts remain)\n\t                                 │\n\t                                 └─▶ discarded (error, no attempts left)\n\nA job may also be moved directly to [StateCancelled] by an operator.\n",
+          "consts": [
+            {
+              "names": [
+                "StateScheduled",
+                "StateAvailable",
+                "StateExecuting",
+                "StateRetryable",
+                "StateCompleted",
+                "StateDiscarded",
+                "StateCancelled"
+              ],
+              "signature": "const (\n\t// StateScheduled marks a job whose ScheduledAt is in the future. It\n\t// becomes fetchable once that time passes.\n\tStateScheduled State = \"scheduled\"\n\t// StateAvailable marks a job that is ready to be fetched and executed.\n\tStateAvailable State = \"available\"\n\t// StateExecuting marks a job that has been fetched by the engine and is\n\t// currently running (or crashed mid-run).\n\tStateExecuting State = \"executing\"\n\t// StateRetryable marks a job that failed but still has attempts left. It\n\t// carries a future ScheduledAt computed from the backoff policy.\n\tStateRetryable State = \"retryable\"\n\t// StateCompleted marks a job that finished successfully.\n\tStateCompleted State = \"completed\"\n\t// StateDiscarded marks a job that exhausted its attempts (or failed\n\t// permanently) and will not run again.\n\tStateDiscarded State = \"discarded\"\n\t// StateCancelled marks a job cancelled by an operator before completion.\n\tStateCancelled State = \"cancelled\"\n)",
+              "doc": ""
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Store",
+          "signature": "type Store interface {\n\t// Enqueue inserts job, honoring unique-job de-duplication. It returns the\n\t// stored job and whether a new row was inserted (false means a matching\n\t// unfinished job already existed and is returned instead).\n\tEnqueue(ctx context.Context, job *Job) (result *Job, inserted bool, err error)\n\n\t// FetchAvailable atomically locks up to limit runnable jobs for queue,\n\t// transitions them to StateExecuting and returns them in execution order.\n\tFetchAvailable(ctx context.Context, queue string, limit int, now time.Time) ([]*Job, error)\n\n\t// Complete marks the job completed.\n\tComplete(ctx context.Context, id int64, now time.Time) error\n\n\t// Retry reschedules the job to run at scheduledAt, recording lastErr as a\n\t// failed attempt and moving it to StateRetryable.\n\tRetry(ctx context.Context, id int64, scheduledAt time.Time, lastErr error, now time.Time) error\n\n\t// Discard marks the job discarded, recording lastErr as a failed attempt.\n\tDiscard(ctx context.Context, id int64, lastErr error, now time.Time) error\n\n\t// Get returns a copy of the job with the given ID, or ErrJobNotFound.\n\tGet(ctx context.Context, id int64) (*Job, error)\n}",
+          "doc": "Store persists jobs and mediates the transitions the engine drives. A Store\nmust be safe for concurrent use.\n\nThe engine owns the clock: every method that depends on the current time\nreceives it explicitly (as now), which keeps stores time-agnostic and tests\ndeterministic.\n\n# Implementing a persistent store\n\nTo back Oban with a database, implement this interface against your storage.\nThe contract each method must uphold:\n\n  - Enqueue must be atomic with respect to uniqueness: when job.UniqueKey is\n    set, it must not insert a duplicate if an unfinished job with the same\n    Queue, Worker and UniqueKey exists within UniquePeriod. Return that\n    existing job with inserted=false. Otherwise assign a unique ID, resolve\n    any relative schedule, and insert with inserted=true.\n  - FetchAvailable must atomically select and lock up to limit jobs for the\n    queue whose state is fetchable (available, scheduled or retryable) and\n    whose ScheduledAt \u003c= now, ordered by Priority asc, ScheduledAt asc, ID\n    asc. It must transition each to StateExecuting, increment Attempt, set\n    AttemptedAt, and never hand the same job to two callers (use SELECT ...\n    FOR UPDATE SKIP LOCKED or an equivalent).\n  - Complete, Retry and Discard transition a single job by ID and must be\n    idempotent enough to tolerate a job that has already moved on.\n\nReturned jobs should be copies (or otherwise immutable) so callers cannot\nmutate stored state by reference.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Supervisor",
+          "signature": "type Supervisor struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Supervisor starts and stops a set of [Plugin]s as a unit, tracking their\ngoroutines with a WaitGroup so shutdown can drain them under a deadline.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewSupervisor",
+              "signature": "func NewSupervisor(clock Clock, logger *log.Logger, plugins ...Plugin) *Supervisor",
+              "doc": "NewSupervisor returns a Supervisor over plugins. The clock is retained for\nplugins and callers that need a shared time source, and logger (if non-nil) is\npushed to every plugin so their background errors are surfaced.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Start",
+              "recv": "*Supervisor",
+              "signature": "func (s *Supervisor) Start(ctx context.Context) error",
+              "doc": "Start starts every plugin bound to a child of ctx and records each in a\nWaitGroup. It is not re-entrant; a second call while running is a no-op.\n"
+            },
+            {
+              "name": "Stop",
+              "recv": "*Supervisor",
+              "signature": "func (s *Supervisor) Stop(ctx context.Context) error",
+              "doc": "Stop cancels the supervised context, stops every plugin and waits for the\nWaitGroup to drain. If ctx is done before every plugin has exited, Stop\nreturns ctx.Err().\n"
+            }
+          ]
+        },
+        {
+          "name": "SystemClock",
+          "signature": "type SystemClock struct{}",
+          "doc": "SystemClock is a [Clock] backed by the wall clock.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Now",
+              "recv": "SystemClock",
+              "signature": "func (SystemClock) Now() time.Time",
+              "doc": "Now returns time.Now.\n"
+            }
+          ]
+        },
+        {
+          "name": "TaggableStore",
+          "signature": "type TaggableStore interface {\n\t// SetTagsMeta replaces the stored tags and meta for the job with the given\n\t// id.\n\tSetTagsMeta(ctx context.Context, id int64, tags []string, meta map[string]any) error\n\t// TagsMeta returns the stored tags and meta for the job with the given id.\n\tTagsMeta(ctx context.Context, id int64) (tags []string, meta map[string]any, err error)\n}",
+          "doc": "TaggableStore is the optional capability a [Store] implements to persist and\nread back the tags and metadata that [Job] itself does not carry.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Telemetry",
+          "signature": "type Telemetry struct {\n\t// OnStart is called just before the worker runs, with the attempt's context.\n\tOnStart func(ctx context.Context, job *Job)\n\t// OnComplete is called after a successful attempt with its wall-clock\n\t// duration.\n\tOnComplete func(ctx context.Context, job *Job, dur time.Duration)\n\t// OnError is called after a failed attempt with the error and duration.\n\tOnError func(ctx context.Context, job *Job, err error, dur time.Duration)\n}",
+          "doc": "Telemetry receives lifecycle callbacks for every job attempt. Any nil field\nis skipped, so implementations may set only the hooks they need. All\ncallbacks run synchronously on the worker goroutine and must not block for\nlong.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Middleware",
+              "recv": "Telemetry",
+              "signature": "func (t Telemetry) Middleware(clock Clock) Middleware",
+              "doc": "Middleware adapts the telemetry hooks into a [Middleware] value using clock to\nmeasure duration.\n"
+            }
+          ]
+        },
+        {
+          "name": "UniqueBy",
+          "signature": "type UniqueBy struct {\n\t// Period is the window over which duplicates are detected, measured against\n\t// the new job's insertion time. A non-positive Period disables uniqueness.\n\tPeriod time.Duration\n\t// States restricts which existing job states can block the insert. When nil\n\t// it defaults to the unfinished set.\n\tStates []State\n\t// Fields selects the job dimensions that must match. When nil it defaults to\n\t// worker+queue+args.\n\tFields []UniqueField\n\t// Keys are additional opaque strings that must match for a collision. They\n\t// are combined with the selected Fields to form the effective unique key.\n\tKeys []string\n}",
+          "doc": "UniqueBy describes Elixir-Oban-style multi-dimension unique-job semantics for\na single insert. It generalizes the single-key [WithUnique] option: a job is\nconsidered a duplicate of an existing one when they match on every selected\nField and every explicit Key, the existing job is in one of States, and it was\ninserted within Period of the new job.\n\nThe zero value is not meaningful; construct a UniqueBy with at least a Period.\nUnset States default to the unfinished set (available, scheduled, executing,\nretryable) and unset Fields default to worker+queue+args, matching Elixir Oban.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "UniqueField",
+          "signature": "type UniqueField string",
+          "doc": "UniqueField names one dimension over which a unique insert de-duplicates.\nA [UniqueBy] selects a set of fields; two jobs collide only when they agree\non every selected field (in addition to any explicit [UniqueBy.Keys]).\n",
+          "consts": [
+            {
+              "names": [
+                "UniqueWorker",
+                "UniqueQueue",
+                "UniqueArgs",
+                "UniquePriority"
+              ],
+              "signature": "const (\n\t// UniqueWorker de-duplicates on the job's Worker.\n\tUniqueWorker UniqueField = \"worker\"\n\t// UniqueQueue de-duplicates on the job's Queue.\n\tUniqueQueue UniqueField = \"queue\"\n\t// UniqueArgs de-duplicates on the job's (canonicalized) Args JSON.\n\tUniqueArgs UniqueField = \"args\"\n\t// UniquePriority de-duplicates on the job's Priority.\n\tUniquePriority UniqueField = \"priority\"\n)",
+              "doc": ""
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "UniqueStore",
+          "signature": "type UniqueStore interface {\n\t// FindConflict returns an existing job that blocks the insert of job under\n\t// the resolved uniqueness rule by (matching over the chosen Fields and Keys\n\t// within Period across the given States, measured against now), or nil when\n\t// there is no conflict.\n\tFindConflict(ctx context.Context, job *Job, by UniqueBy, now time.Time) (*Job, error)\n}",
+          "doc": "UniqueStore is the optional capability a [Store] implements to answer\nmulti-dimension unique-insert lookups. Stores that cannot answer richer\nqueries may omit it, in which case [Insert] falls back to the single-key\nunique support built into the plain [Store] contract.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Worker",
+          "signature": "type Worker interface {\n\t// Perform executes the job and returns nil on success or an error to\n\t// trigger a retry or discard.\n\tPerform(ctx context.Context, job *Job) error\n}",
+          "doc": "Worker executes a single [Job]. Perform is called with a context that carries\nthe per-attempt timeout and is cancelled if the engine is force-stopped.\n\nA nil error marks the job completed. A non-nil error triggers a retry (if\nattempts remain) or discards the job. Perform should honor ctx cancellation\nfor long-running work.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "WorkerFunc",
+          "signature": "type WorkerFunc func(ctx context.Context, job *Job) error",
+          "doc": "WorkerFunc adapts a plain function to the [Worker] interface.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Perform",
+              "recv": "WorkerFunc",
+              "signature": "func (f WorkerFunc) Perform(ctx context.Context, job *Job) error",
+              "doc": "Perform calls f(ctx, job).\n"
+            }
+          ]
+        },
+        {
+          "name": "WorkerOptions",
+          "signature": "type WorkerOptions struct {\n\t// Queue is the queue the worker's jobs default to. Empty means the job's\n\t// own queue (ultimately [DefaultQueue]) is kept.\n\tQueue string\n\t// MaxAttempts is the default attempt cap for the worker's jobs. A\n\t// non-positive value leaves the job's own cap in place.\n\tMaxAttempts int\n\t// Priority is the default priority (lower runs first) for the worker's\n\t// jobs. Zero, the package default, is treated as unset.\n\tPriority int\n\t// Timeout bounds a single attempt. When positive, [WorkerMiddleware]\n\t// tightens the engine's per-attempt context to this duration; zero leaves\n\t// the engine timeout untouched.\n\tTimeout time.Duration\n\t// Tags are free-form labels associated with the worker's jobs. They are\n\t// carried for insert-time use (see [InsertOpts]) and are not applied to the\n\t// [Job] itself by [BuildJob].\n\tTags []string\n\t// Unique, when non-nil, is the default uniqueness rule for the worker's\n\t// jobs. Like Tags it is consumed at insert time via [InsertOpts].\n\tUnique *UniqueBy\n\t// Backoff, when non-nil, is the per-worker retry policy. On an ordinary\n\t// failure [WorkerMiddleware] reschedules the job with this backoff instead\n\t// of leaving it to the engine's global policy.\n\tBackoff Backoff\n}",
+          "doc": "WorkerOptions carries Elixir-Oban-style per-worker configuration. A [Worker]\nexposes it by implementing [ConfiguredWorker]; the values then act as\ndefaults for jobs built with [BuildJob] and as execution policy for\n[WorkerMiddleware].\n\nThe zero value requests no per-worker configuration: an empty Queue, a\nnon-positive MaxAttempts, Priority and Timeout, and nil Tags, Unique and\nBackoff are all treated as \"unset\" and fall back to the engine's own\ndefaults.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        }
+      ],
+      "funcs": [
+        {
+          "name": "AssertEnqueued",
+          "signature": "func AssertEnqueued(ctx context.Context, store Store, filter JobFilter) (bool, error)",
+          "doc": "AssertEnqueued reports whether at least one job in store matches filter. It is\nthe affirmative half of the Elixir-Oban-style enqueue assertions and is\nintended for use in tests: a true result means the expected job was enqueued.\n"
+        },
+        {
+          "name": "CancelJob",
+          "signature": "func CancelJob(reason string) error",
+          "doc": "CancelJob returns a [CancelError] that asks the engine to cancel the current\njob, recording reason.\n"
+        },
+        {
+          "name": "CountJobs",
+          "signature": "func CountJobs(ctx context.Context, store Store, filter JobFilter) (int, error)",
+          "doc": "CountJobs returns the number of jobs in store matching filter, using the same\nresolution rules as [ListJobs].\n"
+        },
+        {
+          "name": "IsCancel",
+          "signature": "func IsCancel(err error) (string, bool)",
+          "doc": "IsCancel reports whether err is (or wraps) a [CancelError], returning its\nreason when so. It uses [errors.As], so a wrapped signal is still recognized.\n"
+        },
+        {
+          "name": "IsSnooze",
+          "signature": "func IsSnooze(err error) (time.Duration, bool)",
+          "doc": "IsSnooze reports whether err is (or wraps) a [SnoozeError], returning its\nduration when so. It uses [errors.As], so a wrapped signal is still\nrecognized.\n"
+        },
+        {
+          "name": "RefuteEnqueued",
+          "signature": "func RefuteEnqueued(ctx context.Context, store Store, filter JobFilter) (bool, error)",
+          "doc": "RefuteEnqueued reports whether no job in store matches filter. It is the\nnegative half of the enqueue assertions: a true result means nothing matching\nwas enqueued. It is exactly the negation of [AssertEnqueued].\n"
+        },
+        {
+          "name": "Snooze",
+          "signature": "func Snooze(d time.Duration) error",
+          "doc": "Snooze returns a [SnoozeError] that asks the engine to reschedule the current\njob d into the future without consuming an attempt.\n"
+        },
+        {
+          "name": "Tags",
+          "signature": "func Tags(ctx context.Context, store Store, id int64) ([]string, error)",
+          "doc": "Tags returns the tags stored for the job with the given id. It reads them back\nthrough [TaggableStore]; when store does not implement that capability it\nreturns an empty slice and a nil error.\n"
+        },
+        {
+          "name": "ValidatePriority",
+          "signature": "func ValidatePriority(p int) error",
+          "doc": "ValidatePriority reports whether p is an acceptable job priority. Like Elixir\nOban, priorities are constrained to the inclusive range 0..9 (lower runs\nfirst). It returns a non-nil error for any value outside that range.\n"
+        }
+      ],
+      "examples": [
+        {
+          "name": "",
+          "code": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\t\"io\"\n\t\"log\"\n\t\"time\"\n\n\t\"github.com/malcolmston/oban\"\n)\n\nfunc main() {\n\tengine, err := oban.New(oban.Config{\n\t\tStore:        oban.NewInMemoryStore(),\n\t\tQueues:       map[string]int{\"default\": 2},\n\t\tPollInterval: time.Millisecond,\n\t\tLogger:       log.New(io.Discard, \"\", 0),\n\t})\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\n\t// The worker reports its result on a channel so the example output is\n\t// deterministic.\n\tgreeted := make(chan string, 1)\n\tengine.RegisterFunc(\"greet\", func(_ context.Context, job *oban.Job) error {\n\t\tvar args struct {\n\t\t\tName string `json:\"name\"`\n\t\t}\n\t\tif err := job.UnmarshalArgs(\u0026args); err != nil {\n\t\t\treturn err\n\t\t}\n\t\tgreeted \u003c- \"Hello, \" + args.Name\n\t\treturn nil\n\t})\n\n\tctx := context.Background()\n\tif err := engine.Start(ctx); err != nil {\n\t\tpanic(err)\n\t}\n\n\tjob, err := oban.NewJob(\"greet\", map[string]string{\"name\": \"Ada\"})\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tif _, _, err := engine.Enqueue(ctx, job); err != nil {\n\t\tpanic(err)\n\t}\n\n\tfmt.Println(\u003c-greeted)\n\n\tif err := engine.Stop(context.Background()); err != nil {\n\t\tpanic(err)\n\t}\n}",
+          "output": "Hello, Ada",
+          "doc": "Example demonstrates enqueuing a job and processing it with a registered\nworker, then draining the engine on shutdown.\n"
+        }
+      ]
+    }
+  ]
+}

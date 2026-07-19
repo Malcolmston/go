@@ -1,0 +1,1289 @@
+{
+  "module": "github.com/malcolmston/socketio",
+  "generatedAt": "2026-07-19T02:05:53Z",
+  "packages": [
+    {
+      "importPath": "github.com/malcolmston/socketio",
+      "name": "socketio",
+      "synopsis": "Package socketio is a pure-Go port of the Node.js Socket.IO server.",
+      "doc": "Package socketio is a pure-Go port of the Node.js Socket.IO server. It\nimplements the Engine.IO v4 transport layer (HTTP long-polling and WebSocket,\nwith the polling→websocket upgrade) and the Socket.IO v5 protocol (namespaces,\nrooms, events, and acknowledgements), exposing an API that mirrors the\noriginal JavaScript library so that idioms such as io.on(\"connection\"),\nsocket.join(room), and io.to(room).emit(...) translate almost line for line:\n\n\tio := socketio.New()\n\tio.OnConnection(func(s *socketio.Socket) {\n\t\ts.On(\"chat\", func(args []any) []any {\n\t\t\tio.To(\"room1\").Emit(\"chat\", args...)\n\t\t\treturn nil\n\t\t})\n\t\ts.Join(\"room1\")\n\t})\n\thttp.Handle(\"/socket.io/\", io)\n\thttp.ListenAndServe(\":3000\", nil)\n\nReach for this package when you want real-time, bidirectional, event-based\ncommunication between a Go backend and Socket.IO clients (browsers, mobile\napps, or the companion client package) without pulling in cgo or third-party\ndependencies — the entire stack, down to the RFC 6455 WebSocket framing, is\nbuilt on the standard library. A *Server is an http.Handler, so it mounts on\nany net/http server or router: use ServeHTTP directly, Attach it to a\n*http.ServeMux, or wrap an existing handler with Handler to coexist with a\nREST/Express-style application on the same port.\n\nInternally each connected client owns one Engine.IO session (a conn),\nidentified by a session id (sid). A session begins over HTTP long-polling and\nis transparently upgraded to WebSocket via the Engine.IO probe handshake; the\nengineio subpackage encodes the transport frames and the polling payload,\nwhile this package encodes the Socket.IO layer on top — CONNECT, EVENT, ACK,\nDISCONNECT, and their binary variants. Events carry JSON arguments; any\n[]byte in a payload is transmitted out-of-band as a BINARY_EVENT with\nplaceholder markers (see binary.go). A single session may be attached to\nseveral Namespaces at once, each of which multiplexes its own sockets, rooms,\nand connection middleware over the shared transport.\n\nThe concurrency and delivery semantics follow from that design. The server\nsends periodic heartbeat pings and disconnects a session whose pong is\noverdue by more than PingInterval+PingTimeout. Inbound events are dispatched\non their own goroutine so a handler may block on an acknowledgement without\nstalling the read loop, which means handlers for the same socket can run\nconcurrently and must guard any shared state; ordering of delivery to the\nwire is preserved, but ordering between independently dispatched handlers is\nnot. Socket.Emit targets one client and returns an error, whereas the\nbroadcast forms (Server.Emit, Namespace.Emit, and BroadcastOperator.Emit) fan\nout to many recipients and deliberately do not surface a per-socket error.\nRooms are managed by a pluggable Adapter; the default keeps all membership in\nprocess.\n\nParity with the Node reference implementation is close but not total. The\nwire protocols are compatible, so this server interoperates with the official\nJavaScript client and this module's client package. Room broadcasting,\nacknowledgements, connection middleware (Use), per-socket data (Set/Get), and\nmulti-node scale-out (via SetBroadcaster and the redis subpackage) are all\nsupported. Differences reflect Go idioms and scope: handlers use typed\nfunc([]any) []any signatures rather than variadic JS callbacks, there is no\nbuilt-in adapter persistence beyond what a Broadcaster provides, and features\ntied to the Node runtime (such as the admin UI or the msgpack parser) are out\nof scope. See COMPATIBILITY.md in the repository for the authoritative matrix.\n",
+      "consts": [
+        {
+          "names": [
+            "DefaultPath"
+          ],
+          "signature": "const DefaultPath = \"/socket.io/\"",
+          "doc": "DefaultPath is the HTTP path Socket.IO serves from.\n"
+        },
+        {
+          "names": [
+            "ProtocolVersion"
+          ],
+          "signature": "const ProtocolVersion = 5",
+          "doc": "ProtocolVersion is the Socket.IO protocol revision implemented here (v5,\nwhich rides on Engine.IO v4).\n"
+        }
+      ],
+      "vars": [
+        {
+          "names": [
+            "ErrEmptyEvent"
+          ],
+          "signature": "var ErrEmptyEvent = errors.New(\"socketio: empty event name\")",
+          "doc": "ErrEmptyEvent indicates an empty event name.\n"
+        },
+        {
+          "names": [
+            "ErrInvalidPacket"
+          ],
+          "signature": "var ErrInvalidPacket = errors.New(\"socketio: invalid packet\")",
+          "doc": "ErrInvalidPacket indicates a malformed Socket.IO packet.\n"
+        },
+        {
+          "names": [
+            "ErrReservedEvent"
+          ],
+          "signature": "var ErrReservedEvent = errors.New(\"socketio: reserved event name\")",
+          "doc": "ErrReservedEvent indicates an attempt to use a reserved event name for an\napplication event.\n"
+        }
+      ],
+      "types": [
+        {
+          "name": "Adapter",
+          "signature": "type Adapter interface {\n\t// Add registers a socket in the namespace.\n\tAdd(socketID string, s *Socket)\n\t// Remove deletes a socket and drops it from every room.\n\tRemove(socketID string)\n\t// Join adds a socket to a room.\n\tJoin(socketID, room string)\n\t// Leave removes a socket from a room.\n\tLeave(socketID, room string)\n\t// SocketsInRoom returns the sockets that are members of a room.\n\tSocketsInRoom(room string) []*Socket\n\t// AllSockets returns every socket in the namespace.\n\tAllSockets() []*Socket\n\t// Get returns a socket by id.\n\tGet(socketID string) (*Socket, bool)\n}",
+          "doc": "Adapter stores which sockets belong to a namespace and its rooms. The default\nimplementation keeps everything in process; supplying a custom Adapter (e.g.\nbacked by Redis) is the extension point for scaling a namespace across\nmultiple server instances.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "BroadcastOperator",
+          "signature": "type BroadcastOperator struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "BroadcastOperator emits events to a filtered set of sockets in a namespace —\noptionally scoped to one or more rooms and excluding specific sockets. It is\nreturned by Namespace.To, Server.To, and Socket.To, and is the equivalent of\nio.to(room).emit(...).\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Compress",
+              "recv": "*BroadcastOperator",
+              "signature": "func (b *BroadcastOperator) Compress(on bool) *BroadcastOperator",
+              "doc": "Compress sets whether the payload should be compressed by the transport. It\nis advisory in this implementation.\n"
+            },
+            {
+              "name": "Emit",
+              "recv": "*BroadcastOperator",
+              "signature": "func (b *BroadcastOperator) Emit(event string, args ...any)",
+              "doc": "Emit sends an event to every socket matched by the operator. When a cluster\nBroadcaster is installed, the broadcast is published to all nodes (which each\ndeliver it to their local sockets); otherwise it is delivered locally.\n"
+            },
+            {
+              "name": "Except",
+              "recv": "*BroadcastOperator",
+              "signature": "func (b *BroadcastOperator) Except(socketID string) *BroadcastOperator",
+              "doc": "Except excludes a socket id from the broadcast.\n"
+            },
+            {
+              "name": "ExceptRoom",
+              "recv": "*BroadcastOperator",
+              "signature": "func (b *BroadcastOperator) ExceptRoom(rooms ...string) *BroadcastOperator",
+              "doc": "ExceptRoom excludes every socket that is a member of any of the given rooms\nfrom the broadcast — the equivalent of io.except(room). Unlike Except, which\nexcludes an individual socket id, ExceptRoom excludes whole rooms.\n"
+            },
+            {
+              "name": "In",
+              "recv": "*BroadcastOperator",
+              "signature": "func (b *BroadcastOperator) In(room string) *BroadcastOperator",
+              "doc": "In is an alias for To, matching socket.io's io.in(room).\n"
+            },
+            {
+              "name": "Local",
+              "recv": "*BroadcastOperator",
+              "signature": "func (b *BroadcastOperator) Local() *BroadcastOperator",
+              "doc": "Local restricts the broadcast to sockets connected to this node, suppressing\ncluster fan-out even when a Broadcaster is installed — the equivalent of\nio.local.emit(...). It is a no-op on a single-node deployment.\n"
+            },
+            {
+              "name": "Timeout",
+              "recv": "*BroadcastOperator",
+              "signature": "func (b *BroadcastOperator) Timeout(d time.Duration) *BroadcastOperator",
+              "doc": "Timeout records an acknowledgement timeout for the broadcast, matching\nio.timeout(ms).emit(...). It is stored for callers that aggregate acks; the\nconvenience Emit itself is fire-and-forget.\n"
+            },
+            {
+              "name": "To",
+              "recv": "*BroadcastOperator",
+              "signature": "func (b *BroadcastOperator) To(room string) *BroadcastOperator",
+              "doc": "To narrows the broadcast to an additional room.\n"
+            },
+            {
+              "name": "Volatile",
+              "recv": "*BroadcastOperator",
+              "signature": "func (b *BroadcastOperator) Volatile() *BroadcastOperator",
+              "doc": "Volatile marks the broadcast as volatile: messages that cannot be delivered\nimmediately (e.g. to a client mid-reconnect) may be dropped. On this\nsingle-node, buffered implementation it is advisory.\n"
+            }
+          ]
+        },
+        {
+          "name": "BroadcastTarget",
+          "signature": "type BroadcastTarget interface {\n\tEmitter\n\tRoomTargeter\n}",
+          "doc": "BroadcastTarget is the combination satisfied by the room-addressable emitters\n(server, namespace, and broadcast operator): they can both narrow to a room\nand emit to the resulting set.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Broadcaster",
+          "signature": "type Broadcaster interface {\n\t// Publish sends a serialized broadcast to all instances (including this\n\t// one — pub/sub echoes to the publisher).\n\tPublish(data []byte) error\n\t// OnMessage registers the handler invoked for every received broadcast.\n\tOnMessage(func(data []byte))\n\t// Close shuts the broadcaster down.\n\tClose() error\n}",
+          "doc": "Broadcaster fans broadcasts out to other server instances. Installing one\n(Server.SetBroadcaster) turns a single-node server into a cluster member: a\nbroadcast is published once and each node delivers it to its own local\nsockets. The reference implementation is the Redis adapter in the redis\nsubpackage, but any pub/sub transport can implement this interface.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Decoder",
+          "signature": "type Decoder struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Decoder reassembles a packet from the stream of transport frames produced by\nan Encoder. It is the Go equivalent of socket.io-parser's Decoder and is\nstateful: feed it frames with Add in arrival order and it returns a completed\npacket once all of a packet's frames have been seen. A single Decoder handles\none packet at a time and must not be used concurrently.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewDecoder",
+              "signature": "func NewDecoder() *Decoder",
+              "doc": "NewDecoder returns an empty Decoder ready to accept frames.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Add",
+              "recv": "*Decoder",
+              "signature": "func (d *Decoder) Add(frame any) (*Packet, error)",
+              "doc": "Add feeds one transport frame to the decoder. The frame must be a string (a\ntext frame, i.e. a Socket.IO text packet) or a []byte (a binary attachment\nframe). Add returns a non-nil packet when the frame completes a packet, or\n(nil, nil) when more frames are required (a binary header awaiting its\nattachments). A malformed frame, or a binary attachment arriving with no\nheader pending, returns ErrInvalidPacket.\n\nReassembled binary packets keep their BinaryEvent/BinaryAck type, with every\n{\"_placeholder\":true,\"num\":N} marker in the payload replaced by the matching\nbuffer — mirroring socket.io-parser, whose consumers treat BINARY_EVENT the\nsame as EVENT (use EventName and Args as usual).\n"
+            },
+            {
+              "name": "Pending",
+              "recv": "*Decoder",
+              "signature": "func (d *Decoder) Pending() bool",
+              "doc": "Pending reports whether the decoder is mid-packet, waiting for binary\nattachment frames to complete the packet whose header it already received.\n"
+            },
+            {
+              "name": "Reset",
+              "recv": "*Decoder",
+              "signature": "func (d *Decoder) Reset()",
+              "doc": "Reset discards any partially-decoded packet, returning the decoder to its\nempty state.\n"
+            }
+          ]
+        },
+        {
+          "name": "Emitter",
+          "signature": "type Emitter interface {\n\tEmit(event string, args ...any)\n}",
+          "doc": "Emitter is anything that can broadcast an event to a set of sockets without a\nper-socket error — the server, a namespace, and a broadcast operator all fan\nan event out to many recipients, so a delivery error to any single socket is\nnot surfaced. (Socket.Emit, which targets one client, deliberately returns an\nerror and is therefore not an Emitter.)\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Encoder",
+          "signature": "type Encoder struct{}",
+          "doc": "Encoder encodes Socket.IO packets into the sequence of transport frames they\noccupy. It is the Go equivalent of socket.io-parser's Encoder: a plain,\nstateless value that is safe to share across goroutines.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewEncoder",
+              "signature": "func NewEncoder() *Encoder",
+              "doc": "NewEncoder returns a ready-to-use Encoder.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Encode",
+              "recv": "*Encoder",
+              "signature": "func (e *Encoder) Encode(p Packet) ([]any, error)",
+              "doc": "Encode renders a packet to the ordered frames it occupies on the wire. The\nfirst element is always the packet's text form (a Go string); when the packet\ncarries []byte values the type is promoted to its binary variant, the text\nheader declares the attachment count, and each following element is a raw\nbinary buffer ([]byte). A caller writes element 0 as a text frame and every\nsubsequent element as a binary frame, in order.\n"
+            }
+          ]
+        },
+        {
+          "name": "EventHandler",
+          "signature": "type EventHandler func(args []any) []any",
+          "doc": "EventHandler handles an inbound event. It receives the event arguments and\nmay return a non-nil slice to acknowledge the event (sent back to the client\nwhen the event requested an ack).\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Handshake",
+          "signature": "type Handshake struct {\n\t// Headers is the set of HTTP request headers.\n\tHeaders http.Header\n\t// Time is when the handshake was processed.\n\tTime time.Time\n\t// Address is the remote network address the connection originated from\n\t// (honoring X-Forwarded-For when present).\n\tAddress string\n\t// XDomain reports whether the request carried an Origin header (a\n\t// cross-origin, browser-initiated request).\n\tXDomain bool\n\t// Secure reports whether the request arrived over TLS (https/wss).\n\tSecure bool\n\t// Issued is the handshake time in Unix milliseconds, matching the JS\n\t// handshake.issued field.\n\tIssued int64\n\t// URL is the request URI (path and query) of the handshake request.\n\tURL string\n\t// Query holds the parsed query-string parameters.\n\tQuery url.Values\n\t// Auth is the authentication payload the client supplied with CONNECT.\n\tAuth any\n}",
+          "doc": "Handshake describes the details of the HTTP request that established a\nconnection — the Go equivalent of Socket.IO's socket.handshake object. It is\ncaptured once, at connection time, and never changes for the life of the\nsocket. Middleware and connection handlers inspect it to authorize or\nannotate a connection (origin, forwarded address, query string, auth\npayload).\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewHandshake",
+              "signature": "func NewHandshake(r *http.Request, auth any) *Handshake",
+              "doc": "NewHandshake builds a Handshake from an incoming HTTP request and the auth\npayload sent with the Socket.IO CONNECT packet. The remote address prefers the\nfirst entry of an X-Forwarded-For header (for connections behind a proxy) and\notherwise falls back to the request's RemoteAddr with any port stripped.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Get",
+              "recv": "*Handshake",
+              "signature": "func (h *Handshake) Get(header string) string",
+              "doc": "Get returns the first value of a request header (case-insensitive), or \"\" if\nabsent — a convenience over reaching into Headers directly.\n"
+            },
+            {
+              "name": "Param",
+              "recv": "*Handshake",
+              "signature": "func (h *Handshake) Param(key string) string",
+              "doc": "Param returns the first value of a query-string parameter, or \"\" if absent.\n"
+            }
+          ]
+        },
+        {
+          "name": "Namespace",
+          "signature": "type Namespace struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Namespace is a communication channel that partitions a Socket.IO server. Each\nnamespace has its own set of connected sockets, rooms, and connection\nhandlers. The default namespace is \"/\".\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "DisconnectSockets",
+              "recv": "*Namespace",
+              "signature": "func (ns *Namespace) DisconnectSockets(closeTransport bool)",
+              "doc": "DisconnectSockets disconnects every socket in the namespace.\n"
+            },
+            {
+              "name": "Emit",
+              "recv": "*Namespace",
+              "signature": "func (ns *Namespace) Emit(event string, args ...any)",
+              "doc": "Emit broadcasts an event to every socket in the namespace.\n"
+            },
+            {
+              "name": "Except",
+              "recv": "*Namespace",
+              "signature": "func (ns *Namespace) Except(room string) *BroadcastOperator",
+              "doc": "Except returns a broadcast operator over the namespace that excludes every\nsocket in the given room — the equivalent of io.except(room).\n"
+            },
+            {
+              "name": "FetchSockets",
+              "recv": "*Namespace",
+              "signature": "func (ns *Namespace) FetchSockets() []*Socket",
+              "doc": "FetchSockets returns all sockets in the namespace (alias for Sockets, matching\nio.fetchSockets()).\n"
+            },
+            {
+              "name": "In",
+              "recv": "*Namespace",
+              "signature": "func (ns *Namespace) In(room string) *BroadcastOperator",
+              "doc": "In is an alias for To, scoping a broadcast to a room within this namespace —\nthe equivalent of io.in(room).\n"
+            },
+            {
+              "name": "Local",
+              "recv": "*Namespace",
+              "signature": "func (ns *Namespace) Local() *BroadcastOperator",
+              "doc": "Local returns a broadcast operator over the namespace restricted to\nthis node — the equivalent of io.local.\n"
+            },
+            {
+              "name": "Name",
+              "recv": "*Namespace",
+              "signature": "func (ns *Namespace) Name() string",
+              "doc": "Name returns the namespace name (e.g. \"/\" or \"/admin\").\n"
+            },
+            {
+              "name": "OnConnection",
+              "recv": "*Namespace",
+              "signature": "func (ns *Namespace) OnConnection(fn func(*Socket)) *Namespace",
+              "doc": "OnConnection registers a handler invoked for each new socket that connects to\nthis namespace.\n"
+            },
+            {
+              "name": "SetAdapter",
+              "recv": "*Namespace",
+              "signature": "func (ns *Namespace) SetAdapter(a Adapter) *Namespace",
+              "doc": "SetAdapter replaces the namespace's room adapter (e.g. with a Redis-backed\none for multi-node scale-out). Call it before any sockets connect.\n"
+            },
+            {
+              "name": "Sockets",
+              "recv": "*Namespace",
+              "signature": "func (ns *Namespace) Sockets() []*Socket",
+              "doc": "Sockets returns all sockets currently connected to the namespace.\n"
+            },
+            {
+              "name": "SocketsInRoom",
+              "recv": "*Namespace",
+              "signature": "func (ns *Namespace) SocketsInRoom(room string) []*Socket",
+              "doc": "SocketsInRoom returns the sockets that are members of a room.\n"
+            },
+            {
+              "name": "SocketsJoin",
+              "recv": "*Namespace",
+              "signature": "func (ns *Namespace) SocketsJoin(rooms ...string)",
+              "doc": "SocketsJoin makes every socket in the namespace join the given rooms.\n"
+            },
+            {
+              "name": "SocketsLeave",
+              "recv": "*Namespace",
+              "signature": "func (ns *Namespace) SocketsLeave(rooms ...string)",
+              "doc": "SocketsLeave makes every socket in the namespace leave the given rooms.\n"
+            },
+            {
+              "name": "To",
+              "recv": "*Namespace",
+              "signature": "func (ns *Namespace) To(room string) *BroadcastOperator",
+              "doc": "To returns a broadcast operator scoped to a room within this namespace.\n"
+            },
+            {
+              "name": "Use",
+              "recv": "*Namespace",
+              "signature": "func (ns *Namespace) Use(fn func(socket *Socket, next func(err error))) *Namespace",
+              "doc": "Use registers connection middleware for the namespace. Each middleware runs\nfor every incoming connection before the connection handler; calling next\nwith a non-nil error rejects the connection with a CONNECT_ERROR carrying the\nerror's message — the equivalent of io.use((socket, next) =\u003e ...).\n"
+            }
+          ]
+        },
+        {
+          "name": "Options",
+          "signature": "type Options struct {\n\t// Path is the HTTP path the server handles (default \"/socket.io/\").\n\tPath string\n\t// PingInterval is how often the server sends heartbeat pings.\n\tPingInterval time.Duration\n\t// PingTimeout is how long the server waits for a pong before disconnecting.\n\tPingTimeout time.Duration\n\t// MaxPayload advertises the maximum HTTP payload size to clients.\n\tMaxPayload int\n\t// CheckOrigin, if set, authorizes cross-origin requests. When nil, all\n\t// origins are allowed.\n\tCheckOrigin func(r *http.Request) bool\n}",
+          "doc": "Options configures a Server.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Packet",
+          "signature": "type Packet struct {\n\t// Type is the packet's Socket.IO type (Connect, Event, Ack, ...).\n\tType PacketType\n\t// Namespace the packet targets; defaults to \"/\".\n\tNamespace string\n\t// ID is the acknowledgement id when the packet requests or answers an ack;\n\t// nil otherwise.\n\tID *uint64\n\t// Data is the decoded JSON payload: an array for Event/Ack ([name, args...]\n\t// or [args...]) and an object for Connect/ConnectError.\n\tData any\n\t// contains filtered or unexported fields\n}",
+          "doc": "Packet is a decoded Socket.IO protocol packet.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "DecodePacket",
+              "signature": "func DecodePacket(s string) (Packet, error)",
+              "doc": "DecodePacket parses a Socket.IO packet from its wire form.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Args",
+              "recv": "Packet",
+              "signature": "func (p Packet) Args() []any",
+              "doc": "Args returns the event arguments (everything after the event name) for an\nEvent packet, or the full array for an Ack packet.\n"
+            },
+            {
+              "name": "Attachments",
+              "recv": "Packet",
+              "signature": "func (p Packet) Attachments() int",
+              "doc": "Attachments returns the declared number of binary attachments for a\nBINARY_EVENT/BINARY_ACK packet.\n"
+            },
+            {
+              "name": "Encode",
+              "recv": "Packet",
+              "signature": "func (p Packet) Encode() (string, error)",
+              "doc": "Encode renders a packet to its Socket.IO wire form (the string carried inside\nan Engine.IO MESSAGE packet).\n"
+            },
+            {
+              "name": "EncodeBinary",
+              "recv": "Packet",
+              "signature": "func (p Packet) EncodeBinary() (text string, buffers [][]byte, err error)",
+              "doc": "EncodeBinary encodes a packet, extracting any binary attachments. When the\npayload contains []byte values the packet type is promoted to its binary\nvariant and the buffers are returned separately; otherwise buffers is nil.\nIt is exported for client implementations.\n"
+            },
+            {
+              "name": "EventName",
+              "recv": "Packet",
+              "signature": "func (p Packet) EventName() string",
+              "doc": "EventName returns the event name for an Event/BinaryEvent packet.\n"
+            },
+            {
+              "name": "HasBinaryData",
+              "recv": "Packet",
+              "signature": "func (p Packet) HasBinaryData() bool",
+              "doc": "HasBinaryData reports whether the packet's payload contains any []byte\nvalues, i.e. whether encoding it will produce binary attachment frames.\n"
+            }
+          ]
+        },
+        {
+          "name": "PacketType",
+          "signature": "type PacketType byte",
+          "doc": "PacketType identifies a Socket.IO packet.\n",
+          "consts": [
+            {
+              "names": [
+                "Connect",
+                "Disconnect",
+                "Event",
+                "Ack",
+                "ConnectError",
+                "BinaryEvent",
+                "BinaryAck"
+              ],
+              "signature": "const (\n\t// Connect initiates a namespace connection.\n\tConnect PacketType = iota\n\t// Disconnect leaves a namespace.\n\tDisconnect\n\t// Event carries an application event and its arguments.\n\tEvent\n\t// Ack answers an Event that requested acknowledgement.\n\tAck\n\t// ConnectError reports a failed namespace connection.\n\tConnectError\n\t// BinaryEvent is an Event with binary attachments (decoded as text here).\n\tBinaryEvent\n\t// BinaryAck is an Ack with binary attachments (decoded as text here).\n\tBinaryAck\n)",
+              "doc": ""
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "String",
+              "recv": "PacketType",
+              "signature": "func (t PacketType) String() string",
+              "doc": "String returns the Socket.IO name of the packet type (e.g. \"EVENT\", \"ACK\"),\nor \"UNKNOWN\" for an unrecognized value.\n"
+            }
+          ]
+        },
+        {
+          "name": "RoomTargeter",
+          "signature": "type RoomTargeter interface {\n\tTo(room string) *BroadcastOperator\n}",
+          "doc": "RoomTargeter is anything that can scope a broadcast to a room, returning a\n*BroadcastOperator for further chaining (.To/.Except/.Emit). The server, a\nnamespace, an individual socket, and an existing operator all expose this,\nmirroring socket.io's io.to(room) / socket.to(room) API.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Server",
+          "signature": "type Server struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Server is a Socket.IO server. It implements http.Handler and should be\nmounted at its configured Path.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "New",
+              "signature": "func New(opts ...Options) *Server",
+              "doc": "New creates a Server. An optional Options may be supplied.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Attach",
+              "recv": "*Server",
+              "signature": "func (s *Server) Attach(mux *http.ServeMux)",
+              "doc": "Attach registers the server on an http.ServeMux at its Path.\n"
+            },
+            {
+              "name": "Close",
+              "recv": "*Server",
+              "signature": "func (s *Server) Close()",
+              "doc": "Close disconnects every connected session and shuts the server down. It does\nnot stop the underlying http.Server (the caller owns that).\n"
+            },
+            {
+              "name": "DisconnectSockets",
+              "recv": "*Server",
+              "signature": "func (s *Server) DisconnectSockets(closeTransport bool)",
+              "doc": "DisconnectSockets disconnects every socket in the default namespace.\n"
+            },
+            {
+              "name": "Emit",
+              "recv": "*Server",
+              "signature": "func (s *Server) Emit(event string, args ...any)",
+              "doc": "Emit broadcasts an event to every socket in the default namespace.\n"
+            },
+            {
+              "name": "Except",
+              "recv": "*Server",
+              "signature": "func (s *Server) Except(room string) *BroadcastOperator",
+              "doc": "Except returns a broadcast operator over the default namespace excluding every\nsocket in the given room — the equivalent of io.except(room).\n"
+            },
+            {
+              "name": "FetchSockets",
+              "recv": "*Server",
+              "signature": "func (s *Server) FetchSockets() []*Socket",
+              "doc": "FetchSockets returns all sockets in the default namespace.\n"
+            },
+            {
+              "name": "Handler",
+              "recv": "*Server",
+              "signature": "func (s *Server) Handler(next http.Handler) http.Handler",
+              "doc": "Handler wraps the server so it intercepts Socket.IO requests (those under its\nPath) and delegates everything else to next — the Go equivalent of attaching\nSocket.IO to an existing HTTP server that is otherwise served by Express:\n\n\tapp := express.New()          // your routes\n\tio := socketio.New()          // your socket handlers\n\thttp.ListenAndServe(\":3000\", io.Handler(app))\n\nnext may be any http.Handler (an *express.Application, an http.ServeMux, ...);\npass nil to 404 non-Socket.IO requests.\n"
+            },
+            {
+              "name": "In",
+              "recv": "*Server",
+              "signature": "func (s *Server) In(room string) *BroadcastOperator",
+              "doc": "In scopes a server-wide broadcast to a room in the default namespace — the\nequivalent of io.in(room).\n"
+            },
+            {
+              "name": "Local",
+              "recv": "*Server",
+              "signature": "func (s *Server) Local() *BroadcastOperator",
+              "doc": "Local returns a broadcast operator over the default namespace restricted to\nthis node — the equivalent of io.local.\n"
+            },
+            {
+              "name": "Of",
+              "recv": "*Server",
+              "signature": "func (s *Server) Of(name string) *Namespace",
+              "doc": "Of returns the namespace with the given name, creating it if necessary. A\nname without a leading slash has one added.\n"
+            },
+            {
+              "name": "OnConnection",
+              "recv": "*Server",
+              "signature": "func (s *Server) OnConnection(fn func(*Socket))",
+              "doc": "OnConnection registers a handler invoked when a socket connects to the\ndefault namespace. It is the equivalent of io.on(\"connection\", ...).\n"
+            },
+            {
+              "name": "OnServerEvent",
+              "recv": "*Server",
+              "signature": "func (s *Server) OnServerEvent(event string, handler func(args []any)) *Server",
+              "doc": "OnServerEvent registers a handler for server-side events delivered via\nServerSideEmit. On this single-node implementation these are local; a\nmulti-node deployment would relay them between servers through an adapter.\n"
+            },
+            {
+              "name": "ServeHTTP",
+              "recv": "*Server",
+              "signature": "func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request)",
+              "doc": "ServeHTTP implements http.Handler and dispatches Engine.IO transport\nrequests.\n"
+            },
+            {
+              "name": "ServerSideEmit",
+              "recv": "*Server",
+              "signature": "func (s *Server) ServerSideEmit(event string, args ...any)",
+              "doc": "ServerSideEmit emits an event to other servers (and this one), the equivalent\nof io.serverSideEmit. Single-node: it invokes locally registered handlers.\n"
+            },
+            {
+              "name": "SetBroadcaster",
+              "recv": "*Server",
+              "signature": "func (s *Server) SetBroadcaster(b Broadcaster) *Server",
+              "doc": "SetBroadcaster installs a cluster broadcaster. Once set, every room/namespace\nbroadcast is published through it and delivered to local sockets when the\nmessage is received back, so all nodes in the cluster stay in sync.\n"
+            },
+            {
+              "name": "Sockets",
+              "recv": "*Server",
+              "signature": "func (s *Server) Sockets() []*Socket",
+              "doc": "Sockets returns all connected sockets in the default namespace.\n"
+            },
+            {
+              "name": "SocketsJoin",
+              "recv": "*Server",
+              "signature": "func (s *Server) SocketsJoin(rooms ...string)",
+              "doc": "SocketsJoin makes every socket in the default namespace join the given rooms.\n"
+            },
+            {
+              "name": "SocketsLeave",
+              "recv": "*Server",
+              "signature": "func (s *Server) SocketsLeave(rooms ...string)",
+              "doc": "SocketsLeave makes every socket in the default namespace leave the given rooms.\n"
+            },
+            {
+              "name": "To",
+              "recv": "*Server",
+              "signature": "func (s *Server) To(room string) *BroadcastOperator",
+              "doc": "To returns a broadcast operator scoped to a room in the default namespace.\n"
+            },
+            {
+              "name": "Use",
+              "recv": "*Server",
+              "signature": "func (s *Server) Use(fn func(socket *Socket, next func(err error))) *Server",
+              "doc": "Use registers connection middleware on the default namespace.\n"
+            }
+          ]
+        },
+        {
+          "name": "Socket",
+          "signature": "type Socket struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Socket is a single client connection to a namespace. It is the primary object\napplications interact with — registering event handlers, emitting events, and\njoining rooms.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Auth",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) Auth() any",
+              "doc": "Auth returns the authentication payload the client sent with CONNECT.\n"
+            },
+            {
+              "name": "Broadcast",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) Broadcast() *BroadcastOperator",
+              "doc": "Broadcast returns an operator targeting every other socket in the namespace.\n"
+            },
+            {
+              "name": "Data",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) Data() map[string]any",
+              "doc": "Data returns a copy of all values stored on the socket.\n"
+            },
+            {
+              "name": "Delete",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) Delete(key string) *Socket",
+              "doc": "Delete removes a stored value.\n"
+            },
+            {
+              "name": "Disconnect",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) Disconnect(closeTransport bool)",
+              "doc": "Disconnect closes the socket, optionally closing the underlying transport.\n"
+            },
+            {
+              "name": "Emit",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) Emit(event string, args ...any) error",
+              "doc": "Emit sends an event to this socket.\n"
+            },
+            {
+              "name": "EmitAck",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) EmitAck(event string, timeout time.Duration, args ...any) ([]any, error)",
+              "doc": "EmitAck sends an event and blocks until the client acknowledges it or timeout\nelapses, returning the acknowledgement arguments.\n"
+            },
+            {
+              "name": "EmitWithAck",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) EmitWithAck(event string, ackFn func(args []any), args ...any) error",
+              "doc": "EmitWithAck sends an event and invokes ackFn with the client's acknowledgement\narguments.\n"
+            },
+            {
+              "name": "Except",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) Except(room string) *BroadcastOperator",
+              "doc": "Except returns a broadcast operator over the namespace that excludes this\nsocket and every member of the given room — the equivalent of\nsocket.except(room).\n"
+            },
+            {
+              "name": "Get",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) Get(key string) (any, bool)",
+              "doc": "Get returns a value previously stored with Set, and whether it was present.\n"
+            },
+            {
+              "name": "GetString",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) GetString(key string) string",
+              "doc": "GetString returns a stored string value, or \"\" if missing / not a string.\n"
+            },
+            {
+              "name": "ID",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) ID() string",
+              "doc": "ID returns the socket's unique identifier.\n"
+            },
+            {
+              "name": "In",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) In(room string) *BroadcastOperator",
+              "doc": "In returns a broadcast operator that targets a room while excluding this\nsocket — the equivalent of socket.in(room). It behaves like To.\n"
+            },
+            {
+              "name": "Join",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) Join(rooms ...string) *Socket",
+              "doc": "Join adds the socket to a room.\n"
+            },
+            {
+              "name": "Leave",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) Leave(rooms ...string) *Socket",
+              "doc": "Leave removes the socket from a room.\n"
+            },
+            {
+              "name": "ListenersAny",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) ListenersAny() []func(event string, args []any)",
+              "doc": "ListenersAny returns a snapshot of the currently registered catch-all\nlisteners — the equivalent of socket.listenersAny().\n"
+            },
+            {
+              "name": "Namespace",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) Namespace() *Namespace",
+              "doc": "Namespace returns the namespace this socket belongs to.\n"
+            },
+            {
+              "name": "Off",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) Off(event string) *Socket",
+              "doc": "Off removes all handlers for an event.\n"
+            },
+            {
+              "name": "OffAny",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) OffAny() *Socket",
+              "doc": "OffAny removes catch-all listeners. Called with no argument it removes every\ncatch-all listener; called with one listener it is a no-op placeholder for API\nsymmetry (Go funcs are not comparable, so individual removal is not\nsupported) and clears all listeners. Use ListenersAny to inspect the current\nset. Returns the socket for chaining.\n"
+            },
+            {
+              "name": "On",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) On(event string, handler EventHandler) *Socket",
+              "doc": "On registers a handler for an event.\n"
+            },
+            {
+              "name": "OnAny",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) OnAny(fn func(event string, args []any)) *Socket",
+              "doc": "OnAny registers a catch-all listener invoked for every inbound event on this\nsocket, in registration order and before the named handlers run. The callback\nreceives the event name and its arguments. Returns the socket for chaining —\nthe equivalent of socket.onAny(listener).\n"
+            },
+            {
+              "name": "OnDisconnect",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) OnDisconnect(fn func(reason string)) *Socket",
+              "doc": "OnDisconnect registers a callback invoked when the socket disconnects.\n"
+            },
+            {
+              "name": "PrependAny",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) PrependAny(fn func(event string, args []any)) *Socket",
+              "doc": "PrependAny registers a catch-all listener at the front of the catch-all chain,\nso it runs before previously registered catch-all listeners — the equivalent\nof socket.prependAny(listener).\n"
+            },
+            {
+              "name": "Rooms",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) Rooms() []string",
+              "doc": "Rooms returns the set of rooms the socket is currently in.\n"
+            },
+            {
+              "name": "Set",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) Set(key string, value any) *Socket",
+              "doc": "Set stores an arbitrary value on the socket, persisting for the lifetime of\nthe connection — the equivalent of Socket.IO's socket.data. Use it to attach\nsession-like state (the authenticated user, a tenant id, ...).\n"
+            },
+            {
+              "name": "To",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) To(room string) *BroadcastOperator",
+              "doc": "To returns a broadcast operator that targets a room, excluding this socket —\nthe equivalent of socket.to(room).\n"
+            }
+          ]
+        }
+      ],
+      "funcs": [
+        {
+          "name": "IsReservedEvent",
+          "signature": "func IsReservedEvent(name string) bool",
+          "doc": "IsReservedEvent reports whether name is a Socket.IO reserved event name\n(such as \"connect\", \"disconnect\", or \"connect_error\"). Reserved names are\nemitted by the library itself and must not be used for application events,\nmirroring the RESERVED_EVENTS guard in the JavaScript server.\n"
+        },
+        {
+          "name": "Reconstruct",
+          "signature": "func Reconstruct(data any, buffers [][]byte) any",
+          "doc": "Reconstruct walks a payload replacing {\"_placeholder\":true,\"num\":N} markers\nwith the matching binary buffer. It is exported for client implementations\nthat reassemble incoming binary packets.\n"
+        },
+        {
+          "name": "ReservedEvents",
+          "signature": "func ReservedEvents() []string",
+          "doc": "ReservedEvents returns a sorted copy of the reserved event names, useful for\ndocumentation and tooling.\n"
+        },
+        {
+          "name": "ValidateEventName",
+          "signature": "func ValidateEventName(name string) error",
+          "doc": "ValidateEventName checks that name is usable as an application event name: it\nmust be non-empty and must not collide with a reserved Socket.IO event. It\nreturns ErrEmptyEvent or ErrReservedEvent on failure, and nil when the name is\nsafe to emit.\n"
+        }
+      ],
+      "examples": [
+        {
+          "name": "Server",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http/httptest\"\n\n\tsocketio \"github.com/malcolmston/socketio\"\n)\n\nfunc main() {\n\tio := socketio.New()\n\tio.OnConnection(func(s *socketio.Socket) {\n\t\t// Every socket joins a shared room on connect.\n\t\ts.Join(\"room1\")\n\n\t\t// Re-broadcast each chat message to the whole room.\n\t\ts.On(\"chat\", func(args []any) []any {\n\t\t\tio.To(\"room1\").Emit(\"chat\", args...)\n\t\t\treturn nil\n\t\t})\n\n\t\ts.OnDisconnect(func(reason string) {\n\t\t\t// Clean up per-socket state here.\n\t\t\t_ = reason\n\t\t})\n\t})\n\n\t// A *Server is an http.Handler. In production:\n\t//\n\t//\thttp.Handle(socketio.DefaultPath, io)\n\t//\thttp.ListenAndServe(\":3000\", nil)\n\t//\n\t// Here httptest hosts it so the example is self-contained.\n\tts := httptest.NewServer(io)\n\tdefer ts.Close()\n\tdefer io.Close()\n\n\tfmt.Println(\"serving Socket.IO at\", socketio.DefaultPath)\n}",
+          "output": "serving Socket.IO at /socket.io/",
+          "doc": "ExampleServer wires up a complete Socket.IO server the way a chat backend\nwould. It creates a server with New, registers a connection handler that runs\nfor every client that connects to the default namespace, and inside that\nhandler joins the socket to a room, registers a \"chat\" event handler that\nre-broadcasts each message to everyone in that room via To(...).Emit, and\ninstalls a disconnect callback. The server is an http.Handler, so it is\nmounted here on an httptest.Server (a real net/http server would use\nhttp.Handle plus http.ListenAndServe at the same DefaultPath). The example\nthen shuts everything down cleanly with Close on both the HTTP server and the\nSocket.IO server. The reader should take away the end-to-end shape of a\nserver — New, OnConnection, Join, On, room broadcast, and mounting on HTTP —\nwhich mirrors the JavaScript io.on(\"connection\")/socket.join/io.to().emit API.\n"
+        }
+      ]
+    },
+    {
+      "importPath": "github.com/malcolmston/socketio/client",
+      "name": "client",
+      "synopsis": "Package client is a Go Socket.IO client.",
+      "doc": "Package client is a Go Socket.IO client. It connects to a Socket.IO server\n(this module's server or the Node reference server) over the WebSocket\ntransport and provides the familiar On/Emit/EmitWithAck API that mirrors the\nbrowser socket.io-client, letting a Go process act as a first-class Socket.IO\npeer rather than merely a server:\n\n\tc, err := client.Dial(\"http://localhost:3000\")\n\tc.On(\"news\", func(args []any) []any { fmt.Println(args); return nil })\n\tc.Emit(\"hello\", \"world\")\n\nUse it whenever a Go program needs to talk to a Socket.IO endpoint as a\nclient: integration and end-to-end tests against a running server, service-to-\nservice messaging where the other side already speaks Socket.IO, bots and\nload generators, or bridging a Socket.IO event stream into another system.\nDial blocks until the Socket.IO CONNECT handshake for the chosen namespace\ncompletes (or DialTimeout elapses), so a successful return means the client is\nfully connected and ready to Emit. Optional authentication data is sent with\nthe CONNECT packet via Options.Auth, matching the server-side socket.Auth().\n\nUnder the hood the client speaks Engine.IO v4 directly over a single\nWebSocket (it does not use HTTP long-polling): it dials ws(s)://.../socket.io/\nwith EIO=4\u0026transport=websocket, reads the Engine.IO OPEN handshake, sends the\nSocket.IO CONNECT packet, and then runs a background read loop that answers\nheartbeat pings, dispatches inbound EVENT packets to handlers registered with\nOn, and resolves acknowledgements. Outgoing events are encoded with the shared\nsocketio packet codec, so binary ([]byte) arguments are automatically split\ninto BINARY_EVENT attachment frames and reassembled on receipt.\n\nConcurrency and lifecycle: On, Emit, EmitWithAck, and Close are safe to call\nfrom multiple goroutines. Handlers run on the read-loop goroutine, so a\nhandler that itself blocks on EmitWithAck should hand off to another goroutine\nto avoid deadlocking the loop; returning a non-nil slice from a handler\nacknowledges an event the server sent with an ack id. EmitWithAck waits up to\nthe supplied timeout and returns an error if no acknowledgement arrives. When\nOptions.Reconnection is enabled, an unexpected transport drop triggers an\nexponential-backoff reconnect loop (ReconnectionDelay doubling up to five\nseconds, bounded by ReconnectionAttempts) and fires the local \"reconnect\"\nevent; a user-initiated Close suppresses reconnection.\n\nCompared with the JavaScript socket.io-client the surface is intentionally\nsmall: one namespace per Client, no long-polling fallback, and lifecycle\nevents surfaced as ordinary events (\"disconnect\", \"reconnect\") registered\nthrough On. The wire protocol is identical, so this client interoperates with\nthe Node reference server and with this module's server package. For\nmulti-namespace usage, Dial a separate Client per namespace.\n",
+      "consts": [],
+      "vars": [],
+      "types": [
+        {
+          "name": "Backoff",
+          "signature": "type Backoff struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Backoff computes an exponentially increasing delay with optional jitter,\nmirroring the JavaScript client's backo2 module used for reconnection. Each\ncall to Duration returns the delay for the current attempt and advances the\nattempt counter; Reset returns to the initial delay. A Backoff is safe for\nconcurrent use.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewBackoff",
+              "signature": "func NewBackoff(opts BackoffOptions) *Backoff",
+              "doc": "NewBackoff creates a Backoff from the supplied options, filling in defaults\nfor any zero field.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Attempts",
+              "recv": "*Backoff",
+              "signature": "func (b *Backoff) Attempts() int",
+              "doc": "Attempts returns how many times Duration has been called since the last Reset.\n"
+            },
+            {
+              "name": "Duration",
+              "recv": "*Backoff",
+              "signature": "func (b *Backoff) Duration() time.Duration",
+              "doc": "Duration returns the delay for the current attempt and advances to the next.\nThe base delay is min * factor^attempt, clamped to max. When jitter and a Rand\nsource are configured, the delay is randomized by up to ±(jitter fraction)\nbefore clamping.\n"
+            },
+            {
+              "name": "Reset",
+              "recv": "*Backoff",
+              "signature": "func (b *Backoff) Reset()",
+              "doc": "Reset returns the backoff to its initial state, so the next Duration call\nyields the minimum delay again.\n"
+            }
+          ]
+        },
+        {
+          "name": "BackoffOptions",
+          "signature": "type BackoffOptions struct {\n\t// Min is the initial delay (default 100ms).\n\tMin time.Duration\n\t// Max is the ceiling the delay is clamped to (default 10s).\n\tMax time.Duration\n\t// Factor is the exponential growth base per attempt (default 2).\n\tFactor float64\n\t// Jitter is the randomization fraction in [0,1]; 0 disables jitter. A value\n\t// of 0.5 spreads each delay by up to ±50%. Jitter is only applied when Rand\n\t// is non-nil, keeping a default Backoff fully deterministic.\n\tJitter float64\n\t// Rand supplies the randomness used for jitter; it must return a value in\n\t// [0,1). Inject a deterministic function in tests, or math/rand's Float64 in\n\t// production. When nil, no jitter is applied.\n\tRand func() float64\n}",
+          "doc": "BackoffOptions configures a Backoff. The zero value yields sensible defaults\n(100ms initial, 10s ceiling, factor 2, no jitter).\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Client",
+          "signature": "type Client struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Client is a connected Socket.IO client.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "Dial",
+              "signature": "func Dial(rawURL string, opts ...Options) (*Client, error)",
+              "doc": "Dial connects to a Socket.IO server at rawURL (http:// or ws://) and returns\nonce the Socket.IO CONNECT handshake completes.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Close",
+              "recv": "*Client",
+              "signature": "func (c *Client) Close() error",
+              "doc": "Close disconnects from the server.\n"
+            },
+            {
+              "name": "Emit",
+              "recv": "*Client",
+              "signature": "func (c *Client) Emit(event string, args ...any) error",
+              "doc": "Emit sends an event to the server.\n"
+            },
+            {
+              "name": "EmitWithAck",
+              "recv": "*Client",
+              "signature": "func (c *Client) EmitWithAck(event string, timeout time.Duration, args ...any) ([]any, error)",
+              "doc": "EmitWithAck sends an event and waits for the server's acknowledgement, up to\ntimeout.\n"
+            },
+            {
+              "name": "ID",
+              "recv": "*Client",
+              "signature": "func (c *Client) ID() string",
+              "doc": "ID returns the socket id assigned by the server.\n"
+            },
+            {
+              "name": "On",
+              "recv": "*Client",
+              "signature": "func (c *Client) On(event string, h Handler)",
+              "doc": "On registers a handler for an event.\n"
+            }
+          ]
+        },
+        {
+          "name": "Handler",
+          "signature": "type Handler func(args []any) []any",
+          "doc": "Handler handles an inbound event. Returning a non-nil slice acknowledges an\nevent the server sent with an ack id.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Options",
+          "signature": "type Options struct {\n\t// Namespace to connect to (default \"/\").\n\tNamespace string\n\t// Auth is an optional payload sent with the CONNECT packet.\n\tAuth any\n\t// DialTimeout bounds the connection handshake (default 10s).\n\tDialTimeout time.Duration\n\t// Reconnection enables automatic reconnection after an unexpected\n\t// disconnect.\n\tReconnection bool\n\t// ReconnectionAttempts bounds reconnection tries (0 = unlimited).\n\tReconnectionAttempts int\n\t// ReconnectionDelay is the initial backoff between attempts (default 1s,\n\t// doubling up to 5s).\n\tReconnectionDelay time.Duration\n}",
+          "doc": "Options configures Dial.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        }
+      ],
+      "funcs": [],
+      "examples": [
+        {
+          "name": "Dial",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"log\"\n\t\"time\"\n\n\t\"github.com/malcolmston/socketio/client\"\n)\n\nfunc main() {\n\tc, err := client.Dial(\"http://localhost:3000\", client.Options{\n\t\tNamespace:    \"/\",\n\t\tAuth:         map[string]any{\"token\": \"s3cret\"},\n\t\tReconnection: true,\n\t})\n\tif err != nil {\n\t\tlog.Fatal(err)\n\t}\n\tdefer c.Close()\n\n\t// Handle events the server pushes to us.\n\tc.On(\"news\", func(args []any) []any {\n\t\tfmt.Println(\"news:\", args)\n\t\treturn nil\n\t})\n\n\t// Fire-and-forget emit.\n\tif err := c.Emit(\"hello\", \"world\"); err != nil {\n\t\tlog.Fatal(err)\n\t}\n\n\t// Request/response with an acknowledgement.\n\treply, err := c.EmitWithAck(\"question\", 5*time.Second, \"what is 2+2?\")\n\tif err != nil {\n\t\tlog.Fatal(err)\n\t}\n\tfmt.Println(\"answer:\", reply)\n}",
+          "doc": "ExampleDial demonstrates the full lifecycle of a Go Socket.IO client. It calls\nDial to connect to a running server, passing Options to select a namespace and\nto enable automatic reconnection; Dial blocks until the CONNECT handshake\ncompletes, so a nil error means the client is ready to use. The example then\nregisters a handler for the server-pushed \"news\" event with On, sends a\nfire-and-forget event with Emit, and issues a request/response round-trip with\nEmitWithAck that waits up to five seconds for the server's acknowledgement.\nFinally it closes the connection with a deferred Close, which also suppresses\nany pending reconnection. The reader should take away how a Go program becomes\na first-class Socket.IO peer using the same On/Emit/EmitWithAck vocabulary as\nthe browser client. (This example is compiled to verify the API but is not run\nhere, since it needs a live server to connect to.)\n"
+        }
+      ]
+    },
+    {
+      "importPath": "github.com/malcolmston/socketio/engineio",
+      "name": "engineio",
+      "synopsis": "Package engineio implements the Engine.IO v4 protocol codec — the transport framing layer that Socket.IO is built on.",
+      "doc": "Package engineio implements the Engine.IO v4 protocol codec — the transport\nframing layer that Socket.IO is built on. It encodes and decodes the small\nset of Engine.IO packets and the polling \"payload\" that batches several\npackets into a single HTTP body. Engine.IO is the lower half of the Node.js\nSocket.IO stack: it establishes and keeps alive a logical connection over an\ninterchangeable transport (HTTP long-polling first, then an upgrade to\nWebSocket) and provides ordered, heartbeat-monitored delivery of opaque\nmessages. This package is the Go equivalent of that layer's parser/encoder.\n\nThe wire format is deliberately tiny. A string packet is a single ASCII digit\ntype prefix followed by the packet data — for example \"4hello\" is a MESSAGE\n(\"4\") carrying \"hello\", \"2probe\" is a PING with data \"probe\", and \"0{...}\" is\nthe OPEN handshake carrying JSON. The seven packet types (Open, Close, Ping,\nPong, Message, Upgrade, Noop) are modeled by PacketType and its constants.\nEncode and Decode convert between a Packet and this string form; that string\nis exactly what travels inside a WebSocket text frame.\n\nUse this package when you need to speak the transport layer directly rather\nthan the higher-level Socket.IO event API: the socketio server uses it to\nframe outbound messages and to interpret inbound transport packets, and the\nclient package uses it to read the OPEN handshake and answer heartbeats. Most\napplication code never imports engineio directly — it is a building block —\nbut it is exported so alternative transports or tooling can reuse the codec.\n\nFor HTTP long-polling, several packets are batched into one response body\nusing EncodePayload/DecodePayload, which join packets with the Engine.IO v4\nrecord separator (ASCII 0x1e). Binary data is handled two ways: over\nWebSocket a binary MESSAGE rides in a native binary frame (its Binary field is\nset and Encode falls back to a base64 \"b\"-prefixed string only when forced\ninto a text context), while in a polling payload a binary packet is always\nserialized as \"b\" + standard-base64. NewMessage and NewOpen are convenience\nconstructors for the two packet types callers build most often.\n\nThe codec is pure and stateless: functions do not retain the byte slices they\nreturn, hold no locks, and perform no I/O, so they are safe to call\nconcurrently. Decode and DecodePayload validate their input and return\nErrEmptyPacket or a descriptive error for malformed data rather than\npanicking. This is a focused implementation of Engine.IO v4 (Protocol == 4)\ncovering exactly what Socket.IO v5 needs; it is not a general transport\nmanager and does not itself open sockets, schedule pings, or negotiate\nupgrades — those responsibilities live in the socketio and client packages.\n",
+      "consts": [
+        {
+          "names": [
+            "Protocol"
+          ],
+          "signature": "const Protocol = 4",
+          "doc": "Protocol is the Engine.IO protocol revision implemented here.\n"
+        }
+      ],
+      "vars": [
+        {
+          "names": [
+            "ErrEmptyPacket"
+          ],
+          "signature": "var ErrEmptyPacket = errors.New(\"engineio: empty packet\")",
+          "doc": "ErrEmptyPacket is returned when decoding an empty packet string.\n"
+        },
+        {
+          "names": [
+            "ErrInvalidCloseFrame"
+          ],
+          "signature": "var ErrInvalidCloseFrame = errors.New(\"engineio: invalid close frame payload\")",
+          "doc": "ErrInvalidCloseFrame indicates a close-frame payload that is neither empty nor\na valid two-byte-code (optionally UTF-8 reason) body.\n"
+        }
+      ],
+      "types": [
+        {
+          "name": "CloseCode",
+          "signature": "type CloseCode uint16",
+          "doc": "CloseCode is a WebSocket close status code (RFC 6455 §7.4). Engine.IO runs\nits WebSocket transport over RFC 6455 frames, so a close frame's two-byte\nstatus code — and any UTF-8 reason that follows it — is the signal that\ncarries why a transport shut down. These helpers encode and decode that\npayload without pulling in a third-party WebSocket library.\n",
+          "consts": [
+            {
+              "names": [
+                "CloseNormalClosure",
+                "CloseGoingAway",
+                "CloseProtocolError",
+                "CloseUnsupportedData",
+                "CloseNoStatusReceived",
+                "CloseAbnormalClosure",
+                "CloseInvalidFramePayloadData",
+                "ClosePolicyViolation",
+                "CloseMessageTooBig",
+                "CloseMandatoryExtension",
+                "CloseInternalServerErr",
+                "CloseServiceRestart",
+                "CloseTryAgainLater",
+                "CloseTLSHandshake"
+              ],
+              "signature": "const (\n\t// CloseNormalClosure (1000) indicates a normal closure: the purpose for\n\t// which the connection was established has been fulfilled.\n\tCloseNormalClosure CloseCode = 1000\n\t// CloseGoingAway (1001) indicates an endpoint is going away, e.g. a server\n\t// shutting down or a browser navigating away from a page.\n\tCloseGoingAway CloseCode = 1001\n\t// CloseProtocolError (1002) indicates termination due to a protocol error.\n\tCloseProtocolError CloseCode = 1002\n\t// CloseUnsupportedData (1003) indicates receipt of a data type the endpoint\n\t// cannot accept (e.g. binary where only text is understood).\n\tCloseUnsupportedData CloseCode = 1003\n\t// CloseNoStatusReceived (1005) is a reserved pseudo-code meaning no status\n\t// code was present in the close frame. It must not be sent on the wire.\n\tCloseNoStatusReceived CloseCode = 1005\n\t// CloseAbnormalClosure (1006) is a reserved pseudo-code meaning the\n\t// connection closed without a close frame. It must not be sent on the wire.\n\tCloseAbnormalClosure CloseCode = 1006\n\t// CloseInvalidFramePayloadData (1007) indicates a message contained data\n\t// inconsistent with its type (e.g. non-UTF-8 in a text message).\n\tCloseInvalidFramePayloadData CloseCode = 1007\n\t// ClosePolicyViolation (1008) indicates a message violated the endpoint's\n\t// policy.\n\tClosePolicyViolation CloseCode = 1008\n\t// CloseMessageTooBig (1009) indicates a message was too big to process —\n\t// the code Engine.IO uses when maxHttpBufferSize is exceeded.\n\tCloseMessageTooBig CloseCode = 1009\n\t// CloseMandatoryExtension (1010) indicates the client expected the server\n\t// to negotiate an extension that it did not.\n\tCloseMandatoryExtension CloseCode = 1010\n\t// CloseInternalServerErr (1011) indicates the server hit an unexpected\n\t// condition that prevented it from fulfilling the request.\n\tCloseInternalServerErr CloseCode = 1011\n\t// CloseServiceRestart (1012) indicates the server is restarting.\n\tCloseServiceRestart CloseCode = 1012\n\t// CloseTryAgainLater (1013) indicates the server is overloaded and the\n\t// client should retry after a delay.\n\tCloseTryAgainLater CloseCode = 1013\n\t// CloseTLSHandshake (1015) is a reserved pseudo-code meaning the TLS\n\t// handshake failed. It must not be sent on the wire.\n\tCloseTLSHandshake CloseCode = 1015\n)",
+              "doc": "RFC 6455 §7.4.1 registered close codes, plus the pseudo-codes reserved for\napplications that never appear on the wire.\n"
+            }
+          ],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "DecodeCloseFrame",
+              "signature": "func DecodeCloseFrame(payload []byte) (CloseCode, string, error)",
+              "doc": "DecodeCloseFrame parses a WebSocket close-frame payload into its status code\nand reason. An empty payload decodes to CloseNoStatusReceived with an empty\nreason (per RFC 6455, a close frame may omit the status code). A one-byte\npayload is invalid and returns ErrInvalidCloseFrame.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "IsValid",
+              "recv": "CloseCode",
+              "signature": "func (c CloseCode) IsValid() bool",
+              "doc": "IsValid reports whether the code may legally be sent in a close frame. The\nreserved pseudo-codes (1005, 1006, 1015) and codes below 1000 or in the\nunassigned 1016–2999 range are not valid to send; 3000–4999 (library and\napplication use) are accepted.\n"
+            },
+            {
+              "name": "String",
+              "recv": "CloseCode",
+              "signature": "func (c CloseCode) String() string",
+              "doc": "String returns a short human-readable description of the close code, e.g.\n\"normal closure\" for 1000, or \"close code \u003cn\u003e\" for an unregistered value.\n"
+            }
+          ]
+        },
+        {
+          "name": "Packet",
+          "signature": "type Packet struct {\n\t// Type is the Engine.IO packet type (Open, Message, Ping, ...).\n\tType PacketType\n\t// Data is the textual payload for string packets.\n\tData string\n\t// Binary holds raw bytes for binary packets; when non-nil the packet is\n\t// encoded with a \"b\" prefix + base64 in polling payloads.\n\tBinary []byte\n}",
+          "doc": "Packet is a single Engine.IO packet.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "Decode",
+              "signature": "func Decode(s string) (Packet, error)",
+              "doc": "Decode parses a single packet from its string wire form.\n"
+            },
+            {
+              "name": "DecodePayload",
+              "signature": "func DecodePayload(payload string) ([]Packet, error)",
+              "doc": "DecodePayload splits a polling payload into its constituent packets.\n"
+            },
+            {
+              "name": "NewBinaryMessage",
+              "signature": "func NewBinaryMessage(data []byte) Packet",
+              "doc": "NewBinaryMessage builds a MESSAGE packet carrying raw binary data. In a\npolling payload it is serialized as \"b\" + base64; over WebSocket it rides in\na native binary frame.\n"
+            },
+            {
+              "name": "NewClose",
+              "signature": "func NewClose() Packet",
+              "doc": "NewClose builds a CLOSE packet, which requests that the transport be closed.\n"
+            },
+            {
+              "name": "NewMessage",
+              "signature": "func NewMessage(data string) Packet",
+              "doc": "NewMessage builds a MESSAGE packet with string data.\n"
+            },
+            {
+              "name": "NewNoop",
+              "signature": "func NewNoop() Packet",
+              "doc": "NewNoop builds a NOOP packet, which does nothing and is used to cleanly\nterminate a pending long-polling request when the transport upgrades.\n"
+            },
+            {
+              "name": "NewOpen",
+              "signature": "func NewOpen(handshakeJSON string) Packet",
+              "doc": "NewOpen builds an OPEN packet carrying handshake JSON.\n"
+            },
+            {
+              "name": "NewPing",
+              "signature": "func NewPing(data string) Packet",
+              "doc": "NewPing builds a PING packet. Engine.IO v4 servers send PING with an empty\npayload for the heartbeat; the \"probe\" data (\"2probe\") is used during a\ntransport upgrade.\n"
+            },
+            {
+              "name": "NewPong",
+              "signature": "func NewPong(data string) Packet",
+              "doc": "NewPong builds a PONG packet answering a PING, echoing its data (an empty\nstring for a heartbeat pong, \"probe\" for the upgrade handshake).\n"
+            },
+            {
+              "name": "NewUpgrade",
+              "signature": "func NewUpgrade() Packet",
+              "doc": "NewUpgrade builds an UPGRADE packet, sent by the client to complete a\npolling-to-WebSocket transport upgrade.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Encode",
+              "recv": "Packet",
+              "signature": "func (p Packet) Encode() string",
+              "doc": "Encode renders a packet to its string wire form (used by the websocket\ntransport for text frames). Binary packets return their base64 form here.\n"
+            },
+            {
+              "name": "IsBinary",
+              "recv": "Packet",
+              "signature": "func (p Packet) IsBinary() bool",
+              "doc": "IsBinary reports whether the packet is a binary MESSAGE (its Binary field is\nset), as opposed to a text packet.\n"
+            }
+          ]
+        },
+        {
+          "name": "PacketType",
+          "signature": "type PacketType byte",
+          "doc": "PacketType identifies an Engine.IO packet.\n",
+          "consts": [
+            {
+              "names": [
+                "Open",
+                "Close",
+                "Ping",
+                "Pong",
+                "Message",
+                "Upgrade",
+                "Noop"
+              ],
+              "signature": "const (\n\t// Open is sent by the server on connection with the handshake data.\n\tOpen PacketType = iota\n\t// Close requests the transport be closed.\n\tClose\n\t// Ping is part of the heartbeat (server -\u003e client in EIO4).\n\tPing\n\t// Pong answers a Ping.\n\tPong\n\t// Message carries an application payload (a Socket.IO packet).\n\tMessage\n\t// Upgrade signals a transport upgrade (polling -\u003e websocket).\n\tUpgrade\n\t// Noop does nothing; used to cleanly terminate a polling request.\n\tNoop\n)",
+              "doc": ""
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "String",
+              "recv": "PacketType",
+              "signature": "func (t PacketType) String() string",
+              "doc": "String returns the lowercase Engine.IO name of the packet type (e.g.\n\"message\", \"ping\"), or \"unknown\" for an unrecognized value.\n"
+            }
+          ]
+        }
+      ],
+      "funcs": [
+        {
+          "name": "EncodeCloseFrame",
+          "signature": "func EncodeCloseFrame(code CloseCode, reason string) []byte",
+          "doc": "EncodeCloseFrame builds the payload of a WebSocket close frame: the two-byte\nbig-endian status code followed by the UTF-8 reason. Pass an empty reason for\na code-only frame.\n"
+        },
+        {
+          "name": "EncodePayload",
+          "signature": "func EncodePayload(packets []Packet) string",
+          "doc": "EncodePayload joins packets into a single polling payload, separated by the\nrecord separator.\n"
+        }
+      ],
+      "examples": [
+        {
+          "name": "",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/socketio/engineio\"\n)\n\nfunc main() {\n\t// Encode a single MESSAGE packet to its wire form.\n\tfmt.Println(engineio.NewMessage(\"hello\").Encode())\n\n\t// Decode a wire string back into a Packet.\n\tp, _ := engineio.Decode(\"4hello\")\n\tfmt.Printf(\"%s %q\\n\", p.Type, p.Data)\n\n\t// Batch several packets into one polling payload.\n\tpayload := engineio.EncodePayload([]engineio.Packet{\n\t\tengineio.NewOpen(`{\"sid\":\"abc\"}`),\n\t\tengineio.NewMessage(\"hi\"),\n\t})\n\tfmt.Printf(\"%q\\n\", payload)\n\n}",
+          "output": "4hello\nmessage \"hello\"\n\"0{\\\"sid\\\":\\\"abc\\\"}\\x1e4hi\"",
+          "doc": "Example demonstrates the Engine.IO codec end to end. It first builds a MESSAGE\npacket with NewMessage and renders it to the wire form with Encode, showing\nthe single-digit type prefix (\"4\") in front of the data. It then parses a\nwire string back into a Packet with Decode and prints the decoded type (via\nPacketType.String) and data. Finally it batches an OPEN handshake packet and a\nMESSAGE packet into a single HTTP long-polling body with EncodePayload, whose\nparts are joined by the Engine.IO v4 record separator (shown here as the \\x1e\nescape). The reader should take away that Encode/Decode handle one packet and\nEncodePayload/DecodePayload handle the batched polling form, and that the wire\nformat is a compact, human-readable string.\n"
+        }
+      ]
+    },
+    {
+      "importPath": "github.com/malcolmston/socketio/internal/ws",
+      "name": "ws",
+      "synopsis": "Package ws is a minimal, dependency-free RFC 6455 WebSocket implementation, sufficient to carry Engine.IO/Socket.IO traffic.",
+      "doc": "Package ws is a minimal, dependency-free RFC 6455 WebSocket implementation,\nsufficient to carry Engine.IO/Socket.IO traffic. It provides both sides of a\nconnection: a server that upgrades an incoming net/http request and a client\nthat dials a remote endpoint. It supports the opening handshake, fragmented\ndata messages, and the control frames (ping/pong/close). Only what Socket.IO\nneeds is implemented; it is not a general-purpose WebSocket library, and it is\nan internal package with no compatibility guarantees for outside importers.\n\nIt exists so that the surrounding module can offer WebSocket transport using\nnothing but the Go standard library — no gorilla/websocket, no nhooyr, no cgo.\nThe socketio server calls Upgrade to turn a hijacked HTTP connection into a\n*Conn; the client package calls Dial to obtain a *Conn to a remote server.\nBoth then exchange Engine.IO frames through the same small message API, so the\nrest of the stack is transport-agnostic.\n\nThe server handshake works by validating the Upgrade/Connection headers and\nSec-WebSocket-Version (13), hijacking the underlying net.Conn via\nhttp.Hijacker, and replying with the 101 Switching Protocols response whose\nSec-WebSocket-Accept is the SHA-1/base64 digest of the client key plus the\nRFC 6455 GUID. IsWebSocketUpgrade reports whether a request is a WebSocket\nupgrade so callers can branch before attempting Upgrade. Dial performs the\nmirror image: it opens a TCP connection, sends the GET upgrade request with a\nrandom key, and verifies the server's accept value.\n\nMessages are exchanged with ReadMessage and WriteMessage (or the WriteText\nconvenience), which speak whole logical messages rather than raw frames.\nReadMessage reassembles fragmented messages, transparently answers ping\ncontrol frames with a pong, and responds to a close frame by echoing it and\nreturning ErrClosed. MessageType distinguishes TextMessage from\nBinaryMessage, which matches Engine.IO's split between string packets and\nbinary attachments. Per RFC 6455, client-originated frames are masked with a\nfresh random key (Conn tracks whether it is a client), while server frames are\nsent unmasked.\n\nA Conn is safe for one concurrent reader and one concurrent writer: writes are\nserialized by an internal mutex and the closed flag is atomic, so a reader\nthat observes a close while a writer is mid-flight will not race. It is not\nsafe to call ReadMessage from two goroutines at once. Close sends a normal\n(1000) close frame and tears down the transport; subsequent writes return\nErrClosed. Notably absent, because Socket.IO does not require them, are\npermessage-deflate compression, subprotocol negotiation, and read/write\ndeadlines — callers that need timeouts should manage them on the underlying\nconnection or via request context.\n",
+      "consts": [],
+      "vars": [
+        {
+          "names": [
+            "ErrClosed"
+          ],
+          "signature": "var ErrClosed = errors.New(\"ws: connection closed\")",
+          "doc": "ErrClosed is returned once the connection has been closed.\n"
+        }
+      ],
+      "types": [
+        {
+          "name": "Conn",
+          "signature": "type Conn struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Conn is a WebSocket connection (server- or client-side).\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "Dial",
+              "signature": "func Dial(rawURL string, header http.Header) (*Conn, error)",
+              "doc": "Dial opens a client WebSocket connection to a ws:// or http:// URL. The\nreturned Conn masks outgoing frames as required for clients.\n"
+            },
+            {
+              "name": "Upgrade",
+              "signature": "func Upgrade(w http.ResponseWriter, r *http.Request) (*Conn, error)",
+              "doc": "Upgrade completes the server handshake and hijacks the connection, returning\na *Conn ready for ReadMessage/WriteMessage.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Close",
+              "recv": "*Conn",
+              "signature": "func (c *Conn) Close() error",
+              "doc": "Close sends a close frame and tears down the connection.\n"
+            },
+            {
+              "name": "ReadMessage",
+              "recv": "*Conn",
+              "signature": "func (c *Conn) ReadMessage() (MessageType, []byte, error)",
+              "doc": "ReadMessage reads the next data message, transparently answering ping and\nclose control frames. It reassembles fragmented messages.\n"
+            },
+            {
+              "name": "RemoteAddr",
+              "recv": "*Conn",
+              "signature": "func (c *Conn) RemoteAddr() net.Addr",
+              "doc": "RemoteAddr returns the underlying connection's remote address.\n"
+            },
+            {
+              "name": "WriteMessage",
+              "recv": "*Conn",
+              "signature": "func (c *Conn) WriteMessage(t MessageType, data []byte) error",
+              "doc": "WriteMessage writes a complete data message (single, unmasked frame).\n"
+            },
+            {
+              "name": "WriteText",
+              "recv": "*Conn",
+              "signature": "func (c *Conn) WriteText(s string) error",
+              "doc": "WriteText is a convenience for sending a text message.\n"
+            }
+          ]
+        },
+        {
+          "name": "MessageType",
+          "signature": "type MessageType int",
+          "doc": "MessageType distinguishes text and binary data messages.\n",
+          "consts": [
+            {
+              "names": [
+                "TextMessage",
+                "BinaryMessage"
+              ],
+              "signature": "const (\n\t// TextMessage is a UTF-8 text message.\n\tTextMessage MessageType = iota\n\t// BinaryMessage is a binary message.\n\tBinaryMessage\n)",
+              "doc": ""
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        }
+      ],
+      "funcs": [
+        {
+          "name": "IsWebSocketUpgrade",
+          "signature": "func IsWebSocketUpgrade(r *http.Request) bool",
+          "doc": "IsWebSocketUpgrade reports whether r is a WebSocket upgrade request.\n"
+        }
+      ],
+      "examples": [
+        {
+          "name": "Upgrade",
+          "code": "handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {\n\tif !IsWebSocketUpgrade(r) {\n\t\thttp.Error(w, \"expected websocket upgrade\", http.StatusBadRequest)\n\t\treturn\n\t}\n\tconn, err := Upgrade(w, r)\n\tif err != nil {\n\t\treturn\n\t}\n\tdefer conn.Close()\n\n\tfor {\n\t\tmt, data, err := conn.ReadMessage()\n\t\tif err != nil {\n\t\t\treturn\n\t\t}\n\t\tif mt == TextMessage {\n\t\t\tif err := conn.WriteText(\"echo: \" + string(data)); err != nil {\n\t\t\t\treturn\n\t\t\t}\n\t\t}\n\t}\n})\n\nhttp.Handle(\"/ws\", handler)",
+          "doc": "ExampleUpgrade shows how to accept a WebSocket connection inside an ordinary\nnet/http handler. The handler first calls IsWebSocketUpgrade to confirm the\nrequest is a genuine upgrade (rejecting anything else with a 400), then calls\nUpgrade to complete the RFC 6455 handshake and hijack the connection, yielding\na *Conn. It then loops with ReadMessage — which transparently answers ping\ncontrol frames and reassembles fragmented messages — and echoes every text\nmessage back to the client with WriteText, breaking out of the loop (and\nclosing the connection via the deferred Close) as soon as the peer goes away.\nThe reader should take away the minimal server recipe: check, Upgrade, then\nread/write whole messages. (This example is compiled to verify the API surface\nbut is not executed here, because it needs a real WebSocket peer to drive it.)\n"
+        }
+      ]
+    },
+    {
+      "importPath": "github.com/malcolmston/socketio/interop",
+      "name": "main",
+      "synopsis": "Command interop is a small, fixed Socket.IO server used to prove wire-level interoperability between this Go implementation and the Node.js reference Socket.IO client (and the official server).",
+      "doc": "Command interop is a small, fixed Socket.IO server used to prove wire-level\ninteroperability between this Go implementation and the Node.js reference\nSocket.IO client (and the official server). It is a test harness, not a\nreusable library: it exists so cross-implementation conformance tests can dial\na known endpoint, exercise a known set of events, and assert that a Go server\nand a JavaScript client agree on the Engine.IO v4 / Socket.IO v5 protocols.\n\nRun it and it constructs a socketio.Server, registers a handful of\ndeterministic handlers on the default namespace, and listens on a fixed\nloopback address. The handlers cover the protocol features most worth\nchecking against another implementation: \"echo\" bounces its arguments back to\nthe sender, \"ping\" returns a fixed acknowledgement payload, \"shout\"\nbroadcasts to a room every connection auto-joins, and \"askme\" exercises the\nless common server-initiated acknowledgement by calling EmitWithAck and\nlogging the client's reply. A second namespace, \"/admin\", answers \"whoami\",\nverifying that namespace multiplexing works across implementations.\n\nThe process is intentionally chatty on standard error rather than standard\noutput: it prints \"LISTENING\" once the handlers are wired (so a supervising\ntest can wait for readiness before dialing) and \"SERVER_GOT_ACK:\u003creply\u003e\" when\nthe \"askme\" acknowledgement arrives. Those markers are the contract a driving\ntest scripts against; the program itself takes no flags and has no exported\nAPI. The server binds 127.0.0.1:9731 and serves Socket.IO at the default\n/socket.io/ path.\n\nThis command is not meant to be imported or embedded in another program. For\napplication use, depend on the socketio package (server) or the client package\n(client) directly; interop simply demonstrates and validates that both speak\nthe same protocol as the Node originals. It mirrors, in miniature, the kind of\nend-to-end setup a real deployment would build with socketio.New,\nOnConnection, Join, On, To(...).Emit, and EmitWithAck.\n\nIt lives in its own nested Go module (built with GOWORK=off) so the conformance\nharness can pin its own dependencies without perturbing the parent workspace,\nand so the main library's public API surface stays free of test-only command\ncode. Keeping the fixture deterministic and dependency-light is deliberate: a\nconformance check is only trustworthy if the endpoint it probes never drifts,\nso every handler, address, and readiness marker here is fixed rather than\nconfigurable.\n",
+      "isCommand": true,
+      "consts": [],
+      "vars": [],
+      "types": [],
+      "funcs": [],
+      "examples": [
+        {
+          "name": "",
+          "code": "io := socketio.New()\nio.OnConnection(func(s *socketio.Socket) {\n\ts.Join(\"room1\")\n\ts.On(\"echo\", func(args []any) []any { s.Emit(\"echo\", args...); return nil })\n\ts.On(\"ping\", func(args []any) []any { return []any{\"pong\", 42} })\n})\nio.Of(\"/admin\").OnConnection(func(s *socketio.Socket) {\n\ts.On(\"whoami\", func(args []any) []any { return []any{\"admin\"} })\n})\n\nfmt.Println(\"configured namespaces: / and /admin\")",
+          "output": "configured namespaces: / and /admin",
+          "doc": "Example mirrors the wiring the interop command performs, without binding a\nnetwork port, so it can run deterministically. It constructs a socketio.Server\nwith New, registers a default-namespace connection handler that joins every\nsocket to a shared room and installs the harness's fixed event handlers\n(\"echo\" bounces its arguments back, \"ping\" returns a constant ack payload),\nand then registers a second \"/admin\" namespace with its own \"whoami\" handler.\nThis is exactly the deterministic surface the cross-implementation\nconformance tests exercise against the Node.js reference client. The reader\nshould take away how the interop harness is assembled from the ordinary\nsocketio building blocks (New, OnConnection, Join, On, Of) and that the real\ncommand differs only in calling http.ListenAndServe to actually serve.\n"
+        }
+      ]
+    },
+    {
+      "importPath": "github.com/malcolmston/socketio/redis",
+      "name": "redis",
+      "synopsis": "Package redis provides a Redis-backed Broadcaster for socketio, enabling multi-node scale-out: broadcasts are relayed between server instances over Redis pub/sub so a message emitted on one node reaches sockets connected to any node.",
+      "doc": "Package redis provides a Redis-backed Broadcaster for socketio, enabling\nmulti-node scale-out: broadcasts are relayed between server instances over\nRedis pub/sub so a message emitted on one node reaches sockets connected to\nany node. It is the Go counterpart of the Node.js @socket.io/redis-adapter,\nand it speaks the Redis RESP protocol directly using only the standard\nlibrary — no third-party client and no cgo:\n\n\tbc, _ := redis.New(redis.Options{Addr: \"localhost:6379\", Channel: \"socket.io\"})\n\tio.SetBroadcaster(bc) // io is a *socketio.Server\n\nA single socketio.Server keeps its room and socket membership in memory, so a\nbroadcast only reaches clients connected to that one process. Once you run\nmore than one instance behind a load balancer — for horizontal scaling or high\navailability — clients are spread across processes and an in-memory broadcast\nno longer reaches everyone. Install this Broadcaster on every node and each\ncall to io.Emit, io.To(room).Emit, and the other broadcast forms is instead\npublished once to Redis and delivered to the local sockets of every node that\nreceives it. Reach for this package as soon as you scale past a single server.\n\nIt works by holding two Redis connections: one for PUBLISH and one that issues\nSUBSCRIBE and runs a background receive loop. When the server broadcasts, it\nserializes the target namespace, rooms, exclusions, event name, and arguments\nand calls Publish, which PUBLISHes the bytes to the configured channel. Redis\nfans that message out to every subscriber, including the publisher, and the\nreceive loop hands each incoming payload to the handler the server registered\nthrough OnMessage — which decodes it and re-emits to that node's local\nsockets. Because pub/sub echoes to the sender, the originating node delivers\nits own broadcast through exactly the same path, so no node is special-cased.\n\nNew connects, authenticates (AUTH) and selects a database (SELECT) if\nconfigured, subscribes, and returns a *Broadcaster ready to pass to\nserver.SetBroadcaster; Options carries Addr, Channel, Password, DB, and an\noptional Dial hook used by tests to substitute an in-memory connection. The\nthree methods that satisfy socketio.Broadcaster — Publish, OnMessage, and\nClose — are safe for concurrent use: Publish serializes writes on the publish\nconnection with a mutex, and OnMessage/Close guard shared state with their\nown lock. Close is idempotent and tears down both connections, ending the\nreceive loop.\n\nDelivery inherits Redis pub/sub semantics, which callers should understand.\nPub/sub is fire-and-forget and at-most-once: messages are not persisted or\nqueued, so a node that is down or momentarily disconnected misses whatever was\npublished while it was unavailable — matching the behavior of the Node redis\nadapter. Publish returns an error only if the local write to Redis fails, not\nif a remote subscriber never receives the message. The RESP codec here\nimplements just the commands this adapter needs (SUBSCRIBE, PUBLISH, AUTH,\nSELECT and their replies); it is not a general-purpose Redis client. It does\nnot (yet) implement the adapter's remote request/response features such as\ncross-node fetchSockets or server-side acknowledgements.\n",
+      "consts": [],
+      "vars": [],
+      "types": [
+        {
+          "name": "Broadcaster",
+          "signature": "type Broadcaster struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Broadcaster relays socketio broadcasts over Redis pub/sub. It satisfies\nsocketio.Broadcaster.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "New",
+              "signature": "func New(opts Options) (*Broadcaster, error)",
+              "doc": "New connects to Redis, subscribes to the broadcast channel, and returns a\nBroadcaster ready to install with server.SetBroadcaster.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Close",
+              "recv": "*Broadcaster",
+              "signature": "func (b *Broadcaster) Close() error",
+              "doc": "Close implements socketio.Broadcaster.\n"
+            },
+            {
+              "name": "OnMessage",
+              "recv": "*Broadcaster",
+              "signature": "func (b *Broadcaster) OnMessage(fn func([]byte))",
+              "doc": "OnMessage implements socketio.Broadcaster.\n"
+            },
+            {
+              "name": "Publish",
+              "recv": "*Broadcaster",
+              "signature": "func (b *Broadcaster) Publish(data []byte) error",
+              "doc": "Publish implements socketio.Broadcaster: it PUBLISHes data to the channel.\n"
+            }
+          ]
+        },
+        {
+          "name": "Options",
+          "signature": "type Options struct {\n\t// Addr is the Redis server address (host:port).\n\tAddr string\n\t// Channel is the pub/sub channel used for broadcasts (default \"socket.io\").\n\tChannel string\n\t// Password, if set, authenticates via AUTH.\n\tPassword string\n\t// DB selects a Redis database via SELECT (default 0).\n\tDB int\n\t// Dial overrides the network dialer (used in tests).\n\tDial func(addr string) (net.Conn, error)\n}",
+          "doc": "Options configures the Redis broadcaster.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        }
+      ],
+      "funcs": [],
+      "examples": [
+        {
+          "name": "New",
+          "code": "package main\n\nimport (\n\t\"log\"\n\n\tsocketio \"github.com/malcolmston/socketio\"\n\t\"github.com/malcolmston/socketio/redis\"\n)\n\nfunc main() {\n\tbc, err := redis.New(redis.Options{\n\t\tAddr:    \"localhost:6379\",\n\t\tChannel: \"socket.io\",\n\t})\n\tif err != nil {\n\t\tlog.Fatal(err)\n\t}\n\tdefer bc.Close()\n\n\tio := socketio.New()\n\tio.SetBroadcaster(bc)\n\n\t// Fans out across every node subscribed to the \"socket.io\" channel.\n\tio.To(\"room1\").Emit(\"news\", \"hello cluster\")\n}",
+          "doc": "ExampleNew shows how to turn a single-node Socket.IO server into a cluster\nmember. It calls New to connect to Redis and subscribe to a shared pub/sub\nchannel, returning a *Broadcaster that satisfies socketio.Broadcaster; the\ndeferred Close tears the connections down on exit. It then creates a\nsocketio.Server and installs the broadcaster with SetBroadcaster, after which\nevery broadcast — here io.To(\"room1\").Emit — is published once to Redis and\ndelivered to the matching local sockets of every node subscribed to the same\nchannel, including this one. Run this same code on each instance behind your\nload balancer and a message emitted on any node reaches clients connected to\nall of them. The reader should take away the three-line scale-out recipe:\nredis.New, SetBroadcaster, then broadcast as usual. (The example is compiled\nto verify the API but not executed here, as it needs a running Redis server.)\n"
+        }
+      ]
+    }
+  ]
+}

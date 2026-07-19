@@ -1,0 +1,880 @@
+{
+  "module": "github.com/malcolmston/sled",
+  "generatedAt": "2026-07-19T02:05:53Z",
+  "packages": [
+    {
+      "importPath": "github.com/malcolmston/sled",
+      "name": "sled",
+      "synopsis": "Package sled is a small, embedded, transactional, crash-safe key/value store written in pure Go with no third-party dependencies.",
+      "doc": "Package sled is a small, embedded, transactional, crash-safe key/value\nstore written in pure Go with no third-party dependencies.\n\n# Storage model\n\nA sled database is a single append-only write-ahead log (WAL) file on disk.\nEvery durable mutation — a single Set/Delete, a Batch, or a read/write\ntransaction — is encoded as exactly one self-describing record and appended\nto the log. Each record is framed as:\n\n\t[uint32 payload length][uint32 CRC-32 of payload][payload bytes]\n\nThe payload holds one or more operations (Set or Delete, each carrying a key\nand, for Set, a value). Because a whole Batch or transaction is written as a\nsingle record, and the CRC covers the entire payload, a record is applied\nall-or-nothing on recovery: the group of writes is atomic and durable.\n\nOn Open the log is replayed from the beginning to rebuild the in-memory\nindex. Replay stops at the first record that is truncated (a short read) or\nwhose CRC does not match — i.e. the first sign of a crash that occurred while\na record was being appended. Everything committed before that point is\nrecovered intact; the incomplete tail is discarded and physically truncated\nfrom the file so subsequent appends stay contiguous. This is what makes sled\ncrash-safe: a crash mid-write can only ever lose the single in-flight record,\nnever previously committed data.\n\nWhen [DB.Close] with the default options, or any write with sync enabled,\nreturns without error, the corresponding records have been flushed to stable\nstorage with fsync.\n\n# In-memory index\n\nKeys are held in an ordered, immutable persistent treap (a balanced binary\nsearch tree). Each write produces a new tree root that structurally shares\nall untouched nodes with the previous version and is published with a single\natomic pointer store. The ordering supports ascending range scans with\nprefix and lower/upper bounds via [DB.Scan].\n\n# Concurrency model and isolation\n\nsled is a single-writer, multi-reader store:\n\n  - Writers are fully serialized by an internal mutex. At most one write —\n    [DB.Set], [DB.Delete], [DB.Batch], or [DB.Update] — runs at a time.\n\n  - Readers never take locks. [DB.Get], [DB.Has], [DB.Scan] and [DB.View]\n    each capture the current immutable tree root and read from that\n    consistent snapshot. Because tree nodes and the byte slices they hold are\n    never mutated after publication, readers run concurrently with the writer\n    and with each other, with no data races.\n\nThe resulting isolation level is serializable. A read/write transaction\n([DB.Update]) holds the single writer slot for its whole duration and commits\natomically, so its execution is equivalent to some serial order. A read-only\ntransaction ([DB.View]) observes an immutable snapshot taken when it begins\n(snapshot isolation that, combined with the single-writer commit order, is\nserializable) and is unaffected by any writes committed while it runs.\n\n# Durability and compaction\n\nBy default every commit calls fsync before returning. This can be relaxed\nwith [WithSyncWrites] for workloads that prefer throughput over per-commit\ndurability. Because the log is append-only, superseded and deleted keys\naccumulate on disk; [DB.Compact] rewrites the log to contain only the live\nkey set, reclaiming space, and installs it atomically with a rename.\n\nThe path passed to [Open] is the log file itself; sled creates it if it does\nnot exist. Keys must be non-empty; values may be empty and are distinguished\nfrom absent keys by the boolean returned from [DB.Get].\n",
+      "consts": [
+        {
+          "names": [
+            "DefaultTreeName"
+          ],
+          "signature": "const DefaultTreeName = \"__sled__default\"",
+          "doc": "DefaultTreeName is the name of the always-present default keyspace, the one\nbacking the DB's own Set/Get/Delete/Scan methods. Passing it to [DB.OpenTree]\nreturns that same default tree, and it appears in [DB.TreeNames]. It cannot be\ndropped.\n"
+        }
+      ],
+      "vars": [
+        {
+          "names": [
+            "ErrClosed",
+            "ErrEmptyKey",
+            "ErrTxClosed",
+            "ErrTxNotWritable",
+            "ErrEmptyTreeName",
+            "ErrDropDefaultTree",
+            "ErrNoMergeOperator",
+            "ErrNilFunc",
+            "ErrCorruptImport",
+            "ErrNoPath"
+          ],
+          "signature": "var (\n\t// ErrClosed is returned when an operation is attempted on a database that\n\t// has already been closed.\n\tErrClosed = errors.New(\"sled: database is closed\")\n\n\t// ErrEmptyKey is returned when a write is attempted with a nil or\n\t// zero-length key. Keys must be non-empty.\n\tErrEmptyKey = errors.New(\"sled: key must be non-empty\")\n\n\t// ErrTxClosed is returned when a transaction handle is used after the\n\t// transaction function has returned.\n\tErrTxClosed = errors.New(\"sled: transaction is closed\")\n\n\t// ErrTxNotWritable is returned when a mutating operation is attempted on a\n\t// read-only transaction created by View.\n\tErrTxNotWritable = errors.New(\"sled: transaction is not writable\")\n\n\t// ErrEmptyTreeName is returned by OpenTree when given an empty tree name.\n\tErrEmptyTreeName = errors.New(\"sled: tree name must be non-empty\")\n\n\t// ErrDropDefaultTree is returned by DropTree when asked to drop the default\n\t// tree, which always exists and cannot be removed.\n\tErrDropDefaultTree = errors.New(\"sled: cannot drop the default tree\")\n\n\t// ErrNoMergeOperator is returned by Merge when no merge operator has been\n\t// installed on the tree with SetMergeOperator.\n\tErrNoMergeOperator = errors.New(\"sled: no merge operator set\")\n\n\t// ErrNilFunc is returned when a nil callback is passed to an operation that\n\t// requires one, such as FetchAndUpdate.\n\tErrNilFunc = errors.New(\"sled: callback function must be non-nil\")\n\n\t// ErrCorruptImport is returned by Import when the stream's magic or checksum\n\t// does not verify, or its framing is invalid. Nothing is applied.\n\tErrCorruptImport = errors.New(\"sled: corrupt or truncated import stream\")\n\n\t// ErrNoPath is returned by Config.Open when no database path has been set on\n\t// the Config.\n\tErrNoPath = errors.New(\"sled: no database path configured\")\n)",
+          "doc": "Sentinel errors returned by the store and its transactions.\n"
+        }
+      ],
+      "types": [
+        {
+          "name": "Batch",
+          "signature": "type Batch struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Batch accumulates a group of writes that are committed together as a single\natomic, durable unit. Building a Batch performs no I/O; all buffered writes\nare flushed by exactly one log record when Commit is called, so on recovery\nthe whole group is applied all-or-nothing.\n\nA Batch is not safe for concurrent use by multiple goroutines. Create one,\nstage writes into it from a single goroutine, then Commit.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Commit",
+              "recv": "*Batch",
+              "signature": "func (b *Batch) Commit() error",
+              "doc": "Commit durably applies all staged writes as one atomic record. If any staged\nwrite was invalid (for example an empty key) that error is returned and\nnothing is applied. A committed or errored Batch must not be reused.\n"
+            },
+            {
+              "name": "Delete",
+              "recv": "*Batch",
+              "signature": "func (b *Batch) Delete(key []byte) *Batch",
+              "doc": "Delete stages a deletion of key. The key is copied.\n"
+            },
+            {
+              "name": "Len",
+              "recv": "*Batch",
+              "signature": "func (b *Batch) Len() int",
+              "doc": "Len returns the number of staged operations.\n"
+            },
+            {
+              "name": "Set",
+              "recv": "*Batch",
+              "signature": "func (b *Batch) Set(key, value []byte) *Batch",
+              "doc": "Set stages a write of value under key. The key and value are copied.\n"
+            }
+          ]
+        },
+        {
+          "name": "CompareAndSwapError",
+          "signature": "type CompareAndSwapError struct {\n\tCurrent  []byte\n\tProposed []byte\n}",
+          "doc": "CompareAndSwapError reports that a [Tree.CompareAndSwapErr] failed because the\nstored value did not match the expected one. Current holds the value found in\nthe tree at the time of the attempt (nil if the key was absent) and Proposed\nholds the new value the caller wanted to install (nil for a delete). Both are\nfreshly allocated copies owned by the caller. It mirrors sled's\nCompareAndSwapError.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Error",
+              "recv": "*CompareAndSwapError",
+              "signature": "func (e *CompareAndSwapError) Error() string",
+              "doc": "Error implements the error interface.\n"
+            }
+          ]
+        },
+        {
+          "name": "Config",
+          "signature": "type Config struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Config is a builder for opening a database with explicit settings, mirroring\nsled's Config. It offers the same knobs as the functional [Option] values in\na chainable form, which some callers find clearer:\n\n\tdb, err := sled.DefaultConfig().\n\t\tPath(\"data.sled\").\n\t\tSyncWrites(false).\n\t\tTemporary(true).\n\t\tOpen()\n\nA Config is not safe for concurrent use while being built. Construct it,\nchain the setters, then call [Config.Open]. The zero Config is not valid;\nobtain one from [DefaultConfig].\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "DefaultConfig",
+              "signature": "func DefaultConfig() *Config",
+              "doc": "DefaultConfig returns a Config populated with sled's defaults: synchronous\n(fsync'd) writes, file mode 0o644, and no path set. Call the setter methods to\ncustomize it and [Config.Open] to open the database.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "FileMode",
+              "recv": "*Config",
+              "signature": "func (c *Config) FileMode(mode os.FileMode) *Config",
+              "doc": "FileMode sets the permission bits used when sled creates the log file. See\n[WithFileMode]. It returns the receiver so calls can be chained.\n"
+            },
+            {
+              "name": "Open",
+              "recv": "*Config",
+              "signature": "func (c *Config) Open() (*DB, error)",
+              "doc": "Open opens the database described by the Config. It is equivalent to calling\n[Open] with the corresponding [Option] values. Open returns [ErrNoPath] if no\npath was set.\n"
+            },
+            {
+              "name": "Path",
+              "recv": "*Config",
+              "signature": "func (c *Config) Path(path string) *Config",
+              "doc": "Path sets the filesystem path of the database's write-ahead log. It must be\nset (non-empty) before [Config.Open] is called. Path returns the receiver so\ncalls can be chained.\n"
+            },
+            {
+              "name": "SyncWrites",
+              "recv": "*Config",
+              "signature": "func (c *Config) SyncWrites(sync bool) *Config",
+              "doc": "SyncWrites controls whether each durable commit calls fsync before returning.\nSee [WithSyncWrites]. It returns the receiver so calls can be chained.\n"
+            },
+            {
+              "name": "Temporary",
+              "recv": "*Config",
+              "signature": "func (c *Config) Temporary(temporary bool) *Config",
+              "doc": "Temporary marks the database temporary, deleting its backing files on a clean\nClose. See [WithTemporary]. It returns the receiver so calls can be chained.\n"
+            }
+          ]
+        },
+        {
+          "name": "DB",
+          "signature": "type DB struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "DB is an embedded, transactional key/value store backed by an append-only\nwrite-ahead log. A DB is safe for concurrent use: a single writer is\nserialized internally while any number of readers proceed concurrently\nagainst immutable snapshots. See the package documentation for the full\nconcurrency and durability model.\n\nA DB holds one or more independent, ordered keyspaces called trees. The\ndefault tree backs the DB's own Set/Get/Delete/Scan methods; additional named\ntrees are obtained with [DB.OpenTree]. All trees share the single write-ahead\nlog and the single writer slot, which is what lets a transaction span several\ntrees atomically.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "Open",
+              "signature": "func Open(path string, opts ...Option) (*DB, error)",
+              "doc": "Open opens (creating it if necessary) the database whose write-ahead log\nlives at path. The log is replayed to rebuild the in-memory index, stopping\nat the first truncated or corrupt record so that a crash mid-write loses only\nthe incomplete tail. Any such partial tail is physically truncated from the\nfile before Open returns.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Batch",
+              "recv": "*DB",
+              "signature": "func (db *DB) Batch(fn func(*Batch) error) error",
+              "doc": "Batch is a convenience that stages writes via fn into a fresh Batch and\ncommits it atomically. If fn returns an error the batch is discarded and\nnothing is written.\n"
+            },
+            {
+              "name": "Checksum",
+              "recv": "*DB",
+              "signature": "func (db *DB) Checksum() uint32",
+              "doc": "Checksum returns a deterministic CRC-32 digest over every tree in the\ndatabase, folding in each tree's name so trees are distinguished. Databases\nwith identical logical contents (same trees, keys and values) produce the\nsame value regardless of internal layout. See [Tree.Checksum].\n"
+            },
+            {
+              "name": "Clear",
+              "recv": "*DB",
+              "signature": "func (db *DB) Clear() error",
+              "doc": "Clear removes every key from the default tree. See [Tree.Clear].\n"
+            },
+            {
+              "name": "Close",
+              "recv": "*DB",
+              "signature": "func (db *DB) Close() error",
+              "doc": "Close flushes any buffered data, fsyncs the log and releases the underlying\nfile. The DB must not be used after Close returns. Close is idempotent.\n"
+            },
+            {
+              "name": "Compact",
+              "recv": "*DB",
+              "signature": "func (db *DB) Compact() (err error)",
+              "doc": "Compact rewrites the log so it contains only the current live key set,\nreclaiming the space held by superseded values and deleted keys. The new log\nis written to a temporary file, fsynced, and atomically renamed over the\nexisting log, so a crash during compaction leaves the original log intact.\n\nCompact takes the single writer slot for its whole duration; concurrent\nreaders are unaffected and continue to observe the in-memory snapshot, which\ndoes not change.\n"
+            },
+            {
+              "name": "CompareAndSwap",
+              "recv": "*DB",
+              "signature": "func (db *DB) CompareAndSwap(key, old, newValue []byte) (bool, error)",
+              "doc": "CompareAndSwap atomically swaps the value at key in the default tree. See\n[Tree.CompareAndSwap].\n"
+            },
+            {
+              "name": "CompareAndSwapErr",
+              "recv": "*DB",
+              "signature": "func (db *DB) CompareAndSwapErr(key, old, newValue []byte) error",
+              "doc": "CompareAndSwapErr performs an error-reporting compare-and-swap on the default\ntree. See [Tree.CompareAndSwapErr].\n"
+            },
+            {
+              "name": "ContainsKey",
+              "recv": "*DB",
+              "signature": "func (db *DB) ContainsKey(key []byte) (bool, error)",
+              "doc": "ContainsKey reports whether key is present in the default tree.\n"
+            },
+            {
+              "name": "Delete",
+              "recv": "*DB",
+              "signature": "func (db *DB) Delete(key []byte) error",
+              "doc": "Delete removes key from the default tree. Deleting a key that does not exist\nis not an error.\n"
+            },
+            {
+              "name": "DropTree",
+              "recv": "*DB",
+              "signature": "func (db *DB) DropTree(name string) (bool, error)",
+              "doc": "DropTree removes the named tree and all of its keys, durably. Dropping a tree\nthat does not exist reports false with a nil error; the default tree cannot be\ndropped. Existing handles to a dropped tree observe it as empty.\n"
+            },
+            {
+              "name": "Export",
+              "recv": "*DB",
+              "signature": "func (db *DB) Export(w io.Writer) error",
+              "doc": "Export writes a self-describing, CRC-32 checksummed snapshot of every tree to\nw. The stream can be read back with [DB.Import], including into a different\ndatabase, reproducing all trees and keys. Export reads a consistent snapshot\nper tree; it does not block writers for the whole dump.\n\nThe layout is: an 8-byte magic, then for each tree its name and entries as\nlength-prefixed byte strings, followed by a trailing CRC-32 over everything\nthat precedes it. Import verifies the checksum before applying anything.\n"
+            },
+            {
+              "name": "FetchAndUpdate",
+              "recv": "*DB",
+              "signature": "func (db *DB) FetchAndUpdate(key []byte, f func(old []byte) []byte) (oldValue, newValue []byte, err error)",
+              "doc": "FetchAndUpdate atomically updates key in the default tree. See\n[Tree.FetchAndUpdate].\n"
+            },
+            {
+              "name": "First",
+              "recv": "*DB",
+              "signature": "func (db *DB) First() (key, value []byte, ok bool)",
+              "doc": "First returns the smallest key and value in the default tree. See\n[Tree.First].\n"
+            },
+            {
+              "name": "Flush",
+              "recv": "*DB",
+              "signature": "func (db *DB) Flush() error",
+              "doc": "Flush fsyncs the write-ahead log, forcing all previously written records to\nstable storage. With the default synchronous write mode every commit already\nfsyncs, so Flush is chiefly useful after opening with [WithSyncWrites](false)\nto make a batch of writes durable on demand.\n"
+            },
+            {
+              "name": "FlushAsync",
+              "recv": "*DB",
+              "signature": "func (db *DB) FlushAsync() \u003c-chan error",
+              "doc": "FlushAsync starts a [DB.Flush] on a background goroutine and returns a channel\nthat receives the result (nil on success) exactly once and is then closed.\nThis lets a caller trigger durability without blocking, for example:\n\n\tdone := db.FlushAsync()\n\t// ... do other work ...\n\terr := \u003c-done\n"
+            },
+            {
+              "name": "GenerateID",
+              "recv": "*DB",
+              "signature": "func (db *DB) GenerateID() (uint64, error)",
+              "doc": "GenerateID returns a process-unique, strictly increasing 64-bit identifier.\nIDs are monotonic across restarts: on recovery the counter resumes past the\nlast reserved block, so an ID is never reused (though a crash may leave a gap\nwhere the tail of a reserved block is skipped).\n\nReservations are persisted in blocks, so most calls perform no I/O; only the\ncall that crosses a block boundary writes and fsyncs a small record.\n"
+            },
+            {
+              "name": "Get",
+              "recv": "*DB",
+              "signature": "func (db *DB) Get(key []byte) ([]byte, bool, error)",
+              "doc": "Get returns the value stored under key in the default tree and whether the key\nwas present. A present key with an empty value returns (nil-or-empty, true,\nnil); an absent key returns (nil, false, nil). The returned slice is owned by\nthe DB and must not be modified by the caller.\n"
+            },
+            {
+              "name": "GetAndDelete",
+              "recv": "*DB",
+              "signature": "func (db *DB) GetAndDelete(key []byte) (old []byte, existed bool, err error)",
+              "doc": "GetAndDelete removes key from the default tree and returns its previous value.\nSee [Tree.GetAndDelete].\n"
+            },
+            {
+              "name": "GetAndSet",
+              "recv": "*DB",
+              "signature": "func (db *DB) GetAndSet(key, value []byte) (old []byte, existed bool, err error)",
+              "doc": "GetAndSet stores value under key in the default tree and returns the previous\nvalue. See [Tree.GetAndSet].\n"
+            },
+            {
+              "name": "GetGt",
+              "recv": "*DB",
+              "signature": "func (db *DB) GetGt(key []byte) (k, value []byte, ok bool)",
+              "doc": "GetGt returns the smallest key strictly greater than key in the default tree.\nSee [Tree.GetGt].\n"
+            },
+            {
+              "name": "GetGte",
+              "recv": "*DB",
+              "signature": "func (db *DB) GetGte(key []byte) (k, value []byte, ok bool)",
+              "doc": "GetGte returns the smallest key \u003e= key in the default tree. See [Tree.GetGte].\n"
+            },
+            {
+              "name": "GetLt",
+              "recv": "*DB",
+              "signature": "func (db *DB) GetLt(key []byte) (k, value []byte, ok bool)",
+              "doc": "GetLt returns the largest key strictly less than key in the default tree. See\n[Tree.GetLt].\n"
+            },
+            {
+              "name": "GetLte",
+              "recv": "*DB",
+              "signature": "func (db *DB) GetLte(key []byte) (k, value []byte, ok bool)",
+              "doc": "GetLte returns the largest key \u003c= key in the default tree. See [Tree.GetLte].\n"
+            },
+            {
+              "name": "Has",
+              "recv": "*DB",
+              "signature": "func (db *DB) Has(key []byte) (bool, error)",
+              "doc": "Has reports whether key is present in the default tree.\n"
+            },
+            {
+              "name": "Import",
+              "recv": "*DB",
+              "signature": "func (db *DB) Import(r io.Reader) error",
+              "doc": "Import reads a stream produced by [DB.Export], verifies its checksum, and\napplies every entry, creating trees as needed. Existing keys with the same\nname are overwritten; keys not present in the stream are left untouched. The\nwhole import is applied as one atomic, durable record, so a crash mid-import\nleaves the database unchanged. A checksum mismatch returns [ErrCorruptImport]\nand applies nothing.\n"
+            },
+            {
+              "name": "IsEmpty",
+              "recv": "*DB",
+              "signature": "func (db *DB) IsEmpty() bool",
+              "doc": "IsEmpty reports whether the default tree contains no keys. It mirrors sled's\nTree::is_empty and is equivalent to db.Len() == 0.\n"
+            },
+            {
+              "name": "Last",
+              "recv": "*DB",
+              "signature": "func (db *DB) Last() (key, value []byte, ok bool)",
+              "doc": "Last returns the largest key and value in the default tree. See [Tree.Last].\n"
+            },
+            {
+              "name": "Len",
+              "recv": "*DB",
+              "signature": "func (db *DB) Len() int",
+              "doc": "Len returns the number of live keys in the default tree. It is O(n) and\nintended for reporting and tests rather than hot-path use.\n"
+            },
+            {
+              "name": "Merge",
+              "recv": "*DB",
+              "signature": "func (db *DB) Merge(key, value []byte) ([]byte, error)",
+              "doc": "Merge folds value into key in the default tree. See [Tree.Merge].\n"
+            },
+            {
+              "name": "NewBatch",
+              "recv": "*DB",
+              "signature": "func (db *DB) NewBatch() *Batch",
+              "doc": "NewBatch returns an empty Batch bound to db.\n"
+            },
+            {
+              "name": "OpenTree",
+              "recv": "*DB",
+              "signature": "func (db *DB) OpenTree(name string) (*Tree, error)",
+              "doc": "OpenTree returns the tree named name, creating it if it does not yet exist.\nThe returned handle is independent of every other tree and persists in the\nsame log. Passing [DefaultTreeName] returns the default tree. The name must be\nnon-empty.\n\nA freshly created tree is empty and becomes durable as soon as it receives its\nfirst write; an opened-but-never-written tree does not survive a restart.\n"
+            },
+            {
+              "name": "Path",
+              "recv": "*DB",
+              "signature": "func (db *DB) Path() string",
+              "doc": "Path returns the path of the database's log file.\n"
+            },
+            {
+              "name": "PopMax",
+              "recv": "*DB",
+              "signature": "func (db *DB) PopMax() (key, value []byte, ok bool, err error)",
+              "doc": "PopMax removes and returns the largest key in the default tree. See\n[Tree.PopMax].\n"
+            },
+            {
+              "name": "PopMaxInRange",
+              "recv": "*DB",
+              "signature": "func (db *DB) PopMaxInRange(r Range) (key, value []byte, ok bool, err error)",
+              "doc": "PopMaxInRange removes and returns the largest key of the default tree within\nr. See [Tree.PopMaxInRange].\n"
+            },
+            {
+              "name": "PopMin",
+              "recv": "*DB",
+              "signature": "func (db *DB) PopMin() (key, value []byte, ok bool, err error)",
+              "doc": "PopMin removes and returns the smallest key in the default tree. See\n[Tree.PopMin].\n"
+            },
+            {
+              "name": "PopMinInRange",
+              "recv": "*DB",
+              "signature": "func (db *DB) PopMinInRange(r Range) (key, value []byte, ok bool, err error)",
+              "doc": "PopMinInRange removes and returns the smallest key of the default tree within\nr. See [Tree.PopMinInRange].\n"
+            },
+            {
+              "name": "Scan",
+              "recv": "*DB",
+              "signature": "func (db *DB) Scan(r Range) *Iterator",
+              "doc": "Scan returns an iterator over the default tree restricted to r. Set r.Reverse\nfor descending order.\n"
+            },
+            {
+              "name": "ScanPrefix",
+              "recv": "*DB",
+              "signature": "func (db *DB) ScanPrefix(prefix []byte) *Iterator",
+              "doc": "ScanPrefix returns an iterator over keys in the default tree that begin with\nprefix. See [Tree.ScanPrefix].\n"
+            },
+            {
+              "name": "Set",
+              "recv": "*DB",
+              "signature": "func (db *DB) Set(key, value []byte) error",
+              "doc": "Set stores value under key in the default tree, replacing any previous value.\nThe key and value are copied, so the caller may reuse their buffers after Set\nreturns.\n"
+            },
+            {
+              "name": "SetMergeOperator",
+              "recv": "*DB",
+              "signature": "func (db *DB) SetMergeOperator(op MergeOperator)",
+              "doc": "SetMergeOperator installs the merge operator for the default tree. See\n[Tree.SetMergeOperator].\n"
+            },
+            {
+              "name": "SizeOnDisk",
+              "recv": "*DB",
+              "signature": "func (db *DB) SizeOnDisk() (uint64, error)",
+              "doc": "SizeOnDisk returns the current size, in bytes, of the database's write-ahead\nlog file. Because sled stores all state in a single append-only log, this is\nthe total on-disk footprint of the database (a subsequent [DB.Compact] can\nshrink it by discarding superseded and deleted records). It mirrors sled's\nDb::size_on_disk.\n"
+            },
+            {
+              "name": "TreeNames",
+              "recv": "*DB",
+              "signature": "func (db *DB) TreeNames() []string",
+              "doc": "TreeNames returns the names of all currently registered trees, including\n[DefaultTreeName], in sorted order.\n"
+            },
+            {
+              "name": "Update",
+              "recv": "*DB",
+              "signature": "func (db *DB) Update(fn func(*Tx) error) error",
+              "doc": "Update executes fn within a read/write transaction. Writers are serialized,\nso the transaction runs alone with respect to other writers. If fn returns\nnil the buffered writes are committed atomically and durably across every tree\nthey touched; if fn returns an error (or panics) the writes are rolled back\nand nothing is persisted. The error from fn (or the commit) is returned.\n"
+            },
+            {
+              "name": "UpdateAndFetch",
+              "recv": "*DB",
+              "signature": "func (db *DB) UpdateAndFetch(key []byte, f func(old []byte) []byte) ([]byte, error)",
+              "doc": "UpdateAndFetch atomically updates key in the default tree and returns the new\nvalue. See [Tree.UpdateAndFetch].\n"
+            },
+            {
+              "name": "View",
+              "recv": "*DB",
+              "signature": "func (db *DB) View(fn func(*Tx) error) error",
+              "doc": "View executes fn within a read-only transaction over consistent immutable\nsnapshots taken as each tree is first read. Concurrent writes do not affect\nwhat the transaction sees. Any attempt to mutate through the Tx returns\nErrTxNotWritable.\n"
+            },
+            {
+              "name": "WasRecovered",
+              "recv": "*DB",
+              "signature": "func (db *DB) WasRecovered() bool",
+              "doc": "WasRecovered reports whether this database was recovered from a pre-existing,\nnon-empty log at [Open] time, as opposed to being created fresh. It lets a\ncaller distinguish a first run (where it may want to seed initial data) from\na restart. It mirrors sled's Db::was_recovered.\n"
+            },
+            {
+              "name": "Watch",
+              "recv": "*DB",
+              "signature": "func (db *DB) Watch(prefix []byte) *Subscriber",
+              "doc": "Watch returns a subscriber over the default tree. See [Tree.Watch].\n"
+            }
+          ]
+        },
+        {
+          "name": "Event",
+          "signature": "type Event struct {\n\tType  EventType\n\tTree  string\n\tKey   []byte\n\tValue []byte\n\t// contains filtered or unexported fields\n}",
+          "doc": "An Event describes a single committed mutation delivered to a subscriber. Key\nand Value are owned by the DB and must not be modified; Value is nil for a\ndelete.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "EventType",
+          "signature": "type EventType uint8",
+          "doc": "EventType classifies a subscriber event.\n",
+          "consts": [
+            {
+              "names": [
+                "EventInsert",
+                "EventUpdate",
+                "EventDelete"
+              ],
+              "signature": "const (\n\t// EventInsert reports a key that did not previously exist being written.\n\tEventInsert EventType = iota\n\t// EventUpdate reports an existing key's value being replaced.\n\tEventUpdate\n\t// EventDelete reports a key being removed. The event's Value is nil.\n\tEventDelete\n)",
+              "doc": ""
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "String",
+              "recv": "EventType",
+              "signature": "func (e EventType) String() string",
+              "doc": "String returns the event type's name (\"insert\", \"update\" or \"delete\").\n"
+            }
+          ]
+        },
+        {
+          "name": "Iterator",
+          "signature": "type Iterator struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Iterator yields key/value pairs in key order (ascending, or descending when\nthe range is reversed) over an immutable snapshot. Because the snapshot never\nchanges, an Iterator is unaffected by concurrent writes. Keys and values\nreturned by the iterator are owned by the DB and must not be modified.\n\nTypical use:\n\n\tit := db.Scan(sled.Range{Prefix: []byte(\"user:\")})\n\tfor it.Valid() {\n\t\tk, v := it.Key(), it.Value()\n\t\t_ = k\n\t\t_ = v\n\t\tit.Next()\n\t}\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Key",
+              "recv": "*Iterator",
+              "signature": "func (it *Iterator) Key() []byte",
+              "doc": "Key returns the current key. It must not be modified and is only valid while\nthe iterator is valid.\n"
+            },
+            {
+              "name": "Next",
+              "recv": "*Iterator",
+              "signature": "func (it *Iterator) Next()",
+              "doc": "Next advances to the following key. Calling Next when the iterator is not\nvalid is a no-op.\n"
+            },
+            {
+              "name": "Valid",
+              "recv": "*Iterator",
+              "signature": "func (it *Iterator) Valid() bool",
+              "doc": "Valid reports whether the iterator is positioned at a key.\n"
+            },
+            {
+              "name": "Value",
+              "recv": "*Iterator",
+              "signature": "func (it *Iterator) Value() []byte",
+              "doc": "Value returns the current value. It must not be modified.\n"
+            }
+          ]
+        },
+        {
+          "name": "MergeOperator",
+          "signature": "type MergeOperator func(key, oldValue, mergeValue []byte) []byte",
+          "doc": "A MergeOperator folds a value into the current state of a key. It receives the\nkey, the current value (nil if the key is absent), and the value passed to\n[Tree.Merge], and returns the new value to store. Returning nil deletes the\nkey. A merge operator must be a pure function of its inputs: it may be called\nwhile the writer slot is held and must not call back into the database.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Option",
+          "signature": "type Option func(*options)",
+          "doc": "An Option configures a database at Open time.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "WithFileMode",
+              "signature": "func WithFileMode(mode os.FileMode) Option",
+              "doc": "WithFileMode sets the permission bits used when sled creates the log file.\nThe default is 0o644.\n"
+            },
+            {
+              "name": "WithSyncWrites",
+              "signature": "func WithSyncWrites(sync bool) Option",
+              "doc": "WithSyncWrites controls whether each durable commit calls fsync before\nreturning. It is enabled by default, which guarantees that a committed write\nsurvives a crash. Disabling it improves write throughput at the cost of\npossibly losing the most recent commits after a power failure or OS crash\n(a normal process exit still flushes on Close).\n"
+            },
+            {
+              "name": "WithTemporary",
+              "signature": "func WithTemporary(temporary bool) Option",
+              "doc": "WithTemporary marks the database as temporary. A temporary database behaves\nexactly like a normal one while open, but its backing log file (and any\nleftover compaction file) is deleted when [DB.Close] returns successfully.\nThis mirrors sled's Config::temporary and is convenient for tests and\nshort-lived scratch stores. It is disabled by default.\n"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "name": "Range",
+          "signature": "type Range struct {\n\tLower   []byte\n\tUpper   []byte\n\tPrefix  []byte\n\tReverse bool\n}",
+          "doc": "Range describes a half-open key range for a scan. All fields are optional:\n\n  - Lower is an inclusive lower bound. Keys strictly less than Lower are\n    skipped. A nil Lower means unbounded below.\n  - Upper is an exclusive upper bound. Keys greater than or equal to Upper are\n    skipped. A nil Upper means unbounded above.\n  - Prefix restricts the scan to keys that begin with Prefix. It composes\n    with Lower/Upper (the effective range is the intersection).\n  - Reverse iterates the range in descending key order instead of ascending.\n    The bounds are interpreted identically; only the visiting order changes.\n\nThe zero Range scans every key in ascending order.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "PrefixRange",
+              "signature": "func PrefixRange(prefix []byte) Range",
+              "doc": "PrefixRange builds a [Range] that selects every key beginning with prefix. It\nis a convenience for callers that want to combine a prefix filter with other\nRange fields, such as Reverse:\n\n\tr := sled.PrefixRange([]byte(\"user:\"))\n\tr.Reverse = true\n\tit := t.Scan(r)\n\nThe prefix is copied, so the caller may reuse the buffer.\n"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "name": "Subscriber",
+          "signature": "type Subscriber struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "A Subscriber is a stream of [Event]s for keys under a watched prefix in one\ntree. Receive events from the channel returned by [Subscriber.Events]. Always\ncall [Subscriber.Close] when finished so the tree stops retaining the\nsubscriber.\n\nDelivery is best-effort and non-blocking: events are buffered, and a\nsubscriber that does not keep up may miss events rather than block the writer.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Close",
+              "recv": "*Subscriber",
+              "signature": "func (s *Subscriber) Close()",
+              "doc": "Close stops the subscription and closes the event channel. It is idempotent\nand safe to call concurrently with delivery.\n"
+            },
+            {
+              "name": "Drain",
+              "recv": "*Subscriber",
+              "signature": "func (s *Subscriber) Drain(max int) []Event",
+              "doc": "Drain returns up to max buffered events without blocking, in delivery order.\nIt stops as soon as the buffer is empty, so it may return fewer than max (or\nnone). A non-positive max drains every currently buffered event. Drain never\nwaits for new events to arrive.\n"
+            },
+            {
+              "name": "Events",
+              "recv": "*Subscriber",
+              "signature": "func (s *Subscriber) Events() \u003c-chan Event",
+              "doc": "Events returns the channel on which the subscriber's events arrive. The\nchannel is closed by [Subscriber.Close].\n"
+            },
+            {
+              "name": "Next",
+              "recv": "*Subscriber",
+              "signature": "func (s *Subscriber) Next() (Event, bool)",
+              "doc": "Next blocks until the next event is available and returns it with ok=true.\nWhen the subscriber is closed (by [Subscriber.Close]) and its buffer is\ndrained, Next returns the zero Event with ok=false. It is a blocking\nconvenience over the [Subscriber.Events] channel, mirroring sled's blocking\nSubscriber iteration:\n\n\tfor {\n\t\tev, ok := sub.Next()\n\t\tif !ok {\n\t\t\tbreak\n\t\t}\n\t\t// handle ev\n\t}\n\nNext must be called from a single goroutine at a time; concurrent receivers\nshare one channel and would each get a subset of events.\n"
+            },
+            {
+              "name": "TryNext",
+              "recv": "*Subscriber",
+              "signature": "func (s *Subscriber) TryNext() (Event, bool)",
+              "doc": "TryNext returns the next buffered event without blocking. ok is false when no\nevent is currently buffered (whether the subscriber is still open or already\nclosed). Use [Subscriber.Next] to wait for an event instead.\n"
+            }
+          ]
+        },
+        {
+          "name": "Tree",
+          "signature": "type Tree struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "A Tree is an independent, ordered keyspace within a DB. Every tree shares the\ndatabase's single write-ahead log and writer slot, so writes to different\ntrees are still fully serialized and a transaction may span several trees\natomically. Trees are isolated: a key written to one tree is invisible to\nevery other tree, including the default tree.\n\nA Tree handle is safe for concurrent use. Obtain one with [DB.OpenTree]; the\ndefault tree is also reachable through the DB's own Set/Get/Delete/Scan\nmethods.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "ApplyBatch",
+              "recv": "*Tree",
+              "signature": "func (t *Tree) ApplyBatch(b *Batch) error",
+              "doc": "ApplyBatch durably applies every write staged in b to this tree as one atomic\nrecord, regardless of which DB the batch was created from. This lets a batch\nbuilt with [DB.NewBatch] target a named tree, mirroring sled's\nTree::apply_batch. On recovery the whole group is applied all-or-nothing.\n\nIf b carries a staging error (for example an empty key) that error is\nreturned and nothing is applied. A committed or errored batch must not be\nreused.\n"
+            },
+            {
+              "name": "Batch",
+              "recv": "*Tree",
+              "signature": "func (t *Tree) Batch(fn func(*Batch) error) error",
+              "doc": "Batch stages writes via fn into a fresh batch and applies them to this tree\natomically. If fn returns an error the batch is discarded and nothing is\nwritten. It is the tree-scoped counterpart of [DB.Batch].\n"
+            },
+            {
+              "name": "Checksum",
+              "recv": "*Tree",
+              "signature": "func (t *Tree) Checksum() uint32",
+              "doc": "Checksum returns a deterministic CRC-32 (IEEE) digest of the tree's entire\nlive key/value set. The digest depends only on the set of keys and their\nvalues, not on insertion order or internal tree shape, so two trees with the\nsame logical contents always produce the same checksum. It is useful for\ncheaply comparing trees or verifying a round-trip through Export/Import.\n\nThis mirrors sled's Tree::checksum. It is computed over an immutable snapshot\nand does not block writers.\n"
+            },
+            {
+              "name": "Clear",
+              "recv": "*Tree",
+              "signature": "func (t *Tree) Clear() error",
+              "doc": "Clear removes every key from this tree in a single durable record and emits a\ndelete event for each key that was present.\n"
+            },
+            {
+              "name": "CompareAndSwap",
+              "recv": "*Tree",
+              "signature": "func (t *Tree) CompareAndSwap(key, old, newValue []byte) (swapped bool, err error)",
+              "doc": "CompareAndSwap atomically replaces the value at key with newValue, but only if\nthe current value equals old. A nil old means \"expect the key to be absent\"; a\nnil newValue deletes the key. It reports whether the swap happened. A failed\ncompare is not an error.\n\nThe comparison and the write are performed while holding the single writer\nslot, so no other write can interleave.\n"
+            },
+            {
+              "name": "CompareAndSwapErr",
+              "recv": "*Tree",
+              "signature": "func (t *Tree) CompareAndSwapErr(key, old, newValue []byte) error",
+              "doc": "CompareAndSwapErr atomically replaces the value at key with newValue, but only\nif the current value equals old. A nil old means \"expect the key to be\nabsent\"; a nil newValue deletes the key. On success it returns nil. On a value\nmismatch it returns a non-nil *[CompareAndSwapError] carrying the current and\nproposed values, so the caller can retry without a separate read. Any other\n(I/O) failure is returned as an ordinary error.\n\nThis is the error-returning form of [Tree.CompareAndSwap], matching sled's\ncompare_and_swap, which reports the conflicting value on failure. The compare\nand the write happen under the single writer slot, so no other write can\ninterleave.\n"
+            },
+            {
+              "name": "ContainsKey",
+              "recv": "*Tree",
+              "signature": "func (t *Tree) ContainsKey(key []byte) (bool, error)",
+              "doc": "ContainsKey reports whether key is present in this tree. It is an alias for\nHas that mirrors the sled API.\n"
+            },
+            {
+              "name": "Delete",
+              "recv": "*Tree",
+              "signature": "func (t *Tree) Delete(key []byte) error",
+              "doc": "Delete removes key from this tree. Deleting a key that does not exist is not\nan error and produces no subscriber event.\n"
+            },
+            {
+              "name": "FetchAndUpdate",
+              "recv": "*Tree",
+              "signature": "func (t *Tree) FetchAndUpdate(key []byte, f func(old []byte) []byte) (oldValue, newValue []byte, err error)",
+              "doc": "FetchAndUpdate atomically reads the current value at key, calls f with it\n(nil if absent), and writes f's result back. Returning nil from f deletes the\nkey. It returns the previous and new values. f runs while the writer slot is\nheld, so it must not call back into the database.\n"
+            },
+            {
+              "name": "First",
+              "recv": "*Tree",
+              "signature": "func (t *Tree) First() (key, value []byte, ok bool)",
+              "doc": "First returns the smallest key and its value, or ok=false if the tree is\nempty.\n"
+            },
+            {
+              "name": "Get",
+              "recv": "*Tree",
+              "signature": "func (t *Tree) Get(key []byte) ([]byte, bool, error)",
+              "doc": "Get returns the value stored under key in this tree and whether the key was\npresent. The returned slice is owned by the DB and must not be modified.\n"
+            },
+            {
+              "name": "GetAndDelete",
+              "recv": "*Tree",
+              "signature": "func (t *Tree) GetAndDelete(key []byte) (old []byte, existed bool, err error)",
+              "doc": "GetAndDelete removes key and returns the value it held together with whether\nit existed. Deleting an absent key is not an error and returns\n(nil, false, nil) without writing to the log. It is the value-returning form\nof [Tree.Delete] and mirrors sled's Tree::remove, which returns the removed\nvalue.\n\nThe returned value is a freshly allocated copy owned by the caller.\n"
+            },
+            {
+              "name": "GetAndSet",
+              "recv": "*Tree",
+              "signature": "func (t *Tree) GetAndSet(key, value []byte) (old []byte, existed bool, err error)",
+              "doc": "GetAndSet stores value under key, replacing any previous value, and returns\nthe value that was present before the write together with whether the key\nexisted. It is the value-returning form of [Tree.Set] and mirrors sled's\nTree::insert, which returns the previous value.\n\nThe key and value are copied, so the caller may reuse their buffers. The\nreturned previous value is a freshly allocated copy owned by the caller.\n"
+            },
+            {
+              "name": "GetGt",
+              "recv": "*Tree",
+              "signature": "func (t *Tree) GetGt(key []byte) (k, value []byte, ok bool)",
+              "doc": "GetGt returns the smallest key strictly greater than key, with its value, or\nok=false if there is none.\n"
+            },
+            {
+              "name": "GetGte",
+              "recv": "*Tree",
+              "signature": "func (t *Tree) GetGte(key []byte) (k, value []byte, ok bool)",
+              "doc": "GetGte returns the smallest key greater than or equal to key, with its value,\nor ok=false if there is none.\n"
+            },
+            {
+              "name": "GetLt",
+              "recv": "*Tree",
+              "signature": "func (t *Tree) GetLt(key []byte) (k, value []byte, ok bool)",
+              "doc": "GetLt returns the largest key strictly less than key, with its value, or\nok=false if there is none.\n"
+            },
+            {
+              "name": "GetLte",
+              "recv": "*Tree",
+              "signature": "func (t *Tree) GetLte(key []byte) (k, value []byte, ok bool)",
+              "doc": "GetLte returns the largest key less than or equal to key, with its value, or\nok=false if there is none.\n"
+            },
+            {
+              "name": "Has",
+              "recv": "*Tree",
+              "signature": "func (t *Tree) Has(key []byte) (bool, error)",
+              "doc": "Has reports whether key is present in this tree.\n"
+            },
+            {
+              "name": "IsEmpty",
+              "recv": "*Tree",
+              "signature": "func (t *Tree) IsEmpty() bool",
+              "doc": "IsEmpty reports whether the tree holds no keys.\n"
+            },
+            {
+              "name": "Last",
+              "recv": "*Tree",
+              "signature": "func (t *Tree) Last() (key, value []byte, ok bool)",
+              "doc": "Last returns the largest key and its value, or ok=false if the tree is empty.\n"
+            },
+            {
+              "name": "Len",
+              "recv": "*Tree",
+              "signature": "func (t *Tree) Len() int",
+              "doc": "Len returns the number of live keys in this tree. It is O(n).\n"
+            },
+            {
+              "name": "Merge",
+              "recv": "*Tree",
+              "signature": "func (t *Tree) Merge(key, value []byte) (merged []byte, err error)",
+              "doc": "Merge folds value into the current value at key using the tree's merge\noperator, and durably stores the result. It returns the newly stored value\n(nil if the operator deleted the key). Calling Merge without a merge operator\ninstalled returns [ErrNoMergeOperator].\n\nThe read of the current value, the fold, and the write are performed while\nholding the single writer slot, so concurrent writes cannot interleave.\n"
+            },
+            {
+              "name": "Name",
+              "recv": "*Tree",
+              "signature": "func (t *Tree) Name() string",
+              "doc": "Name returns the tree's name.\n"
+            },
+            {
+              "name": "PopMax",
+              "recv": "*Tree",
+              "signature": "func (t *Tree) PopMax() (key, value []byte, ok bool, err error)",
+              "doc": "PopMax atomically removes and returns the largest key in the tree together\nwith its value. It reports ok=false (and leaves the tree unchanged) when the\ntree is empty. The removal is committed as one durable record and emits a\ndelete event to matching subscribers.\n\nThe returned key and value are freshly allocated copies owned by the caller.\nThis mirrors sled's Tree::pop_max.\n"
+            },
+            {
+              "name": "PopMaxInRange",
+              "recv": "*Tree",
+              "signature": "func (t *Tree) PopMaxInRange(r Range) (key, value []byte, ok bool, err error)",
+              "doc": "PopMaxInRange atomically removes and returns the largest key that falls\nwithin r together with its value. It reports ok=false (and leaves the tree\nunchanged) when no key lies in the range. Only r.Lower, r.Upper and r.Prefix\nconstrain the search; r.Reverse is ignored because the maximum in-range key\nis always returned.\n\nThe half-open range semantics match [Range]: Lower is inclusive, Upper is\nexclusive. To express an inclusive upper bound (Rust's ..=hi), set Upper to a\nvalue strictly greater than hi.\n\nThe returned key and value are freshly allocated copies owned by the caller.\nThis mirrors sled's Tree::pop_last_in_range.\n"
+            },
+            {
+              "name": "PopMin",
+              "recv": "*Tree",
+              "signature": "func (t *Tree) PopMin() (key, value []byte, ok bool, err error)",
+              "doc": "PopMin atomically removes and returns the smallest key in the tree together\nwith its value. It reports ok=false (and leaves the tree unchanged) when the\ntree is empty. The removal is committed as one durable record and emits a\ndelete event to matching subscribers.\n\nThe returned key and value are freshly allocated copies owned by the caller.\nThis mirrors sled's Tree::pop_min.\n"
+            },
+            {
+              "name": "PopMinInRange",
+              "recv": "*Tree",
+              "signature": "func (t *Tree) PopMinInRange(r Range) (key, value []byte, ok bool, err error)",
+              "doc": "PopMinInRange atomically removes and returns the smallest key that falls\nwithin r together with its value. It reports ok=false (and leaves the tree\nunchanged) when no key lies in the range. Only r.Lower, r.Upper and r.Prefix\nconstrain the search; r.Reverse is ignored because the minimum in-range key\nis always returned.\n\nThe half-open range semantics match [Range]: Lower is inclusive, Upper is\nexclusive. To express an inclusive upper bound (Rust's ..=hi), set Upper to a\nvalue strictly greater than hi.\n\nThe returned key and value are freshly allocated copies owned by the caller.\nThis mirrors sled's Tree::pop_first_in_range.\n"
+            },
+            {
+              "name": "Scan",
+              "recv": "*Tree",
+              "signature": "func (t *Tree) Scan(r Range) *Iterator",
+              "doc": "Scan returns an iterator over this tree restricted to r. Set r.Reverse for\ndescending order. The iterator reads an immutable snapshot and is unaffected\nby concurrent writes.\n"
+            },
+            {
+              "name": "ScanPrefix",
+              "recv": "*Tree",
+              "signature": "func (t *Tree) ScanPrefix(prefix []byte) *Iterator",
+              "doc": "ScanPrefix returns an iterator over every key in this tree that begins with\nprefix, in ascending key order. A nil or empty prefix scans the whole tree.\nIt is shorthand for Scan(Range{Prefix: prefix}) and mirrors sled's\nTree::scan_prefix. The iterator reads an immutable snapshot and is unaffected\nby concurrent writes.\n"
+            },
+            {
+              "name": "Set",
+              "recv": "*Tree",
+              "signature": "func (t *Tree) Set(key, value []byte) error",
+              "doc": "Set stores value under key in this tree, replacing any previous value. The key\nand value are copied, so the caller may reuse their buffers after Set returns.\n"
+            },
+            {
+              "name": "SetMergeOperator",
+              "recv": "*Tree",
+              "signature": "func (t *Tree) SetMergeOperator(op MergeOperator)",
+              "doc": "SetMergeOperator installs (or, with a nil operator, removes) the merge\noperator for this tree. It affects subsequent [Tree.Merge] calls and takes\neffect immediately for all goroutines.\n"
+            },
+            {
+              "name": "UpdateAndFetch",
+              "recv": "*Tree",
+              "signature": "func (t *Tree) UpdateAndFetch(key []byte, f func(old []byte) []byte) (newValue []byte, err error)",
+              "doc": "UpdateAndFetch atomically reads the current value at key, calls f with it (nil\nif the key is absent), durably writes f's result back, and returns the newly\nstored value. Returning nil from f deletes the key and yields a nil result.\n\nWhere [Tree.FetchAndUpdate] returns the previous value, UpdateAndFetch returns\nthe new one; the two mirror sled's fetch_and_update and update_and_fetch. f\nruns while the single writer slot is held, so it must be a pure function of\nits input and must not call back into the database.\n"
+            },
+            {
+              "name": "Watch",
+              "recv": "*Tree",
+              "signature": "func (t *Tree) Watch(prefix []byte) *Subscriber",
+              "doc": "Watch returns a [Subscriber] that receives an [Event] for every committed\nmutation whose key begins with prefix in this tree. A nil or empty prefix\nwatches the whole tree. Events are delivered in commit order.\n"
+            }
+          ]
+        },
+        {
+          "name": "Tx",
+          "signature": "type Tx struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Tx is a transaction handle. A read-only transaction (created by View) reads\nfrom immutable snapshots captured when it begins. A read/write transaction\n(created by Update) additionally buffers mutations that become durable\natomically when the transaction function returns nil, and are discarded if it\nreturns an error.\n\nA single transaction may span several trees: the tree-scoped methods\n([Tx.SetTree], [Tx.GetTree], [Tx.DeleteTree], [Tx.ScanTree]) operate on any\n[Tree] opened from the same DB, and all of a transaction's writes across all\ntrees commit together in one durable record or not at all. The plain\n[Tx.Set]/[Tx.Get]/[Tx.Delete]/[Tx.Scan] methods operate on the default tree.\n\nA Tx is only valid inside the function passed to View or Update and must not\nbe retained or used after that function returns.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Delete",
+              "recv": "*Tx",
+              "signature": "func (tx *Tx) Delete(key []byte) error",
+              "doc": "Delete buffers a deletion of key in the default tree. See [Tx.DeleteTree].\n"
+            },
+            {
+              "name": "DeleteTree",
+              "recv": "*Tx",
+              "signature": "func (tx *Tx) DeleteTree(t *Tree, key []byte) error",
+              "doc": "DeleteTree buffers a deletion of key from tree t. It is only valid on a\nwritable transaction.\n"
+            },
+            {
+              "name": "Get",
+              "recv": "*Tx",
+              "signature": "func (tx *Tx) Get(key []byte) ([]byte, bool, error)",
+              "doc": "Get returns the value stored under key in the default tree within the\ntransaction. A writable transaction observes its own uncommitted writes.\n"
+            },
+            {
+              "name": "GetTree",
+              "recv": "*Tx",
+              "signature": "func (tx *Tx) GetTree(t *Tree, key []byte) ([]byte, bool, error)",
+              "doc": "GetTree returns the value stored under key in t within the transaction and\nwhether it was present. A writable transaction observes its own uncommitted\nwrites to t.\n"
+            },
+            {
+              "name": "Has",
+              "recv": "*Tx",
+              "signature": "func (tx *Tx) Has(key []byte) (bool, error)",
+              "doc": "Has reports whether key is present in the default tree within the transaction.\n"
+            },
+            {
+              "name": "Scan",
+              "recv": "*Tx",
+              "signature": "func (tx *Tx) Scan(r Range) *Iterator",
+              "doc": "Scan returns an iterator over the default tree within the transaction. See\n[Tx.ScanTree].\n"
+            },
+            {
+              "name": "ScanTree",
+              "recv": "*Tx",
+              "signature": "func (tx *Tx) ScanTree(t *Tree, r Range) *Iterator",
+              "doc": "ScanTree returns an iterator over tree t within the transaction, reflecting\nbuffered writes for a writable transaction. Set r.Reverse for descending\norder.\n"
+            },
+            {
+              "name": "Set",
+              "recv": "*Tx",
+              "signature": "func (tx *Tx) Set(key, value []byte) error",
+              "doc": "Set buffers a write of value under key in the default tree. See [Tx.SetTree].\n"
+            },
+            {
+              "name": "SetTree",
+              "recv": "*Tx",
+              "signature": "func (tx *Tx) SetTree(t *Tree, key, value []byte) error",
+              "doc": "SetTree buffers a write of value under key in tree t. It is only valid on a\nwritable transaction. The key and value are copied.\n"
+            },
+            {
+              "name": "Writable",
+              "recv": "*Tx",
+              "signature": "func (tx *Tx) Writable() bool",
+              "doc": "Writable reports whether the transaction may perform writes.\n"
+            }
+          ]
+        }
+      ],
+      "funcs": [],
+      "examples": [
+        {
+          "name": "",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"os\"\n\t\"path/filepath\"\n\n\t\"github.com/malcolmston/sled\"\n)\n\nfunc main() {\n\tdir, _ := os.MkdirTemp(\"\", \"sled-example\")\n\tdefer func() { _ = os.RemoveAll(dir) }()\n\n\tdb, err := sled.Open(filepath.Join(dir, \"example.sled\"))\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tdefer func() { _ = db.Close() }()\n\n\t// Simple durable writes.\n\t_ = db.Set([]byte(\"greeting\"), []byte(\"hello\"))\n\n\t// An atomic read/write transaction: all writes commit together or not at\n\t// all.\n\t_ = db.Update(func(tx *sled.Tx) error {\n\t\t_ = tx.Set([]byte(\"user:alice\"), []byte(\"admin\"))\n\t\t_ = tx.Set([]byte(\"user:bob\"), []byte(\"member\"))\n\t\treturn nil\n\t})\n\n\t// Read a value back.\n\tif v, ok, _ := db.Get([]byte(\"greeting\")); ok {\n\t\tfmt.Printf(\"greeting=%s\\n\", v)\n\t}\n\n\t// Ordered scan over a key prefix.\n\tit := db.Scan(sled.Range{Prefix: []byte(\"user:\")})\n\tfor it.Valid() {\n\t\tfmt.Printf(\"%s=%s\\n\", it.Key(), it.Value())\n\t\tit.Next()\n\t}\n\n}",
+          "output": "greeting=hello\nuser:alice=admin\nuser:bob=member",
+          "doc": "Example demonstrates the core of the sled API: opening a database, basic\nwrites, an atomic transaction, and an ordered prefix scan.\n"
+        }
+      ]
+    }
+  ]
+}
