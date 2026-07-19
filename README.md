@@ -13,33 +13,116 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 [![Docs](https://img.shields.io/badge/docs-pages-2f9bff)](https://malcolmston.github.io/go/)
 
-**The Node.js ecosystem, reimagined in Go.**
+**The Node.js — and Python, Rust, Elixir, Java — ecosystems, reimagined in Go.**
 
-A unified home for a family of Go libraries that recreate the most-loved
-building blocks of the Node.js and Python ecosystems — with the same ergonomics,
-on top of Go's standard library.
+A unified home for **33** independent Go libraries that recreate the most-loved
+building blocks of other ecosystems — the same ergonomics, on top of Go's
+standard library. Every port is **dependency-free** (stdlib only: no cgo, no
+third-party `require`s), individually versioned, and **verified against the
+original library's own test suite**.
 
-🌐 **Unified site & docs:** [`index.html`](index.html) → published to GitHub
-Pages (Home, per-library tabs, How-to, FAQ, AI, About, with Node-vs-Go code
-comparisons).
+🌐 **Unified site & docs:** **<https://malcolmston.github.io/go/>** — a Home
+grid, a tab per library with an inline API reference and Node-vs-Go comparisons,
+plus How-to, FAQ, AI, and About.
 
 ## The libraries
 
-Each library is an independent Go module. This repo vendors them as **git
-submodules** and ties them together with a **Go workspace** (`go.work`) so
-cross-module code builds against the local checkouts.
+Each library is an independent Go module (`github.com/malcolmston/<name>`). This
+repo vendors them as **git submodules** and ties them together with a **Go
+workspace** (`go.work`) so cross-module code builds against the local checkouts.
+The **parity** column is the port's measured fidelity to the original, generated
+live from each repo's `parity.json` (see [Upstream parity](#upstream-parity--pipeline)).
 
-| Library | Ports | Module | Docs |
-| ------- | ----- | ------ | ---- |
-| [express](express) | expressjs/express | `github.com/malcolmston/express` | [pages](https://malcolmston.github.io/express/) |
-| [passport](passport) | jaredhanson/passport | `github.com/malcolmston/passport` | [pages](https://malcolmston.github.io/passport/) |
-| [socket.io](socket.io) | socketio/socket.io | `github.com/malcolmston/socketio` | [pages](https://malcolmston.github.io/socket.io/) |
-| [chalk](chalk) | chalk/chalk (+inquirer, figlet) | `github.com/malcolmston/chalk` | [pages](https://malcolmston.github.io/chalk/) |
-| [morgan](morgan) | expressjs/morgan | `github.com/malcolmston/morgan` | [pages](https://malcolmston.github.io/morgan/) |
-| [fastmcp](fastmcp) | jlowin/fastmcp (Python) | `github.com/malcolmston/fastmcp` | [pages](https://malcolmston.github.io/fastmcp/) |
-| [streamlit](streamlit) | streamlit/streamlit (Python) | `github.com/malcolmston/streamlit` | [pages](https://malcolmston.github.io/streamlit/) |
-| [algebra](algebra) | sympy/sympy (Python) | `github.com/malcolmston/algebra` | [pages](https://malcolmston.github.io/algebra/) |
-| [opencv](opencv) | opencv/opencv (Python) | `github.com/malcolmston/opencv` | [pages](https://malcolmston.github.io/opencv/) |
+### Web & real-time
+
+| Library | Ports | Parity | Docs |
+| ------- | ----- | :----: | ---- |
+| [express](express) | expressjs/express (+90 npm util ports) | 100% | [pages](https://malcolmston.github.io/express/) |
+| [passport](passport) | jaredhanson/passport (+ strategies) | 100% | [pages](https://malcolmston.github.io/passport/) |
+| [socket.io](socket.io) | socketio/socket.io | 100% | [pages](https://malcolmston.github.io/socket.io/) |
+| [morgan](morgan) | expressjs/morgan | 100% | [pages](https://malcolmston.github.io/morgan/) |
+| [liveview](liveview) | phoenixframework/phoenix_live_view | 100% | [pages](https://malcolmston.github.io/liveview/) |
+| [cheerio](cheerio) | cheeriojs/cheerio | 100% | [pages](https://malcolmston.github.io/cheerio/) |
+| [handlebars](handlebars) | handlebars-lang/handlebars.js | 97% | [pages](https://malcolmston.github.io/handlebars/) |
+| [axios](axios) | axios/axios | 100% | [pages](https://malcolmston.github.io/axios/) |
+| [puppeteer](puppeteer) | puppeteer/puppeteer | 94% | [pages](https://malcolmston.github.io/puppeteer/) |
+
+### CLI, docs & formats
+
+| Library | Ports | Parity | Docs |
+| ------- | ----- | :----: | ---- |
+| [chalk](chalk) | chalk/chalk (+ figlet, prompts) | 100% | [pages](https://malcolmston.github.io/chalk/) |
+| [jest](jest) | jestjs/jest | 100% | [pages](https://malcolmston.github.io/jest/) |
+| [jwt](jwt) | auth0/node-jsonwebtoken | 100% | [pages](https://malcolmston.github.io/jwt/) |
+| [nodemailer](nodemailer) | nodemailer/nodemailer | 100% | [pages](https://malcolmston.github.io/nodemailer/) |
+| [pdfkit](pdfkit) | foliojs/pdfkit | 100% | [pages](https://malcolmston.github.io/pdfkit/) |
+| [gltf](gltf) | KhronosGroup/glTF | 100% | [pages](https://malcolmston.github.io/gltf/) |
+| [sharp](sharp) | lovell/sharp | 100% | [pages](https://malcolmston.github.io/sharp/) |
+
+### Data, math & ML (Python-inspired)
+
+| Library | Ports | Parity | Docs |
+| ------- | ----- | :----: | ---- |
+| [algebra](algebra) | sympy/sympy (91 subpackages) | 100% | [pages](https://malcolmston.github.io/algebra/) |
+| [opencv](opencv) | opencv/opencv | — | [pages](https://malcolmston.github.io/opencv/) |
+| [numpy](numpy) | numpy/numpy | 100% | [pages](https://malcolmston.github.io/numpy/) |
+| [pandas](pandas) | pandas-dev/pandas | 100% | [pages](https://malcolmston.github.io/pandas/) |
+| [matplotlib](matplotlib) | matplotlib/matplotlib | 100% | [pages](https://malcolmston.github.io/matplotlib/) |
+| [streamlit](streamlit) | streamlit/streamlit | 93% | [pages](https://malcolmston.github.io/streamlit/) |
+
+### Stores, infra & tooling
+
+| Library | Ports | Parity | Docs |
+| ------- | ----- | :----: | ---- |
+| [sqlite](sqlite) | sqlite/sqlite | 100% | [pages](https://malcolmston.github.io/sqlite/) |
+| [redis](redis) | redis/redis | 100% | [pages](https://malcolmston.github.io/redis/) |
+| [sled](sled) | spacejam/sled (Rust) | 100% | [pages](https://malcolmston.github.io/sled/) |
+| [prisma](prisma) | prisma/prisma | 100% | [pages](https://malcolmston.github.io/prisma/) |
+| [migrate](migrate) | rails/rails (ActiveRecord) | 100% | [pages](https://malcolmston.github.io/migrate/) |
+| [quartz](quartz) | quartz-scheduler/quartz (Java) | 100% | [pages](https://malcolmston.github.io/quartz/) |
+| [oban](oban) | sorentwo/oban (Elixir) | 100% | [pages](https://malcolmston.github.io/oban/) |
+| [lucene](lucene) | apache/lucene (Java) | 100% | [pages](https://malcolmston.github.io/lucene/) |
+| [fastmcp](fastmcp) | jlowin/fastmcp (Python) | 99% | [pages](https://malcolmston.github.io/fastmcp/) |
+
+### General utilities
+
+| Library | Ports | Parity | Docs |
+| ------- | ----- | :----: | ---- |
+| [lodash](lodash) | lodash/lodash | 98% | [pages](https://malcolmston.github.io/lodash/) |
+| [moment](moment) | moment/moment | 98% | [pages](https://malcolmston.github.io/moment/) |
+
+> Module paths follow `github.com/malcolmston/<name>` (Socket.IO is
+> `github.com/malcolmston/socketio`).
+
+## Upstream parity & pipeline
+
+Every port is measured against the **original** library, not by eyeball. Each
+repo's parity CI:
+
+1. **syncs the upstream project's own test suite** — the real vectors from
+   `expressjs/express`, `lodash/lodash`, the RFC appendices, the official
+   JSON-Schema / URI-Template conformance suites, etc. — into Go
+   `TestParity*` tests;
+2. **closes the behavior gaps** those vectors expose; and
+3. **publishes `parity.json`**, the machine-readable score.
+
+Every repo's pipeline routes through one **central reusable workflow**
+([`.github/workflows/parity-reusable.yml`](.github/workflows/parity-reusable.yml)),
+and the landing regenerates the scores live on each deploy. Open any library tab
+on the site to see its score broken down (cases synced, gaps closed) and a
+node-graph of the **actual pipeline stages** with live status.
+
+Multi-package libraries are additionally audited **per subpackage**: express's
+~60 npm-utility ports, passport's strategy/RFC subpackages, and chalk / fastmcp /
+socket.io subpackages are each verified against their own upstream suites.
+
+## Full API reference
+
+The landing renders every library's **complete Go API reference inline** —
+package-by-package types, functions, methods, constants and runnable examples —
+generated from source by a stdlib-only `go/doc` tool (`gendocs`). Each library
+also ships the same reference on its own docs site (the **Docs** tab), so the
+family maintains **100% exported-symbol doc coverage**.
 
 ## Clone (with submodules)
 
@@ -55,14 +138,9 @@ The libraries are independent — you do **not** need this repo to use them:
 
 ```sh
 go get github.com/malcolmston/express
-go get github.com/malcolmston/passport
-go get github.com/malcolmston/socketio
-go get github.com/malcolmston/chalk
-go get github.com/malcolmston/morgan
-go get github.com/malcolmston/fastmcp
-go get github.com/malcolmston/streamlit
 go get github.com/malcolmston/algebra
-go get github.com/malcolmston/opencv
+go get github.com/malcolmston/socketio
+# …any of the 33, all github.com/malcolmston/<name>
 ```
 
 ## Develop across libraries (workspace)
@@ -95,9 +173,12 @@ straight at the suite that broke:
   TypeScript type-check for the unified site.
 - **[Web E2E](.github/workflows/web-e2e.yml)** — the Playwright device sweep
   against a production build of the site.
-- **[Pages](.github/workflows/pages.yml)** — publishes the unified site.
+- **[Pages](.github/workflows/pages.yml)** — regenerates the per-library API
+  docs + live parity metrics and publishes the unified site.
+- **[Parity (reusable)](.github/workflows/parity-reusable.yml)** — the central
+  `workflow_call` every library's own `parity.yml` routes through.
 
 ## License
 
 MIT. Each library is an independent re-implementation and is **not** affiliated
-with or endorsed by the original Node.js projects.
+with or endorsed by the original projects.
