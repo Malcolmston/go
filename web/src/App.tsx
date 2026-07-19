@@ -5,6 +5,8 @@ import type { Tab } from 'go-ui';
 import { LIBS } from './data';
 import { Home } from './components/Home';
 import { LibView } from './components/LibView';
+import { Parity } from './components/Parity';
+import { Pipeline } from './components/Pipeline';
 import { Releases } from './components/Releases';
 import { HowTo } from './components/HowTo';
 import { Faq } from './components/Faq';
@@ -14,6 +16,8 @@ import { About } from './components/About';
 const TABS: Tab[] = [
   { id: 'home', label: 'Home' },
   ...LIBS.map((l) => ({ id: l.id, label: l.name, dot: l.accent })),
+  { id: 'parity', label: 'Parity' },
+  { id: 'pipeline', label: 'Pipeline' },
   { id: 'releases', label: 'Releases' },
   { id: 'howto', label: 'How-to' },
   { id: 'faq', label: 'FAQ' },
@@ -46,6 +50,8 @@ export function App() {
     <Layout brand={brand} tabs={TABS} active={active} onNav={go} github="https://github.com/malcolmston" footer={footer}>
       {active === 'home' && <Home go={go} />}
       {lib && <LibView lib={lib} key={lib.id} />}
+      {active === 'parity' && <Parity />}
+      {active === 'pipeline' && <Pipeline />}
       {active === 'releases' && <Releases />}
       {active === 'howto' && <HowTo />}
       {active === 'faq' && <Faq />}
