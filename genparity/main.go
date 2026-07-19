@@ -14,6 +14,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -32,9 +33,13 @@ type parityFile struct {
 }
 
 func main() {
-	root := "."
-	if len(os.Args) > 1 {
-		root = os.Args[1]
+	rootFlag := flag.String("root", ".", "directory holding the library repos/submodules (each with a parity.json)")
+	outFlag := flag.String("out", "", "output path for parity.ts (default <root>/web/src/parity.ts)")
+	flag.Parse()
+	root := *rootFlag
+	// Backward-compatible positional root argument.
+	if flag.NArg() > 0 {
+		root = flag.Arg(0)
 	}
 	entries, err := os.ReadDir(root)
 	if err != nil {
@@ -73,7 +78,10 @@ func main() {
 	}
 	b.WriteString("};\n")
 
-	out := filepath.Join(root, "web", "src", "parity.ts")
+	out := *outFlag
+	if out == "" {
+		out = filepath.Join(root, "web", "src", "parity.ts")
+	}
 	if err := os.WriteFile(out, []byte(b.String()), 0o644); err != nil {
 		fatal(err)
 	}
