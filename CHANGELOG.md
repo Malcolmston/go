@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-07-19
+### Added
+- **Inline API reference** on every library tab — the complete Go API docs
+  (package-by-package types, functions, methods, examples) rendered from source by
+  a new stdlib-only `gendocs` tool.
+- **Live upstream-parity score** per library, regenerated from each repo's
+  `parity.json` on deploy, with a per-library breakdown (cases synced, gaps closed)
+  and an **interactive React-Flow-style pipeline diagram** (draggable, pannable /
+  zoomable canvas, live GitHub Actions status, Replay).
+- Full multi-section **How-to guide** covering the whole family.
+### Changed
+- README lists all 33 libraries grouped by domain with live parity scores.
+- Pages CI regenerates per-library API docs + live parity metrics on each deploy.
+
 ## [0.1.0] - 2026-07-04
 ### Added
 - Initial public release of the unified `malcolmston/go` aggregator.
