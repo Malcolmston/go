@@ -1,6 +1,6 @@
 {
   "module": "github.com/malcolmston/passport",
-  "generatedAt": "2026-07-19T02:05:53Z",
+  "generatedAt": "2026-07-19T15:18:13Z",
   "packages": [
     {
       "importPath": "github.com/malcolmston/passport",
@@ -457,9 +457,18 @@
     {
       "importPath": "github.com/malcolmston/passport/httpauth",
       "name": "httpauth",
-      "synopsis": "Package httpauth encodes and decodes HTTP Authorization and WWW-Authenticate headers for the passport port.",
-      "doc": "Package httpauth encodes and decodes HTTP Authorization and\nWWW-Authenticate headers for the passport port. The basic, bearer, and digest\nstrategies each parse these headers themselves; this package factors the\nwire-format handling into one standard-library-only place with exact,\nspecification-driven behavior.\n\nIt covers the two most common schemes: HTTP Basic (RFC 7617), whose\ncredential is base64(\"user:pass\"), and Bearer (RFC 6750). It also builds the\nWWW-Authenticate challenge servers return with a 401, including the realm and\n(for Bearer) an optional error code. Everything here is deterministic.\n",
+      "synopsis": "This file adds HTTP Digest Access Authentication (RFC 7616) to the httpauth package.",
+      "doc": "This file adds HTTP Digest Access Authentication (RFC 7616) to the httpauth\npackage. The response-digest computation follows RFC 7616 Section 3.4.6\nexactly and is verified against the canonical worked example in RFC 7616\nSection 3.9.1 (see httpauth_parity_test.go). Only the standard library is\nused; the crypto/* hashes are the ones the specification names.\n\nPackage httpauth encodes and decodes HTTP Authorization and\nWWW-Authenticate headers for the passport port. The basic, bearer, and digest\nstrategies each parse these headers themselves; this package factors the\nwire-format handling into one standard-library-only place with exact,\nspecification-driven behavior.\n\nIt covers the two most common schemes: HTTP Basic (RFC 7617), whose\ncredential is base64(\"user:pass\"), and Bearer (RFC 6750). It also builds the\nWWW-Authenticate challenge servers return with a 401, including the realm and\n(for Bearer) an optional error code. Everything here is deterministic.\n",
       "consts": [
+        {
+          "names": [
+            "AlgMD5",
+            "AlgSHA256",
+            "AlgSHA512_256"
+          ],
+          "signature": "const (\n\tAlgMD5        = \"MD5\"\n\tAlgSHA256     = \"SHA-256\"\n\tAlgSHA512_256 = \"SHA-512-256\"\n)",
+          "doc": "Digest algorithm names defined by RFC 7616 Section 3.3. Each may also appear\nwith a \"-sess\" suffix (session variant, RFC 7616 Section 3.4.2).\n"
+        },
         {
           "names": [
             "SchemeBasic",
@@ -467,6 +476,13 @@
           ],
           "signature": "const (\n\tSchemeBasic  = \"Basic\"\n\tSchemeBearer = \"Bearer\"\n)",
           "doc": "Scheme names an HTTP authentication scheme.\n"
+        },
+        {
+          "names": [
+            "SchemeDigest"
+          ],
+          "signature": "const SchemeDigest = \"Digest\"",
+          "doc": "SchemeDigest names the HTTP Digest authentication scheme (RFC 7616).\n"
         }
       ],
       "vars": [
@@ -478,6 +494,13 @@
           ],
           "signature": "var (\n\t// ErrNoHeader indicates an empty Authorization header.\n\tErrNoHeader = errors.New(\"httpauth: empty authorization header\")\n\t// ErrWrongScheme indicates the header used a scheme other than the one\n\t// requested.\n\tErrWrongScheme = errors.New(\"httpauth: unexpected authorization scheme\")\n\t// ErrMalformed indicates the header value was structurally invalid.\n\tErrMalformed = errors.New(\"httpauth: malformed authorization header\")\n)",
           "doc": "Errors returned when a header cannot be parsed.\n"
+        },
+        {
+          "names": [
+            "ErrUnknownAlgorithm"
+          ],
+          "signature": "var ErrUnknownAlgorithm = errors.New(\"httpauth: unknown digest algorithm\")",
+          "doc": "ErrUnknownAlgorithm indicates a Digest \"algorithm\" value this package does\nnot implement.\n"
         }
       ],
       "types": [
@@ -495,6 +518,15 @@
             }
           ],
           "methods": []
+        },
+        {
+          "name": "DigestParams",
+          "signature": "type DigestParams struct {\n\tMethod   string // HTTP method, e.g. \"GET\".\n\tURI      string // Request-target as sent in the \"uri\" digest field.\n\tUsername string\n\tRealm    string\n\tPassword string\n\tNonce    string // Server-provided nonce.\n\tNC       string // nonce-count, 8 lowercase hex digits, e.g. \"00000001\".\n\tCNonce   string // Client-provided nonce.\n\tQOP      string // \"auth\", \"auth-int\", or \"\" for the legacy RFC 2069 form.\n\t// Algorithm is one of AlgMD5, AlgSHA256, AlgSHA512_256, optionally with a\n\t// \"-sess\" suffix. An empty value defaults to MD5 per RFC 7616 Section 3.4.\n\tAlgorithm string\n\t// Body is the entity body, hashed only when QOP is \"auth-int\"\n\t// (RFC 7616 Section 3.4.3). It is ignored otherwise.\n\tBody []byte\n}",
+          "doc": "DigestParams holds the inputs to an RFC 7616 digest-response computation. The\nsame struct drives both the client (build an Authorization response) and the\nserver (recompute and compare).\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
         }
       ],
       "funcs": [
@@ -507,6 +539,11 @@
           "name": "BearerChallenge",
           "signature": "func BearerChallenge(realm, errCode string) string",
           "doc": "BearerChallenge returns the WWW-Authenticate header value for a Bearer 401.\nWhen realm is non-empty it is included; when errCode is non-empty an RFC 6750\nerror parameter (e.g. \"invalid_token\") is appended.\n"
+        },
+        {
+          "name": "DigestResponse",
+          "signature": "func DigestResponse(p DigestParams) (string, error)",
+          "doc": "DigestResponse computes the hex \"response\" value for a Digest credential per\nRFC 7616 Section 3.4.6. It returns ErrUnknownAlgorithm for an algorithm this\npackage does not support.\n"
         },
         {
           "name": "EncodeBasic",
@@ -527,6 +564,11 @@
           "name": "ParseBearer",
           "signature": "func ParseBearer(header string) (string, error)",
           "doc": "ParseBearer extracts the token from an \"Authorization: Bearer ...\" header. It\nreturns ErrWrongScheme for a non-Bearer header.\n"
+        },
+        {
+          "name": "ParseParams",
+          "signature": "func ParseParams(rest string) map[string]string",
+          "doc": "ParseParams parses the comma-separated auth-param list that follows the scheme\ntoken in a WWW-Authenticate or Authorization header (e.g. the part after\n\"Digest \"). Keys are lower-cased; quoted-string values are unquoted and their\nbackslash escapes removed. It is tolerant of surrounding whitespace.\n"
         },
         {
           "name": "ParseScheme",
