@@ -14,12 +14,13 @@ describe('PackageView', () => {
     expect(screen.getByText('import "github.com/malcolmston/express"')).toBeInTheDocument();
   });
 
-  it('renders section headings for consts, vars, types and funcs', () => {
+  it('renders summary section headings for consts, vars, types and funcs', () => {
     render(<PackageView pkg={express} />);
-    expect(screen.getByRole('heading', { level: 2, name: 'Constants' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 2, name: 'Variables' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 2, name: 'Types' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 2, name: 'Functions' })).toBeInTheDocument();
+    // Javadoc-style summary headings carry a trailing count, so match by prefix.
+    expect(screen.getByRole('heading', { level: 2, name: /Constant Summary/ })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: /Variable Summary/ })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: /Type Summary/ })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: /Function Summary/ })).toBeInTheDocument();
   });
 
   it('renders types with their nested methods and constructor funcs', () => {
@@ -36,7 +37,9 @@ describe('PackageView', () => {
   it('renders a package-level function symbol', () => {
     const { container } = render(<PackageView pkg={express} />);
     expect(container.querySelector('#sym-Static')).not.toBeNull();
-    expect(screen.getByText(/Static returns a handler/)).toBeInTheDocument();
+    // The doc appears in both the summary table and the detail card, so assert
+    // on the container text rather than a unique element.
+    expect(container.textContent).toContain('Static returns a handler');
   });
 
   it('renders an example with its expected output', () => {

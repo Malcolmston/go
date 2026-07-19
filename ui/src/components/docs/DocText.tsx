@@ -13,6 +13,12 @@ type Block =
 
 const URL_RE = /(https?:\/\/[^\s<>()]+[^\s<>().,;:!?])/g;
 
+// Callout prefixes. A paragraph opening with one of these is rendered as a
+// `.gd-note` callout instead of a plain paragraph. "Deprecated:" additionally
+// gets the red-tinted `gd-note-dep` modifier.
+const NOTE_RE = /^(Note|NOTE):\s*/;
+const DEP_RE = /^(Deprecated):\s*/;
+
 function isIndented(line: string): boolean {
   return line.startsWith('\t') || line.startsWith('    ');
 }
@@ -88,31 +94,52 @@ function linkify(text: string): ReactNode[] {
   return out.length ? out : [text];
 }
 
+// renderPara renders a plain paragraph, promoting recognised "Note:" /
+// "Deprecated:" leaders into `.gd-note` callouts. URLs stay linkified in every
+// variant.
+function renderPara(text: string, key: number): ReactNode {
+  const dep = DEP_RE.exec(text);
+  if (dep) {
+    const rest = text.slice(dep[0].length);
+    return (
+      <div key={key} className="gd-note gd-note-dep">
+        <strong>Deprecated:</strong> {linkify(rest)}
+      </div>
+    );
+  }
+  const note = NOTE_RE.exec(text);
+  if (note) {
+    const rest = text.slice(note[0].length);
+    return (
+      <div key={key} className="gd-note">
+        <strong>Note:</strong> {linkify(rest)}
+      </div>
+    );
+  }
+  return (
+    <p key={key}>{linkify(text)}</p>
+  );
+}
+
 // DocText renders Go doc-comment text to HTML: paragraphs, indented code blocks
-// (highlighted via the shared CodeBlock), simple headings, and linkified URLs.
-// It is intentionally dependency-free.
+// (highlighted via the shared CodeBlock), simple headings, linkified URLs, and
+// "Note:"/"Deprecated:" callouts. It is intentionally dependency-free.
 export function DocText({ text }: DocTextProps) {
   const trimmed = (text ?? '').trim();
   if (!trimmed) return null;
   const blocks = parseDoc(text);
   return (
-    <div className="doc-text">
+    <div className="gd-prose">
       {blocks.map((b, idx) => {
         if (b.kind === 'code') {
           return <CodeBlock key={idx} lang="go" html={hi(b.text)} />;
         }
         if (b.kind === 'heading') {
           return (
-            <h4 key={idx} className="doc-heading">
-              {b.text}
-            </h4>
+            <h4 key={idx}>{b.text}</h4>
           );
         }
-        return (
-          <p key={idx} className="doc-para">
-            {linkify(b.text)}
-          </p>
-        );
+        return renderPara(b.text, idx);
       })}
     </div>
   );

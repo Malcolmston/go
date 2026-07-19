@@ -12,12 +12,11 @@ describe('PackageNav', () => {
     render(<PackageNav packages={sample.packages} active={sample.packages[0].importPath} onSelect={() => {}} />);
     expect(screen.getByText('express')).toBeInTheDocument();
     expect(screen.getByText('middleware')).toBeInTheDocument();
-    expect(screen.getByText('github.com/malcolmston/express/middleware')).toBeInTheDocument();
   });
 
   it('marks the active package', () => {
     render(<PackageNav packages={sample.packages} active={sample.packages[1].importPath} onSelect={() => {}} />);
-    const active = document.querySelector('.docs-pkg-link.active');
+    const active = document.querySelector('.gd-pkg-header.open');
     expect(active?.textContent).toContain('middleware');
   });
 

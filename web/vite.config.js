@@ -4,8 +4,11 @@ import { fileURLToPath } from 'node:url';
 
 // The go repo is served as a GitHub *project* page at
 // https://malcolmston.github.io/go/, so assets must be based under /go/.
+// On Vercel (which sets VERCEL=1 during the build) the app is served from the
+// domain root, so base becomes '/'. Docs fetch uses import.meta.env.BASE_URL,
+// so it follows whichever base is active automatically.
 export default defineConfig({
-  base: '/go/',
+  base: process.env.VERCEL ? '/' : '/go/',
   plugins: [react()],
   resolve: {
     alias: {

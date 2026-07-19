@@ -11,22 +11,26 @@ export interface SymbolCardProps {
   signature: string;
   // Doc-comment text for the symbol (rendered by DocText).
   doc?: string;
+  // When true, mark the symbol with an inline red "Deprecated" badge.
+  deprecated?: boolean;
   // Optional deeper nesting (methods/consts) rendered inside a type card.
   children?: React.ReactNode;
 }
 
-// SymbolCard renders one API symbol: an anchored heading, its highlighted
-// signature, and its documentation. Reused for consts, vars, funcs, and types.
-export function SymbolCard({ id, heading, signature, doc, children }: SymbolCardProps) {
+// SymbolCard renders one Javadoc-style "detail" entry: an anchored monospace
+// heading, its highlighted signature (plain, no left accent), the symbol's
+// documentation, and any nested members/examples. Reused for consts, vars,
+// funcs, types, and methods.
+export function SymbolCard({ id, heading, signature, doc, deprecated, children }: SymbolCardProps) {
   return (
-    <section className="sym-card" id={id}>
-      <h3 className="sym-name">
-        <a className="sym-anchor" href={`#${id}`} aria-label={`Link to ${heading}`}>
-          #
-        </a>
+    <section className="gd-detail">
+      <h3 className="gd-detail-name" id={id}>
         {heading}
+        {deprecated ? <span className="gd-dep-badge">Deprecated</span> : null}
       </h3>
-      <CodeBlock lang="go" html={hi(signature)} />
+      <div className="gd-sig-plain">
+        <CodeBlock lang="go" html={hi(signature)} />
+      </div>
       {doc ? <DocText text={doc} /> : null}
       {children}
     </section>

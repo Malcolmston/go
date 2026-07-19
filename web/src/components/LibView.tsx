@@ -33,7 +33,12 @@ export function LibView({ lib }: LibViewProps) {
         </div>
         <div className="actions">
           <a className="pill b" href={lib.repo} target="_blank" rel="noopener"><i className="fa-brands fa-github" />&nbsp;GitHub</a>
-          <a className="pill b" href={lib.docs} target="_blank" rel="noopener"><i className="fa-solid fa-book" /> API docs</a>
+          {/* Docs are self-contained: the "API docs" pill scrolls to the full
+              reference rendered inline further down this same page (the
+              `${idb}-api` section) rather than sending the reader off to the
+              external github.io docs site. Source ≠ docs, so the GitHub pill
+              above still points at the repository. */}
+          <a className="pill b" href={`#${idb}-api`}><i className="fa-solid fa-book" /> API docs</a>
           <VersionBadge repo={ghrepo(lib)} href={`${lib.repo}/releases`} />
           <span className="pill">ports <b style={{ color: 'var(--fg)', marginLeft: '.25rem' }}>{lib.node}</b></span>
         </div>
@@ -111,7 +116,12 @@ export function LibView({ lib }: LibViewProps) {
           doc index is the per-library file bundled by gendocs at build time. */}
       <DocsApp url={`${import.meta.env.BASE_URL}docs/${docKey(lib)}.json`} title={lib.pkg} hashRouting={false} />
 
-      <div className="note">Standalone API docs &amp; runnable examples: <a href={lib.docs} target="_blank" rel="noopener">{lib.docs}</a></div>
+      <div className="note">
+        The complete API reference &amp; runnable examples are rendered{' '}
+        <a href={`#${idb}-api`}>inline above on this page</a> — reading the docs never sends you to GitHub.
+        A standalone copy of this same reference is also hosted at{' '}
+        <a href={lib.docs} target="_blank" rel="noopener">{lib.docs}</a>.
+      </div>
     </section>
   );
 }

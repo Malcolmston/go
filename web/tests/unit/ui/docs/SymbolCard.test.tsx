@@ -12,11 +12,11 @@ describe('SymbolCard', () => {
         doc="New allocates and returns an empty Router."
       />,
     );
-    // anchor id for deep linking
+    // deep-link anchor id lives on the detail heading
     expect(container.querySelector('#sym-New')).not.toBeNull();
-    expect(screen.getByRole('heading', { name: /func New/ })).toBeInTheDocument();
-    // deep-link anchor points at its own id
-    expect(screen.getByRole('link', { name: /Link to func New/ })).toHaveAttribute('href', '#sym-New');
+    const heading = screen.getByRole('heading', { name: /func New/ });
+    expect(heading).toBeInTheDocument();
+    expect(heading).toHaveAttribute('id', 'sym-New');
     // signature is present (highlighter tokenizes "func")
     expect(container.textContent).toContain('func New() *Router');
     expect(screen.getByText(/New allocates and returns/)).toBeInTheDocument();
@@ -33,6 +33,6 @@ describe('SymbolCard', () => {
 
   it('omits the doc block when no doc is given', () => {
     const { container } = render(<SymbolCard id="sym-x" heading="var X" signature="var X int" />);
-    expect(container.querySelector('.doc-text')).toBeNull();
+    expect(container.querySelector('.gd-prose')).toBeNull();
   });
 });
