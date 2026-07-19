@@ -1,0 +1,72 @@
+name: Vercel
+
+# Deploys the go aggregator (web/) to Vercel on every push to main. The whole
+# landing plus every library's bundled API docs (web/public/docs/*.json ->
+# dist/docs/) ship together, so the Vercel deployment is fully self-contained
+# and needs nothing from GitHub to read the docs. Coexists with the GitHub
+# Pages deploy (pages.yml); vite's base resolves to '/' on Vercel (VERCEL=1)
+# and '/go/' on Pages.
+#
+# Secrets: VERCEL_TOKEN is required. VERCEL_ORG_ID + VERCEL_PROJECT_ID are
+# optional — when both are present the deterministic prebuilt flow is used
+# (recommended once the project exists); otherwise the first run creates and
+# links a new Vercel project non-interactively from web/.
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "web/**"
+      - "ui/**"
+      - ".github/workflows/vercel.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: "vercel"
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: vercel-production
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Deploy web/ to Vercel (production)
+        id: deploy
+        working-directory: web
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          set -e
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "::error::VERCEL_TOKEN secret is not set. Add it under Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+          if [ -n "$VERCEL_ORG_ID" ] && [ -n "$VERCEL_PROJECT_ID" ]; then
+            echo "Using linked project ($VERCEL_PROJECT_ID) — prebuilt flow."
+            vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+            vercel build --prod --token="$VERCEL_TOKEN"
+            url=$(vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN")
+          else
+            echo "No VERCEL_ORG_ID/VERCEL_PROJECT_ID — creating/linking a project from web/ (first run)."
+            url=$(vercel deploy --prod --yes --token="$VERCEL_TOKEN")
+          fi
+          echo "Deployed: $url"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
