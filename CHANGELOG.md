@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-07-20
+### Changed
+- **The Next.js landing now lives at the repository root** (moved up from `web/`),
+  so Vercel zero-config detects and builds it from the normal root — no
+  `vercel.json` and no dashboard Root Directory override. `vercel.json` removed.
+- **Migrated the aggregator from Vite to Next.js 15 (App Router, React 19).** Each
+  tab is a real route (`/`, `/parity`, `/pipeline`, `/explore`, `/releases`,
+  `/howto`, `/faq`, `/ai`, `/about`, and SSG `/lib/[id]` per library); the
+  search + package-graph API runs as Next Route Handlers.
+- **Package manager is pnpm end to end** (app + CI); `next build` now
+  type-checks and lints (ESLint via `eslint-config-next`) as part of the
+  production/Vercel build.
+### Added
+- **Elasticsearch-backed search + a GraphQL package-connection graph** (Vercel
+  serverless functions) powering the Explore tab, with a bundled graph/search
+  fallback for the static GitHub Pages export.
+- Per-library **Overview / Examples / API / Parity** sub-tabs and a dedicated
+  Parity + Pipeline presentation.
+### Fixed
+- Playwright E2E made hermetic and reliable after the migration: real
+  path-routing, blocked-external-host aborts (no render-blocking font/API stalls),
+  atomic link sweeps, client-side tab navigation, and a right-sized CI worker
+  count. PR runs use a representative device subset; the full 200+ device matrix
+  runs on `main` and nightly.
+
 ## [0.3.0] - 2026-07-19
 ### Added
 - **Inline API reference** on every library tab — the complete Go API docs
