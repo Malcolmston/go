@@ -7,8 +7,11 @@ const isPages = process.env.GITHUB_PAGES === 'true';
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  typescript: { ignoreBuildErrors: true },
-  eslint: { ignoreDuringBuilds: true },
+  // Type-check and lint as part of the (Vercel) production build: a type error
+  // or an ESLint error fails the deploy. ESLint lints the app + shared source
+  // dirs; warnings (e.g. no-explicit-any) don't fail the build, errors do.
+  typescript: { ignoreBuildErrors: false },
+  eslint: { ignoreDuringBuilds: false, dirs: ['app', 'src'] },
   // The shared go-ui library is imported from ../ui/src (outside this app dir).
   experimental: { externalDir: true },
   // Monorepo: this app lives in web/ but imports ../ui and the API route

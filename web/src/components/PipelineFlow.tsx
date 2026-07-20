@@ -112,11 +112,17 @@ export function PipelineFlow({ lib, parity }: PipelineFlowProps) {
   const drag = useRef<{ mode: 'pan' | 'node'; id?: string; sx: number; sy: number; ox: number; oy: number } | null>(null);
   const runTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-  // Live status from the GitHub Actions API (best-effort).
+  // Live status from the GitHub Actions API (best-effort). The fetch is bounded
+  // by an AbortController timeout: the graph renders from static parity data on
+  // its own, so a slow/blocked GitHub request (e.g. behind a proxy that never
+  // returns) must never keep the page's network in flight — it just falls back
+  // to the "N/N stages" label.
   useEffect(() => {
     let cancelled = false;
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 8000);
     const url = `https://api.github.com/repos/malcolmston/${repo}/actions/workflows/parity.yml/runs?per_page=1`;
-    fetch(url, { headers: { Accept: 'application/vnd.github+json' } })
+    fetch(url, { headers: { Accept: 'application/vnd.github+json' }, signal: ctrl.signal })
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
       .then((j: { workflow_runs?: LatestRun[] }) => {
         if (cancelled) return;
@@ -132,7 +138,7 @@ export function PipelineFlow({ lib, parity }: PipelineFlowProps) {
         }
       })
       .catch(() => {});
-    return () => { cancelled = true; };
+    return () => { cancelled = true; clearTimeout(timer); ctrl.abort(); };
   }, [repo, stages]);
 
   const fit = useCallback(() => {

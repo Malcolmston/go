@@ -6,17 +6,49 @@ import { test, expect, type Page } from '@playwright/test';
 // the API-docs package navigation, search, and symbol anchors. Runs across the
 // full device matrix, so the desktop-inline vs phone-dropdown nav layouts are
 // both exercised for real.
+//
+// Since the Next.js App Router migration, each nav tab is a real route. The
+// go-ui <Layout> still renders every tab link with an href of `#<id>`, but its
+// onClick routes through the Next router, so the URL after a click is the PATH
+// (mirror of app/nav.ts pathForTab). Direct navigation therefore uses the path,
+// while the tab-link selector still keys off the `#<id>` href.
 
 const IGNORED_HOSTS = ['kit.fontawesome.com', 'api.github.com'];
 let pageErrors: string[] = [];
 
+// The fixed, non-library top-level sections (everything else is a library under
+// /lib/). Mirror of app/nav.ts.
+const TOP_LEVEL = ['parity', 'pipeline', 'explore', 'releases', 'howto', 'faq', 'ai', 'about'];
+
+/** Map a tab id to its route path. */
+function pathForTab(id: string): string {
+  if (id === 'home') return '/';
+  if (TOP_LEVEL.includes(id)) return `/${id}`;
+  return `/lib/${id}`;
+}
+
+/** A regex that matches when the browser URL ends at this tab's path. */
+function urlForTab(id: string): RegExp {
+  const p = pathForTab(id).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`${p}$`);
+}
+
 test.use({ permissions: ['clipboard-read', 'clipboard-write'] });
 
 test.beforeEach(async ({ page }) => {
+  // Fail network-blocked external requests fast (render-blocking font CSS +
+  // api.github.com) so a stalled request can't delay first paint / hydration —
+  // otherwise the heaviest views (e.g. /pipeline) render past their budget.
+  await page.route(/(fonts\.googleapis\.com|fonts\.gstatic\.com|kit\.fontawesome\.com|ka-f\.fontawesome\.com|api\.github\.com)/, (r) => r.abort());
+
   pageErrors = [];
   page.on('pageerror', (err) => {
     const msg = `${err.name}: ${err.message}\n${err.stack ?? ''}`;
-    if (!IGNORED_HOSTS.some((h) => msg.includes(h))) pageErrors.push(msg);
+    // A bare Event (no name, "Event" message, no stack) is a failed subresource
+    // (fontawesome kit / fonts, network-blocked in CI) surfacing as an error
+    // event -- not a JS exception. Real errors carry a name + message + stack.
+    const benign = (err.message === 'Event' || !err.message) && !err.stack;
+    if (!benign && !IGNORED_HOSTS.some((h) => msg.includes(h))) pageErrors.push(msg);
   });
   // Reduced motion by default so the wormhole page transition resolves
   // instantly and deterministically; the wormhole test opts back into motion.
@@ -27,8 +59,34 @@ test.afterEach(() => {
   expect(pageErrors, `unexpected page errors:\n${pageErrors.join('\n---\n')}`).toEqual([]);
 });
 
-// Read the nav tab hrefs (#id) straight from the DOM so this spec is repo-
-// agnostic (go has 11 tabs; each library site has overview/releases/docs).
+// Load the home route and wait for the client-only shell to hydrate and paint
+// (ssr:false), so the nav + active view are present before we assert on them.
+async function gotoHome(page: Page) {
+  // domcontentloaded, not 'load': external fonts/api.github.com are network-
+  // blocked in CI and would hang the 'load' event; the client SPA paints after
+  // DCL + hydration, which the visibility wait below covers.
+  await page.goto('', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('.view.active')).toBeVisible({ timeout: 15_000 });
+}
+
+// Directly navigate to a tab's route and wait for its view to render.
+async function gotoTab(page: Page, id: string) {
+  await page.goto(pathForTab(id), { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('.view.active')).toBeVisible({ timeout: 15_000 });
+}
+
+// Client-side switch to a tab (no full reload) and wait for its view to paint.
+// A sweep across all ~42 tabs this way avoids re-initialising the client-only
+// SPA per tab, so cumulative reload latency can't push a slow device past the
+// per-navigation timeout.
+async function switchTab(page: Page, id: string) {
+  await page.locator(`nav.tabs a.tab[href="#${id}"]`).dispatchEvent('click');
+  await expect(page.locator(`.view.active#view-${id}`)).toBeVisible({ timeout: 20_000 });
+}
+
+// Read the nav tab hrefs (`#<id>`) straight from the DOM so this spec is repo-
+// agnostic (go has home + 33 libraries + 8 top-level sections). The id is
+// href.slice(1); pathForTab(id) gives the route the click will land on.
 async function tabHrefs(page: Page): Promise<string[]> {
   return page.locator('nav.tabs a.tab').evaluateAll((els) =>
     els.map((e) => (e as HTMLAnchorElement).getAttribute('href') || '').filter(Boolean),
@@ -59,25 +117,34 @@ async function ensureMenuForTabs(page: Page) {
   }
 }
 
-test('theme toggle flips data-theme, persists it, and reverts', async ({ page }) => {
-  await page.goto('');
+test('theme toggle flips data-theme, persists it, and flips back', async ({ page }) => {
+  await gotoHome(page);
   const html = page.locator('html');
-  const start = await html.getAttribute('data-theme');
   const btn = page.locator('button.iconbtn[aria-label="Toggle colour theme"]');
   await expect(btn).toBeVisible();
 
+  // The toggle is a two-state light<->dark switch: it sets an explicit
+  // data-theme (resolving an unset attribute to 'dark'), persisted under
+  // 'mgo-theme'. It does not restore the "system/unset" state, so we assert the
+  // pair of values flip against each other rather than reverting to the initial
+  // (possibly null) attribute.
   await btn.dispatchEvent('click');
   const flipped = await html.getAttribute('data-theme');
-  expect(flipped, 'theme should change on toggle').not.toBe(start);
-  expect(['light', 'dark']).toContain(flipped);
+  expect(['light', 'dark'], 'first toggle sets an explicit theme').toContain(flipped);
   expect(await page.evaluate(() => localStorage.getItem('mgo-theme'))).toBe(flipped);
 
   await btn.dispatchEvent('click');
-  expect(await html.getAttribute('data-theme'), 'second toggle reverts').toBe(start);
+  const flippedBack = await html.getAttribute('data-theme');
+  expect(['light', 'dark'], 'second toggle sets the other explicit theme').toContain(flippedBack);
+  expect(flippedBack, 'second toggle flips to the other theme').not.toBe(flipped);
+  expect(await page.evaluate(() => localStorage.getItem('mgo-theme'))).toBe(flippedBack);
 });
 
 test('every nav tab is clickable and activates its view (menu opens on mobile)', async ({ page }) => {
-  await page.goto('');
+  // The nav lists home + 33 libraries + 8 sections, so clicking through every
+  // tab is a long sweep; give it the slow budget.
+  test.slow();
+  await gotoHome(page);
   const hrefs = await tabHrefs(page);
   expect(hrefs.length, 'nav should expose tabs').toBeGreaterThan(0);
 
@@ -92,18 +159,21 @@ test('every nav tab is clickable and activates its view (menu opens on mobile)',
     } catch {
       await link.dispatchEvent('click');
     }
-    await expect(page.locator('.view.active')).toHaveAttribute('id', `view-${id}`);
-    await expect(page).toHaveURL(new RegExp(`#${id}$`));
+    // The heaviest views (e.g. /pipeline's PipelineFlow graph) mount a beat
+    // after the route change, so give the active-view swap a real budget rather
+    // than the default 5s.
+    await expect(page.locator('.view.active')).toHaveAttribute('id', `view-${id}`, { timeout: 15_000 });
+    await expect(page).toHaveURL(urlForTab(id));
   }
 });
 
 test('brand logo returns to the first tab', async ({ page }) => {
-  await page.goto('');
+  await gotoHome(page);
   const hrefs = await tabHrefs(page);
   const firstId = hrefs[0].slice(1);
   const other = hrefs.map((h) => h.slice(1)).find((id) => id !== firstId);
   test.skip(!other, 'need at least two tabs');
-  // Go somewhere else, then click the brand — it must route to the first tab.
+  // Go somewhere else, then click the brand — it must route back to the first tab.
   await page.locator(`nav.tabs a.tab[href="#${other}"]`).dispatchEvent('click');
   await expect(page.locator('.view.active')).toHaveAttribute('id', `view-${other}`);
   await page.locator('a.brand').dispatchEvent('click');
@@ -111,7 +181,7 @@ test('brand logo returns to the first tab', async ({ page }) => {
 });
 
 test('mobile header controls do not overlap (hamburger is tappable)', async ({ page }) => {
-  await page.goto('');
+  await gotoHome(page);
   const menuBtn = page.locator('.menu-btn');
   test.skip(!(await menuBtn.isVisible()), 'desktop layout: no hamburger menu');
 
@@ -127,7 +197,7 @@ test('mobile header controls do not overlap (hamburger is tappable)', async ({ p
 });
 
 test('mobile hamburger menu opens and closes', async ({ page }) => {
-  await page.goto('');
+  await gotoHome(page);
   const menuBtn = page.locator('.menu-btn');
   test.skip(!(await menuBtn.isVisible()), 'desktop layout: no hamburger menu');
 
@@ -147,12 +217,12 @@ test('Copy buttons respond on every page that has them', async ({ page }) => {
   // approach the default per-test cap. Mark it slow (triples the timeout) so a
   // laggy Copied re-render on one device can never exhaust the budget.
   test.slow();
-  await page.goto('');
+  await gotoHome(page);
   const hrefs = await tabHrefs(page);
   let clickedAny = false;
 
   for (const href of hrefs) {
-    await page.goto(href);
+    await switchTab(page, href.slice(1));
     const copies = page.locator('button.copy');
     const n = await copies.count();
     for (let i = 0; i < n; i++) {
@@ -172,11 +242,13 @@ test('Copy buttons respond on every page that has them', async ({ page }) => {
 });
 
 test('every accordion (FAQ / releases / doc examples) toggles open and closed', async ({ page }) => {
-  await page.goto('');
+  // Sweeps every route, so give it the slow budget under the large nav.
+  test.slow();
+  await gotoHome(page);
   const hrefs = await tabHrefs(page);
 
   for (const href of hrefs) {
-    await page.goto(href);
+    await switchTab(page, href.slice(1));
     const summaries = page.locator('.view.active details > summary');
     const n = await summaries.count();
     for (let i = 0; i < n; i++) {
@@ -192,15 +264,17 @@ test('every accordion (FAQ / releases / doc examples) toggles open and closed', 
 });
 
 test('in-page jump links scroll to an existing target', async ({ page }) => {
-  await page.goto('');
+  // Sweeps every route, so give it the slow budget under the large nav.
+  test.slow();
+  await gotoHome(page);
   const hrefs = await tabHrefs(page);
   const tabIds = hrefs.map((h) => h.slice(1));
 
   for (const href of hrefs) {
     const tabId = href.slice(1);
-    await page.goto(href);
+    await switchTab(page, tabId);
     // Links that point at an in-page id (not another tab): e.g. the "on this
-    // page" jump links inside a library view.
+    // page" jump links inside a section view.
     const jumps = page.locator('.view.active a[href^="#"]');
     const targets = (await jumps.evaluateAll((els) =>
       els.map((e) => (e as HTMLAnchorElement).getAttribute('href') || ''),
@@ -211,8 +285,8 @@ test('in-page jump links scroll to an existing target', async ({ page }) => {
     for (const target of targets) {
       await page.locator(`.view.active a[href="#${target}"]`).first().dispatchEvent('click');
       // The target section exists AND — crucially — following an in-page anchor
-      // must NOT navigate away from the current tab (regression guard for the
-      // hash-router resetting to the fallback view on unknown hashes).
+      // must NOT navigate away from the current route (the go-ui click
+      // interceptor only routes tab-id hashes; a section anchor falls through).
       await expect(page.locator(`[id="${target}"]`)).toHaveCount(1);
       await expect(page.locator('.view.active')).toHaveAttribute('id', `view-${tabId}`);
     }
@@ -220,17 +294,17 @@ test('in-page jump links scroll to an existing target', async ({ page }) => {
 });
 
 test('API-docs navigation: filter, open a package, and jump to a symbol', async ({ page }) => {
-  await page.goto('');
+  await gotoHome(page);
   const hrefs = await tabHrefs(page);
   const docsHref = hrefs.find((h) => h === '#docs');
   test.skip(!docsHref, 'this site has no API-docs tab');
 
-  await page.goto(docsHref!);
+  await gotoTab(page, docsHref!.slice(1));
   const shell = page.locator('.docs-shell');
   await expect(shell).toBeVisible();
 
-  // doc.json is generated for the preview server; if it genuinely failed to
-  // load the renderer shows an error — treat that as a skip, not a failure.
+  // doc.json is generated for the server; if it genuinely failed to load the
+  // renderer shows an error — treat that as a skip, not a failure.
   if (await page.locator('.docs-error').count()) test.skip(true, 'doc.json unavailable in this run');
 
   const links = page.locator('.docs-pkg-link');
@@ -273,7 +347,7 @@ test.describe('wormhole page transition', () => {
     // generous budget so a throttled-but-correct transition never flakes.
     test.slow();
     await page.emulateMedia({ reducedMotion: 'no-preference' });
-    await page.goto('');
+    await gotoHome(page);
     const hrefs = await tabHrefs(page);
     const current = (await page.locator('.view.active').getAttribute('id'))?.replace('view-', '');
     const target = hrefs.map((h) => h.slice(1)).find((id) => id !== current);
@@ -286,7 +360,7 @@ test.describe('wormhole page transition', () => {
     await expect(page.locator('canvas.wormhole')).toHaveClass(/on/, { timeout: 5000 });
     // ...the target page arrives (swapped at the throat of the tunnel)...
     await expect(page.locator('.view.active')).toHaveAttribute('id', `view-${target}`, { timeout: 15_000 });
-    await expect(page).toHaveURL(new RegExp(`#${target}$`));
+    await expect(page).toHaveURL(urlForTab(target!));
     // ...and the overlay clears once the animation completes.
     await expect(page.locator('canvas.wormhole')).not.toHaveClass(/on/, { timeout: 15_000 });
     expect(pageErrors, 'wormhole must not throw').toEqual([]);
