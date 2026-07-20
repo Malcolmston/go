@@ -19,14 +19,14 @@ if (projects.length < 100) {
   throw new Error(`Expected >= 100 device projects, got ${projects.length}`);
 }
 
-const BASE_URL = 'http://localhost:4173/go/';
+const BASE_URL = 'http://localhost:4173/';
 
 export default defineConfig({
   testDir: './tests/e2e',
   fullyParallel: true,
   workers: 24,
   // Generous per-test timeout: the link/nav sweeps navigate every page, and the
-  // 200+ project matrix shares a single preview server under 24 workers.
+  // 200+ project matrix shares a single Next server under 24 workers.
   timeout: 60_000,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
@@ -37,7 +37,8 @@ export default defineConfig({
   },
   projects,
   webServer: {
-    command: 'npm run build && npm run preview -- --port 4173 --strictPort',
+    // Production build, then serve the Next app at the domain root on 4173.
+    command: 'npm run build && npx next start -p 4173',
     url: BASE_URL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
