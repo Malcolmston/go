@@ -1,11 +1,46 @@
 import { defineConfig, devices } from '@playwright/test';
 
-// Generate one Playwright PROJECT per built-in device descriptor. Playwright
-// ships 100+ device profiles; every project is forced onto the chromium engine
-// so the whole matrix runs where only chromium is installed. This is the
-// per-device responsive sweep of the site.
+// Playwright ships 100+ device descriptors. The full sweep runs every one
+// (forced onto chromium so the whole matrix runs where only chromium is
+// installed) — that is the exhaustive per-device responsive check, kept for
+// `main` pushes and the nightly schedule.
 const deviceNames = Object.keys(devices);
-const projects = deviceNames.map((name) => ({
+
+// Guard: the "100+ device profiles" guarantee must never silently regress.
+if (deviceNames.length < 100) {
+  throw new Error(`Expected >= 100 device descriptors, got ${deviceNames.length}`);
+}
+
+// On pull requests the full matrix is overkill and slow, so E2E_SUBSET=1 runs a
+// small, representative slice — a couple of desktops, phones and tablets that
+// span the responsive breakpoints (mobile menu / overflow strip / inline tabs).
+// Preferred names are filtered to those the installed Playwright actually ships
+// (device names drift across versions), then topped up from the full list so we
+// always get a stable ~8-project subset even if a name was renamed.
+const SUBSET_PREFERRED = [
+  'Desktop Chrome',
+  'Desktop Safari',
+  'Desktop Edge',
+  'iPhone 15',
+  'iPhone SE',
+  'Pixel 7',
+  'iPad Pro 11',
+  'Galaxy S9+',
+];
+const SUBSET_SIZE = 8;
+
+function subsetNames(): string[] {
+  const present = SUBSET_PREFERRED.filter((n) => deviceNames.includes(n));
+  for (const n of deviceNames) {
+    if (present.length >= SUBSET_SIZE) break;
+    if (!present.includes(n)) present.push(n);
+  }
+  return present;
+}
+
+const selectedNames = process.env.E2E_SUBSET === '1' ? subsetNames() : deviceNames;
+
+const projects = selectedNames.map((name) => ({
   name,
   use: {
     ...devices[name],
@@ -13,11 +48,6 @@ const projects = deviceNames.map((name) => ({
     defaultBrowserType: 'chromium' as const,
   },
 }));
-
-// Guard: the "100+ device profiles" guarantee must never silently regress.
-if (projects.length < 100) {
-  throw new Error(`Expected >= 100 device projects, got ${projects.length}`);
-}
 
 const BASE_URL = 'http://localhost:4173/';
 

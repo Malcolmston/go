@@ -1,8 +1,10 @@
 name: Web e2e
 
 # Playwright end-to-end tests for the landing site across the device matrix.
-# Sharded across 4 parallel runners to cut wall-clock time; each shard also
-# runs its slice with the configured worker count.
+#
+# Pull requests run a small, representative device SUBSET (E2E_SUBSET=1) across
+# 2 shards to keep PR wall-clock low. Pushes to main and the nightly schedule
+# run the full 100+ device matrix across 4 shards for exhaustive coverage.
 
 on:
   pull_request:
@@ -10,19 +12,46 @@ on:
   push:
     branches: ["main"]
     paths: ["web/**", ".github/workflows/web-e2e.yml"]
+  schedule:
+    # Nightly full-matrix sweep (06:00 UTC).
+    - cron: "0 6 * * *"
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
+  # Compute the run shape once: PRs get the subset + 2 shards, everything else
+  # (main pushes, nightly, manual) gets the full matrix + 4 shards.
+  config:
+    runs-on: ubuntu-latest
+    outputs:
+      shards: ${{ steps.plan.outputs.shards }}
+      total: ${{ steps.plan.outputs.total }}
+      subset: ${{ steps.plan.outputs.subset }}
+    steps:
+      - id: plan
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo 'shards=[1,2]' >> "$GITHUB_OUTPUT"
+            echo 'total=2' >> "$GITHUB_OUTPUT"
+            echo 'subset=1' >> "$GITHUB_OUTPUT"
+          else
+            echo 'shards=[1,2,3,4]' >> "$GITHUB_OUTPUT"
+            echo 'total=4' >> "$GITHUB_OUTPUT"
+            echo 'subset=0' >> "$GITHUB_OUTPUT"
+          fi
+
   playwright:
-    name: Playwright E2E (shard ${{ matrix.shard }}/4)
+    needs: config
+    name: Playwright E2E (shard ${{ matrix.shard }}/${{ needs.config.outputs.total }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4]
+        shard: ${{ fromJSON(needs.config.outputs.shards) }}
+    env:
+      E2E_SUBSET: ${{ needs.config.outputs.subset }}
     steps:
       - uses: actions/checkout@v7
         with: { submodules: true }
@@ -39,9 +68,9 @@ jobs:
       - name: Install Playwright chromium
         working-directory: web
         run: npx playwright install --with-deps chromium
-      - name: Run E2E (shard ${{ matrix.shard }}/4)
+      - name: Run E2E (shard ${{ matrix.shard }}/${{ needs.config.outputs.total }})
         working-directory: web
-        run: npx playwright test --shard=${{ matrix.shard }}/4
+        run: npx playwright test --shard=${{ matrix.shard }}/${{ needs.config.outputs.total }}
       - name: Upload report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
