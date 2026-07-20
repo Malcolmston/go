@@ -30,7 +30,7 @@ jobs:
       # exhausts and fails. The aggregator's Go workspace build only needs the
       # library modules themselves, so the nested web/vendor/go is irrelevant.
       - name: Checkout with submodules
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           submodules: true
           fetch-depth: 0
@@ -41,7 +41,7 @@ jobs:
         run: git submodule update --remote express passport socket.io chalk morgan fastmcp streamlit algebra opencv
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7
         with:
           go-version: "1.24"
 
