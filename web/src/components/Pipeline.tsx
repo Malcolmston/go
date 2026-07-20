@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { ChangeEvent } from 'react';
+import Link from 'next/link';
 import { LIBS } from '../data';
 import { parityFor } from '../parityLookup';
 import { PipelineFlow } from './PipelineFlow';
@@ -31,7 +32,7 @@ export function Pipeline() {
       <p className="muted">
         Every library's upstream-parity CI runs the same stages, wired as the graph below. Node statuses reflect the
         <b> live</b> GitHub Actions run; drag nodes, pan/zoom the canvas, or hit <b>Replay</b> to watch it execute. See
-        the <a href="#parity">Parity</a> tab for how the score itself is calculated.
+        the <Link href="/parity">Parity</Link> tab for how the score itself is calculated.
       </p>
 
       <div className="pipeline-picker">

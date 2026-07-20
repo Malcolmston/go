@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import type { CSSProperties } from 'react';
+import Link from 'next/link';
 import { CodeBlock, CompareCard, DocsApp, VersionBadge, hi, hx, ghrepo } from 'go-ui';
 import type { Lib } from '../data';
 import { parityFor } from '../parityLookup';
+import { withBase } from '../basePath';
 import { Html } from './Html';
 
 export interface LibViewProps {
@@ -116,7 +118,7 @@ export function LibView({ lib }: LibViewProps) {
           {/* Full Javadoc-style reference rendered inline. hashRouting is off so the
               renderer does not fight the aggregator's hash-based tab router. The
               doc index is the per-library file bundled by gendocs at build time. */}
-          <DocsApp url={`${import.meta.env.BASE_URL}docs/${docKey(lib)}.json`} title={lib.pkg} hashRouting={false} />
+          <DocsApp url={withBase(`docs/${docKey(lib)}.json`)} title={lib.pkg} hashRouting={false} />
         </div>
       )}
 
@@ -130,8 +132,8 @@ export function LibView({ lib }: LibViewProps) {
                 <a href={`${lib.repo}/blob/main/parity.json`} target="_blank" rel="noopener"><code>parity.json</code></a>,
                 which the port's parity CI pipeline publishes. It measures the Go port against the original library by syncing
                 that library's own test suite and closing the gaps those tests expose. See the{' '}
-                <a href="#parity">Parity</a> tab for exactly how the score is calculated, and the{' '}
-                <a href="#pipeline">Pipeline</a> tab to watch {lib.name}'s CI run stage by stage.
+                <Link href="/parity">Parity</Link> tab for exactly how the score is calculated, and the{' '}
+                <Link href="/pipeline">Pipeline</Link> tab to watch {lib.name}'s CI run stage by stage.
               </p>
               <div className="parity-tiles">
                 <div className="parity-tile" style={{ '--lib-accent': lib.accent } as CSSProperties}>
@@ -151,7 +153,7 @@ export function LibView({ lib }: LibViewProps) {
           ) : (
             <p className="muted">
               {lib.name} is not yet audited against an upstream test suite, so it has no live parity score. Its pipeline still
-              builds and tests the port on every push — see the <a href="#pipeline">Pipeline</a> tab, or{' '}
+              builds and tests the port on every push — see the <Link href="/pipeline">Pipeline</Link> tab, or{' '}
               <a href={`${lib.repo}/actions`} target="_blank" rel="noopener">view CI ↗</a>.
             </p>
           )}

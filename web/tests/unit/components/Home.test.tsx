@@ -16,11 +16,11 @@ describe('Home', () => {
     expect(container.querySelectorAll('.card.lib').length).toBe(LIBS.length);
   });
 
-  it('navigates to howto when the get-started CTA is clicked', async () => {
-    const go = vi.fn();
-    render(<Home go={go} />);
-    await userEvent.click(screen.getByRole('link', { name: /Get started/ }));
-    expect(go).toHaveBeenCalledWith('howto');
+  it('links to the how-to route from the get-started CTA', () => {
+    // The CTA is now a Next <Link> (App Router) rather than a go() callback, so
+    // assert it points at the /howto route instead of a hash-tab navigation.
+    render(<Home go={() => {}} />);
+    expect(screen.getByRole('link', { name: /Get started/ })).toHaveAttribute('href', '/howto');
   });
 
   it('opens a library when its card is clicked', async () => {

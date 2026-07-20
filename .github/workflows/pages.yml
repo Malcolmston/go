@@ -70,16 +70,25 @@ jobs:
       - name: Generate search + package-graph data
         run: node scripts/build-graph-data.mjs
 
+      # Build the Next.js static export. GITHUB_PAGES=true switches
+      # next.config.mjs to `output: 'export'` (emitting web/out) with
+      # basePath '/go'; NEXT_PUBLIC_BASE_PATH=/go makes client fetch()s and
+      # asset links resolve under the /go project-pages prefix.
       - name: Build site
         working-directory: web
         run: |
           npm ci
-          npm run build
+          # Static export can't include the dynamic /api route handlers (they run
+          # only on Vercel). GitHub Pages uses the bundled graph/search fallback,
+          # so exclude app/api for the export build, then restore it.
+          mv app/api ../.api-routes-tmp
+          GITHUB_PAGES=true NEXT_PUBLIC_BASE_PATH=/go npm run build
+          mv ../.api-routes-tmp app/api
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5
         with:
-          path: web/dist
+          path: web/out
 
   deploy:
     needs: build

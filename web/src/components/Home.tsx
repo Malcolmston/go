@@ -1,3 +1,5 @@
+'use client';
+import Link from 'next/link';
 import { LIBS } from '../data';
 import { SecH } from './SecH';
 import { LibCard } from './LibCard';
@@ -18,7 +20,7 @@ export function Home({ go }: HomeProps) {
           Socket.IO, chalk and morgan from Node.js, plus fastmcp, Streamlit, algebra and opencv from Python —
           built on real wire protocols with (almost) zero third-party dependencies.</p>
         <div className="cta">
-          <a className="btn primary" href="#howto" onClick={(e) => { e.preventDefault(); go('howto'); }}>Get started →</a>
+          <Link className="btn primary" href="/howto">Get started →</Link>
           <a className="btn" href="https://github.com/malcolmston" target="_blank" rel="noopener"><i className="fa-brands fa-github" />&nbsp;View on GitHub</a>
         </div>
       </div>

@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect, useState } from 'react';
 import { esc } from '../highlight';
 import type { RelLib } from './ReleaseList';

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { PointerEvent as ReactPointerEvent, WheelEvent as ReactWheelEvent } from 'react';
+import { useRouter } from 'next/navigation';
 import { LIBS } from '../data';
 import { SecH } from './SecH';
 import {
@@ -157,6 +158,7 @@ const shortName = (p: GraphPackage): string => p.name || p.importPath.split('/')
 // Explore — the search + package-graph tab.
 // ---------------------------------------------------------------------------
 export function Explore() {
+  const router = useRouter();
   const [graph, setGraph] = useState<GraphData | null>(null);
   const [live, setLive] = useState<boolean | null>(null);
   const [lib, setLib] = useState('');
@@ -272,7 +274,7 @@ export function Explore() {
     setView((v) => ({ ...v, k: Math.min(2.4, Math.max(0.2, v.k * f)) }));
 
   const goLibrary = (library: string) => {
-    if (library) window.location.hash = '#' + library;
+    if (library) router.push('/lib/' + encodeURIComponent(library));
   };
 
   const highlight = (id: string): boolean => {
