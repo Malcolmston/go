@@ -11,6 +11,15 @@ const nextConfig = {
   eslint: { ignoreDuringBuilds: true },
   // The shared go-ui library is imported from ../ui/src (outside this app dir).
   experimental: { externalDir: true },
+  // Monorepo: this app lives in web/ but imports ../ui and the API route
+  // handlers import ../api/_lib and read ../api/_data. Anchor Next's file
+  // tracer at the repo root so those out-of-dir files are bundled with the
+  // serverless functions, and force-include the JSON data the /api routes read
+  // via fs (dynamic reads the tracer can't infer).
+  outputFileTracingRoot: path.resolve(__dirname, '..'),
+  outputFileTracingIncludes: {
+    '/api/**': ['../api/_data/**', '../api/_lib/**'],
+  },
   // GitHub Pages is a static, API-less project site under /go; Vercel serves
   // the full Next app (with API routes) at the domain root.
   ...(isPages ? { output: 'export', basePath: '/go', images: { unoptimized: true } } : {}),
