@@ -1,19 +1,24 @@
 #!/usr/bin/env node
-// build-graph-data.mjs — generate the package-connection graph + search-symbol
+// build-graph-data.ts — generate the package-connection graph + search-symbol
 // index that back the search endpoint, the GraphQL API and the frontend Explore
-// tab. Run from the repo root:  node scripts/build-graph-data.mjs
+// tab. Run from the repo root (Node 22.6+, via native type stripping):
+//   node --experimental-strip-types scripts/build-graph-data.ts
 //
-// Reads:   web/public/docs/*.json   (DocIndex per library)
-//          web/src/parity.ts        (best-effort, for parityAfter)
-//          <library source dirs>     (best-effort, for real import edges)
-// Writes:  api/_data/graph.json      + web/public/graph.json
-//          api/_data/symbols.json    + web/public/search-index.json
+// Reads:   public/docs/*.json    (DocIndex per library)
+//          src/parity.ts         (best-effort, for parityAfter)
+//          <library source dirs>  (best-effort, for real import edges)
+// Writes:  api/_data/graph.json      + public/graph.json
+//          api/_data/symbols.json    + public/search-index.json
 //
 // The output is DETERMINISTIC: everything is sorted by stable ids and no
 // Date.now/Math.random is used for ordering. Only the free-form `generatedAt`
 // timestamp field is time-derived (and is never used as a sort key); it can be
 // pinned via the GRAPH_GENERATED_AT env var or `--generated-at <iso>` for fully
 // reproducible builds.
+//
+// This is developer tooling that runs under Node directly (not webpack), so it
+// only uses erasable TypeScript (type annotations, interfaces, `as`) that Node's
+// --experimental-strip-types removes at load time.
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -33,10 +38,104 @@ const OUT_DIRS = [
 const REFERENCE_WEIGHT_CAP = 10;
 
 // ---------------------------------------------------------------------------
+// input/output shapes (the DocIndex JSON is read untyped, then narrowed)
+// ---------------------------------------------------------------------------
+
+interface DocGroup {
+  signature?: string;
+  doc?: string;
+  names?: string[];
+}
+interface DocFunc {
+  name?: string;
+  signature?: string;
+  doc?: string;
+}
+interface DocMethod {
+  name?: string;
+  recv?: string;
+  signature?: string;
+  doc?: string;
+}
+interface DocType {
+  name?: string;
+  signature?: string;
+  doc?: string;
+  consts?: DocGroup[];
+  vars?: DocGroup[];
+  funcs?: DocFunc[];
+  methods?: DocMethod[];
+}
+interface DocPackage {
+  importPath: string;
+  name?: string;
+  synopsis?: string;
+  doc?: string;
+  types?: DocType[];
+  consts?: DocGroup[];
+  vars?: DocGroup[];
+  funcs?: DocFunc[];
+}
+interface DocIndex {
+  module?: string;
+  packages?: DocPackage[];
+}
+
+interface SymbolOut {
+  id: string;
+  name: string;
+  kind: string;
+  packageImportPath: string;
+  library: string;
+  signature: string;
+  doc: string;
+  anchor: string;
+}
+interface EdgeOut {
+  source: string;
+  target: string;
+  kind: string;
+  weight: number;
+}
+interface PackageOut {
+  id: string;
+  importPath: string;
+  name: string;
+  library: string;
+  synopsis: string;
+  symbolCount: number;
+}
+interface LibraryOut {
+  id: string;
+  name: string;
+  packageCount: number;
+  symbolCount: number;
+  parityAfter: string | null;
+}
+interface ParityEntry {
+  after: string | null;
+  upstream: string | null;
+}
+
+interface PkgState {
+  importPath: string;
+  name: string;
+  blob: string;
+  typeNames: string[];
+}
+interface LibStateEntry {
+  id: string;
+  module: string;
+  pkgs: PkgState[];
+  rootId: string | null;
+  sourceDir: string;
+}
+
+// ---------------------------------------------------------------------------
 // small helpers
 // ---------------------------------------------------------------------------
 
-function resolveGeneratedAt() {
+function resolveGeneratedAt(): string {
   const argv = process.argv.slice(2);
   const i = argv.indexOf('--generated-at');
   if (i !== -1 && argv[i + 1]) return argv[i + 1];
@@ -48,17 +147,17 @@ function resolveGeneratedAt() {
 //   value / func  => sym-<name>
 //   type          => sym-<Type>
 //   method        => sym-<recvBase>.<method>
-function valueAnchor(name) {
+function valueAnchor(name: string): string {
   return `sym-${name}`;
 }
-function typeAnchor(typeName) {
+function typeAnchor(typeName: string): string {
   return `sym-${typeName}`;
 }
-function methodAnchor(recv, methodName) {
+function methodAnchor(recv: string | undefined, methodName: string): string {
   return `sym-${recvBase(recv)}.${methodName}`;
 }
 // "*Application", "Application[T]", "*Store[K, V]" => "Application" / "Store"
-function recvBase(recv) {
+function recvBase(recv: string | undefined): string {
   if (!recv) return '';
   let s = String(recv).trim();
   s = s.replace(/^[*&]+/, '');       // drop pointer/ref markers
@@ -67,14 +166,14 @@ function recvBase(recv) {
   return s;
 }
 
-function isInterfaceSig(sig) {
+function isInterfaceSig(sig: string | undefined): boolean {
   if (!sig) return false;
   // A declared interface type: `type Foo interface { ... }` (as opposed to a
   // struct/alias whose body merely mentions an interface elsewhere).
   return /^\s*type\s+\S+[^={]*\binterface\b/.test(sig) || /\binterface\s*\{/.test(sig);
 }
 
-function segmentsAfter(importPath, module) {
+function segmentsAfter(importPath: string, module: string): number {
   if (importPath === module) return 0;
   if (module && importPath.startsWith(module + '/')) {
     return importPath.slice(module.length + 1).split('/').length;
@@ -88,9 +187,9 @@ function segmentsAfter(importPath, module) {
 // ---------------------------------------------------------------------------
 
 // Parse the PARITY map out of parity.ts with a regex; on any trouble return {}.
-function loadParity() {
-  const out = {};
-  let src;
+function loadParity(): Record<string, ParityEntry> {
+  const out: Record<string, ParityEntry> = {};
+  let src: string;
   try {
     src = fs.readFileSync(PARITY_TS, 'utf8');
   } catch {
@@ -100,7 +199,7 @@ function loadParity() {
   const body = start === -1 ? src : src.slice(start);
   // Match:  key: { ... after: "100%" ... }   where key is bare or quoted.
   const entry = /(?:^|[,{]\s*)(?:'([^']+)'|"([^"]+)"|([A-Za-z0-9_.$]+))\s*:\s*\{([^}]*)\}/g;
-  let m;
+  let m: RegExpExecArray | null;
   while ((m = entry.exec(body)) !== null) {
     const key = m[1] || m[2] || m[3];
     const inner = m[4] || '';
@@ -123,11 +222,11 @@ function loadParity() {
 
 // Produce every exported search symbol for one package (excluding the package
 // node itself, which is emitted separately by the caller).
-function symbolsForPackage(pkg, library) {
+function symbolsForPackage(pkg: DocPackage, library: string): SymbolOut[] {
   const importPath = pkg.importPath;
-  const out = [];
+  const out: SymbolOut[] = [];
 
-  const pushValue = (group, kind) => {
+  const pushValue = (group: DocGroup | undefined, kind: string): void => {
     if (!group) return;
     const sig = group.signature || '';
     const doc = group.doc || '';
@@ -146,7 +245,7 @@ function symbolsForPackage(pkg, library) {
     }
   };
 
-  const pushFunc = (fn) => {
+  const pushFunc = (fn: DocFunc | undefined): void => {
     if (!fn || !fn.name) return;
     out.push({
       id: `${importPath}#${valueAnchor(fn.name)}`,
@@ -160,7 +259,7 @@ function symbolsForPackage(pkg, library) {
     });
   };
 
-  const pushMethod = (mth) => {
+  const pushMethod = (mth: DocMethod | undefined): void => {
     if (!mth || !mth.name) return;
     const anchor = methodAnchor(mth.recv, mth.name);
     const base = recvBase(mth.recv);
@@ -205,8 +304,8 @@ function symbolsForPackage(pkg, library) {
 }
 
 // Concatenated signature text of a package, used for reference-edge detection.
-function signatureBlob(pkg) {
-  const parts = [];
+function signatureBlob(pkg: DocPackage): string {
+  const parts: string[] = [];
   for (const t of pkg.types || []) {
     if (t.signature) parts.push(t.signature);
     for (const c of t.consts || []) if (c.signature) parts.push(c.signature);
@@ -220,8 +319,8 @@ function signatureBlob(pkg) {
   return parts.join('\n');
 }
 
-function exportedTypeNames(pkg) {
-  const names = [];
+function exportedTypeNames(pkg: DocPackage): string[] {
+  const names: string[] = [];
   for (const t of pkg.types || []) if (t.name) names.push(t.name);
   return names;
 }
@@ -230,9 +329,9 @@ function exportedTypeNames(pkg) {
 // import-edge parsing (best-effort — only when Go source is on disk)
 // ---------------------------------------------------------------------------
 
-function goImportsForDir(dir) {
-  const counts = new Map(); // importPath -> number of files importing it
-  let entries;
+function goImportsForDir(dir: string): Map<string, number> {
+  const counts = new Map<string, number>(); // importPath -> number of files importing it
+  let entries: fs.Dirent[];
   try {
     entries = fs.readdirSync(dir, { withFileTypes: true });
   } catch {
@@ -242,25 +341,25 @@ function goImportsForDir(dir) {
     if (!ent.isFile()) continue;
     if (!ent.name.endsWith('.go')) continue;
     if (ent.name.endsWith('_test.go')) continue;
-    let src;
+    let src: string;
     try {
       src = fs.readFileSync(path.join(dir, ent.name), 'utf8');
     } catch {
       continue;
     }
-    const seen = new Set();
+    const seen = new Set<string>();
     // Grouped import blocks: import ( "a" \n _ "b" \n alias "c" )
     const blockRe = /import\s*\(([\s\S]*?)\)/g;
-    let bm;
+    let bm: RegExpExecArray | null;
     while ((bm = blockRe.exec(src)) !== null) {
       const inner = bm[1];
       const strRe = /"([^"]+)"/g;
-      let sm;
+      let sm: RegExpExecArray | null;
       while ((sm = strRe.exec(inner)) !== null) seen.add(sm[1]);
     }
     // Single-line imports: import "a"  /  import alias "a"
     const singleRe = /import\s+(?:[A-Za-z0-9_.]+\s+)?"([^"]+)"/g;
-    let sm2;
+    let sm2: RegExpExecArray | null;
     while ((sm2 = singleRe.exec(src)) !== null) seen.add(sm2[1]);
 
     for (const p of seen) counts.set(p, (counts.get(p) || 0) + 1);
@@ -272,35 +371,35 @@ function goImportsForDir(dir) {
 // main
 // ---------------------------------------------------------------------------
 
-function main() {
+function main(): void {
   const generatedAt = resolveGeneratedAt();
   const parity = loadParity();
 
-  let docFiles;
+  let docFiles: string[];
   try {
     docFiles = fs.readdirSync(DOCS_DIR).filter((f) => f.endsWith('.json'));
   } catch (err) {
-    console.error(`build-graph-data: cannot read docs dir ${DOCS_DIR}: ${err.message}`);
+    console.error(`build-graph-data: cannot read docs dir ${DOCS_DIR}: ${(err as Error).message}`);
     process.exit(1);
   }
   docFiles.sort();
 
-  const libraries = [];
-  const packages = [];
-  const edges = [];
-  const symbols = [];
+  const libraries: LibraryOut[] = [];
+  const packages: PackageOut[] = [];
+  const edges: EdgeOut[] = [];
+  const symbols: SymbolOut[] = [];
 
-  const packageIds = new Set();          // every package importPath in the graph
+  const packageIds = new Set<string>();  // every package importPath in the graph
   // Per-library working state we need for a second edge-building pass.
-  const libState = []; // { id, module, pkgs:[{importPath,name,rawPkg}], rootId, sourceDir }
+  const libState: LibStateEntry[] = [];
 
   for (const file of docFiles) {
     const library = file.replace(/\.json$/, ''); // filename stem, e.g. "socket.io"
-    let doc;
+    let doc: DocIndex;
     try {
-      doc = JSON.parse(fs.readFileSync(path.join(DOCS_DIR, file), 'utf8'));
+      doc = JSON.parse(fs.readFileSync(path.join(DOCS_DIR, file), 'utf8')) as DocIndex;
     } catch (err) {
-      console.error(`build-graph-data: skipping ${file}: ${err.message}`);
+      console.error(`build-graph-data: skipping ${file}: ${(err as Error).message}`);
       continue;
     }
     const module = doc.module || '';
@@ -308,7 +407,7 @@ function main() {
 
     // Determine the library "root" package: importPath === module, else the
     // package with the fewest segments beyond the module (lexical tie-break).
-    let rootPkg = null;
+    let rootPkg: DocPackage | null = null;
     for (const p of pkgs) {
       if (!p || !p.importPath) continue;
       if (p.importPath === module) { rootPkg = p; break; }
@@ -328,7 +427,7 @@ function main() {
     }
     const rootId = rootPkg ? rootPkg.importPath : null;
 
-    const state = {
+    const state: LibStateEntry = {
       id: library,
       module,
       pkgs: [],
@@ -451,7 +550,7 @@ function main() {
   }
 
   // -------- edges: shared-upstream (same upstream org) --------
-  const byOrg = new Map(); // org -> [rootId,...]
+  const byOrg = new Map<string, string[]>(); // org -> [rootId,...]
   for (const st of libState) {
     if (!st.rootId) continue;
     const par = parity[st.id];
@@ -459,7 +558,7 @@ function main() {
     const org = String(par.upstream).split('/')[0];
     if (!org) continue;
     if (!byOrg.has(org)) byOrg.set(org, []);
-    byOrg.get(org).push(st.rootId);
+    byOrg.get(org)!.push(st.rootId);
   }
   for (const roots of byOrg.values()) {
     if (roots.length < 2) continue;
@@ -474,9 +573,9 @@ function main() {
 
   // -------- dedup + deterministic ordering --------
   // Collapse duplicate edges (same source/target/kind), summing weight.
-  const edgeMap = new Map();
+  const edgeMap = new Map<string, EdgeOut>();
   for (const e of edges) {
-    const key = `${e.source} ${e.target} ${e.kind}`;
+    const key = `${e.source} ${e.target} ${e.kind}`;
     const prev = edgeMap.get(key);
     if (prev) prev.weight += e.weight;
     else edgeMap.set(key, { ...e });
@@ -489,7 +588,7 @@ function main() {
   );
 
   // Dedup symbols by id (defensive) and sort by id.
-  const symMap = new Map();
+  const symMap = new Map<string, SymbolOut>();
   for (const s of symbols) if (!symMap.has(s.id)) symMap.set(s.id, s);
   const finalSymbols = Array.from(symMap.values()).sort(
     (a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)
@@ -518,11 +617,11 @@ function main() {
 
   fs.writeFileSync(path.join(OUT_DIRS[0], 'graph.json'), graphJson);
   fs.writeFileSync(path.join(OUT_DIRS[0], 'symbols.json'), symbolsJson);
-  // web/public copies use the frontend-fallback filenames.
+  // public copies use the frontend-fallback filenames.
   fs.writeFileSync(path.join(OUT_DIRS[1], 'graph.json'), graphJson);
   fs.writeFileSync(path.join(OUT_DIRS[1], 'search-index.json'), symbolsJson);
 
-  const kindCounts = {};
+  const kindCounts: Record<string, number> = {};
   for (const e of finalEdges) kindCounts[e.kind] = (kindCounts[e.kind] || 0) + 1;
   const kindStr = ['import', 'reference', 'same-library', 'shared-upstream']
     .map((k) => `${k}=${kindCounts[k] || 0}`)
@@ -531,7 +630,7 @@ function main() {
     `build-graph-data: ${finalLibraries.length} libraries, ${finalPackages.length} packages, ` +
     `${finalSymbols.length} symbols, ${finalEdges.length} edges (${kindStr}; ` +
     `${importEdgeCount} raw import edges from source). Wrote graph.json + symbols.json ` +
-    `to api/_data and web/public.`
+    `to api/_data and public.`
   );
 }
 

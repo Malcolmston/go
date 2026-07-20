@@ -1,13 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { THEME_KEY } from '../theme';
 
 // ThemeToggle flips the shared light/dark choice and persists it so the
 // preference follows the visitor across every malcolmston.github.io site.
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<string>(() =>
-    document.documentElement.getAttribute('data-theme') || 'dark');
+  // Render 'dark' on the server (and for the first client paint) so SSR/SSG
+  // markup is deterministic and hydration matches; the effect below then syncs
+  // to whatever the pre-hydration inline script actually set on <html>.
+  const [theme, setTheme] = useState<string>('dark');
+  useEffect(() => {
+    setTheme(document.documentElement.getAttribute('data-theme') || 'dark');
+  }, []);
   const toggle = () => {
     const next = theme === 'dark' ? 'light' : 'dark';
     setTheme(next);

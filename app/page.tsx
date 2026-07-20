@@ -1,12 +1,7 @@
 'use client';
-import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
+import { Home } from '../src/components/Home';
 import { pathForTab } from './nav';
-
-// The aggregator is a client SPA; render the Home view client-only so it works
-// both as a static export (GitHub Pages) and on Vercel without SSR-ing
-// browser-only code.
-const Home = dynamic(() => import('../src/components/Home').then((m) => ({ default: m.Home })), { ssr: false });
 
 export default function Page() {
   const router = useRouter();
