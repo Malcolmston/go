@@ -54,9 +54,13 @@ const BASE_URL = 'http://localhost:4173/';
 export default defineConfig({
   testDir: './tests/e2e',
   fullyParallel: true,
-  workers: 24,
-  // Generous per-test timeout: the link/nav sweeps navigate every page, and the
-  // 200+ project matrix shares a single Next server under 24 workers.
+  // Each worker drives its own client-only Chromium context against the single
+  // `next start` server. GitHub's runners have ~4 cores, so 24 workers (the old
+  // value) oversubscribed the CPU ~6x — the client-side render starved and the
+  // page/nav waits timed out. Match workers to cores on CI for a stable render;
+  // locally fall back to Playwright's default (cores/2).
+  workers: process.env.CI ? 4 : undefined,
+  // Generous per-test timeout: the link/nav sweeps navigate every page.
   timeout: 60_000,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,

@@ -36,6 +36,11 @@ function urlForTab(id: string): RegExp {
 test.use({ permissions: ['clipboard-read', 'clipboard-write'] });
 
 test.beforeEach(async ({ page }) => {
+  // Fail network-blocked external requests fast (render-blocking font CSS +
+  // api.github.com) so a stalled request can't delay first paint / hydration —
+  // otherwise the heaviest views (e.g. /pipeline) render past their budget.
+  await page.route(/(fonts\.googleapis\.com|fonts\.gstatic\.com|kit\.fontawesome\.com|ka-f\.fontawesome\.com|api\.github\.com)/, (r) => r.abort());
+
   pageErrors = [];
   page.on('pageerror', (err) => {
     const msg = `${err.name}: ${err.message}\n${err.stack ?? ''}`;
@@ -57,14 +62,26 @@ test.afterEach(() => {
 // Load the home route and wait for the client-only shell to hydrate and paint
 // (ssr:false), so the nav + active view are present before we assert on them.
 async function gotoHome(page: Page) {
-  await page.goto('');
+  // domcontentloaded, not 'load': external fonts/api.github.com are network-
+  // blocked in CI and would hang the 'load' event; the client SPA paints after
+  // DCL + hydration, which the visibility wait below covers.
+  await page.goto('', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('.view.active')).toBeVisible({ timeout: 15_000 });
 }
 
 // Directly navigate to a tab's route and wait for its view to render.
 async function gotoTab(page: Page, id: string) {
-  await page.goto(pathForTab(id));
+  await page.goto(pathForTab(id), { waitUntil: 'domcontentloaded' });
   await expect(page.locator('.view.active')).toBeVisible({ timeout: 15_000 });
+}
+
+// Client-side switch to a tab (no full reload) and wait for its view to paint.
+// A sweep across all ~42 tabs this way avoids re-initialising the client-only
+// SPA per tab, so cumulative reload latency can't push a slow device past the
+// per-navigation timeout.
+async function switchTab(page: Page, id: string) {
+  await page.locator(`nav.tabs a.tab[href="#${id}"]`).dispatchEvent('click');
+  await expect(page.locator(`.view.active#view-${id}`)).toBeVisible({ timeout: 20_000 });
 }
 
 // Read the nav tab hrefs (`#<id>`) straight from the DOM so this spec is repo-
@@ -100,21 +117,27 @@ async function ensureMenuForTabs(page: Page) {
   }
 }
 
-test('theme toggle flips data-theme, persists it, and reverts', async ({ page }) => {
+test('theme toggle flips data-theme, persists it, and flips back', async ({ page }) => {
   await gotoHome(page);
   const html = page.locator('html');
-  const start = await html.getAttribute('data-theme');
   const btn = page.locator('button.iconbtn[aria-label="Toggle colour theme"]');
   await expect(btn).toBeVisible();
 
+  // The toggle is a two-state light<->dark switch: it sets an explicit
+  // data-theme (resolving an unset attribute to 'dark'), persisted under
+  // 'mgo-theme'. It does not restore the "system/unset" state, so we assert the
+  // pair of values flip against each other rather than reverting to the initial
+  // (possibly null) attribute.
   await btn.dispatchEvent('click');
   const flipped = await html.getAttribute('data-theme');
-  expect(flipped, 'theme should change on toggle').not.toBe(start);
-  expect(['light', 'dark']).toContain(flipped);
+  expect(['light', 'dark'], 'first toggle sets an explicit theme').toContain(flipped);
   expect(await page.evaluate(() => localStorage.getItem('mgo-theme'))).toBe(flipped);
 
   await btn.dispatchEvent('click');
-  expect(await html.getAttribute('data-theme'), 'second toggle reverts').toBe(start);
+  const flippedBack = await html.getAttribute('data-theme');
+  expect(['light', 'dark'], 'second toggle sets the other explicit theme').toContain(flippedBack);
+  expect(flippedBack, 'second toggle flips to the other theme').not.toBe(flipped);
+  expect(await page.evaluate(() => localStorage.getItem('mgo-theme'))).toBe(flippedBack);
 });
 
 test('every nav tab is clickable and activates its view (menu opens on mobile)', async ({ page }) => {
@@ -136,7 +159,10 @@ test('every nav tab is clickable and activates its view (menu opens on mobile)',
     } catch {
       await link.dispatchEvent('click');
     }
-    await expect(page.locator('.view.active')).toHaveAttribute('id', `view-${id}`);
+    // The heaviest views (e.g. /pipeline's PipelineFlow graph) mount a beat
+    // after the route change, so give the active-view swap a real budget rather
+    // than the default 5s.
+    await expect(page.locator('.view.active')).toHaveAttribute('id', `view-${id}`, { timeout: 15_000 });
     await expect(page).toHaveURL(urlForTab(id));
   }
 });
@@ -196,7 +222,7 @@ test('Copy buttons respond on every page that has them', async ({ page }) => {
   let clickedAny = false;
 
   for (const href of hrefs) {
-    await gotoTab(page, href.slice(1));
+    await switchTab(page, href.slice(1));
     const copies = page.locator('button.copy');
     const n = await copies.count();
     for (let i = 0; i < n; i++) {
@@ -222,7 +248,7 @@ test('every accordion (FAQ / releases / doc examples) toggles open and closed', 
   const hrefs = await tabHrefs(page);
 
   for (const href of hrefs) {
-    await gotoTab(page, href.slice(1));
+    await switchTab(page, href.slice(1));
     const summaries = page.locator('.view.active details > summary');
     const n = await summaries.count();
     for (let i = 0; i < n; i++) {
@@ -246,7 +272,7 @@ test('in-page jump links scroll to an existing target', async ({ page }) => {
 
   for (const href of hrefs) {
     const tabId = href.slice(1);
-    await gotoTab(page, tabId);
+    await switchTab(page, tabId);
     // Links that point at an in-page id (not another tab): e.g. the "on this
     // page" jump links inside a section view.
     const jumps = page.locator('.view.active a[href^="#"]');
