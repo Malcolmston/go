@@ -25,6 +25,10 @@ import { getSymbols } from '../../../api/_lib/data';
 // pre-render / cache — every request executes the search live.
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+// The first query against a fresh Elasticsearch cluster lazily creates and
+// bulk-loads the `symbols` index (api/_lib/es.ts); give the Vercel function
+// headroom for that one-time build before it would fall back to BM25.
+export const maxDuration = 30;
 
 const DEFAULT_FIRST = 20;
 const MAX_FIRST = 100;

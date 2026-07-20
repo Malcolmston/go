@@ -40,6 +40,9 @@ import { search as bm25Search } from '../../../api/_lib/bm25';
 // pre-render / cache — every request executes the resolvers live.
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+// Search resolvers may lazily build the Elasticsearch index on the first query;
+// give the Vercel function headroom before it would fall back to BM25.
+export const maxDuration = 30;
 
 // ---------------------------------------------------------------------------
 // Object types
