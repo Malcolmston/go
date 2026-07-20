@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- The **API-docs header search** is now backed by the Elasticsearch `/api/search`
+  endpoint (scoped to the current library), giving typo-tolerant, doc-content
+  matching. It falls back to the in-memory symbol index automatically on GitHub
+  Pages / standalone library sites or any request failure, so search always works.
+- The API-docs **toolbar scrolls horizontally** instead of clipping the brand,
+  nav, and search on narrow viewports; the symbol-search dropdown is anchored with
+  fixed positioning so it is never cut off by the scroll container.
 
 ## [1.0.0] - 2026-07-20
 ### Changed

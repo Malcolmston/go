@@ -7,6 +7,44 @@ export interface SymbolSearchProps {
   packages: DocPackage[];
   // Called when a symbol is chosen. anchorId is the `sym-…` id per the contract.
   onPick: (importPath: string, anchorId: string) => void;
+  // Optional Elasticsearch-backed search endpoint (the aggregator's /api/search).
+  // When set, typing queries it (scoped to `library`) for typo-tolerant,
+  // doc-content matching; on any failure — or where the endpoint doesn't exist
+  // (GitHub Pages static export, standalone per-library sites) — it falls back to
+  // the local in-memory index below, so search always works.
+  searchEndpoint?: string;
+  // The current library id, used to scope backend results to this library's docs.
+  library?: string;
+}
+
+// A raw hit from GET /api/search (shared SearchHit contract).
+interface SearchHit {
+  name?: string;
+  kind?: string;
+  packageImportPath?: string;
+  library?: string;
+  signature?: string;
+  anchor?: string;
+}
+
+const KINDS: Record<SymbolKind, true> = {
+  type: true, interface: true, func: true, method: true, const: true, var: true,
+};
+
+// hitToEntry maps a backend SearchHit onto the local IndexEntry shape so the
+// dropdown and onPick navigation are identical whether results come from the
+// backend or the local index. Package-level hits (no symbol anchor) are dropped.
+function hitToEntry(h: SearchHit): IndexEntry | null {
+  const anchor = typeof h.anchor === 'string' ? h.anchor : '';
+  if (!anchor.startsWith('sym-')) return null;
+  const importPath = h.packageImportPath ?? '';
+  if (!importPath) return null;
+  const label = anchor.slice(4) || h.name || '';
+  const raw = (h.kind ?? '') as SymbolKind;
+  const kind: SymbolKind = raw === 'type' && /\binterface\b/.test(h.signature ?? '')
+    ? 'interface'
+    : KINDS[raw] ? raw : 'func';
+  return { label, kind, importPath, anchorId: anchor, pkgName: importPath.split('/').filter(Boolean).pop() ?? '' };
 }
 
 // The kinds a searchable symbol can have. These drive the little kind chip shown
@@ -160,19 +198,26 @@ function rank(entry: IndexEntry, q: string): number {
 // SymbolSearch is the header search box. It builds a memoized flat index of every
 // exported symbol and, as the user types, shows a ranked dropdown of matches.
 // Choosing one (click, or keyboard Enter) calls onPick(importPath, anchorId).
-export function SymbolSearch({ packages, onPick }: SymbolSearchProps) {
+export function SymbolSearch({ packages, onPick, searchEndpoint, library }: SymbolSearchProps) {
   const index = useMemo(() => buildIndex(packages), [packages]);
 
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
+  // Backend (Elasticsearch/BM25) results for the current query. null means "no
+  // backend answer yet / unavailable" — the local index is used until it lands.
+  const [remote, setRemote] = useState<IndexEntry[] | null>(null);
 
   const blurTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  // The dropdown is positioned fixed (anchored under the input) so it is never
+  // clipped by the header's horizontal-scroll overflow. Recomputed while open.
+  const [anchor, setAnchor] = useState<{ left: number; top: number; width: number } | null>(null);
 
   const q = query.trim().toLowerCase();
 
-  const results = useMemo(() => {
+  const localResults = useMemo(() => {
     if (!q) return [] as IndexEntry[];
     const matched = index.filter(
       (e) =>
@@ -190,6 +235,31 @@ export function SymbolSearch({ packages, onPick }: SymbolSearchProps) {
     });
     return matched.slice(0, MAX_RESULTS);
   }, [index, q]);
+
+  // Query the Elasticsearch-backed endpoint (debounced), scoped to this library.
+  // Reset to the local index on each keystroke so results appear instantly, then
+  // swap in the backend hits when they arrive. Any failure keeps the local list.
+  useEffect(() => {
+    setRemote(null);
+    if (!searchEndpoint || !q) return;
+    const ctrl = new AbortController();
+    const t = setTimeout(() => {
+      const u = `${searchEndpoint}?q=${encodeURIComponent(query.trim())}&first=${MAX_RESULTS}` +
+        (library ? `&library=${encodeURIComponent(library)}` : '');
+      fetch(u, { signal: ctrl.signal, headers: { Accept: 'application/json' } })
+        .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+        .then((j: { hits?: SearchHit[] }) => {
+          const hits = Array.isArray(j?.hits) ? j.hits : [];
+          const entries = hits.map(hitToEntry).filter((e): e is IndexEntry => e !== null);
+          if (entries.length > 0) setRemote(entries.slice(0, MAX_RESULTS));
+        })
+        .catch(() => { /* keep the local fallback */ });
+    }, 160);
+    return () => { clearTimeout(t); ctrl.abort(); };
+  }, [q, query, searchEndpoint, library]);
+
+  // Prefer backend hits when present; otherwise the instant local matches.
+  const results = remote && remote.length > 0 ? remote : localResults;
 
   // Keep the active row in bounds and reset to the top whenever results change.
   useEffect(() => {
@@ -209,6 +279,31 @@ export function SymbolSearch({ packages, onPick }: SymbolSearchProps) {
       if (blurTimer.current) clearTimeout(blurTimer.current);
     };
   }, []);
+
+  // While the menu is open, track the input's viewport rect so the fixed-position
+  // dropdown stays anchored under it as the header scrolls or the window resizes.
+  const showMenu = open && q.length > 0;
+  useEffect(() => {
+    if (!showMenu) return;
+    const update = () => {
+      const el = inputRef.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      // Respect the menu's 320px min-width, but clamp so it never overflows the
+      // viewport horizontally (e.g. on a narrow phone where the input is small).
+      const vw = typeof window !== 'undefined' ? window.innerWidth : r.width;
+      const width = Math.min(Math.max(r.width, 320), vw - 16);
+      const left = Math.min(Math.max(8, r.left), vw - width - 8);
+      setAnchor({ left, top: r.bottom, width });
+    };
+    update();
+    window.addEventListener('scroll', update, true);
+    window.addEventListener('resize', update);
+    return () => {
+      window.removeEventListener('scroll', update, true);
+      window.removeEventListener('resize', update);
+    };
+  }, [showMenu]);
 
   const pick = useCallback(
     (entry: IndexEntry) => {
@@ -271,14 +366,13 @@ export function SymbolSearch({ packages, onPick }: SymbolSearchProps) {
     blurTimer.current = setTimeout(() => setOpen(false), 150);
   }, []);
 
-  const showMenu = open && q.length > 0;
-
   return (
     <div className="gd-search">
       <span className="gd-search-ico" aria-hidden="true">
         ⌕
       </span>
       <input
+        ref={inputRef}
         type="search"
         className="gd-search-input"
         placeholder="Search symbols"
@@ -300,7 +394,13 @@ export function SymbolSearch({ packages, onPick }: SymbolSearchProps) {
       />
 
       {showMenu ? (
-        <div className="gd-search-menu" id="gd-search-menu" role="listbox" ref={menuRef}>
+        <div
+          className="gd-search-menu"
+          id="gd-search-menu"
+          role="listbox"
+          ref={menuRef}
+          style={anchor ? { position: 'fixed', left: anchor.left, top: anchor.top, width: anchor.width, minWidth: anchor.width, right: 'auto' } : undefined}
+        >
           {results.length > 0 ? (
             results.map((entry, i) => {
               const isActive = i === active;

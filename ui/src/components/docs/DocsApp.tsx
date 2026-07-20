@@ -21,6 +21,12 @@ export interface DocsAppProps {
   // hash-routed — passes false so the renderer keeps package selection in local
   // state and does not fight the host router.
   hashRouting?: boolean;
+  // Optional Elasticsearch-backed search endpoint (the aggregator's /api/search)
+  // and the current library id. When set, the header symbol search queries the
+  // backend (scoped to `library`) and falls back to the local index on failure or
+  // where the endpoint is absent (GitHub Pages, standalone per-library sites).
+  searchEndpoint?: string;
+  library?: string;
 }
 
 const PKG_PREFIX = 'pkg/';
@@ -44,7 +50,7 @@ function shortModule(m: string): string {
 // two-column body (package sidebar + package documentation main). Selection is
 // hash-routable by import path (#pkg/<importPath>) when hashRouting is on.
 // Pass `index` directly, or a `url` to fetch a doc.json.
-export function DocsApp({ index, url, title, hashRouting = true }: DocsAppProps) {
+export function DocsApp({ index, url, title, hashRouting = true, searchEndpoint, library }: DocsAppProps) {
   const [data, setData] = useState<DocIndex | null>(index ?? null);
   const [error, setError] = useState<string | null>(null);
   const [active, setActive] = useState<string>('');
@@ -273,7 +279,7 @@ export function DocsApp({ index, url, title, hashRouting = true }: DocsAppProps)
             Help
           </a>
         </nav>
-        <SymbolSearch packages={packages} onPick={onPick} />
+        <SymbolSearch packages={packages} onPick={onPick} searchEndpoint={searchEndpoint} library={library} />
       </header>
 
       {indexOpen ? (
