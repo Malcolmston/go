@@ -30,11 +30,11 @@ import {
   importedBy,
   related,
   subgraph,
-} from '../../../api/_lib/graphstore.js';
+} from '../../../api/_lib/graphstore';
 
-import { getSymbols } from '../../../api/_lib/data.js';
-import { esEnabled, esSearch } from '../../../api/_lib/es.js';
-import { search as bm25Search } from '../../../api/_lib/bm25.js';
+import { getSymbols } from '../../../api/_lib/data';
+import { esEnabled, esSearch } from '../../../api/_lib/es';
+import { search as bm25Search } from '../../../api/_lib/bm25';
 
 // Run on the Node.js runtime (the shared libs use node built-ins), and never
 // pre-render / cache — every request executes the resolvers live.
@@ -168,14 +168,15 @@ async function resolveSearch(q: unknown, first: unknown): Promise<any[]> {
   const limit = Number.isFinite(firstNum) && firstNum > 0 ? Math.floor(firstNum) : 20;
   if (q == null || String(q).trim() === '') return [];
 
+  const query = String(q);
   if (esEnabled()) {
     try {
-      return await esSearch(q, limit);
+      return await esSearch(query, limit);
     } catch {
       // Fall through to BM25 on any Elasticsearch failure.
     }
   }
-  return bm25Search(getSymbols(), q, limit);
+  return bm25Search(getSymbols(), query, limit);
 }
 
 // ---------------------------------------------------------------------------

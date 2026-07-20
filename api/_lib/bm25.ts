@@ -1,4 +1,4 @@
-// bm25.js — dependency-free BM25 ranking over the symbols corpus.
+// bm25.ts — dependency-free BM25 ranking over the symbols corpus.
 //
 // search(symbols, q, first) returns the top `first` symbols ranked by a real
 // BM25 score, combining three fields with the boosts required by the contract:
@@ -12,6 +12,10 @@
 //
 // Pure and self-contained: no external dependencies, no I/O.
 
+import type { SymbolDoc } from './data';
+
+export type SearchResult = SymbolDoc & { score: number };
+
 const K1 = 1.5;
 const B = 0.75;
 
@@ -20,13 +24,15 @@ const W_EXACT = 1.0;
 const W_PREFIX = 0.85;
 const W_FUZZY = 0.6;
 
-const FIELDS = [
+type FieldKey = 'name' | 'package' | 'doc';
+
+const FIELDS: { key: FieldKey; weight: number }[] = [
   { key: 'name', weight: 3 },
   { key: 'package', weight: 2 },
   { key: 'doc', weight: 1 },
 ];
 
-function fieldText(sym, key) {
+function fieldText(sym: SymbolDoc, key: FieldKey): string {
   switch (key) {
     case 'name':
       return sym.name || '';
@@ -41,8 +47,8 @@ function fieldText(sym, key) {
 
 // Tokenize into lowercase alphanumeric tokens, additionally emitting the
 // camelCase / digit-boundary subtokens of each chunk.
-function tokenize(text) {
-  const tokens = [];
+function tokenize(text: string): string[] {
+  const tokens: string[] = [];
   const chunks = String(text).split(/[^A-Za-z0-9]+/);
   for (const chunk of chunks) {
     if (!chunk) continue;
@@ -61,12 +67,12 @@ function tokenize(text) {
   return tokens;
 }
 
-function uniq(arr) {
+function uniq(arr: string[]): string[] {
   return Array.from(new Set(arr));
 }
 
 // True iff the Levenshtein distance between a and b is <= 1.
-function within1Edit(a, b) {
+function within1Edit(a: string, b: string): boolean {
   if (a === b) return true;
   let la = a.length;
   let lb = b.length;
@@ -105,7 +111,7 @@ function within1Edit(a, b) {
   return edits <= 1;
 }
 
-function matchWeight(queryTerm, token) {
+function matchWeight(queryTerm: string, token: string): number {
   if (token === queryTerm) return W_EXACT;
   if (queryTerm.length >= 2 && token.startsWith(queryTerm)) return W_PREFIX;
   if (queryTerm.length >= 3 && within1Edit(token, queryTerm)) return W_FUZZY;
@@ -113,7 +119,7 @@ function matchWeight(queryTerm, token) {
 }
 
 // Effective (fuzzy) term frequency of a query term within one document field.
-function effectiveTf(tfMap, queryTerm) {
+function effectiveTf(tfMap: Map<string, number>, queryTerm: string): number {
   let tf = 0;
   for (const [token, count] of tfMap) {
     const w = matchWeight(queryTerm, token);
@@ -122,23 +128,33 @@ function effectiveTf(tfMap, queryTerm) {
   return tf;
 }
 
+interface FieldIndex {
+  tf: Map<string, number>[];
+  len: Float64Array;
+  avgdl: number;
+}
+interface CorpusIndex {
+  N: number;
+  fields: Record<FieldKey, FieldIndex>;
+}
+
 // Build (and memoize on the symbols array identity) the per-field term-frequency
 // maps, document lengths and average document lengths used by BM25.
-const indexCache = new WeakMap();
+const indexCache = new WeakMap<object, CorpusIndex>();
 
-function buildIndex(symbols) {
+function buildIndex(symbols: SymbolDoc[]): CorpusIndex {
   const cached = indexCache.get(symbols);
   if (cached) return cached;
 
   const N = symbols.length;
-  const fields = {};
+  const fields = {} as Record<FieldKey, FieldIndex>;
   for (const f of FIELDS) {
-    const tf = new Array(N);
+    const tf: Map<string, number>[] = new Array(N);
     const len = new Float64Array(N);
     let total = 0;
     for (let i = 0; i < N; i++) {
       const toks = tokenize(fieldText(symbols[i], f.key));
-      const m = new Map();
+      const m = new Map<string, number>();
       for (const t of toks) m.set(t, (m.get(t) || 0) + 1);
       tf[i] = m;
       len[i] = toks.length;
@@ -147,12 +163,12 @@ function buildIndex(symbols) {
     fields[f.key] = { tf, len, avgdl: N ? total / N : 0 };
   }
 
-  const idx = { N, fields };
+  const idx: CorpusIndex = { N, fields };
   indexCache.set(symbols, idx);
   return idx;
 }
 
-export function search(symbols, q, first = 20) {
+export function search(symbols: SymbolDoc[], q: string, first = 20): SearchResult[] {
   if (!Array.isArray(symbols) || symbols.length === 0) return [];
   if (q == null || String(q).trim() === '') return [];
 
@@ -189,7 +205,7 @@ export function search(symbols, q, first = 20) {
     }
   }
 
-  const ranked = [];
+  const ranked: number[] = [];
   for (let i = 0; i < N; i++) {
     if (scores[i] > 0) ranked.push(i);
   }

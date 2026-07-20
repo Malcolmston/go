@@ -40,7 +40,9 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          # Node 22.6+ so the graph generator (scripts/build-graph-data.ts) runs
+          # under native TypeScript stripping (--experimental-strip-types).
+          node-version: "22"
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
 
@@ -71,7 +73,7 @@ jobs:
       # graph.json + search-index.json) that the Explore tab falls back to when
       # the serverless search/GraphQL API isn't reachable (as on GitHub Pages).
       - name: Generate search + package-graph data
-        run: node scripts/build-graph-data.mjs
+        run: node --experimental-strip-types scripts/build-graph-data.ts
 
       # Build the Next.js static export. GITHUB_PAGES=true switches
       # next.config.mjs to `output: 'export'` (emitting out/) with

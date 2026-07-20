@@ -1,4 +1,4 @@
-// es.js — optional Elasticsearch backend for symbol search.
+// es.ts — optional Elasticsearch backend for symbol search.
 //
 // Everything here is best-effort: if ELASTICSEARCH_URL is unset, esEnabled() is
 // false and callers use the in-memory BM25 backend. If any ES call throws (bad
@@ -14,29 +14,42 @@
 //   ELASTICSEARCH_URL       base URL of the cluster (required to enable ES)
 //   ELASTICSEARCH_API_KEY   optional; sent as `Authorization: ApiKey <key>`
 
-import { getSymbols } from './data.js';
+import { getSymbols } from './data';
 
 const INDEX = 'symbols';
 
-function esBase() {
+// A search hit returned to callers (matches the shared SearchHit contract).
+export interface SearchHit {
+  id: unknown;
+  name: unknown;
+  kind: unknown;
+  packageImportPath: unknown;
+  library: unknown;
+  signature: unknown;
+  doc: unknown;
+  anchor: unknown;
+  score: number;
+}
+
+function esBase(): string | null {
   const url = process.env.ELASTICSEARCH_URL;
   if (!url) return null;
   return url.replace(/\/+$/, '');
 }
 
-function authHeaders(overrides = {}) {
-  const headers = { 'Content-Type': 'application/json', ...overrides };
+function authHeaders(overrides: Record<string, string> = {}): Record<string, string> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json', ...overrides };
   const apiKey = process.env.ELASTICSEARCH_API_KEY;
   if (apiKey) headers.Authorization = `ApiKey ${apiKey}`;
   return headers;
 }
 
-export function esEnabled() {
+export function esEnabled(): boolean {
   const url = process.env.ELASTICSEARCH_URL;
   return typeof url === 'string' && url.trim() !== '';
 }
 
-function toHit(source, score) {
+function toHit(source: Record<string, unknown> | undefined | null, score: unknown): SearchHit {
   const s = source || {};
   return {
     id: s.id,
@@ -51,7 +64,7 @@ function toHit(source, score) {
   };
 }
 
-export async function esSearch(q, first = 20) {
+export async function esSearch(q: string, first = 20): Promise<SearchHit[]> {
   const base = esBase();
   if (!base) throw new Error('Elasticsearch is not configured');
 
@@ -81,17 +94,17 @@ export async function esSearch(q, first = 20) {
     throw new Error(`Elasticsearch search failed: ${resp.status}`);
   }
 
-  const json = await resp.json();
-  const hits = (json && json.hits && json.hits.hits) || [];
+  const json = (await resp.json()) as { hits?: { hits?: { _source?: Record<string, unknown>; _score?: unknown }[] } };
+  const hits = json?.hits?.hits || [];
   return hits.map((h) => toHit(h._source, h._score));
 }
 
 // Guard so index creation + bulk load happens at most once per warm instance.
 // On failure the promise is cleared so a later call can retry; the rejection is
 // re-thrown so callers fall back to BM25.
-let indexPromise = null;
+let indexPromise: Promise<boolean> | null = null;
 
-export function esIndexIfNeeded() {
+export function esIndexIfNeeded(): Promise<boolean> {
   if (!esEnabled()) return Promise.resolve(false);
   if (indexPromise) return indexPromise;
   indexPromise = doIndex().catch((err) => {
@@ -101,7 +114,7 @@ export function esIndexIfNeeded() {
   return indexPromise;
 }
 
-async function doIndex() {
+async function doIndex(): Promise<boolean> {
   const base = esBase();
   if (!base) return false;
 
@@ -170,7 +183,7 @@ async function doIndex() {
     if (!resp.ok) {
       throw new Error(`Elasticsearch bulk index failed: ${resp.status}`);
     }
-    const result = await resp.json();
+    const result = (await resp.json()) as { errors?: boolean };
     if (result && result.errors) {
       throw new Error('Elasticsearch bulk index reported item errors');
     }
