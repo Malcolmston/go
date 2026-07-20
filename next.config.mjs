@@ -29,14 +29,14 @@ const nextConfig = {
     config.resolve.alias['go-ui'] = path.resolve(__dirname, 'ui/src/index.ts');
     // go-ui's source (ui/src) has no node_modules of its own; make webpack
     // resolve its bare imports (react, etc.) from THIS app's node_modules so
-    // there is a single React copy — without hard-aliasing React (which breaks
-    // Next's server/RSC React handling).
+    // there is a single React copy. We deliberately do NOT hard-alias
+    // `react`/`react-dom`: now that the shell (ClientRoot) server-renders, a
+    // static `react` alias points Next's server/RSC build at the client React
+    // build, whose hooks read a null dispatcher during prerender (usePathname →
+    // `useContext` of null). Prepending the root node_modules to `modules` is
+    // enough to dedupe go-ui's React while letting Next choose the correct React
+    // per build layer (server vs client).
     config.resolve.modules = [path.resolve(__dirname, 'node_modules'), 'node_modules'];
-    const R = (m) => path.resolve(__dirname, 'node_modules', m);
-    config.resolve.alias['react'] = R('react');
-    config.resolve.alias['react-dom'] = R('react-dom');
-    config.resolve.alias['react/jsx-runtime'] = R('react/jsx-runtime');
-    config.resolve.alias['react/jsx-dev-runtime'] = R('react/jsx-dev-runtime');
     return config;
   },
 };

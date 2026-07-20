@@ -1,16 +1,7 @@
 'use client';
-import dynamic from 'next/dynamic';
 import Link from 'next/link';
+import { LibView } from '../../../src/components/LibView';
 import { LIBS } from '../../../src/data';
-
-// LibView renders a library's hero, sub-tabs and inline API docs. It's loaded
-// client-only (ssr:false) because the API sub-tab mounts DocsApp, which fetches
-// and touches browser APIs — the same client-SPA pattern every other route uses,
-// so it works identically under the static export and on Vercel.
-const LibView = dynamic(
-  () => import('../../../src/components/LibView').then((m) => ({ default: m.LibView })),
-  { ssr: false },
-);
 
 // LibClient receives the route id from the server page and looks the library up
 // in LIBS. An unknown id (e.g. a stale link) renders a friendly fallback rather
