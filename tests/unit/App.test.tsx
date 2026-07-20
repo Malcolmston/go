@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { Home } from '../../src/components/Home';
 import { Faq } from '../../src/components/Faq';
 import { About } from '../../src/components/About';
-import { LibView } from '../../src/components/LibView';
+import { LibHero } from '../../src/components/lib/LibHero';
 import { LIBS } from '../../src/data';
 
 // The old top-level <App> (hash-routed tabs wrapped in the shared Layout) is
@@ -35,8 +35,8 @@ describe('route views', () => {
     ).toBeInTheDocument();
   });
 
-  it('renders a library view', () => {
-    render(<LibView lib={express} key={express.id} />);
+  it('renders a library view (its shared hero heading)', () => {
+    render(<LibHero lib={express} key={express.id} />);
     expect(screen.getByRole('heading', { level: 2, name: /Express/ })).toBeInTheDocument();
   });
 

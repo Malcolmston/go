@@ -139,8 +139,13 @@ test('nav tabs switch the active view and update the URL path', async ({ page })
 });
 
 test('every link is valid (internal targets exist, external links are safe)', async ({ page }) => {
-  // Every route the nav can reach, as a set of concrete paths.
+  // Every route the nav can reach, as a set of concrete paths. Each library page
+  // is split into sub-pages (Overview /lib/<id>, plus /examples, /api, /parity),
+  // which the hero + sub-nav link to, so include those too.
   const knownPaths = new Set(TAB_IDS.map(pathForTab));
+  for (const lib of LIBS) {
+    for (const seg of ['examples', 'api', 'parity']) knownPaths.add(`/lib/${lib.id}/${seg}`);
+  }
 
   // Load once, then client-route across every tab (no per-tab reload).
   await gotoTab(page, 'home');

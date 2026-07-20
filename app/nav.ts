@@ -35,7 +35,11 @@ export function tabForPath(pathname: string | null | undefined): string {
   // Normalise a possible trailing slash from the static export.
   const clean = pathname.replace(/\/+$/, '');
   if (clean === '' || clean === '/') return 'home';
-  if (clean.startsWith('/lib/')) return decodeURIComponent(clean.slice('/lib/'.length));
+  // A library route is /lib/<id> plus optional sub-tab (/examples, /api, …);
+  // the top-nav tab is the library id, so keep only the first segment.
+  if (clean.startsWith('/lib/')) {
+    return decodeURIComponent(clean.slice('/lib/'.length).split('/')[0]);
+  }
   const seg = clean.slice(1).split('/')[0];
   if (TOP_LEVEL.has(seg)) return seg;
   return 'home';
