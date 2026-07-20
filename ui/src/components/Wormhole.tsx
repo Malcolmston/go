@@ -1,3 +1,5 @@
+'use client';
+
 import { forwardRef, useImperativeHandle, useRef, useEffect } from 'react';
 
 // WormholeHandle is the imperative API: warp() plays a full-screen, OPAQUE

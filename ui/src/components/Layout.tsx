@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect, useState, useCallback, useRef } from 'react';
 import type { ReactNode } from 'react';
 import { ThemeToggle } from './ThemeToggle';

@@ -1,17 +1,14 @@
-// graphql.js — Vercel serverless GraphQL API over the package-connection graph.
+// app/api/graphql/route.ts — Next.js Route Handler port of api/graphql.js.
 //
-// Implements the exact SDL from the shared contract using graphql-js
-// (GraphQLSchema / GraphQLObjectType) so that object-type fields such as
-// Package.imports / Package.importedBy / Package.related and Edge.to get proper
-// resolvers. All graph reads go through api/_lib/graphstore.js; the `search`
-// field uses Elasticsearch (api/_lib/es.js) when enabled and falls back to the
-// in-memory BM25 backend (api/_lib/bm25.js) over getSymbols() on any failure.
-//
-// Handler (Node runtime, ESM):
+// Serves the package-connection graph GraphQL API over graphql-js, reusing the
+// shared ESM libs in /workspace/go/api/_lib. Mirrors the SDL/resolvers of the
+// original Vercel serverless function exactly:
 //   - POST /api/graphql  { query, variables, operationName }
 //   - GET  /api/graphql?query=...&variables=...&operationName=...
 //   - OPTIONS preflight -> 204
-// Responds with { data, errors } JSON and permissive CORS.
+// Responds with { data, errors } JSON and permissive CORS. All graph reads go
+// through graphstore.js; `search` uses Elasticsearch (es.js) when enabled and
+// falls back to the in-memory BM25 backend (bm25.js) over getSymbols().
 
 import {
   GraphQLSchema,
@@ -33,11 +30,16 @@ import {
   importedBy,
   related,
   subgraph,
-} from './_lib/graphstore.js';
+} from '../../../../api/_lib/graphstore.js';
 
-import { getSymbols } from './_lib/data.js';
-import { esEnabled, esSearch } from './_lib/es.js';
-import { search as bm25Search } from './_lib/bm25.js';
+import { getSymbols } from '../../../../api/_lib/data.js';
+import { esEnabled, esSearch } from '../../../../api/_lib/es.js';
+import { search as bm25Search } from '../../../../api/_lib/bm25.js';
+
+// Run on the Node.js runtime (the shared libs use node built-ins), and never
+// pre-render / cache — every request executes the resolvers live.
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 // ---------------------------------------------------------------------------
 // Object types
@@ -57,7 +59,7 @@ const LibraryType = new GraphQLObjectType({
 
 // type Package { id, importPath, name, library, synopsis, symbolCount,
 //                imports: [Package!]!, importedBy: [Package!]!, related: [Edge!]! }
-const PackageType = new GraphQLObjectType({
+const PackageType: GraphQLObjectType = new GraphQLObjectType({
   name: 'Package',
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
@@ -67,32 +69,32 @@ const PackageType = new GraphQLObjectType({
     synopsis: { type: GraphQLString },
     symbolCount: {
       type: new GraphQLNonNull(GraphQLInt),
-      resolve: (p) => p.symbolCount || 0,
+      resolve: (p: any) => p.symbolCount || 0,
     },
     imports: {
       type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(PackageType))),
-      resolve: (p) => importsOf(p.id),
+      resolve: (p: any) => importsOf(p.id),
     },
     importedBy: {
       type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(PackageType))),
-      resolve: (p) => importedBy(p.id),
+      resolve: (p: any) => importedBy(p.id),
     },
     related: {
       type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(EdgeType))),
-      resolve: (p) => related(p.id),
+      resolve: (p: any) => related(p.id),
     },
   }),
 });
 
 // type Edge { to: Package!, kind: String!, weight: Int! }
-const EdgeType = new GraphQLObjectType({
+const EdgeType: GraphQLObjectType = new GraphQLObjectType({
   name: 'Edge',
   fields: () => ({
     to: { type: new GraphQLNonNull(PackageType) },
     kind: { type: new GraphQLNonNull(GraphQLString) },
     weight: {
       type: new GraphQLNonNull(GraphQLInt),
-      resolve: (e) => e.weight || 0,
+      resolve: (e: any) => e.weight || 0,
     },
   }),
 });
@@ -111,7 +113,7 @@ const SearchHitType = new GraphQLObjectType({
     anchor: { type: GraphQLString },
     score: {
       type: new GraphQLNonNull(GraphQLFloat),
-      resolve: (h) => (typeof h.score === 'number' ? h.score : 0),
+      resolve: (h: any) => (typeof h.score === 'number' ? h.score : 0),
     },
   }),
 });
@@ -125,7 +127,7 @@ const GraphNodeType = new GraphQLObjectType({
     library: { type: new GraphQLNonNull(GraphQLString) },
     symbolCount: {
       type: new GraphQLNonNull(GraphQLInt),
-      resolve: (n) => n.symbolCount || 0,
+      resolve: (n: any) => n.symbolCount || 0,
     },
   }),
 });
@@ -139,7 +141,7 @@ const GraphEdgeType = new GraphQLObjectType({
     kind: { type: new GraphQLNonNull(GraphQLString) },
     weight: {
       type: new GraphQLNonNull(GraphQLInt),
-      resolve: (e) => e.weight || 0,
+      resolve: (e: any) => e.weight || 0,
     },
   }),
 });
@@ -161,8 +163,9 @@ const GraphType = new GraphQLObjectType({
 // search resolver: Elasticsearch when enabled, BM25 fallback otherwise.
 // ---------------------------------------------------------------------------
 
-async function resolveSearch(q, first) {
-  const limit = Number.isFinite(first) && first > 0 ? Math.floor(first) : 20;
+async function resolveSearch(q: unknown, first: unknown): Promise<any[]> {
+  const firstNum = typeof first === 'number' ? first : Number(first);
+  const limit = Number.isFinite(firstNum) && firstNum > 0 ? Math.floor(firstNum) : 20;
   if (q == null || String(q).trim() === '') return [];
 
   if (esEnabled()) {
@@ -185,7 +188,7 @@ const QueryType = new GraphQLObjectType({
     package: {
       type: PackageType,
       args: { id: { type: new GraphQLNonNull(GraphQLID) } },
-      resolve: (_root, { id }) => storePkg(id),
+      resolve: (_root: unknown, { id }: any) => storePkg(id),
     },
     packages: {
       type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(PackageType))),
@@ -194,8 +197,8 @@ const QueryType = new GraphQLObjectType({
         search: { type: GraphQLString },
         first: { type: GraphQLInt, defaultValue: 50 },
       },
-      resolve: (_root, { library, search, first }) =>
-        storePackages({ library, search, first }),
+      resolve: (_root: unknown, { library, search, first }: any) =>
+        (storePackages as (o: { library?: string; search?: string; first?: number }) => unknown)({ library, search, first }),
     },
     libraries: {
       type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(LibraryType))),
@@ -207,12 +210,12 @@ const QueryType = new GraphQLObjectType({
         q: { type: new GraphQLNonNull(GraphQLString) },
         first: { type: GraphQLInt, defaultValue: 20 },
       },
-      resolve: (_root, { q, first }) => resolveSearch(q, first),
+      resolve: (_root: unknown, { q, first }: any) => resolveSearch(q, first),
     },
     graph: {
       type: new GraphQLNonNull(GraphType),
       args: { library: { type: GraphQLString } },
-      resolve: (_root, { library }) => subgraph(library),
+      resolve: (_root: unknown, { library }: any) => subgraph(library),
     },
   }),
 });
@@ -223,48 +226,24 @@ const schema = new GraphQLSchema({ query: QueryType });
 // HTTP helpers
 // ---------------------------------------------------------------------------
 
-function setCors(res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Max-Age', '86400');
+const CORS_HEADERS: Record<string, string> = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Max-Age': '86400',
+};
+
+function jsonResponse(status: number, payload: unknown): Response {
+  return new Response(JSON.stringify(payload), {
+    status,
+    headers: {
+      ...CORS_HEADERS,
+      'Content-Type': 'application/json; charset=utf-8',
+    },
+  });
 }
 
-function sendJson(res, status, payload) {
-  res.statusCode = status;
-  res.setHeader('Content-Type', 'application/json; charset=utf-8');
-  res.end(JSON.stringify(payload));
-}
-
-// Parse the request body for POST. Vercel usually pre-parses JSON into req.body,
-// but fall back to reading the raw stream so the function is robust standalone.
-async function readBody(req) {
-  if (req.body != null) {
-    if (typeof req.body === 'string') {
-      if (req.body.trim() === '') return {};
-      try {
-        return JSON.parse(req.body);
-      } catch {
-        return null;
-      }
-    }
-    if (typeof req.body === 'object') return req.body;
-  }
-
-  const chunks = [];
-  for await (const chunk of req) {
-    chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
-  }
-  const raw = Buffer.concat(chunks).toString('utf8');
-  if (raw.trim() === '') return {};
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return null;
-  }
-}
-
-function parseVariables(vars) {
+function parseVariables(vars: unknown): Record<string, unknown> | undefined {
   if (vars == null || vars === '') return undefined;
   if (typeof vars === 'string') {
     try {
@@ -273,64 +252,71 @@ function parseVariables(vars) {
       return undefined;
     }
   }
-  return vars;
+  if (typeof vars === 'object') return vars as Record<string, unknown>;
+  return undefined;
+}
+
+// Parse a POST body: JSON object, JSON string, or empty -> {}. null signals
+// a malformed JSON body (caller returns 400).
+async function readBody(req: Request): Promise<any> {
+  const raw = await req.text();
+  if (raw == null || raw.trim() === '') return {};
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
 }
 
 // ---------------------------------------------------------------------------
-// Handler
+// GraphQL execution
 // ---------------------------------------------------------------------------
 
-export default async function handler(req, res) {
-  setCors(res);
-
-  const method = (req.method || 'GET').toUpperCase();
-
-  if (method === 'OPTIONS') {
-    res.statusCode = 204;
-    res.end();
-    return;
+async function execute(
+  source: unknown,
+  variableValues: Record<string, unknown> | undefined,
+  operationName: unknown
+): Promise<Response> {
+  if (!source || String(source).trim() === '') {
+    return jsonResponse(400, { errors: [{ message: 'Missing GraphQL query' }] });
   }
 
-  let source;
-  let variableValues;
-  let operationName;
-
   try {
-    if (method === 'POST') {
-      const body = await readBody(req);
-      if (body == null) {
-        sendJson(res, 400, { errors: [{ message: 'Invalid JSON body' }] });
-        return;
-      }
-      source = body.query;
-      variableValues = parseVariables(body.variables);
-      operationName = body.operationName;
-    } else if (method === 'GET') {
-      const query = req.query || {};
-      source = query.query;
-      variableValues = parseVariables(query.variables);
-      operationName = query.operationName;
-    } else {
-      sendJson(res, 405, { errors: [{ message: `Method ${method} not allowed` }] });
-      return;
-    }
-
-    if (!source || String(source).trim() === '') {
-      sendJson(res, 400, { errors: [{ message: 'Missing GraphQL query' }] });
-      return;
-    }
-
     const result = await graphql({
       schema,
       source: String(source),
       variableValues,
-      operationName: operationName || undefined,
+      operationName: (operationName as string) || undefined,
     });
-
-    sendJson(res, 200, result);
-  } catch (err) {
-    sendJson(res, 500, {
+    return jsonResponse(200, result);
+  } catch (err: any) {
+    return jsonResponse(500, {
       errors: [{ message: err && err.message ? err.message : 'Internal server error' }],
     });
   }
+}
+
+// ---------------------------------------------------------------------------
+// Route Handlers
+// ---------------------------------------------------------------------------
+
+export async function OPTIONS(): Promise<Response> {
+  return new Response(null, { status: 204, headers: CORS_HEADERS });
+}
+
+export async function GET(req: Request): Promise<Response> {
+  const params = new URL(req.url).searchParams;
+  return execute(
+    params.get('query'),
+    parseVariables(params.get('variables')),
+    params.get('operationName')
+  );
+}
+
+export async function POST(req: Request): Promise<Response> {
+  const body = await readBody(req);
+  if (body == null) {
+    return jsonResponse(400, { errors: [{ message: 'Invalid JSON body' }] });
+  }
+  return execute(body.query, parseVariables(body.variables), body.operationName);
 }

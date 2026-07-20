@@ -1,45 +1,47 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { App } from '../../src/App';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { Home } from '../../src/components/Home';
+import { Faq } from '../../src/components/Faq';
+import { About } from '../../src/components/About';
+import { LibView } from '../../src/components/LibView';
+import { LIBS } from '../../src/data';
 
-describe('App', () => {
+// The old top-level <App> (hash-routed tabs wrapped in the shared Layout) is
+// gone: routing moved to the Next App Router (app/layout.tsx + app/<route>/
+// pages), and the nav/Layout behaviour it used to compose is now covered by the
+// go-ui Layout test. What remains worth asserting at this level is that each
+// route's view renders its expected landmark heading — i.e. that the pages the
+// router mounts show the right content. So this suite renders the specific
+// views the routes mount (rather than an <App/> that no longer exists) and
+// checks those headings.
+const express = LIBS.find((l) => l.id === 'express')!;
+
+describe('route views', () => {
   beforeEach(() => {
-    // Components mounted here (VersionBadge/ReleaseList) fetch on mount.
+    // Views that mount VersionBadge/ReleaseList/DocsApp fetch on mount; keep
+    // those requests pending so the views render deterministically.
     global.fetch = vi.fn().mockReturnValue(new Promise(() => {}));
-    window.location.hash = '';
   });
 
-  afterEach(() => {
-    window.location.hash = '';
-  });
-
-  it('renders the nav tabs and the home view by default', () => {
-    render(<App />);
-    expect(screen.getByRole('link', { name: 'Home' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Express' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'FAQ' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'About' })).toBeInTheDocument();
-    // Home hero heading.
+  it('renders the Home view with its hero heading', () => {
+    render(<Home go={() => {}} />);
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/reimagined/i);
   });
 
-  it('switches the visible view when location.hash changes', () => {
-    render(<App />);
-    // Move to the FAQ tab via a hash change.
-    window.location.hash = '#faq';
-    fireEvent(window, new Event('hashchange'));
-    expect(screen.getByRole('heading', { name: /Frequently asked questions/ })).toBeInTheDocument();
+  it('renders the FAQ view', () => {
+    render(<Faq />);
+    expect(
+      screen.getByRole('heading', { level: 2, name: /Frequently asked questions/ }),
+    ).toBeInTheDocument();
+  });
 
-    // And to a library view.
-    window.location.hash = '#express';
-    fireEvent(window, new Event('hashchange'));
+  it('renders a library view', () => {
+    render(<LibView lib={express} key={express.id} />);
     expect(screen.getByRole('heading', { level: 2, name: /Express/ })).toBeInTheDocument();
   });
 
-  it('navigates when a nav tab is clicked', () => {
-    render(<App />);
-    fireEvent.click(screen.getByRole('link', { name: 'About' }));
-    fireEvent(window, new Event('hashchange'));
+  it('renders the About view', () => {
+    render(<About />);
     expect(screen.getByRole('heading', { level: 2, name: 'About' })).toBeInTheDocument();
   });
 });

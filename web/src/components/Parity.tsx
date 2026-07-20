@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { hx } from 'go-ui';
 import { LIBS } from '../data';
 import { parityFor } from '../parityLookup';
@@ -31,7 +32,7 @@ export function Parity() {
       <p className="muted">
         Every port is measured against the <b>original</b> library, not by eyeball. The parity score is the port's
         measured fidelity to that upstream <i>after</i> closing the behavior gaps the upstream's own test suite exposes.
-        Here's the exact method, stage by stage — the same pipeline you can watch on the <a href="#pipeline">Pipeline</a> tab.
+        Here's the exact method, stage by stage — the same pipeline you can watch on the <Link href="/pipeline">Pipeline</Link> tab.
       </p>
 
       <div className="parity-stats">
@@ -67,7 +68,7 @@ export function Parity() {
           <tbody>
             {sorted.map(({ lib, p }) => (
               <tr key={lib.id}>
-                <td><a href={`#${lib.id}`} style={{ color: lib.accent, fontWeight: 600 }}>{lib.name}</a></td>
+                <td><Link href={`/lib/${lib.id}`} style={{ color: lib.accent, fontWeight: 600 }}>{lib.name}</Link></td>
                 <td className="mono"><a href={`https://github.com/${p!.upstream}`} target="_blank" rel="noopener">{p!.upstream}</a></td>
                 <td className="num mono">{p!.before}</td>
                 <td className="num"><span className="parity-pill" style={{ borderColor: hx(lib.accent, '55'), color: lib.accent, background: hx(lib.accent, '14') }}>{p!.after}</span></td>

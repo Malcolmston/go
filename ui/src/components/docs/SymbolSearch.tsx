@@ -1,3 +1,5 @@
+'use client';
+
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import type { DocPackage, DocValue, DocFunc, DocType } from '../../docs/types';
 

@@ -7,6 +7,8 @@
 // helper ever throws to the UI — failures resolve to `null` / empty results so
 // callers can branch on that.
 
+import { withBase } from '../basePath';
+
 // ---------------------------------------------------------------------------
 // Shared shapes — these MUST match the generated data-file shapes and the
 // GraphQL SDL so the pieces interoperate.
@@ -80,13 +82,12 @@ export interface SearchResult {
 // ---------------------------------------------------------------------------
 
 /**
- * The base origin for the serverless functions. `VITE_API_URL` lets a static
- * deploy (e.g. GitHub Pages) point at a separate Vercel origin; blank means
- * same-origin, which is the Vercel case.
+ * The base origin for the serverless functions. The API is now served by Next
+ * route handlers (`/api/graphql`, `/api/search`, `/api/health`) on the same
+ * host as the app, so this is always same-origin (blank).
  */
 export function apiBase(): string {
-  const env = import.meta.env as Record<string, string | undefined>;
-  return env.VITE_API_URL || '';
+  return '';
 }
 
 /**
@@ -144,7 +145,7 @@ export function loadFallbackGraph(): Promise<GraphData | null> {
   if (!graphCache) {
     graphCache = (async () => {
       try {
-        const res = await fetch(`${import.meta.env.BASE_URL}graph.json`);
+        const res = await fetch(withBase('graph.json'));
         if (!res.ok) return null;
         return (await res.json()) as GraphData;
       } catch {
@@ -160,7 +161,7 @@ export function loadFallbackSymbols(): Promise<SymbolIndex | null> {
   if (!symbolsCache) {
     symbolsCache = (async () => {
       try {
-        const res = await fetch(`${import.meta.env.BASE_URL}search-index.json`);
+        const res = await fetch(withBase('search-index.json'));
         if (!res.ok) return null;
         return (await res.json()) as SymbolIndex;
       } catch {
