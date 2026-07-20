@@ -72,7 +72,7 @@ export default defineConfig({
   projects,
   webServer: {
     // Production build, then serve the Next app at the domain root on 4173.
-    command: 'npm run build && npx next start -p 4173',
+    command: 'pnpm run build && pnpm exec next start -p 4173',
     url: BASE_URL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

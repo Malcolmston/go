@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PackageNav } from 'go-ui';
 import type { DocIndex } from 'go-ui';
-import sampleJson from '../../../../../ui/src/docs/sample.doc.json';
+import sampleJson from '../../../../ui/src/docs/sample.doc.json';
 
 const sample = sampleJson as unknown as DocIndex;
 

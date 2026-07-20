@@ -1,23 +1,28 @@
 name: Vercel
 
-# Deploys the go aggregator (web/) to Vercel on every push to main. The whole
-# landing plus every library's bundled API docs (web/public/docs/*.json ->
-# dist/docs/) ship together, so the Vercel deployment is fully self-contained
+# Deploys the go aggregator (Next app at the repo root) to Vercel on every push
+# to main. The whole landing plus every library's bundled API docs (public/docs/*.json ->
+# the app) ship together, so the Vercel deployment is fully self-contained
 # and needs nothing from GitHub to read the docs. Coexists with the GitHub
-# Pages deploy (pages.yml); vite's base resolves to '/' on Vercel (VERCEL=1)
-# and '/go/' on Pages.
+# Pages deploy (pages.yml); the Next app builds at the repo root on Vercel
+# and exports under '/go' on Pages.
 #
 # Secrets: VERCEL_TOKEN is required. VERCEL_ORG_ID + VERCEL_PROJECT_ID are
 # optional — when both are present the deterministic prebuilt flow is used
 # (recommended once the project exists); otherwise the first run creates and
-# links a new Vercel project non-interactively from web/.
+# links a new Vercel project non-interactively from the repo root.
 
 on:
   push:
     branches: ["main"]
     paths:
-      - "web/**"
+      - "app/**"
+      - "src/**"
+      - "public/**"
       - "ui/**"
+      - "api/**"
+      - "package.json"
+      - "next.config.mjs"
       - ".github/workflows/vercel.yml"
   workflow_dispatch:
 

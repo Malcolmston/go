@@ -1,12 +1,50 @@
 {
-  "name": "go-aggregator-api",
+  "name": "go-aggregator",
   "private": true,
+  "version": "1.0.0",
   "type": "module",
   "packageManager": "pnpm@10.33.0",
   "scripts": {
-    "build:graph": "node scripts/build-graph-data.mjs"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "build:graph": "node scripts/build-graph-data.mjs",
+    "typecheck": "tsc --noEmit",
+    "typecheck:tests": "tsc --noEmit -p tsconfig.test.json",
+    "lint": "next lint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "e2e": "playwright test",
+    "e2e:install": "playwright install chromium",
+    "prebuild": "node scripts/build-graph-data.mjs"
   },
   "dependencies": {
-    "graphql": "^16.9.0"
+    "go-ui": "file:./ui",
+    "graphql": "^16.9.0",
+    "next": "^15.1.6",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/node": "^26.1.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^15.1.6",
+    "jsdom": "^29.1.1",
+    "typescript": "^5.7.2",
+    "vite": "^7.1.0",
+    "vitest": "^4.1.9",
+    "tailwindcss": "^3.4.17",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["sharp", "esbuild", "unrs-resolver"]
   }
 }

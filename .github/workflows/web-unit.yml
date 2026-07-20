@@ -1,14 +1,14 @@
 name: Web unit
 
-# Vitest component tests for the landing site (web/) and its vendored go-ui
+# Vitest component tests for the landing site (repo root) and its vendored go-ui
 # shared library (a git submodule).
 
 on:
   pull_request:
-    paths: ["web/**", ".github/workflows/web-unit.yml"]
+    paths: ["app/**", "src/**", "ui/**", "package.json", "pnpm-lock.yaml", "tsconfig*.json", "vitest.config.ts", ".github/workflows/web-unit.yml"]
   push:
     branches: ["main"]
-    paths: ["web/**", ".github/workflows/web-unit.yml"]
+    paths: ["app/**", "src/**", "ui/**", "package.json", "pnpm-lock.yaml", "tsconfig*.json", "vitest.config.ts", ".github/workflows/web-unit.yml"]
   workflow_dispatch:
 
 permissions:
@@ -21,17 +21,17 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with: { submodules: true }
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: npm
-          cache-dependency-path: web/package-lock.json
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
       - name: Install
-        working-directory: web
-        run: npm ci
+        run: pnpm install --frozen-lockfile
       - name: Typecheck
-        working-directory: web
-        run: npm run typecheck && npm run typecheck:tests
+        run: pnpm run typecheck && pnpm run typecheck:tests
       - name: Unit tests
-        working-directory: web
-        run: npm run test
+        run: pnpm run test

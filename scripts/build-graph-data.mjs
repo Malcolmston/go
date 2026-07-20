@@ -21,11 +21,11 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..');
-const DOCS_DIR = path.join(REPO_ROOT, 'web', 'public', 'docs');
-const PARITY_TS = path.join(REPO_ROOT, 'web', 'src', 'parity.ts');
+const DOCS_DIR = path.join(REPO_ROOT, 'public', 'docs');
+const PARITY_TS = path.join(REPO_ROOT, 'src', 'parity.ts');
 const OUT_DIRS = [
   path.join(REPO_ROOT, 'api', '_data'),
-  path.join(REPO_ROOT, 'web', 'public'),
+  path.join(REPO_ROOT, 'public'),
 ];
 
 // Cap applied to reference-edge weights so a package that mentions a neighbour's

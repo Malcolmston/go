@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { PackageView } from 'go-ui';
 import type { DocIndex } from 'go-ui';
-import sampleJson from '../../../../../ui/src/docs/sample.doc.json';
+import sampleJson from '../../../../ui/src/docs/sample.doc.json';
 
 const sample = sampleJson as unknown as DocIndex;
 const express = sample.packages[0];
