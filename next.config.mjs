@@ -12,23 +12,22 @@ const nextConfig = {
   // dirs; warnings (e.g. no-explicit-any) don't fail the build, errors do.
   typescript: { ignoreBuildErrors: false },
   eslint: { ignoreDuringBuilds: false, dirs: ['app', 'src'] },
-  // The shared go-ui library is imported from ../ui/src (outside this app dir).
+  // The shared go-ui library is imported from ./ui/src (outside the app dir).
   experimental: { externalDir: true },
-  // Monorepo: this app lives in web/ but imports ../ui and the API route
-  // handlers import ../api/_lib and read ../api/_data. Anchor Next's file
-  // tracer at the repo root so those out-of-dir files are bundled with the
-  // serverless functions, and force-include the JSON data the /api routes read
-  // via fs (dynamic reads the tracer can't infer).
-  outputFileTracingRoot: path.resolve(__dirname, '..'),
+  // The Next app lives at the repo root but the /api route handlers import
+  // ./api/_lib and read ./api/_data. Anchor the file tracer at the repo root
+  // and force-include the JSON data the /api routes read via fs (dynamic reads
+  // the tracer can't infer).
+  outputFileTracingRoot: __dirname,
   outputFileTracingIncludes: {
-    '/api/**': ['../api/_data/**', '../api/_lib/**'],
+    '/api/**': ['api/_data/**', 'api/_lib/**'],
   },
   // GitHub Pages is a static, API-less project site under /go; Vercel serves
   // the full Next app (with API routes) at the domain root.
   ...(isPages ? { output: 'export', basePath: '/go', images: { unoptimized: true } } : {}),
   webpack: (config) => {
-    config.resolve.alias['go-ui'] = path.resolve(__dirname, '../ui/src/index.ts');
-    // go-ui's source (../ui/src) has no node_modules of its own; make webpack
+    config.resolve.alias['go-ui'] = path.resolve(__dirname, 'ui/src/index.ts');
+    // go-ui's source (ui/src) has no node_modules of its own; make webpack
     // resolve its bare imports (react, etc.) from THIS app's node_modules so
     // there is a single React copy — without hard-aliasing React (which breaks
     // Next's server/RSC React handling).

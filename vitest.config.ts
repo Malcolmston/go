@@ -22,7 +22,7 @@ export default defineConfig({
   resolve: {
     dedupe: ['react', 'react-dom'],
     alias: {
-      'go-ui': fileURLToPath(new URL('../ui/src/index.ts', import.meta.url)),
+      'go-ui': fileURLToPath(new URL('./ui/src/index.ts', import.meta.url)),
       'next/link': fileURLToPath(new URL('./tests/mocks/next-link.tsx', import.meta.url)),
       'next/navigation': fileURLToPath(new URL('./tests/mocks/next-navigation.ts', import.meta.url)),
     },

@@ -80,7 +80,7 @@ func main() {
 
 	out := *outFlag
 	if out == "" {
-		out = filepath.Join(root, "web", "src", "parity.ts")
+		out = filepath.Join(root, "src", "parity.ts")
 	}
 	if err := os.WriteFile(out, []byte(b.String()), 0o644); err != nil {
 		fatal(err)

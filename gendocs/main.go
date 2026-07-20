@@ -39,7 +39,7 @@ import (
 
 func main() {
 	root := flag.String("root", ".", "aggregator repo root (contains .gitmodules and the library submodules)")
-	out := flag.String("out", filepath.Join("web", "public", "docs"), "output directory for the per-library <lib>.json files")
+	out := flag.String("out", filepath.Join("public", "docs"), "output directory for the per-library <lib>.json files")
 	flag.Parse()
 
 	subs, err := submodulePaths(filepath.Join(*root, ".gitmodules"))

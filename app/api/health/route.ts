@@ -10,7 +10,7 @@
 // bundled fallback data. `es` mirrors esEnabled() from es.js: true iff
 // ELASTICSEARCH_URL is configured. CORS is permissive (Allow-Origin: *).
 
-import { esEnabled } from '../../../../api/_lib/es.js';
+import { esEnabled } from '../../../api/_lib/es.js';
 
 // Run on the Node.js runtime (the shared lib reads process.env), and never
 // pre-render / cache — every request reports live configuration state.
