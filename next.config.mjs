@@ -2,7 +2,6 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const isPages = process.env.GITHUB_PAGES === 'true';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -22,9 +21,9 @@ const nextConfig = {
   outputFileTracingIncludes: {
     '/api/**': ['api/_data/**', 'api/_lib/**'],
   },
-  // GitHub Pages is a static, API-less project site under /go; Vercel serves
-  // the full Next app (with API routes) at the domain root.
-  ...(isPages ? { output: 'export', basePath: '/go', images: { unoptimized: true } } : {}),
+  // The app is a full Next server deployed at the domain root on Vercel: real
+  // API routes, request-time middleware and live Elasticsearch. (There is no
+  // static GitHub Pages export any more, so no `output: 'export'`/basePath.)
   webpack: (config) => {
     config.resolve.alias['go-ui'] = path.resolve(__dirname, 'ui/src/index.ts');
     // go-ui's source (ui/src) has no node_modules of its own; make webpack

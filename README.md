@@ -5,13 +5,11 @@
 [![Cross-compile](https://github.com/Malcolmston/go/actions/workflows/cross-compile.yml/badge.svg)](https://github.com/Malcolmston/go/actions/workflows/cross-compile.yml)
 [![Web Unit](https://github.com/Malcolmston/go/actions/workflows/web-unit.yml/badge.svg)](https://github.com/Malcolmston/go/actions/workflows/web-unit.yml)
 [![Web E2E](https://github.com/Malcolmston/go/actions/workflows/web-e2e.yml/badge.svg)](https://github.com/Malcolmston/go/actions/workflows/web-e2e.yml)
-[![Pages](https://github.com/Malcolmston/go/actions/workflows/pages.yml/badge.svg)](https://github.com/Malcolmston/go/actions/workflows/pages.yml)
 [![Release](https://img.shields.io/github/v/release/Malcolmston/go?sort=semver)](https://github.com/Malcolmston/go/releases)
 [![Last Commit](https://img.shields.io/github/last-commit/Malcolmston/go)](https://github.com/Malcolmston/go/commits)
 [![Code Size](https://img.shields.io/github/languages/code-size/Malcolmston/go)](https://github.com/Malcolmston/go)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
-[![Docs](https://img.shields.io/badge/docs-pages-2f9bff)](https://malcolmston.github.io/go/)
 
 **The Node.js — and Python, Rust, Elixir, Java — ecosystems, reimagined in Go.**
 
@@ -21,9 +19,10 @@ standard library. Every port is **dependency-free** (stdlib only: no cgo, no
 third-party `require`s), individually versioned, and **verified against the
 original library's own test suite**.
 
-🌐 **Unified site & docs:** **<https://malcolmston.github.io/go/>** — a Home
-grid, a tab per library with an inline API reference and Node-vs-Go comparisons,
-plus How-to, FAQ, AI, and About.
+🌐 **Unified site & docs:** a Next.js app (deployed on Vercel) — a Home grid and
+a page per library with its own routes for Overview, Examples, an inline API
+reference and Node-vs-Go comparisons, plus How-to, FAQ, AI, and About. Symbol
+search is Elasticsearch-backed (with an in-memory BM25 fallback).
 
 ## The libraries
 
