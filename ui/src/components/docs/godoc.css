@@ -278,6 +278,21 @@
 /* Toolbar children keep their natural width so the row scrolls rather than
    squashing the nav links and the search box. */
 .gd-header > * { flex-shrink: 0; }
+
+/* ---- Embedded mode (inside the /go aggregator, which has its own sticky nav) --
+   The host page already owns a sticky top nav, and .gd-root's overflow-x:hidden
+   traps the renderer's sticky descendants anyway, so pin nothing here: let the
+   header + breadcrumb scroll with the content (no collision with the host nav),
+   offset the sidebar below the host nav for the stretch where it can stick, and
+   drop the full-viewport minimums that pad a short package with empty space. */
+.gd-root.gd-embedded { --gd-embed-top: 56px; min-height: 0; }
+.gd-embedded .gd-header,
+.gd-embedded .gd-breadcrumb { position: static; }
+.gd-embedded .gd-sidebar {
+  top: calc(var(--gd-embed-top) + 16px);
+  max-height: calc(100vh - var(--gd-embed-top) - 32px);
+}
+.gd-embedded .gd-body { min-height: 0; }
 .gd-header::-webkit-scrollbar { height: 6px; }
 .gd-header::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, .28); border-radius: 3px; }
 
@@ -437,7 +452,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 16px 5px 12px;
+  padding: 6px 16px 6px 12px;
   cursor: pointer;
   user-select: none;
   color: var(--gd-pkg-name);
@@ -467,7 +482,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 3px 16px 3px 26px;
+  padding: 4px 16px 4px 26px;
   color: var(--gd-sym-fg);
   text-decoration: none;
   font-family: var(--gd-font-mono);

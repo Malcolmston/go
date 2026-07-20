@@ -35,6 +35,7 @@ export interface LayoutProps {
 export function Layout({ brand, tabs, active, onNav, github, footer, children }: LayoutProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const wormhole = useRef<WormholeHandle>(null);
+  const tabsRef = useRef<HTMLElement>(null);
   // Navigating to a different page warps through the wormhole; the actual route
   // swap happens at the throat of the tunnel (mid-animation). Re-selecting the
   // current tab, or reduced-motion, routes immediately (handled in Wormhole).
@@ -49,6 +50,18 @@ export function Layout({ brand, tabs, active, onNav, github, footer, children }:
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
+
+  // The tab strip scrolls horizontally (there are many libraries). Keep the
+  // active tab centred in view when the route changes, scrolling only the strip
+  // — never the page. No-op on mobile, where the tabs are a vertical menu.
+  useEffect(() => {
+    const strip = tabsRef.current;
+    if (!strip) return;
+    const el = strip.querySelector<HTMLElement>('.tab.active');
+    if (!el || strip.clientWidth === 0) return;
+    const target = el.offsetLeft - (strip.clientWidth - el.clientWidth) / 2;
+    strip.scrollTo({ left: Math.max(0, target), behavior: 'smooth' });
+  }, [active]);
 
   // Global interceptor: ANY in-page link to a tab (nav tabs, hero CTAs, footer
   // links, cards…) routes through the wormhole instead of a bare hash jump.
@@ -81,7 +94,7 @@ export function Layout({ brand, tabs, active, onNav, github, footer, children }:
             <span className="logo">{brand.initials || 'go'}</span>
             <span className="txt">{brand.title} <span className="sub">{brand.sub}</span></span>
           </a>
-          <nav className={`tabs${menuOpen ? ' open' : ''}`}>
+          <nav ref={tabsRef} className={`tabs${menuOpen ? ' open' : ''}`}>
             {tabs.map((t) => (
               <a key={t.id} className={`tab${active === t.id ? ' active' : ''}`} href={`#${t.id}`}
                  onClick={(e) => { e.preventDefault(); nav(t.id); }}>

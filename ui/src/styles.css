@@ -79,7 +79,11 @@ header.nav{position:sticky;top:0;z-index:60;background:color-mix(in srgb,var(--b
 .brand .logo{width:28px;height:28px;border-radius:8px;background:var(--grad);display:grid;place-items:center;
   color:#03121b;font-weight:800;font-size:.76rem;box-shadow:0 6px 18px -6px rgba(91,140,255,.7)}
 .brand .txt{font-size:.92rem}.brand .txt .sub{color:var(--fg-dim);font-weight:500}
-.tabs{display:flex;gap:.05rem;flex:1;overflow-x:auto;scrollbar-width:none;justify-content:center;min-width:0}
+.tabs{display:flex;gap:.05rem;flex:1;overflow-x:auto;scrollbar-width:none;justify-content:flex-start;min-width:0;
+  /* Fade the ends so an overflowing strip reads as scrollable rather than clipped. */
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 20px,#000 calc(100% - 20px),transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 20px,#000 calc(100% - 20px),transparent);
+  scroll-padding-inline:20px;padding-inline:2px}
 .tabs::-webkit-scrollbar{display:none}
 .tab{white-space:nowrap;padding:.36rem .58rem;border-radius:999px;color:var(--fg-muted);font-size:.87rem;
   font-weight:500;cursor:pointer;transition:.2s;display:flex;align-items:center;gap:.35rem}
@@ -97,6 +101,7 @@ header.nav{position:sticky;top:0;z-index:60;background:color-mix(in srgb,var(--b
   .menu-btn{display:inline-flex}
   .tabs{position:absolute;top:100%;left:0;right:0;flex-direction:column;align-items:stretch;gap:.15rem;
     padding:.55rem;display:none;max-height:74vh;overflow:auto;
+    -webkit-mask-image:none;mask-image:none;
     background:color-mix(in srgb,var(--bg) 97%,transparent);backdrop-filter:var(--blur);
     border-bottom:1px solid var(--edge);box-shadow:var(--shadow);border-radius:0 0 20px 20px}
   .tabs.open{display:flex}

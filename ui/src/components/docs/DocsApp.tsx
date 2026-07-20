@@ -27,6 +27,12 @@ export interface DocsAppProps {
   // where the endpoint is absent (GitHub Pages, standalone per-library sites).
   searchEndpoint?: string;
   library?: string;
+  // When the renderer is embedded inside a host page that has its own sticky top
+  // nav (the /go aggregator), its sticky header/breadcrumb/sidebar must sit
+  // *below* that nav instead of colliding with it at top:0. Setting this adds the
+  // `gd-embedded` class, which offsets the sticky chrome by the host nav height.
+  // Standalone per-library sites (no host nav) leave it off.
+  embedded?: boolean;
 }
 
 const PKG_PREFIX = 'pkg/';
@@ -50,7 +56,8 @@ function shortModule(m: string): string {
 // two-column body (package sidebar + package documentation main). Selection is
 // hash-routable by import path (#pkg/<importPath>) when hashRouting is on.
 // Pass `index` directly, or a `url` to fetch a doc.json.
-export function DocsApp({ index, url, title, hashRouting = true, searchEndpoint, library }: DocsAppProps) {
+export function DocsApp({ index, url, title, hashRouting = true, searchEndpoint, library, embedded = false }: DocsAppProps) {
+  const shellClass = `gd-root docs-shell${embedded ? ' gd-embedded' : ''}`;
   const [data, setData] = useState<DocIndex | null>(index ?? null);
   const [error, setError] = useState<string | null>(null);
   const [active, setActive] = useState<string>('');
@@ -192,7 +199,7 @@ export function DocsApp({ index, url, title, hashRouting = true, searchEndpoint,
 
   if (error) {
     return (
-      <div className="gd-root docs-shell">
+      <div className={shellClass}>
         <p className="docs-error" role="alert">
           Failed to load documentation: {error}
         </p>
@@ -201,7 +208,7 @@ export function DocsApp({ index, url, title, hashRouting = true, searchEndpoint,
   }
   if (!data) {
     return (
-      <div className="gd-root docs-shell">
+      <div className={shellClass}>
         <p className="docs-loading">Loading documentation…</p>
       </div>
     );
@@ -241,7 +248,7 @@ export function DocsApp({ index, url, title, hashRouting = true, searchEndpoint,
   };
 
   return (
-    <div className="gd-root docs-shell">
+    <div className={shellClass}>
       <header className="gd-header">
         <div className="gd-header-brand">
           {brand}
@@ -338,7 +345,7 @@ export function DocsApp({ index, url, title, hashRouting = true, searchEndpoint,
 
       <div className="gd-body">
         <aside className="gd-sidebar">
-          <div className="gd-sidebar-title">Packages</div>
+          {/* The "Packages" title + filter live inside PackageNav; don't repeat it here. */}
           <PackageNav packages={packages} active={current?.importPath ?? ''} onSelect={selectPkg} />
         </aside>
         <main className="gd-main">

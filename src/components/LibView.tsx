@@ -127,6 +127,7 @@ export function LibView({ lib }: LibViewProps) {
             hashRouting={false}
             searchEndpoint={withBase('api/search')}
             library={docKey(lib)}
+            embedded
           />
         </div>
       )}
