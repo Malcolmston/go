@@ -42,18 +42,25 @@ function firstParam(value: string | null): number {
   return Math.min(n, MAX_FIRST);
 }
 
-async function runSearch(q: string, first: number): Promise<{ hits: any[]; backend: string }> {
+async function runSearch(q: string, first: number, library: string): Promise<{ hits: any[]; backend: string }> {
   if (q.trim() === '') return { hits: [], backend: 'memory' };
+
+  // When scoping to one library (the API-docs header search), over-fetch so the
+  // per-library slice still fills `first` after filtering, then keep only that
+  // library's hits. Applies to both backends without changing their signatures.
+  const want = library ? Math.min(MAX_FIRST, first * 8) : first;
+  const scope = (hits: any[]): any[] =>
+    (library ? hits.filter((h) => h && h.library === library) : hits).slice(0, first);
 
   if (esEnabled()) {
     try {
-      const hits = await esSearch(q, first);
-      return { hits, backend: 'elasticsearch' };
+      const hits = await esSearch(q, want);
+      return { hits: scope(hits), backend: 'elasticsearch' };
     } catch {
       // Fall through to BM25 on any Elasticsearch failure.
     }
   }
-  return { hits: bm25Search(getSymbols(), q, first), backend: 'memory' };
+  return { hits: scope(bm25Search(getSymbols(), q, want)), backend: 'memory' };
 }
 
 export async function OPTIONS(): Promise<Response> {
@@ -64,8 +71,9 @@ export async function GET(req: Request): Promise<Response> {
   const params = new URL(req.url).searchParams;
   const q = params.get('q') ?? '';
   const first = firstParam(params.get('first'));
+  const library = (params.get('library') ?? '').trim();
 
-  const { hits, backend } = await runSearch(q, first);
+  const { hits, backend } = await runSearch(q, first, library);
 
   return Response.json(
     { hits, backend },

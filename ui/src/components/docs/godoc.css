@@ -267,7 +267,19 @@
   position: sticky;
   top: 0;
   z-index: 30;
+  /* Keep the fixed 74px height (it anchors the sticky breadcrumb + sidebar), but
+     let the toolbar scroll horizontally instead of clipping brand + nav + search
+     on narrow viewports. The search dropdown is positioned fixed (see
+     SymbolSearch) so it is never clipped by this scroll container. */
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
 }
+/* Toolbar children keep their natural width so the row scrolls rather than
+   squashing the nav links and the search box. */
+.gd-header > * { flex-shrink: 0; }
+.gd-header::-webkit-scrollbar { height: 6px; }
+.gd-header::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, .28); border-radius: 3px; }
 
 .gd-header-brand {
   font-family: var(--gd-font-mono);

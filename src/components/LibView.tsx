@@ -117,8 +117,17 @@ export function LibView({ lib }: LibViewProps) {
           <p className="muted">The complete package-by-package Go API reference, generated from source — every exported type, function and method, with signatures, doc comments and runnable examples.</p>
           {/* Full Javadoc-style reference rendered inline. hashRouting is off so the
               renderer does not fight the aggregator's hash-based tab router. The
-              doc index is the per-library file bundled by gendocs at build time. */}
-          <DocsApp url={withBase(`docs/${docKey(lib)}.json`)} title={lib.pkg} hashRouting={false} />
+              doc index is the per-library file bundled by gendocs at build time.
+              The header symbol search is backed by the Elasticsearch /api/search
+              endpoint scoped to this library (docKey mirrors symbols.library),
+              falling back to the local index on GitHub Pages / any failure. */}
+          <DocsApp
+            url={withBase(`docs/${docKey(lib)}.json`)}
+            title={lib.pkg}
+            hashRouting={false}
+            searchEndpoint={withBase('api/search')}
+            library={docKey(lib)}
+          />
         </div>
       )}
 
