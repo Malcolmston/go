@@ -80,6 +80,8 @@ jobs:
       # basePath '/go'; NEXT_PUBLIC_BASE_PATH=/go makes client fetch()s and
       # asset links resolve under the /go project-pages prefix.
       - name: Build site
+        env:
+          FONTAWESOME_PACKAGE_TOKEN: ${{ secrets.FONTAWESOME_PACKAGE_TOKEN }}
         run: |
           pnpm install --frozen-lockfile
           # Static export can't include the dynamic /api route handlers (they run

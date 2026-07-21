@@ -30,6 +30,8 @@ jobs:
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
       - name: Install
+        env:
+          FONTAWESOME_PACKAGE_TOKEN: ${{ secrets.FONTAWESOME_PACKAGE_TOKEN }}
         run: pnpm install --frozen-lockfile
       - name: Typecheck
         run: pnpm run typecheck && pnpm run typecheck:tests

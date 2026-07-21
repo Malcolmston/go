@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import ClientRoot from './ClientRoot';
-import '@fortawesome/fontawesome-free/css/all.min.css';
+import '@awesome.me/kit-61a008692d/icons/css/all.min.css';
 import '../ui/src/styles.css';
 
 // Pre-hydration theme script: apply the stored light/dark choice to <html>
