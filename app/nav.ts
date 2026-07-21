@@ -19,6 +19,7 @@ const TOP_LEVEL = new Set([
   'howto',
   'faq',
   'ai',
+  'ask',
   'about',
 ]);
 
