@@ -292,7 +292,7 @@ export function Explore() {
       <SecH h="h2">Explore</SecH>
       <p className="muted">
         Search every exported symbol across all ports, and browse how each library's packages connect. Search is served
-        by the live GraphQL + Elasticsearch API when it's deployed, and falls back to the data bundled with this site
+        by the live GraphQL + Upstash Search API when it's deployed, and falls back to the data bundled with this site
         everywhere else.
       </p>
 
@@ -304,7 +304,7 @@ export function Explore() {
           </span>
         ) : live ? (
           <span className="xpl-badge xpl-badge-live">
-            <span className="xpl-dot" /> Live API — GraphQL + Elasticsearch
+            <span className="xpl-dot" /> Live API — GraphQL + Upstash Search
           </span>
         ) : (
           <span className="xpl-badge xpl-badge-fallback">
@@ -344,7 +344,7 @@ export function Explore() {
                 {hits.length} result{hits.length === 1 ? '' : 's'}
                 {backend && (
                   <span className="xpl-results-backend">
-                    via {backend === 'elasticsearch' ? 'Elasticsearch' : backend === 'memory' ? 'in-memory BM25' : 'bundled index'}
+                    via {backend === 'upstash' ? 'Upstash Search' : backend === 'memory' ? 'in-memory BM25' : 'bundled index'}
                   </span>
                 )}
               </>

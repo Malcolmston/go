@@ -18,7 +18,7 @@ let pageErrors: string[] = [];
 
 // The fixed, non-library top-level sections (everything else is a library under
 // /lib/). Mirror of app/nav.ts.
-const TOP_LEVEL = ['parity', 'pipeline', 'explore', 'releases', 'howto', 'faq', 'ai', 'about'];
+const TOP_LEVEL = ['parity', 'pipeline', 'explore', 'releases', 'howto', 'faq', 'ai', 'ask', 'about'];
 
 /** Map a tab id to its route path. */
 function pathForTab(id: string): string {

@@ -52,6 +52,7 @@ jobs:
         shard: ${{ fromJSON(needs.config.outputs.shards) }}
     env:
       E2E_SUBSET: ${{ needs.config.outputs.subset }}
+      FONTAWESOME_PACKAGE_TOKEN: ${{ secrets.FONTAWESOME_PACKAGE_TOKEN }}
     steps:
       - uses: actions/checkout@v7
         with: { submodules: true }
@@ -62,7 +63,7 @@ jobs:
           version: 10.33.0
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
       - name: Install deps

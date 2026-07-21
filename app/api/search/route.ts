@@ -3,14 +3,14 @@
 // REST symbol search for the go aggregator, reusing the shared ESM libs in
 // /workspace/go/api/_lib:
 //   GET /api/search?q=<query>&first=<n>
-//     -> { hits: SearchHit[], backend: "elasticsearch" | "memory" }
+//     -> { hits: SearchHit[], backend: "upstash" | "memory" }
 //   OPTIONS preflight -> 204
 //
 // SearchHit shape (shared contract):
 //   { id, name, kind, packageImportPath, library, signature, doc, anchor, score }
 //
 // Backend selection mirrors the original serverless function exactly:
-//   - If Elasticsearch is configured (esEnabled()), try esSearch(); on ANY
+//   - If Upstash Search is configured (esEnabled()), try esSearch(); on ANY
 //     error fall back to the in-memory BM25 backend over getSymbols().
 //   - Otherwise use BM25 directly.
 //   - With an empty/missing query, return an empty hit list (no error).
@@ -55,9 +55,9 @@ async function runSearch(q: string, first: number, library: string): Promise<{ h
   if (esEnabled()) {
     try {
       const hits = await esSearch(q, want);
-      return { hits: scope(hits), backend: 'elasticsearch' };
+      return { hits: scope(hits), backend: 'upstash' };
     } catch {
-      // Fall through to BM25 on any Elasticsearch failure.
+      // Fall through to BM25 on any Upstash Search failure.
     }
   }
   return { hits: scope(bm25Search(getSymbols(), q, want)), backend: 'memory' };

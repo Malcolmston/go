@@ -16,6 +16,7 @@ const TOP_LEVEL = [
   'howto',
   'faq',
   'ai',
+  'ask',
   'about',
 ] as const;
 

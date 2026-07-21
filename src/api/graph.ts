@@ -70,7 +70,7 @@ export interface SearchHit extends SymbolRecord {
   score: number;
 }
 
-export type SearchBackend = 'elasticsearch' | 'memory' | 'fallback';
+export type SearchBackend = 'upstash' | 'memory' | 'fallback';
 
 export interface SearchResult {
   hits: SearchHit[];
@@ -204,7 +204,7 @@ export function hasApi(): Promise<boolean> {
 // ---------------------------------------------------------------------------
 
 /**
- * Search the corpus. Uses the live API (`/api/search`, which is Elasticsearch-
+ * Search the corpus. Uses the live API (`/api/search`, which is Upstash-Search-
  * or memory-BM25-backed) when the functions are available, otherwise runs a
  * lightweight ranked filter over the bundled search index. Never throws.
  */

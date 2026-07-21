@@ -10,6 +10,7 @@ export interface Tab {
   id: string;
   label: string;
   dot?: string;
+  icon?: string; // Font Awesome classes, e.g. 'fa-solid fa-house'
 }
 
 export interface Brand {
@@ -75,8 +76,11 @@ export function Layout({ brand, tabs, active, onNav, github, footer, children }:
 
   return (
     <>
-      <header className="nav">
-        <div className="nav-inner">
+      <button className="iconbtn menu-btn" onClick={() => setMenuOpen((o) => !o)} aria-label="Menu" aria-expanded={menuOpen}>
+        <i className={menuOpen ? 'fa-solid fa-xmark' : 'fa-solid fa-bars'} />
+      </button>
+      <div className="app-shell">
+        <aside className={`sidebar${menuOpen ? ' open' : ''}`}>
           <a className="brand" href={brand.href || '#home'} onClick={(e) => { e.preventDefault(); nav(tabs[0].id); }}>
             <span className="logo">{brand.initials || 'go'}</span>
             <span className="txt">{brand.title} <span className="sub">{brand.sub}</span></span>
@@ -85,7 +89,10 @@ export function Layout({ brand, tabs, active, onNav, github, footer, children }:
             {tabs.map((t) => (
               <a key={t.id} className={`tab${active === t.id ? ' active' : ''}`} href={`#${t.id}`}
                  onClick={(e) => { e.preventDefault(); nav(t.id); }}>
-                {t.dot && <span className="dot" style={{ background: t.dot }} />}{t.label}
+                {t.icon
+                  ? <i className={`tab-ico ${t.icon}`} aria-hidden="true" />
+                  : t.dot && <span className="dot" style={{ background: t.dot }} />}
+                {t.label}
               </a>
             ))}
           </nav>
@@ -96,14 +103,14 @@ export function Layout({ brand, tabs, active, onNav, github, footer, children }:
                 <i className="fa-brands fa-github" /><span className="label">GitHub</span>
               </a>
             )}
-            <button className="iconbtn menu-btn" onClick={() => setMenuOpen((o) => !o)} aria-label="Menu">
-              <i className={menuOpen ? 'fa-solid fa-xmark' : 'fa-solid fa-bars'} />
-            </button>
           </div>
+        </aside>
+        {menuOpen && <div className="sidebar-scrim" onClick={() => setMenuOpen(false)} aria-hidden="true" />}
+        <div className="app-main">
+          <main className="wrap">{children}</main>
+          {footer && <footer className="wrap" style={{ padding: '2rem', textAlign: 'center', color: 'var(--fg-dim)' }}>{footer}</footer>}
         </div>
-      </header>
-      <main className="wrap">{children}</main>
-      {footer && <footer className="wrap" style={{ padding: '2rem', textAlign: 'center', color: 'var(--fg-dim)' }}>{footer}</footer>}
+      </div>
       <Wormhole ref={wormhole} />
     </>
   );
