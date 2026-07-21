@@ -12,6 +12,7 @@
     "build": "next build",
     "start": "next start",
     "build:graph": "node --experimental-strip-types scripts/build-graph-data.ts",
+    "index:symbols": "node --experimental-strip-types scripts/index-symbols.ts",
     "typecheck": "tsc --noEmit",
     "typecheck:tests": "tsc --noEmit -p tsconfig.test.json",
     "lint": "next lint",
@@ -22,6 +23,7 @@
     "prebuild": "node --experimental-strip-types scripts/build-graph-data.ts"
   },
   "dependencies": {
+    "@upstash/search": "^0.1.7",
     "go-ui": "file:./ui",
     "graphql": "^16.9.0",
     "next": "^15.1.6",
@@ -37,17 +39,21 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
     "eslint": "^8.57.1",
     "eslint-config-next": "^15.1.6",
     "jsdom": "^29.1.1",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
     "typescript": "^5.7.2",
     "vite": "^7.1.0",
-    "vitest": "^4.1.9",
-    "tailwindcss": "^3.4.17",
-    "autoprefixer": "^10.4.20",
-    "postcss": "^8.4.49"
+    "vitest": "^4.1.9"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["sharp", "esbuild", "unrs-resolver"]
+    "onlyBuiltDependencies": [
+      "sharp",
+      "esbuild",
+      "unrs-resolver"
+    ]
   }
 }

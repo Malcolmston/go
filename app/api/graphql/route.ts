@@ -7,7 +7,7 @@
 //   - GET  /api/graphql?query=...&variables=...&operationName=...
 //   - OPTIONS preflight -> 204
 // Responds with { data, errors } JSON and permissive CORS. All graph reads go
-// through graphstore.js; `search` uses Elasticsearch (es.js) when enabled and
+// through graphstore.js; `search` uses Upstash Search (es.ts) when enabled and
 // falls back to the in-memory BM25 backend (bm25.js) over getSymbols().
 
 import {
@@ -160,7 +160,7 @@ const GraphType = new GraphQLObjectType({
 });
 
 // ---------------------------------------------------------------------------
-// search resolver: Elasticsearch when enabled, BM25 fallback otherwise.
+// search resolver: Upstash Search when enabled, BM25 fallback otherwise.
 // ---------------------------------------------------------------------------
 
 async function resolveSearch(q: unknown, first: unknown): Promise<any[]> {
@@ -173,7 +173,7 @@ async function resolveSearch(q: unknown, first: unknown): Promise<any[]> {
     try {
       return await esSearch(query, limit);
     } catch {
-      // Fall through to BM25 on any Elasticsearch failure.
+      // Fall through to BM25 on any Upstash Search failure.
     }
   }
   return bm25Search(getSymbols(), query, limit);

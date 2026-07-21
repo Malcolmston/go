@@ -1,22 +1,54 @@
-// es.ts — optional Elasticsearch backend for symbol search.
+// es.ts — optional Upstash Search backend for symbol search.
 //
-// Everything here is best-effort: if ELASTICSEARCH_URL is unset, esEnabled() is
-// false and callers use the in-memory BM25 backend. If any ES call throws (bad
-// URL, auth failure, cluster down, index errors), the error propagates so the
+// Named `es` for historical reasons (it began as an Elasticsearch backend); it
+// now talks to Upstash Search, provisioned via the Vercel Marketplace. The
+// exported surface is unchanged so callers (search/graphql/health routes) did
+// not need to change.
+//
+// Everything here is best-effort: if the Upstash env vars are unset, esEnabled()
+// is false and callers use the in-memory BM25 backend. If any call throws
+// (auth failure, service down, index errors), the error propagates so the
 // caller can catch it and fall back to BM25.
 //
 // Exports:
-//   esEnabled()          -> boolean, true iff ELASTICSEARCH_URL is configured
-//   esSearch(q, first)   -> Promise<SearchHit[]> via /symbols/_search
-//   esIndexIfNeeded()    -> Promise<boolean>, creates + bulk-loads the index once
+//   esEnabled()          -> boolean, true iff Upstash Search is configured
+//   esSearch(q, first)   -> Promise<SearchHit[]>, hybrid semantic + keyword (query only)
+//   esIndexAll(onProgress?) -> Promise<number>, (re)upserts every symbol
 //
-// Env:
-//   ELASTICSEARCH_URL       base URL of the cluster (required to enable ES)
-//   ELASTICSEARCH_API_KEY   optional; sent as `Authorization: ApiKey <key>`
+// Indexing is NOT done on the search path. The symbol corpus is static (built
+// at deploy time), so it is loaded into Upstash once via `pnpm index:symbols`
+// (scripts/index-symbols.ts) — after initial deploy and whenever the data
+// changes. esSearch only queries; a cold function never re-indexes 30k docs.
+//
+// Env (injected by the Upstash Search Marketplace integration; read by
+// Search.fromEnv()):
+//   UPSTASH_SEARCH_REST_URL     REST endpoint of the search index
+//   UPSTASH_SEARCH_REST_TOKEN   read/write token
 
-import { getSymbols } from './data';
+import { Search } from '@upstash/search';
+import type { SymbolDoc } from './data';
 
 const INDEX = 'symbols';
+
+// Searchable text fields Upstash ranks over (hybrid full-text + semantic).
+interface SymbolContent extends Record<string, unknown> {
+  name: string;
+  package: string;
+  signature: string;
+  doc: string;
+}
+
+// Everything needed to rebuild a SearchHit, stored alongside the document.
+interface SymbolMeta extends Record<string, unknown> {
+  id: string;
+  name: string;
+  kind: string;
+  packageImportPath: string;
+  library: string;
+  signature: string | null;
+  doc: string | null;
+  anchor: string | null;
+}
 
 // A search hit returned to callers (matches the shared SearchHit contract).
 export interface SearchHit {
@@ -31,26 +63,24 @@ export interface SearchHit {
   score: number;
 }
 
-function esBase(): string | null {
-  const url = process.env.ELASTICSEARCH_URL;
-  if (!url) return null;
-  return url.replace(/\/+$/, '');
-}
-
-function authHeaders(overrides: Record<string, string> = {}): Record<string, string> {
-  const headers: Record<string, string> = { 'Content-Type': 'application/json', ...overrides };
-  const apiKey = process.env.ELASTICSEARCH_API_KEY;
-  if (apiKey) headers.Authorization = `ApiKey ${apiKey}`;
-  return headers;
-}
-
 export function esEnabled(): boolean {
-  const url = process.env.ELASTICSEARCH_URL;
-  return typeof url === 'string' && url.trim() !== '';
+  const url = process.env.UPSTASH_SEARCH_REST_URL;
+  const token = process.env.UPSTASH_SEARCH_REST_TOKEN;
+  return typeof url === 'string' && url.trim() !== '' && typeof token === 'string' && token.trim() !== '';
 }
 
-function toHit(source: Record<string, unknown> | undefined | null, score: unknown): SearchHit {
-  const s = source || {};
+// Lazily create the client + index handle once per warm instance.
+function makeIndex() {
+  return Search.fromEnv().index<SymbolContent, SymbolMeta>(INDEX);
+}
+let indexHandle: ReturnType<typeof makeIndex> | null = null;
+function getIndex(): ReturnType<typeof makeIndex> {
+  if (!indexHandle) indexHandle = makeIndex();
+  return indexHandle;
+}
+
+function toHit(meta: SymbolMeta | undefined, score: unknown): SearchHit {
+  const s = meta || ({} as SymbolMeta);
   return {
     id: s.id,
     name: s.name,
@@ -65,129 +95,98 @@ function toHit(source: Record<string, unknown> | undefined | null, score: unknow
 }
 
 export async function esSearch(q: string, first = 20): Promise<SearchHit[]> {
-  const base = esBase();
-  if (!base) throw new Error('Elasticsearch is not configured');
+  if (!esEnabled()) throw new Error('Upstash Search is not configured');
 
   const size = Number.isFinite(first) && first > 0 ? Math.floor(first) : 20;
 
-  // Make sure the index exists and is populated before querying.
-  await esIndexIfNeeded();
-
-  const body = {
-    size,
-    query: {
-      multi_match: {
-        query: String(q ?? ''),
-        fields: ['name^3', 'package^2', 'doc'],
-        fuzziness: 'AUTO',
-      },
-    },
-  };
-
-  const resp = await fetch(`${base}/${INDEX}/_search`, {
-    method: 'POST',
-    headers: authHeaders(),
-    body: JSON.stringify(body),
+  // Query only — the index is populated out-of-band by esIndexAll (see the
+  // priming script). This keeps search latency low and off the write path.
+  const results = await getIndex().search({
+    query: String(q ?? ''),
+    limit: size,
+    reranking: true,
   });
 
-  if (!resp.ok) {
-    throw new Error(`Elasticsearch search failed: ${resp.status}`);
-  }
-
-  const json = (await resp.json()) as { hits?: { hits?: { _source?: Record<string, unknown>; _score?: unknown }[] } };
-  const hits = json?.hits?.hits || [];
-  return hits.map((h) => toHit(h._source, h._score));
+  return results.map((r) => toHit(r.metadata, r.score));
 }
 
-// Guard so index creation + bulk load happens at most once per warm instance.
-// On failure the promise is cleared so a later call can retry; the rejection is
-// re-thrown so callers fall back to BM25.
-let indexPromise: Promise<boolean> | null = null;
+// (Re)index the given symbols into Upstash. Called by scripts/index-symbols.ts,
+// not on the search path. upsert is idempotent by id, so re-running is safe and
+// picks up data changes. Returns the number of documents upserted. onProgress,
+// if given, is called after each chunk with (done, total). The symbols are
+// passed in (rather than read here) so this module has no runtime dependency on
+// the data loader — keeping it importable from a plain Node script.
+export async function esIndexAll(
+  symbols: SymbolDoc[],
+  onProgress?: (done: number, total: number) => void,
+): Promise<number> {
+  if (!esEnabled()) throw new Error('Upstash Search is not configured');
 
-export function esIndexIfNeeded(): Promise<boolean> {
-  if (!esEnabled()) return Promise.resolve(false);
-  if (indexPromise) return indexPromise;
-  indexPromise = doIndex().catch((err) => {
-    indexPromise = null;
-    throw err;
-  });
-  return indexPromise;
-}
+  const index = getIndex();
+  const CHUNK = 100;
 
-async function doIndex(): Promise<boolean> {
-  const base = esBase();
-  if (!base) return false;
-
-  // If the index already exists, assume it is populated and do nothing.
-  const head = await fetch(`${base}/${INDEX}`, {
-    method: 'HEAD',
-    headers: authHeaders(),
-  });
-  if (head.ok) return true;
-
-  // Create the index with an explicit mapping. The searchable `package` field
-  // mirrors packageImportPath so the multi_match `package^2` boost works.
-  const mapping = {
-    mappings: {
-      properties: {
-        id: { type: 'keyword' },
-        name: { type: 'text' },
-        kind: { type: 'keyword' },
-        package: { type: 'text' },
-        packageImportPath: { type: 'keyword' },
-        library: { type: 'keyword' },
-        signature: { type: 'text' },
-        doc: { type: 'text' },
-        anchor: { type: 'keyword' },
-      },
-    },
-  };
-
-  const create = await fetch(`${base}/${INDEX}`, {
-    method: 'PUT',
-    headers: authHeaders(),
-    body: JSON.stringify(mapping),
-  });
-  // 400 typically means the index was created concurrently — tolerate it.
-  if (!create.ok && create.status !== 400) {
-    throw new Error(`Elasticsearch create index failed: ${create.status}`);
-  }
-
-  const symbols = getSymbols();
-  const CHUNK = 1000;
   for (let start = 0; start < symbols.length; start += CHUNK) {
     const slice = symbols.slice(start, start + CHUNK);
-    let ndjson = '';
-    for (const s of slice) {
-      ndjson += JSON.stringify({ index: { _index: INDEX, _id: s.id } }) + '\n';
-      ndjson +=
-        JSON.stringify({
+    const docs = slice.map((s) => {
+      const content = buildContent(s);
+      return {
+        id: s.id,
+        content,
+        metadata: {
           id: s.id,
           name: s.name,
           kind: s.kind,
-          package: s.packageImportPath,
           packageImportPath: s.packageImportPath,
           library: s.library,
-          signature: s.signature,
-          doc: s.doc,
-          anchor: s.anchor,
-        }) + '\n';
-    }
-
-    const refresh = start + CHUNK >= symbols.length ? '?refresh=wait_for' : '';
-    const resp = await fetch(`${base}/_bulk${refresh}`, {
-      method: 'POST',
-      headers: authHeaders({ 'Content-Type': 'application/x-ndjson' }),
-      body: ndjson,
+          signature: s.signature ?? null,
+          // Display snippet — capped for the same reason as content.
+          doc: s.doc ? clip(s.doc, DOC_META_MAX) : null,
+          anchor: s.anchor ?? null,
+        },
+      };
     });
-    if (!resp.ok) {
-      throw new Error(`Elasticsearch bulk index failed: ${resp.status}`);
-    }
-    const result = (await resp.json()) as { errors?: boolean };
-    if (result && result.errors) {
-      throw new Error('Elasticsearch bulk index reported item errors');
+    await index.upsert(docs);
+    onProgress?.(Math.min(start + CHUNK, symbols.length), symbols.length);
+  }
+
+  return symbols.length;
+}
+
+// Upstash Search rejects documents whose *serialized* content exceeds 4096
+// chars. It measures the JSON form, so field names and newline escaping count —
+// a raw character budget undercounts. We trim doc (then signature) until the
+// serialized content fits CONTENT_MAX, which leaves margin under the 4096 limit.
+const CONTENT_MAX = 4000;
+const DOC_META_MAX = 2000;
+
+function clip(s: string, max: number): string {
+  return s.length > max ? s.slice(0, max) : s;
+}
+
+function serializedLen(c: SymbolContent): number {
+  return JSON.stringify(c).length;
+}
+
+function buildContent(s: SymbolDoc): SymbolContent {
+  const content: SymbolContent = {
+    name: String(s.name ?? ''),
+    package: String(s.packageImportPath ?? ''),
+    signature: String(s.signature ?? ''),
+    doc: String(s.doc ?? ''),
+  };
+
+  // Trim doc to fit, then (rarely) signature. Converges in 1-2 passes; each
+  // pass removes the exact overflow plus a small margin for escape expansion.
+  for (let guard = 0; guard < 8 && serializedLen(content) > CONTENT_MAX; guard++) {
+    const over = serializedLen(content) - CONTENT_MAX;
+    if (content.doc.length > 0) {
+      content.doc = content.doc.slice(0, Math.max(0, content.doc.length - over - 8));
+    } else if (content.signature.length > 0) {
+      content.signature = content.signature.slice(0, Math.max(0, content.signature.length - over - 8));
+    } else {
+      break;
     }
   }
 
-  return true;
+  return content;
 }

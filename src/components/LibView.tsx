@@ -118,7 +118,7 @@ export function LibView({ lib }: LibViewProps) {
           {/* Full Javadoc-style reference rendered inline. hashRouting is off so the
               renderer does not fight the aggregator's hash-based tab router. The
               doc index is the per-library file bundled by gendocs at build time.
-              The header symbol search is backed by the Elasticsearch /api/search
+              The header symbol search is backed by the Upstash Search /api/search
               endpoint scoped to this library (docKey mirrors symbols.library),
               falling back to the local index on GitHub Pages / any failure. */}
           <DocsApp

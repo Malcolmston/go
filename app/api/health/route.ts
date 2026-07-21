@@ -6,9 +6,9 @@
 //   OPTIONS preflight    -> 204
 //
 // The frontend hits this to detect whether the API is reachable (and whether
-// Elasticsearch is configured) before deciding to use the live API or the
-// bundled fallback data. `es` mirrors esEnabled() from es.js: true iff
-// ELASTICSEARCH_URL is configured. CORS is permissive (Allow-Origin: *).
+// Upstash Search is configured) before deciding to use the live API or the
+// bundled fallback data. `es` mirrors esEnabled() from es.ts: true iff the
+// Upstash Search env vars are configured. CORS is permissive (Allow-Origin: *).
 
 import { esEnabled } from '../../../api/_lib/es';
 
