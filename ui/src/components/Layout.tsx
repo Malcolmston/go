@@ -10,6 +10,7 @@ export interface Tab {
   id: string;
   label: string;
   dot?: string;
+  icon?: string; // Font Awesome classes, e.g. 'fa-solid fa-house'
 }
 
 export interface Brand {
@@ -88,7 +89,10 @@ export function Layout({ brand, tabs, active, onNav, github, footer, children }:
             {tabs.map((t) => (
               <a key={t.id} className={`tab${active === t.id ? ' active' : ''}`} href={`#${t.id}`}
                  onClick={(e) => { e.preventDefault(); nav(t.id); }}>
-                {t.dot && <span className="dot" style={{ background: t.dot }} />}{t.label}
+                {t.icon
+                  ? <i className={`tab-ico ${t.icon}`} aria-hidden="true" />
+                  : t.dot && <span className="dot" style={{ background: t.dot }} />}
+                {t.label}
               </a>
             ))}
           </nav>
