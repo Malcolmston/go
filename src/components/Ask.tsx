@@ -1,7 +1,9 @@
 'use client';
 
 import { useChat } from '@ai-sdk/react';
-import { useState, Fragment, type ReactNode } from 'react';
+import { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { SecH } from './SecH';
 
 // Ask — the AI assistant tab. Chats with /api/chat, which grounds answers in
@@ -23,24 +25,33 @@ const SUGGESTIONS = [
   'Where is the HTML parser?',
 ];
 
-// Render answer text, turning [label](/lib/...) Markdown links into anchors.
-function renderText(text: string): ReactNode[] {
-  const nodes: ReactNode[] = [];
-  const re = /\[([^\]]+)\]\((\/lib\/[^)\s]+)\)/g;
-  let last = 0;
-  let m: RegExpExecArray | null;
-  let key = 0;
-  while ((m = re.exec(text)) !== null) {
-    if (m.index > last) nodes.push(<Fragment key={key++}>{text.slice(last, m.index)}</Fragment>);
-    nodes.push(
-      <a key={key++} className="ask-link" href={m[2]}>
-        {m[1]}
-      </a>,
-    );
-    last = m.index + m[0].length;
-  }
-  if (last < text.length) nodes.push(<Fragment key={key++}>{text.slice(last)}</Fragment>);
-  return nodes;
+// Render an assistant message as Markdown (GFM: tables, code, lists, links).
+// Links get the ask-link style; external ones open in a new tab.
+function AnswerMarkdown({ text }: { text: string }) {
+  return (
+    <div className="ask-md">
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        components={{
+          a: ({ href, children }) => {
+            const url = href ?? '';
+            const external = /^https?:\/\//.test(url);
+            return (
+              <a
+                className="ask-link"
+                href={url}
+                {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+              >
+                {children}
+              </a>
+            );
+          },
+        }}
+      >
+        {text}
+      </ReactMarkdown>
+    </div>
+  );
 }
 
 // Collect the searchSymbols results a message produced, deduped by url.
@@ -111,11 +122,7 @@ export function Ask() {
               <div className="ask-body">
                 {message.parts.map((part, i) => {
                   if (part.type === 'text') {
-                    return (
-                      <p key={`${message.id}-${i}`} className="ask-text">
-                        {renderText(part.text)}
-                      </p>
-                    );
+                    return <AnswerMarkdown key={`${message.id}-${i}`} text={part.text} />;
                   }
                   if (part.type === 'tool-searchSymbols' && part.state !== 'output-available') {
                     return (
