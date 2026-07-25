@@ -18,8 +18,9 @@
 // CORS is permissive (Access-Control-Allow-Origin: *).
 
 import { esEnabled, esSearch } from '../../../api/_lib/es';
-import { search as bm25Search } from '../../../api/_lib/bm25';
+import { search as bm25Search, queryTokens } from '../../../api/_lib/bm25';
 import { getSymbols } from '../../../api/_lib/data';
+import { logSearch } from '../../../api/_lib/analytics';
 
 // Run on the Node.js runtime (the shared libs use node built-ins), and never
 // pre-render / cache — every request executes the search live.
@@ -28,6 +29,28 @@ export const dynamic = 'force-dynamic';
 
 const DEFAULT_FIRST = 20;
 const MAX_FIRST = 100;
+
+// Valid `kind` filter values (matches the Go symbol kinds surfaced in hits).
+const VALID_KINDS = new Set(['func', 'type', 'method', 'interface', 'const', 'var']);
+
+// Parse the comma-separated `kind` param into a validated, de-duped list.
+// Invalid entries are ignored; empty/absent yields [] (no kind filtering).
+function parseKinds(value: string | null): string[] {
+  if (!value) return [];
+  const out: string[] = [];
+  for (const raw of value.split(',')) {
+    const k = raw.trim().toLowerCase();
+    if (k && VALID_KINDS.has(k) && !out.includes(k)) out.push(k);
+  }
+  return out;
+}
+
+// Reranking is ON by default; only an explicit "0"/"false" (case-insensitive)
+// in SEARCH_RERANK disables it.
+function rerankEnabled(): boolean {
+  const v = (process.env.SEARCH_RERANK ?? '').trim().toLowerCase();
+  return v !== '0' && v !== 'false';
+}
 
 const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -42,25 +65,41 @@ function firstParam(value: string | null): number {
   return Math.min(n, MAX_FIRST);
 }
 
-async function runSearch(q: string, first: number, library: string): Promise<{ hits: any[]; backend: string }> {
-  if (q.trim() === '') return { hits: [], backend: 'memory' };
+async function runSearch(
+  q: string,
+  first: number,
+  library: string,
+  kinds: string[],
+  reranking: boolean,
+): Promise<{ hits: any[]; backend: string; upstashUsed: boolean }> {
+  if (q.trim() === '') return { hits: [], backend: 'memory', upstashUsed: false };
 
-  // When scoping to one library (the API-docs header search), over-fetch so the
-  // per-library slice still fills `first` after filtering, then keep only that
-  // library's hits. Applies to both backends without changing their signatures.
-  const want = library ? Math.min(MAX_FIRST, first * 8) : first;
+  // When any filter is active (library scope or kind), over-fetch so the
+  // post-filter slice still fills `first`, then apply the filters + slice.
+  // Mirrors the original library-only behavior; applies to both backends
+  // without changing their signatures.
+  const filtered = library !== '' || kinds.length > 0;
+  const kindSet = kinds.length > 0 ? new Set(kinds) : null;
+  const want = filtered ? Math.min(MAX_FIRST, first * 8) : first;
   const scope = (hits: any[]): any[] =>
-    (library ? hits.filter((h) => h && h.library === library) : hits).slice(0, first);
+    hits
+      .filter(
+        (h) =>
+          h &&
+          (library === '' || h.library === library) &&
+          (kindSet === null || kindSet.has(h.kind)),
+      )
+      .slice(0, first);
 
   if (esEnabled()) {
     try {
-      const hits = await esSearch(q, want);
-      return { hits: scope(hits), backend: 'upstash' };
+      const hits = await esSearch(q, want, { reranking });
+      return { hits: scope(hits), backend: 'upstash', upstashUsed: true };
     } catch {
       // Fall through to BM25 on any Upstash Search failure.
     }
   }
-  return { hits: scope(bm25Search(getSymbols(), q, want)), backend: 'memory' };
+  return { hits: scope(bm25Search(getSymbols(), q, want)), backend: 'memory', upstashUsed: false };
 }
 
 export async function OPTIONS(): Promise<Response> {
@@ -72,11 +111,41 @@ export async function GET(req: Request): Promise<Response> {
   const q = params.get('q') ?? '';
   const first = firstParam(params.get('first'));
   const library = (params.get('library') ?? '').trim();
+  const kinds = parseKinds(params.get('kind'));
+  const rerankOn = rerankEnabled();
 
-  const { hits, backend } = await runSearch(q, first, library);
+  const startedAt = Date.now();
+  const { hits, backend, upstashUsed } = await runSearch(q, first, library, kinds, rerankOn);
+  const tookMs = Math.round(Date.now() - startedAt);
+
+  // reranking was actually applied only when Upstash served the query AND it
+  // was enabled for this request.
+  const reranked = upstashUsed && rerankOn;
+  // Lowercased query tokens from the same tokenizer BM25 uses, so client-side
+  // highlighting lines up with ranking. Never server-render highlight HTML.
+  const matchedTerms = queryTokens(q);
+
+  // Best-effort structured analytics line (Vercel logs); never throws/blocks.
+  logSearch({
+    q,
+    first,
+    library,
+    kind: kinds,
+    hits: hits.length,
+    backend,
+    tookMs,
+    reranked,
+  });
 
   return Response.json(
-    { hits, backend },
+    {
+      hits,
+      backend,
+      total: hits.length,
+      tookMs,
+      reranked,
+      matchedTerms,
+    },
     {
       headers: {
         ...CORS_HEADERS,

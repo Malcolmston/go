@@ -74,3 +74,33 @@ jobs:
           fi
           echo "Deployed: $url"
           echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      # Reindex Upstash Search AFTER a successful production deploy. This is the
+      # PRIMARY freshness mechanism: the symbol corpus (api/_data/symbols.json)
+      # only changes at build time, so we reindex once here rather than relying
+      # on the safety-net Vercel Cron. symbols.json is gitignored (generated), so
+      # we regenerate it with `pnpm build:graph` before indexing. Guarded to only
+      # run on main and only when the deploy actually produced a URL. Runs on
+      # Node 22 because `--experimental-strip-types` (used by build:graph /
+      # index:symbols) requires Node >= 22.6.0 — the deploy step above pins 20.
+      - name: Set up Node 22 (for reindex)
+        if: github.ref == 'refs/heads/main' && steps.deploy.outputs.url != ''
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Reindex symbols (Upstash Search)
+        if: github.ref == 'refs/heads/main' && steps.deploy.outputs.url != ''
+        env:
+          UPSTASH_SEARCH_REST_URL: ${{ secrets.UPSTASH_SEARCH_REST_URL }}
+          UPSTASH_SEARCH_REST_TOKEN: ${{ secrets.UPSTASH_SEARCH_REST_TOKEN }}
+        run: |
+          set -e
+          if [ -z "$UPSTASH_SEARCH_REST_URL" ] || [ -z "$UPSTASH_SEARCH_REST_TOKEN" ]; then
+            echo "Upstash Search secrets not set — skipping reindex (search falls back to in-memory BM25)."
+            exit 0
+          fi
+          corepack enable
+          pnpm install --frozen-lockfile
+          pnpm build:graph      # regenerates api/_data/symbols.json (gitignored)
+          pnpm index:symbols

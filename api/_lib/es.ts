@@ -94,17 +94,29 @@ function toHit(meta: SymbolMeta | undefined, score: unknown): SearchHit {
   };
 }
 
-export async function esSearch(q: string, first = 20): Promise<SearchHit[]> {
+// Options for a single query. `reranking` toggles Upstash's semantic reranking
+// pass; defaults to true so existing callers (which pass no options) keep the
+// prior behavior exactly.
+export interface EsSearchOptions {
+  reranking?: boolean;
+}
+
+export async function esSearch(
+  q: string,
+  first = 20,
+  opts: EsSearchOptions = {},
+): Promise<SearchHit[]> {
   if (!esEnabled()) throw new Error('Upstash Search is not configured');
 
   const size = Number.isFinite(first) && first > 0 ? Math.floor(first) : 20;
+  const reranking = opts.reranking !== false;
 
   // Query only — the index is populated out-of-band by esIndexAll (see the
   // priming script). This keeps search latency low and off the write path.
   const results = await getIndex().search({
     query: String(q ?? ''),
     limit: size,
-    reranking: true,
+    reranking,
   });
 
   return results.map((r) => toHit(r.metadata, r.score));

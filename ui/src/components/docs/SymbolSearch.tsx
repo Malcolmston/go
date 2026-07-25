@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import type { DocPackage, DocValue, DocFunc, DocType } from '../../docs/types';
 
 export interface SymbolSearchProps {
@@ -25,6 +25,16 @@ interface SearchHit {
   library?: string;
   signature?: string;
   anchor?: string;
+}
+
+// The additive shape of the GET /api/search JSON response. Only the fields the
+// UI consumes are typed here; every field is optional so an older backend (or a
+// static export with no endpoint at all) never breaks the client. `matchedTerms`
+// is the set of lowercased query tokens the backend matched — the UI highlights
+// their occurrences client-side (never server-rendered HTML), per the contract.
+interface SearchResponse {
+  hits?: SearchHit[];
+  matchedTerms?: string[];
 }
 
 const KINDS: Record<SymbolKind, true> = {
@@ -68,6 +78,43 @@ const KIND_LABEL: Record<SymbolKind, string> = {
   const: 'constant',
   var: 'variable',
 };
+
+// The order kind-filter chips are rendered in, and the order selected kinds are
+// serialized into the `kind` query param — matches the backend contract's list
+// (func,type,method,interface,const,var). All six are valid `kind` values.
+const KIND_ORDER: SymbolKind[] = ['func', 'type', 'method', 'interface', 'const', 'var'];
+
+// escapeRegExp neutralizes regex metacharacters so a matched term containing
+// them (e.g. a symbol like "C++"-ish tokens, or a dotted "LRU.Get") is treated
+// literally when we build the highlight matcher.
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// tokenizeQuery mirrors the backend's bm25 tokenizer closely enough for
+// highlighting: split on non-alphanumerics, lowercase, drop empties. Used for
+// the local-fallback highlight when there is no backend `matchedTerms`.
+function tokenizeQuery(q: string): string[] {
+  return q.toLowerCase().split(/[^a-z0-9]+/i).filter(Boolean);
+}
+
+// highlight wraps every case-insensitive occurrence of any `terms` in `text` in
+// a <mark>, returning React nodes (never dangerouslySetInnerHTML). Terms are
+// regex-escaped and longest-first so overlapping tokens prefer the longer match.
+function highlight(text: string, terms: string[]): ReactNode {
+  const parts = Array.from(new Set(terms.map((t) => t.toLowerCase()).filter(Boolean)))
+    .sort((a, b) => b.length - a.length)
+    .map(escapeRegExp);
+  if (parts.length === 0) return text;
+  const re = new RegExp(`(${parts.join('|')})`, 'gi');
+  const segments = text.split(re);
+  // String.split with a capturing group yields matched delimiters at odd indices.
+  return segments.map((seg, i) =>
+    i % 2 === 1
+      ? <mark key={i} className="gd-search-mark">{seg}</mark>
+      : seg,
+  );
+}
 
 // A flat, searchable entry for one exported symbol. Shape is fixed by the
 // contract: { label, kind, importPath, anchorId, pkgName }.
@@ -206,7 +253,12 @@ export function SymbolSearch({ packages, onPick, searchEndpoint, library }: Symb
   const [active, setActive] = useState(0);
   // Backend (Elasticsearch/BM25) results for the current query. null means "no
   // backend answer yet / unavailable" — the local index is used until it lands.
-  const [remote, setRemote] = useState<IndexEntry[] | null>(null);
+  // Carries the backend's `matchedTerms` alongside the entries so the dropdown
+  // highlights exactly what the backend matched (falls back to query tokens).
+  const [remote, setRemote] = useState<{ entries: IndexEntry[]; matchedTerms: string[] } | null>(null);
+  // Active kind filter. Empty set = all kinds (no `kind` param sent). Toggling a
+  // chip scopes both the local index and the backend query to those kinds.
+  const [kinds, setKinds] = useState<Set<SymbolKind>>(() => new Set());
 
   const blurTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -217,13 +269,22 @@ export function SymbolSearch({ packages, onPick, searchEndpoint, library }: Symb
 
   const q = query.trim().toLowerCase();
 
+  // Serialized, stable form of the active kinds. '' means "all kinds" (send no
+  // `kind` param). Used both as the query-param value and as an effect/memo dep
+  // so a Set identity change alone never triggers redundant work.
+  const kindParam = useMemo(
+    () => KIND_ORDER.filter((k) => kinds.has(k)).join(','),
+    [kinds],
+  );
+
   const localResults = useMemo(() => {
     if (!q) return [] as IndexEntry[];
     const matched = index.filter(
       (e) =>
-        e.label.toLowerCase().includes(q) ||
-        e.pkgName.toLowerCase().includes(q) ||
-        e.importPath.toLowerCase().includes(q),
+        (kinds.size === 0 || kinds.has(e.kind)) &&
+        (e.label.toLowerCase().includes(q) ||
+          e.pkgName.toLowerCase().includes(q) ||
+          e.importPath.toLowerCase().includes(q)),
     );
     matched.sort((a, b) => {
       const ra = rank(a, q);
@@ -234,7 +295,7 @@ export function SymbolSearch({ packages, onPick, searchEndpoint, library }: Symb
       return a.label.localeCompare(b.label);
     });
     return matched.slice(0, MAX_RESULTS);
-  }, [index, q]);
+  }, [index, q, kinds]);
 
   // Query the Elasticsearch-backed endpoint (debounced), scoped to this library.
   // Reset to the local index on each keystroke so results appear instantly, then
@@ -245,26 +306,32 @@ export function SymbolSearch({ packages, onPick, searchEndpoint, library }: Symb
     const ctrl = new AbortController();
     const t = setTimeout(() => {
       const u = `${searchEndpoint}?q=${encodeURIComponent(query.trim())}&first=${MAX_RESULTS}` +
-        (library ? `&library=${encodeURIComponent(library)}` : '');
+        (library ? `&library=${encodeURIComponent(library)}` : '') +
+        (kindParam ? `&kind=${encodeURIComponent(kindParam)}` : '');
       fetch(u, { signal: ctrl.signal, headers: { Accept: 'application/json' } })
         .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-        .then((j: { hits?: SearchHit[] }) => {
+        .then((j: SearchResponse) => {
           const hits = Array.isArray(j?.hits) ? j.hits : [];
           const entries = hits.map(hitToEntry).filter((e): e is IndexEntry => e !== null);
-          if (entries.length > 0) setRemote(entries.slice(0, MAX_RESULTS));
+          const matchedTerms = Array.isArray(j?.matchedTerms) ? j.matchedTerms : [];
+          if (entries.length > 0) setRemote({ entries: entries.slice(0, MAX_RESULTS), matchedTerms });
         })
         .catch(() => { /* keep the local fallback */ });
     }, 160);
     return () => { clearTimeout(t); ctrl.abort(); };
-  }, [q, query, searchEndpoint, library]);
+  }, [q, query, searchEndpoint, library, kindParam]);
 
   // Prefer backend hits when present; otherwise the instant local matches.
-  const results = remote && remote.length > 0 ? remote : localResults;
+  const results = remote && remote.entries.length > 0 ? remote.entries : localResults;
+  // Terms to highlight: the backend's matched tokens when backend hits are shown,
+  // else the local query tokens so highlighting works offline / on static sites.
+  const highlightTerms = remote && remote.entries.length > 0 ? remote.matchedTerms : tokenizeQuery(q);
 
-  // Keep the active row in bounds and reset to the top whenever results change.
+  // Keep the active row in bounds and reset to the top whenever the result set
+  // changes — either the query or the active kind filter.
   useEffect(() => {
     setActive(0);
-  }, [q]);
+  }, [q, kindParam]);
 
   // Scroll the active row into view as the user arrows through the list.
   useEffect(() => {
@@ -304,6 +371,15 @@ export function SymbolSearch({ packages, onPick, searchEndpoint, library }: Symb
       window.removeEventListener('resize', update);
     };
   }, [showMenu]);
+
+  // Toggle a kind in/out of the active filter. Selecting none = all kinds.
+  const toggleKind = useCallback((k: SymbolKind) => {
+    setKinds((prev) => {
+      const next = new Set(prev);
+      if (next.has(k)) next.delete(k); else next.add(k);
+      return next;
+    });
+  }, []);
 
   const pick = useCallback(
     (entry: IndexEntry) => {
@@ -401,6 +477,30 @@ export function SymbolSearch({ packages, onPick, searchEndpoint, library }: Symb
           ref={menuRef}
           style={anchor ? { position: 'fixed', left: anchor.left, top: anchor.top, width: anchor.width, minWidth: anchor.width, right: 'auto' } : undefined}
         >
+          <div className="gd-search-filters" role="group" aria-label="Filter results by kind">
+            {KIND_ORDER.map((k) => {
+              const on = kinds.has(k);
+              return (
+                <button
+                  key={k}
+                  type="button"
+                  className={`gd-search-filter${on ? ' active' : ''}`}
+                  data-kind={k}
+                  aria-pressed={on}
+                  title={`${on ? 'Hide' : 'Show only'} ${KIND_LABEL[k]}s`}
+                  // preventDefault on mouseDown keeps input focus so the menu's
+                  // blur timer doesn't close the dropdown when a chip is clicked.
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => toggleKind(k)}
+                >
+                  <span className="gd-search-filter-kind" data-kind={k} aria-hidden="true">
+                    {KIND_LETTER[k]}
+                  </span>
+                  <span className="gd-search-filter-label">{KIND_LABEL[k]}</span>
+                </button>
+              );
+            })}
+          </div>
           {results.length > 0 ? (
             results.map((entry, i) => {
               const isActive = i === active;
@@ -426,8 +526,8 @@ export function SymbolSearch({ packages, onPick, searchEndpoint, library }: Symb
                   >
                     {KIND_LETTER[entry.kind]}
                   </span>
-                  <span className="gd-search-item-label">{entry.label}</span>
-                  <span className="gd-search-item-path">{entry.importPath}</span>
+                  <span className="gd-search-item-label">{highlight(entry.label, highlightTerms)}</span>
+                  <span className="gd-search-item-path">{highlight(entry.importPath, highlightTerms)}</span>
                 </div>
               );
             })
