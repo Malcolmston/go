@@ -15,7 +15,7 @@
 
 **The Node.js — and Python, Rust, Elixir, Java — ecosystems, reimagined in Go.**
 
-A unified home for **33** independent Go libraries that recreate the most-loved
+A unified home for **38** independent Go libraries that recreate the most-loved
 building blocks of other ecosystems — the same ergonomics, on top of Go's
 standard library. Every port is **dependency-free** (stdlib only: no cgo, no
 third-party `require`s), individually versioned, and **verified against the
@@ -54,6 +54,9 @@ live from each repo's `parity.json` (see [Upstream parity](#upstream-parity--pip
 | [chalk](chalk) | chalk/chalk (+ figlet, prompts) | 100% | [pages](https://malcolmston.github.io/chalk/) |
 | [jest](jest) | jestjs/jest | 100% | [pages](https://malcolmston.github.io/jest/) |
 | [jwt](jwt) | auth0/node-jsonwebtoken | 100% | [pages](https://malcolmston.github.io/jwt/) |
+| [jose](jose) | panva/jose (RFC 7515/16/17/18) | 100% | [pages](https://malcolmston.github.io/jose/) |
+| [markdown](markdown) | markdown-it/markdown-it (CommonMark) | 100% | [pages](https://malcolmston.github.io/markdown/) |
+| [yaml](yaml) | yaml/pyyaml + nodeca/js-yaml | 99.7% | [pages](https://malcolmston.github.io/yaml/) |
 | [nodemailer](nodemailer) | nodemailer/nodemailer | 100% | [pages](https://malcolmston.github.io/nodemailer/) |
 | [pdfkit](pdfkit) | foliojs/pdfkit | 100% | [pages](https://malcolmston.github.io/pdfkit/) |
 | [gltf](gltf) | KhronosGroup/glTF | 100% | [pages](https://malcolmston.github.io/gltf/) |
@@ -83,6 +86,8 @@ live from each repo's `parity.json` (see [Upstream parity](#upstream-parity--pip
 | [oban](oban) | sorentwo/oban (Elixir) | 100% | [pages](https://malcolmston.github.io/oban/) |
 | [lucene](lucene) | apache/lucene (Java) | 100% | [pages](https://malcolmston.github.io/lucene/) |
 | [fastmcp](fastmcp) | jlowin/fastmcp (Python) | 99% | [pages](https://malcolmston.github.io/fastmcp/) |
+| [jq](jq) | jqlang/jq (C) | 92% | [pages](https://malcolmston.github.io/jq/) |
+| [rrule](rrule) | dateutil/dateutil (Python) | 99.6% | [pages](https://malcolmston.github.io/rrule/) |
 
 ### General utilities
 
@@ -140,7 +145,7 @@ The libraries are independent — you do **not** need this repo to use them:
 go get github.com/malcolmston/express
 go get github.com/malcolmston/algebra
 go get github.com/malcolmston/socketio
-# …any of the 33, all github.com/malcolmston/<name>
+# …any of the 38, all github.com/malcolmston/<name>
 ```
 
 ## Develop across libraries (workspace)

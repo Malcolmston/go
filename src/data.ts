@@ -2349,6 +2349,372 @@ _, _ = nodemailer.NewTransporter(mem).SendMail(
 		SetBoundary("BOUNDARY"))
 captured, _ := mem.Last() <span class="tok-c">// captured.Raw holds the full RFC 5322 message</span>`
   },
+  {
+    id:"markdown", name:"Markdown", icon:'<i class="fa-brands fa-markdown"></i>', accent:"#519aba",
+    pkg:"github.com/malcolmston/markdown", node:"markdown-it/markdown-it",
+    repo:"https://github.com/malcolmston/markdown", docs:"https://malcolmston.github.io/markdown/",
+    tagline:"CommonMark 0.31.2, at 100% of the official spec suite.",
+    blurb:"A from-scratch CommonMark parser and HTML renderer built entirely on the Go standard library — "+
+      "no third-party modules, no cgo, no require directives. The design mirrors markdown-it's two phases: a "+
+      "line-oriented block parser (container prefix matching, lazy continuation, tab-stop-aware offsets, list "+
+      "tightness) feeding an inline parser that implements the real delimiter-stack algorithm for emphasis, "+
+      "with left/right-flanking runs and the rule-of-three test. <code>Render</code> returns an HTML fragment "+
+      "with CommonMark-strict defaults; <code>RenderTo</code> streams to any <code>io.Writer</code>; "+
+      "<code>Parse</code> hands back the <code>*Node</code> AST when you would rather transform than render. "+
+      "All 652 examples from the official spec are vendored and executed on every test run — the port passes "+
+      "every one. The import path is github.com/malcolmston/markdown.",
+    tags:["CommonMark 0.31.2","652/652 spec","delimiter stack","AST","2125 entities","HTML blocks","reference links","fuzzed 4.8M","zero deps"],
+    features:[
+      "One-call rendering — <code>Render(src)</code> for an HTML fragment, <code>RenderTo(w, src)</code> to stream the same bytes to any <code>io.Writer</code>",
+      "Reusable renderer via <code>New(Options{...})</code> — <code>HTML</code> (raw HTML blocks and inline, CommonMark default true), <code>Typographer</code>, <code>LineBreaks</code>, <code>LinkTarget</code>",
+      "Blocks — ATX and setext headings, indented and fenced code with info strings, block quotes, bullet and ordered lists with full tightness rules, thematic breaks, all seven HTML block types, link reference definitions",
+      "Inlines — emphasis and strong under the complete left/right-flanking delimiter-run rules, code spans, inline and reference links (full, collapsed, shortcut), images, autolinks, raw inline HTML, backslash escapes, hard and soft breaks",
+      "All 2125 WHATWG named character references plus numeric entities, and a full-uppercase Unicode fold table so link labels like <code>[ẞ]</code> match <code>[SS]:</code> where <code>strings.ToUpper</code> alone would not",
+      "AST access — <code>Parse(src)</code> returns <code>*Node</code> (<code>Type</code>, <code>Literal</code>, <code>Level</code>, <code>Destination</code>, <code>Title</code>, <code>Info</code>, <code>Tight</code>, <code>Children</code>) with <code>Walk</code> for traversal",
+      "Byte-exact reference output — newline placement, <code>&lt;br /&gt;</code> and <code>&lt;hr /&gt;</code>, <code>&lt;ol start=\"N\"&gt;</code>, tight-list paragraph suppression, and cmark's URL percent-encoding",
+      "Wrapped sentinel errors (<code>ErrMarkdown</code>, <code>ErrWrite</code>) usable with <code>errors.Is</code>",
+      "Hardened — 4.8M fuzz executions with no crash or hang, and pathological inputs (2000 nested emphasis markers, 500 nested brackets, 300-deep block quotes) all terminate instantly",
+      "Zero dependencies — pure Go standard library, no cgo, nothing to audit but the toolchain"
+    ],
+    node_code:
+`const MarkdownIt = require("markdown-it");
+const md = new MarkdownIt();          // CommonMark-strict defaults
+
+const html = md.render("# Title\\n\\nSome *emphasis* and a [link](/x).");
+console.log(html);
+
+// Parse to tokens instead of rendering
+const tokens = md.parse("- a\\n- b", {});`,
+    go_code:
+`import "github.com/malcolmston/markdown"
+
+html := markdown.Render("# Title\\n\\nSome *emphasis* and a [link](/x).")
+fmt.Println(html)
+
+<span class="tok-c">// Parse to the AST instead of rendering</span>
+doc := markdown.Parse("- a\\n- b")
+for _, item := range doc.Children[0].Children {
+    fmt.Println(item.Type)
+}`,
+    integrate:
+`<span class="tok-c">// A reusable renderer, streamed straight to an http.ResponseWriter</span>
+md := markdown.New(markdown.Options{
+    HTML:        false,        <span class="tok-c">// escape raw HTML from untrusted authors</span>
+    Typographer: true,         <span class="tok-c">// smart quotes and dashes</span>
+    LinkTarget:  "_blank",
+})
+
+http.HandleFunc("/post", func(w http.ResponseWriter, r *http.Request) {
+    w.Header().Set("Content-Type", "text/html; charset=utf-8")
+    if err := md.RenderTo(w, source); err != nil {
+        log.Println(err)       <span class="tok-c">// wraps ErrWrite — errors.Is-matchable</span>
+    }
+})`
+  },
+  {
+    id:"yaml", name:"YAML", icon:'<i class="fa-solid fa-file-code"></i>', accent:"#cb171e",
+    pkg:"github.com/malcolmston/yaml", node:"yaml/pyyaml", source:"Python",
+    repo:"https://github.com/malcolmston/yaml", docs:"https://malcolmston.github.io/yaml/",
+    tagline:"YAML 1.2 with zero dependencies — the one Go's stdlib never shipped.",
+    blurb:"A complete YAML 1.2 parser and emitter built entirely on the Go standard library — no third-party "+
+      "modules, no cgo, no require directives. This is the port with the clearest reason to exist: Go has no "+
+      "stdlib YAML, so every project reaches for a third-party module. <code>Marshal</code> and "+
+      "<code>Unmarshal</code> cover the one-shot cases, <code>NewDecoder</code> walks a multi-document stream "+
+      "and returns <code>io.EOF</code> after the last <code>---</code>, and <code>Node</code> is a lossless "+
+      "document model that keeps anchors, styles, line/column and head/line/foot comments so you can rewrite a "+
+      "file without flattening it. Tag resolution follows the YAML <b>1.2 core schema</b>, so <code>no</code> "+
+      "is the string \"no\" rather than false — the Norway problem does not apply. Verified against the "+
+      "language-agnostic yaml-test-suite. The import path is github.com/malcolmston/yaml.",
+    tags:["YAML 1.2","core schema","multi-document","anchors &amp; aliases","merge keys","comments preserved","bomb guard","TypeError","zero deps"],
+    features:[
+      "<code>Marshal</code> / <code>Unmarshal</code> onto structs, maps, slices and <code>any</code>, with struct tags <code>yaml:\"name,omitempty\"</code>, <code>yaml:\"-\"</code>, <code>yaml:\",inline\"</code>, <code>yaml:\",flow\"</code>",
+      "Streaming multi-document I/O — <code>NewDecoder(r).Decode(&amp;v)</code> returns <code>io.EOF</code> past the last document; <code>NewEncoder(w)</code> with <code>SetIndent</code> and <code>Close</code>",
+      "Full block and flow syntax — block and flow collections, explicit <code>?</code>/<code>:</code> keys, block scalars <code>|</code> and <code>&gt;</code> with chomping and explicit indent indicators, quoted scalars with the complete escape table",
+      "Anchors, aliases and merge keys (<code>&amp;a</code>, <code>*a</code>, <code>&lt;&lt;</code>) — with an alias-expansion budget, so a billion-laughs document is rejected instead of exhausting memory",
+      "YAML 1.2 <b>core schema</b> resolution — null/bool/int (decimal, octal, hex)/float including <code>.inf</code> and <code>.nan</code>/string, plus explicit <code>!!str</code>, <code>!!int</code>, <code>!!binary</code> … tags",
+      "<code>Node</code> keeps <code>Kind</code>, <code>Tag</code>, <code>Value</code>, <code>Anchor</code>, <code>Style</code>, <code>Line</code>/<code>Column</code> and <code>HeadComment</code>/<code>LineComment</code>/<code>FootComment</code>, with <code>Node.Decode</code> / <code>Node.Encode</code> for comment-preserving round-trips",
+      "<code>TypeError</code> collects per-field decode failures instead of aborting the whole decode",
+      "<code>Marshaler</code> / <code>Unmarshaler</code> plus <code>encoding.TextMarshaler</code> / <code>TextUnmarshaler</code> support",
+      "Wrapped sentinel errors — <code>ErrSyntax</code>, <code>ErrUnknownAnchor</code>, <code>ErrAliasBomb</code>, <code>ErrTypeMismatch</code> — all matchable with <code>errors.Is</code>, and syntax errors carry line and column",
+      "Zero dependencies — pure Go standard library, no cgo, nothing to audit but the toolchain"
+    ],
+    node_code:
+`import yaml   # PyYAML
+
+cfg = yaml.safe_load("""
+name: svc
+ports: [80, 443]
+env:
+  <<: *defaults
+  DEBUG: "no"        # 1.2 core schema: the string "no"
+""")
+print(cfg["ports"][1])
+
+print(yaml.safe_dump(cfg, indent=2))`,
+    go_code:
+`import "github.com/malcolmston/yaml"
+
+var cfg struct {
+    Name  string            \`yaml:"name"\`
+    Ports []int             \`yaml:"ports"\`
+    Env   map[string]string \`yaml:"env"\`
+}
+if err := yaml.Unmarshal(src, &cfg); err != nil {
+    log.Fatal(err)         <span class="tok-c">// *TypeError lists every bad field</span>
+}
+fmt.Println(cfg.Ports[1])
+
+out, _ := yaml.Marshal(cfg)`,
+    integrate:
+`<span class="tok-c">// Rewrite one value in a config file, keeping comments and layout</span>
+var doc yaml.Node
+_ = yaml.Unmarshal(src, &doc)
+
+mapping := doc.Content[0]                  <span class="tok-c">// document -> mapping</span>
+for i := 0; i < len(mapping.Content); i += 2 {
+    if mapping.Content[i].Value == "replicas" {
+        mapping.Content[i+1].Value = "3"   <span class="tok-c">// comments survive</span>
+    }
+}
+
+enc := yaml.NewEncoder(w)
+enc.SetIndent(2)
+_ = enc.Encode(&doc)
+_ = enc.Close()
+
+<span class="tok-c">// Walk a multi-document stream</span>
+dec := yaml.NewDecoder(f)
+for {
+    var v any
+    if err := dec.Decode(&v); errors.Is(err, io.EOF) { break }
+}`
+  },
+  {
+    id:"jose", name:"JOSE", icon:'<i class="fa-solid fa-lock"></i>', accent:"#8a63d2",
+    pkg:"github.com/malcolmston/jose", node:"panva/jose",
+    repo:"https://github.com/malcolmston/jose", docs:"https://malcolmston.github.io/jose/",
+    tagline:"The whole JOSE stack — JWS, JWE, JWK, JWA — on the standard library alone.",
+    blurb:"The complement to this family's <b>jwt</b> port: where jwt covers RFC 7519 claims over the JWS "+
+      "compact serialization, jose implements the rest of the stack — JWS (RFC 7515) including the general and "+
+      "flattened JSON serializations with multiple signatures, JWE (RFC 7516) encryption with multiple "+
+      "recipients, JWK and JWK Sets (RFC 7517), and the JWA algorithm registry (RFC 7518). Because the family "+
+      "rule is standard library only, <code>golang.org/x/crypto</code> is off-limits, so AES Key Wrap "+
+      "(RFC 3394), PBKDF2 (RFC 8018) and the Concat KDF (NIST SP 800-56A) are implemented here and verified "+
+      "against their own specification vectors. Measured against the RFC 7520 cookbook — the worked examples "+
+      "the JOSE working group published precisely so implementations could prove themselves. The import path "+
+      "is github.com/malcolmston/jose.",
+    tags:["RFC 7515 JWS","RFC 7516 JWE","RFC 7517 JWK","RFC 7518 JWA","RFC 7520 vectors","multi-recipient","AES-KW","Concat KDF","Ed25519","zero deps"],
+    features:[
+      "<b>JWS</b> — <code>Sign</code> / <code>Verify</code> for compact, <code>SignJSON</code> / <code>VerifyJSON</code> for the general and flattened JSON serializations, and <code>SignJSONMulti</code> for multiple signatures over one payload",
+      "<b>JWE</b> — <code>Encrypt</code> / <code>Decrypt</code> compact, plus <code>EncryptJSON</code>, <code>EncryptJSONMulti</code> and <code>DecryptJSON</code> for multi-recipient JSON serialization with per-recipient headers and the <code>aad</code> member",
+      "<b>Key management</b> — RSA-OAEP and RSA-OAEP-256, A128/192/256KW, <code>dir</code>, ECDH-ES and ECDH-ES+AxxxKW, A128/192/256GCMKW, and PBES2-HS256/384/512",
+      "<b>Content encryption</b> — A128/192/256CBC-HS256/384/512 (encrypt-then-MAC, constant-time tags) and A128/192/256GCM",
+      "<b>JWK / JWKS</b> — <code>ParseJWK</code>, <code>ParseJWKSet</code>, <code>FromKey</code>, <code>Public</code>, <code>LookupKeyID</code>, and RFC 7638 <code>Thumbprint</code>, covering RSA, EC, OKP (Ed25519/X25519) and oct keys",
+      "<b>RFC 8037 CFRG curves</b> — EdDSA signing with Ed25519 (deterministic, so signatures reproduce byte for byte) and ECDH-ES over X25519",
+      "<b>RFC 7797</b> unencoded payload (<code>b64:false</code>) with the accompanying <code>crit</code> handling",
+      "Primitives written here because the stdlib does not ship them — AES Key Wrap (RFC 3394), PBKDF2 (RFC 8018) and Concat KDF (SP 800-56A), each verified against its own published vectors",
+      "Hardened by construction — every algorithm type-asserts its key to close algorithm confusion, <code>none</code> is never verifiable, unknown <code>crit</code> parameters are rejected, <code>zip:DEF</code> decompression is bounded against DEFLATE bombs, PBES2 iteration counts are capped, and CBC verifies the tag before touching ciphertext so there is no padding oracle",
+      "Zero dependencies — pure Go standard library (crypto/*, compress/flate, encoding/*), no cgo"
+    ],
+    node_code:
+`import * as jose from "jose";
+
+const jws = await new jose.CompactSign(
+  new TextEncoder().encode("payload"))
+  .setProtectedHeader({ alg: "ES256" })
+  .sign(privateKey);
+
+const jwe = await new jose.CompactEncrypt(
+  new TextEncoder().encode("secret"))
+  .setProtectedHeader({ alg: "ECDH-ES+A128KW", enc: "A128GCM" })
+  .encrypt(publicKey);
+
+const { plaintext } = await jose.compactDecrypt(jwe, privateKey);`,
+    go_code:
+`import "github.com/malcolmston/jose"
+
+signed, _ := jose.Sign([]byte("payload"), privateKey,
+    jose.SignOptions{Algorithm: "ES256"})
+payload, header, _ := jose.Verify(signed, publicKey)
+
+token, _ := jose.Encrypt([]byte("secret"), publicKey,
+    jose.EncryptOptions{
+        Algorithm:  "ECDH-ES+A128KW",
+        Encryption: "A128GCM",
+    })
+plaintext, header, _ := jose.Decrypt(token, privateKey)`,
+    integrate:
+`<span class="tok-c">// One ciphertext, three recipients — each unwraps it with its own key</span>
+jwe, _ := jose.EncryptJSONMulti([]byte("shared secret"),
+    []jose.Recipient{
+        {Key: rsaPub, Algorithm: "RSA-OAEP-256", KeyID: "rsa-1"},
+        {Key: ecPub,  Algorithm: "ECDH-ES+A256KW", KeyID: "ec-1"},
+        {Key: octKey, Algorithm: "A256GCMKW", KeyID: "oct-1"},
+    },
+    jose.EncryptOptions{
+        Encryption:                  "A128CBC-HS256",
+        AdditionalAuthenticatedData: []byte("context"),
+    })
+
+<span class="tok-c">// Any one of the three keys recovers it; the merged header</span>
+<span class="tok-c">// reports the alg/kid of the recipient that actually matched.</span>
+plaintext, hdr, _ := jose.DecryptJSON(jwe, ecPriv)
+
+<span class="tok-c">// Select a verification key out of a JWKS by kid</span>
+set, _ := jose.ParseJWKSet(jwksBytes)
+key, ok := set.LookupKeyID(hdr["kid"].(string))`
+  },
+  {
+    id:"rrule", name:"RRule", icon:'<i class="fa-solid fa-calendar-day"></i>', accent:"#3b82f6",
+    pkg:"github.com/malcolmston/rrule", node:"dateutil/dateutil", source:"Python",
+    repo:"https://github.com/malcolmston/rrule", docs:"https://malcolmston.github.io/rrule/",
+    tagline:"RFC 5545 recurrence rules — the calendar logic cron cannot express.",
+    blurb:"A port of <code>dateutil.rrule</code> and rrule.js: RFC 5545 recurrence rules, recurrence sets, and "+
+      "a minimal iCalendar object model, built entirely on the Go standard library — no third-party modules, "+
+      "no cgo, no require directives. It complements this family's <b>quartz</b> port, which speaks cron; cron "+
+      "cannot say \"the second-to-last weekday of the month\" or \"every other week counting from Sunday\", and "+
+      "RRULE can. The engine follows dateutil's structure — per-interval candidate sets, BY-part masks, then "+
+      "BYSETPOS over the survivors — because that structure is what makes RFC 5545 §3.3.10's expand/limit table "+
+      "come out right. Verified against dateutil's own test suite and the RFC's worked examples. The import "+
+      "path is github.com/malcolmston/rrule.",
+    tags:["RFC 5545","7 frequencies","every BY* part","BYSETPOS","WKST","RDATE / EXDATE","iCalendar","DST-correct","zero deps"],
+    features:[
+      "All seven frequencies — <code>Yearly</code>, <code>Monthly</code>, <code>Weekly</code>, <code>Daily</code>, <code>Hourly</code>, <code>Minutely</code>, <code>Secondly</code> — with <code>INTERVAL</code>, <code>COUNT</code> and <code>UNTIL</code>",
+      "Every RFC 5545 BY-part — <code>BYMONTH</code>, <code>BYWEEKNO</code>, <code>BYYEARDAY</code>, <code>BYMONTHDAY</code>, <code>BYDAY</code>, <code>BYHOUR</code>, <code>BYMINUTE</code>, <code>BYSECOND</code>, <code>BYSETPOS</code>, with negative values throughout (<code>BYMONTHDAY=-1</code>, <code>BYSETPOS=-2</code>)",
+      "Nth-weekday <code>BYDAY</code> — <code>1FR</code>, <code>-1SU</code>, <code>20MO</code>, written in Go as <code>FR.Nth(1)</code>, <code>SU.Nth(-1)</code>",
+      "<code>WKST</code> threaded through both weekly interval boundaries and ISO week numbering, where it genuinely changes results",
+      "<code>Set</code> — <code>RRULE</code> + <code>RDATE</code> + <code>EXRULE</code> + <code>EXDATE</code> merged into one ordered, de-duplicated stream, with <code>StrToSet</code> to parse a whole block",
+      "Querying — <code>All</code>, <code>Between</code>, <code>After</code>, <code>Before</code> and a pull-based <code>Iterator</code> with no occurrence cap",
+      "iCalendar — <code>ParseCalendar</code> handles RFC 5545 line unfolding and property parameters; <code>Calendar.Encode</code> writes CRLF with 75-octet folding that never splits a UTF-8 sequence",
+      "Round-trippable text — <code>Parse</code>, <code>StrToRRule</code>, <code>String()</code> (DTSTART + RRULE together, matching dateutil's <code>str(rrule)</code>) and <code>RuleString()</code> for the bare property body",
+      "DST-correct — wall-clock arithmetic in DTSTART's location, spring-forward gaps resolved per RFC 5545 §3.3.5, and repeat instants suppressed so an hourly rule crossing the gap neither duplicates nor skips",
+      "Bounded by construction — impossible rules like <code>FREQ=MONTHLY;BYMONTHDAY=31;BYMONTH=2</code> terminate in milliseconds instead of spinning forever",
+      "Zero dependencies — pure Go standard library, no cgo"
+    ],
+    node_code:
+`import { RRule, RRuleSet, Weekday } from "rrule";
+
+const rule = new RRule({
+  freq: RRule.MONTHLY,
+  dtstart: new Date(Date.UTC(2026, 0, 1, 9, 0)),
+  count: 4,
+  byweekday: [RRule.FR.nth(-1)],   // last Friday
+});
+console.log(rule.all());
+
+const set = new RRuleSet();
+set.rrule(rule);
+set.exdate(new Date(Date.UTC(2026, 2, 27, 9, 0)));`,
+    go_code:
+`import "github.com/malcolmston/rrule"
+
+r, _ := rrule.New(rrule.Options{
+    Freq:      rrule.Monthly,
+    DTStart:   time.Date(2026, 1, 1, 9, 0, 0, 0, time.UTC),
+    Count:     4,
+    ByWeekday: []rrule.Weekday{rrule.FR.Nth(-1)}, <span class="tok-c">// last Friday</span>
+})
+for _, t := range r.All() {
+    fmt.Println(t.Format(time.RFC3339))
+}
+
+set := rrule.NewSet()
+set.RRule(r)
+set.ExDate(time.Date(2026, 3, 27, 9, 0, 0, 0, time.UTC))`,
+    integrate:
+`<span class="tok-c">// Parse a rule straight out of a calendar feed and query a window</span>
+r, err := rrule.StrToRRule(
+    "DTSTART;TZID=America/New_York:20260105T090000\\n" +
+    "RRULE:FREQ=MONTHLY;BYDAY=MO,TU,WE,TH,FR;BYSETPOS=-2")
+if err != nil { log.Fatal(err) }
+
+<span class="tok-c">// "Second-to-last weekday of each month" across one quarter</span>
+q1 := r.Between(
+    time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC),
+    time.Date(2026, 4, 1, 0, 0, 0, 0, time.UTC), true)
+
+<span class="tok-c">// Or stream forever without materializing a slice</span>
+next := r.Iterator()
+for t, ok := next(); ok; t, ok = next() {
+    if t.After(deadline) { break }
+    schedule(t)
+}
+
+<span class="tok-c">// Note: Wkst's zero value is time.Sunday but means Monday (the RFC</span>
+<span class="tok-c">// default) — use rrule.SundayStart to ask for Sunday explicitly.</span>`
+  },
+  {
+    id:"jq", name:"jq", icon:'<i class="fa-solid fa-filter"></i>', accent:"#2b7489",
+    pkg:"github.com/malcolmston/jq", node:"jqlang/jq",
+    repo:"https://github.com/malcolmston/jq", docs:"https://malcolmston.github.io/jq/",
+    tagline:"The jq query language, embedded in Go — lexer, parser, evaluator.",
+    blurb:"A full implementation of the jq 1.7 query language built entirely on the Go standard library — no "+
+      "third-party modules, no cgo, no require directives. The defining property of jq is that every expression "+
+      "is a <i>generator</i> producing zero or more outputs, so the evaluator is continuation-passing: "+
+      "<code>empty</code>, <code>limit</code>, <code>first</code>, <code>//</code> and backtracking all fall out "+
+      "of that shape rather than being special-cased. Values and paths are unified, so one evaluator serves both "+
+      "<code>.a.b</code> and <code>path(.a.b)</code>, which is what makes <code>|=</code>, <code>del</code> and "+
+      "the assignment operators correct. Around 120 builtins are themselves written in jq and parsed at init, so "+
+      "they compose as generators and inside path expressions exactly as upstream's do. The import path is "+
+      "github.com/malcolmston/jq.",
+    tags:["jq 1.7","generators","path expressions","~120 builtins","string interpolation","@base64 / @csv","step budget","RE2 regex","zero deps"],
+    features:[
+      "Language core — identity, field access, indexing, slicing <code>.[2:5]</code>, iteration <code>.[]</code>, pipe, comma, the alternative operator <code>//</code>, arithmetic and comparison, <code>and</code>/<code>or</code>/<code>not</code>, optional access <code>?</code>",
+      "Control flow — <code>if/then/elif/else/end</code>, <code>try/catch</code>, <code>reduce</code>, <code>foreach</code>, <code>as $x</code> bindings, <code>label</code>, and user-defined functions <code>def f(a; b): …;</code> with generator arguments and recursion",
+      "Construction — object and array literals, string interpolation <code>\"\\(…)\"</code>, and the <code>@base64 @base64d @csv @tsv @html @uri @json @text @sh</code> format strings, usable bare or as interpolation prefixes",
+      "Paths and updates — path expressions, <code>getpath</code>/<code>setpath</code>/<code>delpaths</code>/<code>del</code>, and all eight assignment operators <code>=</code>, <code>|=</code>, <code>+=</code>, <code>-=</code>, <code>*=</code>, <code>/=</code>, <code>%=</code>, <code>//=</code>",
+      "Roughly 120 builtins covering sequences, objects, strings, math, regex, dates and paths",
+      "Streaming API — <code>Eval</code> for one-shot use, <code>Compile</code> once and <code>Run</code> many times, <code>RunFunc</code> to consume outputs as they are produced and stop early, and <code>WithVariables</code> to bind <code>$name</code> values",
+      "Values are plain Go values — <code>nil</code>, <code>bool</code>, <code>float64</code>, <code>string</code>, <code>[]any</code>, <code>map[string]any</code> — so results drop straight into <code>encoding/json</code> code",
+      "jq's own ordering rules for <code>sort</code> and comparison: null &lt; false &lt; true &lt; numbers &lt; strings &lt; arrays &lt; objects",
+      "<code>CompileError</code> carries the program and the byte offset of the problem; <code>RuntimeError</code> carries what a jq <code>error(…)</code> would print — both matchable with <code>errors.Is</code>",
+      "Bounded execution — a step and depth budget the program's own <code>try</code> cannot catch, so a runaway <code>repeat</code> or <code>recurse</code> cannot wedge a server; tunable with <code>WithMaxSteps</code>",
+      "Zero dependencies — pure Go standard library, no cgo"
+    ],
+    node_code:
+`# jq on the command line
+$ echo '{"users":[{"name":"ada","age":36},{"name":"bob","age":24}]}' \\
+  | jq '.users | map(select(.age > 30) | .name)'
+[
+  "ada"
+]
+
+# Update in place
+$ echo '[1,2,3]' | jq '(.[] | select(. >= 2)) |= . * 10'
+[1,20,30]`,
+    go_code:
+`import "github.com/malcolmston/jq"
+
+input, _ := jq.Unmarshal([]byte(
+    \`{"users":[{"name":"ada","age":36},{"name":"bob","age":24}]}\`))
+
+out, err := jq.Eval(".users | map(select(.age > 30) | .name)", input)
+if err != nil { log.Fatal(err) }
+fmt.Println(out[0])            <span class="tok-c">// [ada]</span>
+
+<span class="tok-c">// Assignment works because paths and values share one evaluator</span>
+updated, _ := jq.Eval("(.[] | select(. >= 2)) |= . * 10",
+    []any{1.0, 2.0, 3.0})      <span class="tok-c">// [1 20 30]</span>`,
+    integrate:
+`<span class="tok-c">// Compile once, run per request — the parse is the expensive part</span>
+q, err := jq.Compile(".items[] | select(.status == $want) | {id, name}")
+if err != nil {
+    var ce *jq.CompileError
+    if errors.As(err, &ce) {
+        log.Fatalf("bad filter at offset %d: %s", ce.Offset, ce.Msg)
+    }
+}
+q = q.WithVariables(map[string]any{"want": "active"})
+
+<span class="tok-c">// Stream results and stop as soon as you have enough</span>
+n := 0
+err = q.RunFunc(payload, func(v any) error {
+    if n++; n > 100 {
+        return errEnough        <span class="tok-c">// halts iteration</span>
+    }
+    return json.NewEncoder(w).Encode(v)
+})`
+  },
 ];
 
 export const FAQS: [string, string][] = [
