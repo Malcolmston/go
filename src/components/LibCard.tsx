@@ -24,7 +24,7 @@ export function LibCard({ lib, onOpen }: LibCardProps) {
       {parity && (
         <div
           className="tag"
-          title={`Verified against ${parity.upstream}: ${parity.casesSynced} upstream test cases synced, ${parity.gapsClosed} gaps closed`}
+          title={`Measured against ${parity.upstreamPkg ?? parity.upstream}: ${parity.casesSynced} cases asked of both implementations, ${parity.gapsClosed} gaps closed`}
           style={{ marginTop: '.6rem', borderColor: hx(lib.accent, '55'), color: lib.accent, background: hx(lib.accent, '12') }}
         >
           ● {parity.after} upstream parity

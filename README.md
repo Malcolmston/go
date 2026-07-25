@@ -96,20 +96,26 @@ live from each repo's `parity.json` (see [Upstream parity](#upstream-parity--pip
 
 ## Upstream parity & pipeline
 
-Every port is measured against the **original** library, not by eyeball. Each
-repo's parity CI:
+Every port is measured by **running the original library**. Each repo's parity
+CI, driven by [`parity/`](parity):
 
-1. **syncs the upstream project's own test suite** — the real vectors from
-   `expressjs/express`, `lodash/lodash`, the RFC appendices, the official
-   JSON-Schema / URI-Template conformance suites, etc. — into Go
-   `TestParity*` tests;
-2. **closes the behavior gaps** those vectors expose; and
-3. **publishes `parity.json`**, the machine-readable score.
+1. **installs the upstream package it mirrors** — the real `chalk@5.3.0`,
+   `numpy==2.0.1`, gem or crate — and starts it in its own runtime;
+2. **asks it and the Go port the same questions**, comparing both answers (and
+   both failures — returning a value where upstream throws is a gap);
+3. **cross-compiles the port** for every target the family claims; and
+4. **publishes `parity.json`**, the measured score with every failing case named.
+
+Because the expectations come from upstream itself, they cannot drift: a new
+upstream release re-scores the ports on its own. Where the upstream runtime
+cannot be installed, the suite replays upstream's *recorded* answers and the
+report says so (`"mode": "golden"`) rather than passing a replay off as a
+measurement.
 
 Every repo's pipeline routes through one **central reusable workflow**
 ([`.github/workflows/parity-reusable.yml`](.github/workflows/parity-reusable.yml)),
 and the landing regenerates the scores live on each deploy. Open any library tab
-on the site to see its score broken down (cases synced, gaps closed) and a
+on the site to see its score broken down (cases asked, gaps closed) and a
 node-graph of the **actual pipeline stages** with live status.
 
 Multi-package libraries are additionally audited **per subpackage**: express's
