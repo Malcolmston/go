@@ -2,15 +2,24 @@ name: Parity (reusable)
 
 # Central upstream-parity pipeline for the whole malcolmston/* family. Every
 # library repo's own .github/workflows/parity.yml is a thin caller of THIS
-# workflow, so all parity pipelines route through the go aggregator:
+# workflow:
 #
 #   jobs:
 #     parity:
 #       uses: Malcolmston/go/.github/workflows/parity-reusable.yml@main
+#       with:
+#         runtimes: node          # the ecosystem the ORIGINAL library lives in
 #
-# It runs the port's synced upstream-parity tests (go test -run Parity), prints a
-# summary, and publishes the repo's parity.json (the machine-readable metrics the
-# go landing aggregates) as a build artifact.
+# What it does is run the original library. The port's parity suite (see
+# github.com/malcolmston/go/parity) installs the real npm / PyPI / RubyGems
+# package, starts it in its own interpreter, asks it and the Go port the same
+# questions, and records every disagreement. That is why this job installs Node,
+# Python or Ruby at all: without the upstream runtime there is nothing to
+# compare against, only remembered expectations.
+#
+# The same run cross-compiles the port for every target the family claims, so a
+# parity score is never a score for code that will not build where it ships.
+# Results land in the repo's parity.json — the artifact the landing aggregates.
 
 on:
   workflow_call:
@@ -20,6 +29,36 @@ on:
         required: false
         type: string
         default: stable
+      runtimes:
+        description: >-
+          Space-separated upstream runtimes to install so the original library
+          can actually run: any of "node", "python", "ruby". Empty installs
+          none, and the suite falls back to its recorded upstream answers.
+        required: false
+        type: string
+        default: node
+      node-version:
+        required: false
+        type: string
+        default: "22"
+      python-version:
+        required: false
+        type: string
+        default: "3.12"
+      ruby-version:
+        required: false
+        type: string
+        default: "3.3"
+      test-args:
+        description: Extra arguments for the parity `go test` invocation.
+        required: false
+        type: string
+        default: ""
+      run:
+        description: Test pattern identifying the parity suites.
+        required: false
+        type: string
+        default: TestParity
 
 permissions:
   contents: read
@@ -29,35 +68,78 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          submodules: recursive
 
       - uses: actions/setup-go@v7
         with:
           go-version: ${{ inputs.go-version }}
 
+      # The upstream runtimes. Each is installed only when the port names it,
+      # so a pure-Node port does not pay for a Python toolchain.
+      - uses: actions/setup-node@v5
+        if: contains(inputs.runtimes, 'node')
+        with:
+          node-version: ${{ inputs.node-version }}
+
+      - uses: actions/setup-python@v6
+        if: contains(inputs.runtimes, 'python')
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - uses: ruby/setup-ruby@v1
+        if: contains(inputs.runtimes, 'ruby')
+        with:
+          ruby-version: ${{ inputs.ruby-version }}
+
+      # Upstream packages install into a cache directory keyed by the exact
+      # version each suite pins, so re-running a green build does not
+      # re-download half of npm.
+      - name: Cache upstream packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/malcolmston-parity
+          key: parity-upstream-${{ runner.os }}-${{ hashFiles('**/*_parity_test.go', '**/parity.json') }}
+          restore-keys: parity-upstream-${{ runner.os }}-
+
       - name: Build
         run: go build ./...
 
-      - name: Run upstream-parity tests
-        run: go test ./... -run Parity -v 2>&1 | tee parity.txt
+      # The port answers every case, the original library answers the same ones,
+      # and the suite cross-compiles for each supported GOOS/GOARCH.
+      - name: Run parity against the original library
+        env:
+          PARITY_CROSS: "1"
+        run: go test ./... -run '${{ inputs.run }}' -v ${{ inputs.test-args }} 2>&1 | tee parity.txt
 
-      - name: Summary
+      # Assemble the report even when cases failed: a run that found gaps is
+      # exactly the run whose numbers are worth publishing. -check fails the job
+      # on a regression against the committed parity.json, or on a target that
+      # stopped building.
+      - name: Report
         if: always()
         run: |
-          echo "## Upstream parity" >> "$GITHUB_STEP_SUMMARY"
-          if [ -f parity.json ]; then
-            echo '```json' >> "$GITHUB_STEP_SUMMARY"
-            cat parity.json >> "$GITHUB_STEP_SUMMARY"
-            echo '' >> "$GITHUB_STEP_SUMMARY"
-            echo '```' >> "$GITHUB_STEP_SUMMARY"
-          fi
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-          grep -E "PASS|FAIL|--- " parity.txt | tail -50 >> "$GITHUB_STEP_SUMMARY" || true
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          go run github.com/malcolmston/go/parity/cmd/parityreport@main \
+            -check -markdown "$GITHUB_STEP_SUMMARY"
+
+      - name: Test log tail
+        if: failure()
+        run: |
+          {
+            echo '<details><summary>go test output</summary>'
+            echo ''
+            echo '```'
+            grep -E "FAIL|--- |differs from upstream|does not build" parity.txt | tail -60 || true
+            echo '```'
+            echo '</details>'
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload parity metrics
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: parity-json
-          path: parity.json
+          path: |
+            parity.json
+            parity.txt
           if-no-files-found: ignore

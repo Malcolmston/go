@@ -56,10 +56,10 @@ function stagesFor(parity?: Parity): Stage[] {
     { id: 'push', code: 'PUSH', label: 'Push · PR', sub: 'webhook', kind: 'trigger', x: 24, y: 150 },
     { id: 'reusable', code: 'GO', label: 'parity-reusable.yml', sub: 'workflow_call', kind: 'build', x: 268, y: 150 },
     { id: 'checkout', code: 'CHK', label: 'Checkout', sub: 'actions/checkout', kind: 'build', x: 512, y: 40 },
-    { id: 'setup', code: 'GO', label: 'Setup Go', sub: 'setup-go@v5', kind: 'build', x: 512, y: 260 },
+    { id: 'setup', code: 'GO', label: 'Setup Go + upstream runtime', sub: parity?.runtime ? `setup-go · setup-${parity.runtime}` : 'setup-go · setup-node', kind: 'build', x: 512, y: 260 },
     { id: 'build', code: 'BLD', label: 'Build', sub: 'go build ./…', kind: 'build', x: 756, y: 150 },
-    { id: 'test', code: 'TEST', label: 'Parity tests', sub: parity ? `${parity.casesSynced.toLocaleString()} cases` : 'go test -run Parity', kind: 'test', x: 1000, y: 150 },
-    { id: 'summary', code: 'SUM', label: 'Summary', sub: parity ? `${parity.before} → ${parity.after}` : 'before → after', kind: 'test', x: 1244, y: 150 },
+    { id: 'test', code: 'TEST', label: 'Run upstream + port', sub: parity ? `${parity.casesSynced.toLocaleString()} cases vs ${parity.upstreamPkg ?? 'upstream'}` : 'go test -run TestParity', kind: 'test', x: 1000, y: 150 },
+    { id: 'summary', code: 'SUM', label: 'Cross-compile + score', sub: parity ? `${parity.before} → ${parity.after}` : 'before → after', kind: 'test', x: 1244, y: 150 },
     { id: 'publish', code: 'PUB', label: 'Publish', sub: parity ? `${parity.gapsClosed} gaps closed` : 'parity.json', kind: 'deploy', x: 1488, y: 150 },
   ];
 }
@@ -364,11 +364,12 @@ export function PipelineFlow({ lib, parity }: PipelineFlowProps) {
       {parity ? (
         <div className="pipeflow-legend">
           Verified against <a href={`https://github.com/${parity.upstream}`} target="_blank" rel="noopener">{parity.upstream}</a>:
-          {' '}the port syncs <b>{parity.casesSynced.toLocaleString()}</b> of the upstream library's own test vectors, which raised
-          measured parity from <b>{parity.before}</b> to <b>{parity.after}</b> by closing <b>{parity.gapsClosed}</b> behavior gaps.
+          {' '}the run asks {parity.upstreamPkg ? <><code>{parity.upstreamPkg}</code> and the port</> : <>upstream and the port</>}{' '}
+          the same <b>{parity.casesSynced.toLocaleString()}</b> questions, which moved measured agreement from <b>{parity.before}</b>{' '}
+          to <b>{parity.after}</b> by closing <b>{parity.gapsClosed}</b> behavior gaps.
         </div>
       ) : (
-        <div className="pipeflow-legend">This library is not yet audited against an upstream test suite.</div>
+        <div className="pipeflow-legend">This library is not yet measured against a running upstream.</div>
       )}
     </div>
   );

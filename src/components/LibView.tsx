@@ -152,7 +152,7 @@ export function LibView({ lib }: LibViewProps) {
                   <div className="parity-num">{parity.before} → {parity.after}</div><div className="parity-lbl">before → after audit</div>
                 </div>
                 <div className="parity-tile">
-                  <div className="parity-num">{parity.casesSynced.toLocaleString()}</div><div className="parity-lbl">upstream test cases synced</div>
+                  <div className="parity-num">{parity.casesSynced.toLocaleString()}</div><div className="parity-lbl">cases asked of both</div>
                 </div>
                 <div className="parity-tile">
                   <div className="parity-num">{parity.gapsClosed}</div><div className="parity-lbl">behavior gaps closed</div>
