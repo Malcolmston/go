@@ -94,11 +94,40 @@ function toHit(meta: SymbolMeta | undefined, score: unknown): SearchHit {
   };
 }
 
-// Options for a single query. `reranking` toggles Upstash's semantic reranking
-// pass; defaults to true so existing callers (which pass no options) keep the
-// prior behavior exactly.
+// Options for a single query.
+//   reranking — toggles Upstash's semantic reranking pass; defaults to true so
+//               existing callers (which pass no options) keep the prior behavior.
+//   library   — scope to one library id, pushed down as a metadata filter.
+//   kinds     — restrict to these symbol kinds, pushed down as a metadata filter.
+// Pushing library/kind down to Upstash (rather than over-fetching and slicing in
+// the caller) means we request exactly `first` results and never drop in-scope
+// hits that happen to rank below an over-fetch cap.
 export interface EsSearchOptions {
   reranking?: boolean;
+  library?: string;
+  kinds?: string[];
+}
+
+// The `filter` accepted by index.search — a structured metadata expression.
+// Metadata fields are addressed as `@metadata.<key>` (see the SDK's MergedFields
+// type); the strict mapped type is awkward to build literally, so we assemble a
+// plain expression and cast to it.
+type SearchFilter = NonNullable<Parameters<ReturnType<typeof makeIndex>['search']>[0]['filter']>;
+
+// Build a structured metadata filter for the active library/kind scope, or
+// undefined when nothing is scoped. Single clauses are passed bare; multiple are
+// AND-ed together.
+function buildFilter(library?: string, kinds?: string[]): SearchFilter | undefined {
+  const clauses: Record<string, unknown>[] = [];
+  if (typeof library === 'string' && library.trim() !== '') {
+    clauses.push({ '@metadata.library': { equals: library } });
+  }
+  if (Array.isArray(kinds) && kinds.length > 0) {
+    clauses.push({ '@metadata.kind': { in: kinds } });
+  }
+  if (clauses.length === 0) return undefined;
+  const node = clauses.length === 1 ? clauses[0] : { AND: clauses };
+  return node as unknown as SearchFilter;
 }
 
 export async function esSearch(
@@ -110,6 +139,7 @@ export async function esSearch(
 
   const size = Number.isFinite(first) && first > 0 ? Math.floor(first) : 20;
   const reranking = opts.reranking !== false;
+  const filter = buildFilter(opts.library, opts.kinds);
 
   // Query only — the index is populated out-of-band by esIndexAll (see the
   // priming script). This keeps search latency low and off the write path.
@@ -117,6 +147,7 @@ export async function esSearch(
     query: String(q ?? ''),
     limit: size,
     reranking,
+    ...(filter ? { filter } : {}),
   });
 
   return results.map((r) => toHit(r.metadata, r.score));

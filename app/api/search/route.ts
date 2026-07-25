@@ -74,10 +74,25 @@ async function runSearch(
 ): Promise<{ hits: any[]; backend: string; upstashUsed: boolean }> {
   if (q.trim() === '') return { hits: [], backend: 'memory', upstashUsed: false };
 
-  // When any filter is active (library scope or kind), over-fetch so the
-  // post-filter slice still fills `first`, then apply the filters + slice.
-  // Mirrors the original library-only behavior; applies to both backends
-  // without changing their signatures.
+  if (esEnabled()) {
+    try {
+      // Push library/kind scoping down to Upstash as a metadata filter, so we
+      // request exactly `first` results and never drop in-scope hits that rank
+      // below an over-fetch cap. No app-side re-filtering needed here.
+      const hits = await esSearch(q, first, {
+        reranking,
+        library: library || undefined,
+        kinds,
+      });
+      return { hits, backend: 'upstash', upstashUsed: true };
+    } catch {
+      // Fall through to BM25 on any Upstash Search failure.
+    }
+  }
+
+  // BM25 fallback: filtering is done in-app, so when any filter is active
+  // over-fetch first and slice after, so the post-filter result still fills
+  // `first`.
   const filtered = library !== '' || kinds.length > 0;
   const kindSet = kinds.length > 0 ? new Set(kinds) : null;
   const want = filtered ? Math.min(MAX_FIRST, first * 8) : first;
@@ -90,15 +105,6 @@ async function runSearch(
           (kindSet === null || kindSet.has(h.kind)),
       )
       .slice(0, first);
-
-  if (esEnabled()) {
-    try {
-      const hits = await esSearch(q, want, { reranking });
-      return { hits: scope(hits), backend: 'upstash', upstashUsed: true };
-    } catch {
-      // Fall through to BM25 on any Upstash Search failure.
-    }
-  }
   return { hits: scope(bm25Search(getSymbols(), q, want)), backend: 'memory', upstashUsed: false };
 }
 
