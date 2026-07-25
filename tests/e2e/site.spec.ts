@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { LIBS } from '../../src/data';
+import { LIBS } from '@/src/data';
 
 // The Next.js App Router migration turned every hash tab into a real route:
 //   home    -> '/'

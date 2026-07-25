@@ -5,7 +5,7 @@
 // page to emit. It resolves the route id and hands it to a small client child;
 // the actual view (LibView, which pulls in browser-only doc rendering) is loaded
 // client-only there, matching the aggregator's client-SPA model.
-import { LIBS } from '../../../src/data';
+import { LIBS } from '@/src/data';
 import LibClient from './LibClient';
 
 // Emit one static page per library so `next build` with output:'export' writes

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
-import { Explore } from '../../../src/components/Explore';
+import { Explore } from '@/src/components/Explore';
 
 // The Explore tab talks to the serverless search + package-graph API when it is
 // available, and otherwise degrades to the data files bundled in web/public.

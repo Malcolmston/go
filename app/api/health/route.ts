@@ -10,7 +10,7 @@
 // bundled fallback data. `es` mirrors esEnabled() from es.ts: true iff the
 // Upstash Search env vars are configured. CORS is permissive (Allow-Origin: *).
 
-import { esEnabled } from '../../../api/_lib/es';
+import { esEnabled } from '@/api/_lib/es';
 
 // Run on the Node.js runtime (the shared lib reads process.env), and never
 // pre-render / cache — every request reports live configuration state.

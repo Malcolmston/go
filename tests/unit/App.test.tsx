@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { Home } from '../../src/components/Home';
-import { Faq } from '../../src/components/Faq';
-import { About } from '../../src/components/About';
-import { LibView } from '../../src/components/LibView';
-import { LIBS } from '../../src/data';
+import { Home } from '@/src/components/Home';
+import { Faq } from '@/src/components/Faq';
+import { About } from '@/src/components/About';
+import { LibView } from '@/src/components/LibView';
+import { LIBS } from '@/src/data';
 
 // The old top-level <App> (hash-routed tabs wrapped in the shared Layout) is
 // gone: routing moved to the Next App Router (app/layout.tsx + app/<route>/

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { LibView } from '../../../src/components/LibView';
-import { LIBS } from '../../../src/data';
+import { LibView } from '@/src/components/LibView';
+import { LIBS } from '@/src/data';
 
 const express = LIBS.find((l) => l.id === 'express')!;
 

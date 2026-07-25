@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
-import { LibView } from '../../../src/components/LibView';
-import { LIBS } from '../../../src/data';
+import { LibView } from '@/src/components/LibView';
+import { LIBS } from '@/src/data';
 
 // LibClient receives the route id from the server page and looks the library up
 // in LIBS. An unknown id (e.g. a stale link) renders a friendly fallback rather

@@ -4,8 +4,8 @@
 // (api/_lib/bm25.ts). bm25.ts imports only `type SymbolDoc` (erased at compile
 // time), so it can be imported directly without triggering data.ts fs reads.
 import { describe, it, expect } from 'vitest';
-import { queryTokens, search } from '../../../api/_lib/bm25';
-import type { SymbolDoc } from '../../../api/_lib/data';
+import { queryTokens, search } from '@/api/_lib/bm25';
+import type { SymbolDoc } from '@/api/_lib/data';
 
 // Minimal SymbolDoc factory — only the fields BM25 reads matter.
 function sym(over: Partial<SymbolDoc>): SymbolDoc {

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { Releases } from '../../../src/components/Releases';
-import { LIBS } from '../../../src/data';
+import { Releases } from '@/src/components/Releases';
+import { LIBS } from '@/src/data';
 
 describe('Releases', () => {
   beforeEach(() => {

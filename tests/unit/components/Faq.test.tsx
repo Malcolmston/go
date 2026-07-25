@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { Faq } from '../../../src/components/Faq';
-import { FAQS } from '../../../src/data';
+import { Faq } from '@/src/components/Faq';
+import { FAQS } from '@/src/data';
 
 describe('Faq', () => {
   it('renders a details entry per FAQ with its question as a summary', () => {
