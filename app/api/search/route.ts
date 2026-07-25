@@ -35,7 +35,8 @@ const VALID_KINDS = new Set(['func', 'type', 'method', 'interface', 'const', 'va
 
 // Parse the comma-separated `kind` param into a validated, de-duped list.
 // Invalid entries are ignored; empty/absent yields [] (no kind filtering).
-function parseKinds(value: string | null): string[] {
+// Exported (additively) for direct unit testing; behavior is unchanged.
+export function parseKinds(value: string | null): string[] {
   if (!value) return [];
   const out: string[] = [];
   for (const raw of value.split(',')) {
@@ -47,7 +48,8 @@ function parseKinds(value: string | null): string[] {
 
 // Reranking is ON by default; only an explicit "0"/"false" (case-insensitive)
 // in SEARCH_RERANK disables it.
-function rerankEnabled(): boolean {
+// Exported (additively) for direct unit testing; behavior is unchanged.
+export function rerankEnabled(): boolean {
   const v = (process.env.SEARCH_RERANK ?? '').trim().toLowerCase();
   return v !== '0' && v !== 'false';
 }
