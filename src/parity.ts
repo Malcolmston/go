@@ -25,6 +25,7 @@ export const PARITY: Record<string, Parity> = {
   handlebars: { upstream: "handlebars-lang/handlebars.js", before: "87%", after: "97%", casesSynced: 192, gapsClosed: 11 },
   jest: { upstream: "jestjs/jest", before: "98%", after: "100%", casesSynced: 90, gapsClosed: 1 },
   jose: { upstream: "panva/jose", before: "0%", after: "100%", casesSynced: 55, gapsClosed: 6 },
+  jq: { upstream: "jqlang/jq", before: "0%", after: "92.5%", casesSynced: 782, gapsClosed: 109 },
   jwt: { upstream: "auth0/node-jsonwebtoken", before: "93%", after: "100%", casesSynced: 30, gapsClosed: 2 },
   liveview: { upstream: "phoenixframework/phoenix_live_view", before: "90%", after: "100%", casesSynced: 18, gapsClosed: 2 },
   lodash: { upstream: "lodash/lodash", before: "90%", after: "98%", casesSynced: 450, gapsClosed: 6 },

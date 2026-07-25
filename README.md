@@ -86,7 +86,7 @@ live from each repo's `parity.json` (see [Upstream parity](#upstream-parity--pip
 | [oban](oban) | sorentwo/oban (Elixir) | 100% | [pages](https://malcolmston.github.io/oban/) |
 | [lucene](lucene) | apache/lucene (Java) | 100% | [pages](https://malcolmston.github.io/lucene/) |
 | [fastmcp](fastmcp) | jlowin/fastmcp (Python) | 99% | [pages](https://malcolmston.github.io/fastmcp/) |
-| [jq](jq) | jqlang/jq (C) | 92% | [pages](https://malcolmston.github.io/jq/) |
+| [jq](jq) | jqlang/jq (C) | 92.5% | [pages](https://malcolmston.github.io/jq/) |
 | [rrule](rrule) | dateutil/dateutil (Python) | 99.6% | [pages](https://malcolmston.github.io/rrule/) |
 
 ### General utilities
