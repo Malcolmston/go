@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { Html } from '../../../src/components/Html';
+import { Html } from '@/src/components/Html';
 
 describe('Html', () => {
   it('renders raw markup into a default span', () => {

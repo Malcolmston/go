@@ -17,10 +17,10 @@
 //
 // CORS is permissive (Access-Control-Allow-Origin: *).
 
-import { esEnabled, esSearch } from '../../../api/_lib/es';
-import { search as bm25Search, queryTokens } from '../../../api/_lib/bm25';
-import { getSymbols } from '../../../api/_lib/data';
-import { logSearch } from '../../../api/_lib/analytics';
+import { esEnabled, esSearch } from '@/api/_lib/es';
+import { search as bm25Search, queryTokens } from '@/api/_lib/bm25';
+import { getSymbols } from '@/api/_lib/data';
+import { logSearch } from '@/api/_lib/analytics';
 import { MAX_FIRST, firstParam, parseKinds, rerankEnabled } from './params';
 
 // Run on the Node.js runtime (the shared libs use node built-ins), and never

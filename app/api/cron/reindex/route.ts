@@ -23,8 +23,8 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { esEnabled, esIndexAll } from '../../../../api/_lib/es';
-import type { SymbolDoc } from '../../../../api/_lib/data';
+import { esEnabled, esIndexAll } from '@/api/_lib/es';
+import type { SymbolDoc } from '@/api/_lib/data';
 
 // Run on the Node.js runtime (fs + the shared lib read process.env), never
 // cache, and allow up to 5 minutes for the full reindex (Pro/Fluid Compute).

@@ -20,10 +20,10 @@ import {
   type UIMessage,
 } from 'ai';
 import { z } from 'zod';
-import { esEnabled, esSearch, type SearchHit } from '../../../api/_lib/es';
-import { search as bm25Search } from '../../../api/_lib/bm25';
-import { getSymbols, type SymbolDoc } from '../../../api/_lib/data';
-import { qaSearchPast, qaRecord, type QaSource } from '../../../api/_lib/qa';
+import { esEnabled, esSearch, type SearchHit } from '@/api/_lib/es';
+import { search as bm25Search } from '@/api/_lib/bm25';
+import { getSymbols, type SymbolDoc } from '@/api/_lib/data';
+import { qaSearchPast, qaRecord, type QaSource } from '@/api/_lib/qa';
 
 const MODEL = 'anthropic/claude-sonnet-4.6';
 const CORS_HEADERS: Record<string, string> = {

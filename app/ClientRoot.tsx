@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Layout } from 'go-ui';
 import type { Tab } from 'go-ui';
-import { LIBS } from '../src/data';
+import { LIBS } from '@/src/data';
 import { pathForTab, tabForPath } from './nav';
 
 const TABS: Tab[] = [

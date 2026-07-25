@@ -30,11 +30,11 @@ import {
   importedBy,
   related,
   subgraph,
-} from '../../../api/_lib/graphstore';
+} from '@/api/_lib/graphstore';
 
-import { getSymbols } from '../../../api/_lib/data';
-import { esEnabled, esSearch } from '../../../api/_lib/es';
-import { search as bm25Search } from '../../../api/_lib/bm25';
+import { getSymbols } from '@/api/_lib/data';
+import { esEnabled, esSearch } from '@/api/_lib/es';
+import { search as bm25Search } from '@/api/_lib/bm25';
 
 // Run on the Node.js runtime (the shared libs use node built-ins), and never
 // pre-render / cache — every request executes the resolvers live.

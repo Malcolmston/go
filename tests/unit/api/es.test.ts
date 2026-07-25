@@ -17,7 +17,7 @@ vi.mock('@upstash/search', () => ({
   },
 }));
 
-import { buildFilter, esEnabled, esSearch } from '../../../api/_lib/es';
+import { buildFilter, esEnabled, esSearch } from '@/api/_lib/es';
 
 beforeEach(() => {
   mockSearch.mockReset();

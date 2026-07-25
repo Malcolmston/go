@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { AI } from '../../../src/components/AI';
+import { AI } from '@/src/components/AI';
 
 describe('AI', () => {
   it('renders the AI story sections', () => {

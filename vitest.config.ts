@@ -22,6 +22,8 @@ export default defineConfig({
   resolve: {
     dedupe: ['react', 'react-dom'],
     alias: {
+      // Root-relative '@/…' alias, mirroring the app's tsconfig paths ("@/*": ["./*"]).
+      '@': fileURLToPath(new URL('.', import.meta.url)),
       'go-ui': fileURLToPath(new URL('./ui/src/index.ts', import.meta.url)),
       'next/link': fileURLToPath(new URL('./tests/mocks/next-link.tsx', import.meta.url)),
       'next/navigation': fileURLToPath(new URL('./tests/mocks/next-navigation.ts', import.meta.url)),

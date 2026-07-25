@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { HowTo } from '../../../src/components/HowTo';
+import { HowTo } from '@/src/components/HowTo';
 
 describe('HowTo', () => {
   it('renders the getting-started sections', () => {

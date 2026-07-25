@@ -37,8 +37,8 @@ vi.mock('../../../api/_lib/bm25', async (importOriginal) => {
   };
 });
 
-import { GET, OPTIONS } from '../../../app/api/search/route';
-import { parseKinds, rerankEnabled } from '../../../app/api/search/params';
+import { GET, OPTIONS } from '@/app/api/search/route';
+import { parseKinds, rerankEnabled } from '@/app/api/search/params';
 
 const bmHit = (over: Record<string, unknown> = {}) => ({
   id: 'x',

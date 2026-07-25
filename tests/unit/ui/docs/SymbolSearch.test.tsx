@@ -2,8 +2,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 // SymbolSearch is not re-exported from go-ui's index, so import the source
 // directly (same relative-source pattern the app uses).
-import { SymbolSearch } from '../../../../ui/src/components/docs/SymbolSearch';
-import type { DocPackage } from '../../../../ui/src/docs/types';
+import { SymbolSearch } from '@/ui/src/components/docs/SymbolSearch';
+import type { DocPackage } from '@/ui/src/docs/types';
 
 // jsdom does not implement scrollIntoView; the component calls it to keep the
 // active row visible. Stub it so rendering the dropdown doesn't throw.

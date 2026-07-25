@@ -1,6 +1,6 @@
 'use client';
 import { useRouter } from 'next/navigation';
-import { Home } from '../src/components/Home';
+import { Home } from '@/src/components/Home';
 import { pathForTab } from './nav';
 
 export default function Page() {

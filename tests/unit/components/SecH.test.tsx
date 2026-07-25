@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { SecH } from '../../../src/components/SecH';
+import { SecH } from '@/src/components/SecH';
 
 describe('SecH', () => {
   it('renders children in a default h3 heading', () => {

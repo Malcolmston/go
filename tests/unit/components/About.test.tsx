@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { About } from '../../../src/components/About';
+import { About } from '@/src/components/About';
 
 describe('About', () => {
   it('renders the about heading and the library summary table', () => {
