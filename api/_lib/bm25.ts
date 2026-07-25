@@ -71,6 +71,14 @@ function uniq(arr: string[]): string[] {
   return Array.from(new Set(arr));
 }
 
+// Public helper: the unique, lowercased query tokens produced by the same
+// tokenizer BM25 ranks over. Exposed so callers (e.g. the search route) can
+// report `matchedTerms` for client-side highlighting that lines up exactly with
+// what ranking matched. Additive — does not change search() behavior.
+export function queryTokens(q: string): string[] {
+  return uniq(tokenize(String(q ?? '')));
+}
+
 // True iff the Levenshtein distance between a and b is <= 1.
 function within1Edit(a: string, b: string): boolean {
   if (a === b) return true;
