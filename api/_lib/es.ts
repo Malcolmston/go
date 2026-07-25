@@ -117,7 +117,10 @@ type SearchFilter = NonNullable<Parameters<ReturnType<typeof makeIndex>['search'
 // Build a structured metadata filter for the active library/kind scope, or
 // undefined when nothing is scoped. Single clauses are passed bare; multiple are
 // AND-ed together.
-function buildFilter(library?: string, kinds?: string[]): SearchFilter | undefined {
+// Exported (additively) so the #51/#54 filter-shape logic can be unit-tested
+// directly rather than indirectly through a mocked index.search — behavior is
+// unchanged.
+export function buildFilter(library?: string, kinds?: string[]): SearchFilter | undefined {
   const clauses: Record<string, unknown>[] = [];
   if (typeof library === 'string' && library.trim() !== '') {
     clauses.push({ '@metadata.library': { equals: library } });
