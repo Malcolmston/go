@@ -904,6 +904,93 @@
   text-align: center;
 }
 
+/* Per-kind color for the result-row kind chip (reuses the sidebar badge palette).
+   method shares the func hue; interface its own; type/const/var their own. */
+.gd-search-item-kind {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  font-family: var(--gd-font-body);
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--gd-badge-fg);
+  background: var(--gd-badge-c);
+}
+.gd-search-item-kind[data-kind="type"] { background: var(--gd-badge-t); }
+.gd-search-item-kind[data-kind="interface"] { background: var(--gd-badge-i); }
+.gd-search-item-kind[data-kind="func"],
+.gd-search-item-kind[data-kind="method"] { background: var(--gd-badge-f); }
+.gd-search-item-kind[data-kind="const"] { background: var(--gd-badge-c); }
+.gd-search-item-kind[data-kind="var"] { background: var(--gd-badge-v); }
+
+/* Highlighted match runs inside a result label/path. */
+.gd-search-mark {
+  background: var(--gd-search-mark-bg, rgba(255, 213, 79, .38));
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+/* Kind-filter chip row at the top of the dropdown. */
+.gd-search-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 3px 4px 7px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--gd-search-menu-border);
+}
+.gd-search-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 7px 3px 4px;
+  border: 1px solid var(--gd-search-menu-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--gd-muted);
+  font-family: var(--gd-font-body);
+  font-size: 11.5px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background .1s ease, color .1s ease, border-color .1s ease;
+}
+.gd-search-filter:hover { background: var(--gd-search-item-active); }
+.gd-search-filter.active {
+  color: var(--gd-fg);
+  border-color: transparent;
+  background: var(--gd-search-item-active);
+}
+.gd-search-filter:focus-visible {
+  outline: 2px solid var(--gd-badge-t);
+  outline-offset: 1px;
+}
+.gd-search-filter-kind {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  border-radius: 3px;
+  color: var(--gd-badge-fg);
+  font-weight: 700;
+  font-size: 8.5px;
+  background: var(--gd-badge-c);
+  opacity: .55;
+  transition: opacity .1s ease;
+}
+.gd-search-filter.active .gd-search-filter-kind { opacity: 1; }
+.gd-search-filter-kind[data-kind="type"] { background: var(--gd-badge-t); }
+.gd-search-filter-kind[data-kind="interface"] { background: var(--gd-badge-i); }
+.gd-search-filter-kind[data-kind="func"],
+.gd-search-filter-kind[data-kind="method"] { background: var(--gd-badge-f); }
+.gd-search-filter-kind[data-kind="const"] { background: var(--gd-badge-c); }
+.gd-search-filter-kind[data-kind="var"] { background: var(--gd-badge-v); }
+
 /* ==========================================================================
    FOOTER
    ========================================================================== */
