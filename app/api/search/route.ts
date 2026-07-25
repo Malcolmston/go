@@ -21,38 +21,12 @@ import { esEnabled, esSearch } from '../../../api/_lib/es';
 import { search as bm25Search, queryTokens } from '../../../api/_lib/bm25';
 import { getSymbols } from '../../../api/_lib/data';
 import { logSearch } from '../../../api/_lib/analytics';
+import { MAX_FIRST, firstParam, parseKinds, rerankEnabled } from './params';
 
 // Run on the Node.js runtime (the shared libs use node built-ins), and never
 // pre-render / cache — every request executes the search live.
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-
-const DEFAULT_FIRST = 20;
-const MAX_FIRST = 100;
-
-// Valid `kind` filter values (matches the Go symbol kinds surfaced in hits).
-const VALID_KINDS = new Set(['func', 'type', 'method', 'interface', 'const', 'var']);
-
-// Parse the comma-separated `kind` param into a validated, de-duped list.
-// Invalid entries are ignored; empty/absent yields [] (no kind filtering).
-// Exported (additively) for direct unit testing; behavior is unchanged.
-export function parseKinds(value: string | null): string[] {
-  if (!value) return [];
-  const out: string[] = [];
-  for (const raw of value.split(',')) {
-    const k = raw.trim().toLowerCase();
-    if (k && VALID_KINDS.has(k) && !out.includes(k)) out.push(k);
-  }
-  return out;
-}
-
-// Reranking is ON by default; only an explicit "0"/"false" (case-insensitive)
-// in SEARCH_RERANK disables it.
-// Exported (additively) for direct unit testing; behavior is unchanged.
-export function rerankEnabled(): boolean {
-  const v = (process.env.SEARCH_RERANK ?? '').trim().toLowerCase();
-  return v !== '0' && v !== 'false';
-}
 
 const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -60,12 +34,6 @@ const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Headers': 'Content-Type',
   'Access-Control-Max-Age': '86400',
 };
-
-function firstParam(value: string | null): number {
-  const n = Number.parseInt(value ?? '', 10);
-  if (!Number.isFinite(n) || n <= 0) return DEFAULT_FIRST;
-  return Math.min(n, MAX_FIRST);
-}
 
 async function runSearch(
   q: string,
