@@ -14,14 +14,26 @@
 # Code coverage profiles and other test artifacts
 *.out
 coverage.*
+# ...but NOT the parity harnesses' COVERAGE.md. `core.ignorecase` is true on
+# macOS, so `coverage.*` silently matched every parity/<lib>/COVERAGE.md and kept
+# the whole API-inventory deliverable out of the repo.
+!COVERAGE.md
 *.coverprofile
 profile.cov
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
-# Go workspace file
-go.work
+# Go workspace file.
+#
+# go.work IS tracked here: this repo is an aggregator whose whole point is that
+# the submodules build against each other, and CI (go-workspace.yml,
+# cross-compile.yml) plus the docs both assume one canonical member list. A
+# per-developer go.work would drift from the set of submodules that actually
+# have a go.mod.
+#
+# go.work.sum stays ignored — it is a local verification cache; every member
+# module carries its own go.sum.
 go.work.sum
 
 # env file
