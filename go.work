@@ -1,0 +1,98 @@
+// Go workspace for the malcolmston/go aggregator.
+//
+// Every `use` directive below points at a local checkout, so cross-module code
+// in this repo (examples/, gendocs, genparity, parity) builds against the
+// working tree rather than published module versions — no publishing
+// round-trip when you change two libraries at once.
+//
+// MEMBERSHIP RULE: only directories that actually contain a `go.mod` may be
+// listed here. The submodules that are still stubs (no Go code, no go.mod —
+// see the "Planned ports" table in README.md) are deliberately absent; adding
+// one before it has a go.mod makes every `go` command in the repo fail with
+// "directory ... does not contain modules".
+//
+// Populate the submodule checkouts first:
+//   git submodule update --init --recursive
+// then build with explicit paths — the repo root is deliberately NOT a Go
+// module, so a bare `go build ./...` at the root reports "directory prefix .
+// does not contain modules listed in go.work":
+//   go build ./examples/integration
+//   go build ./express/... ./passport/... ./chalk/...      # etc.
+//   (cd algebra && go test ./...)                          # per-module tests
+//
+// The `go` line is the highest language version required by any member module
+// (jose/jq/markdown/rrule/yaml are on 1.24.7); keep CI's setup-go version at or
+// above it.
+
+go 1.24.7
+
+use (
+	// ---- shipped library submodules (14) ----
+	./algebra
+	./axios
+	./chalk
+	./cheerio
+	./d3
+
+	// ---- first-party tooling that lives in this repo ----
+	./express
+	./fastmcp
+	./gendocs
+	./genparity
+	./gltf
+	./handlebars
+	./jest
+	./jose
+	./jq
+	./jwt
+	./liveview
+	./lodash
+	./lucene
+	./markdown
+	./matplotlib
+	./migrate
+	./moment
+	./morgan
+	./nodemailer
+	./numpy
+	./oban
+	./opencv
+	./pandas
+	./parity
+	./passport
+	./pdfkit
+	./prisma
+	./puppeteer
+	./quartz
+	./react
+	./reactcli
+	./redis
+	./rrule
+	./sequelize
+	./sharp
+	./sled
+	./socket.io
+	./sqlite
+	./streamlit
+	./yaml
+	examples/algebra
+	examples/axios
+	examples/chalk
+	examples/cheerio
+)
+
+// examples/integration declares the three libraries it composes at the
+// placeholder version v0.0.0 (they are consumed from this workspace, never from
+// the proxy). A workspace `use` satisfies the *import*, but the requirement edge
+// v0.0.0 still exists in the module graph, and any command that has to load the
+// full graph — e.g. resolving chalk's golang.org/x/term — would try to fetch
+// that non-existent revision from the proxy. These replaces pin the edge to the
+// local checkouts so the graph closes offline.
+replace (
+	github.com/malcolmston/chalk v0.0.0 => ./chalk
+	github.com/malcolmston/d3 v0.0.0 => ./d3
+	github.com/malcolmston/express v0.0.0 => ./express
+	github.com/malcolmston/morgan v0.0.0 => ./morgan
+	github.com/malcolmston/react v0.0.0 => ./react
+	github.com/malcolmston/socketio v0.0.0 => ./socket.io
+)
