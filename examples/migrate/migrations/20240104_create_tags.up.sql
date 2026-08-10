@@ -1,0 +1,5 @@
+CREATE TABLE tags (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	label VARCHAR(64) NOT NULL
+);
+CREATE UNIQUE INDEX index_tags_on_label ON tags (label);

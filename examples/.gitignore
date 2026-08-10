@@ -1,0 +1,26 @@
+# Compiled binaries.
+#
+# `go build` inside an example writes an executable named after its module —
+# examples/prisma/prisma, examples/socket.io/socketio, and so on. Together those
+# were 33MB of the 34MB staged here.
+#
+# The rule below ignores every extensionless path one level down, because every
+# source file an example tracks has an extension (.go, .mod, .sum, .md, .json,
+# .html, .txt). The `!/*/*/` line keeps directories traversable so subdirectories
+# are still considered. If an example ever needs an extensionless file of its own
+# — a Makefile, say — negate it explicitly.
+/*/*
+!/*/*.*
+!/*/*/
+
+# Output the examples generate when run. They are reproducible with `go run .`,
+# so committing them would only create diff noise.
+*/out/
+*.pdf
+*.png
+*.jpg
+*.jpeg
+*.svg
+*.db
+*.sqlite
+*.sqlite3
