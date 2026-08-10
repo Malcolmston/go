@@ -1,0 +1,11 @@
+{
+  "group": "routing-param",
+  "upstream": "express@4.21.2",
+  "note": "app.param() parameter-preprocessing callbacks: whether they run, how often, for which routes, and what happens when one fails.",
+  "cases": [
+    { "id": "param-cb-runs", "fn": "route.param", "args": [{ "method": "GET", "path": "/p/7" }], "upstreamFn": "app.param", "goFn": "Router.Param" },
+    { "id": "param-cb-other-name", "fn": "route.param", "args": [{ "method": "GET", "path": "/q/7" }], "upstreamFn": "app.param", "goFn": "Router.Param", "note": "a callback for :id must not fire for :other" },
+    { "id": "param-cb-error", "fn": "route.param", "args": [{ "method": "GET", "path": "/b/7" }], "upstreamFn": "app.param", "goFn": "Router.Param", "note": "next(err) from a param callback must skip the route" },
+    { "id": "param-cb-no-match", "fn": "route.param", "args": [{ "method": "GET", "path": "/zzz" }], "upstreamFn": "app.param", "goFn": "Router.Param" }
+  ]
+}

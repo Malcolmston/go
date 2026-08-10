@@ -1,0 +1,543 @@
+{
+  "group": "types",
+  "upstream": "sqlite3@3.45.3",
+  "cases": [
+    {
+      "id": "type-int-literal",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 1 AS v"
+        }
+      ],
+      "upstreamFn": "INTEGER literal",
+      "goFn": "sqlite: INTEGER literal"
+    },
+    {
+      "id": "type-neg-int",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT -42 AS v"
+        }
+      ],
+      "upstreamFn": "negative INTEGER literal",
+      "goFn": "sqlite: negative INTEGER literal"
+    },
+    {
+      "id": "type-real-literal",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 1.5 AS v"
+        }
+      ],
+      "upstreamFn": "REAL literal",
+      "goFn": "sqlite: REAL literal"
+    },
+    {
+      "id": "type-real-integral",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 2.0 AS v"
+        }
+      ],
+      "upstreamFn": "REAL literal with integral value",
+      "goFn": "sqlite: REAL literal with integral value"
+    },
+    {
+      "id": "type-exp-literal",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 1e3 AS v"
+        }
+      ],
+      "upstreamFn": "REAL exponent literal",
+      "goFn": "sqlite: REAL exponent literal"
+    },
+    {
+      "id": "type-text-literal",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 'hi' AS v"
+        }
+      ],
+      "upstreamFn": "TEXT literal",
+      "goFn": "sqlite: TEXT literal"
+    },
+    {
+      "id": "type-text-escaped",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 'a''b' AS v"
+        }
+      ],
+      "upstreamFn": "TEXT literal with '' escape",
+      "goFn": "sqlite: TEXT literal with '' escape"
+    },
+    {
+      "id": "type-blob-literal",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT x'6162' AS v"
+        }
+      ],
+      "upstreamFn": "BLOB literal x'...'",
+      "goFn": "sqlite: BLOB literal x'...'"
+    },
+    {
+      "id": "type-blob-empty",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT x'' AS v"
+        }
+      ],
+      "upstreamFn": "empty BLOB literal",
+      "goFn": "sqlite: empty BLOB literal"
+    },
+    {
+      "id": "type-null-literal",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT NULL AS v"
+        }
+      ],
+      "upstreamFn": "NULL literal",
+      "goFn": "sqlite: NULL literal"
+    },
+    {
+      "id": "type-maxint",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 9223372036854775807 AS v"
+        }
+      ],
+      "upstreamFn": "INTEGER max",
+      "goFn": "sqlite: INTEGER max"
+    },
+    {
+      "id": "type-minint",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT -9223372036854775807 AS v"
+        }
+      ],
+      "upstreamFn": "INTEGER near-min",
+      "goFn": "sqlite: INTEGER near-min"
+    },
+    {
+      "id": "div-int",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 7 / 2 AS v"
+        }
+      ],
+      "upstreamFn": "integer division",
+      "goFn": "sqlite: integer division"
+    },
+    {
+      "id": "div-int-neg",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT -7 / 2 AS v"
+        }
+      ],
+      "upstreamFn": "negative integer division",
+      "goFn": "sqlite: negative integer division"
+    },
+    {
+      "id": "div-real",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 7.0 / 2 AS v"
+        }
+      ],
+      "upstreamFn": "REAL division",
+      "goFn": "sqlite: REAL division"
+    },
+    {
+      "id": "div-mixed",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 7 / 2.0 AS v"
+        }
+      ],
+      "upstreamFn": "mixed INTEGER/REAL division",
+      "goFn": "sqlite: mixed INTEGER/REAL division"
+    },
+    {
+      "id": "div-zero-int",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 1 / 0 AS v"
+        }
+      ],
+      "upstreamFn": "1/0 -> NULL",
+      "goFn": "sqlite: 1/0 -> NULL"
+    },
+    {
+      "id": "div-zero-real",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 1.0 / 0 AS v"
+        }
+      ],
+      "upstreamFn": "1.0/0 -> NULL",
+      "goFn": "sqlite: 1.0/0 -> NULL"
+    },
+    {
+      "id": "mod-basic",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 7 % 3 AS v"
+        }
+      ],
+      "upstreamFn": "modulo %",
+      "goFn": "sqlite: modulo %"
+    },
+    {
+      "id": "mod-neg",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT -7 % 3 AS v"
+        }
+      ],
+      "upstreamFn": "negative modulo",
+      "goFn": "sqlite: negative modulo"
+    },
+    {
+      "id": "mod-zero",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 7 % 0 AS v"
+        }
+      ],
+      "upstreamFn": "modulo by zero -> NULL",
+      "goFn": "sqlite: modulo by zero -> NULL"
+    },
+    {
+      "id": "add-int",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 2 + 3 AS v"
+        }
+      ],
+      "upstreamFn": "addition",
+      "goFn": "sqlite: addition"
+    },
+    {
+      "id": "add-mixed",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 2 + 3.5 AS v"
+        }
+      ],
+      "upstreamFn": "mixed addition",
+      "goFn": "sqlite: mixed addition"
+    },
+    {
+      "id": "sub-int",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 2 - 5 AS v"
+        }
+      ],
+      "upstreamFn": "subtraction",
+      "goFn": "sqlite: subtraction"
+    },
+    {
+      "id": "mul-int",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 6 * 7 AS v"
+        }
+      ],
+      "upstreamFn": "multiplication",
+      "goFn": "sqlite: multiplication"
+    },
+    {
+      "id": "mul-real",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 1.5 * 2 AS v"
+        }
+      ],
+      "upstreamFn": "REAL multiplication",
+      "goFn": "sqlite: REAL multiplication"
+    },
+    {
+      "id": "typeof-int",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT typeof(1) AS v"
+        }
+      ],
+      "upstreamFn": "typeof(INTEGER)",
+      "goFn": "sqlite: typeof(INTEGER)"
+    },
+    {
+      "id": "typeof-real",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT typeof(1.0) AS v"
+        }
+      ],
+      "upstreamFn": "typeof(REAL)",
+      "goFn": "sqlite: typeof(REAL)"
+    },
+    {
+      "id": "typeof-text",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT typeof('a') AS v"
+        }
+      ],
+      "upstreamFn": "typeof(TEXT)",
+      "goFn": "sqlite: typeof(TEXT)"
+    },
+    {
+      "id": "typeof-blob",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT typeof(x'61') AS v"
+        }
+      ],
+      "upstreamFn": "typeof(BLOB)",
+      "goFn": "sqlite: typeof(BLOB)"
+    },
+    {
+      "id": "typeof-null",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT typeof(NULL) AS v"
+        }
+      ],
+      "upstreamFn": "typeof(NULL)",
+      "goFn": "sqlite: typeof(NULL)"
+    },
+    {
+      "id": "typeof-div",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT typeof(1/2) AS v"
+        }
+      ],
+      "upstreamFn": "typeof of integer division",
+      "goFn": "sqlite: typeof of integer division"
+    },
+    {
+      "id": "typeof-divreal",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT typeof(1/2.0) AS v"
+        }
+      ],
+      "upstreamFn": "typeof of REAL division",
+      "goFn": "sqlite: typeof of REAL division"
+    },
+    {
+      "id": "typeof-columns",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT typeof(id) AS ti, typeof(name) AS tn, typeof(qty) AS tq, typeof(price) AS tp FROM t ORDER BY id"
+        }
+      ],
+      "upstreamFn": "typeof over declared columns",
+      "goFn": "sqlite: typeof over declared columns"
+    },
+    {
+      "id": "column-affinity-int-text",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE aff (a INTEGER)",
+            "INSERT INTO aff (a) VALUES ('123')"
+          ],
+          "query": "SELECT a AS a, typeof(a) AS ta FROM aff ORDER BY a"
+        }
+      ],
+      "upstreamFn": "INTEGER column affinity coerces '123'",
+      "goFn": "sqlite: INTEGER column affinity coerces '123'"
+    },
+    {
+      "id": "column-affinity-real",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE aff2 (a REAL)",
+            "INSERT INTO aff2 (a) VALUES (3)"
+          ],
+          "query": "SELECT a AS a, typeof(a) AS ta FROM aff2 ORDER BY a"
+        }
+      ],
+      "upstreamFn": "REAL column affinity coerces 3 -> 3.0",
+      "goFn": "sqlite: REAL column affinity coerces 3 -> 3.0"
+    },
+    {
+      "id": "column-affinity-text",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE aff3 (a TEXT)",
+            "INSERT INTO aff3 (a) VALUES (5)"
+          ],
+          "query": "SELECT a AS a, typeof(a) AS ta FROM aff3 ORDER BY a"
+        }
+      ],
+      "upstreamFn": "TEXT column affinity coerces 5 -> '5'",
+      "goFn": "sqlite: TEXT column affinity coerces 5 -> '5'"
+    },
+    {
+      "id": "column-affinity-blob",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE aff4 (a BLOB)",
+            "INSERT INTO aff4 (a) VALUES (x'0001ff')"
+          ],
+          "query": "SELECT a AS a, typeof(a) AS ta FROM aff4 ORDER BY a"
+        }
+      ],
+      "upstreamFn": "BLOB column round-trip",
+      "goFn": "sqlite: BLOB column round-trip"
+    },
+    {
+      "id": "cmp-int-text",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 1 < 'a' AS v"
+        }
+      ],
+      "upstreamFn": "INTEGER vs TEXT ordering",
+      "goFn": "sqlite: INTEGER vs TEXT ordering"
+    },
+    {
+      "id": "cmp-text-blob",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 'a' < x'61' AS v"
+        }
+      ],
+      "upstreamFn": "TEXT vs BLOB ordering",
+      "goFn": "sqlite: TEXT vs BLOB ordering"
+    },
+    {
+      "id": "cmp-null-lt",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT NULL < 1 AS v"
+        }
+      ],
+      "upstreamFn": "NULL comparison -> NULL",
+      "goFn": "sqlite: NULL comparison -> NULL"
+    },
+    {
+      "id": "cmp-int-real",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 1 = 1.0 AS v"
+        }
+      ],
+      "upstreamFn": "INTEGER = REAL",
+      "goFn": "sqlite: INTEGER = REAL"
+    },
+    {
+      "id": "concat-text",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 'a' || 'b' AS v"
+        }
+      ],
+      "upstreamFn": "|| concatenation",
+      "goFn": "sqlite: || concatenation"
+    },
+    {
+      "id": "concat-num",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 1 || 2 AS v"
+        }
+      ],
+      "upstreamFn": "|| on numbers",
+      "goFn": "sqlite: || on numbers"
+    },
+    {
+      "id": "concat-null",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 'a' || NULL AS v"
+        }
+      ],
+      "upstreamFn": "|| with NULL",
+      "goFn": "sqlite: || with NULL"
+    },
+    {
+      "id": "unary-minus",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT - (3 + 4) AS v"
+        }
+      ],
+      "upstreamFn": "unary minus",
+      "goFn": "sqlite: unary minus"
+    },
+    {
+      "id": "unary-plus",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT + 5 AS v"
+        }
+      ],
+      "upstreamFn": "unary plus",
+      "goFn": "sqlite: unary plus"
+    }
+  ]
+}

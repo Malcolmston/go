@@ -1,0 +1,354 @@
+{
+  "group": "dml",
+  "upstream": "sqlite3@3.45.3",
+  "cases": [
+    {
+      "id": "insert-cols",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE d (a INTEGER, b TEXT)",
+            "INSERT INTO d (a,b) VALUES (1,'x')"
+          ],
+          "query": "SELECT a AS a, b AS b FROM d ORDER BY a"
+        }
+      ],
+      "upstreamFn": "INSERT INTO t (cols) VALUES (...)",
+      "goFn": "sqlite: INSERT INTO t (cols) VALUES (...)"
+    },
+    {
+      "id": "insert-multi-row",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE d (a INTEGER)",
+            "INSERT INTO d (a) VALUES (1),(2),(3)"
+          ],
+          "query": "SELECT a AS a FROM d ORDER BY a"
+        }
+      ],
+      "upstreamFn": "multi-row INSERT",
+      "goFn": "sqlite: multi-row INSERT"
+    },
+    {
+      "id": "insert-no-collist",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE d (a INTEGER, b TEXT)",
+            "INSERT INTO d VALUES (1,'x')"
+          ],
+          "query": "SELECT a AS a, b AS b FROM d ORDER BY a"
+        }
+      ],
+      "upstreamFn": "INSERT without a column list",
+      "goFn": "sqlite: INSERT without a column list"
+    },
+    {
+      "id": "insert-partial-cols",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE d (a INTEGER, b TEXT)",
+            "INSERT INTO d (a) VALUES (1)"
+          ],
+          "query": "SELECT a AS a, b AS b FROM d ORDER BY a"
+        }
+      ],
+      "upstreamFn": "INSERT omitting a nullable column",
+      "goFn": "sqlite: INSERT omitting a nullable column"
+    },
+    {
+      "id": "insert-expr",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE d (a INTEGER)",
+            "INSERT INTO d (a) VALUES (2 * 3)"
+          ],
+          "query": "SELECT a AS a FROM d ORDER BY a"
+        }
+      ],
+      "upstreamFn": "INSERT with an expression",
+      "goFn": "sqlite: INSERT with an expression"
+    },
+    {
+      "id": "insert-select",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE d (a INTEGER)",
+            "INSERT INTO d (a) VALUES (1),(2)",
+            "CREATE TABLE d2 (a INTEGER)",
+            "INSERT INTO d2 (a) SELECT a FROM d"
+          ],
+          "query": "SELECT a AS a FROM d2 ORDER BY a"
+        }
+      ],
+      "upstreamFn": "INSERT ... SELECT",
+      "goFn": "sqlite: INSERT ... SELECT"
+    },
+    {
+      "id": "insert-select-where",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE d (a INTEGER)",
+            "INSERT INTO d (a) VALUES (1),(2),(3)",
+            "CREATE TABLE d2 (a INTEGER)",
+            "INSERT INTO d2 (a) SELECT a FROM d WHERE a > 1"
+          ],
+          "query": "SELECT a AS a FROM d2 ORDER BY a"
+        }
+      ],
+      "upstreamFn": "INSERT ... SELECT ... WHERE",
+      "goFn": "sqlite: INSERT ... SELECT ... WHERE"
+    },
+    {
+      "id": "insert-or-ignore",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE d (a INTEGER PRIMARY KEY)",
+            "INSERT INTO d (a) VALUES (1)",
+            "INSERT OR IGNORE INTO d (a) VALUES (1),(2)"
+          ],
+          "query": "SELECT a AS a FROM d ORDER BY a"
+        }
+      ],
+      "upstreamFn": "INSERT OR IGNORE",
+      "goFn": "sqlite: INSERT OR IGNORE"
+    },
+    {
+      "id": "insert-or-replace",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE d (a INTEGER PRIMARY KEY, b TEXT)",
+            "INSERT INTO d (a,b) VALUES (1,'x')",
+            "INSERT OR REPLACE INTO d (a,b) VALUES (1,'y')"
+          ],
+          "query": "SELECT a AS a, b AS b FROM d ORDER BY a"
+        }
+      ],
+      "upstreamFn": "INSERT OR REPLACE",
+      "goFn": "sqlite: INSERT OR REPLACE"
+    },
+    {
+      "id": "replace-into",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE d (a INTEGER PRIMARY KEY, b TEXT)",
+            "INSERT INTO d (a,b) VALUES (1,'x')",
+            "REPLACE INTO d (a,b) VALUES (1,'y')"
+          ],
+          "query": "SELECT a AS a, b AS b FROM d ORDER BY a"
+        }
+      ],
+      "upstreamFn": "REPLACE INTO",
+      "goFn": "sqlite: REPLACE INTO"
+    },
+    {
+      "id": "insert-upsert",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE d (a INTEGER PRIMARY KEY, b TEXT)",
+            "INSERT INTO d (a,b) VALUES (1,'x')",
+            "INSERT INTO d (a,b) VALUES (1,'y') ON CONFLICT(a) DO UPDATE SET b = 'z'"
+          ],
+          "query": "SELECT a AS a, b AS b FROM d ORDER BY a"
+        }
+      ],
+      "upstreamFn": "INSERT ... ON CONFLICT DO UPDATE (upsert)",
+      "goFn": "sqlite: INSERT ... ON CONFLICT DO UPDATE (upsert)"
+    },
+    {
+      "id": "insert-default-values",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE d (a INTEGER)",
+            "INSERT INTO d DEFAULT VALUES"
+          ],
+          "query": "SELECT count(*) AS c FROM d"
+        }
+      ],
+      "upstreamFn": "INSERT ... DEFAULT VALUES",
+      "goFn": "sqlite: INSERT ... DEFAULT VALUES"
+    },
+    {
+      "id": "update-where",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)",
+            "UPDATE t SET qty = 99 WHERE id = 1"
+          ],
+          "query": "SELECT id AS id, qty AS q FROM t ORDER BY id"
+        }
+      ],
+      "upstreamFn": "UPDATE ... WHERE",
+      "goFn": "sqlite: UPDATE ... WHERE"
+    },
+    {
+      "id": "update-all",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)",
+            "UPDATE t SET qty = 0"
+          ],
+          "query": "SELECT id AS id, qty AS q FROM t ORDER BY id"
+        }
+      ],
+      "upstreamFn": "UPDATE without WHERE",
+      "goFn": "sqlite: UPDATE without WHERE"
+    },
+    {
+      "id": "update-multi-col",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)",
+            "UPDATE t SET name = 'z', qty = 1 WHERE id = 2"
+          ],
+          "query": "SELECT id AS id, name AS n, qty AS q FROM t ORDER BY id"
+        }
+      ],
+      "upstreamFn": "UPDATE multiple columns",
+      "goFn": "sqlite: UPDATE multiple columns"
+    },
+    {
+      "id": "update-expr",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)",
+            "UPDATE t SET qty = qty + 1 WHERE qty IS NOT NULL"
+          ],
+          "query": "SELECT id AS id, qty AS q FROM t ORDER BY id"
+        }
+      ],
+      "upstreamFn": "UPDATE with an expression",
+      "goFn": "sqlite: UPDATE with an expression"
+    },
+    {
+      "id": "update-to-null",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)",
+            "UPDATE t SET qty = NULL WHERE id = 1"
+          ],
+          "query": "SELECT id AS id, qty AS q FROM t ORDER BY id"
+        }
+      ],
+      "upstreamFn": "UPDATE ... SET c = NULL",
+      "goFn": "sqlite: UPDATE ... SET c = NULL"
+    },
+    {
+      "id": "update-no-match",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)",
+            "UPDATE t SET qty = 0 WHERE id = 999"
+          ],
+          "query": "SELECT id AS id, qty AS q FROM t ORDER BY id"
+        }
+      ],
+      "upstreamFn": "UPDATE matching no rows",
+      "goFn": "sqlite: UPDATE matching no rows"
+    },
+    {
+      "id": "delete-where",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)",
+            "DELETE FROM t WHERE qty = 7"
+          ],
+          "query": "SELECT id AS id FROM t ORDER BY id"
+        }
+      ],
+      "upstreamFn": "DELETE ... WHERE",
+      "goFn": "sqlite: DELETE ... WHERE"
+    },
+    {
+      "id": "delete-all",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)",
+            "DELETE FROM t"
+          ],
+          "query": "SELECT count(*) AS c FROM t"
+        }
+      ],
+      "upstreamFn": "DELETE without WHERE",
+      "goFn": "sqlite: DELETE without WHERE"
+    },
+    {
+      "id": "delete-null-pred",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)",
+            "DELETE FROM t WHERE qty IS NULL"
+          ],
+          "query": "SELECT id AS id FROM t ORDER BY id"
+        }
+      ],
+      "upstreamFn": "DELETE on IS NULL",
+      "goFn": "sqlite: DELETE on IS NULL"
+    },
+    {
+      "id": "delete-limit",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)",
+            "DELETE FROM t WHERE 1 ORDER BY id LIMIT 1"
+          ],
+          "query": "SELECT count(*) AS c FROM t"
+        }
+      ],
+      "upstreamFn": "DELETE ... LIMIT (needs SQLITE_ENABLE_UPDATE_DELETE_LIMIT)",
+      "goFn": "sqlite: DELETE ... LIMIT (needs SQLITE_ENABLE_UPDATE_DELETE_LIMIT)"
+    }
+  ]
+}

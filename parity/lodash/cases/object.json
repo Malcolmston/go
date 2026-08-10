@@ -1,0 +1,102 @@
+{
+  "group": "object",
+  "upstream": "lodash@4.17.21",
+  "cases": [
+    { "id": "assign-basic", "fn": "assign", "args": [{ "a": 1 }, { "b": 2 }], "upstreamFn": "_.assign", "goFn": "lodash.Assign" },
+    { "id": "assign-overwrite", "fn": "assign", "args": [{ "a": 1 }, { "a": 2, "b": 3 }], "upstreamFn": "_.assign", "goFn": "lodash.Assign" },
+    { "id": "assign-multi", "fn": "assign", "args": [{}, { "a": 1 }, { "b": 2 }, { "a": 3 }], "upstreamFn": "_.assign", "goFn": "lodash.Assign" },
+    { "id": "assign-empty-src", "fn": "assign", "args": [{ "a": 1 }, {}], "upstreamFn": "_.assign", "goFn": "lodash.Assign" },
+    { "id": "assignIn-alias", "fn": "assignIn", "args": [{ "a": 1 }, { "b": 2 }], "upstreamFn": "_.assignIn", "goFn": "lodash.Assign" },
+    { "id": "extend-alias", "fn": "extend", "args": [{ "a": 1 }, { "b": 2 }], "upstreamFn": "_.extend", "goFn": "lodash.Assign" },
+    { "id": "assignWith-add", "deviation": "the customizer sees the zero value for a key absent from the destination; lodash passes undefined, which Go has no value for", "fn": "assignWith", "args": [{ "a": 1 }, { "a": 10, "b": 2 }, { "$fn": "add2" }], "upstreamFn": "_.assignWith", "goFn": "lodash.AssignWith" },
+
+    { "id": "at-paths", "fn": "at", "args": [{ "a": { "b": { "c": 3 } }, "x": 1 }, ["a.b.c", "x"]], "upstreamFn": "_.at", "goFn": "lodash.At" },
+    { "id": "at-missing", "deviation": "Go has no undefined, so a missing path becomes the nil zero value", "fn": "at", "args": [{ "a": 1 }, ["a", "nope"]], "upstreamFn": "_.at", "goFn": "lodash.At" },
+    { "id": "at-bracket", "fn": "at", "args": [{ "a": [{ "b": 1 }] }, ["a[0].b"]], "upstreamFn": "_.at", "goFn": "lodash.At" },
+
+    { "id": "defaults-basic", "fn": "defaults", "args": [{ "a": 1 }, { "a": 9, "b": 2 }], "upstreamFn": "_.defaults", "goFn": "lodash.Defaults" },
+    { "id": "defaults-multi", "fn": "defaults", "args": [{}, { "a": 1 }, { "a": 2, "b": 3 }], "upstreamFn": "_.defaults", "goFn": "lodash.Defaults" },
+    { "id": "defaults-null-value", "fn": "defaults", "args": [{ "a": null }, { "a": 5 }], "upstreamFn": "_.defaults", "goFn": "lodash.Defaults", "note": "JS only fills undefined, not null" },
+    { "id": "defaultsDeep-nested", "fn": "defaultsDeep", "args": [{ "a": { "b": 1 } }, { "a": { "b": 9, "c": 2 } }], "upstreamFn": "_.defaultsDeep", "goFn": "lodash.DefaultsDeep" },
+    { "id": "defaultsDeep-new-branch", "fn": "defaultsDeep", "args": [{}, { "a": { "b": { "c": 1 } } }], "upstreamFn": "_.defaultsDeep", "goFn": "lodash.DefaultsDeep" },
+
+    { "id": "entries-basic", "fn": "entries", "args": [{ "b": 2, "a": 1 }], "upstreamFn": "_.entries", "goFn": "lodash.Entries" },
+    { "id": "entries-empty", "fn": "entries", "args": [{}], "upstreamFn": "_.entries", "goFn": "lodash.Entries" },
+    { "id": "toPairs-basic", "fn": "toPairs", "args": [{ "b": 2, "a": 1 }], "upstreamFn": "_.toPairs", "goFn": "lodash.ToPairs" },
+    { "id": "fromEntries-basic", "fn": "fromEntries", "args": [[["a", 1], ["b", 2]]], "upstreamFn": "_.fromPairs", "goFn": "lodash.FromEntries", "note": "Go-only spelling of fromPairs" },
+
+    { "id": "findKey-hit", "fn": "findKey", "args": [{ "a": 1, "b": 2 }, { "$fn": "isEven" }], "upstreamFn": "_.findKey", "goFn": "lodash.FindKey" },
+    { "id": "findKey-miss", "fn": "findKey", "args": [{ "a": 1 }, { "$fn": "isEven" }], "upstreamFn": "_.findKey", "goFn": "lodash.FindKey" },
+
+    { "id": "get-deep", "fn": "get", "args": [{ "a": { "b": { "c": 3 } } }, "a.b.c"], "upstreamFn": "_.get", "goFn": "lodash.Get" },
+    { "id": "get-bracket", "fn": "get", "args": [{ "a": [{ "b": 1 }] }, "a[0].b"], "upstreamFn": "_.get", "goFn": "lodash.Get" },
+    { "id": "get-missing", "fn": "get", "args": [{ "a": 1 }, "a.b.c"], "upstreamFn": "_.get", "goFn": "lodash.Get" },
+    { "id": "get-quoted-key", "fn": "get", "args": [{ "a b": 1 }, "['a b']"], "upstreamFn": "_.get", "goFn": "lodash.Get" },
+    { "id": "get-null-value", "fn": "get", "args": [{ "a": null }, "a"], "upstreamFn": "_.get", "goFn": "lodash.Get" },
+    { "id": "getOr-default", "fn": "getOr", "args": [{ "a": 1 }, "b", "fallback"], "upstreamFn": "_.get (3-arg)", "goFn": "lodash.GetOr" },
+    { "id": "getOr-present", "fn": "getOr", "args": [{ "a": 1 }, "a", "fallback"], "upstreamFn": "_.get (3-arg)", "goFn": "lodash.GetOr" },
+
+    { "id": "has-deep", "fn": "has", "args": [{ "a": { "b": 1 } }, "a.b"], "upstreamFn": "_.has", "goFn": "lodash.Has" },
+    { "id": "has-missing", "fn": "has", "args": [{ "a": 1 }, "b"], "upstreamFn": "_.has", "goFn": "lodash.Has" },
+    { "id": "has-null-value", "fn": "has", "args": [{ "a": null }, "a"], "upstreamFn": "_.has", "goFn": "lodash.Has", "note": "present but null" },
+    { "id": "has-index", "fn": "has", "args": [{ "a": [1, 2] }, "a[1]"], "upstreamFn": "_.has", "goFn": "lodash.Has" },
+
+    { "id": "invert-basic", "fn": "invert", "args": [{ "a": "1", "b": "2" }], "upstreamFn": "_.invert", "goFn": "lodash.Invert" },
+    { "id": "invertByKeys-mod3", "fn": "invertByKeys", "args": [{ "a": 1, "b": 4, "c": 2 }, { "$fn": "mod3" }], "upstreamFn": "_.invertBy", "goFn": "lodash.InvertBy" },
+
+    { "id": "keys-basic", "fn": "keys", "args": [{ "b": 1, "a": 2 }], "upstreamFn": "_.keys", "goFn": "lodash.Keys" },
+    { "id": "keys-empty", "fn": "keys", "args": [{}], "upstreamFn": "_.keys", "goFn": "lodash.Keys" },
+    { "id": "sortedKeys-basic", "fn": "sortedKeys", "args": [{ "c": 1, "a": 2, "b": 3 }], "upstreamFn": "_.keys", "goFn": "lodash.SortedKeys", "note": "Go-only deterministic variant" },
+    { "id": "values-basic", "fn": "values", "args": [{ "b": 2, "a": 1 }], "upstreamFn": "_.values", "goFn": "lodash.Values" },
+    { "id": "values-empty", "fn": "values", "args": [{}], "upstreamFn": "_.values", "goFn": "lodash.Values" },
+
+    { "id": "mapKeys-upper", "fn": "mapKeys", "args": [{ "a": "x", "b": "y" }, { "$fn": "upper" }], "upstreamFn": "_.mapKeys", "goFn": "lodash.MapKeys", "note": "Go MapKeys sees (key, value); this case keys off the value" },
+    { "id": "mapValues-double", "fn": "mapValues", "args": [{ "a": 1, "b": 2 }, { "$fn": "double" }], "upstreamFn": "_.mapValues", "goFn": "lodash.MapValues" },
+    { "id": "mapValues-empty", "fn": "mapValues", "args": [{}, { "$fn": "double" }], "upstreamFn": "_.mapValues", "goFn": "lodash.MapValues" },
+
+    { "id": "merge-nested", "deviation": "Go Merge is documented as shallow (later maps override earlier ones); lodash merge recurses into nested objects. DefaultsDeep is the deep Go counterpart", "fn": "merge", "args": [{ "a": { "b": 1 } }, { "a": { "c": 2 } }], "upstreamFn": "_.merge", "goFn": "lodash.Merge", "note": "JS merges recursively; Go Merge is shallow" },
+    { "id": "merge-flat", "fn": "merge", "args": [{ "a": 1 }, { "b": 2 }], "upstreamFn": "_.merge", "goFn": "lodash.Merge" },
+    { "id": "mergeWith-add", "deviation": "the resolver sees the zero value for a key absent from the accumulator; lodash passes undefined, which Go has no value for", "fn": "mergeWith", "args": [{ "a": 1 }, { "a": 2, "b": 3 }, { "$fn": "add2" }], "upstreamFn": "_.mergeWith", "goFn": "lodash.MergeWith" },
+
+    { "id": "omit-keys", "fn": "omit", "args": [{ "a": 1, "b": 2, "c": 3 }, ["a", "c"]], "upstreamFn": "_.omit", "goFn": "lodash.Omit" },
+    { "id": "omit-missing", "fn": "omit", "args": [{ "a": 1 }, ["z"]], "upstreamFn": "_.omit", "goFn": "lodash.Omit" },
+    { "id": "omitBy-even", "fn": "omitBy", "args": [{ "a": 1, "b": 2 }, { "$fn": "isEven" }], "upstreamFn": "_.omitBy", "goFn": "lodash.OmitBy" },
+    { "id": "pick-keys", "fn": "pick", "args": [{ "a": 1, "b": 2, "c": 3 }, ["a", "c"]], "upstreamFn": "_.pick", "goFn": "lodash.Pick" },
+    { "id": "pick-missing", "fn": "pick", "args": [{ "a": 1 }, ["z"]], "upstreamFn": "_.pick", "goFn": "lodash.Pick" },
+    { "id": "pickBy-even", "fn": "pickBy", "args": [{ "a": 1, "b": 2 }, { "$fn": "isEven" }], "upstreamFn": "_.pickBy", "goFn": "lodash.PickBy" },
+
+    { "id": "result-value", "fn": "result", "args": [{ "a": { "b": 3 } }, "a.b"], "upstreamFn": "_.result", "goFn": "lodash.Result" },
+    { "id": "result-missing", "fn": "result", "args": [{ "a": 1 }, "z"], "upstreamFn": "_.result", "goFn": "lodash.Result" },
+
+    { "id": "set-new-deep", "fn": "set", "args": [{}, "a.b.c", 4], "upstreamFn": "_.set", "goFn": "lodash.Set" },
+    { "id": "set-overwrite", "fn": "set", "args": [{ "a": 1 }, "a", 2], "upstreamFn": "_.set", "goFn": "lodash.Set" },
+    { "id": "set-index-path", "fn": "set", "args": [{}, "a[0].b", 1], "upstreamFn": "_.set", "goFn": "lodash.Set", "note": "JS creates an array, Go an object" },
+    { "id": "setWith-object", "fn": "setWith", "args": [{}, "a[0].b", 1], "upstreamFn": "_.setWith", "goFn": "lodash.SetWith" },
+
+    { "id": "unset-hit", "fn": "unset", "args": [{ "a": { "b": 1 } }, "a.b"], "upstreamFn": "_.unset", "goFn": "lodash.Unset" },
+    { "id": "unset-miss", "fn": "unset", "args": [{ "a": 1 }, "z"], "upstreamFn": "_.unset", "goFn": "lodash.Unset" },
+
+    { "id": "update-double", "fn": "update", "args": [{ "a": 2 }, "a", { "$fn": "double" }], "upstreamFn": "_.update", "goFn": "lodash.Update" },
+    { "id": "update-missing", "fn": "update", "args": [{}, "a.b", { "$fn": "toStr" }], "upstreamFn": "_.update", "goFn": "lodash.Update", "note": "updater sees undefined in JS, nil in Go" },
+
+    { "id": "updateWith-double", "fn": "updateWith", "args": [{ "a": 2 }, "a", { "$fn": "double" }], "upstreamFn": "_.updateWith", "goFn": "lodash.UpdateWith" },
+    { "id": "updateWith-new-path", "fn": "updateWith", "args": [{}, "a.b", { "$fn": "numOf" }], "upstreamFn": "_.updateWith", "goFn": "lodash.UpdateWith" },
+    { "id": "toPath-dots", "fn": "toPath", "args": ["a.b.c"], "upstreamFn": "_.toPath", "goFn": "lodash.ToPath" },
+    { "id": "toPath-brackets", "fn": "toPath", "args": ["a[0].b.c"], "upstreamFn": "_.toPath", "goFn": "lodash.ToPath" },
+    { "id": "toPath-quoted", "fn": "toPath", "args": ["a['b c'].d"], "upstreamFn": "_.toPath", "goFn": "lodash.ToPath" },
+    { "id": "toPath-empty", "fn": "toPath", "args": [""], "upstreamFn": "_.toPath", "goFn": "lodash.ToPath" },
+
+    { "id": "forOwn-collect", "fn": "forOwn", "args": [{ "a": 1, "b": 2 }, { "$fn": "double" }], "upstreamFn": "_.forOwn", "goFn": "lodash.ForOwn" },
+    { "id": "forIn-collect", "fn": "forIn", "args": [{ "a": 1 }, { "$fn": "double" }], "upstreamFn": "_.forIn", "goFn": "lodash.ForOwn" },
+    { "id": "forOwnRight-collect", "fn": "forOwnRight", "args": [{ "a": 1, "b": 2 }, { "$fn": "double" }], "upstreamFn": "_.forOwnRight", "goFn": "lodash.ForOwn", "note": "results sorted on both sides, so direction does not matter" },
+    { "id": "forInRight-collect", "fn": "forInRight", "args": [{ "a": 1 }, { "$fn": "double" }], "upstreamFn": "_.forInRight", "goFn": "lodash.ForOwn" },
+    { "id": "keysIn-basic", "fn": "keysIn", "args": [{ "b": 1, "a": 2 }], "upstreamFn": "_.keysIn", "goFn": "lodash.Keys" },
+    { "id": "valuesIn-basic", "fn": "valuesIn", "args": [{ "b": 2, "a": 1 }], "upstreamFn": "_.valuesIn", "goFn": "lodash.Values" },
+    { "id": "toPairsIn-basic", "fn": "toPairsIn", "args": [{ "b": 2, "a": 1 }], "upstreamFn": "_.toPairsIn", "goFn": "lodash.ToPairs" },
+    { "id": "entriesIn-basic", "fn": "entriesIn", "args": [{ "a": 1 }], "upstreamFn": "_.entriesIn", "goFn": "lodash.Entries" },
+    { "id": "extendWith-add", "fn": "extendWith", "args": [{ "a": 1 }, { "a": 10 }, { "$fn": "add2" }], "upstreamFn": "_.extendWith", "goFn": "lodash.AssignWith" },
+    { "id": "assignInWith-add", "fn": "assignInWith", "args": [{ "a": 1 }, { "a": 10 }, { "$fn": "add2" }], "upstreamFn": "_.assignInWith", "goFn": "lodash.AssignWith" },
+    { "id": "findLastKey-single", "fn": "findLastKey", "args": [{ "a": 2 }, { "$fn": "isEven" }], "upstreamFn": "_.findLastKey", "goFn": "lodash.FindKey", "note": "single-key object, so first and last coincide" },
+    { "id": "findLastKey-miss", "fn": "findLastKey", "args": [{ "a": 1 }, { "$fn": "isEven" }], "upstreamFn": "_.findLastKey", "goFn": "lodash.FindKey" }
+  ]
+}

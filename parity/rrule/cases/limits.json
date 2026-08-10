@@ -1,0 +1,151 @@
+{
+  "group": "limits",
+  "upstream": "python-dateutil@2.9.0.post0",
+  "cases": [
+    {
+      "id": "count-1",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;COUNT=1",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 3
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "count-exact-limit",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;COUNT=10",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 10
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "count-overrun-probe",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;COUNT=10",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 15
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator",
+      "note": "limit exceeds COUNT: catches a port that over-generates"
+    },
+    {
+      "id": "until-utc",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;UNTIL=19970905T090000Z",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 10
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "until-utc-before-dtstart",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;UNTIL=19970101T090000Z",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 5
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator",
+      "note": "UNTIL earlier than DTSTART: empty series"
+    },
+    {
+      "id": "until-equals-dtstart",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;UNTIL=19970902T090000Z",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 5
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator",
+      "note": "UNTIL is inclusive"
+    },
+    {
+      "id": "until-mid-day",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=HOURLY;UNTIL=19970902T170000Z",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 20
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "until-naive",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;UNTIL=19970905T090000",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": null,
+          "limit": 10
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator",
+      "note": "naive DTSTART with naive UNTIL"
+    },
+    {
+      "id": "count-and-until",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;COUNT=3;UNTIL=19971231T090000Z",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 6
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator",
+      "note": "RFC 5545 forbids both; dateutil is the oracle for what happens"
+    },
+    {
+      "id": "until-and-count-until-wins",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;COUNT=100;UNTIL=19970904T090000Z",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 10
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    }
+  ]
+}

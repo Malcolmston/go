@@ -1,0 +1,25 @@
+{
+  "group": "csv",
+  "upstream": "pandas==2.3.3",
+  "cases": [
+    {"id": "to-csv-whole", "fn": "to_csv", "args": {"table": "whole"}, "upstreamFn": "pandas.DataFrame.to_csv", "goFn": "pandas.DataFrame.WriteCSV", "note": "compared as raw text; pandas writes the index by default, so index=False is used to match the port"},
+    {"id": "to-csv-fractional", "fn": "to_csv", "args": {"table": "fractional"}, "upstreamFn": "pandas.DataFrame.to_csv", "goFn": "pandas.DataFrame.WriteCSV"},
+    {"id": "to-csv-missing", "fn": "to_csv", "args": {"table": "gaps"}, "upstreamFn": "pandas.DataFrame.to_csv", "goFn": "pandas.DataFrame.WriteCSV", "note": "NA is written as an empty field on both sides"},
+    {"id": "to-csv-bool", "fn": "to_csv", "args": {"table": "flags"}, "upstreamFn": "pandas.DataFrame.to_csv", "goFn": "pandas.DataFrame.WriteCSV", "note": "pandas writes True/False; the port writes true/false"},
+
+    {"id": "roundtrip-fractional", "fn": "csv_roundtrip", "args": {"table": "fractional"}, "upstreamFn": "pandas.read_csv", "goFn": "pandas.ReadCSV"},
+    {"id": "roundtrip-whole-floats", "fn": "csv_roundtrip", "args": {"table": "whole"}, "upstreamFn": "pandas.read_csv", "goFn": "pandas.ReadCSV", "note": "known gap: the port demotes a Float64 column of whole values to Int64 on the way back"},
+    {"id": "roundtrip-missing", "fn": "csv_roundtrip", "args": {"table": "gaps"}, "upstreamFn": "pandas.read_csv", "goFn": "pandas.ReadCSV"},
+    {"id": "roundtrip-bool", "fn": "csv_roundtrip", "args": {"table": "flags"}, "upstreamFn": "pandas.read_csv", "goFn": "pandas.ReadCSV"},
+    {"id": "roundtrip-sales", "fn": "csv_roundtrip", "args": {"table": "sales"}, "upstreamFn": "pandas.read_csv", "goFn": "pandas.ReadCSV"},
+
+    {"id": "read-csv-inference", "fn": "read_csv", "args": {"csv": "a,b,c,d\n1,1.5,x,true\n2,2.5,y,false\n"}, "upstreamFn": "pandas.read_csv", "goFn": "pandas.ReadCSV"},
+    {"id": "read-csv-blank-is-na", "fn": "read_csv", "args": {"csv": "a,b\n1,\n,2\n"}, "upstreamFn": "pandas.read_csv", "goFn": "pandas.ReadCSV"},
+    {"id": "read-csv-na-values", "fn": "read_csv", "args": {"csv": "a,b\n1,NULL\nNULL,2\n", "na_values": ["NULL"]}, "upstreamFn": "pandas.read_csv", "goFn": "pandas.ReadCSVOptions.NAValues"},
+    {"id": "read-csv-semicolon", "fn": "read_csv", "args": {"csv": "a;b\n1;2\n", "delimiter": ";"}, "upstreamFn": "pandas.read_csv", "goFn": "pandas.ReadCSVOptions.Delimiter"},
+    {"id": "read-csv-no-header", "fn": "read_csv", "args": {"csv": "1,2\n3,4\n", "no_header": true}, "upstreamFn": "pandas.read_csv", "goFn": "pandas.ReadCSVOptions.NoHeader", "note": "pandas names the columns 0,1; the port names them col0,col1"},
+    {"id": "read-csv-quoted", "fn": "read_csv", "args": {"csv": "a,b\n\"x,y\",1\n"}, "upstreamFn": "pandas.read_csv", "goFn": "pandas.ReadCSV"},
+    {"id": "read-csv-ragged", "fn": "read_csv", "args": {"csv": "a,b\n1,2,3\n"}, "upstreamFn": "pandas.read_csv", "goFn": "pandas.ReadCSV", "note": "pandas silently promotes the extra leading field to the index; the port keeps the first two fields as data. Neither errors."},
+    {"id": "read-csv-mixed-column", "fn": "read_csv", "args": {"csv": "a\n1\nx\n"}, "upstreamFn": "pandas.read_csv", "goFn": "pandas.ReadCSV", "note": "a column that is not uniformly numeric falls back to text"}
+  ]
+}

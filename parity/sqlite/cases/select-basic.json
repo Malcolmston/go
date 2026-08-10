@@ -1,0 +1,557 @@
+{
+  "group": "select-basic",
+  "upstream": "sqlite3@3.45.3",
+  "cases": [
+    {
+      "id": "select-star",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT * FROM t ORDER BY id"
+        }
+      ],
+      "upstreamFn": "SELECT *",
+      "goFn": "sqlite: SELECT *"
+    },
+    {
+      "id": "select-cols",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT name AS n, qty AS q FROM t ORDER BY id"
+        }
+      ],
+      "upstreamFn": "SELECT <column list>",
+      "goFn": "sqlite: SELECT <column list>"
+    },
+    {
+      "id": "select-alias-as",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT name AS label FROM t ORDER BY label"
+        }
+      ],
+      "upstreamFn": "SELECT ... AS alias",
+      "goFn": "sqlite: SELECT ... AS alias"
+    },
+    {
+      "id": "select-qualified-star",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT t.* FROM t ORDER BY id"
+        }
+      ],
+      "upstreamFn": "SELECT t.*",
+      "goFn": "sqlite: SELECT t.*"
+    },
+    {
+      "id": "select-qualified-col",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT t.name AS n FROM t ORDER BY t.id"
+        }
+      ],
+      "upstreamFn": "SELECT t.column",
+      "goFn": "sqlite: SELECT t.column"
+    },
+    {
+      "id": "select-distinct",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT DISTINCT qty AS q FROM t ORDER BY q"
+        }
+      ],
+      "upstreamFn": "SELECT DISTINCT",
+      "goFn": "sqlite: SELECT DISTINCT"
+    },
+    {
+      "id": "select-no-from",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 1 AS one, 'x' AS s"
+        }
+      ],
+      "upstreamFn": "SELECT without FROM",
+      "goFn": "sqlite: SELECT without FROM"
+    },
+    {
+      "id": "where-eq",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT id AS id FROM t WHERE name = 'banana' ORDER BY id"
+        }
+      ],
+      "upstreamFn": "WHERE =",
+      "goFn": "sqlite: WHERE ="
+    },
+    {
+      "id": "where-ne",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT id AS id FROM t WHERE name <> 'banana' ORDER BY id"
+        }
+      ],
+      "upstreamFn": "WHERE <>",
+      "goFn": "sqlite: WHERE <>"
+    },
+    {
+      "id": "where-gt",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT id AS id FROM t WHERE qty > 3 ORDER BY id"
+        }
+      ],
+      "upstreamFn": "WHERE >",
+      "goFn": "sqlite: WHERE >"
+    },
+    {
+      "id": "where-ge",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT id AS id FROM t WHERE qty >= 3 ORDER BY id"
+        }
+      ],
+      "upstreamFn": "WHERE >=",
+      "goFn": "sqlite: WHERE >="
+    },
+    {
+      "id": "where-lt",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT id AS id FROM t WHERE price < 1.5 ORDER BY id"
+        }
+      ],
+      "upstreamFn": "WHERE <",
+      "goFn": "sqlite: WHERE <"
+    },
+    {
+      "id": "where-le",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT id AS id FROM t WHERE price <= 1.5 ORDER BY id"
+        }
+      ],
+      "upstreamFn": "WHERE <=",
+      "goFn": "sqlite: WHERE <="
+    },
+    {
+      "id": "where-and",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT id AS id FROM t WHERE qty = 7 AND price = 1.5 ORDER BY id"
+        }
+      ],
+      "upstreamFn": "WHERE AND",
+      "goFn": "sqlite: WHERE AND"
+    },
+    {
+      "id": "where-or",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT id AS id FROM t WHERE qty = 3 OR price = 2.0 ORDER BY id"
+        }
+      ],
+      "upstreamFn": "WHERE OR",
+      "goFn": "sqlite: WHERE OR"
+    },
+    {
+      "id": "where-not",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT id AS id FROM t WHERE NOT (qty = 7) ORDER BY id"
+        }
+      ],
+      "upstreamFn": "WHERE NOT",
+      "goFn": "sqlite: WHERE NOT"
+    },
+    {
+      "id": "where-in",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT id AS id FROM t WHERE name IN ('apple','date') ORDER BY id"
+        }
+      ],
+      "upstreamFn": "IN (...)",
+      "goFn": "sqlite: IN (...)"
+    },
+    {
+      "id": "where-not-in",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT id AS id FROM t WHERE name NOT IN ('apple','date') ORDER BY id"
+        }
+      ],
+      "upstreamFn": "NOT IN (...)",
+      "goFn": "sqlite: NOT IN (...)"
+    },
+    {
+      "id": "where-in-empty-match",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT id AS id FROM t WHERE name IN ('nope') ORDER BY id"
+        }
+      ],
+      "upstreamFn": "IN (...) no match",
+      "goFn": "sqlite: IN (...) no match"
+    },
+    {
+      "id": "where-is-null",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT id AS id FROM t WHERE qty IS NULL ORDER BY id"
+        }
+      ],
+      "upstreamFn": "IS NULL",
+      "goFn": "sqlite: IS NULL"
+    },
+    {
+      "id": "where-is-not-null",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT id AS id FROM t WHERE qty IS NOT NULL ORDER BY id"
+        }
+      ],
+      "upstreamFn": "IS NOT NULL",
+      "goFn": "sqlite: IS NOT NULL"
+    },
+    {
+      "id": "where-paren",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT id AS id FROM t WHERE (qty = 3 OR qty = 7) AND price = 1.5 ORDER BY id"
+        }
+      ],
+      "upstreamFn": "WHERE parentheses",
+      "goFn": "sqlite: WHERE parentheses"
+    },
+    {
+      "id": "order-asc",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT name AS n FROM t ORDER BY name ASC"
+        }
+      ],
+      "upstreamFn": "ORDER BY ASC",
+      "goFn": "sqlite: ORDER BY ASC"
+    },
+    {
+      "id": "order-desc",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT name AS n FROM t ORDER BY name DESC"
+        }
+      ],
+      "upstreamFn": "ORDER BY DESC",
+      "goFn": "sqlite: ORDER BY DESC"
+    },
+    {
+      "id": "order-multi",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT id AS id FROM t ORDER BY qty DESC, id ASC"
+        }
+      ],
+      "upstreamFn": "ORDER BY a, b",
+      "goFn": "sqlite: ORDER BY a, b"
+    },
+    {
+      "id": "order-nulls-asc",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT id AS id, qty AS q FROM t ORDER BY qty ASC, id ASC"
+        }
+      ],
+      "upstreamFn": "ORDER BY with NULLs",
+      "goFn": "sqlite: ORDER BY with NULLs"
+    },
+    {
+      "id": "order-nulls-desc",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT id AS id, qty AS q FROM t ORDER BY qty DESC, id ASC"
+        }
+      ],
+      "upstreamFn": "ORDER BY DESC with NULLs",
+      "goFn": "sqlite: ORDER BY DESC with NULLs"
+    },
+    {
+      "id": "order-by-alias",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT qty AS q FROM t ORDER BY q ASC, id ASC"
+        }
+      ],
+      "upstreamFn": "ORDER BY alias",
+      "goFn": "sqlite: ORDER BY alias"
+    },
+    {
+      "id": "order-by-expr",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT id AS id FROM t ORDER BY price * qty ASC, id ASC"
+        }
+      ],
+      "upstreamFn": "ORDER BY expression",
+      "goFn": "sqlite: ORDER BY expression"
+    },
+    {
+      "id": "limit",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT id AS id FROM t ORDER BY id LIMIT 2"
+        }
+      ],
+      "upstreamFn": "LIMIT",
+      "goFn": "sqlite: LIMIT"
+    },
+    {
+      "id": "limit-offset",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT id AS id FROM t ORDER BY id LIMIT 2 OFFSET 1"
+        }
+      ],
+      "upstreamFn": "LIMIT ... OFFSET",
+      "goFn": "sqlite: LIMIT ... OFFSET"
+    },
+    {
+      "id": "limit-zero",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT id AS id FROM t ORDER BY id LIMIT 0"
+        }
+      ],
+      "upstreamFn": "LIMIT 0",
+      "goFn": "sqlite: LIMIT 0"
+    },
+    {
+      "id": "limit-over",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT id AS id FROM t ORDER BY id LIMIT 99"
+        }
+      ],
+      "upstreamFn": "LIMIT beyond row count",
+      "goFn": "sqlite: LIMIT beyond row count"
+    },
+    {
+      "id": "offset-over",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT id AS id FROM t ORDER BY id LIMIT 2 OFFSET 99"
+        }
+      ],
+      "upstreamFn": "OFFSET beyond row count",
+      "goFn": "sqlite: OFFSET beyond row count"
+    },
+    {
+      "id": "empty-table",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT id AS id FROM t WHERE 0 ORDER BY id"
+        }
+      ],
+      "upstreamFn": "SELECT returning no rows",
+      "goFn": "sqlite: SELECT returning no rows"
+    },
+    {
+      "id": "table-alias",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT x.name AS n FROM t AS x ORDER BY x.id"
+        }
+      ],
+      "upstreamFn": "FROM t AS alias",
+      "goFn": "sqlite: FROM t AS alias"
+    },
+    {
+      "id": "table-alias-bare",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT x.name AS n FROM t x ORDER BY x.id"
+        }
+      ],
+      "upstreamFn": "FROM t alias",
+      "goFn": "sqlite: FROM t alias"
+    }
+  ]
+}

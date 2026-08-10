@@ -1,0 +1,182 @@
+{
+  "group": "types",
+  "upstream": "rails/rails activerecord@8.0.2 (sqlite3 gem 2.7.4, SQLite backend)",
+  "encoding": "the compared value is a canonical read-back of the SQLite catalogue; see COVERAGE.md for the normalisations",
+  "note": "one case per ActiveRecord column type, defined through create_table so each side's own type mapping is what gets measured",
+  "cases": [
+    {
+      "id": "type-string",
+      "fn": "ddl",
+      "upstreamFn": "SchemaStatements#create_table + t.string",
+      "goFn": "Schema.CreateTable + Table.String",
+      "args": [[{"op": "create_table", "table": "t", "columns": [{"type": "string", "name": "c"}]}]]
+    },
+    {
+      "id": "type-string-limit",
+      "fn": "ddl",
+      "upstreamFn": "t.string limit:",
+      "goFn": "Table.String + Limit",
+      "args": [[{"op": "create_table", "table": "t", "columns": [{"type": "string", "name": "c", "limit": 40}]}]]
+    },
+    {
+      "id": "type-text",
+      "fn": "ddl",
+      "upstreamFn": "t.text",
+      "goFn": "Table.Text",
+      "args": [[{"op": "create_table", "table": "t", "columns": [{"type": "text", "name": "c"}]}]]
+    },
+    {
+      "id": "type-integer",
+      "fn": "ddl",
+      "upstreamFn": "t.integer",
+      "goFn": "Table.Integer",
+      "args": [[{"op": "create_table", "table": "t", "columns": [{"type": "integer", "name": "c"}]}]]
+    },
+    {
+      "id": "type-bigint",
+      "fn": "ddl",
+      "upstreamFn": "t.bigint",
+      "goFn": "Table.BigInteger",
+      "args": [[{"op": "create_table", "table": "t", "columns": [{"type": "bigint", "name": "c"}]}]]
+    },
+    {
+      "id": "type-float",
+      "fn": "ddl",
+      "upstreamFn": "t.float",
+      "goFn": "Table.Float",
+      "args": [[{"op": "create_table", "table": "t", "columns": [{"type": "float", "name": "c"}]}]]
+    },
+    {
+      "id": "type-decimal",
+      "fn": "ddl",
+      "upstreamFn": "t.decimal precision: scale:",
+      "goFn": "Table.Decimal",
+      "args": [[{"op": "create_table", "table": "t", "columns": [{"type": "decimal", "name": "c", "precision": 10, "scale": 2}]}]]
+    },
+    {
+      "id": "type-boolean",
+      "fn": "ddl",
+      "upstreamFn": "t.boolean",
+      "goFn": "Table.Boolean",
+      "args": [[{"op": "create_table", "table": "t", "columns": [{"type": "boolean", "name": "c"}]}]]
+    },
+    {
+      "id": "type-date",
+      "fn": "ddl",
+      "upstreamFn": "t.date",
+      "goFn": "Table.Date",
+      "args": [[{"op": "create_table", "table": "t", "columns": [{"type": "date", "name": "c"}]}]]
+    },
+    {
+      "id": "type-time",
+      "fn": "ddl",
+      "upstreamFn": "t.time",
+      "goFn": "Table.Time",
+      "args": [[{"op": "create_table", "table": "t", "columns": [{"type": "time", "name": "c"}]}]]
+    },
+    {
+      "id": "type-datetime",
+      "fn": "ddl",
+      "upstreamFn": "t.datetime",
+      "goFn": "Table.Timestamp",
+      "args": [[{"op": "create_table", "table": "t", "columns": [{"type": "datetime", "name": "c"}]}]]
+    },
+    {
+      "id": "type-datetime-precision",
+      "fn": "ddl",
+      "upstreamFn": "t.datetime precision:",
+      "goFn": "Table.Timestamp + Precision",
+      "args": [[{"op": "create_table", "table": "t", "columns": [{"type": "datetime", "name": "c", "precision": 3}]}]]
+    },
+    {
+      "id": "type-binary",
+      "fn": "ddl",
+      "upstreamFn": "t.binary",
+      "goFn": "Table.Binary",
+      "args": [[{"op": "create_table", "table": "t", "columns": [{"type": "binary", "name": "c"}]}]]
+    },
+    {
+      "id": "type-json",
+      "fn": "ddl",
+      "upstreamFn": "t.json",
+      "goFn": "Table.JSON",
+      "args": [[{"op": "create_table", "table": "t", "columns": [{"type": "json", "name": "c"}]}]]
+    },
+    {
+      "id": "type-jsonb",
+      "fn": "ddl",
+      "upstreamFn": "t.column :c, :jsonb",
+      "goFn": "Table.JSONB",
+      "args": [[{"op": "create_table", "table": "t", "columns": [{"type": "jsonb", "name": "c"}]}]]
+    },
+    {
+      "id": "type-uuid",
+      "fn": "ddl",
+      "upstreamFn": "t.column :c, :uuid",
+      "goFn": "Table.UUID",
+      "args": [[{"op": "create_table", "table": "t", "columns": [{"type": "uuid", "name": "c"}]}]]
+    },
+    {
+      "id": "type-enum",
+      "fn": "ddl",
+      "note": "port silently degrades an Enum to VARCHAR(255) with no CHECK; ActiveRecord rejects enum values on SQLite",
+      "upstreamFn": "t.column :c, :enum, values:",
+      "goFn": "Table.Enum",
+      "args": [[{"op": "create_table", "table": "t", "columns": [{"type": "enum", "name": "c", "values": ["draft", "live"]}]}]]
+    },
+    {
+      "id": "type-array-of-string",
+      "fn": "ddl",
+      "note": "port maps Array() to three different things by dialect with no diagnostic; ActiveRecord rejects array: on SQLite",
+      "upstreamFn": "t.string :c, array: true",
+      "goFn": "Table.String + Array",
+      "args": [[{"op": "create_table", "table": "t", "columns": [{"type": "string", "name": "c", "array": true}]}]]
+    },
+    {
+      "id": "type-timestamps",
+      "fn": "ddl",
+      "upstreamFn": "t.timestamps",
+      "goFn": "Table.Timestamps",
+      "args": [[{"op": "create_table", "table": "t", "columns": [{"type": "timestamps"}]}]]
+    },
+    {
+      "id": "type-not-null-and-default",
+      "fn": "ddl",
+      "upstreamFn": "t.integer null: false, default:",
+      "goFn": "Table.Integer + NotNull + Default",
+      "args": [[{"op": "create_table", "table": "t", "columns": [{"type": "integer", "name": "c", "null": false, "default": 7}]}]]
+    },
+    {
+      "id": "type-boolean-default-false",
+      "fn": "ddl",
+      "upstreamFn": "t.boolean default: false",
+      "goFn": "Table.Boolean + Default(false)",
+      "args": [[{"op": "create_table", "table": "t", "columns": [{"type": "boolean", "name": "c", "default": false}]}]]
+    },
+    {
+      "id": "type-string-default",
+      "fn": "ddl",
+      "upstreamFn": "t.string default:",
+      "goFn": "Table.String + Default(\"anon\")",
+      "args": [[{"op": "create_table", "table": "t", "columns": [{"type": "string", "name": "c", "default": "anon"}]}]]
+    },
+    {
+      "id": "type-datetime-default-raw",
+      "fn": "ddl",
+      "upstreamFn": "t.datetime default: -> { \"CURRENT_TIMESTAMP\" }",
+      "goFn": "Table.Timestamp + DefaultRaw",
+      "args": [[{"op": "create_table", "table": "t", "columns": [{"type": "datetime", "name": "c", "default_raw": "CURRENT_TIMESTAMP"}]}]]
+    },
+    {
+      "id": "type-inline-unique-column",
+      "fn": "ddl",
+      "note": "uses text so the varchar-limit difference cannot pollute the unique-index comparison",
+      "upstreamFn": "t.text + add_index unique",
+      "goFn": "Table.Text + AddIndex + UniqueIndex",
+      "args": [[
+        {"op": "create_table", "table": "t", "columns": [{"type": "text", "name": "c"}]},
+        {"op": "add_index", "table": "t", "columns": ["c"], "unique": true}
+      ]]
+    }
+  ]
+}

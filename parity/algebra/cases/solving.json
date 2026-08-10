@@ -1,0 +1,298 @@
+{
+  "group": "solving",
+  "upstream": "sympy@1.14.0",
+  "goModule": "github.com/malcolmston/algebra@v0.8.0",
+  "note": "solution sets are compared in set mode: each root is evaluated numerically, deduplicated at 1e-9 and sorted by (re, im)",
+  "cases": [
+    {
+      "id": "solve-linear",
+      "fn": "solve",
+      "args": ["2*x-4", "x"],
+      "mode": "set",
+      "upstreamFn": "sympy.solve",
+      "goFn": "algebra.Solve"
+    },
+    {
+      "id": "solve-linear-rational",
+      "fn": "solve",
+      "args": ["3*x+7", "x"],
+      "mode": "set",
+      "upstreamFn": "sympy.solve",
+      "goFn": "algebra.Solve"
+    },
+    {
+      "id": "solve-quadratic-integer-roots",
+      "fn": "solve",
+      "args": ["x^2-5*x+6", "x"],
+      "mode": "set",
+      "upstreamFn": "sympy.solve",
+      "goFn": "algebra.Solve"
+    },
+    {
+      "id": "solve-quadratic-rational-roots",
+      "fn": "solve",
+      "args": ["2*x^2-3*x+1", "x"],
+      "mode": "set",
+      "upstreamFn": "sympy.solve",
+      "goFn": "algebra.Solve"
+    },
+    {
+      "id": "solve-quadratic-irrational-roots",
+      "fn": "solve",
+      "args": ["x^2-2*x-1", "x"],
+      "mode": "set",
+      "upstreamFn": "sympy.solve",
+      "goFn": "algebra.Solve"
+    },
+    {
+      "id": "solve-quadratic-double-root",
+      "fn": "solve",
+      "args": ["x^2-2*x+1", "x"],
+      "mode": "set",
+      "upstreamFn": "sympy.solve",
+      "goFn": "algebra.Solve"
+    },
+    {
+      "id": "solve-quadratic-pure-imaginary",
+      "fn": "solve",
+      "args": ["x^2+1", "x"],
+      "mode": "set",
+      "upstreamFn": "sympy.solve",
+      "goFn": "algebra.Solve"
+    },
+    {
+      "id": "solve-quadratic-complex-conjugates",
+      "fn": "solve",
+      "args": ["x^2+x+1", "x"],
+      "mode": "set",
+      "upstreamFn": "sympy.solve",
+      "goFn": "algebra.Solve"
+    },
+    {
+      "id": "solve-cubic-integer-roots",
+      "fn": "solve",
+      "args": ["x^3-6*x^2+11*x-6", "x"],
+      "mode": "set",
+      "upstreamFn": "sympy.solve",
+      "goFn": "algebra.Solve"
+    },
+    {
+      "id": "solve-cubic-one-real-root",
+      "fn": "solve",
+      "args": ["x^3-2", "x"],
+      "mode": "set",
+      "upstreamFn": "sympy.solve",
+      "goFn": "algebra.Solve"
+    },
+    {
+      "id": "solve-cubic-mixed-roots",
+      "fn": "solve",
+      "args": ["x^3-x^2+x-1", "x"],
+      "mode": "set",
+      "upstreamFn": "sympy.solve",
+      "goFn": "algebra.Solve"
+    },
+    {
+      "id": "solve-cubic-three-irrational",
+      "fn": "solve",
+      "args": ["x^3-3*x+1", "x"],
+      "mode": "set",
+      "upstreamFn": "sympy.solve",
+      "goFn": "algebra.Solve",
+      "note": "casus irreducibilis: three real roots reachable only through complex radicals"
+    },
+    {
+      "id": "solve-quartic-biquadratic",
+      "fn": "solve",
+      "args": ["x^4-5*x^2+4", "x"],
+      "mode": "set",
+      "upstreamFn": "sympy.solve",
+      "goFn": "algebra.Solve"
+    },
+    {
+      "id": "solve-quartic-roots-of-unity",
+      "fn": "solve",
+      "args": ["x^4-1", "x"],
+      "mode": "set",
+      "upstreamFn": "sympy.solve",
+      "goFn": "algebra.Solve"
+    },
+    {
+      "id": "solve-quartic-mixed",
+      "fn": "solve",
+      "args": ["x^4+x^2-2", "x"],
+      "mode": "set",
+      "upstreamFn": "sympy.solve",
+      "goFn": "algebra.Solve"
+    },
+    {
+      "id": "solve-quartic-general",
+      "fn": "solve",
+      "args": ["x^4-2*x^3-x^2+2*x", "x"],
+      "mode": "set",
+      "upstreamFn": "sympy.solve",
+      "goFn": "algebra.Solve"
+    },
+    {
+      "id": "solve-quintic-roots-of-unity",
+      "fn": "solve",
+      "args": ["x^5-1", "x"],
+      "mode": "set",
+      "upstreamFn": "sympy.solve",
+      "goFn": "algebra.Solve"
+    },
+    {
+      "id": "solve-nonpolynomial-sin",
+      "fn": "solve",
+      "args": ["sin(x)", "x"],
+      "mode": "set",
+      "upstreamFn": "sympy.solve",
+      "goFn": "algebra.Solve",
+      "note": "transcendental equation; the port documents polynomials only"
+    },
+    {
+      "id": "solve-nonpolynomial-exp",
+      "fn": "solve",
+      "args": ["exp(x)-2", "x"],
+      "mode": "set",
+      "upstreamFn": "sympy.solve",
+      "goFn": "algebra.Solve"
+    },
+    {
+      "id": "solve-no-solution-constant",
+      "fn": "solve",
+      "args": ["7", "x"],
+      "mode": "set",
+      "upstreamFn": "sympy.solve",
+      "goFn": "algebra.Solve",
+      "note": "must fail (or return the empty set) on both sides"
+    },
+    {
+      "id": "solve-quadratic-stepper-result",
+      "fn": "solve_result_single",
+      "args": ["x^2-5*x+6", "x"],
+      "mode": "set",
+      "upstreamFn": "sympy.solve",
+      "goFn": "algebra.SolveQuadraticSteps().Result",
+      "note": "known port issue: Solution.Result carries only one of the two roots even though Steps narrates both"
+    },
+    {
+      "id": "solve-quadratic-stepper-result-irrational",
+      "fn": "solve_result_single",
+      "args": ["x^2-2*x-1", "x"],
+      "mode": "set",
+      "upstreamFn": "sympy.solve",
+      "goFn": "algebra.SolveQuadraticSteps().Result",
+      "note": "same known port issue with irrational roots"
+    },
+    {
+      "id": "system-2x2",
+      "fn": "solve_system",
+      "args": [["x+y-3", "x-y-1"], ["x", "y"]],
+      "mode": "numeric",
+      "upstreamFn": "sympy.solve",
+      "goFn": "algebra.SolveSystem"
+    },
+    {
+      "id": "system-2x2-rational",
+      "fn": "solve_system",
+      "args": [["2*x+3*y-8", "5*x-y-3"], ["x", "y"]],
+      "mode": "numeric",
+      "upstreamFn": "sympy.solve",
+      "goFn": "algebra.SolveSystem"
+    },
+    {
+      "id": "system-3x3",
+      "fn": "solve_system",
+      "args": [["x+y+z-6", "2*x-y+z-3", "x+2*y-z-2"], ["x", "y", "z"]],
+      "mode": "numeric",
+      "upstreamFn": "sympy.solve",
+      "goFn": "algebra.SolveSystem"
+    },
+    {
+      "id": "system-underdetermined",
+      "fn": "solve_system",
+      "args": [["x+y-1", "2*x+2*y-2"], ["x", "y"]],
+      "mode": "numeric",
+      "upstreamFn": "sympy.solve",
+      "goFn": "algebra.SolveSystem",
+      "note": "must fail on both: infinitely many solutions, no unique numeric answer"
+    },
+    {
+      "id": "system-inconsistent",
+      "fn": "solve_system",
+      "args": [["x+y-1", "x+y-2"], ["x", "y"]],
+      "mode": "numeric",
+      "upstreamFn": "sympy.solve",
+      "goFn": "algebra.SolveSystem",
+      "note": "must fail on both: inconsistent system"
+    },
+    {
+      "id": "ode1-separable",
+      "fn": "ode1",
+      "args": ["2*x*y", "x", "y", 0.5],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upstreamFn": "sympy.dsolve",
+      "goFn": "algebra.SolveODE1",
+      "note": "known port issue: returns exp(x^2+C1) instead of C1*exp(x^2), a different parameterisation of the same family"
+    },
+    {
+      "id": "ode1-exponential-growth",
+      "fn": "ode1",
+      "args": ["y", "x", "y", 0.5],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upstreamFn": "sympy.dsolve",
+      "goFn": "algebra.SolveODE1",
+      "note": "same parameterisation issue"
+    },
+    {
+      "id": "ode1-linear-nonhomogeneous",
+      "fn": "ode1",
+      "args": ["x - y", "x", "y", 0.5],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upstreamFn": "sympy.dsolve",
+      "goFn": "algebra.SolveODE1"
+    },
+    {
+      "id": "ode2-distinct-real-roots",
+      "fn": "ode2const",
+      "args": ["1", "0", "-1", "0", "x", "y", 0.5, 0.5],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upstreamFn": "sympy.dsolve",
+      "goFn": "algebra.SolveODE2Const",
+      "note": "both arbitrary constants are fixed to the same value so that a differing C1/C2 labelling order cannot create a spurious mismatch"
+    },
+    {
+      "id": "ode2-repeated-root",
+      "fn": "ode2const",
+      "args": ["1", "-2", "1", "0", "x", "y", 0.5, 0.5],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upstreamFn": "sympy.dsolve",
+      "goFn": "algebra.SolveODE2Const"
+    },
+    {
+      "id": "ode2-complex-roots",
+      "fn": "ode2const",
+      "args": ["1", "0", "1", "0", "x", "y", 0.5, 0.5],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upstreamFn": "sympy.dsolve",
+      "goFn": "algebra.SolveODE2Const"
+    },
+    {
+      "id": "ode2-forced-polynomial",
+      "fn": "ode2const",
+      "args": ["1", "0", "1", "x", "x", "y", 0.5, 0.5],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upstreamFn": "sympy.dsolve",
+      "goFn": "algebra.SolveODE2Const",
+      "note": "particular solution for a polynomial forcing term"
+    }
+  ]
+}

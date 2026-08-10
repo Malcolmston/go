@@ -1,0 +1,577 @@
+{
+  "group": "ddl",
+  "upstream": "sqlite3@3.45.3",
+  "cases": [
+    {
+      "id": "ddl-types",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE x (a INTEGER, b TEXT, c REAL, d BLOB, e)",
+            "INSERT INTO x (a,b,c,d,e) VALUES (1,'s',2.5,x'61',NULL)"
+          ],
+          "query": "SELECT a AS a, b AS b, c AS c, d AS d, e AS e FROM x ORDER BY a"
+        }
+      ],
+      "upstreamFn": "CREATE TABLE with typed and untyped columns",
+      "goFn": "sqlite: CREATE TABLE with typed and untyped columns"
+    },
+    {
+      "id": "ddl-if-not-exists",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE x (a INTEGER)",
+            "CREATE TABLE IF NOT EXISTS x (a INTEGER)"
+          ],
+          "query": "SELECT count(*) AS c FROM x"
+        }
+      ],
+      "upstreamFn": "CREATE TABLE IF NOT EXISTS",
+      "goFn": "sqlite: CREATE TABLE IF NOT EXISTS"
+    },
+    {
+      "id": "ddl-duplicate",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE x (a INTEGER)",
+            "CREATE TABLE x (a INTEGER)"
+          ],
+          "query": "SELECT count(*) AS c FROM x"
+        }
+      ],
+      "upstreamFn": "CREATE TABLE duplicate (must fail)",
+      "goFn": "sqlite: CREATE TABLE duplicate (must fail)"
+    },
+    {
+      "id": "ddl-drop",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE x (a INTEGER)",
+            "CREATE TABLE y (a INTEGER)",
+            "DROP TABLE x",
+            "INSERT INTO y (a) VALUES (1)"
+          ],
+          "query": "SELECT count(*) AS c FROM y"
+        }
+      ],
+      "upstreamFn": "DROP TABLE",
+      "goFn": "sqlite: DROP TABLE"
+    },
+    {
+      "id": "ddl-drop-if-exists",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "DROP TABLE IF EXISTS nope"
+          ],
+          "query": "SELECT 1 AS ok"
+        }
+      ],
+      "upstreamFn": "DROP TABLE IF EXISTS",
+      "goFn": "sqlite: DROP TABLE IF EXISTS"
+    },
+    {
+      "id": "ddl-drop-missing",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "DROP TABLE nope"
+          ],
+          "query": "SELECT 1 AS ok"
+        }
+      ],
+      "upstreamFn": "DROP TABLE missing (must fail)",
+      "goFn": "sqlite: DROP TABLE missing (must fail)"
+    },
+    {
+      "id": "ddl-not-null-ok",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE x (a INTEGER NOT NULL)",
+            "INSERT INTO x (a) VALUES (1)"
+          ],
+          "query": "SELECT a AS a FROM x ORDER BY a"
+        }
+      ],
+      "upstreamFn": "NOT NULL constraint satisfied",
+      "goFn": "sqlite: NOT NULL constraint satisfied"
+    },
+    {
+      "id": "ddl-not-null-violation",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE x (a INTEGER NOT NULL)",
+            "INSERT INTO x (a) VALUES (NULL)"
+          ],
+          "query": "SELECT a AS a FROM x ORDER BY a"
+        }
+      ],
+      "upstreamFn": "NOT NULL constraint violated (must fail)",
+      "goFn": "sqlite: NOT NULL constraint violated (must fail)"
+    },
+    {
+      "id": "ddl-pk-dup",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE x (a INTEGER PRIMARY KEY)",
+            "INSERT INTO x (a) VALUES (1)",
+            "INSERT INTO x (a) VALUES (1)"
+          ],
+          "query": "SELECT a AS a FROM x ORDER BY a"
+        }
+      ],
+      "upstreamFn": "PRIMARY KEY uniqueness (must fail)",
+      "goFn": "sqlite: PRIMARY KEY uniqueness (must fail)"
+    },
+    {
+      "id": "ddl-pk-text",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE x (a TEXT PRIMARY KEY)",
+            "INSERT INTO x (a) VALUES ('k')"
+          ],
+          "query": "SELECT a AS a FROM x ORDER BY a"
+        }
+      ],
+      "upstreamFn": "TEXT PRIMARY KEY",
+      "goFn": "sqlite: TEXT PRIMARY KEY"
+    },
+    {
+      "id": "ddl-pk-table-constraint",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE x (a INTEGER, PRIMARY KEY (a))",
+            "INSERT INTO x (a) VALUES (1)"
+          ],
+          "query": "SELECT a AS a FROM x ORDER BY a"
+        }
+      ],
+      "upstreamFn": "table-level PRIMARY KEY (a)",
+      "goFn": "sqlite: table-level PRIMARY KEY (a)"
+    },
+    {
+      "id": "ddl-pk-composite",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE x (a INTEGER, b INTEGER, PRIMARY KEY (a, b))",
+            "INSERT INTO x (a,b) VALUES (1,2)"
+          ],
+          "query": "SELECT a AS a FROM x ORDER BY a"
+        }
+      ],
+      "upstreamFn": "composite PRIMARY KEY",
+      "goFn": "sqlite: composite PRIMARY KEY"
+    },
+    {
+      "id": "ddl-unique",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE x (a INTEGER UNIQUE)",
+            "INSERT INTO x (a) VALUES (1)"
+          ],
+          "query": "SELECT a AS a FROM x ORDER BY a"
+        }
+      ],
+      "upstreamFn": "UNIQUE column constraint",
+      "goFn": "sqlite: UNIQUE column constraint"
+    },
+    {
+      "id": "ddl-unique-violation",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE x (a INTEGER UNIQUE)",
+            "INSERT INTO x (a) VALUES (1)",
+            "INSERT INTO x (a) VALUES (1)"
+          ],
+          "query": "SELECT a AS a FROM x ORDER BY a"
+        }
+      ],
+      "upstreamFn": "UNIQUE violated (must fail)",
+      "goFn": "sqlite: UNIQUE violated (must fail)"
+    },
+    {
+      "id": "ddl-default",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE x (a INTEGER, b TEXT DEFAULT 'zz')",
+            "INSERT INTO x (a) VALUES (1)"
+          ],
+          "query": "SELECT a AS a, b AS b FROM x ORDER BY a"
+        }
+      ],
+      "upstreamFn": "DEFAULT column constraint",
+      "goFn": "sqlite: DEFAULT column constraint"
+    },
+    {
+      "id": "ddl-autoincrement",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE x (a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT)",
+            "INSERT INTO x (b) VALUES ('p'),('q')"
+          ],
+          "query": "SELECT a AS a FROM x ORDER BY a"
+        }
+      ],
+      "upstreamFn": "AUTOINCREMENT",
+      "goFn": "sqlite: AUTOINCREMENT"
+    },
+    {
+      "id": "ddl-check-ok",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE x (a INTEGER CHECK (a > 0))",
+            "INSERT INTO x (a) VALUES (1)"
+          ],
+          "query": "SELECT a AS a FROM x ORDER BY a"
+        }
+      ],
+      "upstreamFn": "CHECK column constraint",
+      "goFn": "sqlite: CHECK column constraint"
+    },
+    {
+      "id": "ddl-check-violation",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE x (a INTEGER CHECK (a > 0))",
+            "INSERT INTO x (a) VALUES (-1)"
+          ],
+          "query": "SELECT a AS a FROM x ORDER BY a"
+        }
+      ],
+      "upstreamFn": "CHECK violated (must fail)",
+      "goFn": "sqlite: CHECK violated (must fail)"
+    },
+    {
+      "id": "ddl-collate",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE x (a TEXT COLLATE NOCASE)",
+            "INSERT INTO x (a) VALUES ('Ab')"
+          ],
+          "query": "SELECT a AS a FROM x ORDER BY a"
+        }
+      ],
+      "upstreamFn": "COLLATE column constraint",
+      "goFn": "sqlite: COLLATE column constraint"
+    },
+    {
+      "id": "ddl-references",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE p (id INTEGER PRIMARY KEY)",
+            "CREATE TABLE x (a INTEGER REFERENCES p(id))",
+            "INSERT INTO x (a) VALUES (1)"
+          ],
+          "query": "SELECT a AS a FROM x ORDER BY a"
+        }
+      ],
+      "upstreamFn": "REFERENCES column constraint",
+      "goFn": "sqlite: REFERENCES column constraint"
+    },
+    {
+      "id": "ddl-foreign-key-table",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE p (id INTEGER PRIMARY KEY)",
+            "CREATE TABLE x (a INTEGER, FOREIGN KEY (a) REFERENCES p(id))",
+            "INSERT INTO x (a) VALUES (1)"
+          ],
+          "query": "SELECT a AS a FROM x ORDER BY a"
+        }
+      ],
+      "upstreamFn": "table-level FOREIGN KEY",
+      "goFn": "sqlite: table-level FOREIGN KEY"
+    },
+    {
+      "id": "ddl-create-index",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE x (a INTEGER)",
+            "CREATE INDEX ix ON x (a)",
+            "INSERT INTO x (a) VALUES (1)"
+          ],
+          "query": "SELECT a AS a FROM x ORDER BY a"
+        }
+      ],
+      "upstreamFn": "CREATE INDEX",
+      "goFn": "sqlite: CREATE INDEX"
+    },
+    {
+      "id": "ddl-create-unique-index",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE x (a INTEGER)",
+            "CREATE UNIQUE INDEX ix ON x (a)",
+            "INSERT INTO x (a) VALUES (1)"
+          ],
+          "query": "SELECT a AS a FROM x ORDER BY a"
+        }
+      ],
+      "upstreamFn": "CREATE UNIQUE INDEX",
+      "goFn": "sqlite: CREATE UNIQUE INDEX"
+    },
+    {
+      "id": "ddl-drop-index",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE x (a INTEGER)",
+            "CREATE INDEX ix ON x (a)",
+            "DROP INDEX ix",
+            "INSERT INTO x (a) VALUES (1)"
+          ],
+          "query": "SELECT a AS a FROM x ORDER BY a"
+        }
+      ],
+      "upstreamFn": "DROP INDEX",
+      "goFn": "sqlite: DROP INDEX"
+    },
+    {
+      "id": "ddl-alter-add-column",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE x (a INTEGER)",
+            "ALTER TABLE x ADD COLUMN b TEXT",
+            "INSERT INTO x (a,b) VALUES (1,'z')"
+          ],
+          "query": "SELECT a AS a, b AS b FROM x ORDER BY a"
+        }
+      ],
+      "upstreamFn": "ALTER TABLE ... ADD COLUMN",
+      "goFn": "sqlite: ALTER TABLE ... ADD COLUMN"
+    },
+    {
+      "id": "ddl-alter-rename-table",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE x (a INTEGER)",
+            "ALTER TABLE x RENAME TO z",
+            "INSERT INTO z (a) VALUES (1)"
+          ],
+          "query": "SELECT a AS a FROM z ORDER BY a"
+        }
+      ],
+      "upstreamFn": "ALTER TABLE ... RENAME TO",
+      "goFn": "sqlite: ALTER TABLE ... RENAME TO"
+    },
+    {
+      "id": "ddl-alter-rename-column",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE x (a INTEGER)",
+            "ALTER TABLE x RENAME COLUMN a TO b",
+            "INSERT INTO x (b) VALUES (1)"
+          ],
+          "query": "SELECT b AS b FROM x ORDER BY b"
+        }
+      ],
+      "upstreamFn": "ALTER TABLE ... RENAME COLUMN",
+      "goFn": "sqlite: ALTER TABLE ... RENAME COLUMN"
+    },
+    {
+      "id": "ddl-alter-drop-column",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE x (a INTEGER, b INTEGER)",
+            "ALTER TABLE x DROP COLUMN a",
+            "INSERT INTO x (b) VALUES (1)"
+          ],
+          "query": "SELECT b AS b FROM x ORDER BY b"
+        }
+      ],
+      "upstreamFn": "ALTER TABLE ... DROP COLUMN",
+      "goFn": "sqlite: ALTER TABLE ... DROP COLUMN"
+    },
+    {
+      "id": "ddl-create-table-as",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE x (a INTEGER)",
+            "INSERT INTO x (a) VALUES (1),(2)",
+            "CREATE TABLE y AS SELECT a FROM x"
+          ],
+          "query": "SELECT a AS a FROM y ORDER BY a"
+        }
+      ],
+      "upstreamFn": "CREATE TABLE ... AS SELECT",
+      "goFn": "sqlite: CREATE TABLE ... AS SELECT"
+    },
+    {
+      "id": "ddl-create-view",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE x (a INTEGER)",
+            "INSERT INTO x (a) VALUES (1),(2)",
+            "CREATE VIEW v AS SELECT a FROM x WHERE a > 1"
+          ],
+          "query": "SELECT a AS a FROM v ORDER BY a"
+        }
+      ],
+      "upstreamFn": "CREATE VIEW",
+      "goFn": "sqlite: CREATE VIEW"
+    },
+    {
+      "id": "ddl-temp-table",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TEMP TABLE x (a INTEGER)",
+            "INSERT INTO x (a) VALUES (1)"
+          ],
+          "query": "SELECT a AS a FROM x ORDER BY a"
+        }
+      ],
+      "upstreamFn": "CREATE TEMP TABLE",
+      "goFn": "sqlite: CREATE TEMP TABLE"
+    },
+    {
+      "id": "ddl-without-rowid",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE x (a INTEGER PRIMARY KEY) WITHOUT ROWID",
+            "INSERT INTO x (a) VALUES (1)"
+          ],
+          "query": "SELECT a AS a FROM x ORDER BY a"
+        }
+      ],
+      "upstreamFn": "WITHOUT ROWID",
+      "goFn": "sqlite: WITHOUT ROWID"
+    },
+    {
+      "id": "ddl-generated-column",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE x (a INTEGER, b INTEGER GENERATED ALWAYS AS (a * 2))",
+            "INSERT INTO x (a) VALUES (3)"
+          ],
+          "query": "SELECT b AS b FROM x ORDER BY b"
+        }
+      ],
+      "upstreamFn": "GENERATED ALWAYS AS column",
+      "goFn": "sqlite: GENERATED ALWAYS AS column"
+    },
+    {
+      "id": "ddl-create-trigger",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE x (a INTEGER)",
+            "CREATE TABLE log (a INTEGER)",
+            "CREATE TRIGGER tr AFTER INSERT ON x BEGIN INSERT INTO log (a) VALUES (1); END",
+            "INSERT INTO x (a) VALUES (1)"
+          ],
+          "query": "SELECT count(*) AS c FROM log"
+        }
+      ],
+      "upstreamFn": "CREATE TRIGGER",
+      "goFn": "sqlite: CREATE TRIGGER"
+    },
+    {
+      "id": "ddl-quoted-ident",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE \"table\" (\"select\" INTEGER)",
+            "INSERT INTO \"table\" (\"select\") VALUES (1)"
+          ],
+          "query": "SELECT \"select\" AS s FROM \"table\" ORDER BY s"
+        }
+      ],
+      "upstreamFn": "double-quoted identifiers",
+      "goFn": "sqlite: double-quoted identifiers"
+    },
+    {
+      "id": "ddl-backtick-ident",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE x (`a b` INTEGER)",
+            "INSERT INTO x (`a b`) VALUES (1)"
+          ],
+          "query": "SELECT `a b` AS s FROM x ORDER BY s"
+        }
+      ],
+      "upstreamFn": "backtick-quoted identifiers",
+      "goFn": "sqlite: backtick-quoted identifiers"
+    },
+    {
+      "id": "ddl-bracket-ident",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE x ([a b] INTEGER)",
+            "INSERT INTO x ([a b]) VALUES (1)"
+          ],
+          "query": "SELECT [a b] AS s FROM x ORDER BY s"
+        }
+      ],
+      "upstreamFn": "bracket-quoted identifiers",
+      "goFn": "sqlite: bracket-quoted identifiers"
+    }
+  ]
+}

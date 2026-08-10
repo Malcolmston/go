@@ -1,0 +1,98 @@
+{
+  "group": "images",
+  "upstream": "pdfkit@0.15.1",
+  "cases": [
+    {
+      "id": "img-png-rgb",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.image",
+      "goFn": "Page.DrawImage",
+      "note": "opaque 8x8 RGB PNG from a committed fixture",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "image", "args": ["fixtures/rgb8.png", 40, 40, 80, 80]}
+      ]}]}]
+    },
+    {
+      "id": "img-png-rgba",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.image",
+      "goFn": "Page.DrawImage",
+      "note": "PNG with an alpha channel: exercises the soft mask",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "image", "args": ["fixtures/rgba8.png", 40, 40, 80, 80]}
+      ]}]}]
+    },
+    {
+      "id": "img-png-gray",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.image",
+      "goFn": "Page.DrawImage",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "image", "args": ["fixtures/gray8.png", 40, 40, 80, 80]}
+      ]}]}]
+    },
+    {
+      "id": "img-jpeg",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.image",
+      "goFn": "Page.DrawImage",
+      "note": "JPEG passed through with DCTDecode on both sides",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "image", "args": ["fixtures/rgb16.jpg", 40, 40, 100, 100]}
+      ]}]}]
+    },
+    {
+      "id": "img-jpeg-non-square",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.image",
+      "goFn": "Page.DrawImage",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "image", "args": ["fixtures/rgb16.jpg", 10.5, 22.25, 150, 40]}
+      ]}]}]
+    },
+    {
+      "id": "img-twice-same-file",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.image",
+      "goFn": "Page.DrawImage",
+      "note": "same image drawn twice: is the XObject shared?",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "image", "args": ["fixtures/rgb8.png", 40, 40, 60, 60]},
+        {"op": "image", "args": ["fixtures/rgb8.png", 140, 40, 60, 60]}
+      ]}]}]
+    },
+    {
+      "id": "img-under-transform",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.image",
+      "goFn": "Page.DrawImage",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "save"},
+        {"op": "translate", "args": [200, 300]},
+        {"op": "scale", "args": [1.5, 1.5]},
+        {"op": "image", "args": ["fixtures/rgb16.jpg", 0, 0, 40, 40]},
+        {"op": "restore"}
+      ]}]}]
+    },
+    {
+      "id": "img-missing-file",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.image",
+      "goFn": "pdfkit.LoadImage",
+      "note": "both sides must fail on a nonexistent file",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "image", "args": ["fixtures/nope.png", 40, 40, 80, 80]}
+      ]}]}]
+    },
+    {
+      "id": "img-remote-url",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.image",
+      "goFn": "pdfkit.LoadImage",
+      "note": "both runners must refuse a remote path",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "image", "args": ["https://example.com/x.png", 40, 40, 80, 80]}
+      ]}]}]
+    }
+  ]
+}

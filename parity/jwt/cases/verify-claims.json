@@ -1,0 +1,633 @@
+{
+  "group": "verify-claims",
+  "upstream": "jsonwebtoken@9.0.2",
+  "note": "Claim and option validation surface, always with an explicit clock.",
+  "cases": [
+    {
+      "id": "vc-exp-valid",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMH0.uSyiX6mW2QalXyp6PI6h2UsPl323b6Mz8hggXGyW0rw",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse"
+    },
+    {
+      "id": "vc-exp-expired",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMH0.uSyiX6mW2QalXyp6PI6h2UsPl323b6Mz8hggXGyW0rw",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700009999,
+          "complete": true,
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "TokenExpiredError",
+      "goFn": "jwt.ErrTokenExpired",
+      "note": "both must fail"
+    },
+    {
+      "id": "vc-exp-boundary",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMH0.uSyiX6mW2QalXyp6PI6h2UsPl323b6Mz8hggXGyW0rw",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700003600,
+          "complete": true,
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "clock exactly at exp"
+    },
+    {
+      "id": "vc-clocktolerance-saves",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMH0.uSyiX6mW2QalXyp6PI6h2UsPl323b6Mz8hggXGyW0rw",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700003700,
+          "complete": true,
+          "clockTolerance": 200,
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "options.clockTolerance",
+      "goFn": "jwt.WithLeeway"
+    },
+    {
+      "id": "vc-clocktolerance-insufficient",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMH0.uSyiX6mW2QalXyp6PI6h2UsPl323b6Mz8hggXGyW0rw",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700003700,
+          "complete": true,
+          "clockTolerance": 10,
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "options.clockTolerance",
+      "goFn": "jwt.WithLeeway",
+      "note": "both must fail"
+    },
+    {
+      "id": "vc-ignoreexpiration",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMH0.uSyiX6mW2QalXyp6PI6h2UsPl323b6Mz8hggXGyW0rw",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700009999,
+          "complete": true,
+          "ignoreExpiration": true,
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "options.ignoreExpiration",
+      "goFn": "jwt.WithIgnoreExpiration"
+    },
+    {
+      "id": "vc-nbf-future",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMTAwMDAsImlhdCI6MTcwMDAwMDAwMCwibmJmIjoxNzAwMDA5MDAwfQ.WYPc_lpyGAi_Wg6fYfSghx9BIlAtUq7TupSttCgKvgc",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "NotBeforeError",
+      "goFn": "jwt.ErrTokenNotValidYet",
+      "note": "both must fail"
+    },
+    {
+      "id": "vc-nbf-reached",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMTAwMDAsImlhdCI6MTcwMDAwMDAwMCwibmJmIjoxNzAwMDA5MDAwfQ.WYPc_lpyGAi_Wg6fYfSghx9BIlAtUq7TupSttCgKvgc",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700009500,
+          "complete": true,
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse"
+    },
+    {
+      "id": "vc-nbf-tolerance",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMTAwMDAsImlhdCI6MTcwMDAwMDAwMCwibmJmIjoxNzAwMDA5MDAwfQ.WYPc_lpyGAi_Wg6fYfSghx9BIlAtUq7TupSttCgKvgc",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700008990,
+          "complete": true,
+          "clockTolerance": 30,
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "options.clockTolerance",
+      "goFn": "jwt.WithLeeway"
+    },
+    {
+      "id": "vc-ignorenotbefore",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMTAwMDAsImlhdCI6MTcwMDAwMDAwMCwibmJmIjoxNzAwMDA5MDAwfQ.WYPc_lpyGAi_Wg6fYfSghx9BIlAtUq7TupSttCgKvgc",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "ignoreNotBefore": true,
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "options.ignoreNotBefore",
+      "goFn": "jwt.WithIgnoreNotBefore"
+    },
+    {
+      "id": "vc-aud-ok",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhdWQtYSIsImlhdCI6MTcwMDAwMDAwMCwiaXNzIjoiaXNzLWEiLCJqdGkiOiJqdGktYSIsInN1YiI6InN1Yi1hIn0.sLIOqytadZTNnQIqtEritKxeA2hL3OLVE-XnEb_VUew",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "audience": "aud-a",
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "options.audience",
+      "goFn": "jwt.WithAudience"
+    },
+    {
+      "id": "vc-aud-wrong",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhdWQtYSIsImlhdCI6MTcwMDAwMDAwMCwiaXNzIjoiaXNzLWEiLCJqdGkiOiJqdGktYSIsInN1YiI6InN1Yi1hIn0.sLIOqytadZTNnQIqtEritKxeA2hL3OLVE-XnEb_VUew",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "audience": "other",
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "options.audience",
+      "goFn": "jwt.WithAudience",
+      "note": "both must fail"
+    },
+    {
+      "id": "vc-aud-array-claim-member",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiYSIsImIiXSwiaWF0IjoxNzAwMDAwMDAwfQ.8dnpRGxmvZ3Wup0Vqj0YAhn-QJgFFvkGsYTTA_el3Mw",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "audience": "b",
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "options.audience",
+      "goFn": "jwt.WithAudience",
+      "note": "aud claim is an array; a single expected value must match a member"
+    },
+    {
+      "id": "vc-aud-array-claim-nonmember",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiYSIsImIiXSwiaWF0IjoxNzAwMDAwMDAwfQ.8dnpRGxmvZ3Wup0Vqj0YAhn-QJgFFvkGsYTTA_el3Mw",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "audience": "c",
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "options.audience",
+      "goFn": "jwt.WithAudience",
+      "note": "both must fail"
+    },
+    {
+      "id": "vc-aud-option-array",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhdWQtYSIsImlhdCI6MTcwMDAwMDAwMCwiaXNzIjoiaXNzLWEiLCJqdGkiOiJqdGktYSIsInN1YiI6InN1Yi1hIn0.sLIOqytadZTNnQIqtEritKxeA2hL3OLVE-XnEb_VUew",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "audience": [
+            "nope",
+            "aud-a"
+          ],
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "options.audience (array)",
+      "goFn": "\u2014",
+      "note": "upstream accepts an array of acceptable audiences; the port's WithAudience takes a single value"
+    },
+    {
+      "id": "vc-aud-missing-claim",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMH0.uSyiX6mW2QalXyp6PI6h2UsPl323b6Mz8hggXGyW0rw",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "audience": "aud-a",
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "options.audience",
+      "goFn": "jwt.WithAudience",
+      "note": "both must fail: aud required by the option but absent from the token"
+    },
+    {
+      "id": "vc-iss-ok",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhdWQtYSIsImlhdCI6MTcwMDAwMDAwMCwiaXNzIjoiaXNzLWEiLCJqdGkiOiJqdGktYSIsInN1YiI6InN1Yi1hIn0.sLIOqytadZTNnQIqtEritKxeA2hL3OLVE-XnEb_VUew",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "issuer": "iss-a",
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "options.issuer",
+      "goFn": "jwt.WithIssuer"
+    },
+    {
+      "id": "vc-iss-wrong",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhdWQtYSIsImlhdCI6MTcwMDAwMDAwMCwiaXNzIjoiaXNzLWEiLCJqdGkiOiJqdGktYSIsInN1YiI6InN1Yi1hIn0.sLIOqytadZTNnQIqtEritKxeA2hL3OLVE-XnEb_VUew",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "issuer": "other",
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "options.issuer",
+      "goFn": "jwt.WithIssuer",
+      "note": "both must fail"
+    },
+    {
+      "id": "vc-iss-option-array",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhdWQtYSIsImlhdCI6MTcwMDAwMDAwMCwiaXNzIjoiaXNzLWEiLCJqdGkiOiJqdGktYSIsInN1YiI6InN1Yi1hIn0.sLIOqytadZTNnQIqtEritKxeA2hL3OLVE-XnEb_VUew",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "issuer": [
+            "nope",
+            "iss-a"
+          ],
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "options.issuer (array)",
+      "goFn": "\u2014",
+      "note": "upstream accepts an array of acceptable issuers"
+    },
+    {
+      "id": "vc-sub-ok",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhdWQtYSIsImlhdCI6MTcwMDAwMDAwMCwiaXNzIjoiaXNzLWEiLCJqdGkiOiJqdGktYSIsInN1YiI6InN1Yi1hIn0.sLIOqytadZTNnQIqtEritKxeA2hL3OLVE-XnEb_VUew",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "subject": "sub-a",
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "options.subject",
+      "goFn": "jwt.WithSubject"
+    },
+    {
+      "id": "vc-sub-wrong",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhdWQtYSIsImlhdCI6MTcwMDAwMDAwMCwiaXNzIjoiaXNzLWEiLCJqdGkiOiJqdGktYSIsInN1YiI6InN1Yi1hIn0.sLIOqytadZTNnQIqtEritKxeA2hL3OLVE-XnEb_VUew",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "subject": "other",
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "options.subject",
+      "goFn": "jwt.WithSubject",
+      "note": "both must fail"
+    },
+    {
+      "id": "vc-jwtid-ok",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhdWQtYSIsImlhdCI6MTcwMDAwMDAwMCwiaXNzIjoiaXNzLWEiLCJqdGkiOiJqdGktYSIsInN1YiI6InN1Yi1hIn0.sLIOqytadZTNnQIqtEritKxeA2hL3OLVE-XnEb_VUew",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "jwtid": "jti-a",
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "options.jwtid",
+      "goFn": "\u2014",
+      "note": "the port has no jti-equality parser option"
+    },
+    {
+      "id": "vc-jwtid-wrong",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhdWQtYSIsImlhdCI6MTcwMDAwMDAwMCwiaXNzIjoiaXNzLWEiLCJqdGkiOiJqdGktYSIsInN1YiI6InN1Yi1hIn0.sLIOqytadZTNnQIqtEritKxeA2hL3OLVE-XnEb_VUew",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "jwtid": "other",
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "options.jwtid",
+      "goFn": "\u2014",
+      "note": "upstream rejects a mismatched jti; the port cannot express this check, so the Go runner reports a failure for a different reason"
+    },
+    {
+      "id": "vc-nonce-wrong",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhdWQtYSIsImlhdCI6MTcwMDAwMDAwMCwiaXNzIjoiaXNzLWEiLCJqdGkiOiJqdGktYSIsInN1YiI6InN1Yi1hIn0.sLIOqytadZTNnQIqtEritKxeA2hL3OLVE-XnEb_VUew",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "nonce": "n-1",
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "options.nonce",
+      "goFn": "\u2014",
+      "note": "upstream rejects a missing/mismatched nonce; the port has no such option, so the Go runner reports a failure for a different reason"
+    },
+    {
+      "id": "vc-maxage-ok",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MDAwMDAwMDB9.j660CxqqEtQZveQ0kVr0ibERruXlg7YqIXI4qnq_XO0",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000200,
+          "complete": true,
+          "maxAge": 300,
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "options.maxAge",
+      "goFn": "jwt.WithMaxTokenAge"
+    },
+    {
+      "id": "vc-maxage-exceeded",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MDAwMDAwMDB9.j660CxqqEtQZveQ0kVr0ibERruXlg7YqIXI4qnq_XO0",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000700,
+          "complete": true,
+          "maxAge": 300,
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "options.maxAge",
+      "goFn": "jwt.WithMaxTokenAge",
+      "note": "both must fail"
+    },
+    {
+      "id": "vc-maxage-timespan",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MDAwMDAwMDB9.j660CxqqEtQZveQ0kVr0ibERruXlg7YqIXI4qnq_XO0",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000200,
+          "complete": true,
+          "maxAge": "1h",
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "options.maxAge (string timespan)",
+      "goFn": "\u2014",
+      "note": "upstream parses 'ms' timespan strings; WithMaxTokenAge takes a Duration"
+    },
+    {
+      "id": "vc-iat-in-future-accepted",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MDAwMDUwMDB9.A692UMSFaFmFefjE0QpKNSZvnSevoQkqp6km5EOiWPQ",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "neither side checks iat unless asked (the port has WithIssuedAt)"
+    },
+    {
+      "id": "vc-complete-false-shape",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMH0.uSyiX6mW2QalXyp6PI6h2UsPl323b6Mz8hggXGyW0rw",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "options.complete (default false)",
+      "goFn": "jwt.Token.Claims",
+      "note": "default shape is the payload alone"
+    }
+  ]
+}

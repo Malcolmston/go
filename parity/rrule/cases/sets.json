@@ -1,0 +1,333 @@
+{
+  "group": "sets",
+  "upstream": "python-dateutil@2.9.0.post0",
+  "cases": [
+    {
+      "id": "set-rrule-only",
+      "fn": "set",
+      "args": [
+        {
+          "text": "DTSTART:19970902T090000\nRRULE:FREQ=DAILY;COUNT=5",
+          "limit": 8
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr(forceset=True)",
+      "goFn": "rrule.StrToSet"
+    },
+    {
+      "id": "set-rdate",
+      "fn": "set",
+      "args": [
+        {
+          "text": "DTSTART:19970902T090000\nRRULE:FREQ=DAILY;COUNT=5\nRDATE:19970910T090000",
+          "limit": 8
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr(forceset=True)",
+      "goFn": "rrule.StrToSet"
+    },
+    {
+      "id": "set-rdate-multi",
+      "fn": "set",
+      "args": [
+        {
+          "text": "DTSTART:19970902T090000\nRRULE:FREQ=DAILY;COUNT=3\nRDATE:19970920T090000,19970915T090000",
+          "limit": 8
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr(forceset=True)",
+      "goFn": "rrule.StrToSet",
+      "note": "RDATEs out of order must still come out sorted"
+    },
+    {
+      "id": "set-exdate",
+      "fn": "set",
+      "args": [
+        {
+          "text": "DTSTART:19970902T090000\nRRULE:FREQ=DAILY;COUNT=5\nEXDATE:19970903T090000",
+          "limit": 8
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr(forceset=True)",
+      "goFn": "rrule.StrToSet"
+    },
+    {
+      "id": "set-exdate-multi",
+      "fn": "set",
+      "args": [
+        {
+          "text": "DTSTART:19970902T090000\nRRULE:FREQ=DAILY;COUNT=6\nEXDATE:19970903T090000,19970905T090000",
+          "limit": 8
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr(forceset=True)",
+      "goFn": "rrule.StrToSet"
+    },
+    {
+      "id": "set-rdate-and-exdate",
+      "fn": "set",
+      "args": [
+        {
+          "text": "DTSTART:19970902T090000\nRRULE:FREQ=DAILY;COUNT=5\nRDATE:19970910T090000\nEXDATE:19970903T090000",
+          "limit": 8
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr(forceset=True)",
+      "goFn": "rrule.StrToSet"
+    },
+    {
+      "id": "set-exdate-cancels-rdate",
+      "fn": "set",
+      "args": [
+        {
+          "text": "DTSTART:19970902T090000\nRRULE:FREQ=DAILY;COUNT=3\nRDATE:19970910T090000\nEXDATE:19970910T090000",
+          "limit": 8
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr(forceset=True)",
+      "goFn": "rrule.StrToSet"
+    },
+    {
+      "id": "set-exdate-no-match",
+      "fn": "set",
+      "args": [
+        {
+          "text": "DTSTART:19970902T090000\nRRULE:FREQ=DAILY;COUNT=4\nEXDATE:19991231T090000",
+          "limit": 8
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr(forceset=True)",
+      "goFn": "rrule.StrToSet",
+      "note": "an EXDATE matching nothing changes nothing"
+    },
+    {
+      "id": "set-exrule",
+      "fn": "set",
+      "args": [
+        {
+          "text": "DTSTART:19970902T090000\nRRULE:FREQ=DAILY;COUNT=10\nEXRULE:FREQ=DAILY;INTERVAL=2;COUNT=5",
+          "limit": 12
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr(forceset=True)",
+      "goFn": "rrule.StrToSet"
+    },
+    {
+      "id": "set-exrule-weekday",
+      "fn": "set",
+      "args": [
+        {
+          "text": "DTSTART:19970902T090000\nRRULE:FREQ=DAILY;COUNT=14\nEXRULE:FREQ=WEEKLY;BYDAY=SA,SU;COUNT=6",
+          "limit": 16
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr(forceset=True)",
+      "goFn": "rrule.StrToSet"
+    },
+    {
+      "id": "set-two-rrules",
+      "fn": "set",
+      "args": [
+        {
+          "text": "DTSTART:19970902T090000\nRRULE:FREQ=WEEKLY;BYDAY=MO;COUNT=3\nRRULE:FREQ=WEEKLY;BYDAY=WE;COUNT=3",
+          "limit": 10
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr(forceset=True)",
+      "goFn": "rrule.StrToSet",
+      "note": "two rules merge and de-duplicate"
+    },
+    {
+      "id": "set-duplicate-instants",
+      "fn": "set",
+      "args": [
+        {
+          "text": "DTSTART:19970902T090000\nRRULE:FREQ=DAILY;COUNT=3\nRRULE:FREQ=DAILY;COUNT=3",
+          "limit": 8
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr(forceset=True)",
+      "goFn": "rrule.StrToSet",
+      "note": "identical rules must not double up"
+    },
+    {
+      "id": "set-rdate-equals-occurrence",
+      "fn": "set",
+      "args": [
+        {
+          "text": "DTSTART:19970902T090000\nRRULE:FREQ=DAILY;COUNT=3\nRDATE:19970903T090000",
+          "limit": 8
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr(forceset=True)",
+      "goFn": "rrule.StrToSet"
+    },
+    {
+      "id": "set-friday-13th-exdate",
+      "fn": "set",
+      "args": [
+        {
+          "text": "DTSTART:19970902T090000\nRRULE:FREQ=MONTHLY;BYDAY=FR;BYMONTHDAY=13\nEXDATE:19970902T090000",
+          "limit": 8
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr(forceset=True)",
+      "goFn": "rrule.StrToSet",
+      "note": "RFC 5545 3.8.5.3: every Friday the 13th, DTSTART itself excluded"
+    },
+    {
+      "id": "set-tzid",
+      "fn": "set",
+      "args": [
+        {
+          "text": "DTSTART;TZID=America/New_York:19970902T090000\nRRULE:FREQ=DAILY;COUNT=4",
+          "limit": 8,
+          "tz": "America/New_York"
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr(forceset=True)",
+      "goFn": "rrule.StrToSet",
+      "note": "DTSTART;TZID= inside a set"
+    },
+    {
+      "id": "set-tzid-across-dst",
+      "fn": "set",
+      "args": [
+        {
+          "text": "DTSTART;TZID=America/New_York:20241101T013000\nRRULE:FREQ=DAILY;COUNT=5",
+          "limit": 8,
+          "tz": "America/New_York"
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr(forceset=True)",
+      "goFn": "rrule.StrToSet",
+      "note": "set anchored on an ambiguous wall clock"
+    },
+    {
+      "id": "set-utc-z",
+      "fn": "set",
+      "args": [
+        {
+          "text": "DTSTART:19970902T090000Z\nRRULE:FREQ=DAILY;COUNT=4",
+          "limit": 8,
+          "tz": "UTC"
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr(forceset=True)",
+      "goFn": "rrule.StrToSet",
+      "note": "a UTC-designated DTSTART"
+    },
+    {
+      "id": "set-rdate-only",
+      "fn": "set",
+      "args": [
+        {
+          "text": "RDATE:19970902T090000,19970903T090000",
+          "limit": 8
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr(forceset=True)",
+      "goFn": "rrule.StrToSet",
+      "note": "a set with no rule at all"
+    },
+    {
+      "id": "set-no-rrule-exdate-only",
+      "fn": "set",
+      "args": [
+        {
+          "text": "EXDATE:19970902T090000",
+          "limit": 8
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr(forceset=True)",
+      "goFn": "rrule.StrToSet",
+      "note": "degenerate: nothing to recur"
+    },
+    {
+      "id": "set-unbounded-rrule",
+      "fn": "set",
+      "args": [
+        {
+          "text": "DTSTART:19970902T090000\nRRULE:FREQ=DAILY",
+          "limit": 10
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr(forceset=True)",
+      "goFn": "rrule.StrToSet",
+      "note": "unbounded rule inside a set, capped by the case limit"
+    },
+    {
+      "id": "setbuild-rrule-rdate-exdate",
+      "fn": "setbuild",
+      "args": [
+        {
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 10,
+          "rrules": [
+            "FREQ=DAILY;COUNT=5"
+          ],
+          "rdates": [
+            "1997-09-10T09:00:00"
+          ],
+          "exdates": [
+            "1997-09-03T09:00:00"
+          ]
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rruleset",
+      "goFn": "rrule.Set"
+    },
+    {
+      "id": "setbuild-exrule",
+      "fn": "setbuild",
+      "args": [
+        {
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 12,
+          "rrules": [
+            "FREQ=DAILY;COUNT=10"
+          ],
+          "exrules": [
+            "FREQ=DAILY;INTERVAL=3;COUNT=4"
+          ]
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rruleset.exrule",
+      "goFn": "rrule.Set.ExRule"
+    },
+    {
+      "id": "setbuild-two-rules-tz",
+      "fn": "setbuild",
+      "args": [
+        {
+          "dtstart": "2024-03-08T02:30:00",
+          "tz": "America/New_York",
+          "limit": 12,
+          "rrules": [
+            "FREQ=DAILY;COUNT=6",
+            "FREQ=WEEKLY;BYDAY=FR;COUNT=3"
+          ]
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rruleset.rrule",
+      "goFn": "rrule.Set.RRule",
+      "note": "merge across a DST transition"
+    },
+    {
+      "id": "setbuild-empty",
+      "fn": "setbuild",
+      "args": [
+        {
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 5
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rruleset",
+      "goFn": "rrule.Set",
+      "note": "empty set yields nothing"
+    }
+  ]
+}

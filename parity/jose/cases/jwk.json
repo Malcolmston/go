@@ -1,0 +1,52 @@
+{
+  "group": "jwk",
+  "upstream": "jose@5.9.6",
+  "cases": [
+    {
+      "id": "jwk-rt-rsa-priv",
+      "fn": "jwk.roundtrip",
+      "args": ["rsa2048-priv", { "alg": "RS256" }],
+      "upstreamFn": "jose.importJWK / jose.exportJWK",
+      "goFn": "jose.ParseJWK / JWK.Key / jose.FromKey",
+      "note": "import then export must reproduce every RSA CRT parameter"
+    },
+    { "id": "jwk-rt-rsa-pub", "fn": "jwk.roundtrip", "args": ["rsa2048-pub", { "alg": "RS256" }], "upstreamFn": "jose.importJWK / jose.exportJWK", "goFn": "jose.ParseJWK / JWK.Key / jose.FromKey" },
+    { "id": "jwk-rt-ec-p256-priv", "fn": "jwk.roundtrip", "args": ["ec-p256-priv", { "alg": "ES256" }], "upstreamFn": "jose.importJWK / jose.exportJWK", "goFn": "jose.ParseJWK / JWK.Key / jose.FromKey" },
+    { "id": "jwk-rt-ec-p256-pub", "fn": "jwk.roundtrip", "args": ["ec-p256-pub", { "alg": "ES256" }], "upstreamFn": "jose.importJWK / jose.exportJWK", "goFn": "jose.ParseJWK / JWK.Key / jose.FromKey" },
+    { "id": "jwk-rt-ec-p384-priv", "fn": "jwk.roundtrip", "args": ["ec-p384-priv", { "alg": "ES384" }], "upstreamFn": "jose.importJWK / jose.exportJWK", "goFn": "jose.ParseJWK / JWK.Key / jose.FromKey" },
+    { "id": "jwk-rt-ec-p521-priv", "fn": "jwk.roundtrip", "args": ["ec-p521-priv", { "alg": "ES512" }], "upstreamFn": "jose.importJWK / jose.exportJWK", "goFn": "jose.ParseJWK / JWK.Key / jose.FromKey" },
+    { "id": "jwk-rt-ed25519-priv", "fn": "jwk.roundtrip", "args": ["ed25519-priv", { "alg": "EdDSA" }], "upstreamFn": "jose.importJWK / jose.exportJWK", "goFn": "jose.ParseJWK / JWK.Key / jose.FromKey" },
+    { "id": "jwk-rt-ed25519-pub", "fn": "jwk.roundtrip", "args": ["ed25519-pub", { "alg": "EdDSA" }], "upstreamFn": "jose.importJWK / jose.exportJWK", "goFn": "jose.ParseJWK / JWK.Key / jose.FromKey" },
+    { "id": "jwk-rt-x25519-priv", "fn": "jwk.roundtrip", "args": ["x25519-priv", { "alg": "ECDH-ES" }], "upstreamFn": "jose.importJWK / jose.exportJWK", "goFn": "jose.ParseJWK / JWK.Key / jose.FromKey", "note": "RFC 8037 OKP X25519" },
+    { "id": "jwk-rt-x25519-pub", "fn": "jwk.roundtrip", "args": ["x25519-pub", { "alg": "ECDH-ES" }], "upstreamFn": "jose.importJWK / jose.exportJWK", "goFn": "jose.ParseJWK / JWK.Key / jose.FromKey" },
+    { "id": "jwk-rt-oct", "fn": "jwk.roundtrip", "args": ["oct-32", { "alg": "HS256" }], "upstreamFn": "jose.importJWK / jose.exportJWK", "goFn": "jose.ParseJWK / JWK.Key / jose.FromKey" },
+
+    { "id": "jwk-thumbprint-rsa", "fn": "jwk.thumbprint", "args": ["rsa2048-pub"], "upstreamFn": "jose.calculateJwkThumbprint", "goFn": "JWK.Thumbprint", "note": "RFC 7638" },
+    { "id": "jwk-thumbprint-rsa-priv", "fn": "jwk.thumbprint", "args": ["rsa2048-priv"], "upstreamFn": "jose.calculateJwkThumbprint", "goFn": "JWK.Thumbprint", "note": "private parameters must not affect the thumbprint" },
+    { "id": "jwk-thumbprint-ec-p256", "fn": "jwk.thumbprint", "args": ["ec-p256-pub"], "upstreamFn": "jose.calculateJwkThumbprint", "goFn": "JWK.Thumbprint" },
+    { "id": "jwk-thumbprint-ec-p384", "fn": "jwk.thumbprint", "args": ["ec-p384-pub"], "upstreamFn": "jose.calculateJwkThumbprint", "goFn": "JWK.Thumbprint" },
+    { "id": "jwk-thumbprint-ec-p521", "fn": "jwk.thumbprint", "args": ["ec-p521-pub"], "upstreamFn": "jose.calculateJwkThumbprint", "goFn": "JWK.Thumbprint" },
+    { "id": "jwk-thumbprint-ed25519", "fn": "jwk.thumbprint", "args": ["ed25519-pub"], "upstreamFn": "jose.calculateJwkThumbprint", "goFn": "JWK.Thumbprint" },
+    { "id": "jwk-thumbprint-x25519", "fn": "jwk.thumbprint", "args": ["x25519-pub"], "upstreamFn": "jose.calculateJwkThumbprint", "goFn": "JWK.Thumbprint" },
+    { "id": "jwk-thumbprint-oct", "fn": "jwk.thumbprint", "args": ["oct-32"], "upstreamFn": "jose.calculateJwkThumbprint", "goFn": "JWK.Thumbprint" },
+    { "id": "jwk-thumbprint-ignores-use-alg-kid", "fn": "jwk.thumbprint", "args": ["rsa2048-pub-use-sig"], "upstreamFn": "jose.calculateJwkThumbprint", "goFn": "JWK.Thumbprint", "note": "only the required members enter the digest" },
+
+    { "id": "jwk-public-rsa", "fn": "jwk.public", "args": ["rsa2048-priv", { "alg": "RS256" }], "upstreamFn": "jose.exportJWK", "goFn": "JWK.Public" },
+    { "id": "jwk-public-ec-p256", "fn": "jwk.public", "args": ["ec-p256-priv", { "alg": "ES256" }], "upstreamFn": "jose.exportJWK", "goFn": "JWK.Public" },
+    { "id": "jwk-public-ed25519", "fn": "jwk.public", "args": ["ed25519-priv", { "alg": "EdDSA" }], "upstreamFn": "jose.exportJWK", "goFn": "JWK.Public" },
+    { "id": "jwk-public-x25519", "fn": "jwk.public", "args": ["x25519-priv", { "alg": "ECDH-ES" }], "upstreamFn": "jose.exportJWK", "goFn": "JWK.Public" },
+
+    { "id": "jwks-lookup-rsa-1", "fn": "jwks.lookup", "args": ["jwks", "rsa-1", { "alg": "RS256" }], "upstreamFn": "jose.createLocalJWKSet", "goFn": "JWKSet.LookupKeyID", "note": "JWKS selection by kid, reported as the selected key's thumbprint" },
+    { "id": "jwks-lookup-ec-1", "fn": "jwks.lookup", "args": ["jwks", "ec-1", { "alg": "ES256" }], "upstreamFn": "jose.createLocalJWKSet", "goFn": "JWKSet.LookupKeyID" },
+    { "id": "jwks-lookup-ed-1", "fn": "jwks.lookup", "args": ["jwks", "ed-1", { "alg": "EdDSA" }], "upstreamFn": "jose.createLocalJWKSet", "goFn": "JWKSet.LookupKeyID" },
+    {
+      "id": "jwks-lookup-unknown-kid",
+      "fn": "jwks.lookup",
+      "args": ["jwks", "does-not-exist", { "alg": "RS256" }],
+      "mustFail": true,
+      "upstreamFn": "jose.createLocalJWKSet",
+      "goFn": "JWKSet.LookupKeyID",
+      "note": "no key for the requested kid"
+    }
+  ]
+}

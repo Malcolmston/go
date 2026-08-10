@@ -1,0 +1,67 @@
+{
+  "group": "function",
+  "upstream": "lodash@4.17.21",
+  "cases": [
+    { "id": "after-3", "fn": "after", "args": [3, [[], [], [], []]], "upstreamFn": "_.after", "goFn": "lodash.After", "note": "the wrapped fn is a fresh counter; JS returns undefined before the threshold" },
+    { "id": "after-0", "fn": "after", "args": [0, [[], []]], "upstreamFn": "_.after", "goFn": "lodash.After" },
+    { "id": "before-2", "fn": "before", "args": [2, [[], [], []]], "upstreamFn": "_.before", "goFn": "lodash.Before" },
+    { "id": "before-1", "deviation": "Go Before returns only R, so it cannot report that the wrapped function was never called; JS yields undefined", "fn": "before", "args": [1, [[], []]], "upstreamFn": "_.before", "goFn": "lodash.Before" },
+    { "id": "once-3-calls", "fn": "once", "args": [[[], [], []]], "upstreamFn": "_.once", "goFn": "lodash.Once" },
+    { "id": "memoize-repeat-key", "fn": "memoize", "args": [[["a"], ["b"], ["a"]]], "upstreamFn": "_.memoize", "goFn": "lodash.Memoize", "note": "the counter proves the second 'a' is cached" },
+
+    { "id": "negate-isEven", "fn": "negate", "args": [{ "$fn": "isEven" }, [[1], [2]]], "upstreamFn": "_.negate", "goFn": "lodash.Negate" },
+    { "id": "unary-double", "fn": "unary", "args": [{ "$fn": "double" }, [[3], [4]]], "upstreamFn": "_.unary", "goFn": "lodash.Unary" },
+    { "id": "ary-1", "fn": "ary", "args": [{ "$fn": "add2" }, 1, [[1, 2], [5, 6]]], "upstreamFn": "_.ary", "goFn": "lodash.Ary", "note": "second argument is dropped; JS then adds undefined -> NaN" },
+    { "id": "ary-2", "fn": "ary", "args": [{ "$fn": "add2" }, 2, [[1, 2]]], "upstreamFn": "_.ary", "goFn": "lodash.Ary" },
+    { "id": "flip-sub", "fn": "flip", "args": [{ "$fn": "sub2" }, [[1, 10]]], "upstreamFn": "_.flip", "goFn": "lodash.Flip" },
+    { "id": "partial-sub", "fn": "partial", "args": [{ "$fn": "sub2" }, 10, [[4]]], "upstreamFn": "_.partial", "goFn": "lodash.Partial" },
+    { "id": "partialRight-sub", "fn": "partialRight", "args": [{ "$fn": "sub2" }, 4, [[10]]], "upstreamFn": "_.partialRight", "goFn": "lodash.PartialRight" },
+    { "id": "rearg-swap", "fn": "rearg", "args": [{ "$fn": "sub2" }, [1, 0], [[1, 10]]], "upstreamFn": "_.rearg", "goFn": "lodash.Rearg" },
+    { "id": "spread-add", "fn": "spread", "args": [{ "$fn": "add2" }, [[[1, 2]]]], "upstreamFn": "_.spread", "goFn": "lodash.Spread" },
+    { "id": "rest-count", "fn": "rest", "args": [{ "$fn": "identity" }, [[1, 2, 3], []]], "upstreamFn": "_.rest", "goFn": "lodash.Rest", "note": "the wrapped fn reports how many variadic args it received" },
+    { "id": "overArgs-double-square", "fn": "overArgs", "args": [{ "$fn": "add2" }, [{ "$fn": "double" }, { "$fn": "square" }], [[2, 3]]], "upstreamFn": "_.overArgs", "goFn": "lodash.OverArgs" },
+    { "id": "wrap-concat", "fn": "wrap", "args": ["v", { "$fn": "concat2" }, [["x"]]], "upstreamFn": "_.wrap", "goFn": "lodash.Wrap" },
+
+    { "id": "curry2-add", "fn": "curry2", "args": [{ "$fn": "add2" }, 1, 2], "upstreamFn": "_.curry", "goFn": "lodash.Curry" },
+    { "id": "curry2-concat", "fn": "curry2", "args": [{ "$fn": "concat2" }, "a", "b"], "upstreamFn": "_.curry", "goFn": "lodash.Curry" },
+    { "id": "curryRight2-sub", "fn": "curryRight2", "args": [{ "$fn": "sub2" }, 10, 4], "upstreamFn": "_.curryRight", "goFn": "lodash.CurryRight" },
+
+    { "id": "flow-double-square", "fn": "flow", "args": [[{ "$fn": "double" }, { "$fn": "square" }], [[3]]], "upstreamFn": "_.flow", "goFn": "lodash.Flow" },
+    { "id": "flow-empty", "fn": "flow", "args": [[], [[3]]], "upstreamFn": "_.flow", "goFn": "lodash.Flow" },
+    { "id": "flowRight-double-square", "fn": "flowRight", "args": [[{ "$fn": "double" }, { "$fn": "square" }], [[3]]], "upstreamFn": "_.flowRight", "goFn": "lodash.FlowRight" },
+    { "id": "over-two", "fn": "over", "args": [[{ "$fn": "double" }, { "$fn": "square" }], [[3]]], "upstreamFn": "_.over", "goFn": "lodash.Over" },
+    { "id": "overEvery-true", "fn": "overEvery", "args": [[{ "$fn": "isEven" }, { "$fn": "gt2" }], [[4], [2]]], "upstreamFn": "_.overEvery", "goFn": "lodash.OverEvery" },
+    { "id": "overSome-true", "fn": "overSome", "args": [[{ "$fn": "isEven" }, { "$fn": "gt2" }], [[3], [1]]], "upstreamFn": "_.overSome", "goFn": "lodash.OverSome" },
+    { "id": "cond-match", "fn": "cond", "args": [[[{ "$fn": "isEven" }, { "$fn": "double" }], [{ "$fn": "gt2" }, { "$fn": "square" }]], [[4], [3]]], "upstreamFn": "_.cond", "goFn": "lodash.Cond" },
+    { "id": "cond-no-match", "fn": "cond", "args": [[[{ "$fn": "isEven" }, { "$fn": "double" }]], [[1]]], "upstreamFn": "_.cond", "goFn": "lodash.Cond", "note": "JS returns undefined, Go returns (zero, false)" },
+
+    { "id": "constant-value", "fn": "constant", "args": [42, [[], [1]]], "upstreamFn": "_.constant", "goFn": "lodash.Constant" },
+    { "id": "identity-values", "fn": "identityFn", "args": [[[1], ["a"], [null]]], "upstreamFn": "_.identity", "goFn": "lodash.Identity" },
+    { "id": "nthArg-1", "fn": "nthArg", "args": [1, [["a", "b", "c"]]], "upstreamFn": "_.nthArg", "goFn": "lodash.NthArg" },
+    { "id": "nthArg-negative", "fn": "nthArg", "args": [-1, [["a", "b", "c"]]], "upstreamFn": "_.nthArg", "goFn": "lodash.NthArg", "note": "negative index counts from the end in JS" },
+
+    { "id": "property-deep", "fn": "property", "args": ["a.b", [[{ "a": { "b": 2 } }]]], "upstreamFn": "_.property", "goFn": "lodash.Property" },
+    { "id": "property-missing", "fn": "property", "args": ["z", [[{ "a": 1 }]]], "upstreamFn": "_.property", "goFn": "lodash.Property" },
+    { "id": "propertyOf-basic", "fn": "propertyOf", "args": [{ "a": { "b": 2 } }, [["a.b"], ["z"]]], "upstreamFn": "_.propertyOf", "goFn": "lodash.PropertyOf" },
+    { "id": "matches-subset", "fn": "matches", "args": [{ "a": 1 }, [[{ "a": 1, "b": 2 }], [{ "a": 2 }]]], "upstreamFn": "_.matches", "goFn": "lodash.Matches" },
+    { "id": "matchesProperty-hit", "fn": "matchesProperty", "args": ["a", 1, [[{ "a": 1 }], [{ "a": 2 }]]], "upstreamFn": "_.matchesProperty", "goFn": "lodash.MatchesProperty" },
+    { "id": "matchesProperty-deep", "fn": "matchesProperty", "args": ["a.b", 1, [[{ "a": { "b": 1 } }]]], "upstreamFn": "_.matchesProperty", "goFn": "lodash.MatchesProperty" },
+    { "id": "conforms-spec", "fn": "conforms", "args": [{ "a": { "$fn": "isEven" } }, [[{ "a": 2 }], [{ "a": 1 }]]], "upstreamFn": "_.conforms", "goFn": "lodash.Conforms" },
+
+    { "id": "times-double", "fn": "times", "args": [4, { "$fn": "double" }], "upstreamFn": "_.times", "goFn": "lodash.Times" },
+    { "id": "times-zero", "fn": "times", "args": [0, { "$fn": "double" }], "upstreamFn": "_.times", "goFn": "lodash.Times" },
+    { "id": "times-negative", "fn": "times", "args": [-1, { "$fn": "double" }], "upstreamFn": "_.times", "goFn": "lodash.Times" },
+
+    { "id": "noop-returns", "fn": "noop", "args": [], "upstreamFn": "_.noop", "goFn": "lodash.Noop" },
+    { "id": "stubArray-empty", "fn": "stubArray", "args": [], "upstreamFn": "_.stubArray", "goFn": "lodash.StubArray" },
+    { "id": "stubObject-empty", "fn": "stubObject", "args": [], "upstreamFn": "_.stubObject", "goFn": "lodash.StubObject" },
+    { "id": "stubString-empty", "fn": "stubString", "args": [], "upstreamFn": "_.stubString", "goFn": "lodash.StubString" },
+    { "id": "stubTrue-true", "fn": "stubTrue", "args": [], "upstreamFn": "_.stubTrue", "goFn": "lodash.StubTrue" },
+    { "id": "stubFalse-false", "fn": "stubFalse", "args": [], "upstreamFn": "_.stubFalse", "goFn": "lodash.StubFalse" },
+
+    { "id": "attempt-ok", "fn": "attempt", "args": ["ok"], "upstreamFn": "_.attempt", "goFn": "lodash.Attempt" },
+    { "id": "attempt-throw", "fn": "attempt", "args": ["throw"], "upstreamFn": "_.attempt", "goFn": "lodash.Attempt" },
+    { "id": "uniqueId-shape", "fn": "uniqueId", "args": ["contact_"], "upstreamFn": "_.uniqueId", "goFn": "lodash.UniqueID", "note": "compares the prefix shape and that the counter advances by 1" },
+    { "id": "uniqueId-no-prefix", "fn": "uniqueId", "args": [""], "upstreamFn": "_.uniqueId", "goFn": "lodash.UniqueID" }
+  ]
+}

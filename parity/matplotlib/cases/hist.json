@@ -1,0 +1,99 @@
+{
+  "group": "hist",
+  "upstream": "matplotlib@3.10.0",
+  "note": "Histogram binning: bin edges and per-bin counts. Upstream is numpy.histogram, which is exactly what matplotlib.axes.Axes.hist delegates to. The Go port keeps its edges and counts unexported, so the Go runner reads the bars back out of the rendered SVG and inverts the axes transform; hence tol 1e-4 on the edges (counts are integers and are rounded).",
+  "cases": [
+    {
+      "id": "hist-4-bins",
+      "fn": "hist_bins",
+      "args": {"data": [1, 2, 2, 3, 3, 3, 4, 4, 5, 9], "bins": 4},
+      "upstreamFn": "numpy.histogram / matplotlib.axes.Axes.hist",
+      "goFn": "matplotlib.Axes.Hist",
+      "tol": 0.0001
+    },
+    {
+      "id": "hist-10-bins",
+      "fn": "hist_bins",
+      "args": {"data": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], "bins": 10},
+      "upstreamFn": "numpy.histogram / matplotlib.axes.Axes.hist",
+      "goFn": "matplotlib.Axes.Hist",
+      "tol": 0.0001
+    },
+    {
+      "id": "hist-1-bin",
+      "fn": "hist_bins",
+      "args": {"data": [1, 4, 7, 9], "bins": 1},
+      "upstreamFn": "numpy.histogram / matplotlib.axes.Axes.hist",
+      "goFn": "matplotlib.Axes.Hist",
+      "tol": 0.0001
+    },
+    {
+      "id": "hist-negative-data",
+      "fn": "hist_bins",
+      "args": {"data": [-5, -3, -3, -1, 0, 0, 0, 2, 4], "bins": 3},
+      "upstreamFn": "numpy.histogram / matplotlib.axes.Axes.hist",
+      "goFn": "matplotlib.Axes.Hist",
+      "tol": 0.0001
+    },
+    {
+      "id": "hist-fractional-edges",
+      "fn": "hist_bins",
+      "args": {"data": [0.15, 0.22, 0.37, 0.41, 0.63, 0.68, 0.91], "bins": 5},
+      "upstreamFn": "numpy.histogram / matplotlib.axes.Axes.hist",
+      "goFn": "matplotlib.Axes.Hist",
+      "tol": 0.0001
+    },
+    {
+      "id": "hist-single-value",
+      "fn": "hist_bins",
+      "args": {"data": [3, 3, 3, 3], "bins": 2},
+      "upstreamFn": "numpy.histogram on a zero-width range",
+      "goFn": "matplotlib.Axes.Hist on a zero-width range",
+      "note": "numpy widens a degenerate range to (v-0.5, v+0.5); the port widens it to (v, v+1)",
+      "tol": 0.0001
+    },
+    {
+      "id": "hist-empty-1-bin",
+      "fn": "hist_bins",
+      "args": {"data": [], "bins": 1},
+      "upstreamFn": "numpy.histogram on empty input",
+      "goFn": "matplotlib.Axes.Hist on empty input",
+      "tol": 0.0001
+    },
+    {
+      "id": "hist-empty-3-bins",
+      "fn": "hist_bins",
+      "args": {"data": [], "bins": 3},
+      "upstreamFn": "numpy.histogram on empty input",
+      "goFn": "matplotlib.Axes.Hist on empty input",
+      "note": "the port collapses empty input to a single [0,1] bin regardless of the requested bin count",
+      "tol": 0.0001
+    },
+    {
+      "id": "hist-bins-zero",
+      "fn": "hist_bins",
+      "args": {"data": [1, 2, 3], "bins": 0},
+      "upstreamFn": "numpy.histogram with bins=0",
+      "goFn": "matplotlib.Axes.Hist with bins<=0",
+      "note": "both sides must fail, or the port must not silently substitute a different bin count",
+      "tol": 0.0001
+    },
+    {
+      "id": "hist-bins-negative",
+      "fn": "hist_bins",
+      "args": {"data": [1, 2, 3], "bins": -3},
+      "upstreamFn": "numpy.histogram with a negative bin count",
+      "goFn": "matplotlib.Axes.Hist with bins<=0",
+      "note": "both sides must fail",
+      "tol": 0.0001
+    },
+    {
+      "id": "hist-outlier-tail",
+      "fn": "hist_bins",
+      "args": {"data": [1, 1, 1, 1, 1, 2, 2, 100], "bins": 5},
+      "upstreamFn": "numpy.histogram / matplotlib.axes.Axes.hist",
+      "goFn": "matplotlib.Axes.Hist",
+      "tol": 0.0001
+    }
+  ]
+}

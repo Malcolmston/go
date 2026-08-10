@@ -1,0 +1,19 @@
+{
+  "group": "control",
+  "upstream": "streamlit==1.61.1",
+  "cases": [
+    {
+      "id": "stop-halts-run",
+      "fn": "stop",
+      "args": [[{"op": "set", "key": "w_checkbox", "value": true}, {"op": "set", "key": "w_checkbox", "value": false}]],
+      "upstreamFn": "st.stop", "goFn": "st.Session.Stop"
+    },
+    {
+      "id": "stop-swallowed-by-app",
+      "fn": "stop-swallowed",
+      "args": [[]],
+      "upstreamFn": "st.stop", "goFn": "st.Session.Stop",
+      "note": "st.stop requests a stop from the script runner and cannot be caught; Session.Stop panics an unexported sentinel that a recover() in app code swallows"
+    }
+  ]
+}

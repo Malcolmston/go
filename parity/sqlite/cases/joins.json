@@ -1,0 +1,267 @@
+{
+  "group": "joins",
+  "upstream": "sqlite3@3.45.3",
+  "cases": [
+    {
+      "id": "join-inner-on",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)",
+            "CREATE TABLE o (oid INTEGER PRIMARY KEY, tid INTEGER, amount INTEGER)",
+            "INSERT INTO o (oid, tid, amount) VALUES (10,1,100),(11,1,200),(12,2,300),(13,9,400)"
+          ],
+          "query": "SELECT t.name AS n, o.amount AS amt FROM t INNER JOIN o ON o.tid = t.id ORDER BY o.oid"
+        }
+      ],
+      "upstreamFn": "INNER JOIN ... ON",
+      "goFn": "sqlite: INNER JOIN ... ON"
+    },
+    {
+      "id": "join-bare-join",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)",
+            "CREATE TABLE o (oid INTEGER PRIMARY KEY, tid INTEGER, amount INTEGER)",
+            "INSERT INTO o (oid, tid, amount) VALUES (10,1,100),(11,1,200),(12,2,300),(13,9,400)"
+          ],
+          "query": "SELECT t.name AS n, o.amount AS amt FROM t JOIN o ON o.tid = t.id ORDER BY o.oid"
+        }
+      ],
+      "upstreamFn": "JOIN ... ON (INNER implied)",
+      "goFn": "sqlite: JOIN ... ON (INNER implied)"
+    },
+    {
+      "id": "join-aliased",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)",
+            "CREATE TABLE o (oid INTEGER PRIMARY KEY, tid INTEGER, amount INTEGER)",
+            "INSERT INTO o (oid, tid, amount) VALUES (10,1,100),(11,1,200),(12,2,300),(13,9,400)"
+          ],
+          "query": "SELECT a.name AS n, b.amount AS amt FROM t AS a JOIN o AS b ON b.tid = a.id ORDER BY b.oid"
+        }
+      ],
+      "upstreamFn": "JOIN with aliases",
+      "goFn": "sqlite: JOIN with aliases"
+    },
+    {
+      "id": "join-where",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)",
+            "CREATE TABLE o (oid INTEGER PRIMARY KEY, tid INTEGER, amount INTEGER)",
+            "INSERT INTO o (oid, tid, amount) VALUES (10,1,100),(11,1,200),(12,2,300),(13,9,400)"
+          ],
+          "query": "SELECT t.name AS n, o.amount AS amt FROM t JOIN o ON o.tid = t.id WHERE o.amount > 150 ORDER BY o.oid"
+        }
+      ],
+      "upstreamFn": "JOIN + WHERE",
+      "goFn": "sqlite: JOIN + WHERE"
+    },
+    {
+      "id": "join-agg",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)",
+            "CREATE TABLE o (oid INTEGER PRIMARY KEY, tid INTEGER, amount INTEGER)",
+            "INSERT INTO o (oid, tid, amount) VALUES (10,1,100),(11,1,200),(12,2,300),(13,9,400)"
+          ],
+          "query": "SELECT t.name AS n, sum(o.amount) AS s FROM t JOIN o ON o.tid = t.id GROUP BY t.name ORDER BY n"
+        }
+      ],
+      "upstreamFn": "JOIN + GROUP BY",
+      "goFn": "sqlite: JOIN + GROUP BY"
+    },
+    {
+      "id": "join-left-aliased",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)",
+            "CREATE TABLE o (oid INTEGER PRIMARY KEY, tid INTEGER, amount INTEGER)",
+            "INSERT INTO o (oid, tid, amount) VALUES (10,1,100),(11,1,200),(12,2,300),(13,9,400)"
+          ],
+          "query": "SELECT a.id AS id, b.amount AS amt FROM t AS a LEFT JOIN o AS b ON b.tid = a.id ORDER BY a.id, b.amount"
+        }
+      ],
+      "upstreamFn": "LEFT JOIN with aliases",
+      "goFn": "sqlite: LEFT JOIN with aliases"
+    },
+    {
+      "id": "join-left-outer-aliased",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)",
+            "CREATE TABLE o (oid INTEGER PRIMARY KEY, tid INTEGER, amount INTEGER)",
+            "INSERT INTO o (oid, tid, amount) VALUES (10,1,100),(11,1,200),(12,2,300),(13,9,400)"
+          ],
+          "query": "SELECT a.id AS id, b.amount AS amt FROM t AS a LEFT OUTER JOIN o AS b ON b.tid = a.id ORDER BY a.id, b.amount"
+        }
+      ],
+      "upstreamFn": "LEFT OUTER JOIN",
+      "goFn": "sqlite: LEFT OUTER JOIN"
+    },
+    {
+      "id": "join-cross-comma",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)",
+            "CREATE TABLE o (oid INTEGER PRIMARY KEY, tid INTEGER, amount INTEGER)",
+            "INSERT INTO o (oid, tid, amount) VALUES (10,1,100),(11,1,200),(12,2,300),(13,9,400)"
+          ],
+          "query": "SELECT t.id AS tid, o.oid AS oid FROM t, o WHERE o.tid = t.id ORDER BY t.id, o.oid"
+        }
+      ],
+      "upstreamFn": "FROM a, b (comma join)",
+      "goFn": "sqlite: FROM a, b (comma join)"
+    },
+    {
+      "id": "join-cross-keyword",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)",
+            "CREATE TABLE o (oid INTEGER PRIMARY KEY, tid INTEGER, amount INTEGER)",
+            "INSERT INTO o (oid, tid, amount) VALUES (10,1,100),(11,1,200),(12,2,300),(13,9,400)"
+          ],
+          "query": "SELECT t.id AS tid, o.oid AS oid FROM t CROSS JOIN o WHERE o.tid = t.id ORDER BY t.id, o.oid"
+        }
+      ],
+      "upstreamFn": "CROSS JOIN",
+      "goFn": "sqlite: CROSS JOIN"
+    },
+    {
+      "id": "join-using",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)",
+            "CREATE TABLE o (oid INTEGER PRIMARY KEY, tid INTEGER, amount INTEGER)",
+            "INSERT INTO o (oid, tid, amount) VALUES (10,1,100),(11,1,200),(12,2,300),(13,9,400)",
+            "CREATE TABLE u (tid INTEGER, label TEXT)",
+            "INSERT INTO u (tid,label) VALUES (1,'x')"
+          ],
+          "query": "SELECT amount AS amt FROM o JOIN u USING (tid) ORDER BY amount"
+        }
+      ],
+      "upstreamFn": "JOIN ... USING (col)",
+      "goFn": "sqlite: JOIN ... USING (col)"
+    },
+    {
+      "id": "join-natural",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)",
+            "CREATE TABLE o (oid INTEGER PRIMARY KEY, tid INTEGER, amount INTEGER)",
+            "INSERT INTO o (oid, tid, amount) VALUES (10,1,100),(11,1,200),(12,2,300),(13,9,400)",
+            "CREATE TABLE u (tid INTEGER, label TEXT)",
+            "INSERT INTO u (tid,label) VALUES (1,'x')"
+          ],
+          "query": "SELECT amount AS amt FROM o NATURAL JOIN u ORDER BY amount"
+        }
+      ],
+      "upstreamFn": "NATURAL JOIN",
+      "goFn": "sqlite: NATURAL JOIN"
+    },
+    {
+      "id": "join-three",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)",
+            "CREATE TABLE o (oid INTEGER PRIMARY KEY, tid INTEGER, amount INTEGER)",
+            "INSERT INTO o (oid, tid, amount) VALUES (10,1,100),(11,1,200),(12,2,300),(13,9,400)",
+            "CREATE TABLE u (tid INTEGER)",
+            "INSERT INTO u (tid) VALUES (1)"
+          ],
+          "query": "SELECT t.id AS a FROM t JOIN o ON o.tid = t.id JOIN u ON u.tid = t.id ORDER BY t.id"
+        }
+      ],
+      "upstreamFn": "three-table JOIN",
+      "goFn": "sqlite: three-table JOIN"
+    },
+    {
+      "id": "join-right",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)",
+            "CREATE TABLE o (oid INTEGER PRIMARY KEY, tid INTEGER, amount INTEGER)",
+            "INSERT INTO o (oid, tid, amount) VALUES (10,1,100),(11,1,200),(12,2,300),(13,9,400)"
+          ],
+          "query": "SELECT o.oid AS oid FROM t RIGHT JOIN o ON o.tid = t.id ORDER BY o.oid"
+        }
+      ],
+      "upstreamFn": "RIGHT JOIN",
+      "goFn": "sqlite: RIGHT JOIN"
+    },
+    {
+      "id": "join-full",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)",
+            "CREATE TABLE o (oid INTEGER PRIMARY KEY, tid INTEGER, amount INTEGER)",
+            "INSERT INTO o (oid, tid, amount) VALUES (10,1,100),(11,1,200),(12,2,300),(13,9,400)"
+          ],
+          "query": "SELECT o.oid AS oid FROM t FULL OUTER JOIN o ON o.tid = t.id ORDER BY o.oid"
+        }
+      ],
+      "upstreamFn": "FULL OUTER JOIN",
+      "goFn": "sqlite: FULL OUTER JOIN"
+    },
+    {
+      "id": "join-on-const",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)",
+            "CREATE TABLE o (oid INTEGER PRIMARY KEY, tid INTEGER, amount INTEGER)",
+            "INSERT INTO o (oid, tid, amount) VALUES (10,1,100),(11,1,200),(12,2,300),(13,9,400)"
+          ],
+          "query": "SELECT count(*) AS c FROM t JOIN o ON 1"
+        }
+      ],
+      "upstreamFn": "JOIN ON a constant",
+      "goFn": "sqlite: JOIN ON a constant"
+    }
+  ]
+}

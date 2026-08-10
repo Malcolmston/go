@@ -1,0 +1,1381 @@
+{
+  "group": "shape",
+  "upstream": "numpy@2.2.6",
+  "cases": [
+    {
+      "id": "reshape-6-to-3x2",
+      "fn": "reshape",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        [
+          3,
+          2
+        ]
+      ],
+      "upstreamFn": "numpy.ndarray.reshape",
+      "goFn": "numpy.NDArray.Reshape"
+    },
+    {
+      "id": "reshape-infer",
+      "fn": "reshape",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        [
+          -1,
+          2
+        ]
+      ],
+      "upstreamFn": "numpy.ndarray.reshape",
+      "goFn": "numpy.NDArray.Reshape"
+    },
+    {
+      "id": "reshape-infer-first",
+      "fn": "reshape",
+      "args": [
+        {
+          "arr": [
+            [
+              [
+                0.0,
+                1.0,
+                2.0,
+                3.0
+              ],
+              [
+                4.0,
+                5.0,
+                6.0,
+                7.0
+              ],
+              [
+                8.0,
+                9.0,
+                10.0,
+                11.0
+              ]
+            ],
+            [
+              [
+                12.0,
+                13.0,
+                14.0,
+                15.0
+              ],
+              [
+                16.0,
+                17.0,
+                18.0,
+                19.0
+              ],
+              [
+                20.0,
+                21.0,
+                22.0,
+                23.0
+              ]
+            ]
+          ]
+        },
+        [
+          4,
+          -1
+        ]
+      ],
+      "upstreamFn": "numpy.ndarray.reshape",
+      "goFn": "numpy.NDArray.Reshape"
+    },
+    {
+      "id": "reshape-to-3d",
+      "fn": "reshape",
+      "args": [
+        {
+          "arr": [
+            [
+              0.0,
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0,
+              7.0
+            ],
+            [
+              8.0,
+              9.0,
+              10.0,
+              11.0
+            ]
+          ]
+        },
+        [
+          2,
+          3,
+          2
+        ]
+      ],
+      "upstreamFn": "numpy.ndarray.reshape",
+      "goFn": "numpy.NDArray.Reshape"
+    },
+    {
+      "id": "reshape-bad-size",
+      "fn": "reshape",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        [
+          4,
+          4
+        ]
+      ],
+      "upstreamFn": "numpy.ndarray.reshape",
+      "goFn": "numpy.NDArray.Reshape",
+      "note": "must FAIL on both sides"
+    },
+    {
+      "id": "reshape-two-infer",
+      "fn": "reshape",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        [
+          -1,
+          -1
+        ]
+      ],
+      "upstreamFn": "numpy.ndarray.reshape",
+      "goFn": "numpy.NDArray.Reshape",
+      "note": "must FAIL on both sides"
+    },
+    {
+      "id": "transpose-2d",
+      "fn": "transpose",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.ndarray.T",
+      "goFn": "numpy.NDArray.T"
+    },
+    {
+      "id": "transpose-3d",
+      "fn": "transpose",
+      "args": [
+        {
+          "arr": [
+            [
+              [
+                0.0,
+                1.0,
+                2.0,
+                3.0
+              ],
+              [
+                4.0,
+                5.0,
+                6.0,
+                7.0
+              ],
+              [
+                8.0,
+                9.0,
+                10.0,
+                11.0
+              ]
+            ],
+            [
+              [
+                12.0,
+                13.0,
+                14.0,
+                15.0
+              ],
+              [
+                16.0,
+                17.0,
+                18.0,
+                19.0
+              ],
+              [
+                20.0,
+                21.0,
+                22.0,
+                23.0
+              ]
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.ndarray.transpose",
+      "goFn": "numpy.NDArray.Transpose"
+    },
+    {
+      "id": "transpose-perm",
+      "fn": "transpose_axes",
+      "args": [
+        {
+          "arr": [
+            [
+              [
+                0.0,
+                1.0,
+                2.0,
+                3.0
+              ],
+              [
+                4.0,
+                5.0,
+                6.0,
+                7.0
+              ],
+              [
+                8.0,
+                9.0,
+                10.0,
+                11.0
+              ]
+            ],
+            [
+              [
+                12.0,
+                13.0,
+                14.0,
+                15.0
+              ],
+              [
+                16.0,
+                17.0,
+                18.0,
+                19.0
+              ],
+              [
+                20.0,
+                21.0,
+                22.0,
+                23.0
+              ]
+            ]
+          ]
+        },
+        [
+          1,
+          0,
+          2
+        ]
+      ],
+      "upstreamFn": "numpy.transpose",
+      "goFn": "numpy.NDArray.Transpose"
+    },
+    {
+      "id": "transpose-perm-2",
+      "fn": "transpose_axes",
+      "args": [
+        {
+          "arr": [
+            [
+              [
+                0.0,
+                1.0,
+                2.0,
+                3.0
+              ],
+              [
+                4.0,
+                5.0,
+                6.0,
+                7.0
+              ],
+              [
+                8.0,
+                9.0,
+                10.0,
+                11.0
+              ]
+            ],
+            [
+              [
+                12.0,
+                13.0,
+                14.0,
+                15.0
+              ],
+              [
+                16.0,
+                17.0,
+                18.0,
+                19.0
+              ],
+              [
+                20.0,
+                21.0,
+                22.0,
+                23.0
+              ]
+            ]
+          ]
+        },
+        [
+          2,
+          1,
+          0
+        ]
+      ],
+      "upstreamFn": "numpy.transpose",
+      "goFn": "numpy.NDArray.Transpose"
+    },
+    {
+      "id": "transpose-bad-perm",
+      "fn": "transpose_axes",
+      "args": [
+        {
+          "arr": [
+            [
+              [
+                0.0,
+                1.0,
+                2.0,
+                3.0
+              ],
+              [
+                4.0,
+                5.0,
+                6.0,
+                7.0
+              ],
+              [
+                8.0,
+                9.0,
+                10.0,
+                11.0
+              ]
+            ],
+            [
+              [
+                12.0,
+                13.0,
+                14.0,
+                15.0
+              ],
+              [
+                16.0,
+                17.0,
+                18.0,
+                19.0
+              ],
+              [
+                20.0,
+                21.0,
+                22.0,
+                23.0
+              ]
+            ]
+          ]
+        },
+        [
+          0,
+          0,
+          1
+        ]
+      ],
+      "upstreamFn": "numpy.transpose",
+      "goFn": "numpy.NDArray.Transpose",
+      "note": "must FAIL on both sides"
+    },
+    {
+      "id": "transpose-short-perm",
+      "fn": "transpose_axes",
+      "args": [
+        {
+          "arr": [
+            [
+              [
+                0.0,
+                1.0,
+                2.0,
+                3.0
+              ],
+              [
+                4.0,
+                5.0,
+                6.0,
+                7.0
+              ],
+              [
+                8.0,
+                9.0,
+                10.0,
+                11.0
+              ]
+            ],
+            [
+              [
+                12.0,
+                13.0,
+                14.0,
+                15.0
+              ],
+              [
+                16.0,
+                17.0,
+                18.0,
+                19.0
+              ],
+              [
+                20.0,
+                21.0,
+                22.0,
+                23.0
+              ]
+            ]
+          ]
+        },
+        [
+          1,
+          0
+        ]
+      ],
+      "upstreamFn": "numpy.transpose",
+      "goFn": "numpy.NDArray.Transpose",
+      "note": "must FAIL on both sides"
+    },
+    {
+      "id": "ravel-3d",
+      "fn": "ravel",
+      "args": [
+        {
+          "arr": [
+            [
+              [
+                0.0,
+                1.0,
+                2.0,
+                3.0
+              ],
+              [
+                4.0,
+                5.0,
+                6.0,
+                7.0
+              ],
+              [
+                8.0,
+                9.0,
+                10.0,
+                11.0
+              ]
+            ],
+            [
+              [
+                12.0,
+                13.0,
+                14.0,
+                15.0
+              ],
+              [
+                16.0,
+                17.0,
+                18.0,
+                19.0
+              ],
+              [
+                20.0,
+                21.0,
+                22.0,
+                23.0
+              ]
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.ndarray.ravel",
+      "goFn": "numpy.NDArray.Ravel"
+    },
+    {
+      "id": "ravel-transposed",
+      "fn": "ravel",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.ndarray.ravel",
+      "goFn": "numpy.NDArray.Ravel"
+    },
+    {
+      "id": "flatten-2d",
+      "fn": "flatten",
+      "args": [
+        {
+          "arr": [
+            [
+              0.0,
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0,
+              7.0
+            ],
+            [
+              8.0,
+              9.0,
+              10.0,
+              11.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.ndarray.flatten",
+      "goFn": "numpy.NDArray.Flatten"
+    },
+    {
+      "id": "squeeze-mid",
+      "fn": "squeeze",
+      "args": [
+        {
+          "arr": [
+            [
+              [
+                1.0,
+                2.0,
+                3.0
+              ]
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.squeeze",
+      "goFn": "numpy.NDArray.Squeeze"
+    },
+    {
+      "id": "squeeze-col",
+      "fn": "squeeze",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0
+            ],
+            [
+              2.0
+            ],
+            [
+              3.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.squeeze",
+      "goFn": "numpy.NDArray.Squeeze"
+    },
+    {
+      "id": "squeeze-all-ones",
+      "fn": "squeeze",
+      "args": [
+        {
+          "arr": [
+            [
+              [
+                5.0
+              ]
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.squeeze",
+      "goFn": "numpy.NDArray.Squeeze",
+      "deviation": "numpy squeezes to a 0-d array; the port returns a 1-D array of length 1"
+    },
+    {
+      "id": "expand-dims-0",
+      "fn": "expand_dims",
+      "args": [
+        {
+          "arr": [
+            1.0,
+            2.0,
+            3.0
+          ]
+        },
+        0
+      ],
+      "upstreamFn": "numpy.expand_dims",
+      "goFn": "numpy.NDArray.ExpandDims"
+    },
+    {
+      "id": "expand-dims-1",
+      "fn": "expand_dims",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        1
+      ],
+      "upstreamFn": "numpy.expand_dims",
+      "goFn": "numpy.NDArray.ExpandDims"
+    },
+    {
+      "id": "expand-dims-neg1",
+      "fn": "expand_dims",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        -1
+      ],
+      "upstreamFn": "numpy.expand_dims",
+      "goFn": "numpy.NDArray.ExpandDims"
+    },
+    {
+      "id": "expand-dims-bad",
+      "fn": "expand_dims",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        5
+      ],
+      "upstreamFn": "numpy.expand_dims",
+      "goFn": "numpy.NDArray.ExpandDims",
+      "note": "must FAIL on both sides"
+    },
+    {
+      "id": "concat-axis0",
+      "fn": "concatenate",
+      "args": [
+        0,
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.concatenate",
+      "goFn": "numpy.Concatenate"
+    },
+    {
+      "id": "concat-axis1",
+      "fn": "concatenate",
+      "args": [
+        1,
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        {
+          "arr": [
+            [
+              9.0
+            ],
+            [
+              9.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.concatenate",
+      "goFn": "numpy.Concatenate"
+    },
+    {
+      "id": "concat-1d",
+      "fn": "concatenate",
+      "args": [
+        0,
+        {
+          "arr": [
+            1.0,
+            2.0
+          ]
+        },
+        {
+          "arr": [
+            3.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.concatenate",
+      "goFn": "numpy.Concatenate"
+    },
+    {
+      "id": "concat-bad-shape",
+      "fn": "concatenate",
+      "args": [
+        0,
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        {
+          "arr": [
+            [
+              1.0,
+              2.0
+            ],
+            [
+              3.0,
+              4.0
+            ],
+            [
+              5.0,
+              6.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.concatenate",
+      "goFn": "numpy.Concatenate",
+      "note": "must FAIL on both sides"
+    },
+    {
+      "id": "concat-bad-axis",
+      "fn": "concatenate",
+      "args": [
+        3,
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.concatenate",
+      "goFn": "numpy.Concatenate",
+      "note": "must FAIL on both sides"
+    },
+    {
+      "id": "stack-axis0",
+      "fn": "stack",
+      "args": [
+        0,
+        {
+          "arr": [
+            1.0,
+            2.0,
+            3.0
+          ]
+        },
+        {
+          "arr": [
+            4.0,
+            5.0,
+            6.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.stack",
+      "goFn": "numpy.Stack"
+    },
+    {
+      "id": "stack-axis1",
+      "fn": "stack",
+      "args": [
+        1,
+        {
+          "arr": [
+            1.0,
+            2.0,
+            3.0
+          ]
+        },
+        {
+          "arr": [
+            4.0,
+            5.0,
+            6.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.stack",
+      "goFn": "numpy.Stack"
+    },
+    {
+      "id": "stack-2d-axis1",
+      "fn": "stack",
+      "args": [
+        1,
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.stack",
+      "goFn": "numpy.Stack"
+    },
+    {
+      "id": "stack-mismatch",
+      "fn": "stack",
+      "args": [
+        0,
+        {
+          "arr": [
+            1.0,
+            2.0
+          ]
+        },
+        {
+          "arr": [
+            1.0,
+            2.0,
+            3.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.stack",
+      "goFn": "numpy.Stack",
+      "note": "must FAIL on both sides"
+    },
+    {
+      "id": "flip-axis0",
+      "fn": "flip",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        0
+      ],
+      "upstreamFn": "numpy.flip",
+      "goFn": "numpy.NDArray.Flip"
+    },
+    {
+      "id": "flip-axis1",
+      "fn": "flip",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        1
+      ],
+      "upstreamFn": "numpy.flip",
+      "goFn": "numpy.NDArray.Flip"
+    },
+    {
+      "id": "flip-axis-neg",
+      "fn": "flip",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        -1
+      ],
+      "upstreamFn": "numpy.flip",
+      "goFn": "numpy.NDArray.Flip"
+    },
+    {
+      "id": "flip-bad-axis",
+      "fn": "flip",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        2
+      ],
+      "upstreamFn": "numpy.flip",
+      "goFn": "numpy.NDArray.Flip",
+      "note": "must FAIL on both sides"
+    },
+    {
+      "id": "roll-pos",
+      "fn": "roll",
+      "args": [
+        {
+          "arr": [
+            5.0,
+            3.0,
+            8.0,
+            1.0,
+            9.0,
+            2.0
+          ]
+        },
+        2
+      ],
+      "upstreamFn": "numpy.roll",
+      "goFn": "numpy.NDArray.Roll"
+    },
+    {
+      "id": "roll-neg",
+      "fn": "roll",
+      "args": [
+        {
+          "arr": [
+            5.0,
+            3.0,
+            8.0,
+            1.0,
+            9.0,
+            2.0
+          ]
+        },
+        -2
+      ],
+      "upstreamFn": "numpy.roll",
+      "goFn": "numpy.NDArray.Roll"
+    },
+    {
+      "id": "roll-2d-flat",
+      "fn": "roll",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        1
+      ],
+      "upstreamFn": "numpy.roll",
+      "goFn": "numpy.NDArray.Roll"
+    },
+    {
+      "id": "diag-from-1d",
+      "fn": "diag",
+      "args": [
+        {
+          "arr": [
+            1.0,
+            2.0,
+            3.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.diag",
+      "goFn": "numpy.Diag"
+    },
+    {
+      "id": "diag-from-2d",
+      "fn": "diag",
+      "args": [
+        {
+          "arr": [
+            [
+              2.0,
+              -1.0,
+              0.5
+            ],
+            [
+              3.0,
+              4.0,
+              -2.0
+            ],
+            [
+              1.0,
+              0.0,
+              7.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.diag",
+      "goFn": "numpy.Diag"
+    },
+    {
+      "id": "diag-3d-error",
+      "fn": "diag",
+      "args": [
+        {
+          "arr": [
+            [
+              [
+                0.0,
+                1.0,
+                2.0,
+                3.0
+              ],
+              [
+                4.0,
+                5.0,
+                6.0,
+                7.0
+              ],
+              [
+                8.0,
+                9.0,
+                10.0,
+                11.0
+              ]
+            ],
+            [
+              [
+                12.0,
+                13.0,
+                14.0,
+                15.0
+              ],
+              [
+                16.0,
+                17.0,
+                18.0,
+                19.0
+              ],
+              [
+                20.0,
+                21.0,
+                22.0,
+                23.0
+              ]
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.diag",
+      "goFn": "numpy.Diag",
+      "note": "must FAIL on both sides"
+    },
+    {
+      "id": "diagonal-k0",
+      "fn": "diagonal",
+      "args": [
+        {
+          "arr": [
+            [
+              2.0,
+              -1.0,
+              0.5
+            ],
+            [
+              3.0,
+              4.0,
+              -2.0
+            ],
+            [
+              1.0,
+              0.0,
+              7.0
+            ]
+          ]
+        },
+        0
+      ],
+      "upstreamFn": "numpy.diagonal",
+      "goFn": "numpy.NDArray.Diagonal"
+    },
+    {
+      "id": "diagonal-k1",
+      "fn": "diagonal",
+      "args": [
+        {
+          "arr": [
+            [
+              2.0,
+              -1.0,
+              0.5
+            ],
+            [
+              3.0,
+              4.0,
+              -2.0
+            ],
+            [
+              1.0,
+              0.0,
+              7.0
+            ]
+          ]
+        },
+        1
+      ],
+      "upstreamFn": "numpy.diagonal",
+      "goFn": "numpy.NDArray.Diagonal"
+    },
+    {
+      "id": "diagonal-km1",
+      "fn": "diagonal",
+      "args": [
+        {
+          "arr": [
+            [
+              2.0,
+              -1.0,
+              0.5
+            ],
+            [
+              3.0,
+              4.0,
+              -2.0
+            ],
+            [
+              1.0,
+              0.0,
+              7.0
+            ]
+          ]
+        },
+        -1
+      ],
+      "upstreamFn": "numpy.diagonal",
+      "goFn": "numpy.NDArray.Diagonal"
+    },
+    {
+      "id": "diagonal-1d-error",
+      "fn": "diagonal",
+      "args": [
+        {
+          "arr": [
+            5.0,
+            3.0,
+            8.0,
+            1.0,
+            9.0,
+            2.0
+          ]
+        },
+        0
+      ],
+      "upstreamFn": "numpy.diagonal",
+      "goFn": "numpy.NDArray.Diagonal",
+      "note": "must FAIL on both sides"
+    }
+  ]
+}

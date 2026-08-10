@@ -1,0 +1,160 @@
+{
+  "group": "options",
+  "upstream": "handlebars@4.7.8",
+  "cases": [
+    {
+      "id": "opt-noescape",
+      "fn": "render",
+      "args": ["{{v}}", { "v": "<b>&</b>" }, { "noEscape": true }],
+      "upstreamFn": "compile({noEscape:true})",
+      "goFn": "handlebars.NoEscape"
+    },
+    {
+      "id": "opt-noescape-triple-unaffected",
+      "fn": "render",
+      "args": ["{{{v}}}", { "v": "<b>" }, { "noEscape": true }],
+      "upstreamFn": "compile({noEscape:true})",
+      "goFn": "handlebars.NoEscape"
+    },
+    {
+      "id": "opt-strict-missing-throws",
+      "fn": "render",
+      "args": ["{{nope}}", {}, { "strict": true }],
+      "upstreamFn": "compile({strict:true})",
+      "goFn": "handlebars.Strict",
+      "note": "both sides must fail"
+    },
+    {
+      "id": "opt-strict-missing-nested-throws",
+      "fn": "render",
+      "args": ["{{a.b}}", { "a": {} }, { "strict": true }],
+      "upstreamFn": "compile({strict:true})",
+      "goFn": "handlebars.Strict",
+      "note": "both sides must fail"
+    },
+    {
+      "id": "opt-strict-present-ok",
+      "fn": "render",
+      "args": ["{{a}}", { "a": "A" }, { "strict": true }],
+      "upstreamFn": "compile({strict:true})",
+      "goFn": "handlebars.Strict"
+    },
+    {
+      "id": "opt-strict-unknown-helper-throws",
+      "fn": "render",
+      "args": ["{{nosuch 1}}", {}, { "strict": true }],
+      "upstreamFn": "compile({strict:true})",
+      "goFn": "handlebars.Strict",
+      "note": "both sides must fail: unknown helper in strict mode"
+    },
+    {
+      "id": "opt-strict-unknown-block-helper-throws",
+      "fn": "render",
+      "args": ["{{#nosuch}}x{{/nosuch}}", {}, { "strict": true }],
+      "upstreamFn": "compile({strict:true})",
+      "goFn": "handlebars.Strict",
+      "note": "both sides must fail"
+    },
+    {
+      "id": "opt-strict-null-value",
+      "fn": "render",
+      "args": ["[{{a}}]", { "a": null }, { "strict": true }],
+      "upstreamFn": "compile({strict:true})",
+      "goFn": "handlebars.Strict",
+      "note": "the key exists but is null"
+    },
+    {
+      "id": "opt-nondstrict-unknown-helper-with-args-throws",
+      "fn": "render",
+      "args": ["{{nosuch 1}}", {}],
+      "upstreamFn": "Handlebars.helpers.helperMissing",
+      "goFn": "handlebars.Compile",
+      "note": "unknown helper WITH arguments throws even without strict"
+    },
+    {
+      "id": "opt-nonstrict-unknown-bare-empty",
+      "fn": "render",
+      "args": ["[{{nosuch}}]", {}],
+      "upstreamFn": "Handlebars.helpers.helperMissing",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "opt-nodata",
+      "fn": "render",
+      "args": ["{{#each a}}[{{@index}}]{{/each}}", { "a": [1, 2] }, { "noData": true }],
+      "upstreamFn": "compile({data:false})",
+      "goFn": "handlebars.NoData"
+    },
+    {
+      "id": "opt-nodata-root",
+      "fn": "render",
+      "args": ["[{{@root.a}}]", { "a": "A" }, { "noData": true }],
+      "upstreamFn": "compile({data:false})",
+      "goFn": "handlebars.NoData"
+    },
+    {
+      "id": "opt-knownhelpersonly-treats-name-as-path",
+      "fn": "render",
+      "args": [
+        "[{{shout}}]",
+        { "shout": "from-context" },
+        { "helpers": ["shout"], "knownHelpersOnly": true }
+      ],
+      "upstreamFn": "compile({knownHelpersOnly:true})",
+      "goFn": "handlebars.KnownHelpersOnly"
+    },
+    {
+      "id": "opt-knownhelpers-allows-name",
+      "fn": "render",
+      "args": [
+        "{{shout a}}",
+        { "a": "x" },
+        { "helpers": ["shout"], "knownHelpersOnly": true, "knownHelpers": ["shout"] }
+      ],
+      "upstreamFn": "compile({knownHelpers:{...}})",
+      "goFn": "handlebars.KnownHelpers"
+    },
+    {
+      "id": "opt-knownhelpersonly-builtins-still-work",
+      "fn": "render",
+      "args": ["{{#each a}}{{this}}{{/each}}", { "a": [1, 2] }, { "knownHelpersOnly": true }],
+      "upstreamFn": "compile({knownHelpersOnly:true})",
+      "goFn": "handlebars.KnownHelpersOnly"
+    },
+    {
+      "id": "opt-knownhelpersonly-unknown-with-args",
+      "fn": "render",
+      "args": ["{{nosuch 1}}", {}, { "knownHelpersOnly": true }],
+      "upstreamFn": "compile({knownHelpersOnly:true})",
+      "goFn": "handlebars.KnownHelpersOnly",
+      "note": "unknown name with args under knownHelpersOnly"
+    },
+    {
+      "id": "opt-compat-parent-scope-lookup",
+      "fn": "render",
+      "args": [
+        "{{#each items}}{{outer}}{{/each}}",
+        { "outer": "O", "items": [1, 2] },
+        { "compat": true }
+      ],
+      "upstreamFn": "compile({compat:true})",
+      "goFn": "—",
+      "note": "compat resolves names in enclosing scopes; the port has no compat option"
+    },
+    {
+      "id": "opt-compat-off-parent-scope-lookup",
+      "fn": "render",
+      "args": ["[{{#each items}}{{outer}}{{/each}}]", { "outer": "O", "items": [1, 2] }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile",
+      "note": "same template without compat: names do not resolve in parent scope"
+    },
+    {
+      "id": "opt-combined-noescape-strict",
+      "fn": "render",
+      "args": ["{{v}}", { "v": "<b>" }, { "noEscape": true, "strict": true }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile"
+    }
+  ]
+}

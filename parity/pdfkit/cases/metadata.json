@@ -1,0 +1,47 @@
+{
+  "group": "metadata",
+  "upstream": "pdfkit@0.15.1",
+  "cases": [
+    {
+      "id": "meta-all-fields",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument#options.info",
+      "goFn": "Document.SetTitle/SetAuthor/...",
+      "args": [{
+        "doc": {"title": "A Title", "author": "An Author", "subject": "A Subject", "keywords": "one two three"},
+        "pages": [{"size": "A4", "ops": []}]
+      }]
+    },
+    {
+      "id": "meta-producer-creator",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument#options.info",
+      "goFn": "Document.SetProducer/SetCreator",
+      "args": [{
+        "doc": {"producer": "prod-x", "creator": "creat-y"},
+        "pages": [{"size": "A4", "ops": []}]
+      }]
+    },
+    {
+      "id": "meta-unicode-title",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument#options.info",
+      "goFn": "Document.SetTitle",
+      "note": "non-Latin text in metadata forces UTF-16BE string encoding",
+      "args": [{
+        "doc": {"title": "日本語のタイトル", "author": "Ünïcödé"},
+        "pages": [{"size": "A4", "ops": []}]
+      }]
+    },
+    {
+      "id": "meta-empty-strings",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument#options.info",
+      "goFn": "Document.SetTitle",
+      "args": [{
+        "doc": {"title": "", "author": ""},
+        "pages": [{"size": "A4", "ops": []}]
+      }]
+    }
+  ]
+}

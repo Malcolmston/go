@@ -1,0 +1,182 @@
+{
+  "group": "uri",
+  "upstream": "axios@1.7.9",
+  "cases": [
+    {
+      "id": "geturi-plain",
+      "fn": "getUri",
+      "upstreamFn": "axios#getUri",
+      "goFn": "Client.GetUri",
+      "args": [{ "client": {}, "request": { "url": "/p" } }]
+    },
+    {
+      "id": "geturi-single-param",
+      "fn": "getUri",
+      "upstreamFn": "axios#getUri",
+      "goFn": "Client.GetUri",
+      "args": [{ "client": {}, "request": { "url": "/p", "params": { "a": "1" } } }]
+    },
+    {
+      "id": "geturi-array-default",
+      "fn": "getUri",
+      "upstreamFn": "axios#getUri",
+      "goFn": "Client.GetUri",
+      "args": [{ "client": {}, "request": { "url": "/p", "params": { "a": [1, 2] } } }]
+    },
+    {
+      "id": "geturi-array-indexes-true",
+      "fn": "getUri",
+      "upstreamFn": "axios#getUri + paramsSerializer.indexes",
+      "goFn": "Client.GetUri + ArrayFormatIndices",
+      "args": [
+        { "client": {}, "request": { "url": "/p", "params": { "a": [1, 2] }, "paramsSerializer": { "indexes": true } } }
+      ]
+    },
+    {
+      "id": "geturi-array-indexes-null",
+      "fn": "getUri",
+      "upstreamFn": "axios#getUri + paramsSerializer.indexes",
+      "goFn": "Client.GetUri + ArrayFormatRepeat",
+      "args": [
+        { "client": {}, "request": { "url": "/p", "params": { "a": [1, 2] }, "paramsSerializer": { "indexes": null } } }
+      ]
+    },
+    {
+      "id": "geturi-nested-object",
+      "fn": "getUri",
+      "upstreamFn": "axios#getUri",
+      "goFn": "Client.GetUri",
+      "note": "axios leaves [ and ] literal in the query string",
+      "args": [{ "client": {}, "request": { "url": "/p", "params": { "n": { "x": "1" } } } }]
+    },
+    {
+      "id": "geturi-with-baseurl",
+      "fn": "getUri",
+      "upstreamFn": "axios#getUri (baseURL)",
+      "goFn": "Client.GetUri (BaseURL)",
+      "args": [{ "client": { "baseURL": "http://example.test/api" }, "request": { "url": "/p", "params": { "a": "1" } } }]
+    },
+    {
+      "id": "geturi-with-baseurl-no-path",
+      "fn": "getUri",
+      "upstreamFn": "axios#getUri (baseURL)",
+      "goFn": "Client.GetUri (BaseURL)",
+      "args": [{ "client": { "baseURL": "http://example.test" }, "request": { "url": "/p" } }]
+    },
+    {
+      "id": "geturi-absolute-url",
+      "fn": "getUri",
+      "upstreamFn": "axios#getUri (absolute url wins)",
+      "goFn": "Client.GetUri",
+      "args": [{ "client": { "baseURL": "http://example.test/api" }, "request": { "url": "http://other.test/q" } }]
+    },
+    {
+      "id": "geturi-existing-query",
+      "fn": "getUri",
+      "upstreamFn": "axios#getUri",
+      "goFn": "Client.GetUri",
+      "args": [{ "client": {}, "request": { "url": "/p?z=9", "params": { "a": "1" } } }]
+    },
+    {
+      "id": "geturi-space-encoding",
+      "fn": "getUri",
+      "upstreamFn": "axios#getUri",
+      "goFn": "Client.GetUri",
+      "note": "axios encodes a space as +",
+      "args": [{ "client": {}, "request": { "url": "/p", "params": { "q": "a b" } } }]
+    },
+    {
+      "id": "geturi-custom-serializer",
+      "fn": "getUri",
+      "upstreamFn": "axios#getUri + paramsSerializer.serialize",
+      "goFn": "Client.GetUri + ParamsSerializer",
+      "args": [
+        { "client": {}, "request": { "url": "/p", "params": { "a": "1" }, "paramsSerializer": { "custom": "fixed" } } }
+      ]
+    },
+    {
+      "id": "geturi-no-params",
+      "fn": "getUri",
+      "upstreamFn": "axios#getUri",
+      "goFn": "Client.GetUri",
+      "args": [{ "client": {}, "request": { "url": "/p", "params": {} } }]
+    },
+    {
+      "id": "mergeconfig-baseurl-and-timeout",
+      "fn": "mergeConfig",
+      "upstreamFn": "axios.mergeConfig",
+      "goFn": "axios.MergeConfig",
+      "args": [
+        { "baseURL": "http://a.test", "timeoutMs": 1000 },
+        { "timeoutMs": 2000 }
+      ]
+    },
+    {
+      "id": "mergeconfig-headers-deep",
+      "fn": "mergeConfig",
+      "upstreamFn": "axios.mergeConfig",
+      "goFn": "axios.MergeConfig",
+      "args": [
+        { "headers": { "X-A": "1", "X-Both": "base" } },
+        { "headers": { "X-B": "2", "X-Both": "over" } }
+      ]
+    },
+    {
+      "id": "mergeconfig-second-baseurl-wins",
+      "fn": "mergeConfig",
+      "upstreamFn": "axios.mergeConfig",
+      "goFn": "axios.MergeConfig",
+      "args": [{ "baseURL": "http://a.test" }, { "baseURL": "http://b.test" }]
+    },
+    {
+      "id": "mergeconfig-empty-override-keeps-base",
+      "fn": "mergeConfig",
+      "upstreamFn": "axios.mergeConfig",
+      "goFn": "axios.MergeConfig",
+      "args": [{ "baseURL": "http://a.test", "timeoutMs": 500, "headers": { "X-A": "1" } }, {}]
+    },
+    {
+      "id": "formtojson-flat",
+      "fn": "formToJSON",
+      "upstreamFn": "axios.formToJSON",
+      "goFn": "axios.FormToJSON",
+      "args": [{ "pairs": [["a", "1"], ["b", "2"]] }]
+    },
+    {
+      "id": "formtojson-nested-brackets",
+      "fn": "formToJSON",
+      "upstreamFn": "axios.formToJSON",
+      "goFn": "axios.FormToJSON",
+      "args": [{ "pairs": [["n[x]", "1"], ["n[y]", "2"]] }]
+    },
+    {
+      "id": "formtojson-array-indices",
+      "fn": "formToJSON",
+      "upstreamFn": "axios.formToJSON",
+      "goFn": "axios.FormToJSON",
+      "args": [{ "pairs": [["a[0]", "1"], ["a[1]", "2"]] }]
+    },
+    {
+      "id": "formtojson-array-empty-brackets",
+      "fn": "formToJSON",
+      "upstreamFn": "axios.formToJSON",
+      "goFn": "axios.FormToJSON",
+      "args": [{ "pairs": [["a[]", "1"], ["a[]", "2"]] }]
+    },
+    {
+      "id": "formtojson-deep-nested",
+      "fn": "formToJSON",
+      "upstreamFn": "axios.formToJSON",
+      "goFn": "axios.FormToJSON",
+      "args": [{ "pairs": [["n[y][z]", "2"]] }]
+    },
+    {
+      "id": "formtojson-repeated-plain-key",
+      "fn": "formToJSON",
+      "upstreamFn": "axios.formToJSON",
+      "goFn": "axios.FormToJSON",
+      "note": "same key twice with no brackets",
+      "args": [{ "pairs": [["a", "1"], ["a", "2"]] }]
+    }
+  ]
+}

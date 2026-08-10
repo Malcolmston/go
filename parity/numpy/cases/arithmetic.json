@@ -1,0 +1,1154 @@
+{
+  "group": "arithmetic",
+  "upstream": "numpy@2.2.6",
+  "cases": [
+    {
+      "id": "add-2d",
+      "fn": "add",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.add",
+      "goFn": "numpy.NDArray.Add"
+    },
+    {
+      "id": "sub-2d",
+      "fn": "sub",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        {
+          "arr": [
+            [
+              0.5,
+              0.5,
+              0.5
+            ],
+            [
+              1.5,
+              1.5,
+              1.5
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.subtract",
+      "goFn": "numpy.NDArray.Sub"
+    },
+    {
+      "id": "mul-2d",
+      "fn": "mul",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.multiply",
+      "goFn": "numpy.NDArray.Mul"
+    },
+    {
+      "id": "div-2d",
+      "fn": "div",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        {
+          "arr": [
+            [
+              2.0,
+              4.0,
+              8.0
+            ],
+            [
+              3.0,
+              5.0,
+              7.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.divide",
+      "goFn": "numpy.NDArray.Div"
+    },
+    {
+      "id": "div-by-zero",
+      "fn": "div",
+      "args": [
+        {
+          "arr": [
+            1.0,
+            -1.0,
+            0.0
+          ]
+        },
+        {
+          "arr": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.divide",
+      "goFn": "numpy.NDArray.Div",
+      "note": "expects Infinity / -Infinity / NaN sentinels"
+    },
+    {
+      "id": "pow-2d",
+      "fn": "pow",
+      "args": [
+        {
+          "arr": [
+            [
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0
+            ]
+          ]
+        },
+        {
+          "arr": [
+            [
+              2.0,
+              0.5
+            ],
+            [
+              -1.0,
+              0.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.power",
+      "goFn": "numpy.NDArray.Pow"
+    },
+    {
+      "id": "pow-neg-base-frac",
+      "fn": "pow",
+      "args": [
+        {
+          "arr": [
+            -8.0
+          ]
+        },
+        {
+          "arr": [
+            0.5
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.power",
+      "goFn": "numpy.NDArray.Pow",
+      "note": "NaN on both sides"
+    },
+    {
+      "id": "mod-signs",
+      "fn": "mod",
+      "args": [
+        {
+          "arr": [
+            7.0,
+            -7.0,
+            7.0,
+            -7.0
+          ]
+        },
+        {
+          "arr": [
+            3.0,
+            3.0,
+            -3.0,
+            -3.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.fmod",
+      "goFn": "numpy.NDArray.Mod",
+      "note": "Go math.Mod == numpy.fmod, NOT numpy.mod"
+    },
+    {
+      "id": "mod-zero",
+      "fn": "mod",
+      "args": [
+        {
+          "arr": [
+            5.0
+          ]
+        },
+        {
+          "arr": [
+            0.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.fmod",
+      "goFn": "numpy.NDArray.Mod"
+    },
+    {
+      "id": "add-scalar",
+      "fn": "add_scalar",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        2.5
+      ],
+      "upstreamFn": "numpy.add",
+      "goFn": "numpy.NDArray.AddScalar"
+    },
+    {
+      "id": "sub-scalar",
+      "fn": "sub_scalar",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        0.5
+      ],
+      "upstreamFn": "numpy.subtract",
+      "goFn": "numpy.NDArray.SubScalar"
+    },
+    {
+      "id": "mul-scalar",
+      "fn": "mul_scalar",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        -3.0
+      ],
+      "upstreamFn": "numpy.multiply",
+      "goFn": "numpy.NDArray.MulScalar"
+    },
+    {
+      "id": "div-scalar",
+      "fn": "div_scalar",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        4.0
+      ],
+      "upstreamFn": "numpy.divide",
+      "goFn": "numpy.NDArray.DivScalar"
+    },
+    {
+      "id": "div-scalar-zero",
+      "fn": "div_scalar",
+      "args": [
+        {
+          "arr": [
+            1.0,
+            0.0,
+            -1.0
+          ]
+        },
+        0.0
+      ],
+      "upstreamFn": "numpy.divide",
+      "goFn": "numpy.NDArray.DivScalar"
+    },
+    {
+      "id": "pow-scalar",
+      "fn": "pow_scalar",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        3.0
+      ],
+      "upstreamFn": "numpy.power",
+      "goFn": "numpy.NDArray.PowScalar"
+    },
+    {
+      "id": "neg",
+      "fn": "neg",
+      "args": [
+        {
+          "arr": [
+            0.0,
+            -0.0,
+            1.0,
+            -1.0,
+            2.5,
+            -3.75,
+            1e-08,
+            100000000.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.negative",
+      "goFn": "numpy.NDArray.Neg"
+    },
+    {
+      "id": "abs",
+      "fn": "abs",
+      "args": [
+        {
+          "arr": [
+            0.0,
+            -0.0,
+            1.0,
+            -1.0,
+            2.5,
+            -3.75,
+            1e-08,
+            100000000.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.absolute",
+      "goFn": "numpy.NDArray.Abs"
+    },
+    {
+      "id": "sqrt",
+      "fn": "sqrt",
+      "args": [
+        {
+          "arr": [
+            0.25,
+            1.0,
+            2.0,
+            4.0,
+            100.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.sqrt",
+      "goFn": "numpy.NDArray.Sqrt"
+    },
+    {
+      "id": "sqrt-negative",
+      "fn": "sqrt",
+      "args": [
+        {
+          "arr": [
+            -1.0,
+            -4.0,
+            0.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.sqrt",
+      "goFn": "numpy.NDArray.Sqrt",
+      "note": "NaN sentinel expected"
+    },
+    {
+      "id": "cbrt",
+      "fn": "cbrt",
+      "args": [
+        {
+          "arr": [
+            -27.0,
+            -1.0,
+            0.0,
+            8.0,
+            2.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.cbrt",
+      "goFn": "numpy.NDArray.Cbrt"
+    },
+    {
+      "id": "square",
+      "fn": "square",
+      "args": [
+        {
+          "arr": [
+            0.0,
+            -0.0,
+            1.0,
+            -1.0,
+            2.5,
+            -3.75,
+            1e-08,
+            100000000.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.square",
+      "goFn": "numpy.NDArray.Square"
+    },
+    {
+      "id": "reciprocal",
+      "fn": "reciprocal",
+      "args": [
+        {
+          "arr": [
+            1.0,
+            2.0,
+            -4.0,
+            0.5
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.reciprocal",
+      "goFn": "numpy.NDArray.Reciprocal"
+    },
+    {
+      "id": "reciprocal-zero",
+      "fn": "reciprocal",
+      "args": [
+        {
+          "arr": [
+            0.0,
+            -0.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.reciprocal",
+      "goFn": "numpy.NDArray.Reciprocal",
+      "note": "Infinity sentinels"
+    },
+    {
+      "id": "exp",
+      "fn": "exp",
+      "args": [
+        {
+          "arr": [
+            -2.0,
+            -0.5,
+            0.0,
+            1.0,
+            3.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.exp",
+      "goFn": "numpy.NDArray.Exp"
+    },
+    {
+      "id": "exp-overflow",
+      "fn": "exp",
+      "args": [
+        {
+          "arr": [
+            1000.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.exp",
+      "goFn": "numpy.NDArray.Exp",
+      "note": "Infinity"
+    },
+    {
+      "id": "expm1",
+      "fn": "expm1",
+      "args": [
+        {
+          "arr": [
+            -1e-10,
+            0.0,
+            1e-10,
+            1.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.expm1",
+      "goFn": "numpy.NDArray.Expm1"
+    },
+    {
+      "id": "log",
+      "fn": "log",
+      "args": [
+        {
+          "arr": [
+            0.25,
+            1.0,
+            2.0,
+            4.0,
+            100.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.log",
+      "goFn": "numpy.NDArray.Log"
+    },
+    {
+      "id": "log-zero-neg",
+      "fn": "log",
+      "args": [
+        {
+          "arr": [
+            0.0,
+            -1.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.log",
+      "goFn": "numpy.NDArray.Log",
+      "note": "-Infinity then NaN"
+    },
+    {
+      "id": "log1p",
+      "fn": "log1p",
+      "args": [
+        {
+          "arr": [
+            -1e-12,
+            0.0,
+            1e-12,
+            1.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.log1p",
+      "goFn": "numpy.NDArray.Log1p"
+    },
+    {
+      "id": "log2",
+      "fn": "log2",
+      "args": [
+        {
+          "arr": [
+            1.0,
+            2.0,
+            8.0,
+            0.5
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.log2",
+      "goFn": "numpy.NDArray.Log2"
+    },
+    {
+      "id": "log10",
+      "fn": "log10",
+      "args": [
+        {
+          "arr": [
+            1.0,
+            10.0,
+            1000.0,
+            0.01
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.log10",
+      "goFn": "numpy.NDArray.Log10"
+    },
+    {
+      "id": "sin",
+      "fn": "sin",
+      "args": [
+        {
+          "arr": [
+            0.0,
+            0.5,
+            1.5707963267948966,
+            3.141592653589793,
+            -1.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.sin",
+      "goFn": "numpy.NDArray.Sin"
+    },
+    {
+      "id": "cos",
+      "fn": "cos",
+      "args": [
+        {
+          "arr": [
+            0.0,
+            0.5,
+            1.5707963267948966,
+            3.141592653589793,
+            -1.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.cos",
+      "goFn": "numpy.NDArray.Cos"
+    },
+    {
+      "id": "tan",
+      "fn": "tan",
+      "args": [
+        {
+          "arr": [
+            0.0,
+            0.5,
+            1.0,
+            -1.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.tan",
+      "goFn": "numpy.NDArray.Tan"
+    },
+    {
+      "id": "arcsin",
+      "fn": "arcsin",
+      "args": [
+        {
+          "arr": [
+            -1.0,
+            -0.5,
+            0.0,
+            0.5,
+            1.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.arcsin",
+      "goFn": "numpy.NDArray.Arcsin"
+    },
+    {
+      "id": "arcsin-domain",
+      "fn": "arcsin",
+      "args": [
+        {
+          "arr": [
+            2.0,
+            -2.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.arcsin",
+      "goFn": "numpy.NDArray.Arcsin",
+      "note": "NaN"
+    },
+    {
+      "id": "arccos",
+      "fn": "arccos",
+      "args": [
+        {
+          "arr": [
+            -1.0,
+            -0.5,
+            0.0,
+            0.5,
+            1.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.arccos",
+      "goFn": "numpy.NDArray.Arccos"
+    },
+    {
+      "id": "arctan",
+      "fn": "arctan",
+      "args": [
+        {
+          "arr": [
+            -1000000000.0,
+            -1.0,
+            0.0,
+            1.0,
+            1000000000.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.arctan",
+      "goFn": "numpy.NDArray.Arctan"
+    },
+    {
+      "id": "sinh",
+      "fn": "sinh",
+      "args": [
+        {
+          "arr": [
+            -2.0,
+            0.0,
+            2.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.sinh",
+      "goFn": "numpy.NDArray.Sinh"
+    },
+    {
+      "id": "cosh",
+      "fn": "cosh",
+      "args": [
+        {
+          "arr": [
+            -2.0,
+            0.0,
+            2.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.cosh",
+      "goFn": "numpy.NDArray.Cosh"
+    },
+    {
+      "id": "tanh",
+      "fn": "tanh",
+      "args": [
+        {
+          "arr": [
+            -30.0,
+            -1.0,
+            0.0,
+            1.0,
+            30.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.tanh",
+      "goFn": "numpy.NDArray.Tanh"
+    },
+    {
+      "id": "floor",
+      "fn": "floor",
+      "args": [
+        {
+          "arr": [
+            -1.5,
+            -0.5,
+            0.0,
+            0.5,
+            1.5,
+            2.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.floor",
+      "goFn": "numpy.NDArray.Floor"
+    },
+    {
+      "id": "ceil",
+      "fn": "ceil",
+      "args": [
+        {
+          "arr": [
+            -1.5,
+            -0.5,
+            0.0,
+            0.5,
+            1.5,
+            2.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.ceil",
+      "goFn": "numpy.NDArray.Ceil"
+    },
+    {
+      "id": "trunc",
+      "fn": "trunc",
+      "args": [
+        {
+          "arr": [
+            -1.9,
+            -0.5,
+            0.0,
+            0.5,
+            1.9
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.trunc",
+      "goFn": "numpy.NDArray.Trunc"
+    },
+    {
+      "id": "round-half-even",
+      "fn": "round",
+      "args": [
+        {
+          "arr": [
+            -2.5,
+            -1.5,
+            -0.5,
+            0.5,
+            1.5,
+            2.5,
+            3.5
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.round",
+      "goFn": "numpy.NDArray.Round",
+      "note": "banker's rounding on both sides"
+    },
+    {
+      "id": "sign",
+      "fn": "sign",
+      "args": [
+        {
+          "arr": [
+            -3.0,
+            -0.0,
+            0.0,
+            2.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.sign",
+      "goFn": "numpy.NDArray.Sign"
+    },
+    {
+      "id": "sign-nan",
+      "fn": "sign",
+      "args": [
+        {
+          "arr": [
+            "NaN"
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.sign",
+      "goFn": "numpy.NDArray.Sign"
+    },
+    {
+      "id": "clip",
+      "fn": "clip",
+      "args": [
+        {
+          "arr": [
+            3.0,
+            -1.0,
+            4.0,
+            -1.5
+          ]
+        },
+        -1.0,
+        3.0
+      ],
+      "upstreamFn": "numpy.clip",
+      "goFn": "numpy.NDArray.Clip"
+    },
+    {
+      "id": "clip-inverted",
+      "fn": "clip",
+      "args": [
+        {
+          "arr": [
+            3.0,
+            -1.0,
+            4.0,
+            -1.5
+          ]
+        },
+        3.0,
+        -1.0
+      ],
+      "upstreamFn": "numpy.clip",
+      "goFn": "numpy.NDArray.Clip",
+      "note": "min > max: the port panics, numpy silently returns max"
+    },
+    {
+      "id": "maximum",
+      "fn": "maximum",
+      "args": [
+        {
+          "arr": [
+            1.0,
+            5.0,
+            -2.0
+          ]
+        },
+        {
+          "arr": [
+            3.0,
+            2.0,
+            -7.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.maximum",
+      "goFn": "numpy.NDArray.Maximum"
+    },
+    {
+      "id": "maximum-nan",
+      "fn": "maximum",
+      "args": [
+        {
+          "arr": [
+            1.0,
+            "NaN"
+          ]
+        },
+        {
+          "arr": [
+            "NaN",
+            2.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.maximum",
+      "goFn": "numpy.NDArray.Maximum",
+      "note": "numpy.maximum propagates NaN"
+    },
+    {
+      "id": "minimum",
+      "fn": "minimum",
+      "args": [
+        {
+          "arr": [
+            1.0,
+            5.0,
+            -2.0
+          ]
+        },
+        {
+          "arr": [
+            3.0,
+            2.0,
+            -7.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.minimum",
+      "goFn": "numpy.NDArray.Minimum"
+    },
+    {
+      "id": "minimum-bcast",
+      "fn": "minimum",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        {
+          "arr": [
+            [
+              3.0
+            ],
+            [
+              5.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.minimum",
+      "goFn": "numpy.NDArray.Minimum"
+    },
+    {
+      "id": "hypot",
+      "fn": "hypot",
+      "args": [
+        {
+          "arr": [
+            3.0,
+            5.0,
+            1e+200
+          ]
+        },
+        {
+          "arr": [
+            4.0,
+            12.0,
+            1e+200
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.hypot",
+      "goFn": "numpy.NDArray.Hypot"
+    },
+    {
+      "id": "arctan2-quadrants",
+      "fn": "arctan2",
+      "args": [
+        {
+          "arr": [
+            1.0,
+            1.0,
+            -1.0,
+            -1.0,
+            0.0
+          ]
+        },
+        {
+          "arr": [
+            1.0,
+            -1.0,
+            -1.0,
+            1.0,
+            0.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.arctan2",
+      "goFn": "numpy.NDArray.Arctan2"
+    },
+    {
+      "id": "inf-arithmetic",
+      "fn": "add",
+      "args": [
+        {
+          "arr": [
+            "Infinity",
+            "-Infinity",
+            "NaN"
+          ]
+        },
+        {
+          "arr": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.add",
+      "goFn": "numpy.NDArray.Add"
+    },
+    {
+      "id": "inf-minus-inf",
+      "fn": "sub",
+      "args": [
+        {
+          "arr": [
+            "Infinity"
+          ]
+        },
+        {
+          "arr": [
+            "Infinity"
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.subtract",
+      "goFn": "numpy.NDArray.Sub",
+      "note": "NaN"
+    }
+  ]
+}

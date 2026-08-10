@@ -1,0 +1,108 @@
+{
+  "group": "util",
+  "upstream": "jose@5.9.6",
+  "cases": [
+    {
+      "id": "b64-encode-empty",
+      "fn": "b64.encode",
+      "args": [
+        ""
+      ],
+      "upstreamFn": "jose.base64url.encode",
+      "goFn": "jose.EncodeSegment",
+      "note": "input and output of b64.encode are lowercase hex and base64url respectively"
+    },
+    {
+      "id": "b64-encode-one",
+      "fn": "b64.encode",
+      "args": [
+        "00"
+      ],
+      "upstreamFn": "jose.base64url.encode",
+      "goFn": "jose.EncodeSegment"
+    },
+    {
+      "id": "b64-encode-two",
+      "fn": "b64.encode",
+      "args": [
+        "00ff"
+      ],
+      "upstreamFn": "jose.base64url.encode",
+      "goFn": "jose.EncodeSegment"
+    },
+    {
+      "id": "b64-encode-three",
+      "fn": "b64.encode",
+      "args": [
+        "00ff10"
+      ],
+      "upstreamFn": "jose.base64url.encode",
+      "goFn": "jose.EncodeSegment"
+    },
+    {
+      "id": "b64-encode-urlsafe",
+      "fn": "b64.encode",
+      "args": [
+        "fbff3e"
+      ],
+      "upstreamFn": "jose.base64url.encode",
+      "goFn": "jose.EncodeSegment",
+      "note": "must yield the - and _ alphabet, never + or /"
+    },
+    {
+      "id": "b64-encode-long",
+      "fn": "b64.encode",
+      "args": [
+        "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
+      ],
+      "upstreamFn": "jose.base64url.encode",
+      "goFn": "jose.EncodeSegment"
+    },
+    {
+      "id": "b64-decode-empty",
+      "fn": "b64.decode",
+      "args": [
+        ""
+      ],
+      "upstreamFn": "jose.base64url.decode",
+      "goFn": "jose.DecodeSegment"
+    },
+    {
+      "id": "b64-decode-unpadded",
+      "fn": "b64.decode",
+      "args": [
+        "AP8Q"
+      ],
+      "upstreamFn": "jose.base64url.decode",
+      "goFn": "jose.DecodeSegment"
+    },
+    {
+      "id": "b64-decode-one-byte",
+      "fn": "b64.decode",
+      "args": [
+        "AA"
+      ],
+      "upstreamFn": "jose.base64url.decode",
+      "goFn": "jose.DecodeSegment"
+    },
+    {
+      "id": "b64-decode-urlsafe",
+      "fn": "b64.decode",
+      "args": [
+        "-_8"
+      ],
+      "upstreamFn": "jose.base64url.decode",
+      "goFn": "jose.DecodeSegment"
+    },
+    {
+      "id": "b64-decode-invalid-char",
+      "fn": "b64.decode",
+      "args": [
+        "!!!!"
+      ],
+      "upstreamFn": "jose.base64url.decode",
+      "goFn": "jose.DecodeSegment",
+      "note": "upstream's base64url.decode silently returns an empty buffer for a non-alphabet input; the port returns an error"
+    }
+  ]
+}

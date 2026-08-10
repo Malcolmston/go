@@ -1,0 +1,636 @@
+{
+  "group": "ordering",
+  "upstream": "prisma@5.22.0",
+  "cases": [
+    {
+      "id": "orderby-asc-default-nulls",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "orderBy": [
+              {
+                "city": "asc"
+              },
+              {
+                "id": "asc"
+              }
+            ],
+            "select": [
+              "id",
+              "city"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "orderBy: [{ city: \"asc\" }]",
+      "goFn": "Query.OrderBy"
+    },
+    {
+      "id": "orderby-desc",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "orderBy": [
+              {
+                "score": "desc"
+              }
+            ],
+            "select": [
+              "id",
+              "score"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "orderBy: [{ score: \"desc\" }]",
+      "goFn": "Query.OrderBy(..., prisma.Desc)"
+    },
+    {
+      "id": "orderby-nulls-first",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "orderBy": [
+              {
+                "city": {
+                  "sort": "asc",
+                  "nulls": "first"
+                }
+              },
+              {
+                "id": "asc"
+              }
+            ],
+            "select": [
+              "id",
+              "city"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "orderBy: [{ city: { sort, nulls: \"first\" } }]",
+      "goFn": "Query.OrderByNulls(..., prisma.NullsFirst)"
+    },
+    {
+      "id": "orderby-nulls-last",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "orderBy": [
+              {
+                "city": {
+                  "sort": "asc",
+                  "nulls": "last"
+                }
+              },
+              {
+                "id": "asc"
+              }
+            ],
+            "select": [
+              "id",
+              "city"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "orderBy: [{ city: { sort, nulls: \"last\" } }]",
+      "goFn": "Query.OrderByNulls(..., prisma.NullsLast)"
+    },
+    {
+      "id": "orderby-nulls-desc-last",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "orderBy": [
+              {
+                "age": {
+                  "sort": "desc",
+                  "nulls": "last"
+                }
+              },
+              {
+                "id": "asc"
+              }
+            ],
+            "select": [
+              "id",
+              "age"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "orderBy: [{ age: { sort: \"desc\", nulls: \"last\" } }]",
+      "goFn": "Query.OrderByNulls"
+    },
+    {
+      "id": "orderby-multi-column",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "post",
+            "orderBy": [
+              {
+                "published": "desc"
+              },
+              {
+                "views": "asc"
+              }
+            ],
+            "select": [
+              "id",
+              "published",
+              "views"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "orderBy: [{ published }, { views }]",
+      "goFn": "two Query.OrderBy calls"
+    },
+    {
+      "id": "orderby-unknown-column",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "orderBy": [
+              {
+                "cityy": "asc"
+              }
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "orderBy: [{ cityy }]",
+      "goFn": "Query.OrderBy(\"cityy\", ...)",
+      "note": "both fail; the port again only at execution time"
+    },
+    {
+      "id": "take-and-skip",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ],
+            "take": 3,
+            "skip": 2,
+            "select": [
+              "id"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "take + skip",
+      "goFn": "Query.Take + Query.Skip"
+    },
+    {
+      "id": "skip-without-take",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ],
+            "skip": 6,
+            "select": [
+              "id"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "skip",
+      "goFn": "Query.Skip",
+      "note": "SQLite has no bare OFFSET, and the port only emits LIMIT when Take was called"
+    },
+    {
+      "id": "take-negative",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ],
+            "take": -2,
+            "select": [
+              "id"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "take: -2",
+      "goFn": "Query.Take(-2)",
+      "note": "a negative take is Prisma's \"last n\"; SQL LIMIT -1 means unlimited"
+    },
+    {
+      "id": "cursor-forward",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ],
+            "cursor": {
+              "id": 3
+            },
+            "take": 2,
+            "select": [
+              "id"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "cursor: { id: 3 }, take: 2",
+      "goFn": "Query.Cursor(\"id\", 3).Take(2)",
+      "note": "Prisma's cursor row is INCLUDED in the page"
+    },
+    {
+      "id": "cursor-skip-one",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ],
+            "cursor": {
+              "id": 3
+            },
+            "skip": 1,
+            "take": 2,
+            "select": [
+              "id"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "cursor + skip: 1 + take",
+      "goFn": "Query.Cursor + Query.Skip + Query.Take",
+      "note": "the idiomatic Prisma \"page after the cursor\""
+    },
+    {
+      "id": "cursor-descending",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "orderBy": [
+              {
+                "id": "desc"
+              }
+            ],
+            "cursor": {
+              "id": 5
+            },
+            "take": 2,
+            "select": [
+              "id"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "cursor with a descending orderBy",
+      "goFn": "Query.Cursor with prisma.Desc"
+    },
+    {
+      "id": "distinct-single-column",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ],
+            "distinct": [
+              "city"
+            ],
+            "select": [
+              "id",
+              "city"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "distinct: [\"city\"]",
+      "goFn": "Query.Distinct(\"city\")"
+    },
+    {
+      "id": "distinct-two-columns",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "post",
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ],
+            "distinct": [
+              "author_id",
+              "published"
+            ],
+            "select": [
+              "author_id",
+              "published"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "distinct: [\"author_id\", \"published\"]",
+      "goFn": "Query.Distinct(\"author_id\", \"published\")"
+    },
+    {
+      "id": "distinct-descending-order",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "orderBy": [
+              {
+                "id": "desc"
+              }
+            ],
+            "distinct": [
+              "city"
+            ],
+            "select": [
+              "city"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "distinct with a descending orderBy",
+      "goFn": "Query.Distinct + prisma.Desc",
+      "note": "which duplicate survives depends on the order"
+    },
+    {
+      "id": "distinct-take-projecting-id",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ],
+            "distinct": [
+              "city"
+            ],
+            "take": 3,
+            "select": [
+              "id",
+              "city"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "distinct: [\"city\"], take: 3",
+      "goFn": "Query.Distinct(\"city\").Take(3)",
+      "note": "the port applies LIMIT in SQL and dedupes afterwards in Go"
+    },
+    {
+      "id": "distinct-take-key-only",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ],
+            "distinct": [
+              "city"
+            ],
+            "take": 3,
+            "select": [
+              "city"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "distinct: [\"city\"], take: 3, select: { city }",
+      "goFn": "Query.Distinct(\"city\").Take(3).Select(\"city\")",
+      "note": "same query with the primary key out of the projection, where SELECT DISTINCT can collapse rows in SQL"
+    },
+    {
+      "id": "distinct-unknown-column",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ],
+            "distinct": [
+              "citty"
+            ],
+            "select": [
+              "id"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "distinct: [\"citty\"]",
+      "goFn": "Query.Distinct(\"citty\")",
+      "note": "the port silently ignores a distinct key it cannot resolve"
+    }
+  ],
+  "note": "orderBy (including NULL placement), take/skip, cursor pagination and distinct. Every read fixes an explicit ORDER BY so row order is defined."
+}

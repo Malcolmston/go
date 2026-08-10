@@ -1,0 +1,32 @@
+{
+  "group": "routing-params",
+  "upstream": "express@4.21.2",
+  "note": "Path-pattern matching: named params, optional params, regex-constrained params, wildcards. Each route replies with req.params as JSON.",
+  "cases": [
+    { "id": "param-simple", "fn": "route.params", "args": [{ "method": "GET", "path": "/u/42" }], "upstreamFn": "req.params", "goFn": "Request.AllParams" },
+    { "id": "param-simple-text", "fn": "route.params", "args": [{ "method": "GET", "path": "/u/abc" }], "upstreamFn": "req.params", "goFn": "Request.AllParams" },
+    { "id": "param-simple-encoded", "fn": "route.params", "args": [{ "method": "GET", "path": "/u/a%20b" }], "upstreamFn": "req.params", "goFn": "Request.AllParams", "note": "express decodes param values" },
+    { "id": "param-simple-empty", "fn": "route.params", "args": [{ "method": "GET", "path": "/u/" }], "upstreamFn": "req.params", "goFn": "Request.AllParams", "note": "a required param must not match an empty segment" },
+    { "id": "param-two", "fn": "route.params", "args": [{ "method": "GET", "path": "/u/7/p/9" }], "upstreamFn": "req.params", "goFn": "Request.AllParams" },
+    { "id": "param-too-deep", "fn": "route.params", "args": [{ "method": "GET", "path": "/u/7/p/9/extra" }], "upstreamFn": "req.params", "goFn": "Request.AllParams" },
+    { "id": "param-optional-present", "fn": "route.params", "args": [{ "method": "GET", "path": "/opt/5" }], "upstreamFn": ":id?", "goFn": ":id?" },
+    { "id": "param-optional-absent", "fn": "route.params", "args": [{ "method": "GET", "path": "/opt" }], "upstreamFn": ":id?", "goFn": ":id?", "note": "optional param: the whole segment including its slash is optional" },
+    { "id": "param-optional-absent-slash", "fn": "route.params", "args": [{ "method": "GET", "path": "/opt/" }], "upstreamFn": ":id?", "goFn": ":id?" },
+    { "id": "param-regex-digits-ok", "fn": "route.params", "args": [{ "method": "GET", "path": "/num/1234" }], "upstreamFn": ":id(\\d+)", "goFn": ":id(\\d+)" },
+    { "id": "param-regex-digits-reject", "fn": "route.params", "args": [{ "method": "GET", "path": "/num/abc" }], "upstreamFn": ":id(\\d+)", "goFn": ":id(\\d+)", "note": "constraint must reject -> 404" },
+    { "id": "param-regex-digits-partial", "fn": "route.params", "args": [{ "method": "GET", "path": "/num/12ab" }], "upstreamFn": ":id(\\d+)", "goFn": ":id(\\d+)", "note": "constraint must anchor to the whole segment" },
+    { "id": "param-regex-word-ok", "fn": "route.params", "args": [{ "method": "GET", "path": "/word/hello" }], "upstreamFn": ":w([a-z]+)", "goFn": ":w([a-z]+)" },
+    { "id": "param-regex-word-reject", "fn": "route.params", "args": [{ "method": "GET", "path": "/word/Hello" }], "upstreamFn": ":w([a-z]+)", "goFn": ":w([a-z]+)", "note": "case-insensitive routing vs a case-sensitive constraint" },
+    { "id": "param-hyphen-pair", "fn": "route.params", "args": [{ "method": "GET", "path": "/mix/LAX-SFO" }], "upstreamFn": "/:from-:to", "goFn": "/:from-:to" },
+    { "id": "param-hyphen-pair-missing", "fn": "route.params", "args": [{ "method": "GET", "path": "/mix/LAX" }], "upstreamFn": "/:from-:to", "goFn": "/:from-:to" },
+    { "id": "wildcard-one", "fn": "route.params", "args": [{ "method": "GET", "path": "/star/x" }], "upstreamFn": "/*", "goFn": "/*", "note": "express 4 names the splat capture \"0\"" },
+    { "id": "wildcard-deep", "fn": "route.params", "args": [{ "method": "GET", "path": "/star/x/y/z" }], "upstreamFn": "/*", "goFn": "/*" },
+    { "id": "wildcard-empty", "fn": "route.params", "args": [{ "method": "GET", "path": "/star/" }], "upstreamFn": "/*", "goFn": "/*" },
+    { "id": "wildcard-no-slash", "fn": "route.params", "args": [{ "method": "GET", "path": "/star" }], "upstreamFn": "/*", "goFn": "/*" },
+    { "id": "wildcard-middle", "fn": "route.params", "args": [{ "method": "GET", "path": "/pre/a/post" }], "upstreamFn": "/pre/*/post", "goFn": "/pre/*/post" },
+    { "id": "wildcard-middle-deep", "fn": "route.params", "args": [{ "method": "GET", "path": "/pre/a/b/post" }], "upstreamFn": "/pre/*/post", "goFn": "/pre/*/post" },
+    { "id": "wildcard-middle-miss", "fn": "route.params", "args": [{ "method": "GET", "path": "/pre/a/other" }], "upstreamFn": "/pre/*/post", "goFn": "/pre/*/post" },
+    { "id": "param-three", "fn": "route.params", "args": [{ "method": "GET", "path": "/many/1/2/3" }], "upstreamFn": "req.params", "goFn": "Request.AllParams" },
+    { "id": "param-three-short", "fn": "route.params", "args": [{ "method": "GET", "path": "/many/1/2" }], "upstreamFn": "req.params", "goFn": "Request.AllParams" }
+  ]
+}

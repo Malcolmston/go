@@ -1,0 +1,191 @@
+{
+  "group": "geometry-extract",
+  "upstream": "sharp@0.33.5",
+  "cases": [
+    {
+      "id": "extract-inner",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "extract",
+            {
+              "left": 4,
+              "top": 6,
+              "width": 20,
+              "height": 10
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#extract",
+      "goFn": "Pipeline.Extract"
+    },
+    {
+      "id": "extract-origin",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "extract",
+            {
+              "left": 0,
+              "top": 0,
+              "width": 1,
+              "height": 1
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#extract",
+      "goFn": "Pipeline.Extract"
+    },
+    {
+      "id": "extract-full",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "extract",
+            {
+              "left": 0,
+              "top": 0,
+              "width": 64,
+              "height": 48
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#extract",
+      "goFn": "Pipeline.Extract"
+    },
+    {
+      "id": "extract-bottom-right",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "extract",
+            {
+              "left": 63,
+              "top": 47,
+              "width": 1,
+              "height": 1
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#extract",
+      "goFn": "Pipeline.Extract"
+    },
+    {
+      "id": "extract-overflow-x",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "extract",
+            {
+              "left": 60,
+              "top": 6,
+              "width": 20,
+              "height": 10
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#extract",
+      "goFn": "Pipeline.Extract",
+      "note": "region runs off the right edge"
+    },
+    {
+      "id": "extract-overflow-y",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "extract",
+            {
+              "left": 0,
+              "top": 40,
+              "width": 10,
+              "height": 20
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#extract",
+      "goFn": "Pipeline.Extract",
+      "note": "region runs off the bottom edge"
+    },
+    {
+      "id": "extract-negative-left",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "extract",
+            {
+              "left": -1,
+              "top": 0,
+              "width": 10,
+              "height": 10
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#extract",
+      "goFn": "Pipeline.Extract",
+      "note": "negative offset"
+    },
+    {
+      "id": "extract-zero-width",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "extract",
+            {
+              "left": 0,
+              "top": 0,
+              "width": 0,
+              "height": 10
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#extract",
+      "goFn": "Pipeline.Extract",
+      "note": "zero-width region"
+    },
+    {
+      "id": "extract-crop-alias",
+      "fn": "geometry",
+      "args": [
+        "circle.png",
+        [
+          [
+            "extract",
+            {
+              "left": 5,
+              "top": 5,
+              "width": 30,
+              "height": 30
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#extract",
+      "goFn": "Pipeline.Crop",
+      "note": "Crop is the port's alias for Extract"
+    }
+  ]
+}

@@ -1,0 +1,1577 @@
+{
+  "library": "pandas",
+  "upstream": "pandas==2.3.3",
+  "goModule": "github.com/malcolmston/pandas v0.2.0",
+  "floatTolerance": 1e-9,
+  "naSentinel": "__NA__",
+  "generatedBy": "GOWORK=off go test ./parity/pandas/",
+  "cases": 217,
+  "match": 174,
+  "differ": 42,
+  "deviations": 1,
+  "parityPercent": 80.56,
+  "caseResults": [
+    {
+      "id": "astype-bool-to-int",
+      "group": "construct",
+      "status": "differs",
+      "upstreamFn": "pandas.Series.astype",
+      "goFn": "pandas.Series.Astype",
+      "detail": "value differs:\n  upstream: {\"dtype\": \"int64\", \"index\": [0, 1, 2], \"kind\": \"series\", \"name\": \"b\", \"values\": [1, 0, \"__NA__\"]}\n        go: {\"dtype\":\"int64\",\"index\":[0,1,2],\"kind\":\"series\",\"name\":\"b\",\"values\":[\"__NA__\",\"__NA__\",\"__NA__\"]}"
+    },
+    {
+      "id": "astype-float-to-int",
+      "group": "construct",
+      "status": "match",
+      "upstreamFn": "pandas.Series.astype",
+      "goFn": "pandas.Series.Astype"
+    },
+    {
+      "id": "astype-int-to-float",
+      "group": "construct",
+      "status": "match",
+      "upstreamFn": "pandas.Series.astype",
+      "goFn": "pandas.Series.Astype"
+    },
+    {
+      "id": "astype-int-to-string",
+      "group": "construct",
+      "status": "match",
+      "upstreamFn": "pandas.Series.astype",
+      "goFn": "pandas.Series.Astype"
+    },
+    {
+      "id": "astype-string-to-float-bad",
+      "group": "construct",
+      "status": "differs",
+      "upstreamFn": "pandas.Series.astype",
+      "goFn": "pandas.Series.Astype",
+      "detail": "ok differs: upstream ok=false (ValueError: could not convert string to float: 'oops') but go ok=true ()"
+    },
+    {
+      "id": "col-numeric",
+      "group": "selection",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.__getitem__",
+      "goFn": "pandas.DataFrame.Col"
+    },
+    {
+      "id": "col-string",
+      "group": "selection",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.__getitem__",
+      "goFn": "pandas.DataFrame.Col"
+    },
+    {
+      "id": "col-unknown",
+      "group": "selection",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.__getitem__",
+      "goFn": "pandas.DataFrame.Col"
+    },
+    {
+      "id": "concat-different-columns",
+      "group": "mutate",
+      "status": "match",
+      "upstreamFn": "pandas.concat",
+      "goFn": "pandas.Concat"
+    },
+    {
+      "id": "concat-self",
+      "group": "mutate",
+      "status": "match",
+      "upstreamFn": "pandas.concat",
+      "goFn": "pandas.Concat"
+    },
+    {
+      "id": "corr-matrix",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.corr",
+      "goFn": "pandas.DataFrame.Corr"
+    },
+    {
+      "id": "describe-nums",
+      "group": "stats",
+      "status": "differs",
+      "upstreamFn": "pandas.DataFrame.describe",
+      "goFn": "pandas.DataFrame.Describe",
+      "detail": "value differs:\n  upstream: {\"columns\": [\"a\", \"b\", \"c\"], \"dtypes\": [\"float64\", \"float64\", \"float64\"], \"index\": [\"count\", \"mean\", \"std\", \"min\", \"25%\", \"50%\", \"75%\", \"max\"], \"kind\": \"frame\", \"values\": [[5.0, 5.0, 4.0], [4.4, 3.0, 2.4375], [3.3241540277189325, 1.5811388300841898, 4.2640698477706325], [1.5, 1.0, -1.0], [2.5, 2.0, -0.25], [3.5, 3.0, 1.125], [4.5, 4.0, 3.8125], [10.0, 5.0, 8.5]]}\n        go: {\"columns\":[\"stat\",\"a\",\"b\",\"c\"],\"dtypes\":[\"string\",\"float64\",\"float64\",\"float64\"],\"index\":[0,1,2,3,4],\"kind\":\"frame\",\"values\":[[\"count\",5,5,4],[\"mean\",4.4,3,2.4375],[\"std\",3.3241540277189325,1.5811388300841898,4.2640698477706325],[\"min\",1.5,1,-1],[\"max\",10,5,8.5]]}"
+    },
+    {
+      "id": "describe-sales",
+      "group": "stats",
+      "status": "differs",
+      "upstreamFn": "pandas.DataFrame.describe",
+      "goFn": "pandas.DataFrame.Describe",
+      "detail": "value differs:\n  upstream: {\"columns\": [\"units\", \"price\"], \"dtypes\": [\"float64\", \"float64\"], \"index\": [\"count\", \"mean\", \"std\", \"min\", \"25%\", \"50%\", \"75%\", \"max\"], \"kind\": \"frame\", \"values\": [[5.0, 5.0], [7.4, 2.8], [3.6469165057620936, 0.9253377761660874], [3.0, 1.75], [5.0, 2.5], [7.0, 2.5], [10.0, 3.0], [12.0, 4.25]]}\n        go: {\"columns\":[\"stat\",\"units\",\"price\"],\"dtypes\":[\"string\",\"float64\",\"float64\"],\"index\":[0,1,2,3,4],\"kind\":\"frame\",\"values\":[[\"count\",5,5],[\"mean\",7.4,2.8],[\"std\",3.646916505762094,0.9253377761660874],[\"min\",3,1.75],[\"max\",12,4.25]]}"
+    },
+    {
+      "id": "describe-strings-only",
+      "group": "stats",
+      "status": "differs",
+      "upstreamFn": "pandas.DataFrame.describe",
+      "goFn": "pandas.DataFrame.Describe",
+      "detail": "value differs:\n  upstream: {\"columns\": [\"g\", \"w\"], \"dtypes\": [\"object\", \"object\"], \"index\": [\"count\", \"unique\", \"top\", \"freq\"], \"kind\": \"frame\", \"values\": [[3, 3], [2, 3], [\"x\", \"aa\"], [2, 1]]}\n        go: {\"columns\":[\"stat\"],\"dtypes\":[\"string\"],\"index\":[0,1,2,3,4],\"kind\":\"frame\",\"values\":[[\"count\"],[\"mean\"],[\"std\"],[\"min\"],[\"max\"]]}"
+    },
+    {
+      "id": "drop-duplicates",
+      "group": "mutate",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.drop_duplicates",
+      "goFn": "pandas.DataFrame.DropDuplicates"
+    },
+    {
+      "id": "drop-one",
+      "group": "mutate",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.drop",
+      "goFn": "pandas.DataFrame.Drop"
+    },
+    {
+      "id": "drop-two",
+      "group": "mutate",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.drop",
+      "goFn": "pandas.DataFrame.Drop"
+    },
+    {
+      "id": "drop-unknown",
+      "group": "mutate",
+      "status": "differs",
+      "upstreamFn": "pandas.DataFrame.drop",
+      "goFn": "pandas.DataFrame.Drop",
+      "detail": "ok differs: upstream ok=false (KeyError: \"['nope'] not found in axis\") but go ok=true ()"
+    },
+    {
+      "id": "dropna-gaps",
+      "group": "missing",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.dropna",
+      "goFn": "pandas.DataFrame.DropNA"
+    },
+    {
+      "id": "dropna-nothing-missing",
+      "group": "missing",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.dropna",
+      "goFn": "pandas.DataFrame.DropNA"
+    },
+    {
+      "id": "dropna-sales",
+      "group": "missing",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.dropna",
+      "goFn": "pandas.DataFrame.DropNA"
+    },
+    {
+      "id": "fillna-all-columns-zero",
+      "group": "missing",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.fillna",
+      "goFn": "pandas.DataFrame.FillNA"
+    },
+    {
+      "id": "fillna-bool-column",
+      "group": "missing",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.fillna",
+      "goFn": "pandas.DataFrame.FillNA"
+    },
+    {
+      "id": "fillna-float-into-int-column",
+      "group": "missing",
+      "status": "differs",
+      "upstreamFn": "pandas.DataFrame.fillna",
+      "goFn": "pandas.DataFrame.FillNA",
+      "detail": "ok differs: upstream ok=false (TypeError: Invalid value '1.5' for dtype 'Int64') but go ok=true ()"
+    },
+    {
+      "id": "fillna-one-column-float",
+      "group": "missing",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.fillna",
+      "goFn": "pandas.DataFrame.FillNA"
+    },
+    {
+      "id": "fillna-one-column-int",
+      "group": "missing",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.fillna",
+      "goFn": "pandas.DataFrame.FillNA"
+    },
+    {
+      "id": "fillna-unknown-column",
+      "group": "missing",
+      "status": "differs",
+      "upstreamFn": "pandas.DataFrame.fillna",
+      "goFn": "pandas.DataFrame.FillNA",
+      "detail": "ok differs: upstream ok=false (KeyError: 'nope') but go ok=true ()"
+    },
+    {
+      "id": "filter-eq-bool",
+      "group": "mutate",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.__getitem__",
+      "goFn": "pandas.DataFrame.FilterFunc"
+    },
+    {
+      "id": "filter-eq-string",
+      "group": "mutate",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.__getitem__",
+      "goFn": "pandas.DataFrame.FilterFunc"
+    },
+    {
+      "id": "filter-gt-int",
+      "group": "mutate",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.__getitem__",
+      "goFn": "pandas.DataFrame.FilterFunc"
+    },
+    {
+      "id": "filter-le-float",
+      "group": "mutate",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.__getitem__",
+      "goFn": "pandas.DataFrame.FilterFunc"
+    },
+    {
+      "id": "filter-mask",
+      "group": "mutate",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.__getitem__",
+      "goFn": "pandas.DataFrame.Filter"
+    },
+    {
+      "id": "filter-mask-all",
+      "group": "mutate",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.__getitem__",
+      "goFn": "pandas.DataFrame.Filter"
+    },
+    {
+      "id": "filter-mask-none",
+      "group": "mutate",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.__getitem__",
+      "goFn": "pandas.DataFrame.Filter"
+    },
+    {
+      "id": "filter-mask-wrong-length",
+      "group": "mutate",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.__getitem__",
+      "goFn": "pandas.DataFrame.Filter"
+    },
+    {
+      "id": "filter-ne-string",
+      "group": "mutate",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.__getitem__",
+      "goFn": "pandas.DataFrame.FilterFunc"
+    },
+    {
+      "id": "filter-unknown-column",
+      "group": "mutate",
+      "status": "differs",
+      "upstreamFn": "pandas.DataFrame.__getitem__",
+      "goFn": "pandas.DataFrame.FilterFunc",
+      "detail": "ok differs: upstream ok=false (KeyError: 'nope') but go ok=true ()"
+    },
+    {
+      "id": "frame-abs",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.abs",
+      "goFn": "pandas.DataFrame.Abs"
+    },
+    {
+      "id": "frame-dtypes-nums",
+      "group": "construct",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.dtypes",
+      "goFn": "pandas.Series.DType"
+    },
+    {
+      "id": "frame-dtypes-sales",
+      "group": "construct",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.dtypes",
+      "goFn": "pandas.Series.DType"
+    },
+    {
+      "id": "frame-from-map-order",
+      "group": "construct",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame",
+      "goFn": "pandas.FromMap"
+    },
+    {
+      "id": "frame-from-map-partial-order",
+      "group": "construct",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame",
+      "goFn": "pandas.FromMap"
+    },
+    {
+      "id": "frame-gaps",
+      "group": "construct",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame",
+      "goFn": "pandas.NewDataFrame"
+    },
+    {
+      "id": "frame-index-sales",
+      "group": "construct",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.index",
+      "goFn": "pandas.DataFrame.Index"
+    },
+    {
+      "id": "frame-max",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.max",
+      "goFn": "pandas.DataFrame.Max"
+    },
+    {
+      "id": "frame-mean",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.mean",
+      "goFn": "pandas.DataFrame.Mean"
+    },
+    {
+      "id": "frame-mean-mixed-dtypes",
+      "group": "stats",
+      "status": "differs",
+      "upstreamFn": "pandas.DataFrame.mean",
+      "goFn": "pandas.DataFrame.Mean",
+      "detail": "ok differs: upstream ok=false (TypeError: mean over non-numeric columns) but go ok=true ()"
+    },
+    {
+      "id": "frame-median",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.median",
+      "goFn": "pandas.DataFrame.Median"
+    },
+    {
+      "id": "frame-min",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.min",
+      "goFn": "pandas.DataFrame.Min"
+    },
+    {
+      "id": "frame-names-sales",
+      "group": "construct",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.columns",
+      "goFn": "pandas.DataFrame.Names"
+    },
+    {
+      "id": "frame-nums",
+      "group": "construct",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame",
+      "goFn": "pandas.NewDataFrame"
+    },
+    {
+      "id": "frame-nunique",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.nunique",
+      "goFn": "pandas.DataFrame.Nunique"
+    },
+    {
+      "id": "frame-reduction-result-name",
+      "group": "stats",
+      "status": "differs",
+      "upstreamFn": "pandas.DataFrame.sum",
+      "goFn": "pandas.DataFrame.Sum",
+      "detail": "value differs:\n  upstream: {\"kind\": \"scalar\", \"value\": \"\"}\n        go: {\"kind\":\"scalar\",\"value\":\"sum\"}"
+    },
+    {
+      "id": "frame-round",
+      "group": "stats",
+      "status": "differs",
+      "upstreamFn": "pandas.DataFrame.round",
+      "goFn": "pandas.DataFrame.Round",
+      "detail": "value differs:\n  upstream: {\"columns\": [\"a\", \"b\", \"c\"], \"dtypes\": [\"float64\", \"int64\", \"float64\"], \"index\": [0, 1, 2, 3, 4], \"kind\": \"frame\", \"values\": [[1.5, 1, -1.0], [2.5, 2, 0.0], [3.5, 3, 2.2], [4.5, 4, \"__NA__\"], [10.0, 5, 8.5]]}\n        go: {\"columns\":[\"a\",\"b\",\"c\"],\"dtypes\":[\"float64\",\"float64\",\"float64\"],\"index\":[0,1,2,3,4],\"kind\":\"frame\",\"values\":[[1.5,1,-1],[2.5,2,0],[3.5,3,2.2],[4.5,4,\"__NA__\"],[10,5,8.5]]}"
+    },
+    {
+      "id": "frame-sales",
+      "group": "construct",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame",
+      "goFn": "pandas.NewDataFrame"
+    },
+    {
+      "id": "frame-shape-sales",
+      "group": "construct",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.shape",
+      "goFn": "pandas.DataFrame.Shape"
+    },
+    {
+      "id": "frame-std",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.std",
+      "goFn": "pandas.DataFrame.Std"
+    },
+    {
+      "id": "frame-sum",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.sum",
+      "goFn": "pandas.DataFrame.Sum"
+    },
+    {
+      "id": "frame-transpose",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.transpose",
+      "goFn": "pandas.DataFrame.Transpose"
+    },
+    {
+      "id": "frame-var",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.var",
+      "goFn": "pandas.DataFrame.Var"
+    },
+    {
+      "id": "gb-all-aggs",
+      "group": "groupby",
+      "status": "match",
+      "upstreamFn": "pandas.core.groupby.DataFrameGroupBy.agg",
+      "goFn": "pandas.GroupBy.Agg"
+    },
+    {
+      "id": "gb-all-na-group",
+      "group": "groupby",
+      "status": "differs",
+      "upstreamFn": "pandas.core.groupby.DataFrameGroupBy.agg",
+      "goFn": "pandas.GroupBy.Agg",
+      "detail": "value differs:\n  upstream: {\"columns\": [\"k\", \"x_sum\", \"x_mean\", \"x_count\"], \"dtypes\": [\"string\", \"float64\", \"float64\", \"int64\"], \"index\": [0, 1, 2, 3], \"kind\": \"frame\", \"values\": [[\"a\", 1.0, 1.0, 1], [\"b\", 0.0, \"__NA__\", 0], [\"c\", 3.0, 3.0, 1], [\"d\", 0.0, \"__NA__\", 0]]}\n        go: {\"columns\":[\"k\",\"x_sum\",\"x_mean\",\"x_count\"],\"dtypes\":[\"string\",\"float64\",\"float64\",\"int64\"],\"index\":[0,1,2,3],\"kind\":\"frame\",\"values\":[[\"a\",1,1,1],[\"b\",\"__NA__\",\"__NA__\",0],[\"c\",3,3,1],[\"d\",\"__NA__\",\"__NA__\",0]]}"
+    },
+    {
+      "id": "gb-bool-agg",
+      "group": "groupby",
+      "status": "differs",
+      "upstreamFn": "pandas.core.groupby.DataFrameGroupBy.agg",
+      "goFn": "pandas.GroupBy.Agg",
+      "detail": "value differs:\n  upstream: {\"columns\": [\"ok\", \"id_sum\"], \"dtypes\": [\"bool\", \"int64\"], \"index\": [0, 1], \"kind\": \"frame\", \"values\": [[false, 2], [true, 4]]}\n        go: {\"columns\":[\"ok\",\"id_sum\"],\"dtypes\":[\"bool\",\"float64\"],\"index\":[0,1],\"kind\":\"frame\",\"values\":[[false,2],[true,4]]}"
+    },
+    {
+      "id": "gb-count",
+      "group": "groupby",
+      "status": "match",
+      "upstreamFn": "pandas.core.groupby.GroupBy.count",
+      "goFn": "pandas.GroupBy.Count"
+    },
+    {
+      "id": "gb-default-naming",
+      "group": "groupby",
+      "status": "deviation",
+      "upstreamFn": "pandas.core.groupby.GroupBy.sum",
+      "goFn": "pandas.GroupBy.Sum",
+      "detail": "the port always names the output column \u003ccol\u003e_\u003cagg\u003e; pandas keeps the source column name | value differs:\n  upstream: {\"columns\": [\"region\", \"units\"], \"dtypes\": [\"string\", \"int64\"], \"index\": [0, 1, 2], \"kind\": \"frame\", \"values\": [[\"east\", 8], [\"north\", 0], [\"west\", 29]]}\n        go: {\"columns\":[\"region\",\"units_sum\"],\"dtypes\":[\"string\",\"float64\"],\"index\":[0,1,2],\"kind\":\"frame\",\"values\":[[\"east\",8],[\"north\",\"__NA__\"],[\"west\",29]]}"
+    },
+    {
+      "id": "gb-groups-count",
+      "group": "groupby",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.groupby",
+      "goFn": "pandas.GroupBy.Groups"
+    },
+    {
+      "id": "gb-groups-two-keys",
+      "group": "groupby",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.groupby",
+      "goFn": "pandas.GroupBy.Groups"
+    },
+    {
+      "id": "gb-max",
+      "group": "groupby",
+      "status": "match",
+      "upstreamFn": "pandas.core.groupby.GroupBy.max",
+      "goFn": "pandas.GroupBy.Max"
+    },
+    {
+      "id": "gb-mean",
+      "group": "groupby",
+      "status": "match",
+      "upstreamFn": "pandas.core.groupby.GroupBy.mean",
+      "goFn": "pandas.GroupBy.Mean"
+    },
+    {
+      "id": "gb-mean-of-string",
+      "group": "groupby",
+      "status": "differs",
+      "upstreamFn": "pandas.core.groupby.DataFrameGroupBy.agg",
+      "goFn": "pandas.GroupBy.Mean",
+      "detail": "ok differs: upstream ok=false (TypeError: dtype 'string' does not support operation 'mean') but go ok=true ()"
+    },
+    {
+      "id": "gb-min",
+      "group": "groupby",
+      "status": "match",
+      "upstreamFn": "pandas.core.groupby.GroupBy.min",
+      "goFn": "pandas.GroupBy.Min"
+    },
+    {
+      "id": "gb-multi-column-aggs",
+      "group": "groupby",
+      "status": "differs",
+      "upstreamFn": "pandas.core.groupby.DataFrameGroupBy.agg",
+      "goFn": "pandas.GroupBy.Agg",
+      "detail": "value differs:\n  upstream: {\"columns\": [\"region\", \"units_sum\", \"price_mean\"], \"dtypes\": [\"string\", \"int64\", \"float64\"], \"index\": [0, 1, 2], \"kind\": \"frame\", \"values\": [[\"east\", 8, 3.0], [\"north\", 0, 4.25], [\"west\", 29, 2.25]]}\n        go: {\"columns\":[\"region\",\"units_sum\",\"price_mean\"],\"dtypes\":[\"string\",\"float64\",\"float64\"],\"index\":[0,1,2],\"kind\":\"frame\",\"values\":[[\"east\",8,3],[\"north\",\"__NA__\",4.25],[\"west\",29,2.25]]}"
+    },
+    {
+      "id": "gb-std",
+      "group": "groupby",
+      "status": "match",
+      "upstreamFn": "pandas.core.groupby.GroupBy.std",
+      "goFn": "pandas.GroupBy.Std"
+    },
+    {
+      "id": "gb-std-of-string",
+      "group": "groupby",
+      "status": "differs",
+      "upstreamFn": "pandas.core.groupby.DataFrameGroupBy.agg",
+      "goFn": "pandas.GroupBy.Std",
+      "detail": "ok differs: upstream ok=false (TypeError: dtype 'string' does not support operation 'std') but go ok=true ()"
+    },
+    {
+      "id": "gb-sum",
+      "group": "groupby",
+      "status": "differs",
+      "upstreamFn": "pandas.core.groupby.GroupBy.sum",
+      "goFn": "pandas.GroupBy.Sum",
+      "detail": "value differs:\n  upstream: {\"columns\": [\"region\", \"units_sum\"], \"dtypes\": [\"string\", \"int64\"], \"index\": [0, 1, 2], \"kind\": \"frame\", \"values\": [[\"east\", 8], [\"north\", 0], [\"west\", 29]]}\n        go: {\"columns\":[\"region\",\"units_sum\"],\"dtypes\":[\"string\",\"float64\"],\"index\":[0,1,2],\"kind\":\"frame\",\"values\":[[\"east\",8],[\"north\",\"__NA__\"],[\"west\",29]]}"
+    },
+    {
+      "id": "gb-sum-of-string",
+      "group": "groupby",
+      "status": "differs",
+      "upstreamFn": "pandas.core.groupby.DataFrameGroupBy.agg",
+      "goFn": "pandas.GroupBy.Sum",
+      "detail": "value differs:\n  upstream: {\"columns\": [\"g\", \"w_sum\"], \"dtypes\": [\"string\", \"string\"], \"index\": [0, 1], \"kind\": \"frame\", \"values\": [[\"x\", \"aacc\"], [\"y\", \"bb\"]]}\n        go: {\"columns\":[\"g\",\"w_sum\"],\"dtypes\":[\"string\",\"float64\"],\"index\":[0,1],\"kind\":\"frame\",\"values\":[[\"x\",\"__NA__\"],[\"y\",\"__NA__\"]]}"
+    },
+    {
+      "id": "gb-two-keys-mean",
+      "group": "groupby",
+      "status": "match",
+      "upstreamFn": "pandas.core.groupby.DataFrameGroupBy.agg",
+      "goFn": "pandas.GroupBy.Agg"
+    },
+    {
+      "id": "gb-two-keys-sum-count",
+      "group": "groupby",
+      "status": "match",
+      "upstreamFn": "pandas.core.groupby.DataFrameGroupBy.agg",
+      "goFn": "pandas.GroupBy.Agg"
+    },
+    {
+      "id": "gb-unknown-agg-column",
+      "group": "groupby",
+      "status": "match",
+      "upstreamFn": "pandas.core.groupby.DataFrameGroupBy.agg",
+      "goFn": "pandas.GroupBy.Sum"
+    },
+    {
+      "id": "gb-unknown-key",
+      "group": "groupby",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.groupby",
+      "goFn": "pandas.DataFrame.GroupBy"
+    },
+    {
+      "id": "head-3",
+      "group": "selection",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.head",
+      "goFn": "pandas.DataFrame.Head"
+    },
+    {
+      "id": "head-over",
+      "group": "selection",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.head",
+      "goFn": "pandas.DataFrame.Head"
+    },
+    {
+      "id": "head-zero",
+      "group": "selection",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.head",
+      "goFn": "pandas.DataFrame.Head"
+    },
+    {
+      "id": "iloc-clamped-high",
+      "group": "selection",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.iloc",
+      "goFn": "pandas.DataFrame.ILoc"
+    },
+    {
+      "id": "iloc-empty-range",
+      "group": "selection",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.iloc",
+      "goFn": "pandas.DataFrame.ILoc"
+    },
+    {
+      "id": "iloc-from-zero",
+      "group": "selection",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.iloc",
+      "goFn": "pandas.DataFrame.ILoc"
+    },
+    {
+      "id": "iloc-middle",
+      "group": "selection",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.iloc",
+      "goFn": "pandas.DataFrame.ILoc"
+    },
+    {
+      "id": "isna-mask",
+      "group": "missing",
+      "status": "match",
+      "upstreamFn": "pandas.Series.isna",
+      "goFn": "pandas.Series.IsNA"
+    },
+    {
+      "id": "loc-int-labels",
+      "group": "selection",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.loc",
+      "goFn": "pandas.DataFrame.Loc"
+    },
+    {
+      "id": "loc-missing-label",
+      "group": "selection",
+      "status": "differs",
+      "upstreamFn": "pandas.DataFrame.loc",
+      "goFn": "pandas.DataFrame.Loc",
+      "detail": "ok differs: upstream ok=false (KeyError: '[99] not in index') but go ok=true ()"
+    },
+    {
+      "id": "loc-reordered-labels",
+      "group": "selection",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.loc",
+      "goFn": "pandas.DataFrame.Loc"
+    },
+    {
+      "id": "loc-string-index",
+      "group": "selection",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.loc",
+      "goFn": "pandas.DataFrame.Loc"
+    },
+    {
+      "id": "loc-untyped-int-label",
+      "group": "selection",
+      "status": "differs",
+      "upstreamFn": "pandas.DataFrame.loc",
+      "goFn": "pandas.DataFrame.Loc",
+      "detail": "value differs:\n  upstream: {\"columns\": [\"region\", \"units\", \"price\", \"active\"], \"dtypes\": [\"string\", \"int64\", \"float64\", \"bool\"], \"index\": [1, 3], \"kind\": \"frame\", \"values\": [[\"east\", 5, 3.0, false], [\"north\", \"__NA__\", 4.25, true]]}\n        go: {\"columns\":[\"region\",\"units\",\"price\",\"active\"],\"dtypes\":[\"string\",\"int64\",\"float64\",\"bool\"],\"index\":[],\"kind\":\"frame\",\"values\":[]}"
+    },
+    {
+      "id": "merge-bad-key",
+      "group": "merge",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.merge",
+      "goFn": "pandas.DataFrame.Merge"
+    },
+    {
+      "id": "merge-colliding-columns",
+      "group": "merge",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.merge",
+      "goFn": "pandas.DataFrame.Merge"
+    },
+    {
+      "id": "merge-cross-unsupported",
+      "group": "merge",
+      "status": "differs",
+      "upstreamFn": "pandas.DataFrame.merge",
+      "goFn": "—",
+      "detail": "ok differs: upstream ok=true () but go ok=false (pandas: unsupported join type \"cross\" (port supports inner and left only))"
+    },
+    {
+      "id": "merge-inner",
+      "group": "merge",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.merge",
+      "goFn": "pandas.DataFrame.Merge"
+    },
+    {
+      "id": "merge-inner-duplicate-right-keys",
+      "group": "merge",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.merge",
+      "goFn": "pandas.DataFrame.Merge"
+    },
+    {
+      "id": "merge-key-not-first-column",
+      "group": "merge",
+      "status": "differs",
+      "upstreamFn": "pandas.DataFrame.merge",
+      "goFn": "pandas.DataFrame.Merge",
+      "detail": "value differs:\n  upstream: {\"columns\": [\"id\", \"amt\", \"region\", \"rate\"], \"dtypes\": [\"int64\", \"float64\", \"string\", \"float64\"], \"index\": [0, 1, 2], \"kind\": \"frame\", \"values\": [[1, 1.5, \"west\", 0.1], [2, 2.5, \"east\", 0.2], [3, 3.5, \"west\", 0.1]]}\n        go: {\"columns\":[\"region\",\"id\",\"amt\",\"rate\"],\"dtypes\":[\"string\",\"int64\",\"float64\",\"float64\"],\"index\":[0,1,2],\"kind\":\"frame\",\"values\":[[\"west\",1,1.5,0.1],[\"east\",2,2.5,0.2],[\"west\",3,3.5,0.1]]}"
+    },
+    {
+      "id": "merge-key-not-first-column-left",
+      "group": "merge",
+      "status": "differs",
+      "upstreamFn": "pandas.DataFrame.merge",
+      "goFn": "pandas.DataFrame.Merge",
+      "detail": "value differs:\n  upstream: {\"columns\": [\"id\", \"amt\", \"region\", \"rate\"], \"dtypes\": [\"int64\", \"float64\", \"string\", \"float64\"], \"index\": [0, 1, 2], \"kind\": \"frame\", \"values\": [[1, 1.5, \"west\", 0.1], [2, 2.5, \"east\", 0.2], [3, 3.5, \"west\", 0.1]]}\n        go: {\"columns\":[\"region\",\"id\",\"amt\",\"rate\"],\"dtypes\":[\"string\",\"int64\",\"float64\",\"float64\"],\"index\":[0,1,2],\"kind\":\"frame\",\"values\":[[\"west\",1,1.5,0.1],[\"east\",2,2.5,0.2],[\"west\",3,3.5,0.1]]}"
+    },
+    {
+      "id": "merge-left",
+      "group": "merge",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.merge",
+      "goFn": "pandas.DataFrame.Merge"
+    },
+    {
+      "id": "merge-left-duplicate-right-keys",
+      "group": "merge",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.merge",
+      "goFn": "pandas.DataFrame.Merge"
+    },
+    {
+      "id": "merge-no-overlap",
+      "group": "merge",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.merge",
+      "goFn": "pandas.DataFrame.Merge"
+    },
+    {
+      "id": "merge-outer-unsupported",
+      "group": "merge",
+      "status": "differs",
+      "upstreamFn": "pandas.DataFrame.merge",
+      "goFn": "—",
+      "detail": "ok differs: upstream ok=true () but go ok=false (pandas: unsupported join type \"outer\" (port supports inner and left only))"
+    },
+    {
+      "id": "merge-right-unsupported",
+      "group": "merge",
+      "status": "differs",
+      "upstreamFn": "pandas.DataFrame.merge",
+      "goFn": "—",
+      "detail": "ok differs: upstream ok=true () but go ok=false (pandas: unsupported join type \"right\" (port supports inner and left only))"
+    },
+    {
+      "id": "read-csv-blank-is-na",
+      "group": "csv",
+      "status": "differs",
+      "upstreamFn": "pandas.read_csv",
+      "goFn": "pandas.ReadCSV",
+      "detail": "value differs:\n  upstream: {\"columns\": [\"a\", \"b\"], \"dtypes\": [\"float64\", \"float64\"], \"index\": [0, 1], \"kind\": \"frame\", \"values\": [[1.0, \"__NA__\"], [\"__NA__\", 2.0]]}\n        go: {\"columns\":[\"a\",\"b\"],\"dtypes\":[\"int64\",\"int64\"],\"index\":[0,1],\"kind\":\"frame\",\"values\":[[1,\"__NA__\"],[\"__NA__\",2]]}"
+    },
+    {
+      "id": "read-csv-inference",
+      "group": "csv",
+      "status": "match",
+      "upstreamFn": "pandas.read_csv",
+      "goFn": "pandas.ReadCSV"
+    },
+    {
+      "id": "read-csv-mixed-column",
+      "group": "csv",
+      "status": "match",
+      "upstreamFn": "pandas.read_csv",
+      "goFn": "pandas.ReadCSV"
+    },
+    {
+      "id": "read-csv-na-values",
+      "group": "csv",
+      "status": "differs",
+      "upstreamFn": "pandas.read_csv",
+      "goFn": "pandas.ReadCSVOptions.NAValues",
+      "detail": "value differs:\n  upstream: {\"columns\": [\"a\", \"b\"], \"dtypes\": [\"float64\", \"float64\"], \"index\": [0, 1], \"kind\": \"frame\", \"values\": [[1.0, \"__NA__\"], [\"__NA__\", 2.0]]}\n        go: {\"columns\":[\"a\",\"b\"],\"dtypes\":[\"int64\",\"int64\"],\"index\":[0,1],\"kind\":\"frame\",\"values\":[[1,\"__NA__\"],[\"__NA__\",2]]}"
+    },
+    {
+      "id": "read-csv-no-header",
+      "group": "csv",
+      "status": "differs",
+      "upstreamFn": "pandas.read_csv",
+      "goFn": "pandas.ReadCSVOptions.NoHeader",
+      "detail": "value differs:\n  upstream: {\"columns\": [\"0\", \"1\"], \"dtypes\": [\"int64\", \"int64\"], \"index\": [0, 1], \"kind\": \"frame\", \"values\": [[1, 2], [3, 4]]}\n        go: {\"columns\":[\"col0\",\"col1\"],\"dtypes\":[\"int64\",\"int64\"],\"index\":[0,1],\"kind\":\"frame\",\"values\":[[1,2],[3,4]]}"
+    },
+    {
+      "id": "read-csv-quoted",
+      "group": "csv",
+      "status": "match",
+      "upstreamFn": "pandas.read_csv",
+      "goFn": "pandas.ReadCSV"
+    },
+    {
+      "id": "read-csv-ragged",
+      "group": "csv",
+      "status": "differs",
+      "upstreamFn": "pandas.read_csv",
+      "goFn": "pandas.ReadCSV",
+      "detail": "value differs:\n  upstream: {\"columns\": [\"a\", \"b\"], \"dtypes\": [\"int64\", \"int64\"], \"index\": [1], \"kind\": \"frame\", \"values\": [[2, 3]]}\n        go: {\"columns\":[\"a\",\"b\"],\"dtypes\":[\"int64\",\"int64\"],\"index\":[0],\"kind\":\"frame\",\"values\":[[1,2]]}"
+    },
+    {
+      "id": "read-csv-semicolon",
+      "group": "csv",
+      "status": "match",
+      "upstreamFn": "pandas.read_csv",
+      "goFn": "pandas.ReadCSVOptions.Delimiter"
+    },
+    {
+      "id": "rename-one",
+      "group": "mutate",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.rename",
+      "goFn": "pandas.DataFrame.Rename"
+    },
+    {
+      "id": "rename-two",
+      "group": "mutate",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.rename",
+      "goFn": "pandas.DataFrame.Rename"
+    },
+    {
+      "id": "rename-unknown",
+      "group": "mutate",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.rename",
+      "goFn": "pandas.DataFrame.Rename"
+    },
+    {
+      "id": "reset-index-sorted",
+      "group": "selection",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.reset_index",
+      "goFn": "pandas.DataFrame.ResetIndex"
+    },
+    {
+      "id": "roundtrip-bool",
+      "group": "csv",
+      "status": "match",
+      "upstreamFn": "pandas.read_csv",
+      "goFn": "pandas.ReadCSV"
+    },
+    {
+      "id": "roundtrip-fractional",
+      "group": "csv",
+      "status": "match",
+      "upstreamFn": "pandas.read_csv",
+      "goFn": "pandas.ReadCSV"
+    },
+    {
+      "id": "roundtrip-missing",
+      "group": "csv",
+      "status": "differs",
+      "upstreamFn": "pandas.read_csv",
+      "goFn": "pandas.ReadCSV",
+      "detail": "value differs:\n  upstream: {\"columns\": [\"k\", \"x\", \"y\"], \"dtypes\": [\"string\", \"float64\", \"float64\"], \"index\": [0, 1, 2, 3], \"kind\": \"frame\", \"values\": [[\"a\", 1.0, \"__NA__\"], [\"b\", \"__NA__\", 2.0], [\"c\", 3.0, 3.0], [\"d\", \"__NA__\", 4.0]]}\n        go: {\"columns\":[\"k\",\"x\",\"y\"],\"dtypes\":[\"string\",\"int64\",\"int64\"],\"index\":[0,1,2,3],\"kind\":\"frame\",\"values\":[[\"a\",1,\"__NA__\"],[\"b\",\"__NA__\",2],[\"c\",3,3],[\"d\",\"__NA__\",4]]}"
+    },
+    {
+      "id": "roundtrip-sales",
+      "group": "csv",
+      "status": "differs",
+      "upstreamFn": "pandas.read_csv",
+      "goFn": "pandas.ReadCSV",
+      "detail": "value differs:\n  upstream: {\"columns\": [\"region\", \"units\", \"price\", \"active\"], \"dtypes\": [\"string\", \"float64\", \"float64\", \"bool\"], \"index\": [0, 1, 2, 3, 4, 5], \"kind\": \"frame\", \"values\": [[\"west\", 10.0, 2.5, true], [\"east\", 5.0, 3.0, false], [\"west\", 7.0, 2.5, true], [\"north\", \"__NA__\", 4.25, true], [\"east\", 3.0, \"__NA__\", \"__NA__\"], [\"west\", 12.0, 1.75, false]]}\n        go: {\"columns\":[\"region\",\"units\",\"price\",\"active\"],\"dtypes\":[\"string\",\"int64\",\"float64\",\"bool\"],\"index\":[0,1,2,3,4,5],\"kind\":\"frame\",\"values\":[[\"west\",10,2.5,true],[\"east\",5,3,false],[\"west\",7,2.5,true],[\"north\",\"__NA__\",4.25,true],[\"east\",3,\"__NA__\",\"__NA__\"],[\"west\",12,1.75,false]]}"
+    },
+    {
+      "id": "roundtrip-whole-floats",
+      "group": "csv",
+      "status": "differs",
+      "upstreamFn": "pandas.read_csv",
+      "goFn": "pandas.ReadCSV",
+      "detail": "value differs:\n  upstream: {\"columns\": [\"id\", \"amt\", \"tag\"], \"dtypes\": [\"int64\", \"float64\", \"string\"], \"index\": [0, 1, 2], \"kind\": \"frame\", \"values\": [[1, 1.0, \"p\"], [2, 2.0, \"q\"], [3, 3.0, \"r\"]]}\n        go: {\"columns\":[\"id\",\"amt\",\"tag\"],\"dtypes\":[\"int64\",\"int64\",\"string\"],\"index\":[0,1,2],\"kind\":\"frame\",\"values\":[[1,1,\"p\"],[2,2,\"q\"],[3,3,\"r\"]]}"
+    },
+    {
+      "id": "select-all",
+      "group": "selection",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.__getitem__",
+      "goFn": "pandas.DataFrame.Select"
+    },
+    {
+      "id": "select-reordered",
+      "group": "selection",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.__getitem__",
+      "goFn": "pandas.DataFrame.Select"
+    },
+    {
+      "id": "select-two",
+      "group": "selection",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.__getitem__",
+      "goFn": "pandas.DataFrame.Select"
+    },
+    {
+      "id": "select-unknown",
+      "group": "selection",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.__getitem__",
+      "goFn": "pandas.DataFrame.Select"
+    },
+    {
+      "id": "series-abs",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.abs",
+      "goFn": "pandas.Series.Abs"
+    },
+    {
+      "id": "series-add",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.add",
+      "goFn": "pandas.Series.Add"
+    },
+    {
+      "id": "series-add-length-mismatch",
+      "group": "stats",
+      "status": "differs",
+      "upstreamFn": "pandas.Series.add",
+      "goFn": "pandas.Series.Add",
+      "detail": "value differs:\n  upstream: {\"dtype\": \"float64\", \"index\": [0, 1, 2], \"kind\": \"series\", \"name\": \"\", \"values\": [11.0, \"__NA__\", \"__NA__\"]}\n        go: {\"dtype\":\"float64\",\"index\":[0],\"kind\":\"series\",\"name\":\"\",\"values\":[11]}"
+    },
+    {
+      "id": "series-allnull",
+      "group": "construct",
+      "status": "match",
+      "upstreamFn": "pandas.Series",
+      "goFn": "pandas.NewSeriesTyped"
+    },
+    {
+      "id": "series-between",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.between",
+      "goFn": "pandas.Series.Between"
+    },
+    {
+      "id": "series-bool",
+      "group": "construct",
+      "status": "match",
+      "upstreamFn": "pandas.Series",
+      "goFn": "pandas.NewSeriesTyped"
+    },
+    {
+      "id": "series-clip",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.clip",
+      "goFn": "pandas.Series.Clip"
+    },
+    {
+      "id": "series-corr",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.corr",
+      "goFn": "pandas.Series.Corr"
+    },
+    {
+      "id": "series-count",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.count",
+      "goFn": "pandas.Series.Count"
+    },
+    {
+      "id": "series-cov",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.cov",
+      "goFn": "pandas.Series.Cov"
+    },
+    {
+      "id": "series-cummax",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.cummax",
+      "goFn": "pandas.Series.CumMax"
+    },
+    {
+      "id": "series-cumsum",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.cumsum",
+      "goFn": "pandas.Series.CumSum"
+    },
+    {
+      "id": "series-diff",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.diff",
+      "goFn": "pandas.Series.Diff"
+    },
+    {
+      "id": "series-div",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.div",
+      "goFn": "pandas.Series.Div"
+    },
+    {
+      "id": "series-div-by-zero",
+      "group": "stats",
+      "status": "differs",
+      "upstreamFn": "pandas.Series.div",
+      "goFn": "pandas.Series.Div",
+      "detail": "value differs:\n  upstream: {\"dtype\": \"float64\", \"index\": [0, 1], \"kind\": \"series\", \"name\": \"\", \"values\": [\"__INF__\", \"__-INF__\"]}\n        go: {\"dtype\":\"float64\",\"index\":[0,1],\"kind\":\"series\",\"name\":\"\",\"values\":[\"__NA__\",\"__NA__\"]}"
+    },
+    {
+      "id": "series-dropna",
+      "group": "missing",
+      "status": "match",
+      "upstreamFn": "pandas.Series.dropna",
+      "goFn": "pandas.Series.DropNA"
+    },
+    {
+      "id": "series-empty",
+      "group": "construct",
+      "status": "match",
+      "upstreamFn": "pandas.Series",
+      "goFn": "pandas.NewSeriesTyped"
+    },
+    {
+      "id": "series-fillna",
+      "group": "missing",
+      "status": "match",
+      "upstreamFn": "pandas.Series.fillna",
+      "goFn": "pandas.Series.FillNA"
+    },
+    {
+      "id": "series-fillna-string",
+      "group": "missing",
+      "status": "match",
+      "upstreamFn": "pandas.Series.fillna",
+      "goFn": "pandas.Series.FillNA"
+    },
+    {
+      "id": "series-float64",
+      "group": "construct",
+      "status": "match",
+      "upstreamFn": "pandas.Series",
+      "goFn": "pandas.NewSeriesTyped"
+    },
+    {
+      "id": "series-infer-floats",
+      "group": "construct",
+      "status": "match",
+      "upstreamFn": "pandas.Series",
+      "goFn": "pandas.NewSeries"
+    },
+    {
+      "id": "series-infer-ints",
+      "group": "construct",
+      "status": "match",
+      "upstreamFn": "pandas.Series",
+      "goFn": "pandas.NewSeries"
+    },
+    {
+      "id": "series-infer-mixed-numeric",
+      "group": "construct",
+      "status": "differs",
+      "upstreamFn": "pandas.Series",
+      "goFn": "pandas.NewSeries",
+      "detail": "value differs:\n  upstream: {\"dtype\": \"float64\", \"index\": [0, 1, 2], \"kind\": \"series\", \"name\": \"n\", \"values\": [1.0, 2.5, 3.0]}\n        go: {\"dtype\":\"int64\",\"index\":[0,1,2],\"kind\":\"series\",\"name\":\"n\",\"values\":[1,2,3]}"
+    },
+    {
+      "id": "series-infer-mixed-types",
+      "group": "construct",
+      "status": "differs",
+      "upstreamFn": "pandas.Series",
+      "goFn": "pandas.NewSeries",
+      "detail": "value differs:\n  upstream: {\"dtype\": \"object\", \"index\": [0, 1, 2], \"kind\": \"series\", \"name\": \"m\", \"values\": [1, \"x\", true]}\n        go: {\"dtype\":\"int64\",\"index\":[0,1,2],\"kind\":\"series\",\"name\":\"m\",\"values\":[1,\"__NA__\",\"__NA__\"]}"
+    },
+    {
+      "id": "series-infer-strings",
+      "group": "construct",
+      "status": "match",
+      "upstreamFn": "pandas.Series",
+      "goFn": "pandas.NewSeries"
+    },
+    {
+      "id": "series-int64",
+      "group": "construct",
+      "status": "match",
+      "upstreamFn": "pandas.Series",
+      "goFn": "pandas.NewSeriesTyped"
+    },
+    {
+      "id": "series-isin",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.isin",
+      "goFn": "pandas.Series.IsIn"
+    },
+    {
+      "id": "series-max",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.max",
+      "goFn": "pandas.Series.Max"
+    },
+    {
+      "id": "series-mean",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.mean",
+      "goFn": "pandas.Series.Mean"
+    },
+    {
+      "id": "series-mean-empty",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.mean",
+      "goFn": "pandas.Series.Mean"
+    },
+    {
+      "id": "series-mean-of-strings",
+      "group": "stats",
+      "status": "differs",
+      "upstreamFn": "pandas.Series.mean",
+      "goFn": "pandas.Series.Mean",
+      "detail": "ok differs: upstream ok=false (TypeError: cannot compute mean of dtype string) but go ok=true ()"
+    },
+    {
+      "id": "series-median-even",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.median",
+      "goFn": "pandas.Series.Median"
+    },
+    {
+      "id": "series-min",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.min",
+      "goFn": "pandas.Series.Min"
+    },
+    {
+      "id": "series-mode",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.mode",
+      "goFn": "pandas.Series.Mode"
+    },
+    {
+      "id": "series-mul",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.mul",
+      "goFn": "pandas.Series.Mul"
+    },
+    {
+      "id": "series-nlargest",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.nlargest",
+      "goFn": "pandas.Series.NLargest"
+    },
+    {
+      "id": "series-nsmallest",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.nsmallest",
+      "goFn": "pandas.Series.NSmallest"
+    },
+    {
+      "id": "series-nunique",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.nunique",
+      "goFn": "pandas.DataFrame.Nunique"
+    },
+    {
+      "id": "series-pct-change",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.pct_change",
+      "goFn": "pandas.Series.PctChange"
+    },
+    {
+      "id": "series-prod",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.prod",
+      "goFn": "pandas.Series.Prod"
+    },
+    {
+      "id": "series-quantile-25",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.quantile",
+      "goFn": "pandas.Series.Quantile"
+    },
+    {
+      "id": "series-quantile-90",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.quantile",
+      "goFn": "pandas.Series.Quantile"
+    },
+    {
+      "id": "series-rank-average",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.rank",
+      "goFn": "pandas.Series.Rank"
+    },
+    {
+      "id": "series-rank-dense",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.rank",
+      "goFn": "pandas.Series.RankBy"
+    },
+    {
+      "id": "series-rank-min",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.rank",
+      "goFn": "pandas.Series.RankBy"
+    },
+    {
+      "id": "series-round-half-even",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.round",
+      "goFn": "pandas.Series.Round"
+    },
+    {
+      "id": "series-shift-down",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.shift",
+      "goFn": "pandas.Series.Shift"
+    },
+    {
+      "id": "series-shift-up",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.shift",
+      "goFn": "pandas.Series.Shift"
+    },
+    {
+      "id": "series-sort-asc",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.sort_values",
+      "goFn": "pandas.Series.Sort"
+    },
+    {
+      "id": "series-sort-desc",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.sort_values",
+      "goFn": "pandas.Series.Sort"
+    },
+    {
+      "id": "series-std",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.std",
+      "goFn": "pandas.Series.Std"
+    },
+    {
+      "id": "series-std-single",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.std",
+      "goFn": "pandas.Series.Std"
+    },
+    {
+      "id": "series-string",
+      "group": "construct",
+      "status": "match",
+      "upstreamFn": "pandas.Series",
+      "goFn": "pandas.NewSeriesTyped"
+    },
+    {
+      "id": "series-sub",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.sub",
+      "goFn": "pandas.Series.Sub"
+    },
+    {
+      "id": "series-sum",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.sum",
+      "goFn": "pandas.Series.Sum"
+    },
+    {
+      "id": "series-sum-empty",
+      "group": "stats",
+      "status": "differs",
+      "upstreamFn": "pandas.Series.sum",
+      "goFn": "pandas.Series.Sum",
+      "detail": "value differs:\n  upstream: {\"kind\": \"scalar\", \"value\": 0.0}\n        go: {\"kind\":\"scalar\",\"value\":\"__NA__\"}"
+    },
+    {
+      "id": "series-unique",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.unique",
+      "goFn": "pandas.Series.Unique"
+    },
+    {
+      "id": "series-value-counts",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.value_counts",
+      "goFn": "pandas.Series.ValueCounts"
+    },
+    {
+      "id": "series-var",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.var",
+      "goFn": "pandas.Series.Var"
+    },
+    {
+      "id": "set-index-region",
+      "group": "selection",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.set_index",
+      "goFn": "pandas.DataFrame.SetIndex"
+    },
+    {
+      "id": "set-index-unknown",
+      "group": "selection",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.set_index",
+      "goFn": "pandas.DataFrame.SetIndex"
+    },
+    {
+      "id": "sort-bool-key",
+      "group": "mutate",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.sort_values",
+      "goFn": "pandas.DataFrame.SortBy"
+    },
+    {
+      "id": "sort-one-asc",
+      "group": "mutate",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.sort_values",
+      "goFn": "pandas.DataFrame.SortBy"
+    },
+    {
+      "id": "sort-one-desc",
+      "group": "mutate",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.sort_values",
+      "goFn": "pandas.DataFrame.SortBy"
+    },
+    {
+      "id": "sort-stable-ties",
+      "group": "mutate",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.sort_values",
+      "goFn": "pandas.DataFrame.SortBy"
+    },
+    {
+      "id": "sort-string-key",
+      "group": "mutate",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.sort_values",
+      "goFn": "pandas.DataFrame.SortBy"
+    },
+    {
+      "id": "sort-three-keys",
+      "group": "mutate",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.sort_values",
+      "goFn": "pandas.DataFrame.SortBy"
+    },
+    {
+      "id": "sort-two-keys",
+      "group": "mutate",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.sort_values",
+      "goFn": "pandas.DataFrame.SortBy"
+    },
+    {
+      "id": "sort-two-keys-mixed",
+      "group": "mutate",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.sort_values",
+      "goFn": "pandas.DataFrame.SortBy"
+    },
+    {
+      "id": "sort-unknown-key",
+      "group": "mutate",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.sort_values",
+      "goFn": "pandas.DataFrame.SortBy"
+    },
+    {
+      "id": "str-contains",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.str.contains",
+      "goFn": "pandas.StrAccessor.Contains"
+    },
+    {
+      "id": "str-endswith",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.str.endswith",
+      "goFn": "pandas.StrAccessor.EndsWith"
+    },
+    {
+      "id": "str-len",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.str.len",
+      "goFn": "pandas.StrAccessor.Len"
+    },
+    {
+      "id": "str-lower",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.str.lower",
+      "goFn": "pandas.StrAccessor.Lower"
+    },
+    {
+      "id": "str-replace",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.str.replace",
+      "goFn": "pandas.StrAccessor.Replace"
+    },
+    {
+      "id": "str-startswith",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.str.startswith",
+      "goFn": "pandas.StrAccessor.StartsWith"
+    },
+    {
+      "id": "str-strip",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.str.strip",
+      "goFn": "pandas.StrAccessor.Strip"
+    },
+    {
+      "id": "str-title",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.str.title",
+      "goFn": "pandas.StrAccessor.Title"
+    },
+    {
+      "id": "str-upper",
+      "group": "stats",
+      "status": "match",
+      "upstreamFn": "pandas.Series.str.upper",
+      "goFn": "pandas.StrAccessor.Upper"
+    },
+    {
+      "id": "tail-2",
+      "group": "selection",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.tail",
+      "goFn": "pandas.DataFrame.Tail"
+    },
+    {
+      "id": "tail-over",
+      "group": "selection",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.tail",
+      "goFn": "pandas.DataFrame.Tail"
+    },
+    {
+      "id": "take-positions",
+      "group": "selection",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.take",
+      "goFn": "pandas.DataFrame.Take"
+    },
+    {
+      "id": "take-repeat",
+      "group": "selection",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.take",
+      "goFn": "pandas.DataFrame.Take"
+    },
+    {
+      "id": "to-csv-bool",
+      "group": "csv",
+      "status": "differs",
+      "upstreamFn": "pandas.DataFrame.to_csv",
+      "goFn": "pandas.DataFrame.WriteCSV",
+      "detail": "value differs:\n  upstream: {\"kind\": \"text\", \"value\": \"id,ok\\n1,True\\n2,False\\n3,True\\n\"}\n        go: {\"kind\":\"text\",\"value\":\"id,ok\\n1,true\\n2,false\\n3,true\\n\"}"
+    },
+    {
+      "id": "to-csv-fractional",
+      "group": "csv",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.to_csv",
+      "goFn": "pandas.DataFrame.WriteCSV"
+    },
+    {
+      "id": "to-csv-missing",
+      "group": "csv",
+      "status": "differs",
+      "upstreamFn": "pandas.DataFrame.to_csv",
+      "goFn": "pandas.DataFrame.WriteCSV",
+      "detail": "value differs:\n  upstream: {\"kind\": \"text\", \"value\": \"k,x,y\\na,1.0,\\nb,,2\\nc,3.0,3\\nd,,4\\n\"}\n        go: {\"kind\":\"text\",\"value\":\"k,x,y\\na,1,\\nb,,2\\nc,3,3\\nd,,4\\n\"}"
+    },
+    {
+      "id": "to-csv-whole",
+      "group": "csv",
+      "status": "differs",
+      "upstreamFn": "pandas.DataFrame.to_csv",
+      "goFn": "pandas.DataFrame.WriteCSV",
+      "detail": "value differs:\n  upstream: {\"kind\": \"text\", \"value\": \"id,amt,tag\\n1,1.0,p\\n2,2.0,q\\n3,3.0,r\\n\"}\n        go: {\"kind\":\"text\",\"value\":\"id,amt,tag\\n1,1,p\\n2,2,q\\n3,3,r\\n\"}"
+    },
+    {
+      "id": "with-column-bad-length",
+      "group": "mutate",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.assign",
+      "goFn": "pandas.DataFrame.WithColumn"
+    },
+    {
+      "id": "with-column-new-float",
+      "group": "mutate",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.assign",
+      "goFn": "pandas.DataFrame.WithColumn"
+    },
+    {
+      "id": "with-column-new-string",
+      "group": "mutate",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.assign",
+      "goFn": "pandas.DataFrame.WithColumn"
+    },
+    {
+      "id": "with-column-replace",
+      "group": "mutate",
+      "status": "match",
+      "upstreamFn": "pandas.DataFrame.assign",
+      "goFn": "pandas.DataFrame.WithColumn"
+    }
+  ]
+}

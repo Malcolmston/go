@@ -1,0 +1,229 @@
+{
+  "group": "formats",
+  "upstream": "morgan@1.10.0",
+  "note": "Every predefined format, plus raw format strings. `contentLength: \"explicit\"` makes the handler set Content-Length itself on both sides so that these cases isolate the format layout; the implicit variants live in bugs.json.",
+  "cases": [
+    {
+      "id": "fmt-combined",
+      "fn": "log",
+      "upstreamFn": "morgan('combined')",
+      "goFn": "morgan.Combined",
+      "args": [{
+        "format": "combined",
+        "request": {"method": "GET", "path": "/hello", "headers": {"Referer": "http://example.com/start", "User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 200, "body": "hello world", "contentLength": "explicit", "headers": {"Content-Type": "text/plain; charset=utf-8"}},
+        "options": {}
+      }]
+    },
+    {
+      "id": "fmt-common",
+      "fn": "log",
+      "upstreamFn": "morgan('common')",
+      "goFn": "morgan.Common",
+      "args": [{
+        "format": "common",
+        "request": {"method": "GET", "path": "/hello", "headers": {"Referer": "http://example.com/start", "User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 200, "body": "hello world", "contentLength": "explicit", "headers": {"Content-Type": "text/plain; charset=utf-8"}},
+        "options": {}
+      }]
+    },
+    {
+      "id": "fmt-short",
+      "fn": "log",
+      "upstreamFn": "morgan('short')",
+      "goFn": "morgan.Short",
+      "args": [{
+        "format": "short",
+        "request": {"method": "GET", "path": "/hello", "headers": {"Referer": "http://example.com/start", "User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 200, "body": "hello world", "contentLength": "explicit", "headers": {"Content-Type": "text/plain; charset=utf-8"}},
+        "options": {}
+      }]
+    },
+    {
+      "id": "fmt-tiny",
+      "fn": "log",
+      "upstreamFn": "morgan('tiny')",
+      "goFn": "morgan.Tiny",
+      "args": [{
+        "format": "tiny",
+        "request": {"method": "GET", "path": "/hello", "headers": {"Referer": "http://example.com/start", "User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 200, "body": "hello world", "contentLength": "explicit", "headers": {"Content-Type": "text/plain; charset=utf-8"}},
+        "options": {}
+      }]
+    },
+    {
+      "id": "fmt-dev-2xx",
+      "fn": "log",
+      "upstreamFn": "morgan('dev')",
+      "goFn": "morgan.Dev",
+      "args": [{
+        "format": "dev",
+        "request": {"method": "GET", "path": "/hello", "headers": {"User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 200, "body": "hello world", "contentLength": "explicit", "headers": {"Content-Type": "text/plain; charset=utf-8"}},
+        "options": {}
+      }]
+    },
+    {
+      "id": "fmt-dev-3xx",
+      "fn": "log",
+      "upstreamFn": "morgan('dev')",
+      "goFn": "morgan.Dev",
+      "args": [{
+        "format": "dev",
+        "request": {"method": "GET", "path": "/old", "headers": {"User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 302, "body": "moved", "contentLength": "explicit", "headers": {"Location": "/new"}},
+        "options": {}
+      }]
+    },
+    {
+      "id": "fmt-dev-4xx",
+      "fn": "log",
+      "upstreamFn": "morgan('dev')",
+      "goFn": "morgan.Dev",
+      "args": [{
+        "format": "dev",
+        "request": {"method": "GET", "path": "/missing", "headers": {"User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 404, "body": "not found", "contentLength": "explicit", "headers": {}},
+        "options": {}
+      }]
+    },
+    {
+      "id": "fmt-dev-5xx",
+      "fn": "log",
+      "upstreamFn": "morgan('dev')",
+      "goFn": "morgan.Dev",
+      "args": [{
+        "format": "dev",
+        "request": {"method": "POST", "path": "/boom", "headers": {"User-Agent": "parity-harness/1.0"}, "body": "x=1"},
+        "response": {"status": 500, "body": "kaboom", "contentLength": "explicit", "headers": {}},
+        "options": {}
+      }]
+    },
+    {
+      "id": "fmt-default-deprecated",
+      "fn": "log",
+      "upstreamFn": "morgan('default')",
+      "goFn": "—",
+      "args": [{
+        "format": "default",
+        "request": {"method": "GET", "path": "/hello", "headers": {"Referer": "http://example.com/start", "User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 200, "body": "hello world", "contentLength": "explicit", "headers": {}},
+        "options": {}
+      }],
+      "note": "upstream ships a deprecated 'default' format; the port has no such name and compiles the literal string"
+    },
+    {
+      "id": "fmt-json-port-only",
+      "fn": "log",
+      "upstreamFn": "—",
+      "goFn": "morgan.JSON",
+      "args": [{
+        "format": "json",
+        "request": {"method": "GET", "path": "/hello", "headers": {"User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 200, "body": "hello world", "contentLength": "explicit", "headers": {}},
+        "options": {}
+      }],
+      "note": "port-only format; upstream has no 'json' name so it compiles the literal string"
+    },
+    {
+      "id": "fmt-raw-minimal",
+      "fn": "log",
+      "upstreamFn": "morgan.compile",
+      "goFn": "morgan.Compile",
+      "args": [{
+        "format": ":method :url :status",
+        "request": {"method": "PUT", "path": "/things/42", "headers": {"User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 201, "body": "created", "contentLength": "explicit", "headers": {}},
+        "options": {}
+      }]
+    },
+    {
+      "id": "fmt-raw-rich",
+      "fn": "log",
+      "upstreamFn": "morgan.compile",
+      "goFn": "morgan.Compile",
+      "args": [{
+        "format": "[:date[iso]] :remote-addr \":method :url HTTP/:http-version\" :status len=:res[content-length] rt=:response-time ms tt=:total-time ms",
+        "request": {"method": "GET", "path": "/rich?a=1", "headers": {"User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 200, "body": "rich", "contentLength": "explicit", "headers": {}},
+        "options": {}
+      }]
+    },
+    {
+      "id": "fmt-raw-literal-only",
+      "fn": "log",
+      "upstreamFn": "morgan.compile",
+      "goFn": "morgan.Compile",
+      "args": [{
+        "format": "static text, no tokens",
+        "request": {"method": "GET", "path": "/", "headers": {"User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 200, "body": "ok", "contentLength": "explicit", "headers": {}},
+        "options": {}
+      }]
+    },
+    {
+      "id": "fmt-raw-adjacent-tokens",
+      "fn": "log",
+      "upstreamFn": "morgan.compile",
+      "goFn": "morgan.Compile",
+      "args": [{
+        "format": ":method:url|:status",
+        "request": {"method": "GET", "path": "/adjacent", "headers": {"User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 200, "body": "ok", "contentLength": "explicit", "headers": {}},
+        "options": {}
+      }]
+    },
+    {
+      "id": "fmt-raw-short-name-not-a-token",
+      "fn": "log",
+      "upstreamFn": "morgan.compile",
+      "goFn": "morgan.Compile",
+      "args": [{
+        "format": ":a :b :method",
+        "request": {"method": "GET", "path": "/short-names", "headers": {"User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 200, "body": "ok", "contentLength": "explicit", "headers": {}},
+        "options": {}
+      }],
+      "note": "morgan's token regex requires >=2 name chars, so :a and :b stay literal"
+    },
+    {
+      "id": "fmt-registered-name",
+      "fn": "log",
+      "upstreamFn": "morgan.format(name, string)",
+      "goFn": "morgan.RegisterFormat",
+      "args": [{
+        "format": "parity-named",
+        "request": {"method": "GET", "path": "/registered", "headers": {"User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 200, "body": "registered", "contentLength": "explicit", "headers": {}},
+        "options": {}
+      }],
+      "note": "both runners register the same format string under the name 'parity-named' at startup"
+    },
+    {
+      "id": "fmt-registered-func",
+      "fn": "log",
+      "upstreamFn": "morgan.format(name, fn)",
+      "goFn": "morgan.RegisterFormatFunc",
+      "args": [{
+        "format": "parity-fn",
+        "request": {"method": "PUT", "path": "/registered-fn", "headers": {"User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 202, "body": "queued", "contentLength": "explicit", "headers": {}},
+        "options": {}
+      }],
+      "note": "both runners register an equivalent format *function* under the name 'parity-fn' at startup"
+    },
+    {
+      "id": "fmt-raw-empty-string",
+      "fn": "log",
+      "upstreamFn": "morgan.compile",
+      "goFn": "morgan.Compile",
+      "args": [{
+        "format": "",
+        "request": {"method": "GET", "path": "/empty-format", "headers": {"User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 200, "body": "ok", "contentLength": "explicit", "headers": {}},
+        "options": {}
+      }],
+      "note": "upstream getFormatFunction falls back to morgan.default for a falsy name"
+    }
+  ]
+}

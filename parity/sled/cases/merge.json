@@ -1,0 +1,306 @@
+{
+  "group": "merge",
+  "upstream": "sled@0.34.7",
+  "encoding": "all keys, values and tree names are lowercase hex",
+  "cases": [
+    {
+      "id": "merge-without-operator",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "merge",
+            "key": "61",
+            "value": "31"
+          },
+          {
+            "op": "len"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::merge",
+      "goFn": "Tree.Merge",
+      "note": "must fail on both sides: no merge operator installed"
+    },
+    {
+      "id": "merge-concat",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "set_merge_operator",
+            "merge": "concat"
+          },
+          {
+            "op": "merge",
+            "key": "61",
+            "value": "78"
+          },
+          {
+            "op": "merge",
+            "key": "61",
+            "value": "79"
+          },
+          {
+            "op": "merge",
+            "key": "61",
+            "value": ""
+          },
+          {
+            "op": "get",
+            "key": "61"
+          },
+          {
+            "op": "iter"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::merge / Tree::set_merge_operator",
+      "goFn": "Tree.Merge / Tree.SetMergeOperator",
+      "note": "the operator sees None/nil for an absent key"
+    },
+    {
+      "id": "merge-sum-u64",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "set_merge_operator",
+            "merge": "sum_u64"
+          },
+          {
+            "op": "merge",
+            "key": "6e",
+            "value": "0000000000000001"
+          },
+          {
+            "op": "merge",
+            "key": "6e",
+            "value": "0000000000000002"
+          },
+          {
+            "op": "merge",
+            "key": "6e",
+            "value": "0000000000000027"
+          },
+          {
+            "op": "get",
+            "key": "6e"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::merge",
+      "goFn": "Tree.Merge"
+    },
+    {
+      "id": "merge-delete",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "set_merge_operator",
+            "merge": "replace_or_delete"
+          },
+          {
+            "op": "merge",
+            "key": "61",
+            "value": "76"
+          },
+          {
+            "op": "get",
+            "key": "61"
+          },
+          {
+            "op": "merge",
+            "key": "61",
+            "value": ""
+          },
+          {
+            "op": "get",
+            "key": "61"
+          },
+          {
+            "op": "contains_key",
+            "key": "61"
+          },
+          {
+            "op": "len"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::merge",
+      "goFn": "Tree.Merge",
+      "note": "an operator returning None deletes the key"
+    },
+    {
+      "id": "merge-per-tree-operator",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "open_tree",
+            "name": "t1"
+          },
+          {
+            "op": "set_merge_operator",
+            "merge": "concat"
+          },
+          {
+            "op": "merge",
+            "key": "61",
+            "value": "78"
+          },
+          {
+            "op": "merge",
+            "tree": "t1",
+            "key": "61",
+            "value": "78"
+          },
+          {
+            "op": "set_merge_operator",
+            "tree": "t1",
+            "merge": "sum_u64"
+          },
+          {
+            "op": "merge",
+            "tree": "t1",
+            "key": "61",
+            "value": "01"
+          },
+          {
+            "op": "get",
+            "key": "61"
+          },
+          {
+            "op": "get",
+            "key": "61",
+            "tree": "t1"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::set_merge_operator",
+      "goFn": "Tree.SetMergeOperator",
+      "note": "a merge operator is installed per tree"
+    },
+    {
+      "id": "merge-survives-reopen",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "set_merge_operator",
+            "merge": "concat"
+          },
+          {
+            "op": "merge",
+            "key": "61",
+            "value": "78"
+          },
+          {
+            "op": "flush"
+          },
+          {
+            "op": "reopen"
+          },
+          {
+            "op": "merge",
+            "key": "61",
+            "value": "79"
+          },
+          {
+            "op": "get",
+            "key": "61"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::merge",
+      "goFn": "Tree.Merge",
+      "note": "the runners reinstall the operator after reopen; the merged value must be durable"
+    },
+    {
+      "id": "update-and-fetch",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "update_and_fetch",
+            "key": "61",
+            "value": "78"
+          },
+          {
+            "op": "update_and_fetch",
+            "key": "61",
+            "value": "79"
+          },
+          {
+            "op": "get",
+            "key": "61"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::update_and_fetch",
+      "goFn": "Tree.UpdateAndFetch",
+      "note": "returns the NEW value"
+    },
+    {
+      "id": "fetch-and-update",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "fetch_and_update",
+            "key": "61",
+            "value": "78"
+          },
+          {
+            "op": "fetch_and_update",
+            "key": "61",
+            "value": "79"
+          },
+          {
+            "op": "get",
+            "key": "61"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::fetch_and_update",
+      "goFn": "Tree.FetchAndUpdate",
+      "note": "returns the PREVIOUS value"
+    },
+    {
+      "id": "update-and-fetch-delete",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "insert",
+            "key": "61",
+            "value": "76"
+          },
+          {
+            "op": "update_and_fetch",
+            "key": "61",
+            "value": "",
+            "mut": "replace_or_delete"
+          },
+          {
+            "op": "contains_key",
+            "key": "61"
+          },
+          {
+            "op": "fetch_and_update",
+            "key": "61",
+            "value": "",
+            "mut": "replace_or_delete"
+          },
+          {
+            "op": "len"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::update_and_fetch",
+      "goFn": "Tree.UpdateAndFetch",
+      "note": "returning None from the closure deletes the key"
+    }
+  ]
+}

@@ -1,0 +1,183 @@
+{
+  "group": "cas",
+  "upstream": "sled@0.34.7",
+  "encoding": "all keys, values and tree names are lowercase hex",
+  "cases": [
+    {
+      "id": "cas-sequence",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cas",
+            "key": "61",
+            "old": null,
+            "new": "31"
+          },
+          {
+            "op": "cas",
+            "key": "61",
+            "old": null,
+            "new": "32"
+          },
+          {
+            "op": "cas",
+            "key": "61",
+            "old": "31",
+            "new": "32"
+          },
+          {
+            "op": "cas",
+            "key": "61",
+            "old": "39",
+            "new": "33"
+          },
+          {
+            "op": "get",
+            "key": "61"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::compare_and_swap",
+      "goFn": "Tree.CompareAndSwapErr",
+      "note": "a failed CAS reports the current and proposed values"
+    },
+    {
+      "id": "cas-delete",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "insert",
+            "key": "61",
+            "value": "31"
+          },
+          {
+            "op": "cas",
+            "key": "61",
+            "old": "31",
+            "new": null
+          },
+          {
+            "op": "contains_key",
+            "key": "61"
+          },
+          {
+            "op": "cas",
+            "key": "61",
+            "old": null,
+            "new": null
+          },
+          {
+            "op": "cas",
+            "key": "61",
+            "old": "31",
+            "new": null
+          },
+          {
+            "op": "len"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::compare_and_swap",
+      "goFn": "Tree.CompareAndSwapErr",
+      "note": "new=null means delete; old=null means expect-absent"
+    },
+    {
+      "id": "cas-empty-vs-absent",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "insert",
+            "key": "61",
+            "value": ""
+          },
+          {
+            "op": "cas",
+            "key": "61",
+            "old": null,
+            "new": "78"
+          },
+          {
+            "op": "cas",
+            "key": "61",
+            "old": "",
+            "new": "78"
+          },
+          {
+            "op": "get",
+            "key": "61"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::compare_and_swap",
+      "goFn": "Tree.CompareAndSwapErr",
+      "note": "expect-absent must not match a present key holding an empty value"
+    },
+    {
+      "id": "cas-non-utf8",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cas",
+            "key": "ff00",
+            "old": null,
+            "new": "00ff"
+          },
+          {
+            "op": "cas",
+            "key": "ff00",
+            "old": "00ff",
+            "new": "01"
+          },
+          {
+            "op": "cas",
+            "key": "ff00",
+            "old": "00ff",
+            "new": "02"
+          },
+          {
+            "op": "iter"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::compare_and_swap",
+      "goFn": "Tree.CompareAndSwapErr"
+    },
+    {
+      "id": "cas-survives-reopen",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cas",
+            "key": "61",
+            "old": null,
+            "new": "31"
+          },
+          {
+            "op": "reopen"
+          },
+          {
+            "op": "get",
+            "key": "61"
+          },
+          {
+            "op": "cas",
+            "key": "61",
+            "old": "31",
+            "new": "32"
+          },
+          {
+            "op": "get",
+            "key": "61"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::compare_and_swap",
+      "goFn": "Tree.CompareAndSwapErr"
+    }
+  ]
+}

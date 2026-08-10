@@ -1,0 +1,16 @@
+{
+  "group": "cron-trigger",
+  "upstream": "org.quartz-scheduler:quartz@2.5.0",
+  "note": "CronTrigger fire-time sequences with an explicit start time. args = [expr, tz, startInstantUTC, afterInstantUTC, n].",
+  "cases": [
+    { "id": "crontrig-after-before-start", "fn": "cronTriggerNext", "args": ["0 0 12 * * ?", "UTC", "2026-06-01T00:00:00Z", "2026-01-01T00:00:00Z", 3], "upstreamFn": "org.quartz.impl.triggers.CronTriggerImpl.getFireTimeAfter", "goFn": "quartz.CronTrigger.ComputeFirstFireTime", "note": "an 'after' earlier than the start time must clamp to the start time" },
+    { "id": "crontrig-start-is-a-fire-time", "fn": "cronTriggerNext", "args": ["0 0 12 * * ?", "UTC", "2026-06-01T12:00:00Z", "2026-01-01T00:00:00Z", 3], "upstreamFn": "org.quartz.impl.triggers.CronTriggerImpl.getFireTimeAfter", "goFn": "quartz.CronTrigger.ComputeFirstFireTime", "note": "the start instant itself is eligible" },
+    { "id": "crontrig-after-after-start", "fn": "cronTriggerNext", "args": ["0 0 12 * * ?", "UTC", "2026-01-01T00:00:00Z", "2026-06-15T13:00:00Z", 3], "upstreamFn": "org.quartz.impl.triggers.CronTriggerImpl.getFireTimeAfter", "goFn": "quartz.CronTrigger.Triggered" },
+    { "id": "crontrig-zoned", "fn": "cronTriggerNext", "args": ["0 30 8 ? * MON-FRI", "America/New_York", "2026-03-01T00:00:00Z", "2026-03-05T00:00:00Z", 5], "upstreamFn": "org.quartz.impl.triggers.CronTriggerImpl.getFireTimeAfter", "goFn": "quartz.CronTrigger.Triggered", "note": "crosses the 2026-03-08 spring-forward" },
+    { "id": "crontrig-zoned-fall-back", "fn": "cronTriggerNext", "args": ["0 30 8 ? * MON-FRI", "America/New_York", "2026-10-01T00:00:00Z", "2026-10-29T00:00:00Z", 5], "upstreamFn": "org.quartz.impl.triggers.CronTriggerImpl.getFireTimeAfter", "goFn": "quartz.CronTrigger.Triggered", "note": "crosses the 2026-11-01 fall-back" },
+    { "id": "crontrig-every-second-boundary", "fn": "cronTriggerNext", "args": ["*/30 * * * * ?", "UTC", "2026-01-01T00:00:00Z", "2026-01-01T00:00:00Z", 4], "upstreamFn": "org.quartz.impl.triggers.CronTriggerImpl.getFireTimeAfter", "goFn": "quartz.CronTrigger.Triggered" },
+    { "id": "crontrig-monthly-last-day", "fn": "cronTriggerNext", "args": ["0 0 23 L * ?", "UTC", "2026-01-01T00:00:00Z", "2026-01-01T00:00:00Z", 4], "upstreamFn": "org.quartz.impl.triggers.CronTriggerImpl.getFireTimeAfter", "goFn": "quartz.CronTrigger.Triggered" },
+    { "id": "crontrig-bad-expression", "fn": "cronTriggerNext", "args": ["0 0 12 * *", "UTC", "2026-01-01T00:00:00Z", "2026-01-01T00:00:00Z", 2], "upstreamFn": "org.quartz.impl.triggers.CronTriggerImpl.setCronExpression", "goFn": "quartz.NewCronTriggerWithKeys", "note": "5-field expression: rejected upstream" },
+    { "id": "crontrig-impossible-expression", "fn": "cronTriggerNext", "args": ["0 0 12 30 2 ?", "UTC", "2026-01-01T00:00:00Z", "2026-01-01T00:00:00Z", 2], "upstreamFn": "org.quartz.impl.triggers.CronTriggerImpl.getFireTimeAfter", "goFn": "quartz.CronTrigger.ComputeFirstFireTime", "note": "February 30th never arrives" }
+  ]
+}

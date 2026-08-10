@@ -1,0 +1,56 @@
+{
+  "group": "analyzer",
+  "upstream": "lucene@9.11.1",
+  "cases": [
+    {"id": "an-lower-basic", "fn": "analyze", "args": [{"analyzer": "lower", "text": "Hello World"}], "upstreamFn": "StandardTokenizer+LowerCaseFilter", "goFn": "lucene.NewAnalyzer(WithStemming(false)).Analyze", "note": "plain ascii words"},
+    {"id": "an-lower-mixedcase", "fn": "analyze", "args": [{"analyzer": "lower", "text": "The Quick BROWN foX"}], "upstreamFn": "LowerCaseFilter", "goFn": "Analyzer.Analyze"},
+    {"id": "an-lower-empty", "fn": "analyze", "args": [{"analyzer": "lower", "text": ""}], "upstreamFn": "Analyzer.tokenStream", "goFn": "Analyzer.Analyze", "note": "empty input yields no tokens"},
+    {"id": "an-lower-punct-only", "fn": "analyze", "args": [{"analyzer": "lower", "text": "!!! ... ???"}], "upstreamFn": "StandardTokenizer", "goFn": "Analyzer.Analyze"},
+    {"id": "an-lower-whitespace", "fn": "analyze", "args": [{"analyzer": "lower", "text": "   leading   and\ttrailing \n"}], "upstreamFn": "StandardTokenizer", "goFn": "Analyzer.Analyze"},
+    {"id": "an-lower-underscore", "fn": "analyze", "args": [{"analyzer": "lower", "text": "foo_bar baz"}], "upstreamFn": "StandardTokenizer", "goFn": "lucene.tokenize", "note": "UAX#29 keeps foo_bar together; the port splits on underscore"},
+    {"id": "an-lower-decimal", "fn": "analyze", "args": [{"analyzer": "lower", "text": "pi is 3.14 not 42"}], "upstreamFn": "StandardTokenizer", "goFn": "lucene.tokenize", "note": "UAX#29 keeps 3.14 as one numeric token"},
+    {"id": "an-lower-apostrophe", "fn": "analyze", "args": [{"analyzer": "lower", "text": "don't stop"}], "upstreamFn": "StandardTokenizer", "goFn": "lucene.tokenize"},
+    {"id": "an-lower-hyphen", "fn": "analyze", "args": [{"analyzer": "lower", "text": "co-operate e-mail"}], "upstreamFn": "StandardTokenizer", "goFn": "lucene.tokenize"},
+    {"id": "an-lower-slash", "fn": "analyze", "args": [{"analyzer": "lower", "text": "TCP/IP stack"}], "upstreamFn": "StandardTokenizer", "goFn": "lucene.tokenize"},
+    {"id": "an-lower-symbols", "fn": "analyze", "args": [{"analyzer": "lower", "text": "C++ or C#"}], "upstreamFn": "StandardTokenizer", "goFn": "lucene.tokenize"},
+    {"id": "an-lower-email", "fn": "analyze", "args": [{"analyzer": "lower", "text": "mail user@example.com now"}], "upstreamFn": "StandardTokenizer", "goFn": "lucene.tokenize"},
+    {"id": "an-lower-diacritics", "fn": "analyze", "args": [{"analyzer": "lower", "text": "Über naïve Café"}], "upstreamFn": "LowerCaseFilter", "goFn": "Analyzer.Analyze", "note": "no folding on either side"},
+    {"id": "an-lower-cjk", "fn": "analyze", "args": [{"analyzer": "lower", "text": "東京 tokyo"}], "upstreamFn": "StandardTokenizer", "goFn": "lucene.tokenize", "note": "UAX#29 emits one token per CJK ideograph"},
+    {"id": "an-lower-digits", "fn": "analyze", "args": [{"analyzer": "lower", "text": "abc123 456def"}], "upstreamFn": "StandardTokenizer", "goFn": "lucene.tokenize"},
+
+    {"id": "an-stop-sentence", "fn": "analyze", "args": [{"analyzer": "stop", "text": "The quick brown fox and the lazy dog"}], "upstreamFn": "StopFilter", "goFn": "lucene.WithStopWords"},
+    {"id": "an-stop-all", "fn": "analyze", "args": [{"analyzer": "stop", "text": "a an and are as at be but by"}], "upstreamFn": "StopFilter", "goFn": "lucene.WithStopWords", "note": "every token is a stop word"},
+    {"id": "an-stop-case", "fn": "analyze", "args": [{"analyzer": "stop", "text": "The AND Of TO"}], "upstreamFn": "StopFilter", "goFn": "lucene.WithStopWords", "note": "stop words match after lowercasing"},
+    {"id": "an-stop-not", "fn": "analyze", "args": [{"analyzer": "stop", "text": "this is not a stop word here"}], "upstreamFn": "StopFilter", "goFn": "lucene.WithStopWords"},
+    {"id": "an-stop-corpus-d09", "fn": "analyze", "args": [{"analyzer": "stop", "text": "trees and graphs and hash tables are data structures"}], "upstreamFn": "StopFilter", "goFn": "lucene.WithStopWords"},
+
+    {"id": "an-porter-runners", "fn": "analyze", "args": [{"analyzer": "porter", "text": "Runners running runs run"}], "upstreamFn": "PorterStemFilter", "goFn": "lucene.stem", "note": "known port divergence: Runners"},
+    {"id": "an-porter-documents", "fn": "analyze", "args": [{"analyzer": "porter", "text": "document documents documentation"}], "upstreamFn": "PorterStemFilter", "goFn": "lucene.stem"},
+    {"id": "an-porter-plurals", "fn": "analyze", "args": [{"analyzer": "porter", "text": "caresses ponies cats cares ties"}], "upstreamFn": "PorterStemFilter", "goFn": "lucene.stem", "note": "Porter step 1a"},
+    {"id": "an-porter-ed-ing", "fn": "analyze", "args": [{"analyzer": "porter", "text": "agreed feed plastered bled motoring sing"}], "upstreamFn": "PorterStemFilter", "goFn": "lucene.stem", "note": "Porter step 1b"},
+    {"id": "an-porter-fixup", "fn": "analyze", "args": [{"analyzer": "porter", "text": "conflated troubled sized hopping tanned falling hissing fizzed"}], "upstreamFn": "PorterStemFilter", "goFn": "lucene.stem", "note": "Porter step 1b cleanup"},
+    {"id": "an-porter-y", "fn": "analyze", "args": [{"analyzer": "porter", "text": "happy sky skies happiness"}], "upstreamFn": "PorterStemFilter", "goFn": "lucene.stem", "note": "Porter step 1c (y -> i) is absent from the port"},
+    {"id": "an-porter-step2", "fn": "analyze", "args": [{"analyzer": "porter", "text": "relational conditional rational valenci hesitanci"}], "upstreamFn": "PorterStemFilter", "goFn": "lucene.stripDerivational"},
+    {"id": "an-porter-step3", "fn": "analyze", "args": [{"analyzer": "porter", "text": "triplicate formative formalize electricity"}], "upstreamFn": "PorterStemFilter", "goFn": "lucene.stripDerivational"},
+    {"id": "an-porter-step4", "fn": "analyze", "args": [{"analyzer": "porter", "text": "revival allowance inference airliner homologou"}], "upstreamFn": "PorterStemFilter", "goFn": "lucene.stripDerivational"},
+    {"id": "an-porter-step5", "fn": "analyze", "args": [{"analyzer": "porter", "text": "probate rate cease controll roll"}], "upstreamFn": "PorterStemFilter", "goFn": "lucene.stem", "note": "Porter step 5a/5b"},
+    {"id": "an-porter-short", "fn": "analyze", "args": [{"analyzer": "porter", "text": "as is be at go dog cat"}], "upstreamFn": "PorterStemFilter", "goFn": "lucene.stem", "note": "port leaves words of four runes or fewer untouched"},
+    {"id": "an-porter-generalization", "fn": "analyze", "args": [{"analyzer": "porter", "text": "generalization organization nationalize"}], "upstreamFn": "PorterStemFilter", "goFn": "lucene.stem"},
+    {"id": "an-porter-er-or", "fn": "analyze", "args": [{"analyzer": "porter", "text": "runner writer actor teacher other"}], "upstreamFn": "PorterStemFilter", "goFn": "lucene.stem", "note": "port strips -er/-or unconditionally at m>0"},
+    {"id": "an-porter-ly-ful", "fn": "analyze", "args": [{"analyzer": "porter", "text": "easily only really careful useful"}], "upstreamFn": "PorterStemFilter", "goFn": "lucene.stem"},
+
+    {"id": "an-standard-corpus", "fn": "analyze", "args": [{"analyzer": "standard", "text": "lucene is a search library for the java platform"}], "upstreamFn": "StandardTokenizer+LowerCaseFilter+StopFilter+PorterStemFilter", "goFn": "lucene.NewStandardAnalyzer"},
+    {"id": "an-standard-runners", "fn": "analyze", "args": [{"analyzer": "standard", "text": "The Runners Are Running Fast"}], "upstreamFn": "StandardTokenizer+LowerCaseFilter+StopFilter+PorterStemFilter", "goFn": "lucene.NewStandardAnalyzer"},
+    {"id": "an-standard-stopword-stem", "fn": "analyze", "args": [{"analyzer": "standard", "text": "these are their theories"}], "upstreamFn": "StandardTokenizer+LowerCaseFilter+StopFilter+PorterStemFilter", "goFn": "lucene.NewStandardAnalyzer", "note": "stop words are dropped before stemming on both sides"},
+
+    {"id": "an-english-basic", "fn": "analyze", "args": [{"analyzer": "english", "text": "The runners are running quickly"}], "upstreamFn": "EnglishAnalyzer", "goFn": "lucene.NewStandardAnalyzer", "note": "port's nearest equivalent to EnglishAnalyzer"},
+    {"id": "an-english-possessive", "fn": "analyze", "args": [{"analyzer": "english", "text": "lucene's index files"}], "upstreamFn": "EnglishAnalyzer", "goFn": "lucene.NewStandardAnalyzer", "note": "EnglishPossessiveFilter has no counterpart in the port"},
+
+    {"id": "an-pos-lower", "fn": "analyzePositions", "args": [{"analyzer": "lower", "text": "alpha beta gamma"}], "upstreamFn": "PositionIncrementAttribute", "goFn": "lucene.Token.Position"},
+    {"id": "an-pos-stop-gap", "fn": "analyzePositions", "args": [{"analyzer": "stop", "text": "trees and graphs and hash"}], "upstreamFn": "PositionIncrementAttribute", "goFn": "lucene.Token.Position", "note": "StopFilter leaves a positional hole; the port renumbers densely"},
+    {"id": "an-pos-stop-leading", "fn": "analyzePositions", "args": [{"analyzer": "stop", "text": "the network protocol stack"}], "upstreamFn": "PositionIncrementAttribute", "goFn": "lucene.Token.Position"},
+    {"id": "an-pos-standard", "fn": "analyzePositions", "args": [{"analyzer": "standard", "text": "the quick brown fox"}], "upstreamFn": "PositionIncrementAttribute", "goFn": "lucene.Token.Position"},
+
+    {"id": "an-stopwords-default", "fn": "defaultStopWords", "args": [], "upstreamFn": "EnglishAnalyzer.getDefaultStopSet", "goFn": "lucene.DefaultStopWords", "note": "sorted; the port copies Lucene's classic 33-word English list"}
+  ]
+}

@@ -1,0 +1,170 @@
+{
+  "group": "helpers-custom",
+  "upstream": "handlebars@4.7.8",
+  "cases": [
+    {
+      "id": "helper-inline-escaped-result",
+      "fn": "render",
+      "args": ["{{shout v}}", { "v": "a<b" }, { "helpers": ["shout"] }],
+      "upstreamFn": "Handlebars.registerHelper",
+      "goFn": "handlebars.Template.RegisterHelper",
+      "note": "a helper's plain string result is HTML-escaped"
+    },
+    {
+      "id": "helper-inline-safestring",
+      "fn": "render",
+      "args": ["{{rawHtml v}}", { "v": "x" }, { "helpers": ["rawHtml"] }],
+      "upstreamFn": "Handlebars.SafeString",
+      "goFn": "handlebars.SafeString"
+    },
+    {
+      "id": "helper-inline-safestring-triple",
+      "fn": "render",
+      "args": ["{{{rawHtml v}}}", { "v": "x" }, { "helpers": ["rawHtml"] }],
+      "upstreamFn": "Handlebars.SafeString",
+      "goFn": "handlebars.SafeString"
+    },
+    {
+      "id": "helper-numeric-result",
+      "fn": "render",
+      "args": ["{{sum a b}}", { "a": 2, "b": 3 }, { "helpers": ["sum"] }],
+      "upstreamFn": "Handlebars.registerHelper",
+      "goFn": "handlebars.Template.RegisterHelper"
+    },
+    {
+      "id": "helper-hash-args",
+      "fn": "render",
+      "args": ["{{join a b c sep=\"-\"}}", { "a": 1, "b": 2, "c": 3 }, { "helpers": ["join"] }],
+      "upstreamFn": "options.hash",
+      "goFn": "handlebars.Options.Hash"
+    },
+    {
+      "id": "helper-hash-default",
+      "fn": "render",
+      "args": ["{{join a b}}", { "a": "x", "b": "y" }, { "helpers": ["join"] }],
+      "upstreamFn": "options.hash",
+      "goFn": "handlebars.Options.HashStr"
+    },
+    {
+      "id": "helper-no-args",
+      "fn": "render",
+      "args": ["[{{join}}]", {}, { "helpers": ["join"] }],
+      "upstreamFn": "options.hash",
+      "goFn": "handlebars.Options.Hash"
+    },
+    {
+      "id": "helper-block-literal-body",
+      "fn": "render",
+      "args": ["{{#bold}}text{{/bold}}", {}, { "helpers": ["bold"] }],
+      "upstreamFn": "options.fn",
+      "goFn": "handlebars.Options.Fn"
+    },
+    {
+      "id": "helper-block-body-uses-context",
+      "fn": "render",
+      "args": ["{{#bold}}{{v}}{{/bold}}", { "v": "V" }, { "helpers": ["bold"] }],
+      "upstreamFn": "options.fn(this)",
+      "goFn": "handlebars.Options.Fn",
+      "note": "JS passes `this`; the Go Options type exposes no accessor for the current context"
+    },
+    {
+      "id": "helper-block-inverse-taken",
+      "fn": "render",
+      "args": ["{{#hasIt v}}Y{{else}}N{{/hasIt}}", { "v": false }, { "helpers": ["hasIt"] }],
+      "upstreamFn": "options.inverse",
+      "goFn": "handlebars.Options.Inverse"
+    },
+    {
+      "id": "helper-block-main-taken",
+      "fn": "render",
+      "args": ["{{#hasIt v}}Y{{else}}N{{/hasIt}}", { "v": 1 }, { "helpers": ["hasIt"] }],
+      "upstreamFn": "options.fn",
+      "goFn": "handlebars.Options.Fn"
+    },
+    {
+      "id": "helper-block-no-inverse",
+      "fn": "render",
+      "args": ["[{{#hasIt v}}Y{{/hasIt}}]", { "v": false }, { "helpers": ["hasIt"] }],
+      "upstreamFn": "options.inverse",
+      "goFn": "handlebars.Options.Inverse"
+    },
+    {
+      "id": "helper-inverted-block-form",
+      "fn": "render",
+      "args": ["{{^hasIt v}}INV{{/hasIt}}", { "v": false }, { "helpers": ["hasIt"] }],
+      "upstreamFn": "options.inverse",
+      "goFn": "handlebars.Options.Inverse",
+      "note": "{{^name}} swaps program and inverse"
+    },
+    {
+      "id": "helper-shadows-context-key",
+      "fn": "render",
+      "args": ["{{shout v}}", { "v": "x", "shout": "ctx" }, { "helpers": ["shout"] }],
+      "upstreamFn": "Handlebars.registerHelper",
+      "goFn": "handlebars.Template.RegisterHelper",
+      "note": "with arguments the helper wins over the context key"
+    },
+    {
+      "id": "helper-bare-name-prefers-helper",
+      "fn": "render",
+      "args": ["[{{join}}]", { "join": "ctx" }, { "helpers": ["join"] }],
+      "upstreamFn": "Handlebars.registerHelper",
+      "goFn": "handlebars.Template.RegisterHelper",
+      "note": "ambiguous bare name: the registered helper wins over the context key"
+    },
+    {
+      "id": "helper-missing-hook-bare",
+      "fn": "render",
+      "args": ["{{nosuch}}", {}, { "helpers": ["helperMissing"] }],
+      "upstreamFn": "Handlebars.helpers.helperMissing",
+      "goFn": "handlebars.Template.RegisterHelper"
+    },
+    {
+      "id": "helper-missing-hook-with-args",
+      "fn": "render",
+      "args": ["{{nosuch 1 2}}", {}, { "helpers": ["helperMissing"] }],
+      "upstreamFn": "Handlebars.helpers.helperMissing",
+      "goFn": "handlebars.Template.RegisterHelper"
+    },
+    {
+      "id": "block-helper-missing-hook",
+      "fn": "render",
+      "args": ["{{#o}}x{{/o}}", { "o": "V" }, { "helpers": ["blockHelperMissing"] }],
+      "upstreamFn": "Handlebars.helpers.blockHelperMissing",
+      "goFn": "handlebars.Template.RegisterHelper"
+    },
+    {
+      "id": "helper-in-subexpression-of-each",
+      "fn": "render",
+      "args": [
+        "{{#each items}}{{shout this}}{{/each}}",
+        { "items": ["a", "b"] },
+        { "helpers": ["shout"] }
+      ],
+      "upstreamFn": "Handlebars.registerHelper",
+      "goFn": "handlebars.Template.RegisterHelper"
+    },
+    {
+      "id": "helper-with-data-var-arg",
+      "fn": "render",
+      "args": [
+        "{{#each items}}{{shout @key}}{{/each}}",
+        { "items": { "a": 1, "b": 2 } },
+        { "helpers": ["shout"] }
+      ],
+      "upstreamFn": "Handlebars.registerHelper",
+      "goFn": "handlebars.Template.RegisterHelper"
+    },
+    {
+      "id": "helper-with-parent-path-arg",
+      "fn": "render",
+      "args": [
+        "{{#each items}}{{shout ../label}}{{/each}}",
+        { "label": "l", "items": [1] },
+        { "helpers": ["shout"] }
+      ],
+      "upstreamFn": "Handlebars.registerHelper",
+      "goFn": "handlebars.Template.RegisterHelper"
+    }
+  ]
+}

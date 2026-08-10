@@ -1,0 +1,183 @@
+{
+  "group": "differentiation",
+  "upstream": "sympy@1.14.0",
+  "goModule": "github.com/malcolmston/algebra@v0.8.0",
+  "cases": [
+    {
+      "id": "diff-poly",
+      "fn": "diff",
+      "args": ["x^5 - 3*x^3 + 2*x - 7", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upstreamFn": "sympy.diff",
+      "goFn": "algebra.Diff"
+    },
+    {
+      "id": "diff-product-rule",
+      "fn": "diff",
+      "args": ["x^3*sin(x)", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upstreamFn": "sympy.diff",
+      "goFn": "algebra.Diff"
+    },
+    {
+      "id": "diff-quotient-rule",
+      "fn": "diff",
+      "args": ["sin(x)/x", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upstreamFn": "sympy.diff",
+      "goFn": "algebra.Diff"
+    },
+    {
+      "id": "diff-chain-exp",
+      "fn": "diff",
+      "args": ["exp(x^2)", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upstreamFn": "sympy.diff",
+      "goFn": "algebra.Diff"
+    },
+    {
+      "id": "diff-chain-log",
+      "fn": "diff",
+      "args": ["log(x^2+1)", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upstreamFn": "sympy.diff",
+      "goFn": "algebra.Diff"
+    },
+    {
+      "id": "diff-sqrt",
+      "fn": "diff",
+      "args": ["sqrt(x^2+1)", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upstreamFn": "sympy.diff",
+      "goFn": "algebra.Diff"
+    },
+    {
+      "id": "diff-tan",
+      "fn": "diff",
+      "args": ["tan(x)", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "samples": [{"x": 0.2}, {"x": 0.4}, {"x": 0.6}, {"x": 0.8}, {"x": 1.0}],
+      "upstreamFn": "sympy.diff",
+      "goFn": "algebra.Diff"
+    },
+    {
+      "id": "diff-sec",
+      "fn": "diff",
+      "args": ["sec(x)", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "samples": [{"x": 0.2}, {"x": 0.4}, {"x": 0.6}, {"x": 0.8}, {"x": 1.0}],
+      "upstreamFn": "sympy.diff",
+      "goFn": "algebra.Diff"
+    },
+    {
+      "id": "diff-atan",
+      "fn": "diff",
+      "args": ["atan(x)", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upstreamFn": "sympy.diff",
+      "goFn": "algebra.Diff"
+    },
+    {
+      "id": "diff-asin",
+      "fn": "diff",
+      "args": ["asin(x)", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "samples": [{"x": -0.8}, {"x": -0.3}, {"x": 0.1}, {"x": 0.5}, {"x": 0.9}],
+      "upstreamFn": "sympy.diff",
+      "goFn": "algebra.Diff"
+    },
+    {
+      "id": "diff-hyperbolic",
+      "fn": "diff",
+      "args": ["sinh(x)*cosh(x)", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upstreamFn": "sympy.diff",
+      "goFn": "algebra.Diff"
+    },
+    {
+      "id": "diff-tanh",
+      "fn": "diff",
+      "args": ["tanh(x)", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upstreamFn": "sympy.diff",
+      "goFn": "algebra.Diff"
+    },
+    {
+      "id": "diff-erf",
+      "fn": "diff",
+      "args": ["erf(x)", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upstreamFn": "sympy.diff",
+      "goFn": "algebra.Diff"
+    },
+    {
+      "id": "diff-gamma",
+      "fn": "diff",
+      "args": ["gamma(x)", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upstreamFn": "sympy.diff",
+      "goFn": "algebra.Diff",
+      "note": "sympy answers with polygamma; probe for whether the port differentiates gamma at all"
+    },
+    {
+      "id": "diff-power-tower",
+      "fn": "diff",
+      "args": ["x^x", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upstreamFn": "sympy.diff",
+      "goFn": "algebra.Diff",
+      "note": "variable base and variable exponent simultaneously"
+    },
+    {
+      "id": "diff-partial-x",
+      "fn": "diff",
+      "args": ["x^2*y^3 + x*y", "x"],
+      "mode": "numeric",
+      "vars": ["x", "y"],
+      "upstreamFn": "sympy.diff",
+      "goFn": "algebra.Diff"
+    },
+    {
+      "id": "diff-second-sin",
+      "fn": "diff_n",
+      "args": ["sin(x)", "x", 2],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upstreamFn": "sympy.diff",
+      "goFn": "algebra.Diff"
+    },
+    {
+      "id": "diff-third-poly",
+      "fn": "diff_n",
+      "args": ["x^6 - x^4", "x", 3],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upstreamFn": "sympy.diff",
+      "goFn": "algebra.Diff"
+    },
+    {
+      "id": "diff-method-expr",
+      "fn": "diff",
+      "args": ["exp(x)*log(x)", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upstreamFn": "sympy.Expr.diff",
+      "goFn": "algebra.Expr.Diff"
+    }
+  ]
+}

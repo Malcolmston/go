@@ -1,0 +1,265 @@
+{
+  "group": "behaviour",
+  "upstream": "morgan@1.10.0",
+  "note": "Options (skip, immediate) and request-shape behaviour (URL encoding, basic auth, missing headers, error statuses). A skipped request has no log line, which both runners report as an empty value.",
+  "cases": [
+    {
+      "id": "skip-none",
+      "fn": "log",
+      "upstreamFn": "morgan(fmt, {skip})",
+      "goFn": "morgan.Config.Skip",
+      "args": [{
+        "format": "SK=:method :status",
+        "request": {"method": "GET", "path": "/anything", "headers": {"User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 200, "body": "ok", "contentLength": "explicit", "headers": {}},
+        "options": {"skip": "none"}
+      }]
+    },
+    {
+      "id": "skip-status-below-400-suppresses-200",
+      "fn": "log",
+      "upstreamFn": "morgan(fmt, {skip})",
+      "goFn": "morgan.SkipStatusBelow(400)",
+      "args": [{
+        "format": "SK=:method :status",
+        "request": {"method": "GET", "path": "/quiet", "headers": {"User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 200, "body": "ok", "contentLength": "explicit", "headers": {}},
+        "options": {"skip": "status-lt-400"}
+      }],
+      "note": "no line at all"
+    },
+    {
+      "id": "skip-status-below-400-logs-500",
+      "fn": "log",
+      "upstreamFn": "morgan(fmt, {skip})",
+      "goFn": "morgan.SkipStatusBelow(400)",
+      "args": [{
+        "format": "SK=:method :status",
+        "request": {"method": "GET", "path": "/loud", "headers": {"User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 500, "body": "bang", "contentLength": "explicit", "headers": {}},
+        "options": {"skip": "status-lt-400"}
+      }]
+    },
+    {
+      "id": "skip-status-below-400-logs-404",
+      "fn": "log",
+      "upstreamFn": "morgan(fmt, {skip})",
+      "goFn": "morgan.SkipStatusBelow(400)",
+      "args": [{
+        "format": "SK=:method :status",
+        "request": {"method": "GET", "path": "/loud", "headers": {"User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 404, "body": "gone", "contentLength": "explicit", "headers": {}},
+        "options": {"skip": "status-lt-400"}
+      }]
+    },
+    {
+      "id": "skip-path-healthz-suppresses",
+      "fn": "log",
+      "upstreamFn": "morgan(fmt, {skip})",
+      "goFn": "morgan.SkipPaths(\"/healthz\")",
+      "args": [{
+        "format": "SK=:method :url :status",
+        "request": {"method": "GET", "path": "/healthz", "headers": {"User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 200, "body": "ok", "contentLength": "explicit", "headers": {}},
+        "options": {"skip": "path-healthz"}
+      }]
+    },
+    {
+      "id": "skip-path-healthz-logs-other",
+      "fn": "log",
+      "upstreamFn": "morgan(fmt, {skip})",
+      "goFn": "morgan.SkipPaths(\"/healthz\")",
+      "args": [{
+        "format": "SK=:method :url :status",
+        "request": {"method": "GET", "path": "/readyz", "headers": {"User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 200, "body": "ok", "contentLength": "explicit", "headers": {}},
+        "options": {"skip": "path-healthz"}
+      }]
+    },
+    {
+      "id": "immediate-request-fields",
+      "fn": "log",
+      "upstreamFn": "morgan(fmt, {immediate: true})",
+      "goFn": "morgan.Config.Immediate",
+      "args": [{
+        "format": "IMM=:method :url",
+        "request": {"method": "GET", "path": "/imm?a=1", "headers": {"User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 200, "body": "ok", "contentLength": "explicit", "headers": {}},
+        "options": {"immediate": true}
+      }],
+      "note": "request-only tokens must be identical in immediate mode"
+    },
+    {
+      "id": "immediate-status-unavailable",
+      "fn": "log",
+      "upstreamFn": "morgan(fmt, {immediate: true})",
+      "goFn": "morgan.Config.Immediate",
+      "args": [{
+        "format": "IMM=:status",
+        "request": {"method": "GET", "path": "/imm", "headers": {"User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 201, "body": "ok", "contentLength": "explicit", "headers": {}},
+        "options": {"immediate": true}
+      }],
+      "note": "headers not sent yet, so :status must be '-'"
+    },
+    {
+      "id": "immediate-response-time-unavailable",
+      "fn": "log",
+      "upstreamFn": "morgan(fmt, {immediate: true})",
+      "goFn": "morgan.Config.Immediate",
+      "args": [{
+        "format": "IMM=:response-time ms",
+        "request": {"method": "GET", "path": "/imm", "headers": {"User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 200, "body": "ok", "contentLength": "explicit", "headers": {}},
+        "options": {"immediate": true}
+      }],
+      "note": "no response has started, so upstream renders '-'"
+    },
+    {
+      "id": "immediate-content-length-unavailable",
+      "fn": "log",
+      "upstreamFn": "morgan(fmt, {immediate: true})",
+      "goFn": "morgan.Config.Immediate",
+      "args": [{
+        "format": "IMM=:res[content-length]",
+        "request": {"method": "GET", "path": "/imm", "headers": {"User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 200, "body": "0123456789", "contentLength": "explicit", "headers": {}},
+        "options": {"immediate": true}
+      }]
+    },
+    {
+      "id": "immediate-combined",
+      "fn": "log",
+      "upstreamFn": "morgan('combined', {immediate: true})",
+      "goFn": "morgan.Combined + Config.Immediate",
+      "args": [{
+        "format": "combined",
+        "request": {"method": "GET", "path": "/imm-combined", "headers": {"Referer": "http://example.com/from", "User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 200, "body": "ok", "contentLength": "explicit", "headers": {}},
+        "options": {"immediate": true}
+      }]
+    },
+    {
+      "id": "urlencoded-path-combined",
+      "fn": "log",
+      "upstreamFn": "morgan('combined')",
+      "goFn": "morgan.Combined",
+      "args": [{
+        "format": "combined",
+        "request": {"method": "GET", "path": "/a%2Fb/caf%C3%A9?q=a%20b", "headers": {"Referer": "http://example.com/from", "User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 200, "body": "ok", "contentLength": "explicit", "headers": {}},
+        "options": {}
+      }],
+      "note": "upstream logs req.originalUrl, which is never percent-decoded"
+    },
+    {
+      "id": "basic-auth-combined",
+      "fn": "log",
+      "upstreamFn": "morgan('combined')",
+      "goFn": "morgan.Combined",
+      "args": [{
+        "format": "combined",
+        "request": {"method": "GET", "path": "/private", "headers": {"Authorization": "Basic YWxpY2U6czNjcmV0", "Referer": "http://example.com/from", "User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 200, "body": "secret", "contentLength": "explicit", "headers": {}},
+        "options": {}
+      }]
+    },
+    {
+      "id": "missing-referrer-and-user-agent-combined",
+      "fn": "log",
+      "upstreamFn": "morgan('combined')",
+      "goFn": "morgan.Combined",
+      "args": [{
+        "format": "combined",
+        "request": {"method": "GET", "path": "/bare", "headers": {}},
+        "response": {"status": 200, "body": "ok", "contentLength": "explicit", "headers": {}},
+        "options": {}
+      }]
+    },
+    {
+      "id": "status-404-combined",
+      "fn": "log",
+      "upstreamFn": "morgan('combined')",
+      "goFn": "morgan.Combined",
+      "args": [{
+        "format": "combined",
+        "request": {"method": "GET", "path": "/nope", "headers": {"User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 404, "body": "not found", "contentLength": "explicit", "headers": {}},
+        "options": {}
+      }]
+    },
+    {
+      "id": "status-500-short",
+      "fn": "log",
+      "upstreamFn": "morgan('short')",
+      "goFn": "morgan.Short",
+      "args": [{
+        "format": "short",
+        "request": {"method": "POST", "path": "/explode", "headers": {"User-Agent": "parity-harness/1.0"}, "body": "boom"},
+        "response": {"status": 500, "body": "internal", "contentLength": "explicit", "headers": {}},
+        "options": {}
+      }]
+    },
+    {
+      "id": "post-with-body-common",
+      "fn": "log",
+      "upstreamFn": "morgan('common')",
+      "goFn": "morgan.Common",
+      "args": [{
+        "format": "common",
+        "request": {"method": "POST", "path": "/submit", "headers": {"Content-Type": "application/json", "User-Agent": "parity-harness/1.0"}, "body": "{\"a\":1}"},
+        "response": {"status": 201, "body": "created", "contentLength": "explicit", "headers": {}},
+        "options": {}
+      }]
+    },
+    {
+      "id": "head-request-tiny",
+      "fn": "log",
+      "upstreamFn": "morgan('tiny')",
+      "goFn": "morgan.Tiny",
+      "args": [{
+        "format": "tiny",
+        "request": {"method": "HEAD", "path": "/head", "headers": {"User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 200, "body": "body-not-sent", "contentLength": "explicit", "headers": {}},
+        "options": {}
+      }]
+    },
+    {
+      "id": "xff-single-entry-remote-addr",
+      "fn": "log",
+      "upstreamFn": "morgan.token('remote-addr')",
+      "goFn": ":remote-addr",
+      "args": [{
+        "format": "IP=:remote-addr",
+        "request": {"method": "GET", "path": "/xff", "headers": {"X-Forwarded-For": "203.0.113.9", "User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 200, "body": "ok", "contentLength": "explicit", "headers": {}},
+        "options": {}
+      }],
+      "note": "express 'trust proxy' is off by default, so upstream ignores X-Forwarded-For"
+    },
+    {
+      "id": "xff-multi-entry-remote-addr",
+      "fn": "log",
+      "upstreamFn": "morgan.token('remote-addr')",
+      "goFn": ":remote-addr",
+      "args": [{
+        "format": "IP=:remote-addr",
+        "request": {"method": "GET", "path": "/xff", "headers": {"X-Forwarded-For": "198.51.100.7, 10.0.0.1", "User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 200, "body": "ok", "contentLength": "explicit", "headers": {}},
+        "options": {}
+      }]
+    },
+    {
+      "id": "xff-combined",
+      "fn": "log",
+      "upstreamFn": "morgan('combined')",
+      "goFn": "morgan.Combined",
+      "args": [{
+        "format": "combined",
+        "request": {"method": "GET", "path": "/xff", "headers": {"X-Forwarded-For": "203.0.113.9", "Referer": "http://example.com/from", "User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 200, "body": "ok", "contentLength": "explicit", "headers": {}},
+        "options": {}
+      }]
+    }
+  ]
+}

@@ -1,0 +1,147 @@
+{
+  "group": "resources",
+  "upstream": "fastmcp@3.4.6",
+  "cases": [
+    {
+      "id": "resources-list-full",
+      "fn": "rpc",
+      "args": [{ "method": "resources/list", "params": {} }],
+      "upstreamFn": "FastMCP._list_resources_mcp",
+      "goFn": "fastmcp.Server.handleResourcesList"
+    },
+    {
+      "id": "resources-list-uris",
+      "fn": "rpc",
+      "args": [{ "method": "resources/list", "params": {} }, "resources"],
+      "upstreamFn": "FastMCP.list_resources",
+      "goFn": "fastmcp.Server.handleResourcesList"
+    },
+    {
+      "id": "resource-descriptor-greeting",
+      "fn": "rpc",
+      "args": [
+        { "method": "resources/list", "params": {} },
+        "resources/#uri=res://greeting"
+      ],
+      "upstreamFn": "mcp.types.Resource",
+      "goFn": "fastmcp.Server.Resource"
+    },
+    {
+      "id": "resource-descriptor-logo",
+      "fn": "rpc",
+      "args": [{ "method": "resources/list", "params": {} }, "resources/#uri=res://logo.png"],
+      "upstreamFn": "mcp.types.Resource",
+      "goFn": "fastmcp.Server.BinaryResource"
+    },
+    {
+      "id": "templates-list-full",
+      "fn": "rpc",
+      "args": [{ "method": "resources/templates/list", "params": {} }],
+      "upstreamFn": "FastMCP._list_resource_templates_mcp",
+      "goFn": "fastmcp.Server.handleResourceTemplatesList"
+    },
+    {
+      "id": "template-descriptor-user",
+      "fn": "rpc",
+      "args": [
+        { "method": "resources/templates/list", "params": {} },
+        "resourceTemplates/#uriTemplate=res://user/{id}"
+      ],
+      "upstreamFn": "mcp.types.ResourceTemplate",
+      "goFn": "fastmcp.Server.ResourceTemplate"
+    },
+    {
+      "id": "resources-read-text",
+      "fn": "rpc",
+      "args": [{ "method": "resources/read", "params": { "uri": "res://greeting" } }],
+      "upstreamFn": "FastMCP._read_resource_mcp",
+      "goFn": "fastmcp.Server.handleResourcesRead"
+    },
+    {
+      "id": "resources-read-json",
+      "fn": "rpc",
+      "args": [{ "method": "resources/read", "params": { "uri": "res://data.json" } }, "contents/0"],
+      "upstreamFn": "FastMCP._read_resource_mcp",
+      "goFn": "fastmcp.Server.handleResourcesRead"
+    },
+    {
+      "id": "resources-read-blob",
+      "fn": "rpc",
+      "args": [{ "method": "resources/read", "params": { "uri": "res://logo.png" } }, "contents/0"],
+      "upstreamFn": "mcp.types.BlobResourceContents",
+      "goFn": "fastmcp.resourceBlobContents",
+      "note": "bytes are compared as standard base64"
+    },
+    {
+      "id": "resources-read-template",
+      "fn": "rpc",
+      "args": [{ "method": "resources/read", "params": { "uri": "res://user/42" } }, "contents/0"],
+      "upstreamFn": "FastMCP._read_resource_mcp",
+      "goFn": "fastmcp.resourceTemplateEntry.match"
+    },
+    {
+      "id": "resources-read-template-encoded",
+      "fn": "rpc",
+      "args": [
+        { "method": "resources/read", "params": { "uri": "res://user/a%20b" } },
+        "contents/0/text"
+      ],
+      "upstreamFn": "FastMCP._read_resource_mcp",
+      "goFn": "fastmcp.resourceTemplateEntry.match",
+      "note": "percent-encoded template variable"
+    },
+    {
+      "id": "resources-read-template-slash",
+      "fn": "rpc",
+      "args": [
+        { "method": "resources/read", "params": { "uri": "res://user/a/b" } },
+        "contents/0/text"
+      ],
+      "upstreamFn": "FastMCP._read_resource_mcp",
+      "goFn": "fastmcp.resourceTemplateEntry.match",
+      "note": "a slash inside a template variable must not match"
+    },
+    {
+      "id": "resources-read-unknown",
+      "fn": "rpc",
+      "args": [{ "method": "resources/read", "params": { "uri": "res://nope" } }],
+      "upstreamFn": "mcp.shared.exceptions.McpError(RESOURCE_NOT_FOUND)",
+      "goFn": "fastmcp.Server.handleResourcesRead",
+      "note": "compare the JSON-RPC code only: upstream -32002, the port -32602"
+    },
+    {
+      "id": "resources-read-missing-uri",
+      "fn": "rpc",
+      "args": [{ "method": "resources/read", "params": {} }],
+      "upstreamFn": "mcp.types.ReadResourceRequest validation",
+      "goFn": "fastmcp.Server.handleResourcesRead"
+    },
+    {
+      "id": "resources-read-uri-wrong-type",
+      "fn": "rpc",
+      "args": [{ "method": "resources/read", "params": { "uri": 17 } }],
+      "upstreamFn": "mcp.types.ReadResourceRequest validation",
+      "goFn": "fastmcp.Server.handleResourcesRead"
+    },
+    {
+      "id": "resources-subscribe",
+      "fn": "rpc",
+      "args": [{ "method": "resources/subscribe", "params": { "uri": "res://greeting" } }],
+      "upstreamFn": "mcp.server.lowlevel.Server.subscribe_resource",
+      "goFn": "fastmcp.Server.handleSubscribe",
+      "note": "the port advertises resources.subscribe:true; upstream 3.4.6 advertises false and answers -32601"
+    },
+    {
+      "id": "resources-unsubscribe",
+      "fn": "rpc",
+      "args": [
+        [
+          { "method": "resources/subscribe", "params": { "uri": "res://greeting" } },
+          { "method": "resources/unsubscribe", "params": { "uri": "res://greeting" } }
+        ]
+      ],
+      "upstreamFn": "mcp.server.lowlevel.Server.unsubscribe_resource",
+      "goFn": "fastmcp.Server.handleUnsubscribe"
+    }
+  ]
+}

@@ -1,0 +1,231 @@
+{
+  "group": "pipeline",
+  "upstream": "axios@1.7.9",
+  "cases": [
+    {
+      "id": "interceptor-request-adds-header",
+      "fn": "request",
+      "upstreamFn": "interceptors.request.use",
+      "goFn": "Config.RequestInterceptors",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE", "interceptRequest": ["addHeader"] },
+          "request": { "method": "get", "url": "/echo" }
+        }
+      ]
+    },
+    {
+      "id": "interceptor-request-two-in-order",
+      "fn": "request",
+      "upstreamFn": "interceptors.request.use x2",
+      "goFn": "Config.RequestInterceptors",
+      "note": "axios runs request interceptors in reverse registration order; both headers must still land",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE", "interceptRequest": ["addHeader", "addHeader2"] },
+          "request": { "method": "get", "url": "/echo" }
+        }
+      ]
+    },
+    {
+      "id": "interceptor-request-rejects",
+      "fn": "request",
+      "upstreamFn": "interceptors.request.use (throwing)",
+      "goFn": "RequestInterceptor returning error",
+      "note": "the request must never be sent; both sides must fail",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE", "interceptRequest": ["reject"] },
+          "request": { "method": "get", "url": "/echo" }
+        }
+      ]
+    },
+    {
+      "id": "interceptor-response-tags-header",
+      "fn": "request",
+      "upstreamFn": "interceptors.response.use",
+      "goFn": "Config.ResponseInterceptors",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE", "interceptResponse": ["tagHeader"] },
+          "request": { "method": "get", "url": "/text" },
+          "expose": "text"
+        }
+      ]
+    },
+    {
+      "id": "interceptor-response-rejects",
+      "fn": "request",
+      "upstreamFn": "interceptors.response.use (throwing)",
+      "goFn": "ResponseInterceptor returning error",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE", "interceptResponse": ["reject"] },
+          "request": { "method": "get", "url": "/echo" }
+        }
+      ]
+    },
+    {
+      "id": "interceptor-response-not-run-on-status-error",
+      "fn": "request",
+      "upstreamFn": "interceptors.response fulfilled handler on 500",
+      "goFn": "ResponseInterceptors on 500",
+      "note": "a 500 must not reach the fulfilled response interceptor",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE", "interceptResponse": ["tagHeader"] },
+          "request": { "method": "get", "url": "/status/500" }
+        }
+      ]
+    },
+    {
+      "id": "transform-request-prefix",
+      "fn": "request",
+      "upstreamFn": "config.transformRequest",
+      "goFn": "Config.TransformRequest",
+      "note": "axios transforms replace the default JSON serializer, so no Content-Type is set; the port transforms after encoding",
+      "observeHeaders": ["content-type"],
+      "args": [
+        {
+          "client": { "baseURL": "$BASE" },
+          "request": {
+            "method": "post",
+            "url": "/echo",
+            "transformRequest": "prefix",
+            "data": { "json": { "a": 1 } }
+          },
+          "observeHeaders": ["content-type"]
+        }
+      ]
+    },
+    {
+      "id": "transform-request-prefix-string-body",
+      "fn": "request",
+      "upstreamFn": "config.transformRequest",
+      "goFn": "Config.TransformRequest",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE" },
+          "request": {
+            "method": "post",
+            "url": "/echo",
+            "transformRequest": "prefix",
+            "data": { "text": "abc" }
+          }
+        }
+      ]
+    },
+    {
+      "id": "transform-request-can-set-header",
+      "fn": "request",
+      "upstreamFn": "config.transformRequest (headers arg)",
+      "goFn": "RequestTransform header mutation",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE" },
+          "request": {
+            "method": "post",
+            "url": "/echo",
+            "transformRequest": "setHeader",
+            "data": { "text": "abc" }
+          }
+        }
+      ]
+    },
+    {
+      "id": "transform-request-throws",
+      "fn": "request",
+      "upstreamFn": "config.transformRequest (throwing)",
+      "goFn": "RequestTransform returning error",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE" },
+          "request": {
+            "method": "post",
+            "url": "/echo",
+            "transformRequest": "boom",
+            "data": { "text": "abc" }
+          }
+        }
+      ]
+    },
+    {
+      "id": "transform-request-client-level",
+      "fn": "request",
+      "upstreamFn": "defaults.transformRequest",
+      "goFn": "Config.TransformRequest",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE", "transformRequest": "prefix" },
+          "request": { "method": "post", "url": "/echo", "data": { "text": "abc" } }
+        }
+      ]
+    },
+    {
+      "id": "transform-response-identity-keeps-raw-text",
+      "fn": "request",
+      "upstreamFn": "config.transformResponse",
+      "goFn": "Config.TransformResponse",
+      "note": "identity transform replaces axios' JSON parsing, leaving a string",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE" },
+          "request": { "method": "get", "url": "/text", "transformResponse": "identity" },
+          "expose": "text"
+        }
+      ]
+    },
+    {
+      "id": "transform-response-upper",
+      "fn": "request",
+      "upstreamFn": "config.transformResponse",
+      "goFn": "Config.TransformResponse",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE" },
+          "request": { "method": "get", "url": "/text", "transformResponse": "upper" },
+          "expose": "text"
+        }
+      ]
+    },
+    {
+      "id": "transform-response-wrap",
+      "fn": "request",
+      "upstreamFn": "config.transformResponse",
+      "goFn": "Config.TransformResponse",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE" },
+          "request": { "method": "get", "url": "/text", "transformResponse": "wrap" },
+          "expose": "text"
+        }
+      ]
+    },
+    {
+      "id": "transform-response-client-level",
+      "fn": "request",
+      "upstreamFn": "defaults.transformResponse",
+      "goFn": "Config.TransformResponse",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE", "transformResponse": "upper" },
+          "request": { "method": "get", "url": "/text" },
+          "expose": "text"
+        }
+      ]
+    },
+    {
+      "id": "transform-response-runs-on-error-status",
+      "fn": "request",
+      "upstreamFn": "transformResponse on 500",
+      "goFn": "TransformResponse on 500",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE", "transformResponse": "upper", "validateStatus": "all" },
+          "request": { "method": "get", "url": "/status/500" },
+          "expose": "text"
+        }
+      ]
+    }
+  ]
+}

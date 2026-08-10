@@ -1,0 +1,502 @@
+{
+  "group": "statistics",
+  "upstream": "numpy@2.2.6",
+  "cases": [
+    {
+      "id": "std-pop",
+      "fn": "std",
+      "args": [
+        {
+          "arr": [
+            2.0,
+            4.0,
+            4.0,
+            4.0,
+            5.0,
+            5.0,
+            7.0,
+            9.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.std",
+      "goFn": "numpy.NDArray.Std"
+    },
+    {
+      "id": "var-pop",
+      "fn": "var",
+      "args": [
+        {
+          "arr": [
+            2.0,
+            4.0,
+            4.0,
+            4.0,
+            5.0,
+            5.0,
+            7.0,
+            9.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.var",
+      "goFn": "numpy.NDArray.Var"
+    },
+    {
+      "id": "std-2d",
+      "fn": "std",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.std",
+      "goFn": "numpy.NDArray.Std"
+    },
+    {
+      "id": "var-2d",
+      "fn": "var",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.var",
+      "goFn": "numpy.NDArray.Var"
+    },
+    {
+      "id": "std-ddof0",
+      "fn": "std_ddof",
+      "args": [
+        {
+          "arr": [
+            2.0,
+            4.0,
+            4.0,
+            4.0,
+            5.0,
+            5.0,
+            7.0,
+            9.0
+          ]
+        },
+        0
+      ],
+      "upstreamFn": "numpy.std",
+      "goFn": "numpy.NDArray.StdDDof"
+    },
+    {
+      "id": "std-ddof1",
+      "fn": "std_ddof",
+      "args": [
+        {
+          "arr": [
+            2.0,
+            4.0,
+            4.0,
+            4.0,
+            5.0,
+            5.0,
+            7.0,
+            9.0
+          ]
+        },
+        1
+      ],
+      "upstreamFn": "numpy.std",
+      "goFn": "numpy.NDArray.StdDDof"
+    },
+    {
+      "id": "var-ddof1",
+      "fn": "var_ddof",
+      "args": [
+        {
+          "arr": [
+            2.0,
+            4.0,
+            4.0,
+            4.0,
+            5.0,
+            5.0,
+            7.0,
+            9.0
+          ]
+        },
+        1
+      ],
+      "upstreamFn": "numpy.var",
+      "goFn": "numpy.NDArray.VarDDof"
+    },
+    {
+      "id": "var-ddof-too-big",
+      "fn": "var_ddof",
+      "args": [
+        {
+          "arr": [
+            1.0,
+            2.0
+          ]
+        },
+        2
+      ],
+      "upstreamFn": "numpy.var",
+      "goFn": "numpy.NDArray.VarDDof",
+      "note": "N-ddof == 0: the port panics, numpy warns and yields NaN"
+    },
+    {
+      "id": "median-odd",
+      "fn": "median",
+      "args": [
+        {
+          "arr": [
+            5.0,
+            1.0,
+            3.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.median",
+      "goFn": "numpy.NDArray.Median"
+    },
+    {
+      "id": "median-even",
+      "fn": "median",
+      "args": [
+        {
+          "arr": [
+            5.0,
+            1.0,
+            3.0,
+            9.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.median",
+      "goFn": "numpy.NDArray.Median"
+    },
+    {
+      "id": "median-2d",
+      "fn": "median",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.median",
+      "goFn": "numpy.NDArray.Median"
+    },
+    {
+      "id": "median-empty",
+      "fn": "median",
+      "args": [
+        {
+          "arr": []
+        }
+      ],
+      "upstreamFn": "numpy.median",
+      "goFn": "numpy.NDArray.Median",
+      "note": "the port panics, numpy warns and yields NaN"
+    },
+    {
+      "id": "percentile-0",
+      "fn": "percentile",
+      "args": [
+        {
+          "arr": [
+            2.0,
+            4.0,
+            4.0,
+            4.0,
+            5.0,
+            5.0,
+            7.0,
+            9.0
+          ]
+        },
+        0.0
+      ],
+      "upstreamFn": "numpy.percentile",
+      "goFn": "numpy.NDArray.Percentile"
+    },
+    {
+      "id": "percentile-25",
+      "fn": "percentile",
+      "args": [
+        {
+          "arr": [
+            2.0,
+            4.0,
+            4.0,
+            4.0,
+            5.0,
+            5.0,
+            7.0,
+            9.0
+          ]
+        },
+        25.0
+      ],
+      "upstreamFn": "numpy.percentile",
+      "goFn": "numpy.NDArray.Percentile"
+    },
+    {
+      "id": "percentile-50",
+      "fn": "percentile",
+      "args": [
+        {
+          "arr": [
+            2.0,
+            4.0,
+            4.0,
+            4.0,
+            5.0,
+            5.0,
+            7.0,
+            9.0
+          ]
+        },
+        50.0
+      ],
+      "upstreamFn": "numpy.percentile",
+      "goFn": "numpy.NDArray.Percentile"
+    },
+    {
+      "id": "percentile-90",
+      "fn": "percentile",
+      "args": [
+        {
+          "arr": [
+            2.0,
+            4.0,
+            4.0,
+            4.0,
+            5.0,
+            5.0,
+            7.0,
+            9.0
+          ]
+        },
+        90.0
+      ],
+      "upstreamFn": "numpy.percentile",
+      "goFn": "numpy.NDArray.Percentile"
+    },
+    {
+      "id": "percentile-100",
+      "fn": "percentile",
+      "args": [
+        {
+          "arr": [
+            2.0,
+            4.0,
+            4.0,
+            4.0,
+            5.0,
+            5.0,
+            7.0,
+            9.0
+          ]
+        },
+        100.0
+      ],
+      "upstreamFn": "numpy.percentile",
+      "goFn": "numpy.NDArray.Percentile"
+    },
+    {
+      "id": "percentile-2d",
+      "fn": "percentile",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        33.0
+      ],
+      "upstreamFn": "numpy.percentile",
+      "goFn": "numpy.NDArray.Percentile"
+    },
+    {
+      "id": "percentile-out-of-range",
+      "fn": "percentile",
+      "args": [
+        {
+          "arr": [
+            2.0,
+            4.0,
+            4.0,
+            4.0,
+            5.0,
+            5.0,
+            7.0,
+            9.0
+          ]
+        },
+        101.0
+      ],
+      "upstreamFn": "numpy.percentile",
+      "goFn": "numpy.NDArray.Percentile",
+      "note": "must FAIL on both sides"
+    },
+    {
+      "id": "percentile-negative",
+      "fn": "percentile",
+      "args": [
+        {
+          "arr": [
+            2.0,
+            4.0,
+            4.0,
+            4.0,
+            5.0,
+            5.0,
+            7.0,
+            9.0
+          ]
+        },
+        -1.0
+      ],
+      "upstreamFn": "numpy.percentile",
+      "goFn": "numpy.NDArray.Percentile",
+      "note": "must FAIL on both sides"
+    },
+    {
+      "id": "quantile-quarter",
+      "fn": "quantile",
+      "args": [
+        {
+          "arr": [
+            2.0,
+            4.0,
+            4.0,
+            4.0,
+            5.0,
+            5.0,
+            7.0,
+            9.0
+          ]
+        },
+        0.25
+      ],
+      "upstreamFn": "numpy.quantile",
+      "goFn": "numpy.NDArray.Quantile"
+    },
+    {
+      "id": "quantile-half",
+      "fn": "quantile",
+      "args": [
+        {
+          "arr": [
+            2.0,
+            4.0,
+            4.0,
+            4.0,
+            5.0,
+            5.0,
+            7.0,
+            9.0
+          ]
+        },
+        0.5
+      ],
+      "upstreamFn": "numpy.quantile",
+      "goFn": "numpy.NDArray.Quantile"
+    },
+    {
+      "id": "quantile-out-of-range",
+      "fn": "quantile",
+      "args": [
+        {
+          "arr": [
+            2.0,
+            4.0,
+            4.0,
+            4.0,
+            5.0,
+            5.0,
+            7.0,
+            9.0
+          ]
+        },
+        1.5
+      ],
+      "upstreamFn": "numpy.quantile",
+      "goFn": "numpy.NDArray.Quantile",
+      "note": "must FAIL on both sides"
+    },
+    {
+      "id": "median-with-nan",
+      "fn": "median",
+      "args": [
+        {
+          "arr": [
+            1.0,
+            "NaN",
+            3.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.median",
+      "goFn": "numpy.NDArray.Median",
+      "note": "numpy propagates NaN"
+    },
+    {
+      "id": "mean-precision",
+      "fn": "mean",
+      "args": [
+        {
+          "arr": [
+            1e+16,
+            1.0,
+            -1e+16
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.mean",
+      "goFn": "numpy.NDArray.Mean",
+      "note": "pairwise vs naive summation; compared with the float tolerance"
+    }
+  ]
+}

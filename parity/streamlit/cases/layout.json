@@ -1,0 +1,15 @@
+{
+  "group": "layout",
+  "upstream": "streamlit==1.61.1",
+  "cases": [
+    {"id": "layout-basic", "fn": "layout", "args": [[]], "upstreamFn": "st.columns/st.tabs/st.expander/st.container/st.sidebar", "goFn": "st.Container.Columns/Tabs/Expander/Container + st.Session.Sidebar"},
+    {"id": "layout-nested", "fn": "layout-nested", "args": [[]], "upstreamFn": "st.columns + st.expander", "goFn": "st.Container.Columns + Expander"},
+    {
+      "id": "layout-widget-in-column",
+      "fn": "layout-widget-in-column",
+      "args": [[{"op": "set", "key": "w_text_input", "value": "grace"}]],
+      "upstreamFn": "st.columns + st.text_input", "goFn": "st.Container.Columns + TextInput",
+      "note": "a widget nested in a layout container still round-trips its value"
+    }
+  ]
+}

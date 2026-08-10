@@ -1,0 +1,852 @@
+{
+  "group": "jwe-compact",
+  "upstream": "jose@5.9.6",
+  "cases": [
+    {
+      "id": "jwe-rsa1_5-a128cbc-hs256",
+      "kind": "cross",
+      "fn": "encrypt.compact",
+      "args": [
+        "Live long and prosper.",
+        "rsa2048-pub",
+        {
+          "alg": "RSA1_5",
+          "enc": "A128CBC-HS256"
+        }
+      ],
+      "consumeFn": "decrypt.compact",
+      "consumeArgs": [
+        "$OUT",
+        "rsa2048-priv",
+        {
+          "alg": "RSA1_5"
+        }
+      ],
+      "expect": {
+        "payload": "Live long and prosper."
+      },
+      "upstreamFn": "jose.CompactEncrypt",
+      "goFn": "jose.Encrypt",
+      "note": "legacy RSAES-PKCS1-v1_5; deprecated upstream but still implemented on both sides"
+    },
+    {
+      "id": "jwe-rsa-oaep-a128gcm",
+      "kind": "cross",
+      "fn": "encrypt.compact",
+      "args": [
+        "Live long and prosper.",
+        "rsa2048-pub",
+        {
+          "alg": "RSA-OAEP",
+          "enc": "A128GCM"
+        }
+      ],
+      "consumeFn": "decrypt.compact",
+      "consumeArgs": [
+        "$OUT",
+        "rsa2048-priv",
+        {
+          "alg": "RSA-OAEP"
+        }
+      ],
+      "expect": {
+        "payload": "Live long and prosper."
+      },
+      "upstreamFn": "jose.CompactEncrypt",
+      "goFn": "jose.Encrypt"
+    },
+    {
+      "id": "jwe-rsa-oaep-256-a256gcm",
+      "kind": "cross",
+      "fn": "encrypt.compact",
+      "args": [
+        "Live long and prosper.",
+        "rsa2048-pub",
+        {
+          "alg": "RSA-OAEP-256",
+          "enc": "A256GCM"
+        }
+      ],
+      "consumeFn": "decrypt.compact",
+      "consumeArgs": [
+        "$OUT",
+        "rsa2048-priv",
+        {
+          "alg": "RSA-OAEP-256"
+        }
+      ],
+      "expect": {
+        "payload": "Live long and prosper."
+      },
+      "upstreamFn": "jose.CompactEncrypt",
+      "goFn": "jose.Encrypt"
+    },
+    {
+      "id": "jwe-rsa-oaep-256-a128cbc-hs256",
+      "kind": "cross",
+      "fn": "encrypt.compact",
+      "args": [
+        "Live long and prosper.",
+        "rsa2048-pub",
+        {
+          "alg": "RSA-OAEP-256",
+          "enc": "A128CBC-HS256"
+        }
+      ],
+      "consumeFn": "decrypt.compact",
+      "consumeArgs": [
+        "$OUT",
+        "rsa2048-priv",
+        {
+          "alg": "RSA-OAEP-256"
+        }
+      ],
+      "expect": {
+        "payload": "Live long and prosper."
+      },
+      "upstreamFn": "jose.CompactEncrypt",
+      "goFn": "jose.Encrypt"
+    },
+    {
+      "id": "jwe-a128kw-a128gcm",
+      "kind": "cross",
+      "fn": "encrypt.compact",
+      "args": [
+        "Live long and prosper.",
+        "oct-16",
+        {
+          "alg": "A128KW",
+          "enc": "A128GCM"
+        }
+      ],
+      "consumeFn": "decrypt.compact",
+      "consumeArgs": [
+        "$OUT",
+        "oct-16",
+        {
+          "alg": "A128KW"
+        }
+      ],
+      "expect": {
+        "payload": "Live long and prosper."
+      },
+      "upstreamFn": "jose.CompactEncrypt",
+      "goFn": "jose.Encrypt",
+      "note": "AES Key Wrap, RFC 3394"
+    },
+    {
+      "id": "jwe-a192kw-a192gcm",
+      "kind": "cross",
+      "fn": "encrypt.compact",
+      "args": [
+        "Live long and prosper.",
+        "oct-24",
+        {
+          "alg": "A192KW",
+          "enc": "A192GCM"
+        }
+      ],
+      "consumeFn": "decrypt.compact",
+      "consumeArgs": [
+        "$OUT",
+        "oct-24",
+        {
+          "alg": "A192KW"
+        }
+      ],
+      "expect": {
+        "payload": "Live long and prosper."
+      },
+      "upstreamFn": "jose.CompactEncrypt",
+      "goFn": "jose.Encrypt"
+    },
+    {
+      "id": "jwe-a256kw-a256cbc-hs512",
+      "kind": "cross",
+      "fn": "encrypt.compact",
+      "args": [
+        "Live long and prosper.",
+        "oct-32",
+        {
+          "alg": "A256KW",
+          "enc": "A256CBC-HS512"
+        }
+      ],
+      "consumeFn": "decrypt.compact",
+      "consumeArgs": [
+        "$OUT",
+        "oct-32",
+        {
+          "alg": "A256KW"
+        }
+      ],
+      "expect": {
+        "payload": "Live long and prosper."
+      },
+      "upstreamFn": "jose.CompactEncrypt",
+      "goFn": "jose.Encrypt"
+    },
+    {
+      "id": "jwe-a128gcmkw-a128gcm",
+      "kind": "cross",
+      "fn": "encrypt.compact",
+      "args": [
+        "Live long and prosper.",
+        "oct-16",
+        {
+          "alg": "A128GCMKW",
+          "enc": "A128GCM"
+        }
+      ],
+      "consumeFn": "decrypt.compact",
+      "consumeArgs": [
+        "$OUT",
+        "oct-16",
+        {
+          "alg": "A128GCMKW"
+        }
+      ],
+      "expect": {
+        "payload": "Live long and prosper."
+      },
+      "upstreamFn": "jose.CompactEncrypt",
+      "goFn": "jose.Encrypt",
+      "note": "AES-GCM key wrapping puts iv and tag in the protected header"
+    },
+    {
+      "id": "jwe-a192gcmkw-a192cbc-hs384",
+      "kind": "cross",
+      "fn": "encrypt.compact",
+      "args": [
+        "Live long and prosper.",
+        "oct-24",
+        {
+          "alg": "A192GCMKW",
+          "enc": "A192CBC-HS384"
+        }
+      ],
+      "consumeFn": "decrypt.compact",
+      "consumeArgs": [
+        "$OUT",
+        "oct-24",
+        {
+          "alg": "A192GCMKW"
+        }
+      ],
+      "expect": {
+        "payload": "Live long and prosper."
+      },
+      "upstreamFn": "jose.CompactEncrypt",
+      "goFn": "jose.Encrypt"
+    },
+    {
+      "id": "jwe-a256gcmkw-a256gcm",
+      "kind": "cross",
+      "fn": "encrypt.compact",
+      "args": [
+        "Live long and prosper.",
+        "oct-32",
+        {
+          "alg": "A256GCMKW",
+          "enc": "A256GCM"
+        }
+      ],
+      "consumeFn": "decrypt.compact",
+      "consumeArgs": [
+        "$OUT",
+        "oct-32",
+        {
+          "alg": "A256GCMKW"
+        }
+      ],
+      "expect": {
+        "payload": "Live long and prosper."
+      },
+      "upstreamFn": "jose.CompactEncrypt",
+      "goFn": "jose.Encrypt"
+    },
+    {
+      "id": "jwe-dir-a128gcm",
+      "kind": "cross",
+      "fn": "encrypt.compact",
+      "args": [
+        "Live long and prosper.",
+        "oct-16",
+        {
+          "alg": "dir",
+          "enc": "A128GCM"
+        }
+      ],
+      "consumeFn": "decrypt.compact",
+      "consumeArgs": [
+        "$OUT",
+        "oct-16",
+        {
+          "alg": "dir"
+        }
+      ],
+      "expect": {
+        "payload": "Live long and prosper."
+      },
+      "upstreamFn": "jose.CompactEncrypt",
+      "goFn": "jose.Encrypt"
+    },
+    {
+      "id": "jwe-dir-a192gcm",
+      "kind": "cross",
+      "fn": "encrypt.compact",
+      "args": [
+        "Live long and prosper.",
+        "oct-24",
+        {
+          "alg": "dir",
+          "enc": "A192GCM"
+        }
+      ],
+      "consumeFn": "decrypt.compact",
+      "consumeArgs": [
+        "$OUT",
+        "oct-24",
+        {
+          "alg": "dir"
+        }
+      ],
+      "expect": {
+        "payload": "Live long and prosper."
+      },
+      "upstreamFn": "jose.CompactEncrypt",
+      "goFn": "jose.Encrypt"
+    },
+    {
+      "id": "jwe-dir-a256gcm",
+      "kind": "cross",
+      "fn": "encrypt.compact",
+      "args": [
+        "Live long and prosper.",
+        "oct-32",
+        {
+          "alg": "dir",
+          "enc": "A256GCM"
+        }
+      ],
+      "consumeFn": "decrypt.compact",
+      "consumeArgs": [
+        "$OUT",
+        "oct-32",
+        {
+          "alg": "dir"
+        }
+      ],
+      "expect": {
+        "payload": "Live long and prosper."
+      },
+      "upstreamFn": "jose.CompactEncrypt",
+      "goFn": "jose.Encrypt"
+    },
+    {
+      "id": "jwe-dir-a128cbc-hs256",
+      "kind": "cross",
+      "fn": "encrypt.compact",
+      "args": [
+        "Live long and prosper.",
+        "oct-32",
+        {
+          "alg": "dir",
+          "enc": "A128CBC-HS256"
+        }
+      ],
+      "consumeFn": "decrypt.compact",
+      "consumeArgs": [
+        "$OUT",
+        "oct-32",
+        {
+          "alg": "dir"
+        }
+      ],
+      "expect": {
+        "payload": "Live long and prosper."
+      },
+      "upstreamFn": "jose.CompactEncrypt",
+      "goFn": "jose.Encrypt"
+    },
+    {
+      "id": "jwe-dir-a192cbc-hs384",
+      "kind": "cross",
+      "fn": "encrypt.compact",
+      "args": [
+        "Live long and prosper.",
+        "oct-48",
+        {
+          "alg": "dir",
+          "enc": "A192CBC-HS384"
+        }
+      ],
+      "consumeFn": "decrypt.compact",
+      "consumeArgs": [
+        "$OUT",
+        "oct-48",
+        {
+          "alg": "dir"
+        }
+      ],
+      "expect": {
+        "payload": "Live long and prosper."
+      },
+      "upstreamFn": "jose.CompactEncrypt",
+      "goFn": "jose.Encrypt"
+    },
+    {
+      "id": "jwe-dir-a256cbc-hs512",
+      "kind": "cross",
+      "fn": "encrypt.compact",
+      "args": [
+        "Live long and prosper.",
+        "oct-64",
+        {
+          "alg": "dir",
+          "enc": "A256CBC-HS512"
+        }
+      ],
+      "consumeFn": "decrypt.compact",
+      "consumeArgs": [
+        "$OUT",
+        "oct-64",
+        {
+          "alg": "dir"
+        }
+      ],
+      "expect": {
+        "payload": "Live long and prosper."
+      },
+      "upstreamFn": "jose.CompactEncrypt",
+      "goFn": "jose.Encrypt"
+    },
+    {
+      "id": "jwe-ecdh-es-p256-a128gcm",
+      "kind": "cross",
+      "fn": "encrypt.compact",
+      "args": [
+        "Live long and prosper.",
+        "ec-p256-pub",
+        {
+          "alg": "ECDH-ES",
+          "enc": "A128GCM"
+        }
+      ],
+      "consumeFn": "decrypt.compact",
+      "consumeArgs": [
+        "$OUT",
+        "ec-p256-priv",
+        {
+          "alg": "ECDH-ES"
+        }
+      ],
+      "expect": {
+        "payload": "Live long and prosper."
+      },
+      "upstreamFn": "jose.CompactEncrypt",
+      "goFn": "jose.Encrypt",
+      "note": "ECDH-ES direct key agreement; the agreed key is the CEK"
+    },
+    {
+      "id": "jwe-ecdh-es-p384-a256cbc-hs512",
+      "kind": "cross",
+      "fn": "encrypt.compact",
+      "args": [
+        "Live long and prosper.",
+        "ec-p384-pub",
+        {
+          "alg": "ECDH-ES",
+          "enc": "A256CBC-HS512"
+        }
+      ],
+      "consumeFn": "decrypt.compact",
+      "consumeArgs": [
+        "$OUT",
+        "ec-p384-priv",
+        {
+          "alg": "ECDH-ES"
+        }
+      ],
+      "expect": {
+        "payload": "Live long and prosper."
+      },
+      "upstreamFn": "jose.CompactEncrypt",
+      "goFn": "jose.Encrypt"
+    },
+    {
+      "id": "jwe-ecdh-es-p521-a256gcm",
+      "kind": "cross",
+      "fn": "encrypt.compact",
+      "args": [
+        "Live long and prosper.",
+        "ec-p521-pub",
+        {
+          "alg": "ECDH-ES",
+          "enc": "A256GCM"
+        }
+      ],
+      "consumeFn": "decrypt.compact",
+      "consumeArgs": [
+        "$OUT",
+        "ec-p521-priv",
+        {
+          "alg": "ECDH-ES"
+        }
+      ],
+      "expect": {
+        "payload": "Live long and prosper."
+      },
+      "upstreamFn": "jose.CompactEncrypt",
+      "goFn": "jose.Encrypt"
+    },
+    {
+      "id": "jwe-ecdh-es-x25519-a128gcm",
+      "kind": "cross",
+      "fn": "encrypt.compact",
+      "args": [
+        "Live long and prosper.",
+        "x25519-pub",
+        {
+          "alg": "ECDH-ES",
+          "enc": "A128GCM"
+        }
+      ],
+      "consumeFn": "decrypt.compact",
+      "consumeArgs": [
+        "$OUT",
+        "x25519-priv",
+        {
+          "alg": "ECDH-ES"
+        }
+      ],
+      "expect": {
+        "payload": "Live long and prosper."
+      },
+      "upstreamFn": "jose.CompactEncrypt",
+      "goFn": "jose.Encrypt",
+      "note": "RFC 8037 X25519 key agreement"
+    },
+    {
+      "id": "jwe-ecdh-es-a128kw-a128gcm",
+      "kind": "cross",
+      "fn": "encrypt.compact",
+      "args": [
+        "Live long and prosper.",
+        "ec-p256-pub",
+        {
+          "alg": "ECDH-ES+A128KW",
+          "enc": "A128GCM"
+        }
+      ],
+      "consumeFn": "decrypt.compact",
+      "consumeArgs": [
+        "$OUT",
+        "ec-p256-priv",
+        {
+          "alg": "ECDH-ES+A128KW"
+        }
+      ],
+      "expect": {
+        "payload": "Live long and prosper."
+      },
+      "upstreamFn": "jose.CompactEncrypt",
+      "goFn": "jose.Encrypt"
+    },
+    {
+      "id": "jwe-ecdh-es-a192kw-a192gcm",
+      "kind": "cross",
+      "fn": "encrypt.compact",
+      "args": [
+        "Live long and prosper.",
+        "ec-p256-pub",
+        {
+          "alg": "ECDH-ES+A192KW",
+          "enc": "A192GCM"
+        }
+      ],
+      "consumeFn": "decrypt.compact",
+      "consumeArgs": [
+        "$OUT",
+        "ec-p256-priv",
+        {
+          "alg": "ECDH-ES+A192KW"
+        }
+      ],
+      "expect": {
+        "payload": "Live long and prosper."
+      },
+      "upstreamFn": "jose.CompactEncrypt",
+      "goFn": "jose.Encrypt"
+    },
+    {
+      "id": "jwe-ecdh-es-a256kw-a256gcm-apu-apv",
+      "kind": "cross",
+      "fn": "encrypt.compact",
+      "args": [
+        "Live long and prosper.",
+        "ec-p256-pub",
+        {
+          "alg": "ECDH-ES+A256KW",
+          "enc": "A256GCM",
+          "apu": "QWxpY2U",
+          "apv": "Qm9i"
+        }
+      ],
+      "consumeFn": "decrypt.compact",
+      "consumeArgs": [
+        "$OUT",
+        "ec-p256-priv",
+        {
+          "alg": "ECDH-ES+A256KW"
+        }
+      ],
+      "expect": {
+        "payload": "Live long and prosper."
+      },
+      "upstreamFn": "jose.CompactEncrypt",
+      "goFn": "jose.Encrypt",
+      "note": "Concat KDF PartyUInfo / PartyVInfo fed through the apu and apv headers"
+    },
+    {
+      "id": "jwe-ecdh-es-x25519-a256kw-a256gcm",
+      "kind": "cross",
+      "fn": "encrypt.compact",
+      "args": [
+        "Live long and prosper.",
+        "x25519-pub",
+        {
+          "alg": "ECDH-ES+A256KW",
+          "enc": "A256GCM"
+        }
+      ],
+      "consumeFn": "decrypt.compact",
+      "consumeArgs": [
+        "$OUT",
+        "x25519-priv",
+        {
+          "alg": "ECDH-ES+A256KW"
+        }
+      ],
+      "expect": {
+        "payload": "Live long and prosper."
+      },
+      "upstreamFn": "jose.CompactEncrypt",
+      "goFn": "jose.Encrypt"
+    },
+    {
+      "id": "jwe-pbes2-hs256-a128kw-a128gcm",
+      "kind": "cross",
+      "fn": "encrypt.compact",
+      "args": [
+        "Live long and prosper.",
+        "password",
+        {
+          "alg": "PBES2-HS256+A128KW",
+          "enc": "A128GCM",
+          "p2c": 2048
+        }
+      ],
+      "consumeFn": "decrypt.compact",
+      "consumeArgs": [
+        "$OUT",
+        "password",
+        {
+          "alg": "PBES2-HS256+A128KW",
+          "keyManagement": [
+            "PBES2-HS256+A128KW"
+          ]
+        }
+      ],
+      "expect": {
+        "payload": "Live long and prosper."
+      },
+      "upstreamFn": "jose.CompactEncrypt",
+      "goFn": "jose.Encrypt",
+      "note": "PBKDF2 salt is random, so only the round-trip can be compared Upstream requires PBES2 to be named in keyManagementAlgorithms before it will decrypt."
+    },
+    {
+      "id": "jwe-pbes2-hs384-a192kw-a192gcm",
+      "kind": "cross",
+      "fn": "encrypt.compact",
+      "args": [
+        "Live long and prosper.",
+        "password",
+        {
+          "alg": "PBES2-HS384+A192KW",
+          "enc": "A192GCM",
+          "p2c": 2048
+        }
+      ],
+      "consumeFn": "decrypt.compact",
+      "consumeArgs": [
+        "$OUT",
+        "password",
+        {
+          "alg": "PBES2-HS384+A192KW",
+          "keyManagement": [
+            "PBES2-HS384+A192KW"
+          ]
+        }
+      ],
+      "expect": {
+        "payload": "Live long and prosper."
+      },
+      "upstreamFn": "jose.CompactEncrypt",
+      "goFn": "jose.Encrypt",
+      "note": " Upstream requires PBES2 to be named in keyManagementAlgorithms before it will decrypt."
+    },
+    {
+      "id": "jwe-pbes2-hs512-a256kw-a256cbc-hs512",
+      "kind": "cross",
+      "fn": "encrypt.compact",
+      "args": [
+        "Live long and prosper.",
+        "password",
+        {
+          "alg": "PBES2-HS512+A256KW",
+          "enc": "A256CBC-HS512",
+          "p2c": 2048
+        }
+      ],
+      "consumeFn": "decrypt.compact",
+      "consumeArgs": [
+        "$OUT",
+        "password",
+        {
+          "alg": "PBES2-HS512+A256KW",
+          "keyManagement": [
+            "PBES2-HS512+A256KW"
+          ]
+        }
+      ],
+      "expect": {
+        "payload": "Live long and prosper."
+      },
+      "upstreamFn": "jose.CompactEncrypt",
+      "goFn": "jose.Encrypt",
+      "note": " Upstream requires PBES2 to be named in keyManagementAlgorithms before it will decrypt."
+    },
+    {
+      "id": "jwe-rsa-oaep-256-a256gcm-kid-cty",
+      "kind": "cross",
+      "fn": "encrypt.compact",
+      "args": [
+        "Live long and prosper.",
+        "rsa2048-pub",
+        {
+          "alg": "RSA-OAEP-256",
+          "enc": "A256GCM",
+          "kid": "samwise.gamgee@hobbiton.example",
+          "protected": {
+            "cty": "text/plain"
+          }
+        }
+      ],
+      "consumeFn": "decrypt.compact",
+      "consumeArgs": [
+        "$OUT",
+        "rsa2048-priv",
+        {
+          "alg": "RSA-OAEP-256"
+        }
+      ],
+      "expect": {
+        "payload": "Live long and prosper.",
+        "header": {
+          "alg": "RSA-OAEP-256",
+          "enc": "A256GCM",
+          "kid": "samwise.gamgee@hobbiton.example",
+          "cty": "text/plain"
+        }
+      },
+      "upstreamFn": "jose.CompactEncrypt",
+      "goFn": "jose.Encrypt"
+    },
+    {
+      "id": "jwe-a256kw-a256gcm-alg-allowlist",
+      "kind": "cross",
+      "fn": "encrypt.compact",
+      "args": [
+        "Live long and prosper.",
+        "oct-32",
+        {
+          "alg": "A256KW",
+          "enc": "A256GCM"
+        }
+      ],
+      "consumeFn": "decrypt.compact",
+      "consumeArgs": [
+        "$OUT",
+        "oct-32",
+        {
+          "alg": "A256KW",
+          "keyManagement": [
+            "A256KW"
+          ],
+          "encryptions": [
+            "A256GCM"
+          ]
+        }
+      ],
+      "expect": {
+        "payload": "Live long and prosper."
+      },
+      "upstreamFn": "jose.compactDecrypt",
+      "goFn": "jose.DecryptWithOptions",
+      "note": "alg and enc allow-lists accept the matching values"
+    },
+    {
+      "id": "jwe-empty-plaintext",
+      "kind": "cross",
+      "fn": "encrypt.compact",
+      "args": [
+        "",
+        "oct-32",
+        {
+          "alg": "dir",
+          "enc": "A256GCM"
+        }
+      ],
+      "consumeFn": "decrypt.compact",
+      "consumeArgs": [
+        "$OUT",
+        "oct-32",
+        {
+          "alg": "dir"
+        }
+      ],
+      "expect": {
+        "payload": ""
+      },
+      "upstreamFn": "jose.CompactEncrypt",
+      "goFn": "jose.Encrypt"
+    },
+    {
+      "id": "jwe-utf8-plaintext",
+      "kind": "cross",
+      "fn": "encrypt.compact",
+      "args": [
+        "ελληνικά — 日本語 — 🔐",
+        "oct-32",
+        {
+          "alg": "A256KW",
+          "enc": "A256GCM"
+        }
+      ],
+      "consumeFn": "decrypt.compact",
+      "consumeArgs": [
+        "$OUT",
+        "oct-32",
+        {
+          "alg": "A256KW"
+        }
+      ],
+      "expect": {
+        "payload": "ελληνικά — 日本語 — 🔐"
+      },
+      "upstreamFn": "jose.CompactEncrypt",
+      "goFn": "jose.Encrypt"
+    }
+  ]
+}

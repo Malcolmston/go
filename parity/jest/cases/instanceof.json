@@ -1,0 +1,23 @@
+{
+  "group": "instanceof",
+  "upstream": "expect@29.7.0",
+  "note": "toBeInstanceOf. Upstream takes a constructor and walks the prototype chain; the port takes a sample value and compares Go types, which cannot express 'is an Error' as a supertype.",
+  "cases": [
+    {"id": "instanceof-error-exact", "fn": "toBeInstanceOf", "actual": {"$": "error", "ctor": "Error", "message": "x"}, "args": [{"$": "class", "name": "Error"}], "upstreamFn": "expect().toBeInstanceOf", "goFn": "jest.Matcher.ToBeInstanceOf"},
+    {"id": "instanceof-typeerror-exact", "fn": "toBeInstanceOf", "actual": {"$": "error", "ctor": "TypeError", "message": "x"}, "args": [{"$": "class", "name": "TypeError"}], "upstreamFn": "expect().toBeInstanceOf", "goFn": "jest.Matcher.ToBeInstanceOf"},
+    {"id": "instanceof-typeerror-as-error", "fn": "toBeInstanceOf", "actual": {"$": "error", "ctor": "TypeError", "message": "x"}, "args": [{"$": "class", "name": "Error"}], "deviation": "a subclass relation; the port's sample-value form compares concrete Go types and has no way to name the error interface", "upstreamFn": "expect().toBeInstanceOf", "goFn": "jest.Matcher.ToBeInstanceOf"},
+    {"id": "instanceof-error-as-typeerror", "fn": "toBeInstanceOf", "actual": {"$": "error", "ctor": "Error", "message": "x"}, "args": [{"$": "class", "name": "TypeError"}], "upstreamFn": "expect().toBeInstanceOf", "goFn": "jest.Matcher.ToBeInstanceOf"},
+    {"id": "instanceof-date", "fn": "toBeInstanceOf", "actual": {"$": "date", "iso": "2020-01-01T00:00:00.000Z"}, "args": [{"$": "class", "name": "Date"}], "upstreamFn": "expect().toBeInstanceOf", "goFn": "jest.Matcher.ToBeInstanceOf"},
+    {"id": "instanceof-regexp", "fn": "toBeInstanceOf", "actual": {"$": "regexp", "source": "a"}, "args": [{"$": "class", "name": "RegExp"}], "upstreamFn": "expect().toBeInstanceOf", "goFn": "jest.Matcher.ToBeInstanceOf"},
+    {"id": "instanceof-array", "fn": "toBeInstanceOf", "actual": [1], "args": [{"$": "class", "name": "Array"}], "upstreamFn": "expect().toBeInstanceOf", "goFn": "jest.Matcher.ToBeInstanceOf"},
+    {"id": "instanceof-array-as-object", "fn": "toBeInstanceOf", "actual": [1], "args": [{"$": "class", "name": "Object"}], "deviation": "in JS every array is an Object; in Go []any is unrelated to map[string]any", "upstreamFn": "expect().toBeInstanceOf", "goFn": "jest.Matcher.ToBeInstanceOf"},
+    {"id": "instanceof-object", "fn": "toBeInstanceOf", "actual": {"a": 1}, "args": [{"$": "class", "name": "Object"}], "upstreamFn": "expect().toBeInstanceOf", "goFn": "jest.Matcher.ToBeInstanceOf"},
+    {"id": "instanceof-map", "fn": "toBeInstanceOf", "actual": {"$": "map", "entries": [["a", 1]]}, "args": [{"$": "class", "name": "Map"}], "upstreamFn": "expect().toBeInstanceOf", "goFn": "jest.Matcher.ToBeInstanceOf"},
+    {"id": "instanceof-set", "fn": "toBeInstanceOf", "actual": {"$": "set", "values": [1]}, "args": [{"$": "class", "name": "Set"}], "upstreamFn": "expect().toBeInstanceOf", "goFn": "jest.Matcher.ToBeInstanceOf"},
+    {"id": "instanceof-primitive-string", "fn": "toBeInstanceOf", "actual": "s", "args": [{"$": "class", "name": "String"}], "note": "a primitive string is NOT an instanceof String in JS, but Go compares the string type directly", "upstreamFn": "expect().toBeInstanceOf", "goFn": "jest.Matcher.ToBeInstanceOf"},
+    {"id": "instanceof-primitive-number", "fn": "toBeInstanceOf", "actual": 1, "args": [{"$": "class", "name": "Number"}], "note": "same primitive-vs-wrapper gap", "upstreamFn": "expect().toBeInstanceOf", "goFn": "jest.Matcher.ToBeInstanceOf"},
+    {"id": "instanceof-null", "fn": "toBeInstanceOf", "actual": null, "args": [{"$": "class", "name": "Object"}], "upstreamFn": "expect().toBeInstanceOf", "goFn": "jest.Matcher.ToBeInstanceOf"},
+    {"id": "instanceof-not-mismatch", "fn": "toBeInstanceOf", "not": true, "actual": [1], "args": [{"$": "class", "name": "Date"}], "upstreamFn": "expect().not.toBeInstanceOf", "goFn": "jest.Matcher.Not().ToBeInstanceOf"},
+    {"id": "instanceof-function", "fn": "toBeInstanceOf", "actual": {"$": "fn"}, "args": [{"$": "class", "name": "Function"}], "upstreamFn": "expect().toBeInstanceOf", "goFn": "jest.Matcher.ToBeInstanceOf"}
+  ]
+}

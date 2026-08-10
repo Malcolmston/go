@@ -1,0 +1,115 @@
+{
+  "group": "widget-values",
+  "upstream": "streamlit==1.61.1",
+  "cases": [
+    {
+      "id": "set-checkbox",
+      "fn": "wd-checkbox",
+      "args": [[{"op": "set", "key": "w_checkbox", "value": false}]],
+      "upstreamFn": "st.checkbox", "goFn": "st.Container.Checkbox"
+    },
+    {
+      "id": "set-radio",
+      "fn": "wd-radio",
+      "args": [[{"op": "set", "key": "w_radio", "value": "gamma"}]],
+      "upstreamFn": "st.radio", "goFn": "st.Container.Radio"
+    },
+    {
+      "id": "set-selectbox",
+      "fn": "wd-selectbox",
+      "args": [[{"op": "set", "key": "w_selectbox", "value": "beta"}]],
+      "upstreamFn": "st.selectbox", "goFn": "st.Container.SelectBox"
+    },
+    {
+      "id": "set-multiselect",
+      "fn": "wd-multiselect",
+      "args": [[{"op": "set", "key": "w_multiselect", "value": ["gamma", "alpha"]}]],
+      "upstreamFn": "st.multiselect", "goFn": "st.Container.MultiSelect"
+    },
+    {
+      "id": "set-slider",
+      "fn": "wd-slider",
+      "args": [[{"op": "set", "key": "w_slider", "value": 7}]],
+      "upstreamFn": "st.slider", "goFn": "st.Container.Slider"
+    },
+    {
+      "id": "set-text-input",
+      "fn": "wd-text_input",
+      "args": [[{"op": "set", "key": "w_text_input", "value": "grace"}]],
+      "upstreamFn": "st.text_input", "goFn": "st.Container.TextInput"
+    },
+    {
+      "id": "set-text-area",
+      "fn": "wd-text_area",
+      "args": [[{"op": "set", "key": "w_text_area", "value": "line1\nline2"}]],
+      "upstreamFn": "st.text_area", "goFn": "st.Container.TextArea"
+    },
+    {
+      "id": "set-number-input",
+      "fn": "wd-number_input",
+      "args": [[{"op": "set", "key": "w_number_input", "value": 12.5}]],
+      "upstreamFn": "st.number_input", "goFn": "st.Container.NumberInput"
+    },
+    {
+      "id": "set-date-input",
+      "fn": "wd-date_input",
+      "args": [[{"op": "set", "key": "w_date_input", "value": "2024-03-04"}]],
+      "upstreamFn": "st.date_input", "goFn": "st.Container.DateInput"
+    },
+    {
+      "id": "set-time-input",
+      "fn": "wd-time_input",
+      "args": [[{"op": "set", "key": "w_time_input", "value": "18:45"}]],
+      "upstreamFn": "st.time_input", "goFn": "st.Container.TimeInput"
+    },
+    {
+      "id": "slider-above-max",
+      "fn": "slider-bounds",
+      "args": [[{"op": "set", "key": "w_slider", "value": 50}]],
+      "upstreamFn": "st.slider", "goFn": "st.Container.Slider",
+      "note": "value clamping: what happens to a persisted value outside [min,max]"
+    },
+    {
+      "id": "slider-below-min",
+      "fn": "slider-bounds",
+      "args": [[{"op": "set", "key": "w_slider", "value": -5}]],
+      "upstreamFn": "st.slider", "goFn": "st.Container.Slider"
+    },
+    {
+      "id": "number-above-max",
+      "fn": "number-bounds",
+      "args": [[{"op": "set", "key": "w_number_input", "value": 99}]],
+      "upstreamFn": "st.number_input", "goFn": "st.Container.NumberInputRange"
+    },
+    {
+      "id": "number-below-min",
+      "fn": "number-bounds",
+      "args": [[{"op": "set", "key": "w_number_input", "value": -3}]],
+      "upstreamFn": "st.number_input", "goFn": "st.Container.NumberInputRange"
+    },
+    {
+      "id": "selectbox-unknown-value",
+      "fn": "selectbox-unknown",
+      "args": [[{"op": "set", "key": "w_selectbox", "value": "delta"}]],
+      "upstreamFn": "st.selectbox", "goFn": "st.Container.SelectBox",
+      "note": "a persisted selection that is no longer an option"
+    },
+    {
+      "id": "multiselect-unknown-value",
+      "fn": "multiselect-unknown",
+      "args": [[{"op": "set", "key": "w_multiselect", "value": ["delta", "beta"]}]],
+      "upstreamFn": "st.multiselect", "goFn": "st.Container.MultiSelect"
+    },
+    {
+      "id": "widget-hidden-then-shown",
+      "fn": "widget-hidden-then-shown",
+      "args": [[
+        {"op": "set", "key": "w_text_input", "value": "grace"},
+        {"op": "set", "key": "w_flag", "value": false},
+        {"op": "set", "key": "w_flag", "value": true}
+      ]],
+      "upstreamFn": "st.text_input", "goFn": "st.Container.TextInput",
+      "note": "does a widget hidden by a branch keep its value when it comes back"
+    }
+  ]
+}

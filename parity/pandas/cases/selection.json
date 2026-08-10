@@ -1,0 +1,38 @@
+{
+  "group": "selection",
+  "upstream": "pandas==2.3.3",
+  "cases": [
+    {"id": "select-two", "fn": "select", "args": {"table": "sales", "columns": ["region", "price"]}, "upstreamFn": "pandas.DataFrame.__getitem__", "goFn": "pandas.DataFrame.Select"},
+    {"id": "select-reordered", "fn": "select", "args": {"table": "sales", "columns": ["active", "region"]}, "upstreamFn": "pandas.DataFrame.__getitem__", "goFn": "pandas.DataFrame.Select"},
+    {"id": "select-all", "fn": "select", "args": {"table": "nums", "columns": ["a", "b", "c"]}, "upstreamFn": "pandas.DataFrame.__getitem__", "goFn": "pandas.DataFrame.Select"},
+    {"id": "select-unknown", "fn": "select", "args": {"table": "sales", "columns": ["region", "nope"]}, "upstreamFn": "pandas.DataFrame.__getitem__", "goFn": "pandas.DataFrame.Select", "note": "must fail on both: unknown column"},
+
+    {"id": "col-numeric", "fn": "col", "args": {"table": "sales", "column": "price"}, "upstreamFn": "pandas.DataFrame.__getitem__", "goFn": "pandas.DataFrame.Col"},
+    {"id": "col-string", "fn": "col", "args": {"table": "sales", "column": "region"}, "upstreamFn": "pandas.DataFrame.__getitem__", "goFn": "pandas.DataFrame.Col"},
+    {"id": "col-unknown", "fn": "col", "args": {"table": "sales", "column": "nope"}, "upstreamFn": "pandas.DataFrame.__getitem__", "goFn": "pandas.DataFrame.Col", "note": "must fail on both: unknown column"},
+
+    {"id": "iloc-middle", "fn": "iloc", "args": {"table": "sales", "start": 1, "end": 4}, "upstreamFn": "pandas.DataFrame.iloc", "goFn": "pandas.DataFrame.ILoc"},
+    {"id": "iloc-from-zero", "fn": "iloc", "args": {"table": "sales", "start": 0, "end": 2}, "upstreamFn": "pandas.DataFrame.iloc", "goFn": "pandas.DataFrame.ILoc"},
+    {"id": "iloc-clamped-high", "fn": "iloc", "args": {"table": "sales", "start": 4, "end": 99}, "upstreamFn": "pandas.DataFrame.iloc", "goFn": "pandas.DataFrame.ILoc"},
+    {"id": "iloc-empty-range", "fn": "iloc", "args": {"table": "sales", "start": 3, "end": 3}, "upstreamFn": "pandas.DataFrame.iloc", "goFn": "pandas.DataFrame.ILoc"},
+
+    {"id": "loc-int-labels", "fn": "loc", "args": {"table": "sales", "labels": [0, 2, 4], "label_kind": "int64"}, "upstreamFn": "pandas.DataFrame.loc", "goFn": "pandas.DataFrame.Loc"},
+    {"id": "loc-reordered-labels", "fn": "loc", "args": {"table": "sales", "labels": [4, 1], "label_kind": "int64"}, "upstreamFn": "pandas.DataFrame.loc", "goFn": "pandas.DataFrame.Loc"},
+    {"id": "loc-missing-label", "fn": "loc", "args": {"table": "sales", "labels": [0, 99], "label_kind": "int64"}, "upstreamFn": "pandas.DataFrame.loc", "goFn": "pandas.DataFrame.Loc", "note": "pandas raises KeyError; port silently skips the absent label"},
+    {"id": "loc-string-index", "fn": "loc", "args": {"table": "sales", "set_index": "region", "labels": ["east"], "label_kind": "string"}, "upstreamFn": "pandas.DataFrame.loc", "goFn": "pandas.DataFrame.Loc"},
+    {"id": "loc-untyped-int-label", "fn": "loc", "args": {"table": "sales", "labels": [1, 3], "label_kind": "int"}, "upstreamFn": "pandas.DataFrame.loc", "goFn": "pandas.DataFrame.Loc", "note": "port index labels are int64; a plain Go int label matches nothing"},
+
+    {"id": "head-3", "fn": "head", "args": {"table": "sales", "n": 3}, "upstreamFn": "pandas.DataFrame.head", "goFn": "pandas.DataFrame.Head"},
+    {"id": "head-over", "fn": "head", "args": {"table": "sales", "n": 50}, "upstreamFn": "pandas.DataFrame.head", "goFn": "pandas.DataFrame.Head"},
+    {"id": "head-zero", "fn": "head", "args": {"table": "sales", "n": 0}, "upstreamFn": "pandas.DataFrame.head", "goFn": "pandas.DataFrame.Head"},
+    {"id": "tail-2", "fn": "tail", "args": {"table": "sales", "n": 2}, "upstreamFn": "pandas.DataFrame.tail", "goFn": "pandas.DataFrame.Tail"},
+    {"id": "tail-over", "fn": "tail", "args": {"table": "sales", "n": 50}, "upstreamFn": "pandas.DataFrame.tail", "goFn": "pandas.DataFrame.Tail"},
+
+    {"id": "take-positions", "fn": "take", "args": {"table": "sales", "positions": [5, 0, 2]}, "upstreamFn": "pandas.DataFrame.take", "goFn": "pandas.DataFrame.Take"},
+    {"id": "take-repeat", "fn": "take", "args": {"table": "sales", "positions": [1, 1]}, "upstreamFn": "pandas.DataFrame.take", "goFn": "pandas.DataFrame.Take"},
+
+    {"id": "reset-index-sorted", "fn": "reset_index", "args": {"table": "sales", "sort_first": ["price"]}, "upstreamFn": "pandas.DataFrame.reset_index", "goFn": "pandas.DataFrame.ResetIndex"},
+    {"id": "set-index-region", "fn": "set_index", "args": {"table": "sales", "column": "region"}, "upstreamFn": "pandas.DataFrame.set_index", "goFn": "pandas.DataFrame.SetIndex"},
+    {"id": "set-index-unknown", "fn": "set_index", "args": {"table": "sales", "column": "nope"}, "upstreamFn": "pandas.DataFrame.set_index", "goFn": "pandas.DataFrame.SetIndex", "note": "must fail on both"}
+  ]
+}

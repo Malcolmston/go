@@ -1,0 +1,330 @@
+{
+  "group": "sign-headers",
+  "upstream": "jsonwebtoken@9.0.2",
+  "note": "Header/segment shape per algorithm, independent of randomised signature bytes.",
+  "cases": [
+    {
+      "id": "parts-hs256",
+      "fn": "tokenParts",
+      "args": [
+        {
+          "exp": 1700003600,
+          "iat": 1700000000,
+          "sub": "user-1"
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "algorithm": "HS256"
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jwt.Token.SignedString",
+      "note": "decoded header+payload and signature length; signature bytes are randomised for PS*/ES* so they are not compared"
+    },
+    {
+      "id": "parts-hs384",
+      "fn": "tokenParts",
+      "args": [
+        {
+          "exp": 1700003600,
+          "iat": 1700000000,
+          "sub": "user-1"
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "algorithm": "HS384"
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jwt.Token.SignedString",
+      "note": "decoded header+payload and signature length; signature bytes are randomised for PS*/ES* so they are not compared"
+    },
+    {
+      "id": "parts-hs512",
+      "fn": "tokenParts",
+      "args": [
+        {
+          "exp": 1700003600,
+          "iat": 1700000000,
+          "sub": "user-1"
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "algorithm": "HS512"
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jwt.Token.SignedString",
+      "note": "decoded header+payload and signature length; signature bytes are randomised for PS*/ES* so they are not compared"
+    },
+    {
+      "id": "parts-rs256",
+      "fn": "tokenParts",
+      "args": [
+        {
+          "exp": 1700003600,
+          "iat": 1700000000,
+          "sub": "user-1"
+        },
+        {
+          "kind": "rsa",
+          "file": "rsa-2048.priv.pem",
+          "private": true
+        },
+        {
+          "algorithm": "RS256"
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jwt.Token.SignedString",
+      "note": "decoded header+payload and signature length; signature bytes are randomised for PS*/ES* so they are not compared"
+    },
+    {
+      "id": "parts-rs384",
+      "fn": "tokenParts",
+      "args": [
+        {
+          "exp": 1700003600,
+          "iat": 1700000000,
+          "sub": "user-1"
+        },
+        {
+          "kind": "rsa",
+          "file": "rsa-2048.priv.pem",
+          "private": true
+        },
+        {
+          "algorithm": "RS384"
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jwt.Token.SignedString",
+      "note": "decoded header+payload and signature length; signature bytes are randomised for PS*/ES* so they are not compared"
+    },
+    {
+      "id": "parts-rs512",
+      "fn": "tokenParts",
+      "args": [
+        {
+          "exp": 1700003600,
+          "iat": 1700000000,
+          "sub": "user-1"
+        },
+        {
+          "kind": "rsa",
+          "file": "rsa-2048.priv.pem",
+          "private": true
+        },
+        {
+          "algorithm": "RS512"
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jwt.Token.SignedString",
+      "note": "decoded header+payload and signature length; signature bytes are randomised for PS*/ES* so they are not compared"
+    },
+    {
+      "id": "parts-ps256",
+      "fn": "tokenParts",
+      "args": [
+        {
+          "exp": 1700003600,
+          "iat": 1700000000,
+          "sub": "user-1"
+        },
+        {
+          "kind": "rsa",
+          "file": "rsa-2048.priv.pem",
+          "private": true
+        },
+        {
+          "algorithm": "PS256"
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jwt.Token.SignedString",
+      "note": "decoded header+payload and signature length; signature bytes are randomised for PS*/ES* so they are not compared"
+    },
+    {
+      "id": "parts-ps384",
+      "fn": "tokenParts",
+      "args": [
+        {
+          "exp": 1700003600,
+          "iat": 1700000000,
+          "sub": "user-1"
+        },
+        {
+          "kind": "rsa",
+          "file": "rsa-2048.priv.pem",
+          "private": true
+        },
+        {
+          "algorithm": "PS384"
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jwt.Token.SignedString",
+      "note": "decoded header+payload and signature length; signature bytes are randomised for PS*/ES* so they are not compared"
+    },
+    {
+      "id": "parts-ps512",
+      "fn": "tokenParts",
+      "args": [
+        {
+          "exp": 1700003600,
+          "iat": 1700000000,
+          "sub": "user-1"
+        },
+        {
+          "kind": "rsa",
+          "file": "rsa-2048.priv.pem",
+          "private": true
+        },
+        {
+          "algorithm": "PS512"
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jwt.Token.SignedString",
+      "note": "decoded header+payload and signature length; signature bytes are randomised for PS*/ES* so they are not compared"
+    },
+    {
+      "id": "parts-es256",
+      "fn": "tokenParts",
+      "args": [
+        {
+          "exp": 1700003600,
+          "iat": 1700000000,
+          "sub": "user-1"
+        },
+        {
+          "kind": "ec",
+          "file": "ec-p256.priv.pem",
+          "private": true
+        },
+        {
+          "algorithm": "ES256"
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jwt.Token.SignedString",
+      "note": "decoded header+payload and signature length; signature bytes are randomised for PS*/ES* so they are not compared"
+    },
+    {
+      "id": "parts-es384",
+      "fn": "tokenParts",
+      "args": [
+        {
+          "exp": 1700003600,
+          "iat": 1700000000,
+          "sub": "user-1"
+        },
+        {
+          "kind": "ec",
+          "file": "ec-p384.priv.pem",
+          "private": true
+        },
+        {
+          "algorithm": "ES384"
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jwt.Token.SignedString",
+      "note": "decoded header+payload and signature length; signature bytes are randomised for PS*/ES* so they are not compared"
+    },
+    {
+      "id": "parts-es512",
+      "fn": "tokenParts",
+      "args": [
+        {
+          "exp": 1700003600,
+          "iat": 1700000000,
+          "sub": "user-1"
+        },
+        {
+          "kind": "ec",
+          "file": "ec-p521.priv.pem",
+          "private": true
+        },
+        {
+          "algorithm": "ES512"
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jwt.Token.SignedString",
+      "note": "decoded header+payload and signature length; signature bytes are randomised for PS*/ES* so they are not compared"
+    },
+    {
+      "id": "parts-keyid",
+      "fn": "tokenParts",
+      "args": [
+        {
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "algorithm": "HS256",
+          "keyid": "key-2024"
+        }
+      ],
+      "upstreamFn": "jwt.sign options.keyid",
+      "goFn": "jwt.Token.SetKID"
+    },
+    {
+      "id": "parts-header-extra",
+      "fn": "tokenParts",
+      "args": [
+        {
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "algorithm": "HS256",
+          "header": {
+            "cty": "example",
+            "x5t": "abc"
+          }
+        }
+      ],
+      "upstreamFn": "jwt.sign options.header",
+      "goFn": "jwt.Token.SetHeader"
+    },
+    {
+      "id": "parts-header-typ",
+      "fn": "tokenParts",
+      "args": [
+        {
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "algorithm": "HS256",
+          "header": {
+            "typ": "at+jwt"
+          }
+        }
+      ],
+      "upstreamFn": "jwt.sign options.header.typ",
+      "goFn": "jwt.Token.SetType"
+    }
+  ]
+}

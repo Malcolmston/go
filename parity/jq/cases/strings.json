@@ -1,0 +1,618 @@
+{
+  "group": "strings",
+  "upstream": "jq@1.7.1",
+  "encoding": "args = [jq program, input JSON value, optional $variables object]; value = the complete output stream as a JSON array",
+  "cases": [
+    {
+      "id": "split-1",
+      "fn": "run",
+      "args": [
+        "split(\",\")",
+        "a,b,,c"
+      ],
+      "upstreamFn": "split/1",
+      "goFn": "split/1"
+    },
+    {
+      "id": "split-empty-sep",
+      "fn": "run",
+      "args": [
+        "split(\"\")",
+        "abc"
+      ],
+      "upstreamFn": "split/1",
+      "goFn": "split/1"
+    },
+    {
+      "id": "split-no-match",
+      "fn": "run",
+      "args": [
+        "split(\"z\")",
+        "abc"
+      ],
+      "upstreamFn": "split/1",
+      "goFn": "split/1"
+    },
+    {
+      "id": "split-non-string-err",
+      "fn": "run",
+      "args": [
+        "split(\",\")",
+        5
+      ],
+      "upstreamFn": "split/1",
+      "goFn": "split/1"
+    },
+    {
+      "id": "split-regex",
+      "fn": "run",
+      "args": [
+        "split(\"[,;]\"; null)",
+        "a,b;c"
+      ],
+      "upstreamFn": "split/2",
+      "goFn": "split/2"
+    },
+    {
+      "id": "split-regex-flags",
+      "fn": "run",
+      "args": [
+        "split(\"A\"; \"i\")",
+        "xaYaz"
+      ],
+      "upstreamFn": "split/2",
+      "goFn": "split/2"
+    },
+    {
+      "id": "join-strings",
+      "fn": "run",
+      "args": [
+        "join(\"-\")",
+        [
+          "a",
+          "b",
+          "c"
+        ]
+      ],
+      "upstreamFn": "join/1",
+      "goFn": "join/1"
+    },
+    {
+      "id": "join-mixed",
+      "fn": "run",
+      "args": [
+        "join(\",\")",
+        [
+          "a",
+          1,
+          null,
+          true
+        ]
+      ],
+      "upstreamFn": "join/1",
+      "goFn": "join/1"
+    },
+    {
+      "id": "join-empty",
+      "fn": "run",
+      "args": [
+        "join(\",\")",
+        []
+      ],
+      "upstreamFn": "join/1",
+      "goFn": "join/1"
+    },
+    {
+      "id": "join-obj-err",
+      "fn": "run",
+      "args": [
+        "join(\",\")",
+        [
+          {
+            "a": 1
+          }
+        ]
+      ],
+      "upstreamFn": "join/1",
+      "goFn": "join/1"
+    },
+    {
+      "id": "join-nonarray-err",
+      "fn": "run",
+      "args": [
+        "join(\",\")",
+        "a"
+      ],
+      "upstreamFn": "join/1",
+      "goFn": "join/1"
+    },
+    {
+      "id": "ltrimstr",
+      "fn": "run",
+      "args": [
+        "[ltrimstr(\"ab\"), ltrimstr(\"z\")]",
+        "abcd"
+      ],
+      "upstreamFn": "ltrimstr/1",
+      "goFn": "ltrimstr/1"
+    },
+    {
+      "id": "ltrimstr-empty",
+      "fn": "run",
+      "args": [
+        "\"abc\"|ltrimstr(\"\")",
+        null
+      ],
+      "upstreamFn": "ltrimstr/1",
+      "goFn": "ltrimstr/1"
+    },
+    {
+      "id": "ltrimstr-nonstring",
+      "fn": "run",
+      "args": [
+        "[.[]|ltrimstr(\"a\")]",
+        [
+          1,
+          "ab",
+          null
+        ]
+      ],
+      "upstreamFn": "ltrimstr/1",
+      "goFn": "ltrimstr/1",
+      "note": "jq 1.7 passes non-strings through unchanged"
+    },
+    {
+      "id": "ltrimstr-num-arg",
+      "fn": "run",
+      "args": [
+        "\"abc\"|ltrimstr(1)",
+        null
+      ],
+      "upstreamFn": "ltrimstr/1",
+      "goFn": "ltrimstr/1"
+    },
+    {
+      "id": "rtrimstr",
+      "fn": "run",
+      "args": [
+        "[rtrimstr(\"cd\"), rtrimstr(\"z\")]",
+        "abcd"
+      ],
+      "upstreamFn": "rtrimstr/1",
+      "goFn": "rtrimstr/1"
+    },
+    {
+      "id": "startswith",
+      "fn": "run",
+      "args": [
+        "[startswith(\"ab\"), startswith(\"b\")]",
+        "abc"
+      ],
+      "upstreamFn": "startswith/1",
+      "goFn": "startswith/1"
+    },
+    {
+      "id": "startswith-nonstring-err",
+      "fn": "run",
+      "args": [
+        "startswith(1)",
+        "abc"
+      ],
+      "upstreamFn": "startswith/1",
+      "goFn": "startswith/1"
+    },
+    {
+      "id": "endswith",
+      "fn": "run",
+      "args": [
+        "[endswith(\"bc\"), endswith(\"a\")]",
+        "abc"
+      ],
+      "upstreamFn": "endswith/1",
+      "goFn": "endswith/1"
+    },
+    {
+      "id": "ascii-downcase",
+      "fn": "run",
+      "args": [
+        "ascii_downcase",
+        "Ab\u00c7D"
+      ],
+      "upstreamFn": "ascii_downcase/0",
+      "goFn": "ascii_downcase/0",
+      "note": "non-ASCII must be left alone"
+    },
+    {
+      "id": "ascii-upcase",
+      "fn": "run",
+      "args": [
+        "ascii_upcase",
+        "ab\u00c7d"
+      ],
+      "upstreamFn": "ascii_upcase/0",
+      "goFn": "ascii_upcase/0"
+    },
+    {
+      "id": "ascii-downcase-nonstring-err",
+      "fn": "run",
+      "args": [
+        "ascii_downcase",
+        1
+      ],
+      "upstreamFn": "ascii_downcase/0",
+      "goFn": "ascii_downcase/0"
+    },
+    {
+      "id": "explode",
+      "fn": "run",
+      "args": [
+        "explode",
+        "a\u00e9\u6f22"
+      ],
+      "upstreamFn": "explode/0",
+      "goFn": "explode/0"
+    },
+    {
+      "id": "explode-nonstring-err",
+      "fn": "run",
+      "args": [
+        "explode",
+        1
+      ],
+      "upstreamFn": "explode/0",
+      "goFn": "explode/0"
+    },
+    {
+      "id": "implode",
+      "fn": "run",
+      "args": [
+        "implode",
+        [
+          97,
+          233,
+          28450
+        ]
+      ],
+      "upstreamFn": "implode/0",
+      "goFn": "implode/0"
+    },
+    {
+      "id": "implode-invalid-codepoint",
+      "fn": "run",
+      "args": [
+        "implode",
+        [
+          -1
+        ]
+      ],
+      "upstreamFn": "implode/0",
+      "goFn": "implode/0",
+      "note": "jq substitutes U+FFFD; the port errors"
+    },
+    {
+      "id": "implode-surrogate-err",
+      "fn": "run",
+      "args": [
+        "implode",
+        [
+          55296
+        ]
+      ],
+      "upstreamFn": "implode/0",
+      "goFn": "implode/0"
+    },
+    {
+      "id": "implode-nonarray-err",
+      "fn": "run",
+      "args": [
+        "implode",
+        "a"
+      ],
+      "upstreamFn": "implode/0",
+      "goFn": "implode/0"
+    },
+    {
+      "id": "tostring-all",
+      "fn": "run",
+      "args": [
+        "[.[]|tostring]",
+        [
+          1,
+          "a",
+          null,
+          true,
+          [
+            1,
+            2
+          ],
+          {
+            "a": 1
+          }
+        ]
+      ],
+      "upstreamFn": "tostring/0",
+      "goFn": "tostring/0"
+    },
+    {
+      "id": "tonumber-str",
+      "fn": "run",
+      "args": [
+        "tonumber",
+        "3.5"
+      ],
+      "upstreamFn": "tonumber/0",
+      "goFn": "tonumber/0"
+    },
+    {
+      "id": "tonumber-num",
+      "fn": "run",
+      "args": [
+        "tonumber",
+        3
+      ],
+      "upstreamFn": "tonumber/0",
+      "goFn": "tonumber/0"
+    },
+    {
+      "id": "tonumber-bad-err",
+      "fn": "run",
+      "args": [
+        "tonumber",
+        "abc"
+      ],
+      "upstreamFn": "tonumber/0",
+      "goFn": "tonumber/0"
+    },
+    {
+      "id": "tonumber-null-err",
+      "fn": "run",
+      "args": [
+        "tonumber",
+        null
+      ],
+      "upstreamFn": "tonumber/0",
+      "goFn": "tonumber/0"
+    },
+    {
+      "id": "tojson-fromjson",
+      "fn": "run",
+      "args": [
+        "[tojson, (tojson|fromjson)]",
+        {
+          "a": [
+            1,
+            "x"
+          ]
+        }
+      ],
+      "upstreamFn": "tojson/0",
+      "goFn": "tojson/0"
+    },
+    {
+      "id": "fromjson-bad-err",
+      "fn": "run",
+      "args": [
+        "fromjson",
+        "{oops"
+      ],
+      "upstreamFn": "fromjson/0",
+      "goFn": "fromjson/0"
+    },
+    {
+      "id": "at-text",
+      "fn": "run",
+      "args": [
+        "@text",
+        {
+          "a": 1
+        }
+      ],
+      "upstreamFn": "@text",
+      "goFn": "@text"
+    },
+    {
+      "id": "at-json",
+      "fn": "run",
+      "args": [
+        "@json",
+        {
+          "a": [
+            1,
+            2
+          ]
+        }
+      ],
+      "upstreamFn": "@json",
+      "goFn": "@json"
+    },
+    {
+      "id": "at-base64",
+      "fn": "run",
+      "args": [
+        "@base64",
+        "hello w\u00f6rld"
+      ],
+      "upstreamFn": "@base64",
+      "goFn": "@base64"
+    },
+    {
+      "id": "at-base64d",
+      "fn": "run",
+      "args": [
+        "@base64d",
+        "aGVsbG8="
+      ],
+      "upstreamFn": "@base64d",
+      "goFn": "@base64d"
+    },
+    {
+      "id": "at-base64d-bad",
+      "fn": "run",
+      "args": [
+        "@base64d",
+        "!!!!"
+      ],
+      "upstreamFn": "@base64d",
+      "goFn": "@base64d"
+    },
+    {
+      "id": "at-csv",
+      "fn": "run",
+      "args": [
+        "@csv",
+        [
+          [
+            1,
+            "a,b",
+            null,
+            true
+          ]
+        ]
+      ],
+      "upstreamFn": "@csv",
+      "goFn": "@csv"
+    },
+    {
+      "id": "at-csv-nested-err",
+      "fn": "run",
+      "args": [
+        "@csv",
+        [
+          [
+            [
+              1
+            ]
+          ]
+        ]
+      ],
+      "upstreamFn": "@csv",
+      "goFn": "@csv"
+    },
+    {
+      "id": "at-tsv",
+      "fn": "run",
+      "args": [
+        "@tsv",
+        [
+          [
+            "a\tb",
+            "c\nd",
+            1,
+            null
+          ]
+        ]
+      ],
+      "upstreamFn": "@tsv",
+      "goFn": "@tsv"
+    },
+    {
+      "id": "at-sh",
+      "fn": "run",
+      "args": [
+        "@sh",
+        [
+          "it's",
+          1,
+          null,
+          true
+        ]
+      ],
+      "upstreamFn": "@sh",
+      "goFn": "@sh"
+    },
+    {
+      "id": "at-sh-obj-err",
+      "fn": "run",
+      "args": [
+        "@sh",
+        {
+          "a": 1
+        }
+      ],
+      "upstreamFn": "@sh",
+      "goFn": "@sh"
+    },
+    {
+      "id": "at-uri",
+      "fn": "run",
+      "args": [
+        "@uri",
+        "a b&c=d/\u00e9"
+      ],
+      "upstreamFn": "@uri",
+      "goFn": "@uri"
+    },
+    {
+      "id": "at-html",
+      "fn": "run",
+      "args": [
+        "@html",
+        "<a href='x'>&\"</a>"
+      ],
+      "upstreamFn": "@html",
+      "goFn": "@html",
+      "note": "jq escapes the apostrophe as &apos;, the port as &#39;"
+    },
+    {
+      "id": "at-format-interp",
+      "fn": "run",
+      "args": [
+        "@base64 \"v=\\(.a)\"",
+        {
+          "a": "hi"
+        }
+      ],
+      "upstreamFn": "@base64",
+      "goFn": "@base64"
+    },
+    {
+      "id": "at-csv-interp",
+      "fn": "run",
+      "args": [
+        "@csv \"row: \\(.)\"",
+        [
+          1,
+          2
+        ]
+      ],
+      "upstreamFn": "@csv",
+      "goFn": "@csv"
+    },
+    {
+      "id": "format-fn",
+      "fn": "run",
+      "args": [
+        "format(\"csv\")",
+        [
+          [
+            1,
+            2
+          ]
+        ]
+      ],
+      "upstreamFn": "format/1",
+      "goFn": "format/1"
+    },
+    {
+      "id": "at-base32",
+      "fn": "run",
+      "args": [
+        "@base32",
+        "hi"
+      ],
+      "upstreamFn": "@base32",
+      "goFn": "@base32",
+      "note": "no jq build here accepts @base32; neither does the port, so both fail"
+    },
+    {
+      "id": "at-base32d",
+      "fn": "run",
+      "args": [
+        "@base32d",
+        "NBUQ===="
+      ],
+      "upstreamFn": "@base32d",
+      "goFn": "@base32d"
+    }
+  ]
+}

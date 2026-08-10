@@ -1,0 +1,465 @@
+{
+  "group": "parsing",
+  "upstream": "cheerio@1.0.0 + tough-cookie@5.1.2 + node WHATWG fetch/URL",
+  "note": "Both sides parse the same fixture and hand back the canonicalised serialisation, the child-node kinds, or decoded text. The Go side reaches its parser through a real HTTP navigation to a loopback httptest server (see COVERAGE.md).",
+  "cases": [
+    {
+      "id": "parse-table-implied-tbody",
+      "fn": "parse",
+      "args": [
+        "table-implied-tbody"
+      ],
+      "upstreamFn": "cheerio.load($.html())",
+      "goFn": "puppeteer.Page.HTML",
+      "note": "tree construction must decide whether <tbody> is synthesised"
+    },
+    {
+      "id": "parse-table-foster",
+      "fn": "parse",
+      "args": [
+        "table-foster"
+      ],
+      "upstreamFn": "cheerio.load($.html())",
+      "goFn": "puppeteer.Page.HTML",
+      "note": "foster parenting: <b> must move out of the table"
+    },
+    {
+      "id": "parse-table-mixed",
+      "fn": "parse",
+      "args": [
+        "table-mixed"
+      ],
+      "upstreamFn": "cheerio.load($.html())",
+      "goFn": "puppeteer.Page.HTML",
+      "note": "caption/thead/tfoot plus an implied tbody row"
+    },
+    {
+      "id": "parse-table-nested",
+      "fn": "parse",
+      "args": [
+        "table-nested"
+      ],
+      "upstreamFn": "cheerio.load($.html())",
+      "goFn": "puppeteer.Page.HTML"
+    },
+    {
+      "id": "parse-table-unclosed-cells",
+      "fn": "parse",
+      "args": [
+        "table-unclosed-cells"
+      ],
+      "upstreamFn": "cheerio.load($.html())",
+      "goFn": "puppeteer.Page.HTML",
+      "note": "implied </td> and </tr>"
+    },
+    {
+      "id": "parse-unclosed-p",
+      "fn": "parse",
+      "args": [
+        "unclosed-p"
+      ],
+      "upstreamFn": "cheerio.load($.html())",
+      "goFn": "puppeteer.Page.HTML",
+      "note": "<p> and <div> both close an open <p>"
+    },
+    {
+      "id": "parse-unclosed-li",
+      "fn": "parse",
+      "args": [
+        "unclosed-li"
+      ],
+      "upstreamFn": "cheerio.load($.html())",
+      "goFn": "puppeteer.Page.HTML"
+    },
+    {
+      "id": "parse-unclosed-dl",
+      "fn": "parse",
+      "args": [
+        "unclosed-dl"
+      ],
+      "upstreamFn": "cheerio.load($.html())",
+      "goFn": "puppeteer.Page.HTML",
+      "note": "<dt>/<dd> implied end tags"
+    },
+    {
+      "id": "parse-misnested-format",
+      "fn": "parse",
+      "args": [
+        "misnested-format"
+      ],
+      "upstreamFn": "cheerio.load($.html())",
+      "goFn": "puppeteer.Page.HTML",
+      "note": "adoption agency algorithm"
+    },
+    {
+      "id": "parse-misnested-deep",
+      "fn": "parse",
+      "args": [
+        "misnested-deep"
+      ],
+      "upstreamFn": "cheerio.load($.html())",
+      "goFn": "puppeteer.Page.HTML",
+      "note": "adoption agency across a block boundary"
+    },
+    {
+      "id": "parse-stray-end-tags",
+      "fn": "parse",
+      "args": [
+        "stray-end-tags"
+      ],
+      "upstreamFn": "cheerio.load($.html())",
+      "goFn": "puppeteer.Page.HTML",
+      "note": "unmatched end tags must be ignored"
+    },
+    {
+      "id": "parse-raw-text",
+      "fn": "parse",
+      "args": [
+        "raw-text"
+      ],
+      "upstreamFn": "cheerio.load($.html())",
+      "goFn": "puppeteer.Page.HTML",
+      "note": "script/style/textarea/title raw-text modes"
+    },
+    {
+      "id": "parse-void-elements",
+      "fn": "parse",
+      "args": [
+        "void-elements"
+      ],
+      "upstreamFn": "cheerio.load($.html())",
+      "goFn": "puppeteer.Page.HTML",
+      "note": "the void element set"
+    },
+    {
+      "id": "parse-entities",
+      "fn": "parse",
+      "args": [
+        "entities"
+      ],
+      "upstreamFn": "cheerio.load($.html())",
+      "goFn": "puppeteer.Page.HTML",
+      "note": "character reference decoding and re-escaping"
+    },
+    {
+      "id": "parse-entities-attr",
+      "fn": "parse",
+      "args": [
+        "entities-attr"
+      ],
+      "upstreamFn": "cheerio.load($.html())",
+      "goFn": "puppeteer.Page.HTML",
+      "note": "character references inside attribute values"
+    },
+    {
+      "id": "parse-attr-syntax",
+      "fn": "parse",
+      "args": [
+        "attr-syntax"
+      ],
+      "upstreamFn": "cheerio.load($.html())",
+      "goFn": "puppeteer.Page.HTML",
+      "note": "unquoted/single-quoted/valueless attributes, upper-case names"
+    },
+    {
+      "id": "parse-attr-dup",
+      "fn": "parse",
+      "args": [
+        "attr-dup"
+      ],
+      "upstreamFn": "cheerio.load($.html())",
+      "goFn": "puppeteer.Page.HTML",
+      "note": "duplicate attribute: first wins"
+    },
+    {
+      "id": "parse-case-folding",
+      "fn": "parse",
+      "args": [
+        "case-folding"
+      ],
+      "upstreamFn": "cheerio.load($.html())",
+      "goFn": "puppeteer.Page.HTML",
+      "note": "tag and attribute names are lower-cased"
+    },
+    {
+      "id": "parse-comments-doctype",
+      "fn": "parse",
+      "args": [
+        "comments-doctype"
+      ],
+      "upstreamFn": "cheerio.load($.html())",
+      "goFn": "puppeteer.Page.HTML",
+      "note": "comments and the doctype node"
+    },
+    {
+      "id": "parse-self-closing-nonvoid",
+      "fn": "parse",
+      "args": [
+        "self-closing-nonvoid"
+      ],
+      "upstreamFn": "cheerio.load($.html())",
+      "goFn": "puppeteer.Page.HTML",
+      "note": "<span/> is not self-closing in HTML"
+    },
+    {
+      "id": "parse-select-in-p",
+      "fn": "parse",
+      "args": [
+        "select-in-p"
+      ],
+      "upstreamFn": "cheerio.load($.html())",
+      "goFn": "puppeteer.Page.HTML",
+      "note": "<table> closes an open <p>"
+    },
+    {
+      "id": "parse-text-only",
+      "fn": "parse",
+      "args": [
+        "text-only"
+      ],
+      "upstreamFn": "cheerio.load($.html())",
+      "goFn": "puppeteer.Page.HTML"
+    },
+    {
+      "id": "parse-empty-doc",
+      "fn": "parse",
+      "args": [
+        "empty-doc"
+      ],
+      "upstreamFn": "cheerio.load($.html())",
+      "goFn": "puppeteer.Page.HTML",
+      "note": "empty body"
+    },
+    {
+      "id": "parse-escape-out",
+      "fn": "parse",
+      "args": [
+        "escape-out"
+      ],
+      "upstreamFn": "cheerio.load($.html())",
+      "goFn": "puppeteer.Page.HTML",
+      "note": "escaping on serialisation"
+    },
+    {
+      "id": "parse-header-nested",
+      "fn": "parse",
+      "args": [
+        "header-nested"
+      ],
+      "upstreamFn": "cheerio.load($.html())",
+      "goFn": "puppeteer.Page.HTML"
+    },
+    {
+      "id": "parse-full-document",
+      "fn": "parse",
+      "args": [
+        "full-document"
+      ],
+      "upstreamFn": "cheerio.load($.html())",
+      "goFn": "puppeteer.Page.HTML",
+      "note": "a complete document with doctype/head/body"
+    },
+    {
+      "id": "parse-nbsp-text",
+      "fn": "parse",
+      "args": [
+        "nbsp-text"
+      ],
+      "upstreamFn": "cheerio.load($.html())",
+      "goFn": "puppeteer.Page.HTML",
+      "note": "non-breaking space: literal or &nbsp; on output?"
+    },
+    {
+      "id": "parse-cdata-bogus",
+      "fn": "parse",
+      "args": [
+        "cdata-bogus"
+      ],
+      "upstreamFn": "cheerio.load($.html())",
+      "goFn": "puppeteer.Page.HTML",
+      "note": "bogus comments: CDATA, processing instruction, <!bogus>"
+    },
+    {
+      "id": "parse-unclosed-tags",
+      "fn": "parse",
+      "args": [
+        "unclosed-tags"
+      ],
+      "upstreamFn": "cheerio.load($.html())",
+      "goFn": "puppeteer.Page.HTML",
+      "note": "EOF with three open elements"
+    },
+    {
+      "id": "tree-table-implied",
+      "fn": "tree",
+      "args": [
+        "table-implied-tbody",
+        "table"
+      ],
+      "upstreamFn": "cheerio contents()",
+      "goFn": "puppeteer.Node.Children",
+      "note": "children of <table>: is a tbody inserted?"
+    },
+    {
+      "id": "tree-foster",
+      "fn": "tree",
+      "args": [
+        "table-foster",
+        ""
+      ],
+      "upstreamFn": "cheerio contents()",
+      "goFn": "puppeteer.Node.Children",
+      "note": "top-level nodes: does <b> escape the table?"
+    },
+    {
+      "id": "tree-select-in-p",
+      "fn": "tree",
+      "args": [
+        "select-in-p",
+        ""
+      ],
+      "upstreamFn": "cheerio contents()",
+      "goFn": "puppeteer.Node.Children"
+    },
+    {
+      "id": "tree-void",
+      "fn": "tree",
+      "args": [
+        "void-elements",
+        "div"
+      ],
+      "upstreamFn": "cheerio contents()",
+      "goFn": "puppeteer.Node.Children",
+      "note": "the void element set as child nodes"
+    },
+    {
+      "id": "tree-comments-doctype",
+      "fn": "tree",
+      "args": [
+        "comments-doctype",
+        ""
+      ],
+      "upstreamFn": "cheerio contents()",
+      "goFn": "puppeteer.Node.Children",
+      "note": "doctype/comment node kinds at top level"
+    },
+    {
+      "id": "tree-misnested-deep",
+      "fn": "tree",
+      "args": [
+        "misnested-deep",
+        ""
+      ],
+      "upstreamFn": "cheerio contents()",
+      "goFn": "puppeteer.Node.Children"
+    },
+    {
+      "id": "tree-unclosed-li",
+      "fn": "tree",
+      "args": [
+        "unclosed-li",
+        "ul"
+      ],
+      "upstreamFn": "cheerio contents()",
+      "goFn": "puppeteer.Node.Children"
+    },
+    {
+      "id": "tree-raw-text",
+      "fn": "tree",
+      "args": [
+        "raw-text",
+        ""
+      ],
+      "upstreamFn": "cheerio contents()",
+      "goFn": "puppeteer.Node.Children"
+    },
+    {
+      "id": "tree-full-document",
+      "fn": "tree",
+      "args": [
+        "full-document",
+        ""
+      ],
+      "upstreamFn": "cheerio contents()",
+      "goFn": "puppeteer.Node.Children"
+    },
+    {
+      "id": "text-entities",
+      "fn": "text",
+      "args": [
+        "entities",
+        "#e"
+      ],
+      "upstreamFn": "cheerio .text()",
+      "goFn": "puppeteer.Page.TextContent",
+      "note": "decoded text of a run of character references"
+    },
+    {
+      "id": "text-escape-out",
+      "fn": "text",
+      "args": [
+        "escape-out",
+        "#x"
+      ],
+      "upstreamFn": "cheerio .text()",
+      "goFn": "puppeteer.Page.TextContent"
+    },
+    {
+      "id": "text-nbsp",
+      "fn": "text",
+      "args": [
+        "nbsp-text",
+        "#n"
+      ],
+      "upstreamFn": "cheerio .text()",
+      "goFn": "puppeteer.Page.TextContent"
+    },
+    {
+      "id": "text-title",
+      "fn": "text",
+      "args": [
+        "raw-text",
+        "title"
+      ],
+      "upstreamFn": "cheerio .text()",
+      "goFn": "puppeteer.Page.TextContent"
+    },
+    {
+      "id": "text-body",
+      "fn": "text",
+      "args": [
+        "full-document",
+        "body"
+      ],
+      "upstreamFn": "cheerio .text()",
+      "goFn": "puppeteer.Page.TextContent"
+    },
+    {
+      "id": "title-full-document",
+      "fn": "title",
+      "args": [
+        "full-document"
+      ],
+      "upstreamFn": "cheerio $('title').text()",
+      "goFn": "puppeteer.Page.Title"
+    },
+    {
+      "id": "title-raw-text",
+      "fn": "title",
+      "args": [
+        "raw-text"
+      ],
+      "upstreamFn": "cheerio $('title').text()",
+      "goFn": "puppeteer.Page.Title"
+    },
+    {
+      "id": "title-text-only",
+      "fn": "title",
+      "args": [
+        "text-only"
+      ],
+      "upstreamFn": "cheerio $('title').text()",
+      "goFn": "puppeteer.Page.Title"
+    }
+  ]
+}

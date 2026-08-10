@@ -1,0 +1,941 @@
+{
+  "group": "functions",
+  "upstream": "sqlite3@3.45.3",
+  "cases": [
+    {
+      "id": "fn-abs-int",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT abs(-5) AS v"
+        }
+      ],
+      "upstreamFn": "abs()",
+      "goFn": "sqlite: abs()"
+    },
+    {
+      "id": "fn-abs-real",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT abs(-1.5) AS v"
+        }
+      ],
+      "upstreamFn": "abs() REAL",
+      "goFn": "sqlite: abs() REAL"
+    },
+    {
+      "id": "fn-abs-null",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT abs(NULL) AS v"
+        }
+      ],
+      "upstreamFn": "abs(NULL)",
+      "goFn": "sqlite: abs(NULL)"
+    },
+    {
+      "id": "fn-abs-text",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT abs('abc') AS v"
+        }
+      ],
+      "upstreamFn": "abs() on TEXT",
+      "goFn": "sqlite: abs() on TEXT"
+    },
+    {
+      "id": "fn-length-text",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT length('hello') AS v"
+        }
+      ],
+      "upstreamFn": "length()",
+      "goFn": "sqlite: length()"
+    },
+    {
+      "id": "fn-length-utf8",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT length('h\u00e9llo') AS v"
+        }
+      ],
+      "upstreamFn": "length() multi-byte",
+      "goFn": "sqlite: length() multi-byte"
+    },
+    {
+      "id": "fn-length-null",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT length(NULL) AS v"
+        }
+      ],
+      "upstreamFn": "length(NULL)",
+      "goFn": "sqlite: length(NULL)"
+    },
+    {
+      "id": "fn-length-int",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT length(12345) AS v"
+        }
+      ],
+      "upstreamFn": "length() on INTEGER",
+      "goFn": "sqlite: length() on INTEGER"
+    },
+    {
+      "id": "fn-length-blob",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT length(x'010203') AS v"
+        }
+      ],
+      "upstreamFn": "length() on BLOB",
+      "goFn": "sqlite: length() on BLOB"
+    },
+    {
+      "id": "fn-upper-basic",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT upper('abc') AS v"
+        }
+      ],
+      "upstreamFn": "upper()",
+      "goFn": "sqlite: upper()"
+    },
+    {
+      "id": "fn-upper-mixed",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT upper('aBc1\u00e9') AS v"
+        }
+      ],
+      "upstreamFn": "upper() non-ASCII",
+      "goFn": "sqlite: upper() non-ASCII"
+    },
+    {
+      "id": "fn-lower-basic",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT lower('ABC') AS v"
+        }
+      ],
+      "upstreamFn": "lower()",
+      "goFn": "sqlite: lower()"
+    },
+    {
+      "id": "fn-lower-mixed",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT lower('AbC1\u00c9') AS v"
+        }
+      ],
+      "upstreamFn": "lower() non-ASCII",
+      "goFn": "sqlite: lower() non-ASCII"
+    },
+    {
+      "id": "fn-trim-basic",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT trim('  ab  ') AS v"
+        }
+      ],
+      "upstreamFn": "trim()",
+      "goFn": "sqlite: trim()"
+    },
+    {
+      "id": "fn-trim-chars",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT trim('xxabxx', 'x') AS v"
+        }
+      ],
+      "upstreamFn": "trim(x, chars)",
+      "goFn": "sqlite: trim(x, chars)"
+    },
+    {
+      "id": "fn-ltrim-basic",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT ltrim('  ab') AS v"
+        }
+      ],
+      "upstreamFn": "ltrim()",
+      "goFn": "sqlite: ltrim()"
+    },
+    {
+      "id": "fn-ltrim-chars",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT ltrim('xxab', 'x') AS v"
+        }
+      ],
+      "upstreamFn": "ltrim(x, chars)",
+      "goFn": "sqlite: ltrim(x, chars)"
+    },
+    {
+      "id": "fn-rtrim-basic",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT rtrim('ab  ') AS v"
+        }
+      ],
+      "upstreamFn": "rtrim()",
+      "goFn": "sqlite: rtrim()"
+    },
+    {
+      "id": "fn-rtrim-chars",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT rtrim('abxx', 'x') AS v"
+        }
+      ],
+      "upstreamFn": "rtrim(x, chars)",
+      "goFn": "sqlite: rtrim(x, chars)"
+    },
+    {
+      "id": "fn-substr-2",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT substr('abcdef', 3) AS v"
+        }
+      ],
+      "upstreamFn": "substr(x, start)",
+      "goFn": "sqlite: substr(x, start)"
+    },
+    {
+      "id": "fn-substr-3",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT substr('abcdef', 2, 3) AS v"
+        }
+      ],
+      "upstreamFn": "substr(x, start, len)",
+      "goFn": "sqlite: substr(x, start, len)"
+    },
+    {
+      "id": "fn-substr-neg",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT substr('abcdef', -2) AS v"
+        }
+      ],
+      "upstreamFn": "substr() negative start",
+      "goFn": "sqlite: substr() negative start"
+    },
+    {
+      "id": "fn-substr-neg-len",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT substr('abcdef', 3, -2) AS v"
+        }
+      ],
+      "upstreamFn": "substr() negative length",
+      "goFn": "sqlite: substr() negative length"
+    },
+    {
+      "id": "fn-substr-zero",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT substr('abcdef', 0, 3) AS v"
+        }
+      ],
+      "upstreamFn": "substr() start 0",
+      "goFn": "sqlite: substr() start 0"
+    },
+    {
+      "id": "fn-substring-alias",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT substring('abcdef', 2, 2) AS v"
+        }
+      ],
+      "upstreamFn": "substring()",
+      "goFn": "sqlite: substring()"
+    },
+    {
+      "id": "fn-replace-basic",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT replace('abcabc', 'b', 'X') AS v"
+        }
+      ],
+      "upstreamFn": "replace()",
+      "goFn": "sqlite: replace()"
+    },
+    {
+      "id": "fn-replace-empty",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT replace('abc', '', 'X') AS v"
+        }
+      ],
+      "upstreamFn": "replace() empty needle",
+      "goFn": "sqlite: replace() empty needle"
+    },
+    {
+      "id": "fn-round-1",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT round(2.567) AS v"
+        }
+      ],
+      "upstreamFn": "round(x)",
+      "goFn": "sqlite: round(x)"
+    },
+    {
+      "id": "fn-round-2",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT round(2.567, 2) AS v"
+        }
+      ],
+      "upstreamFn": "round(x, n)",
+      "goFn": "sqlite: round(x, n)"
+    },
+    {
+      "id": "fn-round-half",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT round(2.5) AS v"
+        }
+      ],
+      "upstreamFn": "round() half-up",
+      "goFn": "sqlite: round() half-up"
+    },
+    {
+      "id": "fn-round-neg",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT round(-2.5) AS v"
+        }
+      ],
+      "upstreamFn": "round() negative",
+      "goFn": "sqlite: round() negative"
+    },
+    {
+      "id": "fn-round-int",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT round(3) AS v"
+        }
+      ],
+      "upstreamFn": "round() on INTEGER",
+      "goFn": "sqlite: round() on INTEGER"
+    },
+    {
+      "id": "fn-coalesce-fn",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT coalesce(NULL, NULL, 7) AS v"
+        }
+      ],
+      "upstreamFn": "coalesce()",
+      "goFn": "sqlite: coalesce()"
+    },
+    {
+      "id": "fn-ifnull-fn",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT ifnull(NULL, 7) AS v"
+        }
+      ],
+      "upstreamFn": "ifnull()",
+      "goFn": "sqlite: ifnull()"
+    },
+    {
+      "id": "fn-nullif-fn",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT nullif('a', 'a') AS v"
+        }
+      ],
+      "upstreamFn": "nullif()",
+      "goFn": "sqlite: nullif()"
+    },
+    {
+      "id": "fn-typeof-fn",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT typeof(x'ff') AS v"
+        }
+      ],
+      "upstreamFn": "typeof()",
+      "goFn": "sqlite: typeof()"
+    },
+    {
+      "id": "fn-hex-text",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT hex('abc') AS v"
+        }
+      ],
+      "upstreamFn": "hex() on TEXT",
+      "goFn": "sqlite: hex() on TEXT"
+    },
+    {
+      "id": "fn-hex-blob",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT hex(x'0aff') AS v"
+        }
+      ],
+      "upstreamFn": "hex() on BLOB",
+      "goFn": "sqlite: hex() on BLOB"
+    },
+    {
+      "id": "fn-hex-int",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT hex(255) AS v"
+        }
+      ],
+      "upstreamFn": "hex() on INTEGER",
+      "goFn": "sqlite: hex() on INTEGER"
+    },
+    {
+      "id": "fn-quote-text",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT quote('a''b') AS v"
+        }
+      ],
+      "upstreamFn": "quote() on TEXT",
+      "goFn": "sqlite: quote() on TEXT"
+    },
+    {
+      "id": "fn-quote-null",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT quote(NULL) AS v"
+        }
+      ],
+      "upstreamFn": "quote(NULL)",
+      "goFn": "sqlite: quote(NULL)"
+    },
+    {
+      "id": "fn-quote-blob",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT quote(x'6162') AS v"
+        }
+      ],
+      "upstreamFn": "quote() on BLOB",
+      "goFn": "sqlite: quote() on BLOB"
+    },
+    {
+      "id": "fn-quote-int",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT quote(5) AS v"
+        }
+      ],
+      "upstreamFn": "quote() on INTEGER",
+      "goFn": "sqlite: quote() on INTEGER"
+    },
+    {
+      "id": "fn-instr-hit",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT instr('abcabc', 'ca') AS v"
+        }
+      ],
+      "upstreamFn": "instr()",
+      "goFn": "sqlite: instr()"
+    },
+    {
+      "id": "fn-instr-miss",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT instr('abc', 'z') AS v"
+        }
+      ],
+      "upstreamFn": "instr() no match",
+      "goFn": "sqlite: instr() no match"
+    },
+    {
+      "id": "fn-instr-null",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT instr(NULL, 'a') AS v"
+        }
+      ],
+      "upstreamFn": "instr(NULL, ...)",
+      "goFn": "sqlite: instr(NULL, ...)"
+    },
+    {
+      "id": "fn-unicode-a",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT unicode('A') AS v"
+        }
+      ],
+      "upstreamFn": "unicode()",
+      "goFn": "sqlite: unicode()"
+    },
+    {
+      "id": "fn-unicode-multi",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT unicode('\u00e9') AS v"
+        }
+      ],
+      "upstreamFn": "unicode() non-ASCII",
+      "goFn": "sqlite: unicode() non-ASCII"
+    },
+    {
+      "id": "fn-char-one",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT char(65) AS v"
+        }
+      ],
+      "upstreamFn": "char()",
+      "goFn": "sqlite: char()"
+    },
+    {
+      "id": "fn-char-many",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT char(72, 105) AS v"
+        }
+      ],
+      "upstreamFn": "char() variadic",
+      "goFn": "sqlite: char() variadic"
+    },
+    {
+      "id": "fn-char-none",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT char() AS v"
+        }
+      ],
+      "upstreamFn": "char() with no arguments",
+      "goFn": "sqlite: char() with no arguments"
+    },
+    {
+      "id": "fn-sign-pos",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT sign(5) AS v"
+        }
+      ],
+      "upstreamFn": "sign() positive",
+      "goFn": "sqlite: sign() positive"
+    },
+    {
+      "id": "fn-sign-neg",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT sign(-5.5) AS v"
+        }
+      ],
+      "upstreamFn": "sign() negative",
+      "goFn": "sqlite: sign() negative"
+    },
+    {
+      "id": "fn-sign-zero",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT sign(0) AS v"
+        }
+      ],
+      "upstreamFn": "sign() zero",
+      "goFn": "sqlite: sign() zero"
+    },
+    {
+      "id": "fn-sign-text",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT sign('abc') AS v"
+        }
+      ],
+      "upstreamFn": "sign() on TEXT",
+      "goFn": "sqlite: sign() on TEXT"
+    },
+    {
+      "id": "fn-printf",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT printf('%s-%d', 'a', 5) AS v"
+        }
+      ],
+      "upstreamFn": "printf()",
+      "goFn": "sqlite: printf()"
+    },
+    {
+      "id": "fn-format",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT format('%d', 7) AS v"
+        }
+      ],
+      "upstreamFn": "format()",
+      "goFn": "sqlite: format()"
+    },
+    {
+      "id": "fn-iif",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT iif(1, 'y', 'n') AS v"
+        }
+      ],
+      "upstreamFn": "iif()",
+      "goFn": "sqlite: iif()"
+    },
+    {
+      "id": "fn-max-scalar",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT max(3, 1, 2) AS v"
+        }
+      ],
+      "upstreamFn": "max() scalar (multi-arg)",
+      "goFn": "sqlite: max() scalar (multi-arg)"
+    },
+    {
+      "id": "fn-min-scalar",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT min(3, 1, 2) AS v"
+        }
+      ],
+      "upstreamFn": "min() scalar (multi-arg)",
+      "goFn": "sqlite: min() scalar (multi-arg)"
+    },
+    {
+      "id": "fn-zeroblob",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT hex(zeroblob(3)) AS v"
+        }
+      ],
+      "upstreamFn": "zeroblob()",
+      "goFn": "sqlite: zeroblob()"
+    },
+    {
+      "id": "fn-randomblob-len",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT length(randomblob(4)) AS v"
+        }
+      ],
+      "upstreamFn": "randomblob() (length only)",
+      "goFn": "sqlite: randomblob() (length only)"
+    },
+    {
+      "id": "fn-last-insert-rowid",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT last_insert_rowid() AS v"
+        }
+      ],
+      "upstreamFn": "last_insert_rowid()",
+      "goFn": "sqlite: last_insert_rowid()"
+    },
+    {
+      "id": "fn-changes",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT changes() AS v"
+        }
+      ],
+      "upstreamFn": "changes()",
+      "goFn": "sqlite: changes()"
+    },
+    {
+      "id": "fn-total-changes",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT total_changes() AS v"
+        }
+      ],
+      "upstreamFn": "total_changes()",
+      "goFn": "sqlite: total_changes()"
+    },
+    {
+      "id": "fn-unlikely",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT unlikely(1) AS v"
+        }
+      ],
+      "upstreamFn": "unlikely()",
+      "goFn": "sqlite: unlikely()"
+    },
+    {
+      "id": "fn-likely",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT likely(1) AS v"
+        }
+      ],
+      "upstreamFn": "likely()",
+      "goFn": "sqlite: likely()"
+    },
+    {
+      "id": "fn-soundex",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT soundex('Robert') AS v"
+        }
+      ],
+      "upstreamFn": "soundex()",
+      "goFn": "sqlite: soundex()"
+    },
+    {
+      "id": "fn-date",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT date('2024-01-15') AS v"
+        }
+      ],
+      "upstreamFn": "date()",
+      "goFn": "sqlite: date()"
+    },
+    {
+      "id": "fn-time",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT time('2024-01-15 03:04:05') AS v"
+        }
+      ],
+      "upstreamFn": "time()",
+      "goFn": "sqlite: time()"
+    },
+    {
+      "id": "fn-datetime",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT datetime('2024-01-15 03:04:05') AS v"
+        }
+      ],
+      "upstreamFn": "datetime()",
+      "goFn": "sqlite: datetime()"
+    },
+    {
+      "id": "fn-datetime-unixepoch",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT datetime(0, 'unixepoch') AS v"
+        }
+      ],
+      "upstreamFn": "datetime(..., 'unixepoch')",
+      "goFn": "sqlite: datetime(..., 'unixepoch')"
+    },
+    {
+      "id": "fn-julianday",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT julianday('2000-01-01') AS v"
+        }
+      ],
+      "upstreamFn": "julianday()",
+      "goFn": "sqlite: julianday()"
+    },
+    {
+      "id": "fn-unixepoch",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT unixepoch('2024-01-15') AS v"
+        }
+      ],
+      "upstreamFn": "unixepoch()",
+      "goFn": "sqlite: unixepoch()"
+    },
+    {
+      "id": "fn-strftime",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT strftime('%Y-%m', '2024-03-09') AS v"
+        }
+      ],
+      "upstreamFn": "strftime()",
+      "goFn": "sqlite: strftime()"
+    },
+    {
+      "id": "fn-date-modifier",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT date('2024-01-15', '+1 day') AS v"
+        }
+      ],
+      "upstreamFn": "date() with a modifier",
+      "goFn": "sqlite: date() with a modifier"
+    },
+    {
+      "id": "fn-round3",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT round(1.0, 2, 3) AS v"
+        }
+      ],
+      "upstreamFn": "round() wrong arity",
+      "goFn": "sqlite: round() wrong arity"
+    },
+    {
+      "id": "fn-cast-int",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT CAST('12abc' AS INTEGER) AS v"
+        }
+      ],
+      "upstreamFn": "CAST(... AS INTEGER)",
+      "goFn": "sqlite: CAST(... AS INTEGER)"
+    },
+    {
+      "id": "fn-cast-real",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT CAST(1 AS REAL) AS v"
+        }
+      ],
+      "upstreamFn": "CAST(... AS REAL)",
+      "goFn": "sqlite: CAST(... AS REAL)"
+    },
+    {
+      "id": "fn-cast-text",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT CAST(1.5 AS TEXT) AS v"
+        }
+      ],
+      "upstreamFn": "CAST(... AS TEXT)",
+      "goFn": "sqlite: CAST(... AS TEXT)"
+    },
+    {
+      "id": "fn-cast-blob",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT hex(CAST('ab' AS BLOB)) AS v"
+        }
+      ],
+      "upstreamFn": "CAST(... AS BLOB)",
+      "goFn": "sqlite: CAST(... AS BLOB)"
+    },
+    {
+      "id": "fn-cast-numeric",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT CAST('1.0' AS NUMERIC) AS v"
+        }
+      ],
+      "upstreamFn": "CAST(... AS NUMERIC)",
+      "goFn": "sqlite: CAST(... AS NUMERIC)"
+    },
+    {
+      "id": "fn-abs-overflow",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT abs(-9223372036854775807) AS v"
+        }
+      ],
+      "upstreamFn": "abs() near INTEGER min",
+      "goFn": "sqlite: abs() near INTEGER min"
+    },
+    {
+      "id": "fn-upper-arity",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT upper('a', 'b') AS v"
+        }
+      ],
+      "upstreamFn": "upper() wrong arity",
+      "goFn": "sqlite: upper() wrong arity"
+    },
+    {
+      "id": "fn-unknown-fn",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT no_such_function(1) AS v"
+        }
+      ],
+      "upstreamFn": "unknown function",
+      "goFn": "sqlite: unknown function"
+    }
+  ]
+}

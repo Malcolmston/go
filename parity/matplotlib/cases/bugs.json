@@ -1,0 +1,114 @@
+{
+  "group": "bugs",
+  "upstream": "matplotlib@3.10.0",
+  "note": "Cases aimed at specific suspected port defects, phrased so that both libraries can answer the same question. save_ext compares the file format actually written (sniffed from the magic bytes), not its contents. glyph_supported asks whether the default text backend can draw a character at all: upstream queries the real font's character map, the port is probed by rendering the character and checking whether any pixel changed relative to rendering a space. dpi_effect builds a figure at 100 dpi, reassigns the DPI, and compares the resulting output size in pixels.",
+  "cases": [
+    {
+      "id": "save-png",
+      "fn": "save_ext",
+      "args": {"ext": ".png", "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "matplotlib.figure.Figure.savefig",
+      "goFn": "matplotlib.Figure.Save"
+    },
+    {
+      "id": "save-svg",
+      "fn": "save_ext",
+      "args": {"ext": ".svg", "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "matplotlib.figure.Figure.savefig",
+      "goFn": "matplotlib.Figure.Save"
+    },
+    {
+      "id": "save-pdf",
+      "fn": "save_ext",
+      "args": {"ext": ".pdf", "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "matplotlib.figure.Figure.savefig (pdf backend)",
+      "goFn": "matplotlib.Figure.Save",
+      "note": "known port bug: any extension other than .svg silently gets PNG bytes under the requested name"
+    },
+    {
+      "id": "save-jpg",
+      "fn": "save_ext",
+      "args": {"ext": ".jpg", "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "matplotlib.figure.Figure.savefig (jpeg via Pillow)",
+      "goFn": "matplotlib.Figure.Save",
+      "note": "known port bug: writes PNG bytes into out.jpg"
+    },
+    {
+      "id": "save-unknown-ext",
+      "fn": "save_ext",
+      "args": {"ext": ".xyz", "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "matplotlib.figure.Figure.savefig with an unsupported format",
+      "goFn": "matplotlib.Figure.Save",
+      "note": "known port bug: matplotlib raises; the port silently writes a PNG named out.xyz"
+    },
+    {
+      "id": "glyph-ascii-A",
+      "fn": "glyph_supported",
+      "args": {"char": "A", "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "matplotlib.ft2font.FT2Font.get_char_index",
+      "goFn": "matplotlib PNG backend built-in 5x7 font"
+    },
+    {
+      "id": "glyph-ascii-hash",
+      "fn": "glyph_supported",
+      "args": {"char": "#", "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "matplotlib.ft2font.FT2Font.get_char_index",
+      "goFn": "matplotlib PNG backend built-in 5x7 font"
+    },
+    {
+      "id": "glyph-latin1-eacute",
+      "fn": "glyph_supported",
+      "args": {"char": "é", "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "matplotlib.ft2font.FT2Font.get_char_index",
+      "goFn": "matplotlib PNG backend built-in 5x7 font",
+      "note": "known port bug: the PNG backend silently substitutes a blank glyph"
+    },
+    {
+      "id": "glyph-greek-alpha",
+      "fn": "glyph_supported",
+      "args": {"char": "α", "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "matplotlib.ft2font.FT2Font.get_char_index",
+      "goFn": "matplotlib PNG backend built-in 5x7 font",
+      "note": "known port bug: silently dropped"
+    },
+    {
+      "id": "glyph-micro-sign",
+      "fn": "glyph_supported",
+      "args": {"char": "µ", "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "matplotlib.ft2font.FT2Font.get_char_index",
+      "goFn": "matplotlib PNG backend built-in 5x7 font",
+      "note": "known port bug: silently dropped"
+    },
+    {
+      "id": "glyph-arrow",
+      "fn": "glyph_supported",
+      "args": {"char": "→", "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "matplotlib.ft2font.FT2Font.get_char_index",
+      "goFn": "matplotlib PNG backend built-in 5x7 font",
+      "note": "known port bug: silently dropped"
+    },
+    {
+      "id": "dpi-unchanged-100",
+      "fn": "dpi_effect",
+      "args": {"figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "matplotlib.figure.Figure.set_dpi + canvas.get_width_height",
+      "goFn": "matplotlib.Figure.DPI"
+    },
+    {
+      "id": "dpi-doubled-200",
+      "fn": "dpi_effect",
+      "args": {"figsize": [6.4, 4.8], "dpi": 200},
+      "upstreamFn": "matplotlib.figure.Figure.set_dpi + canvas.get_width_height",
+      "goFn": "matplotlib.Figure.DPI",
+      "note": "known port bug: Figure.DPI is stored and never read, so the output size does not change"
+    },
+    {
+      "id": "dpi-lowered-72",
+      "fn": "dpi_effect",
+      "args": {"figsize": [6.4, 4.8], "dpi": 72},
+      "upstreamFn": "matplotlib.figure.Figure.set_dpi + canvas.get_width_height",
+      "goFn": "matplotlib.Figure.DPI",
+      "note": "known port bug: Figure.DPI is stored and never read"
+    }
+  ]
+}

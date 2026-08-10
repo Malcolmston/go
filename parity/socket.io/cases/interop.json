@@ -1,0 +1,10 @@
+{
+  "group": "interop",
+  "upstream": "socket.io@4.8.1 + socket.io-client@4.8.1",
+  "note": "Cross-implementation interop: the harness pairs a server from one implementation with a client from the other and compares the resulting transcripts against the all-upstream pair. `server`/`client` name the implementation for each side (\"node\" = upstream, \"go\" = the port). The upstream/upstream run is the oracle; the other three combinations must reproduce BOTH its server transcript and its client transcript. The scripted exchange is deliberately restricted to what both clients can express: connect, emit with mixed argument types, emit with an ack, emit binary with a binary ack, receive a server push, answer a server-initiated ack, disconnect. Same normalisation as the behaviour group.",
+  "cases": [
+    { "id": "interop-go-server-node-client", "fn": "interop.basic", "server": "go", "client": "node", "upstreamFn": "socket.io-client -> Server", "goFn": "socketio.Server", "note": "the real JS client driving the Go server" },
+    { "id": "interop-node-server-go-client", "fn": "interop.basic", "server": "node", "client": "go", "upstreamFn": "Server -> socket.io-client", "goFn": "client.Client", "note": "the Go client driving the real JS server" },
+    { "id": "interop-go-server-go-client", "fn": "interop.basic", "server": "go", "client": "go", "upstreamFn": "Server + socket.io-client", "goFn": "socketio.Server + client.Client", "note": "both sides ported" }
+  ]
+}

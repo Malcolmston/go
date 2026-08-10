@@ -1,0 +1,152 @@
+{
+  "group": "ticks",
+  "upstream": "matplotlib@3.10.0",
+  "note": "Axis limit and tick selection. Every case fixes figsize=[6.4,4.8] inches at dpi=100 (640x480 px) because matplotlib's AutoLocator tick count depends on the axes size. Upstream ticks are clipped to the view limits so both sides report only the ticks actually drawn. Cases whose value includes recovered axis limits use tol 1e-4 because the Go side reads them back out of two-decimal SVG geometry.",
+  "cases": [
+    {
+      "id": "ticks-plot-auto",
+      "fn": "axis_ticks",
+      "args": {"kind": "plot", "x": [0, 1, 2, 3], "y": [0, 1, 4, 9], "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "matplotlib.axes.Axes.get_xlim/get_xticks (AutoLocator)",
+      "goFn": "matplotlib.Axes.Plot + autoscale",
+      "tol": 0.0001
+    },
+    {
+      "id": "ticks-plot-auto-wide",
+      "fn": "axis_ticks",
+      "args": {"kind": "plot", "x": [0, 25, 50, 75, 100], "y": [-3, 7, 11, 4, -8], "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "matplotlib.axes.Axes.get_xlim/get_xticks (AutoLocator)",
+      "goFn": "matplotlib.Axes.Plot + autoscale",
+      "tol": 0.0001
+    },
+    {
+      "id": "ticks-scatter-auto",
+      "fn": "axis_ticks",
+      "args": {"kind": "scatter", "x": [1, 2, 3, 4], "y": [10, 20, 30, 40], "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "matplotlib.axes.Axes.scatter + autoscale",
+      "goFn": "matplotlib.Axes.Scatter + autoscale",
+      "tol": 0.0001
+    },
+    {
+      "id": "ticks-hist-auto",
+      "fn": "axis_ticks",
+      "args": {"kind": "hist", "x": [1, 2, 2, 3, 3, 3, 4, 4, 5, 9], "bins": 4, "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "matplotlib.axes.Axes.hist + autoscale",
+      "goFn": "matplotlib.Axes.Hist + autoscale",
+      "tol": 0.0001
+    },
+    {
+      "id": "ticks-explicit-0-3-0-10",
+      "fn": "axis_ticks",
+      "args": {"kind": "plot", "x": [0, 1, 2, 3], "y": [0, 1, 4, 9], "xlim": [0, 3], "ylim": [0, 10], "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "matplotlib.axes.Axes.set_xlim/set_ylim + MaxNLocator",
+      "goFn": "matplotlib.Axes.SetXLim/SetYLim",
+      "tol": 0.0001
+    },
+    {
+      "id": "ticks-explicit-0-10-0-100",
+      "fn": "axis_ticks",
+      "args": {"kind": "plot", "x": [0, 5, 10], "y": [0, 50, 100], "xlim": [0, 10], "ylim": [0, 100], "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "matplotlib.axes.Axes.set_xlim/set_ylim + MaxNLocator",
+      "goFn": "matplotlib.Axes.SetXLim/SetYLim",
+      "tol": 0.0001
+    },
+    {
+      "id": "ticks-explicit-negative",
+      "fn": "axis_ticks",
+      "args": {"kind": "plot", "x": [-5, 0, 5], "y": [-1, 0, 1], "xlim": [-5, 5], "ylim": [-1, 1], "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "matplotlib.axes.Axes.set_xlim/set_ylim + MaxNLocator",
+      "goFn": "matplotlib.Axes.SetXLim/SetYLim",
+      "tol": 0.0001
+    },
+    {
+      "id": "ticks-explicit-tiny-range",
+      "fn": "axis_ticks",
+      "args": {"kind": "plot", "x": [0, 0.001], "y": [0, 0.002], "xlim": [0, 0.001], "ylim": [0, 0.002], "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "matplotlib.ticker.MaxNLocator on a 1e-3 span",
+      "goFn": "matplotlib.Axes.SetXLim/SetYLim",
+      "tol": 0.0001
+    },
+    {
+      "id": "ticks-explicit-huge-range",
+      "fn": "axis_ticks",
+      "args": {"kind": "plot", "x": [0, 1000000], "y": [0, 1000000], "xlim": [0, 1000000], "ylim": [0, 1000000], "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "matplotlib.ticker.MaxNLocator on a 1e6 span",
+      "goFn": "matplotlib.Axes.SetXLim/SetYLim",
+      "tol": 0.0001
+    },
+    {
+      "id": "ticks-explicit-nonround",
+      "fn": "axis_ticks",
+      "args": {"kind": "plot", "x": [0.3, 4.7], "y": [1.1, 8.9], "xlim": [0.3, 4.7], "ylim": [1.1, 8.9], "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "matplotlib.ticker.MaxNLocator on a non-round span",
+      "goFn": "matplotlib.Axes.SetXLim/SetYLim + ticksWithin",
+      "tol": 0.0001
+    },
+    {
+      "id": "ticks-bar-xlim-ignored",
+      "fn": "axis_ticks",
+      "args": {"kind": "bar", "labels": ["a", "b", "c"], "y": [3, 1, 2], "xlim": [0.0, 1.0], "ylim": [0, 4], "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "matplotlib.axes.Axes.set_xlim on a categorical bar axis",
+      "goFn": "matplotlib.Axes.SetXLim on a bar axes",
+      "note": "known port bug: SetXLim is ignored once Bar() has made the x axis categorical",
+      "tol": 0.0001
+    },
+    {
+      "id": "ticks-barh-ylim-ignored",
+      "fn": "axis_ticks",
+      "args": {"kind": "barh", "labels": ["a", "b", "c"], "y": [3, 1, 2], "xlim": [0, 4], "ylim": [0.0, 1.0], "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "matplotlib.axes.Axes.set_ylim on a categorical barh axis",
+      "goFn": "matplotlib.Axes.SetYLim on a barh axes",
+      "note": "known port bug: SetYLim is ignored once BarH() has made the y axis categorical",
+      "tol": 0.0001
+    },
+    {
+      "id": "ticks-pie-lims-ignored",
+      "fn": "axis_ticks",
+      "args": {"kind": "pie", "y": [1, 2, 3], "labels": ["a", "b", "c"], "xlim": [-1, 1], "ylim": [-1, 1], "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "matplotlib.axes.Axes.pie + set_xlim/get_xlim",
+      "goFn": "matplotlib.Axes.Pie + SetXLim/SetYLim",
+      "note": "known port bug: a pie axes never computes limits or ticks at all, so SetXLim/SetYLim are dead and nothing is inspectable",
+      "tol": 0.0001
+    },
+    {
+      "id": "labelfmt-0-1",
+      "fn": "tick_labels",
+      "args": {"kind": "plot", "x": [0, 1], "y": [0, 1], "xlim": [0, 1], "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "matplotlib.ticker.ScalarFormatter",
+      "goFn": "matplotlib (unexported fmtTick), observed via SVG tick text"
+    },
+    {
+      "id": "labelfmt-0-100000",
+      "fn": "tick_labels",
+      "args": {"kind": "plot", "x": [0, 100000], "y": [0, 1], "xlim": [0, 100000], "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "matplotlib.ticker.ScalarFormatter (offset/scientific notation)",
+      "goFn": "matplotlib (unexported fmtTick), observed via SVG tick text"
+    },
+    {
+      "id": "cat-bar-3",
+      "fn": "cat_ticks",
+      "args": {"kind": "bar", "labels": ["a", "b", "c"], "y": [3, 1, 2], "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "matplotlib.axes.Axes.bar + FixedLocator/IndexFormatter",
+      "goFn": "matplotlib.Axes.Bar categorical axis",
+      "tol": 0.0001
+    },
+    {
+      "id": "cat-bar-5",
+      "fn": "cat_ticks",
+      "args": {"kind": "bar", "labels": ["one", "two", "three", "four", "five"], "y": [1, 2, 3, 4, 5], "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "matplotlib.axes.Axes.bar + FixedLocator/IndexFormatter",
+      "goFn": "matplotlib.Axes.Bar categorical axis",
+      "tol": 0.0001
+    },
+    {
+      "id": "cat-barh-4",
+      "fn": "cat_ticks",
+      "args": {"kind": "barh", "labels": ["w", "x", "y", "z"], "y": [4, 3, 2, 1], "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "matplotlib.axes.Axes.barh + FixedLocator/IndexFormatter",
+      "goFn": "matplotlib.Axes.BarH categorical axis",
+      "tol": 0.0001
+    }
+  ]
+}

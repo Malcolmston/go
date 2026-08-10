@@ -1,0 +1,326 @@
+{
+  "group": "builtins",
+  "upstream": "handlebars@4.7.8",
+  "cases": [
+    {
+      "id": "if-true",
+      "fn": "render",
+      "args": ["{{#if a}}yes{{/if}}", { "a": true }],
+      "upstreamFn": "Handlebars.helpers.if",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "if-else",
+      "fn": "render",
+      "args": ["{{#if a}}yes{{else}}no{{/if}}", { "a": false }],
+      "upstreamFn": "Handlebars.helpers.if",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "if-falsy-empty-string",
+      "fn": "render",
+      "args": ["{{#if a}}y{{else}}n{{/if}}", { "a": "" }],
+      "upstreamFn": "Handlebars.helpers.if",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "if-falsy-zero",
+      "fn": "render",
+      "args": ["{{#if a}}y{{else}}n{{/if}}", { "a": 0 }],
+      "upstreamFn": "Handlebars.helpers.if",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "if-include-zero",
+      "fn": "render",
+      "args": ["{{#if a includeZero=true}}y{{else}}n{{/if}}", { "a": 0 }],
+      "upstreamFn": "Handlebars.helpers.if",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "if-falsy-empty-array",
+      "fn": "render",
+      "args": ["{{#if a}}y{{else}}n{{/if}}", { "a": [] }],
+      "upstreamFn": "Handlebars.helpers.if",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "if-truthy-empty-object",
+      "fn": "render",
+      "args": ["{{#if a}}y{{else}}n{{/if}}", { "a": {} }],
+      "upstreamFn": "Handlebars.Utils.isEmpty",
+      "goFn": "handlebars.IsEmpty",
+      "note": "an empty object is NOT empty in handlebars"
+    },
+    {
+      "id": "if-missing",
+      "fn": "render",
+      "args": ["{{#if nope}}y{{else}}n{{/if}}", {}],
+      "upstreamFn": "Handlebars.helpers.if",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "if-null",
+      "fn": "render",
+      "args": ["{{#if a}}y{{else}}n{{/if}}", { "a": null }],
+      "upstreamFn": "Handlebars.helpers.if",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "if-chained-else-if",
+      "fn": "render",
+      "args": ["{{#if a}}A{{else if b}}B{{else if c}}C{{else}}D{{/if}}", { "b": true, "c": true }],
+      "upstreamFn": "Handlebars.helpers.if",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "if-chained-else-if-fallthrough",
+      "fn": "render",
+      "args": ["{{#if a}}A{{else if b}}B{{else}}D{{/if}}", {}],
+      "upstreamFn": "Handlebars.helpers.if",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "if-chained-else-unless",
+      "fn": "render",
+      "args": ["{{#if a}}A{{else unless b}}NB{{else}}D{{/if}}", { "b": false }],
+      "upstreamFn": "Handlebars.helpers.unless",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "if-chained-else-with",
+      "fn": "render",
+      "args": ["{{#if a}}A{{else with o}}{{k}}{{/if}}", { "o": { "k": "K" } }],
+      "upstreamFn": "Handlebars.helpers.with",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "unless-basic",
+      "fn": "render",
+      "args": ["{{#unless a}}no-a{{/unless}}", { "a": false }],
+      "upstreamFn": "Handlebars.helpers.unless",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "unless-else",
+      "fn": "render",
+      "args": ["{{#unless a}}no{{else}}yes{{/unless}}", { "a": 1 }],
+      "upstreamFn": "Handlebars.helpers.unless",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "inverse-section",
+      "fn": "render",
+      "args": ["{{^a}}falsy{{/a}}", { "a": false }],
+      "upstreamFn": "Handlebars.helpers.blockHelperMissing",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "inverse-section-truthy",
+      "fn": "render",
+      "args": ["{{^a}}falsy{{/a}}", { "a": true }],
+      "upstreamFn": "Handlebars.helpers.blockHelperMissing",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "mustache-section-object",
+      "fn": "render",
+      "args": ["{{#o}}{{k}}{{/o}}", { "o": { "k": "K" } }],
+      "upstreamFn": "Handlebars.helpers.blockHelperMissing",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "mustache-section-array",
+      "fn": "render",
+      "args": ["{{#items}}[{{this}}]{{/items}}", { "items": ["a", "b"] }],
+      "upstreamFn": "Handlebars.helpers.blockHelperMissing",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "mustache-section-empty-array",
+      "fn": "render",
+      "args": ["{{#items}}x{{else}}none{{/items}}", { "items": [] }],
+      "upstreamFn": "Handlebars.helpers.blockHelperMissing",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "each-array",
+      "fn": "render",
+      "args": ["{{#each items}}{{this}};{{/each}}", { "items": ["a", "b", "c"] }],
+      "upstreamFn": "Handlebars.helpers.each",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "each-data-vars",
+      "fn": "render",
+      "args": [
+        "{{#each items}}{{@index}}/{{@first}}/{{@last}}:{{this}} {{/each}}",
+        { "items": ["a", "b", "c"] }
+      ],
+      "upstreamFn": "Handlebars.helpers.each",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "each-object-key",
+      "fn": "render",
+      "args": ["{{#each o}}{{@key}}={{this}};{{/each}}", { "o": { "a": 1, "b": 2, "c": 3 } }],
+      "upstreamFn": "Handlebars.helpers.each",
+      "goFn": "handlebars.Compile",
+      "note": "keys given in sorted order; Go sorts map keys, JS keeps insertion order"
+    },
+    {
+      "id": "each-object-insertion-order",
+      "fn": "render",
+      "args": ["{{#each o}}{{@key}};{{/each}}", { "o": { "z": 1, "a": 2, "m": 3 } }],
+      "upstreamFn": "Handlebars.helpers.each",
+      "goFn": "handlebars.Compile",
+      "note": "JS iterates insertion order (z,a,m); Go maps are unordered so the port sorts"
+    },
+    {
+      "id": "each-object-index",
+      "fn": "render",
+      "args": ["{{#each o}}{{@index}}{{@key}} {{/each}}", { "o": { "a": 1, "b": 2 } }],
+      "upstreamFn": "Handlebars.helpers.each",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "each-empty-else",
+      "fn": "render",
+      "args": ["{{#each items}}x{{else}}empty{{/each}}", { "items": [] }],
+      "upstreamFn": "Handlebars.helpers.each",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "each-missing-else",
+      "fn": "render",
+      "args": ["{{#each nope}}x{{else}}empty{{/each}}", {}],
+      "upstreamFn": "Handlebars.helpers.each",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "each-null",
+      "fn": "render",
+      "args": ["{{#each a}}x{{else}}empty{{/each}}", { "a": null }],
+      "upstreamFn": "Handlebars.helpers.each",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "each-scalar",
+      "fn": "render",
+      "args": ["[{{#each a}}x{{/each}}]", { "a": "str" }],
+      "upstreamFn": "Handlebars.helpers.each",
+      "goFn": "handlebars.Compile",
+      "note": "each over a non-collection"
+    },
+    {
+      "id": "each-nested-objects",
+      "fn": "render",
+      "args": [
+        "{{#each people}}{{@index}}:{{name}} {{/each}}",
+        { "people": [{ "name": "a" }, { "name": "b" }] }
+      ],
+      "upstreamFn": "Handlebars.helpers.each",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "each-nested-parent-index",
+      "fn": "render",
+      "args": [
+        "{{#each a}}{{#each this}}{{@../index}}{{@index}}{{/each}}{{/each}}",
+        { "a": [["x", "y"], ["z"]] }
+      ],
+      "upstreamFn": "Handlebars.helpers.each",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "with-object",
+      "fn": "render",
+      "args": ["{{#with o}}{{a}}-{{b}}{{/with}}", { "o": { "a": 1, "b": 2 } }],
+      "upstreamFn": "Handlebars.helpers.with",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "with-falsy-else",
+      "fn": "render",
+      "args": ["{{#with o}}x{{else}}none{{/with}}", { "o": null }],
+      "upstreamFn": "Handlebars.helpers.with",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "with-missing",
+      "fn": "render",
+      "args": ["[{{#with nope}}x{{/with}}]", {}],
+      "upstreamFn": "Handlebars.helpers.with",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "with-scalar",
+      "fn": "render",
+      "args": ["{{#with s}}{{this}}{{/with}}", { "s": "str" }],
+      "upstreamFn": "Handlebars.helpers.with",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "lookup-by-key",
+      "fn": "render",
+      "args": ["{{lookup o k}}", { "o": { "x": "X" }, "k": "x" }],
+      "upstreamFn": "Handlebars.helpers.lookup",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "lookup-array-index",
+      "fn": "render",
+      "args": [
+        "{{#each keys}}{{lookup ../vals @index}} {{/each}}",
+        { "keys": [0, 1], "vals": ["a", "b"] }
+      ],
+      "upstreamFn": "Handlebars.helpers.lookup",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "lookup-missing",
+      "fn": "render",
+      "args": ["[{{lookup o \"nope\"}}]", { "o": { "x": 1 } }],
+      "upstreamFn": "Handlebars.helpers.lookup",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "lookup-null-target",
+      "fn": "render",
+      "args": ["[{{lookup o \"x\"}}]", { "o": null }],
+      "upstreamFn": "Handlebars.helpers.lookup",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "log-helper",
+      "fn": "render",
+      "args": ["[{{log \"message\"}}]", {}],
+      "upstreamFn": "Handlebars.helpers.log",
+      "goFn": "handlebars.Compile",
+      "note": "log writes to the logger, never to the output or stdout"
+    },
+    {
+      "id": "log-helper-with-level",
+      "fn": "render",
+      "args": ["[{{log \"m\" level=\"error\"}}]", {}],
+      "upstreamFn": "Handlebars.helpers.log",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "block-unclosed-throws",
+      "fn": "render",
+      "args": ["{{#if a}}no end", { "a": true }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile",
+      "note": "both sides must fail"
+    },
+    {
+      "id": "block-mismatched-close-throws",
+      "fn": "render",
+      "args": ["{{#if a}}x{{/each}}", { "a": true }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile",
+      "note": "both sides must fail"
+    }
+  ]
+}

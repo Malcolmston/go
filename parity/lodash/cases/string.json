@@ -1,0 +1,92 @@
+{
+  "group": "string",
+  "upstream": "lodash@4.17.21",
+  "cases": [
+    { "id": "camelCase-spaces", "fn": "camelCase", "args": ["Foo Bar"], "upstreamFn": "_.camelCase", "goFn": "lodash.CamelCase" },
+    { "id": "camelCase-dashes", "fn": "camelCase", "args": ["--foo-bar--"], "upstreamFn": "_.camelCase", "goFn": "lodash.CamelCase" },
+    { "id": "camelCase-underscores", "fn": "camelCase", "args": ["__FOO_BAR__"], "upstreamFn": "_.camelCase", "goFn": "lodash.CamelCase" },
+    { "id": "camelCase-empty", "fn": "camelCase", "args": [""], "upstreamFn": "_.camelCase", "goFn": "lodash.CamelCase" },
+    { "id": "camelCase-digits", "fn": "camelCase", "args": ["foo2bar"], "upstreamFn": "_.camelCase", "goFn": "lodash.CamelCase" },
+
+    { "id": "capitalize-word", "fn": "capitalize", "args": ["FRED"], "upstreamFn": "_.capitalize", "goFn": "lodash.Capitalize" },
+    { "id": "capitalize-empty", "fn": "capitalize", "args": [""], "upstreamFn": "_.capitalize", "goFn": "lodash.Capitalize" },
+
+    { "id": "deburr-accents", "fn": "deburr", "args": ["déjà vu"], "upstreamFn": "_.deburr", "goFn": "lodash.Deburr" },
+    { "id": "deburr-plain", "fn": "deburr", "args": ["abc"], "upstreamFn": "_.deburr", "goFn": "lodash.Deburr" },
+
+    { "id": "endsWith-yes", "fn": "endsWith", "args": ["abc", "c"], "upstreamFn": "_.endsWith", "goFn": "lodash.EndsWith" },
+    { "id": "endsWith-no", "fn": "endsWith", "args": ["abc", "b"], "upstreamFn": "_.endsWith", "goFn": "lodash.EndsWith" },
+    { "id": "endsWith-empty", "fn": "endsWith", "args": ["abc", ""], "upstreamFn": "_.endsWith", "goFn": "lodash.EndsWith" },
+    { "id": "startsWith-yes", "fn": "startsWith", "args": ["abc", "a"], "upstreamFn": "_.startsWith", "goFn": "lodash.StartsWith" },
+    { "id": "startsWith-no", "fn": "startsWith", "args": ["abc", "b"], "upstreamFn": "_.startsWith", "goFn": "lodash.StartsWith" },
+
+    { "id": "escape-html", "fn": "escape", "args": ["fred, barney, & pebbles <b>"], "upstreamFn": "_.escape", "goFn": "lodash.Escape" },
+    { "id": "escape-quotes", "fn": "escape", "args": ["\"a\" 'b'"], "upstreamFn": "_.escape", "goFn": "lodash.Escape" },
+    { "id": "unescape-html", "fn": "unescape", "args": ["fred, barney, &amp; pebbles &lt;b&gt;"], "upstreamFn": "_.unescape", "goFn": "lodash.Unescape" },
+    { "id": "unescape-quotes", "fn": "unescape", "args": ["&quot;a&quot; &#39;b&#39;"], "upstreamFn": "_.unescape", "goFn": "lodash.Unescape" },
+    { "id": "escapeRegExp-meta", "fn": "escapeRegExp", "args": ["[lodash](https://lodash.com/)"], "upstreamFn": "_.escapeRegExp", "goFn": "lodash.EscapeRegExp" },
+
+    { "id": "kebabCase-spaces", "fn": "kebabCase", "args": ["Foo Bar"], "upstreamFn": "_.kebabCase", "goFn": "lodash.KebabCase" },
+    { "id": "kebabCase-camel", "fn": "kebabCase", "args": ["fooBarBaz"], "upstreamFn": "_.kebabCase", "goFn": "lodash.KebabCase" },
+    { "id": "snakeCase-camel", "fn": "snakeCase", "args": ["fooBar"], "upstreamFn": "_.snakeCase", "goFn": "lodash.SnakeCase" },
+    { "id": "snakeCase-dashes", "fn": "snakeCase", "args": ["--FOO-BAR--"], "upstreamFn": "_.snakeCase", "goFn": "lodash.SnakeCase" },
+    { "id": "startCase-camel", "fn": "startCase", "args": ["fooBar"], "upstreamFn": "_.startCase", "goFn": "lodash.StartCase" },
+    { "id": "startCase-snake", "fn": "startCase", "args": ["--foo-bar--"], "upstreamFn": "_.startCase", "goFn": "lodash.StartCase" },
+    { "id": "lowerCase-camel", "fn": "lowerCase", "args": ["fooBar"], "upstreamFn": "_.lowerCase", "goFn": "lodash.LowerCase" },
+    { "id": "upperCase-camel", "fn": "upperCase", "args": ["fooBar"], "upstreamFn": "_.upperCase", "goFn": "lodash.UpperCase" },
+    { "id": "lowerFirst-word", "fn": "lowerFirst", "args": ["FRED"], "upstreamFn": "_.lowerFirst", "goFn": "lodash.LowerFirst" },
+    { "id": "upperFirst-word", "fn": "upperFirst", "args": ["fred"], "upstreamFn": "_.upperFirst", "goFn": "lodash.UpperFirst" },
+    { "id": "pascalCase-spaces", "fn": "pascalCase", "args": ["foo bar"], "upstreamFn": "_.upperFirst(_.camelCase)", "goFn": "lodash.PascalCase", "note": "Go-only helper" },
+
+    { "id": "pad-even", "fn": "pad", "args": ["abc", 8, " "], "upstreamFn": "_.pad", "goFn": "lodash.Pad" },
+    { "id": "pad-odd", "fn": "pad", "args": ["abc", 8, "_-"], "upstreamFn": "_.pad", "goFn": "lodash.Pad" },
+    { "id": "pad-shorter", "fn": "pad", "args": ["abc", 2, " "], "upstreamFn": "_.pad", "goFn": "lodash.Pad" },
+    { "id": "padStart-basic", "fn": "padStart", "args": ["abc", 6, "_-"], "upstreamFn": "_.padStart", "goFn": "lodash.PadStart" },
+    { "id": "padEnd-basic", "fn": "padEnd", "args": ["abc", 6, "_-"], "upstreamFn": "_.padEnd", "goFn": "lodash.PadEnd" },
+    { "id": "padEnd-empty-chars", "fn": "padEnd", "args": ["abc", 6, ""], "upstreamFn": "_.padEnd", "goFn": "lodash.PadEnd" },
+
+    { "id": "parseFloat-basic", "fn": "parseFloat", "args": ["3.25"], "upstreamFn": "Number.parseFloat", "goFn": "lodash.ParseFloat", "note": "Go-only helper; lodash has no parseFloat" },
+    { "id": "parseFloat-junk", "fn": "parseFloat", "args": ["abc"], "upstreamFn": "Number.parseFloat", "goFn": "lodash.ParseFloat" },
+    { "id": "parseInt-decimal", "fn": "parseInt", "args": ["08"], "upstreamFn": "_.parseInt", "goFn": "lodash.ParseInt" },
+    { "id": "parseInt-hex", "fn": "parseInt", "args": ["ff", 16], "upstreamFn": "_.parseInt", "goFn": "lodash.ParseInt" },
+    { "id": "parseInt-trailing-junk", "fn": "parseInt", "args": ["12abc"], "upstreamFn": "_.parseInt", "goFn": "lodash.ParseInt", "note": "JS stops at the first non-digit, Go errors" },
+    { "id": "parseInt-nonsense", "fn": "parseInt", "args": ["zz"], "upstreamFn": "_.parseInt", "goFn": "lodash.ParseInt" },
+    { "id": "parseInt-whitespace", "fn": "parseInt", "args": ["  42  "], "upstreamFn": "_.parseInt", "goFn": "lodash.ParseInt" },
+
+    { "id": "repeat-3", "fn": "repeat", "args": ["ab", 3], "upstreamFn": "_.repeat", "goFn": "lodash.Repeat" },
+    { "id": "repeat-0", "fn": "repeat", "args": ["ab", 0], "upstreamFn": "_.repeat", "goFn": "lodash.Repeat" },
+    { "id": "repeat-negative", "fn": "repeat", "args": ["ab", -1], "upstreamFn": "_.repeat", "goFn": "lodash.Repeat" },
+
+    { "id": "replace-first", "fn": "replace", "args": ["aXbXc", "X", "-"], "upstreamFn": "_.replace", "goFn": "lodash.Replace", "note": "JS string pattern replaces only the first match" },
+    { "id": "replace-missing", "fn": "replace", "args": ["abc", "z", "-"], "upstreamFn": "_.replace", "goFn": "lodash.Replace" },
+
+    { "id": "split-comma", "fn": "split", "args": ["a,b,c", ","], "upstreamFn": "_.split", "goFn": "lodash.Split" },
+    { "id": "split-limit", "fn": "split", "args": ["a,b,c", ",", 2], "upstreamFn": "_.split", "goFn": "lodash.Split" },
+    { "id": "split-empty-sep", "fn": "split", "args": ["abc", ""], "upstreamFn": "_.split", "goFn": "lodash.Split" },
+    { "id": "split-no-match", "fn": "split", "args": ["abc", "-"], "upstreamFn": "_.split", "goFn": "lodash.Split" },
+    { "id": "split-empty-input", "fn": "split", "args": ["", ","], "upstreamFn": "_.split", "goFn": "lodash.Split" },
+
+    { "id": "template-interpolate", "fn": "template", "args": ["hello <%= name %>", { "name": "world" }], "upstreamFn": "_.template", "goFn": "lodash.Template" },
+    { "id": "template-escape", "fn": "template", "args": ["<%- v %>", { "v": "<b>" }], "upstreamFn": "_.template", "goFn": "lodash.Template" },
+    { "id": "template-deep-path", "fn": "template", "args": ["<%= a.b %>", { "a": { "b": 7 } }], "upstreamFn": "_.template", "goFn": "lodash.Template" },
+    { "id": "template-missing", "deviation": "Go Template embeds no scripting engine, so an unresolvable path renders as empty; lodash compiles to JS and throws a ReferenceError", "fn": "template", "args": ["x<%= nope %>y", {}], "upstreamFn": "_.template", "goFn": "lodash.Template", "note": "JS throws on an undefined identifier" },
+
+    { "id": "toLower-mixed", "fn": "toLower", "args": ["--Foo-Bar--"], "upstreamFn": "_.toLower", "goFn": "lodash.ToLower" },
+    { "id": "toUpper-mixed", "fn": "toUpper", "args": ["--foo-bar--"], "upstreamFn": "_.toUpper", "goFn": "lodash.ToUpper" },
+
+    { "id": "trim-whitespace", "fn": "trim", "args": ["  abc  "], "upstreamFn": "_.trim", "goFn": "lodash.Trim" },
+    { "id": "trim-chars", "fn": "trim", "args": ["-_-abc-_-", "_-"], "upstreamFn": "_.trim", "goFn": "lodash.Trim" },
+    { "id": "trimStart-chars", "fn": "trimStart", "args": ["-_-abc-_-", "_-"], "upstreamFn": "_.trimStart", "goFn": "lodash.TrimStart" },
+    { "id": "trimEnd-chars", "fn": "trimEnd", "args": ["-_-abc-_-", "_-"], "upstreamFn": "_.trimEnd", "goFn": "lodash.TrimEnd" },
+    { "id": "trim-empty", "fn": "trim", "args": [""], "upstreamFn": "_.trim", "goFn": "lodash.Trim" },
+
+    { "id": "truncate-basic", "fn": "truncate", "args": ["hi-diddly-ho there, neighborino", 24, "..."], "upstreamFn": "_.truncate", "goFn": "lodash.Truncate" },
+    { "id": "truncate-short", "fn": "truncate", "args": ["abc", 10, "..."], "upstreamFn": "_.truncate", "goFn": "lodash.Truncate" },
+    { "id": "truncate-custom-omission", "fn": "truncate", "args": ["abcdefghij", 6, " [...]"], "upstreamFn": "_.truncate", "goFn": "lodash.Truncate" },
+
+    { "id": "words-spaces", "fn": "words", "args": ["fred, barney, & pebbles"], "upstreamFn": "_.words", "goFn": "lodash.Words" },
+    { "id": "words-camel", "fn": "words", "args": ["fooBarBaz"], "upstreamFn": "_.words", "goFn": "lodash.Words" },
+    { "id": "words-digits", "fn": "words", "args": ["foo2bar3"], "upstreamFn": "_.words", "goFn": "lodash.Words" },
+    { "id": "words-empty", "fn": "words", "args": [""], "upstreamFn": "_.words", "goFn": "lodash.Words" }
+  ]
+}

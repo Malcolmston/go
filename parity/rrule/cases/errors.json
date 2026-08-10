@@ -1,0 +1,216 @@
+{
+  "group": "errors",
+  "upstream": "python-dateutil@2.9.0.post0",
+  "cases": [
+    {
+      "id": "unknown-freq",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=FORTNIGHTLY;COUNT=3",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 5
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator",
+      "note": "unrecognised FREQ"
+    },
+    {
+      "id": "unknown-rule-part",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;BYFOO=1;COUNT=3",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 5
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator",
+      "note": "unknown rule part"
+    },
+    {
+      "id": "not-name-value",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;COUNT",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 5
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator",
+      "note": "rule part without ="
+    },
+    {
+      "id": "count-not-int",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;COUNT=abc",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 5
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator",
+      "note": "non-numeric COUNT"
+    },
+    {
+      "id": "count-negative",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;COUNT=-1",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 5
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator",
+      "note": "negative COUNT"
+    },
+    {
+      "id": "interval-negative",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;INTERVAL=-1;COUNT=3",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 5
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator",
+      "note": "negative INTERVAL"
+    },
+    {
+      "id": "interval-not-int",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;INTERVAL=x;COUNT=3",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 5
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator",
+      "note": "non-numeric INTERVAL"
+    },
+    {
+      "id": "empty-rule",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 5
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator",
+      "note": "no rule parts at all"
+    },
+    {
+      "id": "until-malformed",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;UNTIL=notadate",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 5
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator",
+      "note": "malformed UNTIL"
+    },
+    {
+      "id": "duplicate-part",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;COUNT=3;COUNT=4",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 5
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator",
+      "note": "duplicated rule part"
+    },
+    {
+      "id": "byday-empty-value",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=WEEKLY;BYDAY=;COUNT=3",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 5
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator",
+      "note": "empty BYDAY value"
+    },
+    {
+      "id": "bymonth-not-int",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=YEARLY;BYMONTH=jan;COUNT=3",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 5
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator",
+      "note": "non-numeric BYMONTH"
+    },
+    {
+      "id": "byeaster-0",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=YEARLY;BYEASTER=0;COUNT=3",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 5
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrule(byeaster=...)",
+      "goFn": "\u2014",
+      "note": "BYEASTER is a dateutil extension, not an RFC 5545 rule part; the port has no equivalent"
+    },
+    {
+      "id": "byeaster-negative",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=YEARLY;BYEASTER=-2;COUNT=3",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 5
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrule(byeaster=...)",
+      "goFn": "\u2014",
+      "note": "BYEASTER offset before Easter"
+    }
+  ]
+}

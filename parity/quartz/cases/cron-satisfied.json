@@ -1,0 +1,23 @@
+{
+  "group": "cron-satisfied",
+  "upstream": "org.quartz-scheduler:quartz@2.5.0",
+  "note": "The point predicate. args = [expr, tz, instantUTC]; value = bool.",
+  "cases": [
+    { "id": "sat-noon-yes", "fn": "cronSatisfiedBy", "args": ["0 0 12 * * ?", "UTC", "2026-01-01T12:00:00Z"], "upstreamFn": "org.quartz.CronExpression.isSatisfiedBy", "goFn": "quartz.CronExpression.IsSatisfiedBy" },
+    { "id": "sat-noon-no", "fn": "cronSatisfiedBy", "args": ["0 0 12 * * ?", "UTC", "2026-01-01T12:00:01Z"], "upstreamFn": "org.quartz.CronExpression.isSatisfiedBy", "goFn": "quartz.CronExpression.IsSatisfiedBy" },
+    { "id": "sat-noon-off-by-minute", "fn": "cronSatisfiedBy", "args": ["0 0 12 * * ?", "UTC", "2026-01-01T12:01:00Z"], "upstreamFn": "org.quartz.CronExpression.isSatisfiedBy", "goFn": "quartz.CronExpression.IsSatisfiedBy" },
+    { "id": "sat-zone-shifts-answer", "fn": "cronSatisfiedBy", "args": ["0 0 12 * * ?", "America/New_York", "2026-01-01T12:00:00Z"], "upstreamFn": "org.quartz.CronExpression.isSatisfiedBy", "goFn": "quartz.CronExpression.IsSatisfiedBy", "note": "12:00 UTC is 07:00 in New York" },
+    { "id": "sat-zone-matches", "fn": "cronSatisfiedBy", "args": ["0 0 12 * * ?", "America/New_York", "2026-01-01T17:00:00Z"], "upstreamFn": "org.quartz.CronExpression.isSatisfiedBy", "goFn": "quartz.CronExpression.IsSatisfiedBy" },
+    { "id": "sat-dow-name-monday", "fn": "cronSatisfiedBy", "args": ["0 0 12 ? * MON", "UTC", "2026-01-05T12:00:00Z"], "upstreamFn": "org.quartz.CronExpression.isSatisfiedBy", "goFn": "quartz.CronExpression.IsSatisfiedBy", "note": "2026-01-05 is a Monday" },
+    { "id": "sat-dow-name-monday-on-sunday", "fn": "cronSatisfiedBy", "args": ["0 0 12 ? * MON", "UTC", "2026-01-04T12:00:00Z"], "upstreamFn": "org.quartz.CronExpression.isSatisfiedBy", "goFn": "quartz.CronExpression.IsSatisfiedBy" },
+    { "id": "sat-dow-numeric-1-on-sunday", "fn": "cronSatisfiedBy", "args": ["0 0 12 ? * 1", "UTC", "2026-01-04T12:00:00Z"], "upstreamFn": "org.quartz.CronExpression.isSatisfiedBy", "goFn": "quartz.CronExpression.IsSatisfiedBy", "note": "Quartz 1 == Sunday" },
+    { "id": "sat-dow-numeric-1-on-monday", "fn": "cronSatisfiedBy", "args": ["0 0 12 ? * 1", "UTC", "2026-01-05T12:00:00Z"], "upstreamFn": "org.quartz.CronExpression.isSatisfiedBy", "goFn": "quartz.CronExpression.IsSatisfiedBy", "note": "Unix cron 1 == Monday" },
+    { "id": "sat-dom-15", "fn": "cronSatisfiedBy", "args": ["0 0 12 15 * ?", "UTC", "2026-05-15T12:00:00Z"], "upstreamFn": "org.quartz.CronExpression.isSatisfiedBy", "goFn": "quartz.CronExpression.IsSatisfiedBy" },
+    { "id": "sat-month-restricted-yes", "fn": "cronSatisfiedBy", "args": ["0 0 12 1 JUL ?", "UTC", "2026-07-01T12:00:00Z"], "upstreamFn": "org.quartz.CronExpression.isSatisfiedBy", "goFn": "quartz.CronExpression.IsSatisfiedBy" },
+    { "id": "sat-month-restricted-no", "fn": "cronSatisfiedBy", "args": ["0 0 12 1 JUL ?", "UTC", "2026-08-01T12:00:00Z"], "upstreamFn": "org.quartz.CronExpression.isSatisfiedBy", "goFn": "quartz.CronExpression.IsSatisfiedBy" },
+    { "id": "sat-l-last-day", "fn": "cronSatisfiedBy", "args": ["0 0 12 L * ?", "UTC", "2026-01-31T12:00:00Z"], "upstreamFn": "org.quartz.CronExpression.isSatisfiedBy", "goFn": "quartz.CronExpression.IsSatisfiedBy" },
+    { "id": "sat-hash-third-friday", "fn": "cronSatisfiedBy", "args": ["0 0 12 ? * 6#3", "UTC", "2026-01-16T12:00:00Z"], "upstreamFn": "org.quartz.CronExpression.isSatisfiedBy", "goFn": "quartz.CronExpression.IsSatisfiedBy", "note": "2026-01-16 is the third Friday" },
+    { "id": "sat-sub-second-ignored", "fn": "cronSatisfiedBy", "args": ["0 0 12 * * ?", "UTC", "2026-01-01T12:00:00.500Z"], "upstreamFn": "org.quartz.CronExpression.isSatisfiedBy", "goFn": "quartz.CronExpression.IsSatisfiedBy", "note": "upstream truncates milliseconds before matching" },
+    { "id": "sat-every-second-always", "fn": "cronSatisfiedBy", "args": ["* * * * * ?", "UTC", "2026-04-17T03:22:41Z"], "upstreamFn": "org.quartz.CronExpression.isSatisfiedBy", "goFn": "quartz.CronExpression.IsSatisfiedBy" }
+  ]
+}

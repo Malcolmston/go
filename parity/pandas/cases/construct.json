@@ -1,0 +1,35 @@
+{
+  "group": "construct",
+  "upstream": "pandas==2.3.3",
+  "cases": [
+    {"id": "series-float64", "fn": "series_new", "args": {"name": "v", "dtype": "float64", "values": [1.5, null, -2.25, 0.0]}, "upstreamFn": "pandas.Series", "goFn": "pandas.NewSeriesTyped"},
+    {"id": "series-int64", "fn": "series_new", "args": {"name": "n", "dtype": "int64", "values": [1, 2, null, -7]}, "upstreamFn": "pandas.Series", "goFn": "pandas.NewSeriesTyped"},
+    {"id": "series-string", "fn": "series_new", "args": {"name": "s", "dtype": "string", "values": ["a", "", null, "Zz"]}, "upstreamFn": "pandas.Series", "goFn": "pandas.NewSeriesTyped"},
+    {"id": "series-bool", "fn": "series_new", "args": {"name": "b", "dtype": "bool", "values": [true, false, null, true]}, "upstreamFn": "pandas.Series", "goFn": "pandas.NewSeriesTyped"},
+    {"id": "series-empty", "fn": "series_new", "args": {"name": "e", "dtype": "float64", "values": []}, "upstreamFn": "pandas.Series", "goFn": "pandas.NewSeriesTyped"},
+    {"id": "series-allnull", "fn": "series_new", "args": {"name": "z", "dtype": "float64", "values": [null, null]}, "upstreamFn": "pandas.Series", "goFn": "pandas.NewSeriesTyped"},
+
+    {"id": "series-infer-ints", "fn": "series_infer", "args": {"name": "n", "values": [1, 2, 3], "kinds": ["int", "int", "int"]}, "upstreamFn": "pandas.Series", "goFn": "pandas.NewSeries", "note": "dtype inference from untyped values"},
+    {"id": "series-infer-floats", "fn": "series_infer", "args": {"name": "n", "values": [1.5, 2.5], "kinds": ["float", "float"]}, "upstreamFn": "pandas.Series", "goFn": "pandas.NewSeries"},
+    {"id": "series-infer-mixed-numeric", "fn": "series_infer", "args": {"name": "n", "values": [1, 2.5, 3], "kinds": ["int", "float", "int"]}, "upstreamFn": "pandas.Series", "goFn": "pandas.NewSeries", "note": "port takes dtype from first element and truncates 2.5 to 2; pandas promotes to float64"},
+    {"id": "series-infer-mixed-types", "fn": "series_infer", "args": {"name": "m", "values": [1, "x", true], "kinds": ["int", "str", "bool"]}, "upstreamFn": "pandas.Series", "goFn": "pandas.NewSeries", "note": "pandas -> object; port coerces to first element's dtype"},
+    {"id": "series-infer-strings", "fn": "series_infer", "args": {"name": "s", "values": ["a", "b"], "kinds": ["str", "str"]}, "upstreamFn": "pandas.Series", "goFn": "pandas.NewSeries"},
+
+    {"id": "frame-sales", "fn": "frame", "args": {"table": "sales"}, "upstreamFn": "pandas.DataFrame", "goFn": "pandas.NewDataFrame"},
+    {"id": "frame-nums", "fn": "frame", "args": {"table": "nums"}, "upstreamFn": "pandas.DataFrame", "goFn": "pandas.NewDataFrame"},
+    {"id": "frame-gaps", "fn": "frame", "args": {"table": "gaps"}, "upstreamFn": "pandas.DataFrame", "goFn": "pandas.NewDataFrame"},
+    {"id": "frame-shape-sales", "fn": "frame_shape", "args": {"table": "sales"}, "upstreamFn": "pandas.DataFrame.shape", "goFn": "pandas.DataFrame.Shape"},
+    {"id": "frame-names-sales", "fn": "frame_names", "args": {"table": "sales"}, "upstreamFn": "pandas.DataFrame.columns", "goFn": "pandas.DataFrame.Names"},
+    {"id": "frame-index-sales", "fn": "frame_index", "args": {"table": "sales"}, "upstreamFn": "pandas.DataFrame.index", "goFn": "pandas.DataFrame.Index"},
+    {"id": "frame-dtypes-sales", "fn": "frame_dtypes", "args": {"table": "sales"}, "upstreamFn": "pandas.DataFrame.dtypes", "goFn": "pandas.Series.DType"},
+    {"id": "frame-dtypes-nums", "fn": "frame_dtypes", "args": {"table": "nums"}, "upstreamFn": "pandas.DataFrame.dtypes", "goFn": "pandas.Series.DType"},
+    {"id": "frame-from-map-order", "fn": "frame_from_map", "args": {"table": "sales", "order": ["price", "region", "units", "active"]}, "upstreamFn": "pandas.DataFrame", "goFn": "pandas.FromMap"},
+    {"id": "frame-from-map-partial-order", "fn": "frame_from_map", "args": {"table": "sales", "order": ["units"]}, "upstreamFn": "pandas.DataFrame", "goFn": "pandas.FromMap", "note": "names absent from order are appended sorted"},
+
+    {"id": "astype-float-to-int", "fn": "series_astype", "args": {"name": "v", "dtype": "float64", "values": [1.9, -2.9, null], "to": "int64"}, "upstreamFn": "pandas.Series.astype", "goFn": "pandas.Series.Astype"},
+    {"id": "astype-int-to-float", "fn": "series_astype", "args": {"name": "n", "dtype": "int64", "values": [1, 2, null], "to": "float64"}, "upstreamFn": "pandas.Series.astype", "goFn": "pandas.Series.Astype"},
+    {"id": "astype-int-to-string", "fn": "series_astype", "args": {"name": "n", "dtype": "int64", "values": [1, 2, null], "to": "string"}, "upstreamFn": "pandas.Series.astype", "goFn": "pandas.Series.Astype"},
+    {"id": "astype-string-to-float-bad", "fn": "series_astype", "args": {"name": "s", "dtype": "string", "values": ["1.5", "oops"], "to": "float64"}, "upstreamFn": "pandas.Series.astype", "goFn": "pandas.Series.Astype", "note": "must fail on both: unparseable text -> float"},
+    {"id": "astype-bool-to-int", "fn": "series_astype", "args": {"name": "b", "dtype": "bool", "values": [true, false, null], "to": "int64"}, "upstreamFn": "pandas.Series.astype", "goFn": "pandas.Series.Astype"}
+  ]
+}

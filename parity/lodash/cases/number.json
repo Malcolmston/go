@@ -1,0 +1,64 @@
+{
+  "group": "number",
+  "upstream": "lodash@4.17.21",
+  "cases": [
+    { "id": "add-ints", "fn": "add", "args": [6, 4], "upstreamFn": "_.add", "goFn": "lodash.Add" },
+    { "id": "add-negative", "fn": "add", "args": [-6, 4], "upstreamFn": "_.add", "goFn": "lodash.Add" },
+    { "id": "add-floats", "fn": "add", "args": [0.1, 0.2], "upstreamFn": "_.add", "goFn": "lodash.Add" },
+    { "id": "subtract-ints", "fn": "subtract", "args": [6, 4], "upstreamFn": "_.subtract", "goFn": "lodash.Subtract" },
+    { "id": "multiply-ints", "fn": "multiply", "args": [6, 4], "upstreamFn": "_.multiply", "goFn": "lodash.Multiply" },
+    { "id": "divide-ints", "fn": "divide", "args": [6, 4], "upstreamFn": "_.divide", "goFn": "lodash.Divide" },
+    { "id": "divide-by-zero", "fn": "divide", "args": [6, 0], "upstreamFn": "_.divide", "goFn": "lodash.Divide", "note": "JS gives Infinity" },
+
+    { "id": "ceil-0", "fn": "ceil", "args": [4.006, 0], "upstreamFn": "_.ceil", "goFn": "lodash.Ceil" },
+    { "id": "ceil-2", "fn": "ceil", "args": [6.004, 2], "upstreamFn": "_.ceil", "goFn": "lodash.Ceil" },
+    { "id": "ceil-negative-precision", "fn": "ceil", "args": [6040, -2], "upstreamFn": "_.ceil", "goFn": "lodash.Ceil" },
+    { "id": "floor-0", "fn": "floor", "args": [4.006, 0], "upstreamFn": "_.floor", "goFn": "lodash.Floor" },
+    { "id": "floor-1", "fn": "floor", "args": [0.046, 2], "upstreamFn": "_.floor", "goFn": "lodash.Floor" },
+    { "id": "floor-negative-precision", "fn": "floor", "args": [4060, -2], "upstreamFn": "_.floor", "goFn": "lodash.Floor" },
+    { "id": "round-0", "fn": "round", "args": [4.006, 0], "upstreamFn": "_.round", "goFn": "lodash.Round" },
+    { "id": "round-2", "fn": "round", "args": [4.006, 2], "upstreamFn": "_.round", "goFn": "lodash.Round" },
+    { "id": "round-half", "fn": "round", "args": [2.5, 0], "upstreamFn": "_.round", "goFn": "lodash.Round", "note": "tie-breaking direction" },
+    { "id": "round-half-negative", "fn": "round", "args": [-2.5, 0], "upstreamFn": "_.round", "goFn": "lodash.Round", "note": "JS rounds -2.5 to -2" },
+    { "id": "round-negative-precision", "fn": "round", "args": [4060, -2], "upstreamFn": "_.round", "goFn": "lodash.Round" },
+
+    { "id": "clamp-below", "fn": "clamp", "args": [-10, -5, 5], "upstreamFn": "_.clamp", "goFn": "lodash.Clamp" },
+    { "id": "clamp-above", "fn": "clamp", "args": [10, -5, 5], "upstreamFn": "_.clamp", "goFn": "lodash.Clamp" },
+    { "id": "clamp-inside", "fn": "clamp", "args": [1, -5, 5], "upstreamFn": "_.clamp", "goFn": "lodash.Clamp" },
+    { "id": "clamp-inverted-bounds", "fn": "clamp", "args": [3, 5, 1], "upstreamFn": "_.clamp", "goFn": "lodash.Clamp", "note": "lower > upper" },
+
+    { "id": "inRange-inside", "fn": "inRange", "args": [3, 2, 4], "upstreamFn": "_.inRange", "goFn": "lodash.InRange" },
+    { "id": "inRange-lower-bound", "fn": "inRange", "args": [2, 2, 4], "upstreamFn": "_.inRange", "goFn": "lodash.InRange" },
+    { "id": "inRange-upper-bound", "fn": "inRange", "args": [4, 2, 4], "upstreamFn": "_.inRange", "goFn": "lodash.InRange", "note": "upper bound exclusive in JS" },
+    { "id": "inRange-swapped", "fn": "inRange", "args": [2, 4, 2], "upstreamFn": "_.inRange", "goFn": "lodash.InRange" },
+
+    { "id": "max-basic", "fn": "max", "args": [[4, 2, 8, 6]], "upstreamFn": "_.max", "goFn": "lodash.Max" },
+    { "id": "max-empty", "fn": "max", "args": [[]], "upstreamFn": "_.max", "goFn": "lodash.Max" },
+    { "id": "max-negative", "fn": "max", "args": [[-4, -2]], "upstreamFn": "_.max", "goFn": "lodash.Max" },
+    { "id": "min-basic", "fn": "min", "args": [[4, 2, 8, 6]], "upstreamFn": "_.min", "goFn": "lodash.Min" },
+    { "id": "min-empty", "fn": "min", "args": [[]], "upstreamFn": "_.min", "goFn": "lodash.Min" },
+    { "id": "maxBy-prop", "fn": "maxBy", "args": [[{ "n": 1 }, { "n": 2 }], { "$fn": "propN" }], "upstreamFn": "_.maxBy", "goFn": "lodash.MaxBy" },
+    { "id": "maxBy-empty", "fn": "maxBy", "args": [[], { "$fn": "propN" }], "upstreamFn": "_.maxBy", "goFn": "lodash.MaxBy" },
+    { "id": "minBy-prop", "fn": "minBy", "args": [[{ "n": 1 }, { "n": 2 }], { "$fn": "propN" }], "upstreamFn": "_.minBy", "goFn": "lodash.MinBy" },
+
+    { "id": "mean-basic", "fn": "mean", "args": [[4, 2, 8, 6]], "upstreamFn": "_.mean", "goFn": "lodash.Mean" },
+    { "id": "mean-empty", "fn": "mean", "args": [[]], "upstreamFn": "_.mean", "goFn": "lodash.Mean", "note": "JS gives NaN" },
+    { "id": "meanBy-prop", "fn": "meanBy", "args": [[{ "n": 4 }, { "n": 6 }], { "$fn": "propN" }], "upstreamFn": "_.meanBy", "goFn": "lodash.MeanBy" },
+    { "id": "sum-basic", "fn": "sum", "args": [[4, 2, 8, 6]], "upstreamFn": "_.sum", "goFn": "lodash.Sum" },
+    { "id": "sum-empty", "fn": "sum", "args": [[]], "upstreamFn": "_.sum", "goFn": "lodash.Sum" },
+    { "id": "sum-floats", "fn": "sum", "args": [[0.1, 0.2]], "upstreamFn": "_.sum", "goFn": "lodash.Sum" },
+    { "id": "sumBy-prop", "fn": "sumBy", "args": [[{ "n": 4 }, { "n": 6 }], { "$fn": "propN" }], "upstreamFn": "_.sumBy", "goFn": "lodash.SumBy" },
+
+    { "id": "range-4", "fn": "range", "args": [4], "upstreamFn": "_.range", "goFn": "lodash.Range" },
+    { "id": "range-0", "fn": "range", "args": [0], "upstreamFn": "_.range", "goFn": "lodash.Range" },
+    { "id": "range-negative-end", "fn": "range", "args": [-4], "upstreamFn": "_.range", "goFn": "lodash.Range", "note": "JS counts down" },
+    { "id": "range-start-end", "fn": "range", "args": [1, 5], "upstreamFn": "_.range", "goFn": "lodash.RangeStep" },
+    { "id": "range-step", "fn": "range", "args": [0, 20, 5], "upstreamFn": "_.range", "goFn": "lodash.RangeStep" },
+    { "id": "range-step-zero", "fn": "range", "args": [1, 4, 0], "upstreamFn": "_.range", "goFn": "lodash.RangeStep", "note": "JS repeats the start value" },
+    { "id": "range-step-negative", "fn": "range", "args": [5, 1, -1], "upstreamFn": "_.range", "goFn": "lodash.RangeStep" },
+    { "id": "rangeRight-4", "fn": "rangeRight", "args": [4], "upstreamFn": "_.rangeRight", "goFn": "lodash.RangeRight" },
+    { "id": "rangeRight-step", "fn": "rangeRight", "args": [0, 20, 5], "upstreamFn": "_.rangeRight", "goFn": "lodash.RangeStep+Reverse" },
+
+    { "id": "random-bounds", "fn": "random", "args": [1, 5], "upstreamFn": "_.random", "goFn": "lodash.Random", "note": "random: compares the invariant (result within bounds)" }
+  ]
+}

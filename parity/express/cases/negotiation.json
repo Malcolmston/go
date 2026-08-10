@@ -1,0 +1,21 @@
+{
+  "group": "negotiation",
+  "upstream": "express@4.21.2",
+  "note": "res.format and the req.accepts* family, driven by Accept / Accept-Language / Accept-Encoding / Accept-Charset.",
+  "cases": [
+    { "id": "format-html", "fn": "negotiate", "args": [{ "method": "GET", "path": "/format", "headers": { "Accept": "text/html" } }], "upstreamFn": "res.format", "goFn": "Response.Format" },
+    { "id": "format-json", "fn": "negotiate", "args": [{ "method": "GET", "path": "/format", "headers": { "Accept": "application/json" } }], "upstreamFn": "res.format", "goFn": "Response.Format" },
+    { "id": "format-text", "fn": "negotiate", "args": [{ "method": "GET", "path": "/format", "headers": { "Accept": "text/plain" } }], "upstreamFn": "res.format", "goFn": "Response.Format" },
+    { "id": "format-q-weighted", "fn": "negotiate", "args": [{ "method": "GET", "path": "/format", "headers": { "Accept": "text/html;q=0.2, application/json;q=0.9" } }], "upstreamFn": "res.format", "goFn": "Response.Format" },
+    { "id": "format-star", "fn": "negotiate", "args": [{ "method": "GET", "path": "/format-one", "headers": { "Accept": "*/*" } }], "upstreamFn": "res.format", "goFn": "Response.Format", "note": "single-entry map: */* takes the only offer" },
+    { "id": "format-subtype-star", "fn": "negotiate", "args": [{ "method": "GET", "path": "/format-one", "headers": { "Accept": "text/*" } }], "upstreamFn": "res.format", "goFn": "Response.Format" },
+    { "id": "format-no-accept", "fn": "negotiate", "args": [{ "method": "GET", "path": "/format-one" }], "upstreamFn": "res.format", "goFn": "Response.Format", "note": "no Accept header at all" },
+    { "id": "format-one-unacceptable", "fn": "negotiate", "args": [{ "method": "GET", "path": "/format-one", "headers": { "Accept": "image/png" } }], "upstreamFn": "res.format", "goFn": "Response.Format", "note": "single entry, nothing acceptable -> fallback vs 406" },
+    { "id": "format-406", "fn": "negotiate", "args": [{ "method": "GET", "path": "/format-nodefault", "headers": { "Accept": "text/plain" } }], "upstreamFn": "res.format", "goFn": "Response.Format", "note": "no acceptable representation -> 406" },
+    { "id": "accepts-html-first", "fn": "negotiate", "args": [{ "method": "GET", "path": "/accepts", "headers": { "Accept": "text/html,application/json;q=0.5", "Accept-Language": "fr,en;q=0.5", "Accept-Encoding": "gzip", "Accept-Charset": "iso-8859-1" } }], "upstreamFn": "req.accepts", "goFn": "Request.Accepts" },
+    { "id": "accepts-json-first", "fn": "negotiate", "args": [{ "method": "GET", "path": "/accepts", "headers": { "Accept": "application/json,text/html;q=0.1", "Accept-Language": "en-GB", "Accept-Encoding": "identity", "Accept-Charset": "utf-8" } }], "upstreamFn": "req.accepts", "goFn": "Request.Accepts" },
+    { "id": "accepts-none-acceptable", "fn": "negotiate", "args": [{ "method": "GET", "path": "/accepts", "headers": { "Accept": "image/png", "Accept-Language": "de", "Accept-Encoding": "br", "Accept-Charset": "shift_jis" } }], "upstreamFn": "req.accepts", "goFn": "Request.Accepts" },
+    { "id": "accepts-no-headers", "fn": "negotiate", "args": [{ "method": "GET", "path": "/accepts" }], "upstreamFn": "req.accepts", "goFn": "Request.Accepts" },
+    { "id": "accepts-star", "fn": "negotiate", "args": [{ "method": "GET", "path": "/accepts", "headers": { "Accept": "*/*", "Accept-Language": "*", "Accept-Encoding": "*", "Accept-Charset": "*" } }], "upstreamFn": "req.accepts", "goFn": "Request.Accepts" }
+  ]
+}

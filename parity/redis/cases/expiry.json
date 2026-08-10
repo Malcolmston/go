@@ -1,0 +1,548 @@
+{
+  "group": "expiry",
+  "upstream": "redis-server@8.2.2",
+  "encoding": "commands are arrays of UTF-8 argument strings; replies map integer->number, bulk string->string, nil->null, simple string->{\"status\":s}, array->array, error->{\"error\":true}",
+  "cases": [
+    {
+      "id": "expire-persist",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "k",
+              "v"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TTL",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PTTL",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXPIRE",
+              "k",
+              "100"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TTL",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PTTL",
+              "k"
+            ],
+            "round": 1000
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PERSIST",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TTL",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PERSIST",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXPIRE",
+              "missing",
+              "100"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TTL",
+              "missing"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PTTL",
+              "missing"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PERSIST",
+              "missing"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "EXPIRE/PERSIST/TTL/PTTL",
+      "goFn": "Store.Do EXPIRE/PERSIST/TTL/PTTL",
+      "note": "-1 = no expiry, -2 = no key"
+    },
+    {
+      "id": "pexpire",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "k",
+              "v"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PEXPIRE",
+              "k",
+              "100000"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PTTL",
+              "k"
+            ],
+            "round": 1000
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TTL",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PEXPIRE",
+              "missing",
+              "1000"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "PEXPIRE",
+      "goFn": "Store.Do PEXPIRE",
+      "note": ""
+    },
+    {
+      "id": "expire-negative-deletes",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "k",
+              "v"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXPIRE",
+              "k",
+              "-1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXISTS",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TTL",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "j",
+              "v"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PEXPIRE",
+              "j",
+              "-1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXISTS",
+              "j"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "DBSIZE"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "EXPIRE key -1",
+      "goFn": "Store.Do EXPIRE key -1",
+      "note": "a past expiry deletes the key immediately"
+    },
+    {
+      "id": "expire-elapses",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "k",
+              "v",
+              "PX",
+              "120"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "keep",
+              "v"
+            ]
+          },
+          {
+            "op": "sleep",
+            "ms": 400
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXISTS",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TTL",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "keep"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "KEYS",
+              "*"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "DBSIZE"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "SET .. PX",
+      "goFn": "Store.Do SET .. PX",
+      "note": "real 400ms sleep against a 120ms TTL"
+    },
+    {
+      "id": "pexpire-elapses",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "RPUSH",
+              "l",
+              "a",
+              "b"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PEXPIRE",
+              "l",
+              "120"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LLEN",
+              "l"
+            ]
+          },
+          {
+            "op": "sleep",
+            "ms": 400
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LLEN",
+              "l"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXISTS",
+              "l"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TYPE",
+              "l"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "KEYS",
+              "*"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "DBSIZE"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "PEXPIRE",
+      "goFn": "Store.Do PEXPIRE",
+      "note": "expiry applies to every value type"
+    },
+    {
+      "id": "expire-non-integer",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "k",
+              "v"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXPIRE",
+              "k",
+              "abc"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TTL",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PEXPIRE",
+              "k",
+              "1.5"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TTL",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXPIRE",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TTL",
+              "k"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "EXPIRE",
+      "goFn": "Store.Do EXPIRE",
+      "note": ""
+    },
+    {
+      "id": "expire-other-types",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "RPUSH",
+              "l",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXPIRE",
+              "l",
+              "100"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TTL",
+              "l"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HSET",
+              "h",
+              "f",
+              "v"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXPIRE",
+              "h",
+              "100"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TTL",
+              "h"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SADD",
+              "s",
+              "m"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXPIRE",
+              "s",
+              "100"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TTL",
+              "s"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZADD",
+              "z",
+              "1",
+              "m"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXPIRE",
+              "z",
+              "100"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TTL",
+              "z"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "EXPIRE",
+      "goFn": "Store.Do EXPIRE",
+      "note": ""
+    }
+  ]
+}

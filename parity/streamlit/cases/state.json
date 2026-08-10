@@ -1,0 +1,20 @@
+{
+  "group": "state",
+  "upstream": "streamlit==1.61.1",
+  "cases": [
+    {
+      "id": "session-state-counter",
+      "fn": "session-state",
+      "args": [[{"op": "click", "key": "w_button"}, {"op": "run"}, {"op": "click", "key": "w_button"}]],
+      "upstreamFn": "st.session_state", "goFn": "st.Session.State",
+      "note": "state survives reruns and a button only bumps the counter once per click"
+    },
+    {
+      "id": "button-one-run",
+      "fn": "button-one-run",
+      "args": [[{"op": "click", "key": "w_button"}, {"op": "run"}, {"op": "run"}]],
+      "upstreamFn": "st.button", "goFn": "st.Container.Button",
+      "note": "a button must read true for exactly one run"
+    }
+  ]
+}

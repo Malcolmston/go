@@ -1,0 +1,371 @@
+{
+  "group": "values",
+  "upstream": "handlebars@4.7.8",
+  "cases": [
+    {
+      "id": "val-integer",
+      "fn": "render",
+      "args": ["{{v}}", { "v": 42 }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Stringify"
+    },
+    {
+      "id": "val-negative-integer",
+      "fn": "render",
+      "args": ["{{v}}", { "v": -7 }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Stringify"
+    },
+    {
+      "id": "val-zero",
+      "fn": "render",
+      "args": ["[{{v}}]", { "v": 0 }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Stringify"
+    },
+    {
+      "id": "val-float",
+      "fn": "render",
+      "args": ["{{v}}", { "v": 1.5 }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Stringify"
+    },
+    {
+      "id": "val-float-trailing-zero",
+      "fn": "render",
+      "args": ["{{v}}", { "v": 2.0 }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Stringify",
+      "note": "JS prints 2, not 2.0"
+    },
+    {
+      "id": "val-large-integer",
+      "fn": "render",
+      "args": ["{{v}}", { "v": 1000000 }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Stringify",
+      "note": "classic float-formatting divergence"
+    },
+    {
+      "id": "val-very-large",
+      "fn": "render",
+      "args": ["{{v}}", { "v": 1e21 }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Stringify"
+    },
+    {
+      "id": "val-small-fraction",
+      "fn": "render",
+      "args": ["{{v}}", { "v": 0.000001 }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Stringify"
+    },
+    {
+      "id": "val-precision",
+      "fn": "render",
+      "args": ["{{v}}", { "v": 0.1 }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Stringify"
+    },
+    {
+      "id": "val-bool-true",
+      "fn": "render",
+      "args": ["{{v}}", { "v": true }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Stringify"
+    },
+    {
+      "id": "val-bool-false",
+      "fn": "render",
+      "args": ["[{{v}}]", { "v": false }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Stringify"
+    },
+    {
+      "id": "val-null",
+      "fn": "render",
+      "args": ["[{{v}}]", { "v": null }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Stringify",
+      "note": "null renders as the empty string"
+    },
+    {
+      "id": "val-undefined-missing-key",
+      "fn": "render",
+      "args": ["[{{v}}]", {}],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Stringify",
+      "note": "undefined vs Go nil"
+    },
+    {
+      "id": "val-object",
+      "fn": "render",
+      "args": ["{{{v}}}", { "v": { "a": 1 } }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Stringify",
+      "note": "JS gives [object Object]"
+    },
+    {
+      "id": "val-object-escaped",
+      "fn": "render",
+      "args": ["{{v}}", { "v": { "a": 1 } }],
+      "upstreamFn": "Handlebars.Utils.escapeExpression",
+      "goFn": "handlebars.EscapeExpression"
+    },
+    {
+      "id": "val-empty-object",
+      "fn": "render",
+      "args": ["{{{v}}}", { "v": {} }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Stringify"
+    },
+    {
+      "id": "val-array-of-strings",
+      "fn": "render",
+      "args": ["{{{v}}}", { "v": ["a", "b", "c"] }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Stringify",
+      "note": "JS joins with commas"
+    },
+    {
+      "id": "val-array-of-numbers",
+      "fn": "render",
+      "args": ["{{{v}}}", { "v": [1, 2, 3] }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Stringify"
+    },
+    {
+      "id": "val-array-empty",
+      "fn": "render",
+      "args": ["[{{{v}}}]", { "v": [] }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Stringify"
+    },
+    {
+      "id": "val-array-nested",
+      "fn": "render",
+      "args": ["{{{v}}}", { "v": [[1, 2], [3]] }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Stringify"
+    },
+    {
+      "id": "val-array-with-null",
+      "fn": "render",
+      "args": ["{{{v}}}", { "v": [1, null, 3] }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Stringify"
+    },
+    {
+      "id": "val-array-of-objects",
+      "fn": "render",
+      "args": ["{{{v}}}", { "v": [{ "a": 1 }] }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Stringify"
+    },
+    {
+      "id": "val-context-is-array",
+      "fn": "render",
+      "args": ["{{#each this}}[{{this}}]{{/each}}", [1, 2]],
+      "upstreamFn": "Handlebars.helpers.each",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "val-context-is-null",
+      "fn": "render",
+      "args": ["[{{a}}]", null],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "val-context-is-number",
+      "fn": "render",
+      "args": ["[{{this}}]", 5],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "val-context-omitted",
+      "fn": "render",
+      "args": ["[{{a}}]"],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile",
+      "note": "template invoked with no context at all"
+    },
+    {
+      "id": "val-number-in-each-index",
+      "fn": "render",
+      "args": ["{{#each v}}{{@index}}{{/each}}", { "v": [10, 20, 30] }],
+      "upstreamFn": "Handlebars.helpers.each",
+      "goFn": "handlebars.Compile",
+      "note": "@index must print as an integer"
+    },
+    {
+      "id": "esc-expr-string",
+      "fn": "escapeExpression",
+      "args": ["<a href=\"x\">&'`=</a>"],
+      "upstreamFn": "Handlebars.escapeExpression",
+      "goFn": "handlebars.EscapeExpression"
+    },
+    {
+      "id": "esc-expr-number",
+      "fn": "escapeExpression",
+      "args": [42],
+      "upstreamFn": "Handlebars.escapeExpression",
+      "goFn": "handlebars.EscapeExpression"
+    },
+    {
+      "id": "esc-expr-null",
+      "fn": "escapeExpression",
+      "args": [null],
+      "upstreamFn": "Handlebars.escapeExpression",
+      "goFn": "handlebars.EscapeExpression"
+    },
+    {
+      "id": "esc-expr-false",
+      "fn": "escapeExpression",
+      "args": [false],
+      "upstreamFn": "Handlebars.escapeExpression",
+      "goFn": "handlebars.EscapeExpression"
+    },
+    {
+      "id": "esc-expr-true",
+      "fn": "escapeExpression",
+      "args": [true],
+      "upstreamFn": "Handlebars.escapeExpression",
+      "goFn": "handlebars.EscapeExpression"
+    },
+    {
+      "id": "esc-expr-array",
+      "fn": "escapeExpression",
+      "args": [["<a>", "b"]],
+      "upstreamFn": "Handlebars.escapeExpression",
+      "goFn": "handlebars.EscapeExpression"
+    },
+    {
+      "id": "esc-expr-object",
+      "fn": "escapeExpression",
+      "args": [{ "a": 1 }],
+      "upstreamFn": "Handlebars.escapeExpression",
+      "goFn": "handlebars.EscapeExpression"
+    },
+    {
+      "id": "esc-expr-empty-string",
+      "fn": "escapeExpression",
+      "args": [""],
+      "upstreamFn": "Handlebars.escapeExpression",
+      "goFn": "handlebars.EscapeExpression"
+    },
+    {
+      "id": "utils-isempty-null",
+      "fn": "isEmpty",
+      "args": [null],
+      "upstreamFn": "Handlebars.Utils.isEmpty",
+      "goFn": "handlebars.IsEmpty"
+    },
+    {
+      "id": "utils-isempty-false",
+      "fn": "isEmpty",
+      "args": [false],
+      "upstreamFn": "Handlebars.Utils.isEmpty",
+      "goFn": "handlebars.IsEmpty"
+    },
+    {
+      "id": "utils-isempty-zero",
+      "fn": "isEmpty",
+      "args": [0],
+      "upstreamFn": "Handlebars.Utils.isEmpty",
+      "goFn": "handlebars.IsEmpty"
+    },
+    {
+      "id": "utils-isempty-empty-string",
+      "fn": "isEmpty",
+      "args": [""],
+      "upstreamFn": "Handlebars.Utils.isEmpty",
+      "goFn": "handlebars.IsEmpty"
+    },
+    {
+      "id": "utils-isempty-empty-array",
+      "fn": "isEmpty",
+      "args": [[]],
+      "upstreamFn": "Handlebars.Utils.isEmpty",
+      "goFn": "handlebars.IsEmpty"
+    },
+    {
+      "id": "utils-isempty-empty-object",
+      "fn": "isEmpty",
+      "args": [{}],
+      "upstreamFn": "Handlebars.Utils.isEmpty",
+      "goFn": "handlebars.IsEmpty"
+    },
+    {
+      "id": "utils-isempty-nonempty-array",
+      "fn": "isEmpty",
+      "args": [[1]],
+      "upstreamFn": "Handlebars.Utils.isEmpty",
+      "goFn": "handlebars.IsEmpty"
+    },
+    {
+      "id": "utils-isarray-array",
+      "fn": "isArray",
+      "args": [[1, 2]],
+      "upstreamFn": "Handlebars.Utils.isArray",
+      "goFn": "handlebars.IsArray"
+    },
+    {
+      "id": "utils-isarray-object",
+      "fn": "isArray",
+      "args": [{ "a": 1 }],
+      "upstreamFn": "Handlebars.Utils.isArray",
+      "goFn": "handlebars.IsArray"
+    },
+    {
+      "id": "utils-isarray-null",
+      "fn": "isArray",
+      "args": [null],
+      "upstreamFn": "Handlebars.Utils.isArray",
+      "goFn": "handlebars.IsArray"
+    },
+    {
+      "id": "utils-isarray-string",
+      "fn": "isArray",
+      "args": ["ab"],
+      "upstreamFn": "Handlebars.Utils.isArray",
+      "goFn": "handlebars.IsArray"
+    },
+    {
+      "id": "utils-extend",
+      "fn": "extend",
+      "args": [{ "a": 1, "b": 2 }, { "b": 3, "c": 4 }, { "d": 5 }],
+      "upstreamFn": "Handlebars.Utils.extend",
+      "goFn": "handlebars.Extend"
+    },
+    {
+      "id": "utils-extend-empty-sources",
+      "fn": "extend",
+      "args": [{ "a": 1 }],
+      "upstreamFn": "Handlebars.Utils.extend",
+      "goFn": "handlebars.Extend"
+    },
+    {
+      "id": "utils-createframe",
+      "fn": "createFrame",
+      "args": [{ "root": { "a": 1 }, "index": 2 }],
+      "upstreamFn": "Handlebars.createFrame",
+      "goFn": "handlebars.CreateFrame"
+    },
+    {
+      "id": "utils-createframe-empty",
+      "fn": "createFrame",
+      "args": [{}],
+      "upstreamFn": "Handlebars.createFrame",
+      "goFn": "handlebars.CreateFrame"
+    },
+    {
+      "id": "utils-safestring",
+      "fn": "safeString",
+      "args": ["<b>raw</b>"],
+      "upstreamFn": "Handlebars.SafeString",
+      "goFn": "handlebars.SafeString"
+    }
+  ]
+}

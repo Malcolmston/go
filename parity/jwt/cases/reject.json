@@ -1,0 +1,404 @@
+{
+  "group": "reject",
+  "upstream": "jsonwebtoken@9.0.2",
+  "note": "The rejection surface. Every case must fail on BOTH sides, except acc-none-explicit-optin which must succeed on both.",
+  "cases": [
+    {
+      "id": "rej-tampered-payload",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMCwiYWRtaW4iOnRydWV9.uSyiX6mW2QalXyp6PI6h2UsPl323b6Mz8hggXGyW0rw",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "both must fail"
+    },
+    {
+      "id": "rej-tampered-header-alg",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMH0.uSyiX6mW2QalXyp6PI6h2UsPl323b6Mz8hggXGyW0rw",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "HS256",
+            "HS512"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "both must fail: alg swapped under an HS256 signature"
+    },
+    {
+      "id": "rej-wrong-key",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMH0.uSyiX6mW2QalXyp6PI6h2UsPl323b6Mz8hggXGyW0rw",
+        {
+          "kind": "oct",
+          "secret": "a-completely-different-secret-value"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "both must fail"
+    },
+    {
+      "id": "rej-empty-secret",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMH0.uSyiX6mW2QalXyp6PI6h2UsPl323b6Mz8hggXGyW0rw",
+        {
+          "kind": "oct",
+          "secret": ""
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "both must fail"
+    },
+    {
+      "id": "rej-truncated-signature",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMH0.uSyiX6mW2QalXyp6PI6h2UsPl323b6Mz8hggX",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "both must fail"
+    },
+    {
+      "id": "rej-truncated-token",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIs",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "both must fail"
+    },
+    {
+      "id": "rej-two-parts",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMH0",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "both must fail"
+    },
+    {
+      "id": "rej-four-parts",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMH0.uSyiX6mW2QalXyp6PI6h2UsPl323b6Mz8hggXGyW0rw.extra",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "both must fail"
+    },
+    {
+      "id": "rej-signature-stripped",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMH0.",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "both must fail: empty signature on a signed alg"
+    },
+    {
+      "id": "rej-empty-string",
+      "fn": "verify",
+      "args": [
+        "",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "both must fail"
+    },
+    {
+      "id": "rej-non-base64-payload",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.!!!not-base64!!!.uSyiX6mW2QalXyp6PI6h2UsPl323b6Mz8hggXGyW0rw",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "both must fail"
+    },
+    {
+      "id": "rej-none-with-secret",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJpYXQiOjE3MDAwMDAwMDB9.",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.ErrNoneAlgDisallowed",
+      "note": "both must fail: alg:none token offered to an HS256 verifier"
+    },
+    {
+      "id": "rej-none-no-allowlist",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJpYXQiOjE3MDAwMDAwMDB9.",
+        {
+          "kind": "none"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "both must fail: 'none' must be opted into explicitly"
+    },
+    {
+      "id": "rej-none-listed-but-key-given",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJpYXQiOjE3MDAwMDAwMDB9.",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "none"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "both must fail: alg none presented with real key material"
+    },
+    {
+      "id": "acc-none-explicit-optin",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJpYXQiOjE3MDAwMDAwMDB9.",
+        {
+          "kind": "none"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "none"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify algorithms:['none']",
+      "goFn": "jwt.WithAllowNone",
+      "note": "both accept, and only with an explicit opt-in"
+    },
+    {
+      "id": "rej-expired",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMH0.uSyiX6mW2QalXyp6PI6h2UsPl323b6Mz8hggXGyW0rw",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700099999,
+          "complete": true,
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "TokenExpiredError",
+      "goFn": "jwt.ErrTokenExpired",
+      "note": "both must fail"
+    },
+    {
+      "id": "rej-not-yet-valid",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMTAwMDAsImlhdCI6MTcwMDAwMDAwMCwibmJmIjoxNzAwMDA5MDAwfQ.WYPc_lpyGAi_Wg6fYfSghx9BIlAtUq7TupSttCgKvgc",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "NotBeforeError",
+      "goFn": "jwt.ErrTokenNotValidYet",
+      "note": "both must fail"
+    },
+    {
+      "id": "rej-wrong-audience",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhdWQtYSIsImlhdCI6MTcwMDAwMDAwMCwiaXNzIjoiaXNzLWEiLCJqdGkiOiJqdGktYSIsInN1YiI6InN1Yi1hIn0.sLIOqytadZTNnQIqtEritKxeA2hL3OLVE-XnEb_VUew",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "audience": "wrong",
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "both must fail"
+    },
+    {
+      "id": "rej-wrong-issuer",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhdWQtYSIsImlhdCI6MTcwMDAwMDAwMCwiaXNzIjoiaXNzLWEiLCJqdGkiOiJqdGktYSIsInN1YiI6InN1Yi1hIn0.sLIOqytadZTNnQIqtEritKxeA2hL3OLVE-XnEb_VUew",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "issuer": "wrong",
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "both must fail"
+    }
+  ]
+}

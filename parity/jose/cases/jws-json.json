@@ -1,0 +1,216 @@
+{
+  "group": "jws-json",
+  "upstream": "jose@5.9.6",
+  "cases": [
+    {
+      "id": "jws-flat-hs256",
+      "kind": "cross",
+      "fn": "sign.flattened",
+      "args": ["It's a dangerous business, Frodo, going out your door.", "oct-32", { "alg": "HS256" }],
+      "consumeFn": "verify.flattened",
+      "consumeArgs": ["$OUT", "oct-32", {}],
+      "expect": { "payload": "It's a dangerous business, Frodo, going out your door." },
+      "directions": ["n2g"],
+      "upstreamFn": "jose.FlattenedSign",
+      "goFn": "jose.VerifyJSON",
+      "note": "the port has no flattened producer, so only node -> Go runs"
+    },
+    {
+      "id": "jws-flat-hs256-unprotected-kid",
+      "kind": "cross",
+      "fn": "sign.flattened",
+      "args": [
+        "It's a dangerous business, Frodo, going out your door.",
+        "oct-32",
+        { "alg": "HS256", "unprotected": { "kid": "018c0ae5-4d9b-471b-bfd6-eef314bc7037" } }
+      ],
+      "consumeFn": "verify.flattened",
+      "consumeArgs": ["$OUT", "oct-32", {}],
+      "expect": {
+        "payload": "It's a dangerous business, Frodo, going out your door.",
+        "header": { "alg": "HS256", "kid": "018c0ae5-4d9b-471b-bfd6-eef314bc7037" }
+      },
+      "directions": ["n2g"],
+      "upstreamFn": "jose.FlattenedSign",
+      "goFn": "jose.VerifyJSON",
+      "note": "RFC 7515 section 7.2.2, unprotected header merged into the reported header"
+    },
+    {
+      "id": "jws-flat-es256",
+      "kind": "cross",
+      "fn": "sign.flattened",
+      "args": ["It's a dangerous business, Frodo, going out your door.", "ec-p256-priv", { "alg": "ES256" }],
+      "consumeFn": "verify.flattened",
+      "consumeArgs": ["$OUT", "ec-p256-pub", {}],
+      "expect": { "payload": "It's a dangerous business, Frodo, going out your door." },
+      "directions": ["n2g"],
+      "upstreamFn": "jose.flattenedVerify",
+      "goFn": "jose.VerifyJSON"
+    },
+    {
+      "id": "jws-flat-detached",
+      "kind": "cross",
+      "fn": "sign.flattened",
+      "args": ["It's a dangerous business, Frodo, going out your door.", "oct-32", { "alg": "HS256", "detached": true }],
+      "consumeFn": "verify.flattened",
+      "consumeArgs": ["$OUT", "oct-32", { "detachedPayload": "It's a dangerous business, Frodo, going out your door." }],
+      "expect": { "payload": "It's a dangerous business, Frodo, going out your door." },
+      "directions": ["n2g"],
+      "upstreamFn": "jose.flattenedVerify",
+      "goFn": "jose.VerifyJSONWithOptions",
+      "note": "detached payload supplied out of band"
+    },
+    {
+      "id": "jws-flat-b64false",
+      "kind": "cross",
+      "fn": "sign.flattened",
+      "args": ["unencoded payload no dots", "oct-32", { "alg": "HS256", "b64": false, "crit": ["b64"], "knownCrit": ["b64"] }],
+      "consumeFn": "verify.flattened",
+      "consumeArgs": ["$OUT", "oct-32", { "b64": false, "detachedPayload": "unencoded payload no dots" }],
+      "expect": { "payload": "unencoded payload no dots" },
+      "directions": ["n2g"],
+      "upstreamFn": "jose.FlattenedSign",
+      "goFn": "jose.VerifyJSONWithOptions",
+      "note": "RFC 7797 unencoded payload; upstream always omits the payload member when b64 is false, the port emits it inline"
+    },
+
+    {
+      "id": "jws-gen-hs256",
+      "kind": "cross",
+      "fn": "sign.general",
+      "args": ["It's a dangerous business, Frodo, going out your door.", [{ "key": "oct-32", "alg": "HS256" }]],
+      "consumeFn": "verify.general",
+      "consumeArgs": ["$OUT", "oct-32", {}],
+      "expect": { "payload": "It's a dangerous business, Frodo, going out your door.", "header": { "alg": "HS256" } },
+      "upstreamFn": "jose.GeneralSign",
+      "goFn": "jose.SignJSONMulti"
+    },
+    {
+      "id": "jws-gen-hs256-value",
+      "fn": "sign.general",
+      "args": ["It's a dangerous business, Frodo, going out your door.", [{ "key": "oct-32", "alg": "HS256" }]],
+      "upstreamFn": "jose.GeneralSign",
+      "goFn": "jose.SignJSONMulti",
+      "note": "single HMAC signature is deterministic, so the whole document is compared"
+    },
+    {
+      "id": "jws-gen-multi-hs-rs",
+      "kind": "cross",
+      "fn": "sign.general",
+      "args": [
+        "It's a dangerous business, Frodo, going out your door.",
+        [
+          { "key": "oct-32", "alg": "HS256", "kid": "hmac-1" },
+          { "key": "rsa2048-priv", "alg": "RS256", "kid": "rsa-1" }
+        ]
+      ],
+      "consumeFn": "verify.general",
+      "consumeArgs": ["$OUT", "rsa2048-pub", {}],
+      "expect": { "payload": "It's a dangerous business, Frodo, going out your door.", "header": { "alg": "RS256", "kid": "rsa-1" } },
+      "upstreamFn": "jose.GeneralSign",
+      "goFn": "jose.SignJSONMulti",
+      "note": "RFC 7515 section 7.2.1 multiple signatures; the recipient key selects the second one"
+    },
+    {
+      "id": "jws-gen-multi-hs-rs-value",
+      "fn": "sign.general",
+      "args": [
+        "It's a dangerous business, Frodo, going out your door.",
+        [
+          { "key": "oct-32", "alg": "HS256", "kid": "hmac-1" },
+          { "key": "rsa2048-priv", "alg": "RS256", "kid": "rsa-1" }
+        ]
+      ],
+      "upstreamFn": "jose.GeneralSign",
+      "goFn": "jose.SignJSONMulti",
+      "note": "both signatures are deterministic, so the full document is compared byte for byte"
+    },
+    {
+      "id": "jws-gen-multi-three",
+      "kind": "cross",
+      "fn": "sign.general",
+      "args": [
+        "It's a dangerous business, Frodo, going out your door.",
+        [
+          { "key": "oct-32", "alg": "HS256", "kid": "hmac-1" },
+          { "key": "ec-p256-priv", "alg": "ES256", "kid": "ec-1" },
+          { "key": "ed25519-priv", "alg": "EdDSA", "kid": "ed-1" }
+        ]
+      ],
+      "consumeFn": "verify.general",
+      "consumeArgs": ["$OUT", "ec-p256-pub", {}],
+      "expect": { "payload": "It's a dangerous business, Frodo, going out your door.", "header": { "alg": "ES256", "kid": "ec-1" } },
+      "upstreamFn": "jose.GeneralSign",
+      "goFn": "jose.SignJSONMulti"
+    },
+    {
+      "id": "jws-gen-unprotected-kid",
+      "kind": "cross",
+      "fn": "sign.general",
+      "args": [
+        "It's a dangerous business, Frodo, going out your door.",
+        [{ "key": "oct-32", "alg": "HS256", "unprotected": { "kid": "018c0ae5-4d9b-471b-bfd6-eef314bc7037" } }]
+      ],
+      "consumeFn": "verify.general",
+      "consumeArgs": ["$OUT", "oct-32", {}],
+      "expect": {
+        "payload": "It's a dangerous business, Frodo, going out your door.",
+        "header": { "alg": "HS256", "kid": "018c0ae5-4d9b-471b-bfd6-eef314bc7037" }
+      },
+      "upstreamFn": "jose.GeneralSign",
+      "goFn": "jose.SignJSONMulti",
+      "note": "RFC 7520 section 4.5, kid in the per-signature unprotected header"
+    },
+    {
+      "id": "jws-gen-crit",
+      "kind": "cross",
+      "fn": "sign.general",
+      "args": [
+        "It's a dangerous business, Frodo, going out your door.",
+        [
+          {
+            "key": "oct-32",
+            "alg": "HS256",
+            "protected": { "http://example.invalid/exp": 1363284000 },
+            "crit": ["http://example.invalid/exp"]
+          }
+        ]
+      ],
+      "consumeFn": "verify.general",
+      "consumeArgs": ["$OUT", "oct-32", { "knownCrit": ["http://example.invalid/exp"] }],
+      "expect": { "payload": "It's a dangerous business, Frodo, going out your door." },
+      "upstreamFn": "jose.GeneralSign",
+      "goFn": "jose.SignJSONMulti"
+    },
+    {
+      "id": "jws-gen-detached",
+      "kind": "cross",
+      "fn": "sign.general",
+      "args": [
+        "It's a dangerous business, Frodo, going out your door.",
+        [{ "key": "oct-32", "alg": "HS256" }],
+        { "detached": true }
+      ],
+      "consumeFn": "verify.general",
+      "consumeArgs": ["$OUT", "oct-32", { "detachedPayload": "It's a dangerous business, Frodo, going out your door." }],
+      "expect": { "payload": "It's a dangerous business, Frodo, going out your door." },
+      "upstreamFn": "jose.generalVerify",
+      "goFn": "jose.VerifyJSONWithOptions"
+    },
+    {
+      "id": "jws-gen-b64false",
+      "kind": "cross",
+      "fn": "sign.general",
+      "args": [
+        "unencoded payload no dots",
+        [{ "key": "oct-32", "alg": "HS256", "protected": { "b64": false }, "crit": ["b64"] }]
+      ],
+      "consumeFn": "verify.general",
+      "consumeArgs": ["$OUT", "oct-32", { "b64": false, "detachedPayload": "unencoded payload no dots" }],
+      "expect": { "payload": "unencoded payload no dots" },
+      "upstreamFn": "jose.GeneralSign",
+      "goFn": "jose.SignJSONMulti",
+      "note": "RFC 7797 b64:false, protected and listed in crit as the RFC requires"
+    }
+  ]
+}

@@ -1,0 +1,895 @@
+{
+  "group": "filters",
+  "upstream": "prisma@5.22.0",
+  "cases": [
+    {
+      "id": "equals-scalar",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "where": {
+              "city": "Paris"
+            },
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "where: { city }",
+      "goFn": "prisma.Equals"
+    },
+    {
+      "id": "equals-explicit",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "where": {
+              "city": {
+                "equals": "Berlin"
+              }
+            },
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ],
+            "select": [
+              "id",
+              "city"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "where: { city: { equals } }",
+      "goFn": "prisma.Equals"
+    },
+    {
+      "id": "equals-null",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "where": {
+              "city": null
+            },
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ],
+            "select": [
+              "id",
+              "city"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "where: { city: null }",
+      "goFn": "prisma.IsNull",
+      "note": "the port has no null shorthand; IsNull is its documented equivalent"
+    },
+    {
+      "id": "equals-null-literal",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "where": {
+              "city": null
+            },
+            "nullStyle": "literal",
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ],
+            "select": [
+              "id",
+              "city"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "where: { city: null }",
+      "goFn": "prisma.Equals(col, nil)",
+      "note": "the same filter translated field-for-field: \"col = ?\" with a nil argument never matches"
+    },
+    {
+      "id": "not-null",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "where": {
+              "city": {
+                "not": null
+              }
+            },
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ],
+            "select": [
+              "id",
+              "city"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "where: { city: { not: null } }",
+      "goFn": "prisma.IsNotNull"
+    },
+    {
+      "id": "not-null-literal",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "where": {
+              "city": {
+                "not": null
+              }
+            },
+            "nullStyle": "literal",
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ],
+            "select": [
+              "id",
+              "city"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "where: { city: { not: null } }",
+      "goFn": "prisma.Not(col, nil)"
+    },
+    {
+      "id": "not-scalar",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "where": {
+              "city": {
+                "not": "Paris"
+              }
+            },
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ],
+            "select": [
+              "id",
+              "city"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "where: { city: { not } }",
+      "goFn": "prisma.Not",
+      "note": "SQL three-valued logic drops the NULL cities on both sides"
+    },
+    {
+      "id": "not-nested-operators",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "post",
+            "where": {
+              "views": {
+                "not": {
+                  "gte": 50
+                }
+              }
+            },
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ],
+            "select": [
+              "id",
+              "views"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "where: { views: { not: { gte } } }",
+      "goFn": "prisma.NotGroup(prisma.Gte(...))"
+    },
+    {
+      "id": "in-list",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "where": {
+              "id": {
+                "in": [
+                  1,
+                  3,
+                  5
+                ]
+              }
+            },
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ],
+            "select": [
+              "id"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "where: { id: { in } }",
+      "goFn": "prisma.In"
+    },
+    {
+      "id": "not-in-list",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "where": {
+              "id": {
+                "notIn": [
+                  1,
+                  3,
+                  5
+                ]
+              }
+            },
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ],
+            "select": [
+              "id"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "where: { id: { notIn } }",
+      "goFn": "prisma.NotIn"
+    },
+    {
+      "id": "in-empty",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "where": {
+              "id": {
+                "in": []
+              }
+            },
+            "select": [
+              "id"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "where: { id: { in: [] } }",
+      "goFn": "prisma.In() with no values",
+      "note": "an empty IN can never match"
+    },
+    {
+      "id": "not-in-empty",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "where": {
+              "id": {
+                "notIn": []
+              }
+            },
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ],
+            "select": [
+              "id"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "where: { id: { notIn: [] } }",
+      "goFn": "prisma.NotIn() with no values",
+      "note": "an empty NOT IN always matches"
+    },
+    {
+      "id": "in-with-null",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "where": {
+              "city": {
+                "in": [
+                  "Paris",
+                  null
+                ]
+              }
+            },
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ],
+            "select": [
+              "id",
+              "city"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "where: { city: { in: [..., null] } }",
+      "goFn": "prisma.In with a nil value",
+      "note": "Prisma rejects a null inside an IN list"
+    },
+    {
+      "id": "range-gte-lt",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "post",
+            "where": {
+              "views": {
+                "gte": 30,
+                "lt": 70
+              }
+            },
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ],
+            "select": [
+              "id",
+              "views"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "where: { views: { gte, lt } }",
+      "goFn": "prisma.Gte + prisma.Lt",
+      "note": "two operators on one field are AND-ed"
+    },
+    {
+      "id": "range-gt-lte",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "where": {
+              "score": {
+                "gt": 20,
+                "lte": 60
+              }
+            },
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ],
+            "select": [
+              "id",
+              "score"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "where: { score: { gt, lte } }",
+      "goFn": "prisma.Gt + prisma.Lte"
+    },
+    {
+      "id": "contains",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "post",
+            "where": {
+              "title": {
+                "contains": "beta"
+              }
+            },
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ],
+            "select": [
+              "id",
+              "title"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "where: { title: { contains } }",
+      "goFn": "prisma.Contains",
+      "note": "SQLite LIKE is case-insensitive for ASCII on both sides"
+    },
+    {
+      "id": "contains-percent",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "post",
+            "where": {
+              "title": {
+                "contains": "%"
+              }
+            },
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ],
+            "select": [
+              "id",
+              "title"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "where: { title: { contains: \"%\" } }",
+      "goFn": "prisma.Contains",
+      "note": "the port backslash-escapes LIKE wildcards but emits no ESCAPE clause, so SQLite takes the backslash literally"
+    },
+    {
+      "id": "contains-underscore",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "post",
+            "where": {
+              "title": {
+                "contains": "_two"
+              }
+            },
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ],
+            "select": [
+              "id",
+              "title"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "where: { title: { contains: \"_two\" } }",
+      "goFn": "prisma.Contains",
+      "note": "same escaping question for the single-character wildcard"
+    },
+    {
+      "id": "starts-and-ends-with",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "post",
+            "where": {
+              "title": {
+                "startsWith": "A",
+                "endsWith": "a"
+              }
+            },
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ],
+            "select": [
+              "id",
+              "title"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "where: { title: { startsWith, endsWith } }",
+      "goFn": "prisma.StartsWith + prisma.EndsWith"
+    },
+    {
+      "id": "and-or-nesting",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "where": {
+              "OR": [
+                {
+                  "city": "Paris"
+                },
+                {
+                  "AND": [
+                    {
+                      "age": {
+                        "gte": 40
+                      }
+                    },
+                    {
+                      "score": {
+                        "lt": 45
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ],
+            "select": [
+              "id"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "where: { OR: [..., { AND: [...] }] }",
+      "goFn": "prisma.Or(prisma.And(...))"
+    },
+    {
+      "id": "not-group",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "where": {
+              "NOT": [
+                {
+                  "city": "Paris"
+                }
+              ]
+            },
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ],
+            "select": [
+              "id",
+              "city"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "where: { NOT: [...] }",
+      "goFn": "prisma.NotGroup"
+    },
+    {
+      "id": "not-or-nesting",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "where": {
+              "NOT": {
+                "OR": [
+                  {
+                    "city": "Paris"
+                  },
+                  {
+                    "age": {
+                      "lt": 30
+                    }
+                  }
+                ]
+              }
+            },
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ],
+            "select": [
+              "id"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "where: { NOT: { OR: [...] } }",
+      "goFn": "prisma.NotGroup(prisma.Or(...))"
+    },
+    {
+      "id": "deep-and-or-not",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "post",
+            "where": {
+              "AND": [
+                {
+                  "OR": [
+                    {
+                      "views": {
+                        "lte": 20
+                      }
+                    },
+                    {
+                      "views": {
+                        "gte": 90
+                      }
+                    }
+                  ]
+                },
+                {
+                  "NOT": [
+                    {
+                      "published": false
+                    }
+                  ]
+                }
+              ]
+            },
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ],
+            "select": [
+              "id"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "where: { AND: [{ OR }, { NOT }] }",
+      "goFn": "prisma.And(prisma.Or(...), prisma.NotGroup(...))"
+    },
+    {
+      "id": "where-unknown-column",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "where": {
+              "citty": "Paris"
+            },
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "where: { citty }",
+      "goFn": "prisma.Equals(\"citty\", ...)",
+      "note": "both fail, but the port only finds out from the database: column names in Where are unvalidated strings"
+    }
+  ],
+  "note": "The filter vocabulary. `nullStyle` is a Go-only hint: the default maps Prisma's `field: null` onto the port's IsNull/IsNotNull, and \"literal\" maps it onto Equals(col, nil) to show what the mechanical translation of the shorthand actually does."
+}

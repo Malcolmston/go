@@ -1,0 +1,398 @@
+{
+  "group": "streams",
+  "upstream": "redis-server@8.2.2",
+  "encoding": "commands are arrays of UTF-8 argument strings; replies map integer->number, bulk string->string, nil->null, simple string->{\"status\":s}, array->array, error->{\"error\":true}",
+  "cases": [
+    {
+      "id": "stream-xadd-xlen-xrange",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "XADD",
+              "s",
+              "1-1",
+              "f",
+              "v"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "XADD",
+              "s",
+              "2-1",
+              "f",
+              "w"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "XADD",
+              "s",
+              "2-2",
+              "a",
+              "1",
+              "b",
+              "2"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "XLEN",
+              "s"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "XRANGE",
+              "s",
+              "-",
+              "+"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "XRANGE",
+              "s",
+              "1-1",
+              "1-1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "XRANGE",
+              "s",
+              "-",
+              "+",
+              "COUNT",
+              "2"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "XRANGE",
+              "s",
+              "2",
+              "+"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "XRANGE",
+              "s",
+              "+",
+              "-"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "XLEN",
+              "nokey"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "XRANGE",
+              "nokey",
+              "-",
+              "+"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "FLUSHALL"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "XADD/XLEN/XRANGE",
+      "goFn": "Store.Do XADD/XLEN/XRANGE",
+      "note": "FLUSHALL last: the port keeps streams outside the keyspace, so only the steps are comparable here (see stream-keyspace-invisible)"
+    },
+    {
+      "id": "stream-xadd-id-rules",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "XADD",
+              "s",
+              "5-5",
+              "f",
+              "v"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "XADD",
+              "s",
+              "5-5",
+              "f",
+              "v"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "XADD",
+              "s",
+              "4-1",
+              "f",
+              "v"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "XADD",
+              "s",
+              "5-6",
+              "f",
+              "v"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "XADD",
+              "s",
+              "6-1",
+              "f",
+              "v"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "XADD",
+              "s",
+              "0-0",
+              "f",
+              "v"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "XADD",
+              "s",
+              "bogus",
+              "f",
+              "v"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "XADD",
+              "s",
+              "7-1",
+              "f"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "XADD",
+              "s"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "XLEN",
+              "s"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "XRANGE",
+              "s",
+              "-",
+              "+"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "FLUSHALL"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "XADD (monotonic IDs)",
+      "goFn": "Store.Do XADD",
+      "note": "IDs must strictly increase; 0-0 and malformed IDs are errors"
+    },
+    {
+      "id": "stream-xread",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "XADD",
+              "s",
+              "1-1",
+              "f",
+              "v"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "XADD",
+              "s",
+              "2-1",
+              "f",
+              "w"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "XREAD",
+              "STREAMS",
+              "s",
+              "0"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "XREAD",
+              "COUNT",
+              "1",
+              "STREAMS",
+              "s",
+              "0"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "XREAD",
+              "STREAMS",
+              "s",
+              "2-1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "XREAD",
+              "STREAMS",
+              "nokey",
+              "0"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "XREAD",
+              "STREAMS",
+              "s"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "XREAD",
+              "s",
+              "0"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "FLUSHALL"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "XREAD",
+      "goFn": "Store.Do XREAD",
+      "note": "a stream with nothing newer replies nil"
+    },
+    {
+      "id": "stream-keyspace-invisible",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "XADD",
+              "s",
+              "1-1",
+              "f",
+              "v"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TYPE",
+              "s"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXISTS",
+              "s"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "KEYS",
+              "*"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "DBSIZE"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "DEL",
+              "s"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "XLEN",
+              "s"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "XADD then TYPE/EXISTS/KEYS/DBSIZE/DEL",
+      "goFn": "Store.Do (streams side registry)",
+      "note": "in the port streams live in a package-level registry outside the keyspace, so TYPE/EXISTS/KEYS/DBSIZE/DEL cannot see a stream key"
+    }
+  ]
+}

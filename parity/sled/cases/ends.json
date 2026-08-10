@@ -1,0 +1,431 @@
+{
+  "group": "ends",
+  "upstream": "sled@0.34.7",
+  "encoding": "all keys, values and tree names are lowercase hex",
+  "cases": [
+    {
+      "id": "first-last",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "first"
+          },
+          {
+            "op": "last"
+          },
+          {
+            "op": "insert",
+            "key": "61",
+            "value": "31"
+          },
+          {
+            "op": "insert",
+            "key": "6161",
+            "value": "32"
+          },
+          {
+            "op": "insert",
+            "key": "6162",
+            "value": "33"
+          },
+          {
+            "op": "insert",
+            "key": "62",
+            "value": "34"
+          },
+          {
+            "op": "insert",
+            "key": "6261",
+            "value": "35"
+          },
+          {
+            "op": "insert",
+            "key": "63",
+            "value": "36"
+          },
+          {
+            "op": "insert",
+            "key": "00",
+            "value": "37"
+          },
+          {
+            "op": "insert",
+            "key": "ff",
+            "value": "38"
+          },
+          {
+            "op": "first"
+          },
+          {
+            "op": "last"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::first / Tree::last",
+      "goFn": "Tree.First / Tree.Last"
+    },
+    {
+      "id": "get-gt-lt",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "insert",
+            "key": "61",
+            "value": "31"
+          },
+          {
+            "op": "insert",
+            "key": "6161",
+            "value": "32"
+          },
+          {
+            "op": "insert",
+            "key": "6162",
+            "value": "33"
+          },
+          {
+            "op": "insert",
+            "key": "62",
+            "value": "34"
+          },
+          {
+            "op": "insert",
+            "key": "6261",
+            "value": "35"
+          },
+          {
+            "op": "insert",
+            "key": "63",
+            "value": "36"
+          },
+          {
+            "op": "insert",
+            "key": "00",
+            "value": "37"
+          },
+          {
+            "op": "insert",
+            "key": "ff",
+            "value": "38"
+          },
+          {
+            "op": "get_gt",
+            "key": "61"
+          },
+          {
+            "op": "get_gt",
+            "key": "6162"
+          },
+          {
+            "op": "get_gt",
+            "key": "ff"
+          },
+          {
+            "op": "get_lt",
+            "key": "61"
+          },
+          {
+            "op": "get_lt",
+            "key": "62"
+          },
+          {
+            "op": "get_lt",
+            "key": "00"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::get_gt / Tree::get_lt",
+      "goFn": "Tree.GetGt / Tree.GetLt"
+    },
+    {
+      "id": "get-gte-lte",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "insert",
+            "key": "61",
+            "value": "31"
+          },
+          {
+            "op": "insert",
+            "key": "6161",
+            "value": "32"
+          },
+          {
+            "op": "insert",
+            "key": "6162",
+            "value": "33"
+          },
+          {
+            "op": "insert",
+            "key": "62",
+            "value": "34"
+          },
+          {
+            "op": "insert",
+            "key": "6261",
+            "value": "35"
+          },
+          {
+            "op": "insert",
+            "key": "63",
+            "value": "36"
+          },
+          {
+            "op": "insert",
+            "key": "00",
+            "value": "37"
+          },
+          {
+            "op": "insert",
+            "key": "ff",
+            "value": "38"
+          },
+          {
+            "op": "get_gte",
+            "key": "61"
+          },
+          {
+            "op": "get_gte",
+            "key": "6139"
+          },
+          {
+            "op": "get_gte",
+            "key": "ffff"
+          },
+          {
+            "op": "get_lte",
+            "key": "61"
+          },
+          {
+            "op": "get_lte",
+            "key": "6139"
+          },
+          {
+            "op": "get_lte",
+            "key": "00"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::range (emulated)",
+      "goFn": "Tree.GetGte / Tree.GetLte",
+      "note": "sled 0.34.7 has no get_gte/get_lte; the Rust runner emulates them with range()",
+      "deviation": "Go-only helpers, compared against a range()-based upstream emulation"
+    },
+    {
+      "id": "pop-min-max-drain",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "insert",
+            "key": "61",
+            "value": "31"
+          },
+          {
+            "op": "insert",
+            "key": "62",
+            "value": "32"
+          },
+          {
+            "op": "insert",
+            "key": "63",
+            "value": "33"
+          },
+          {
+            "op": "pop_min"
+          },
+          {
+            "op": "pop_max"
+          },
+          {
+            "op": "iter"
+          },
+          {
+            "op": "pop_min"
+          },
+          {
+            "op": "pop_min"
+          },
+          {
+            "op": "pop_max"
+          },
+          {
+            "op": "len"
+          },
+          {
+            "op": "is_empty"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::pop_min / Tree::pop_max",
+      "goFn": "Tree.PopMin / Tree.PopMax"
+    },
+    {
+      "id": "pop-empty-tree",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "pop_min"
+          },
+          {
+            "op": "pop_max"
+          },
+          {
+            "op": "len"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::pop_min / Tree::pop_max",
+      "goFn": "Tree.PopMin / Tree.PopMax"
+    },
+    {
+      "id": "pop-non-utf8",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "insert",
+            "key": "00",
+            "value": "6c6f"
+          },
+          {
+            "op": "insert",
+            "key": "ff",
+            "value": "6869"
+          },
+          {
+            "op": "insert",
+            "key": "6d",
+            "value": "6d6964"
+          },
+          {
+            "op": "pop_min"
+          },
+          {
+            "op": "pop_max"
+          },
+          {
+            "op": "iter"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::pop_min / Tree::pop_max",
+      "goFn": "Tree.PopMin / Tree.PopMax"
+    },
+    {
+      "id": "pop-in-range",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "insert",
+            "key": "61",
+            "value": "31"
+          },
+          {
+            "op": "insert",
+            "key": "6161",
+            "value": "32"
+          },
+          {
+            "op": "insert",
+            "key": "6162",
+            "value": "33"
+          },
+          {
+            "op": "insert",
+            "key": "62",
+            "value": "34"
+          },
+          {
+            "op": "insert",
+            "key": "6261",
+            "value": "35"
+          },
+          {
+            "op": "insert",
+            "key": "63",
+            "value": "36"
+          },
+          {
+            "op": "insert",
+            "key": "00",
+            "value": "37"
+          },
+          {
+            "op": "insert",
+            "key": "ff",
+            "value": "38"
+          },
+          {
+            "op": "pop_min_in_range",
+            "lower": "6161",
+            "upper": "63"
+          },
+          {
+            "op": "pop_max_in_range",
+            "lower": "6161",
+            "upper": "63"
+          },
+          {
+            "op": "pop_min_in_range",
+            "lower": "7a7a"
+          },
+          {
+            "op": "pop_max_in_range"
+          },
+          {
+            "op": "iter"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::range + Tree::remove (emulated)",
+      "goFn": "Tree.PopMinInRange / Tree.PopMaxInRange",
+      "note": "sled 0.34.7 has no pop_first_in_range/pop_last_in_range; the Rust runner emulates them",
+      "deviation": "Go-only helpers, compared against a range()+remove() upstream emulation"
+    },
+    {
+      "id": "pop-then-reopen",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "insert",
+            "key": "61",
+            "value": "31"
+          },
+          {
+            "op": "insert",
+            "key": "62",
+            "value": "32"
+          },
+          {
+            "op": "pop_min"
+          },
+          {
+            "op": "flush"
+          },
+          {
+            "op": "reopen"
+          },
+          {
+            "op": "iter"
+          },
+          {
+            "op": "first"
+          },
+          {
+            "op": "last"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::pop_min",
+      "goFn": "Tree.PopMin"
+    }
+  ]
+}

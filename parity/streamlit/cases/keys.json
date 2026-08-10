@@ -1,0 +1,17 @@
+{
+  "group": "keys",
+  "upstream": "streamlit==1.61.1",
+  "cases": [
+    {
+      "id": "auto-key-shift",
+      "fn": "auto-keys",
+      "args": [[
+        {"op": "set", "type": "slider", "index": 0, "value": 42},
+        {"op": "set", "key": "w_flag", "value": true},
+        {"op": "set", "key": "w_flag", "value": false}
+      ]],
+      "upstreamFn": "st.slider (no key)", "goFn": "st.Container.Slider (no key)",
+      "note": "revealing a conditional widget must not reassign a later widget's persisted value"
+    }
+  ]
+}

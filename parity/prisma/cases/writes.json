@@ -1,0 +1,737 @@
+{
+  "group": "writes",
+  "upstream": "prisma@5.22.0",
+  "cases": [
+    {
+      "id": "update-one",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "update",
+            "model": "user",
+            "where": {
+              "id": 1
+            },
+            "data": {
+              "city": "Rome"
+            }
+          },
+          {
+            "op": "dump",
+            "model": "user"
+          }
+        ]
+      ],
+      "upstreamFn": "prisma.user.update",
+      "goFn": "Query.Update",
+      "note": "Prisma returns the updated record, the port a row count, so the emitted value is the count on both sides and the dump carries the comparison"
+    },
+    {
+      "id": "update-set-null",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "update",
+            "model": "user",
+            "where": {
+              "id": 1
+            },
+            "data": {
+              "city": null
+            }
+          },
+          {
+            "op": "dump",
+            "model": "user"
+          }
+        ]
+      ],
+      "upstreamFn": "update: { data: { city: null } }",
+      "goFn": "Query.Update with a nil value"
+    },
+    {
+      "id": "update-missing-row",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "update",
+            "model": "user",
+            "where": {
+              "id": 99
+            },
+            "data": {
+              "city": "Rome"
+            }
+          },
+          {
+            "op": "dump",
+            "model": "user"
+          }
+        ]
+      ],
+      "upstreamFn": "prisma.user.update on a missing row",
+      "goFn": "Query.Update matching nothing",
+      "note": "Prisma raises P2025; the port reports 0 rows affected"
+    },
+    {
+      "id": "update-increment",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "updateMany",
+            "model": "post",
+            "where": {
+              "author_id": 6
+            },
+            "data": {
+              "views": {
+                "increment": 5
+              }
+            }
+          },
+          {
+            "op": "dump",
+            "model": "post"
+          }
+        ]
+      ],
+      "upstreamFn": "data: { views: { increment } }",
+      "goFn": "prisma.Increment"
+    },
+    {
+      "id": "update-decrement",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "updateMany",
+            "model": "post",
+            "where": {
+              "author_id": 6
+            },
+            "data": {
+              "views": {
+                "decrement": 5
+              }
+            }
+          },
+          {
+            "op": "dump",
+            "model": "post"
+          }
+        ]
+      ],
+      "upstreamFn": "data: { views: { decrement } }",
+      "goFn": "prisma.Decrement"
+    },
+    {
+      "id": "update-multiply",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "updateMany",
+            "model": "post",
+            "where": {
+              "id": 1
+            },
+            "data": {
+              "views": {
+                "multiply": 3
+              }
+            }
+          },
+          {
+            "op": "dump",
+            "model": "post"
+          }
+        ]
+      ],
+      "upstreamFn": "data: { views: { multiply } }",
+      "goFn": "prisma.Multiply"
+    },
+    {
+      "id": "update-divide-exact",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "updateMany",
+            "model": "post",
+            "where": {
+              "id": 10
+            },
+            "data": {
+              "views": {
+                "divide": 4
+              }
+            }
+          },
+          {
+            "op": "dump",
+            "model": "post"
+          }
+        ]
+      ],
+      "upstreamFn": "data: { views: { divide } }",
+      "goFn": "prisma.Divide"
+    },
+    {
+      "id": "update-divide-fractional",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "updateMany",
+            "model": "post",
+            "where": {
+              "id": 1
+            },
+            "data": {
+              "views": {
+                "divide": 4
+              }
+            }
+          },
+          {
+            "op": "dump",
+            "model": "post"
+          }
+        ]
+      ],
+      "upstreamFn": "data: { views: { divide } } with a remainder",
+      "goFn": "prisma.Divide",
+      "note": "10 / 4 into an integer column: does either side round, truncate or store 2.5?"
+    },
+    {
+      "id": "update-set-operator",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "updateMany",
+            "model": "post",
+            "where": {
+              "published": false
+            },
+            "data": {
+              "views": {
+                "set": 0
+              }
+            }
+          },
+          {
+            "op": "dump",
+            "model": "post"
+          }
+        ]
+      ],
+      "upstreamFn": "data: { views: { set } }",
+      "goFn": "prisma.SetTo"
+    },
+    {
+      "id": "update-many-multi-column",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "updateMany",
+            "model": "user",
+            "where": {
+              "city": "Paris"
+            },
+            "data": {
+              "city": "Lyon",
+              "score": {
+                "increment": 1
+              }
+            }
+          },
+          {
+            "op": "dump",
+            "model": "user"
+          }
+        ]
+      ],
+      "upstreamFn": "updateMany with two assignments",
+      "goFn": "Query.UpdateMany with a literal and an UpdateOp"
+    },
+    {
+      "id": "update-many-with-take",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "updateMany",
+            "model": "post",
+            "where": {
+              "published": true
+            },
+            "data": {
+              "views": {
+                "set": 0
+              }
+            },
+            "take": 1,
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ]
+          },
+          {
+            "op": "dump",
+            "model": "post"
+          }
+        ]
+      ],
+      "upstreamFn": "updateMany({ take, orderBy })",
+      "goFn": "Query.Take(1).OrderBy(...).UpdateMany",
+      "note": "Prisma has no take/orderBy on a write and rejects them; the port accepts and ignores them"
+    },
+    {
+      "id": "delete-one",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "delete",
+            "model": "post",
+            "where": {
+              "id": 1
+            }
+          },
+          {
+            "op": "dump",
+            "model": "post"
+          }
+        ]
+      ],
+      "upstreamFn": "prisma.post.delete",
+      "goFn": "Query.Delete"
+    },
+    {
+      "id": "delete-missing-row",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "delete",
+            "model": "post",
+            "where": {
+              "id": 99
+            }
+          },
+          {
+            "op": "dump",
+            "model": "post"
+          }
+        ]
+      ],
+      "upstreamFn": "prisma.post.delete on a missing row",
+      "goFn": "Query.Delete matching nothing",
+      "note": "Prisma raises P2025; the port reports 0 rows affected"
+    },
+    {
+      "id": "delete-non-unique-where",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "delete",
+            "model": "post",
+            "where": {
+              "published": true
+            }
+          },
+          {
+            "op": "dump",
+            "model": "post"
+          }
+        ]
+      ],
+      "upstreamFn": "prisma.post.delete with a non-unique where",
+      "goFn": "Query.Delete",
+      "note": "Delete and DeleteMany are the same method on the port, so the singular form has no single-row safety"
+    },
+    {
+      "id": "delete-many",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "deleteMany",
+            "model": "post",
+            "where": {
+              "views": {
+                "gte": 60
+              }
+            }
+          },
+          {
+            "op": "dump",
+            "model": "post"
+          }
+        ]
+      ],
+      "upstreamFn": "prisma.post.deleteMany",
+      "goFn": "Query.DeleteMany"
+    },
+    {
+      "id": "delete-many-all",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "deleteMany",
+            "model": "post"
+          },
+          {
+            "op": "dump",
+            "model": "post"
+          }
+        ]
+      ],
+      "upstreamFn": "prisma.post.deleteMany({})",
+      "goFn": "Query.DeleteMany with no predicate"
+    },
+    {
+      "id": "delete-many-with-take",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "deleteMany",
+            "model": "post",
+            "where": {
+              "published": true
+            },
+            "take": 1,
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ]
+          },
+          {
+            "op": "dump",
+            "model": "post"
+          }
+        ]
+      ],
+      "upstreamFn": "deleteMany({ take, orderBy })",
+      "goFn": "Query.Take(1).DeleteMany",
+      "note": "the port emits no LIMIT on a DELETE"
+    },
+    {
+      "id": "upsert-updates-existing",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "upsert",
+            "model": "user",
+            "where": {
+              "email": "ada@x.io"
+            },
+            "create": {
+              "name": "NewAda",
+              "email": "ada@x.io",
+              "score": 1
+            },
+            "update": {
+              "city": "Rome"
+            }
+          },
+          {
+            "op": "dump",
+            "model": "user"
+          }
+        ]
+      ],
+      "upstreamFn": "prisma.user.upsert (update branch)",
+      "goFn": "Query.Upsert([\"email\"], ...)"
+    },
+    {
+      "id": "upsert-inserts-new",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "upsert",
+            "model": "user",
+            "where": {
+              "email": "new@x.io"
+            },
+            "create": {
+              "name": "New",
+              "email": "new@x.io",
+              "score": 1
+            },
+            "update": {
+              "city": "Rome"
+            }
+          },
+          {
+            "op": "dump",
+            "model": "user"
+          }
+        ]
+      ],
+      "upstreamFn": "prisma.user.upsert (create branch)",
+      "goFn": "Query.Upsert([\"email\"], ...)"
+    },
+    {
+      "id": "upsert-where-not-matched-by-create",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "upsert",
+            "model": "user",
+            "where": {
+              "email": "ada@x.io"
+            },
+            "create": {
+              "name": "New",
+              "email": "brand@x.io",
+              "score": 1
+            },
+            "update": {
+              "city": "Rome"
+            }
+          },
+          {
+            "op": "dump",
+            "model": "user"
+          }
+        ]
+      ],
+      "upstreamFn": "upsert whose where matches a row the create payload does not collide with",
+      "goFn": "Query.Upsert([\"email\"], ...)",
+      "note": "the port has no place for the where VALUES: it only ever updates the row the INSERT actually conflicts with"
+    },
+    {
+      "id": "upsert-on-primary-key",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "upsert",
+            "model": "user",
+            "where": {
+              "id": 1
+            },
+            "create": {
+              "id": 1,
+              "name": "X",
+              "email": "x@x.io",
+              "score": 1
+            },
+            "update": {
+              "score": 99
+            }
+          },
+          {
+            "op": "dump",
+            "model": "user"
+          }
+        ]
+      ],
+      "upstreamFn": "upsert keyed on the primary key",
+      "goFn": "Query.Upsert([\"id\"], ...)",
+      "note": "the port drops an auto primary key from the INSERT, so it can never conflict on one"
+    },
+    {
+      "id": "upsert-atomic-operator",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "upsert",
+            "model": "user",
+            "where": {
+              "email": "ada@x.io"
+            },
+            "create": {
+              "name": "X",
+              "email": "ada@x.io",
+              "score": 1
+            },
+            "update": {
+              "score": {
+                "increment": 5
+              }
+            }
+          },
+          {
+            "op": "dump",
+            "model": "user"
+          }
+        ]
+      ],
+      "upstreamFn": "upsert: { update: { score: { increment } } }",
+      "goFn": "Query.Upsert with prisma.Increment",
+      "note": "UpsertSQL binds its update values directly instead of asking them to render themselves"
+    }
+  ],
+  "note": "update / updateMany with the atomic operators, upsert and delete / deleteMany. Every case dumps the table afterwards, so what is scored is the effect on the data and not only the return value."
+}

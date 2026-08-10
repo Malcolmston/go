@@ -1,0 +1,54 @@
+{
+  "group": "forms",
+  "upstream": "pdfkit@0.15.1",
+  "cases": [
+    {
+      "id": "form-text-field",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.formText",
+      "goFn": "Page.AddTextField",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "textField", "args": ["name", 40, 40, 200, 20, "initial value"]}
+      ]}]}]
+    },
+    {
+      "id": "form-checkbox",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.formCheckbox",
+      "goFn": "Page.AddCheckbox",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "checkbox", "args": ["agree", 40, 40, 14, true]}
+      ]}]}]
+    },
+    {
+      "id": "form-push-button",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.formPushButton",
+      "goFn": "Page.AddPushButton",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "pushButton", "args": ["submit", 40, 40, 80, 24, "Send"]}
+      ]}]}]
+    },
+    {
+      "id": "form-text-field-configured",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.formText#options",
+      "goFn": "—",
+      "note": "a field with alignment, font size, border, background, required and multiline set: *FormField is opaque",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "textFieldConfigured", "args": ["notes", 40, 40, 200, 60, "text"]}
+      ]}]}]
+    },
+    {
+      "id": "form-mixed",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.formText/formCheckbox",
+      "goFn": "Page.AddTextField/AddCheckbox",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "textField", "args": ["a", 40, 40, 200, 20, "x"]},
+        {"op": "checkbox", "args": ["b", 40, 80, 14, false]},
+        {"op": "pushButton", "args": ["c", 40, 120, 80, 24, "Go"]}
+      ]}]}]
+    }
+  ]
+}

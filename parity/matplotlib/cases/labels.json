@@ -1,0 +1,66 @@
+{
+  "group": "labels",
+  "upstream": "matplotlib@3.10.0",
+  "note": "Legend and label plumbing, compared as inspectable strings rather than pixels. Upstream reads Axes.get_title/get_xlabel/get_ylabel and the Legend's text artists; the Go port has no getters, so the Go runner reads the corresponding <text> elements back out of the rendered SVG (title 15px, axis labels 12px, legend entries 11px left-anchored inside the plot rectangle).",
+  "cases": [
+    {
+      "id": "labels-all-three",
+      "fn": "labels",
+      "args": {"title": "Demo", "xlabel": "x", "ylabel": "y", "legend": false, "series": [{"label": "a", "x": [0, 1], "y": [0, 1]}], "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "Axes.set_title/set_xlabel/set_ylabel + get_*",
+      "goFn": "matplotlib.Axes.SetTitle/SetXLabel/SetYLabel"
+    },
+    {
+      "id": "labels-empty",
+      "fn": "labels",
+      "args": {"title": "", "xlabel": "", "ylabel": "", "legend": false, "series": [{"label": "", "x": [0, 1], "y": [0, 1]}], "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "Axes.get_title/get_xlabel/get_ylabel on an unlabelled axes",
+      "goFn": "matplotlib.Axes (zero-value labels)"
+    },
+    {
+      "id": "legend-two-series",
+      "fn": "labels",
+      "args": {"title": "T", "xlabel": "X", "ylabel": "Y", "legend": true, "series": [{"label": "alpha", "x": [0, 1], "y": [0, 1]}, {"label": "beta", "x": [0, 1], "y": [1, 0]}], "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "Axes.legend + Legend.get_texts",
+      "goFn": "matplotlib.Axes.Legend + LinePlot.SetLabel"
+    },
+    {
+      "id": "legend-three-series",
+      "fn": "labels",
+      "args": {"title": "T", "xlabel": "X", "ylabel": "Y", "legend": true, "series": [{"label": "one", "x": [0, 1], "y": [0, 1]}, {"label": "two", "x": [0, 1], "y": [1, 0]}, {"label": "three", "x": [0, 1], "y": [0.5, 0.5]}], "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "Axes.legend + Legend.get_texts",
+      "goFn": "matplotlib.Axes.Legend + LinePlot.SetLabel"
+    },
+    {
+      "id": "legend-unlabelled-series",
+      "fn": "labels",
+      "args": {"title": "T", "xlabel": "", "ylabel": "", "legend": true, "series": [{"label": "", "x": [0, 1], "y": [0, 1]}], "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "Axes.legend with no labelled artists",
+      "goFn": "matplotlib.Axes.Legend with an empty label",
+      "note": "both sides must produce an empty legend entry list"
+    },
+    {
+      "id": "legend-underscore-label",
+      "fn": "labels",
+      "args": {"title": "T", "xlabel": "", "ylabel": "", "legend": true, "series": [{"label": "_hidden", "x": [0, 1], "y": [0, 1]}, {"label": "shown", "x": [0, 1], "y": [1, 0]}], "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "Axes.legend label-underscore exclusion rule",
+      "goFn": "matplotlib.Axes.Legend",
+      "note": "matplotlib excludes labels beginning with '_' from the legend; the port has no such rule"
+    },
+    {
+      "id": "labels-xml-special-chars",
+      "fn": "labels",
+      "args": {"title": "a<b & c>d \"q\"", "xlabel": "x&y", "ylabel": "<y>", "legend": false, "series": [{"label": "s", "x": [0, 1], "y": [0, 1]}], "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "Axes.get_title round-trip",
+      "goFn": "matplotlib.Axes.SetTitle round-trip through SVG escaping"
+    },
+    {
+      "id": "labels-unicode",
+      "fn": "labels",
+      "args": {"title": "éàü", "xlabel": "α", "ylabel": "µm", "legend": false, "series": [{"label": "s", "x": [0, 1], "y": [0, 1]}], "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "Axes.get_title round-trip",
+      "goFn": "matplotlib.Axes.SetTitle round-trip through SVG escaping",
+      "note": "the SVG backend preserves these; the PNG backend silently drops them (see bugs/glyph-*)"
+    }
+  ]
+}

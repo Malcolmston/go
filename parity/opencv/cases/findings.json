@@ -1,0 +1,2572 @@
+{
+  "group": "findings",
+  "upstream": "opencv-python@4.11.0",
+  "cases": [
+    {
+      "id": "applycolormap-shape-jet",
+      "fn": "applyColorMapShape",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        "ColormapJet"
+      ],
+      "upstreamFn": "cv2.applyColorMap",
+      "goFn": "plot.ApplyColorMap",
+      "mode": "exact",
+      "note": "known port finding: plot.ApplyColorMap panics on 13 of the 21 Colormap constants"
+    },
+    {
+      "id": "colormaptable-jet",
+      "fn": "colormapTable",
+      "args": [
+        "ColormapJet"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.ColormapTable",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "known port finding: plot.ColormapTable panics on 13 of the 21 Colormap constants. A 2-level budget lets the same palette pass through a different rounding while a genuinely different palette still fails."
+    },
+    {
+      "id": "plottable-jet",
+      "fn": "plotTable",
+      "args": [
+        "ColormapJet"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.Table",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "plot.Table is the general entry point and does not panic"
+    },
+    {
+      "id": "applycolormap-shape-hot",
+      "fn": "applyColorMapShape",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        "ColormapHot"
+      ],
+      "upstreamFn": "cv2.applyColorMap",
+      "goFn": "plot.ApplyColorMap",
+      "mode": "exact",
+      "note": "known port finding: plot.ApplyColorMap panics on 13 of the 21 Colormap constants"
+    },
+    {
+      "id": "colormaptable-hot",
+      "fn": "colormapTable",
+      "args": [
+        "ColormapHot"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.ColormapTable",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "known port finding: plot.ColormapTable panics on 13 of the 21 Colormap constants. A 2-level budget lets the same palette pass through a different rounding while a genuinely different palette still fails."
+    },
+    {
+      "id": "plottable-hot",
+      "fn": "plotTable",
+      "args": [
+        "ColormapHot"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.Table",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "plot.Table is the general entry point and does not panic"
+    },
+    {
+      "id": "applycolormap-shape-cool",
+      "fn": "applyColorMapShape",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        "ColormapCool"
+      ],
+      "upstreamFn": "cv2.applyColorMap",
+      "goFn": "plot.ApplyColorMap",
+      "mode": "exact",
+      "note": "known port finding: plot.ApplyColorMap panics on 13 of the 21 Colormap constants"
+    },
+    {
+      "id": "colormaptable-cool",
+      "fn": "colormapTable",
+      "args": [
+        "ColormapCool"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.ColormapTable",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "known port finding: plot.ColormapTable panics on 13 of the 21 Colormap constants. A 2-level budget lets the same palette pass through a different rounding while a genuinely different palette still fails."
+    },
+    {
+      "id": "plottable-cool",
+      "fn": "plotTable",
+      "args": [
+        "ColormapCool"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.Table",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "plot.Table is the general entry point and does not panic"
+    },
+    {
+      "id": "applycolormap-shape-bone",
+      "fn": "applyColorMapShape",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        "ColormapBone"
+      ],
+      "upstreamFn": "cv2.applyColorMap",
+      "goFn": "plot.ApplyColorMap",
+      "mode": "exact",
+      "note": "known port finding: plot.ApplyColorMap panics on 13 of the 21 Colormap constants"
+    },
+    {
+      "id": "colormaptable-bone",
+      "fn": "colormapTable",
+      "args": [
+        "ColormapBone"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.ColormapTable",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "known port finding: plot.ColormapTable panics on 13 of the 21 Colormap constants. A 2-level budget lets the same palette pass through a different rounding while a genuinely different palette still fails."
+    },
+    {
+      "id": "plottable-bone",
+      "fn": "plotTable",
+      "args": [
+        "ColormapBone"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.Table",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "plot.Table is the general entry point and does not panic"
+    },
+    {
+      "id": "applycolormap-shape-hsv",
+      "fn": "applyColorMapShape",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        "ColormapHSV"
+      ],
+      "upstreamFn": "cv2.applyColorMap",
+      "goFn": "plot.ApplyColorMap",
+      "mode": "exact",
+      "note": "known port finding: plot.ApplyColorMap panics on 13 of the 21 Colormap constants"
+    },
+    {
+      "id": "colormaptable-hsv",
+      "fn": "colormapTable",
+      "args": [
+        "ColormapHSV"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.ColormapTable",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "known port finding: plot.ColormapTable panics on 13 of the 21 Colormap constants. A 2-level budget lets the same palette pass through a different rounding while a genuinely different palette still fails."
+    },
+    {
+      "id": "plottable-hsv",
+      "fn": "plotTable",
+      "args": [
+        "ColormapHSV"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.Table",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "plot.Table is the general entry point and does not panic"
+    },
+    {
+      "id": "applycolormap-shape-viridis",
+      "fn": "applyColorMapShape",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        "ColormapViridis"
+      ],
+      "upstreamFn": "cv2.applyColorMap",
+      "goFn": "plot.ApplyColorMap",
+      "mode": "exact",
+      "note": "known port finding: plot.ApplyColorMap panics on 13 of the 21 Colormap constants"
+    },
+    {
+      "id": "colormaptable-viridis",
+      "fn": "colormapTable",
+      "args": [
+        "ColormapViridis"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.ColormapTable",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "known port finding: plot.ColormapTable panics on 13 of the 21 Colormap constants. A 2-level budget lets the same palette pass through a different rounding while a genuinely different palette still fails."
+    },
+    {
+      "id": "plottable-viridis",
+      "fn": "plotTable",
+      "args": [
+        "ColormapViridis"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.Table",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "plot.Table is the general entry point and does not panic"
+    },
+    {
+      "id": "applycolormap-shape-plasma",
+      "fn": "applyColorMapShape",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        "ColormapPlasma"
+      ],
+      "upstreamFn": "cv2.applyColorMap",
+      "goFn": "plot.ApplyColorMap",
+      "mode": "exact",
+      "note": "known port finding: plot.ApplyColorMap panics on 13 of the 21 Colormap constants"
+    },
+    {
+      "id": "colormaptable-plasma",
+      "fn": "colormapTable",
+      "args": [
+        "ColormapPlasma"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.ColormapTable",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "known port finding: plot.ColormapTable panics on 13 of the 21 Colormap constants. A 2-level budget lets the same palette pass through a different rounding while a genuinely different palette still fails."
+    },
+    {
+      "id": "plottable-plasma",
+      "fn": "plotTable",
+      "args": [
+        "ColormapPlasma"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.Table",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "plot.Table is the general entry point and does not panic"
+    },
+    {
+      "id": "applycolormap-shape-grayscale",
+      "fn": "applyColorMapShape",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        "ColormapGrayscale"
+      ],
+      "upstreamFn": "cv2.applyColorMap",
+      "goFn": "plot.ApplyColorMap",
+      "mode": "exact",
+      "note": "known port finding: plot.ApplyColorMap panics on 13 of the 21 Colormap constants"
+    },
+    {
+      "id": "colormaptable-grayscale",
+      "fn": "colormapTable",
+      "args": [
+        "ColormapGrayscale"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.ColormapTable",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "known port finding: plot.ColormapTable panics on 13 of the 21 Colormap constants. A 2-level budget lets the same palette pass through a different rounding while a genuinely different palette still fails."
+    },
+    {
+      "id": "plottable-grayscale",
+      "fn": "plotTable",
+      "args": [
+        "ColormapGrayscale"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.Table",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "plot.Table is the general entry point and does not panic"
+    },
+    {
+      "id": "applycolormap-shape-autumn",
+      "fn": "applyColorMapShape",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        "ColormapAutumn"
+      ],
+      "upstreamFn": "cv2.applyColorMap",
+      "goFn": "plot.ApplyColorMap",
+      "mode": "exact",
+      "note": "known port finding: plot.ApplyColorMap panics on 13 of the 21 Colormap constants"
+    },
+    {
+      "id": "colormaptable-autumn",
+      "fn": "colormapTable",
+      "args": [
+        "ColormapAutumn"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.ColormapTable",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "known port finding: plot.ColormapTable panics on 13 of the 21 Colormap constants. A 2-level budget lets the same palette pass through a different rounding while a genuinely different palette still fails."
+    },
+    {
+      "id": "plottable-autumn",
+      "fn": "plotTable",
+      "args": [
+        "ColormapAutumn"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.Table",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "plot.Table is the general entry point and does not panic"
+    },
+    {
+      "id": "applycolormap-shape-winter",
+      "fn": "applyColorMapShape",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        "ColormapWinter"
+      ],
+      "upstreamFn": "cv2.applyColorMap",
+      "goFn": "plot.ApplyColorMap",
+      "mode": "exact",
+      "note": "known port finding: plot.ApplyColorMap panics on 13 of the 21 Colormap constants"
+    },
+    {
+      "id": "colormaptable-winter",
+      "fn": "colormapTable",
+      "args": [
+        "ColormapWinter"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.ColormapTable",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "known port finding: plot.ColormapTable panics on 13 of the 21 Colormap constants. A 2-level budget lets the same palette pass through a different rounding while a genuinely different palette still fails."
+    },
+    {
+      "id": "plottable-winter",
+      "fn": "plotTable",
+      "args": [
+        "ColormapWinter"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.Table",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "plot.Table is the general entry point and does not panic"
+    },
+    {
+      "id": "applycolormap-shape-summer",
+      "fn": "applyColorMapShape",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        "ColormapSummer"
+      ],
+      "upstreamFn": "cv2.applyColorMap",
+      "goFn": "plot.ApplyColorMap",
+      "mode": "exact",
+      "note": "known port finding: plot.ApplyColorMap panics on 13 of the 21 Colormap constants"
+    },
+    {
+      "id": "colormaptable-summer",
+      "fn": "colormapTable",
+      "args": [
+        "ColormapSummer"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.ColormapTable",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "known port finding: plot.ColormapTable panics on 13 of the 21 Colormap constants. A 2-level budget lets the same palette pass through a different rounding while a genuinely different palette still fails."
+    },
+    {
+      "id": "plottable-summer",
+      "fn": "plotTable",
+      "args": [
+        "ColormapSummer"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.Table",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "plot.Table is the general entry point and does not panic"
+    },
+    {
+      "id": "applycolormap-shape-spring",
+      "fn": "applyColorMapShape",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        "ColormapSpring"
+      ],
+      "upstreamFn": "cv2.applyColorMap",
+      "goFn": "plot.ApplyColorMap",
+      "mode": "exact",
+      "note": "known port finding: plot.ApplyColorMap panics on 13 of the 21 Colormap constants"
+    },
+    {
+      "id": "colormaptable-spring",
+      "fn": "colormapTable",
+      "args": [
+        "ColormapSpring"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.ColormapTable",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "known port finding: plot.ColormapTable panics on 13 of the 21 Colormap constants. A 2-level budget lets the same palette pass through a different rounding while a genuinely different palette still fails."
+    },
+    {
+      "id": "plottable-spring",
+      "fn": "plotTable",
+      "args": [
+        "ColormapSpring"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.Table",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "plot.Table is the general entry point and does not panic"
+    },
+    {
+      "id": "applycolormap-shape-ocean",
+      "fn": "applyColorMapShape",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        "ColormapOcean"
+      ],
+      "upstreamFn": "cv2.applyColorMap",
+      "goFn": "plot.ApplyColorMap",
+      "mode": "exact",
+      "note": "known port finding: plot.ApplyColorMap panics on 13 of the 21 Colormap constants"
+    },
+    {
+      "id": "colormaptable-ocean",
+      "fn": "colormapTable",
+      "args": [
+        "ColormapOcean"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.ColormapTable",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "known port finding: plot.ColormapTable panics on 13 of the 21 Colormap constants. A 2-level budget lets the same palette pass through a different rounding while a genuinely different palette still fails."
+    },
+    {
+      "id": "plottable-ocean",
+      "fn": "plotTable",
+      "args": [
+        "ColormapOcean"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.Table",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "plot.Table is the general entry point and does not panic"
+    },
+    {
+      "id": "applycolormap-shape-rainbow",
+      "fn": "applyColorMapShape",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        "ColormapRainbow"
+      ],
+      "upstreamFn": "cv2.applyColorMap",
+      "goFn": "plot.ApplyColorMap",
+      "mode": "exact",
+      "note": "known port finding: plot.ApplyColorMap panics on 13 of the 21 Colormap constants"
+    },
+    {
+      "id": "colormaptable-rainbow",
+      "fn": "colormapTable",
+      "args": [
+        "ColormapRainbow"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.ColormapTable",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "known port finding: plot.ColormapTable panics on 13 of the 21 Colormap constants. A 2-level budget lets the same palette pass through a different rounding while a genuinely different palette still fails."
+    },
+    {
+      "id": "plottable-rainbow",
+      "fn": "plotTable",
+      "args": [
+        "ColormapRainbow"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.Table",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "plot.Table is the general entry point and does not panic"
+    },
+    {
+      "id": "applycolormap-shape-pink",
+      "fn": "applyColorMapShape",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        "ColormapPink"
+      ],
+      "upstreamFn": "cv2.applyColorMap",
+      "goFn": "plot.ApplyColorMap",
+      "mode": "exact",
+      "note": "known port finding: plot.ApplyColorMap panics on 13 of the 21 Colormap constants"
+    },
+    {
+      "id": "colormaptable-pink",
+      "fn": "colormapTable",
+      "args": [
+        "ColormapPink"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.ColormapTable",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "known port finding: plot.ColormapTable panics on 13 of the 21 Colormap constants. A 2-level budget lets the same palette pass through a different rounding while a genuinely different palette still fails."
+    },
+    {
+      "id": "plottable-pink",
+      "fn": "plotTable",
+      "args": [
+        "ColormapPink"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.Table",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "plot.Table is the general entry point and does not panic"
+    },
+    {
+      "id": "applycolormap-shape-parula",
+      "fn": "applyColorMapShape",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        "ColormapParula"
+      ],
+      "upstreamFn": "cv2.applyColorMap",
+      "goFn": "plot.ApplyColorMap",
+      "mode": "exact",
+      "note": "known port finding: plot.ApplyColorMap panics on 13 of the 21 Colormap constants"
+    },
+    {
+      "id": "colormaptable-parula",
+      "fn": "colormapTable",
+      "args": [
+        "ColormapParula"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.ColormapTable",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "known port finding: plot.ColormapTable panics on 13 of the 21 Colormap constants. A 2-level budget lets the same palette pass through a different rounding while a genuinely different palette still fails."
+    },
+    {
+      "id": "plottable-parula",
+      "fn": "plotTable",
+      "args": [
+        "ColormapParula"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.Table",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "plot.Table is the general entry point and does not panic"
+    },
+    {
+      "id": "applycolormap-shape-magma",
+      "fn": "applyColorMapShape",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        "ColormapMagma"
+      ],
+      "upstreamFn": "cv2.applyColorMap",
+      "goFn": "plot.ApplyColorMap",
+      "mode": "exact",
+      "note": "known port finding: plot.ApplyColorMap panics on 13 of the 21 Colormap constants"
+    },
+    {
+      "id": "colormaptable-magma",
+      "fn": "colormapTable",
+      "args": [
+        "ColormapMagma"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.ColormapTable",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "known port finding: plot.ColormapTable panics on 13 of the 21 Colormap constants. A 2-level budget lets the same palette pass through a different rounding while a genuinely different palette still fails."
+    },
+    {
+      "id": "plottable-magma",
+      "fn": "plotTable",
+      "args": [
+        "ColormapMagma"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.Table",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "plot.Table is the general entry point and does not panic"
+    },
+    {
+      "id": "applycolormap-shape-inferno",
+      "fn": "applyColorMapShape",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        "ColormapInferno"
+      ],
+      "upstreamFn": "cv2.applyColorMap",
+      "goFn": "plot.ApplyColorMap",
+      "mode": "exact",
+      "note": "known port finding: plot.ApplyColorMap panics on 13 of the 21 Colormap constants"
+    },
+    {
+      "id": "colormaptable-inferno",
+      "fn": "colormapTable",
+      "args": [
+        "ColormapInferno"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.ColormapTable",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "known port finding: plot.ColormapTable panics on 13 of the 21 Colormap constants. A 2-level budget lets the same palette pass through a different rounding while a genuinely different palette still fails."
+    },
+    {
+      "id": "plottable-inferno",
+      "fn": "plotTable",
+      "args": [
+        "ColormapInferno"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.Table",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "plot.Table is the general entry point and does not panic"
+    },
+    {
+      "id": "applycolormap-shape-cividis",
+      "fn": "applyColorMapShape",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        "ColormapCividis"
+      ],
+      "upstreamFn": "cv2.applyColorMap",
+      "goFn": "plot.ApplyColorMap",
+      "mode": "exact",
+      "note": "known port finding: plot.ApplyColorMap panics on 13 of the 21 Colormap constants"
+    },
+    {
+      "id": "colormaptable-cividis",
+      "fn": "colormapTable",
+      "args": [
+        "ColormapCividis"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.ColormapTable",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "known port finding: plot.ColormapTable panics on 13 of the 21 Colormap constants. A 2-level budget lets the same palette pass through a different rounding while a genuinely different palette still fails."
+    },
+    {
+      "id": "plottable-cividis",
+      "fn": "plotTable",
+      "args": [
+        "ColormapCividis"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.Table",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "plot.Table is the general entry point and does not panic"
+    },
+    {
+      "id": "applycolormap-shape-twilight",
+      "fn": "applyColorMapShape",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        "ColormapTwilight"
+      ],
+      "upstreamFn": "cv2.applyColorMap",
+      "goFn": "plot.ApplyColorMap",
+      "mode": "exact",
+      "note": "known port finding: plot.ApplyColorMap panics on 13 of the 21 Colormap constants"
+    },
+    {
+      "id": "colormaptable-twilight",
+      "fn": "colormapTable",
+      "args": [
+        "ColormapTwilight"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.ColormapTable",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "known port finding: plot.ColormapTable panics on 13 of the 21 Colormap constants. A 2-level budget lets the same palette pass through a different rounding while a genuinely different palette still fails."
+    },
+    {
+      "id": "plottable-twilight",
+      "fn": "plotTable",
+      "args": [
+        "ColormapTwilight"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.Table",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "plot.Table is the general entry point and does not panic"
+    },
+    {
+      "id": "applycolormap-shape-turbo",
+      "fn": "applyColorMapShape",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        "ColormapTurbo"
+      ],
+      "upstreamFn": "cv2.applyColorMap",
+      "goFn": "plot.ApplyColorMap",
+      "mode": "exact",
+      "note": "known port finding: plot.ApplyColorMap panics on 13 of the 21 Colormap constants"
+    },
+    {
+      "id": "colormaptable-turbo",
+      "fn": "colormapTable",
+      "args": [
+        "ColormapTurbo"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.ColormapTable",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "known port finding: plot.ColormapTable panics on 13 of the 21 Colormap constants. A 2-level budget lets the same palette pass through a different rounding while a genuinely different palette still fails."
+    },
+    {
+      "id": "plottable-turbo",
+      "fn": "plotTable",
+      "args": [
+        "ColormapTurbo"
+      ],
+      "upstreamFn": "cv2.applyColorMap over a 0..255 ramp",
+      "goFn": "plot.Table",
+      "mode": "tolerance",
+      "tol": 2,
+      "note": "plot.Table is the general entry point and does not panic"
+    },
+    {
+      "id": "colorize-shape-jet",
+      "fn": "colorizeShape",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        "ColormapJet"
+      ],
+      "upstreamFn": "cv2.applyColorMap",
+      "goFn": "plot.Colorize",
+      "mode": "exact"
+    },
+    {
+      "id": "colorize-jet",
+      "fn": "colorize",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        "ColormapJet"
+      ],
+      "upstreamFn": "cv2.applyColorMap",
+      "goFn": "plot.Colorize",
+      "mode": "tolerance",
+      "tol": 2,
+      "meanTol": 2.0
+    },
+    {
+      "id": "colorize-shape-viridis",
+      "fn": "colorizeShape",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        "ColormapViridis"
+      ],
+      "upstreamFn": "cv2.applyColorMap",
+      "goFn": "plot.Colorize",
+      "mode": "exact"
+    },
+    {
+      "id": "colorize-viridis",
+      "fn": "colorize",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        "ColormapViridis"
+      ],
+      "upstreamFn": "cv2.applyColorMap",
+      "goFn": "plot.Colorize",
+      "mode": "tolerance",
+      "tol": 2,
+      "meanTol": 2.0
+    },
+    {
+      "id": "colorize-shape-turbo",
+      "fn": "colorizeShape",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        "ColormapTurbo"
+      ],
+      "upstreamFn": "cv2.applyColorMap",
+      "goFn": "plot.Colorize",
+      "mode": "exact"
+    },
+    {
+      "id": "colorize-turbo",
+      "fn": "colorize",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        "ColormapTurbo"
+      ],
+      "upstreamFn": "cv2.applyColorMap",
+      "goFn": "plot.Colorize",
+      "mode": "tolerance",
+      "tol": 2,
+      "meanTol": 2.0
+    },
+    {
+      "id": "colorize-shape-grayscale",
+      "fn": "colorizeShape",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        "ColormapGrayscale"
+      ],
+      "upstreamFn": "cv2.applyColorMap",
+      "goFn": "plot.Colorize",
+      "mode": "exact"
+    },
+    {
+      "id": "colorize-grayscale",
+      "fn": "colorize",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        "ColormapGrayscale"
+      ],
+      "upstreamFn": "cv2.applyColorMap",
+      "goFn": "plot.Colorize",
+      "mode": "tolerance",
+      "tol": 2,
+      "meanTol": 2.0
+    },
+    {
+      "id": "applycustomcolormap",
+      "fn": "applyCustomColorMap",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        [
+          [
+            0,
+            255,
+            0
+          ],
+          [
+            1,
+            254,
+            2
+          ],
+          [
+            2,
+            253,
+            4
+          ],
+          [
+            3,
+            252,
+            6
+          ],
+          [
+            4,
+            251,
+            8
+          ],
+          [
+            5,
+            250,
+            10
+          ],
+          [
+            6,
+            249,
+            12
+          ],
+          [
+            7,
+            248,
+            14
+          ],
+          [
+            8,
+            247,
+            16
+          ],
+          [
+            9,
+            246,
+            18
+          ],
+          [
+            10,
+            245,
+            20
+          ],
+          [
+            11,
+            244,
+            22
+          ],
+          [
+            12,
+            243,
+            24
+          ],
+          [
+            13,
+            242,
+            26
+          ],
+          [
+            14,
+            241,
+            28
+          ],
+          [
+            15,
+            240,
+            30
+          ],
+          [
+            16,
+            239,
+            32
+          ],
+          [
+            17,
+            238,
+            34
+          ],
+          [
+            18,
+            237,
+            36
+          ],
+          [
+            19,
+            236,
+            38
+          ],
+          [
+            20,
+            235,
+            40
+          ],
+          [
+            21,
+            234,
+            42
+          ],
+          [
+            22,
+            233,
+            44
+          ],
+          [
+            23,
+            232,
+            46
+          ],
+          [
+            24,
+            231,
+            48
+          ],
+          [
+            25,
+            230,
+            50
+          ],
+          [
+            26,
+            229,
+            52
+          ],
+          [
+            27,
+            228,
+            54
+          ],
+          [
+            28,
+            227,
+            56
+          ],
+          [
+            29,
+            226,
+            58
+          ],
+          [
+            30,
+            225,
+            60
+          ],
+          [
+            31,
+            224,
+            62
+          ],
+          [
+            32,
+            223,
+            64
+          ],
+          [
+            33,
+            222,
+            66
+          ],
+          [
+            34,
+            221,
+            68
+          ],
+          [
+            35,
+            220,
+            70
+          ],
+          [
+            36,
+            219,
+            72
+          ],
+          [
+            37,
+            218,
+            74
+          ],
+          [
+            38,
+            217,
+            76
+          ],
+          [
+            39,
+            216,
+            78
+          ],
+          [
+            40,
+            215,
+            80
+          ],
+          [
+            41,
+            214,
+            82
+          ],
+          [
+            42,
+            213,
+            84
+          ],
+          [
+            43,
+            212,
+            86
+          ],
+          [
+            44,
+            211,
+            88
+          ],
+          [
+            45,
+            210,
+            90
+          ],
+          [
+            46,
+            209,
+            92
+          ],
+          [
+            47,
+            208,
+            94
+          ],
+          [
+            48,
+            207,
+            96
+          ],
+          [
+            49,
+            206,
+            98
+          ],
+          [
+            50,
+            205,
+            100
+          ],
+          [
+            51,
+            204,
+            102
+          ],
+          [
+            52,
+            203,
+            104
+          ],
+          [
+            53,
+            202,
+            106
+          ],
+          [
+            54,
+            201,
+            108
+          ],
+          [
+            55,
+            200,
+            110
+          ],
+          [
+            56,
+            199,
+            112
+          ],
+          [
+            57,
+            198,
+            114
+          ],
+          [
+            58,
+            197,
+            116
+          ],
+          [
+            59,
+            196,
+            118
+          ],
+          [
+            60,
+            195,
+            120
+          ],
+          [
+            61,
+            194,
+            122
+          ],
+          [
+            62,
+            193,
+            124
+          ],
+          [
+            63,
+            192,
+            126
+          ],
+          [
+            64,
+            191,
+            128
+          ],
+          [
+            65,
+            190,
+            130
+          ],
+          [
+            66,
+            189,
+            132
+          ],
+          [
+            67,
+            188,
+            134
+          ],
+          [
+            68,
+            187,
+            136
+          ],
+          [
+            69,
+            186,
+            138
+          ],
+          [
+            70,
+            185,
+            140
+          ],
+          [
+            71,
+            184,
+            142
+          ],
+          [
+            72,
+            183,
+            144
+          ],
+          [
+            73,
+            182,
+            146
+          ],
+          [
+            74,
+            181,
+            148
+          ],
+          [
+            75,
+            180,
+            150
+          ],
+          [
+            76,
+            179,
+            152
+          ],
+          [
+            77,
+            178,
+            154
+          ],
+          [
+            78,
+            177,
+            156
+          ],
+          [
+            79,
+            176,
+            158
+          ],
+          [
+            80,
+            175,
+            160
+          ],
+          [
+            81,
+            174,
+            162
+          ],
+          [
+            82,
+            173,
+            164
+          ],
+          [
+            83,
+            172,
+            166
+          ],
+          [
+            84,
+            171,
+            168
+          ],
+          [
+            85,
+            170,
+            170
+          ],
+          [
+            86,
+            169,
+            172
+          ],
+          [
+            87,
+            168,
+            174
+          ],
+          [
+            88,
+            167,
+            176
+          ],
+          [
+            89,
+            166,
+            178
+          ],
+          [
+            90,
+            165,
+            180
+          ],
+          [
+            91,
+            164,
+            182
+          ],
+          [
+            92,
+            163,
+            184
+          ],
+          [
+            93,
+            162,
+            186
+          ],
+          [
+            94,
+            161,
+            188
+          ],
+          [
+            95,
+            160,
+            190
+          ],
+          [
+            96,
+            159,
+            192
+          ],
+          [
+            97,
+            158,
+            194
+          ],
+          [
+            98,
+            157,
+            196
+          ],
+          [
+            99,
+            156,
+            198
+          ],
+          [
+            100,
+            155,
+            200
+          ],
+          [
+            101,
+            154,
+            202
+          ],
+          [
+            102,
+            153,
+            204
+          ],
+          [
+            103,
+            152,
+            206
+          ],
+          [
+            104,
+            151,
+            208
+          ],
+          [
+            105,
+            150,
+            210
+          ],
+          [
+            106,
+            149,
+            212
+          ],
+          [
+            107,
+            148,
+            214
+          ],
+          [
+            108,
+            147,
+            216
+          ],
+          [
+            109,
+            146,
+            218
+          ],
+          [
+            110,
+            145,
+            220
+          ],
+          [
+            111,
+            144,
+            222
+          ],
+          [
+            112,
+            143,
+            224
+          ],
+          [
+            113,
+            142,
+            226
+          ],
+          [
+            114,
+            141,
+            228
+          ],
+          [
+            115,
+            140,
+            230
+          ],
+          [
+            116,
+            139,
+            232
+          ],
+          [
+            117,
+            138,
+            234
+          ],
+          [
+            118,
+            137,
+            236
+          ],
+          [
+            119,
+            136,
+            238
+          ],
+          [
+            120,
+            135,
+            240
+          ],
+          [
+            121,
+            134,
+            242
+          ],
+          [
+            122,
+            133,
+            244
+          ],
+          [
+            123,
+            132,
+            246
+          ],
+          [
+            124,
+            131,
+            248
+          ],
+          [
+            125,
+            130,
+            250
+          ],
+          [
+            126,
+            129,
+            252
+          ],
+          [
+            127,
+            128,
+            254
+          ],
+          [
+            128,
+            127,
+            0
+          ],
+          [
+            129,
+            126,
+            2
+          ],
+          [
+            130,
+            125,
+            4
+          ],
+          [
+            131,
+            124,
+            6
+          ],
+          [
+            132,
+            123,
+            8
+          ],
+          [
+            133,
+            122,
+            10
+          ],
+          [
+            134,
+            121,
+            12
+          ],
+          [
+            135,
+            120,
+            14
+          ],
+          [
+            136,
+            119,
+            16
+          ],
+          [
+            137,
+            118,
+            18
+          ],
+          [
+            138,
+            117,
+            20
+          ],
+          [
+            139,
+            116,
+            22
+          ],
+          [
+            140,
+            115,
+            24
+          ],
+          [
+            141,
+            114,
+            26
+          ],
+          [
+            142,
+            113,
+            28
+          ],
+          [
+            143,
+            112,
+            30
+          ],
+          [
+            144,
+            111,
+            32
+          ],
+          [
+            145,
+            110,
+            34
+          ],
+          [
+            146,
+            109,
+            36
+          ],
+          [
+            147,
+            108,
+            38
+          ],
+          [
+            148,
+            107,
+            40
+          ],
+          [
+            149,
+            106,
+            42
+          ],
+          [
+            150,
+            105,
+            44
+          ],
+          [
+            151,
+            104,
+            46
+          ],
+          [
+            152,
+            103,
+            48
+          ],
+          [
+            153,
+            102,
+            50
+          ],
+          [
+            154,
+            101,
+            52
+          ],
+          [
+            155,
+            100,
+            54
+          ],
+          [
+            156,
+            99,
+            56
+          ],
+          [
+            157,
+            98,
+            58
+          ],
+          [
+            158,
+            97,
+            60
+          ],
+          [
+            159,
+            96,
+            62
+          ],
+          [
+            160,
+            95,
+            64
+          ],
+          [
+            161,
+            94,
+            66
+          ],
+          [
+            162,
+            93,
+            68
+          ],
+          [
+            163,
+            92,
+            70
+          ],
+          [
+            164,
+            91,
+            72
+          ],
+          [
+            165,
+            90,
+            74
+          ],
+          [
+            166,
+            89,
+            76
+          ],
+          [
+            167,
+            88,
+            78
+          ],
+          [
+            168,
+            87,
+            80
+          ],
+          [
+            169,
+            86,
+            82
+          ],
+          [
+            170,
+            85,
+            84
+          ],
+          [
+            171,
+            84,
+            86
+          ],
+          [
+            172,
+            83,
+            88
+          ],
+          [
+            173,
+            82,
+            90
+          ],
+          [
+            174,
+            81,
+            92
+          ],
+          [
+            175,
+            80,
+            94
+          ],
+          [
+            176,
+            79,
+            96
+          ],
+          [
+            177,
+            78,
+            98
+          ],
+          [
+            178,
+            77,
+            100
+          ],
+          [
+            179,
+            76,
+            102
+          ],
+          [
+            180,
+            75,
+            104
+          ],
+          [
+            181,
+            74,
+            106
+          ],
+          [
+            182,
+            73,
+            108
+          ],
+          [
+            183,
+            72,
+            110
+          ],
+          [
+            184,
+            71,
+            112
+          ],
+          [
+            185,
+            70,
+            114
+          ],
+          [
+            186,
+            69,
+            116
+          ],
+          [
+            187,
+            68,
+            118
+          ],
+          [
+            188,
+            67,
+            120
+          ],
+          [
+            189,
+            66,
+            122
+          ],
+          [
+            190,
+            65,
+            124
+          ],
+          [
+            191,
+            64,
+            126
+          ],
+          [
+            192,
+            63,
+            128
+          ],
+          [
+            193,
+            62,
+            130
+          ],
+          [
+            194,
+            61,
+            132
+          ],
+          [
+            195,
+            60,
+            134
+          ],
+          [
+            196,
+            59,
+            136
+          ],
+          [
+            197,
+            58,
+            138
+          ],
+          [
+            198,
+            57,
+            140
+          ],
+          [
+            199,
+            56,
+            142
+          ],
+          [
+            200,
+            55,
+            144
+          ],
+          [
+            201,
+            54,
+            146
+          ],
+          [
+            202,
+            53,
+            148
+          ],
+          [
+            203,
+            52,
+            150
+          ],
+          [
+            204,
+            51,
+            152
+          ],
+          [
+            205,
+            50,
+            154
+          ],
+          [
+            206,
+            49,
+            156
+          ],
+          [
+            207,
+            48,
+            158
+          ],
+          [
+            208,
+            47,
+            160
+          ],
+          [
+            209,
+            46,
+            162
+          ],
+          [
+            210,
+            45,
+            164
+          ],
+          [
+            211,
+            44,
+            166
+          ],
+          [
+            212,
+            43,
+            168
+          ],
+          [
+            213,
+            42,
+            170
+          ],
+          [
+            214,
+            41,
+            172
+          ],
+          [
+            215,
+            40,
+            174
+          ],
+          [
+            216,
+            39,
+            176
+          ],
+          [
+            217,
+            38,
+            178
+          ],
+          [
+            218,
+            37,
+            180
+          ],
+          [
+            219,
+            36,
+            182
+          ],
+          [
+            220,
+            35,
+            184
+          ],
+          [
+            221,
+            34,
+            186
+          ],
+          [
+            222,
+            33,
+            188
+          ],
+          [
+            223,
+            32,
+            190
+          ],
+          [
+            224,
+            31,
+            192
+          ],
+          [
+            225,
+            30,
+            194
+          ],
+          [
+            226,
+            29,
+            196
+          ],
+          [
+            227,
+            28,
+            198
+          ],
+          [
+            228,
+            27,
+            200
+          ],
+          [
+            229,
+            26,
+            202
+          ],
+          [
+            230,
+            25,
+            204
+          ],
+          [
+            231,
+            24,
+            206
+          ],
+          [
+            232,
+            23,
+            208
+          ],
+          [
+            233,
+            22,
+            210
+          ],
+          [
+            234,
+            21,
+            212
+          ],
+          [
+            235,
+            20,
+            214
+          ],
+          [
+            236,
+            19,
+            216
+          ],
+          [
+            237,
+            18,
+            218
+          ],
+          [
+            238,
+            17,
+            220
+          ],
+          [
+            239,
+            16,
+            222
+          ],
+          [
+            240,
+            15,
+            224
+          ],
+          [
+            241,
+            14,
+            226
+          ],
+          [
+            242,
+            13,
+            228
+          ],
+          [
+            243,
+            12,
+            230
+          ],
+          [
+            244,
+            11,
+            232
+          ],
+          [
+            245,
+            10,
+            234
+          ],
+          [
+            246,
+            9,
+            236
+          ],
+          [
+            247,
+            8,
+            238
+          ],
+          [
+            248,
+            7,
+            240
+          ],
+          [
+            249,
+            6,
+            242
+          ],
+          [
+            250,
+            5,
+            244
+          ],
+          [
+            251,
+            4,
+            246
+          ],
+          [
+            252,
+            3,
+            248
+          ],
+          [
+            253,
+            2,
+            250
+          ],
+          [
+            254,
+            1,
+            252
+          ],
+          [
+            255,
+            0,
+            254
+          ]
+        ]
+      ],
+      "upstreamFn": "LUT over a caller-supplied table",
+      "goFn": "plot.ApplyCustomColorMap",
+      "mode": "exact"
+    },
+    {
+      "id": "grabcut-zero-mask",
+      "fn": "grabCut",
+      "args": [
+        {
+          "gen": "shapes",
+          "rows": 48,
+          "cols": 48,
+          "ch": 3
+        },
+        [
+          6,
+          6,
+          30,
+          30
+        ],
+        2,
+        "zeros"
+      ],
+      "upstreamFn": "cv2.grabCut/GC_INIT_WITH_RECT",
+      "goFn": "segmentation.GrabCut",
+      "mode": "exact",
+      "note": "known port finding: a freshly allocated all-zero mask is read as 'everything is background'"
+    },
+    {
+      "id": "grabcut-nil-mask",
+      "fn": "grabCut",
+      "args": [
+        {
+          "gen": "shapes",
+          "rows": 48,
+          "cols": 48,
+          "ch": 3
+        },
+        [
+          6,
+          6,
+          30,
+          30
+        ],
+        2,
+        "none"
+      ],
+      "upstreamFn": "cv2.grabCut/GC_INIT_WITH_RECT",
+      "goFn": "segmentation.GrabCut",
+      "mode": "exact",
+      "note": "the same call with a literal nil mask"
+    },
+    {
+      "id": "grabcut-nil-mask-1ch",
+      "fn": "grabCut",
+      "args": [
+        {
+          "gen": "shapes",
+          "rows": 48,
+          "cols": 48,
+          "ch": 1
+        },
+        [
+          6,
+          6,
+          30,
+          30
+        ],
+        2,
+        "none"
+      ],
+      "upstreamFn": "cv2.grabCut",
+      "goFn": "segmentation.GrabCut",
+      "mode": "exact",
+      "note": "single-channel input must fail on both sides"
+    },
+    {
+      "id": "sharpness-is-lapvar-gradnoise",
+      "fn": "sharpnessIsLaplacianVariance",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 4242,
+          "amp": 60
+        }
+      ],
+      "upstreamFn": "Laplacian variance vs Tenengrad",
+      "goFn": "quality.Sharpness vs quality.LaplacianVariance",
+      "mode": "exact",
+      "note": "known port finding: quality.Sharpness returns exactly quality.LaplacianVariance"
+    },
+    {
+      "id": "laplacian-variance-gradnoise",
+      "fn": "laplacianVariance",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 4242,
+          "amp": 60
+        }
+      ],
+      "upstreamFn": "cv2.Laplacian(CV_64F).var()",
+      "goFn": "quality.LaplacianVariance",
+      "mode": "tolerance",
+      "tol": 1e-06,
+      "relTol": 1e-09
+    },
+    {
+      "id": "sharpness-is-lapvar-shapes",
+      "fn": "sharpnessIsLaplacianVariance",
+      "args": [
+        {
+          "gen": "shapes",
+          "rows": 48,
+          "cols": 48,
+          "ch": 1
+        }
+      ],
+      "upstreamFn": "Laplacian variance vs Tenengrad",
+      "goFn": "quality.Sharpness vs quality.LaplacianVariance",
+      "mode": "exact",
+      "note": "known port finding: quality.Sharpness returns exactly quality.LaplacianVariance"
+    },
+    {
+      "id": "laplacian-variance-shapes",
+      "fn": "laplacianVariance",
+      "args": [
+        {
+          "gen": "shapes",
+          "rows": 48,
+          "cols": 48,
+          "ch": 1
+        }
+      ],
+      "upstreamFn": "cv2.Laplacian(CV_64F).var()",
+      "goFn": "quality.LaplacianVariance",
+      "mode": "tolerance",
+      "tol": 1e-06,
+      "relTol": 1e-09
+    },
+    {
+      "id": "sharpness-is-lapvar-noise",
+      "fn": "sharpnessIsLaplacianVariance",
+      "args": [
+        {
+          "gen": "noise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 20260810
+        }
+      ],
+      "upstreamFn": "Laplacian variance vs Tenengrad",
+      "goFn": "quality.Sharpness vs quality.LaplacianVariance",
+      "mode": "exact",
+      "note": "known port finding: quality.Sharpness returns exactly quality.LaplacianVariance"
+    },
+    {
+      "id": "laplacian-variance-noise",
+      "fn": "laplacianVariance",
+      "args": [
+        {
+          "gen": "noise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 20260810
+        }
+      ],
+      "upstreamFn": "cv2.Laplacian(CV_64F).var()",
+      "goFn": "quality.LaplacianVariance",
+      "mode": "tolerance",
+      "tol": 1e-06,
+      "relTol": 1e-09
+    },
+    {
+      "id": "psnr-gradient-noise",
+      "fn": "psnr",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        {
+          "gen": "noise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 20260810
+        }
+      ],
+      "upstreamFn": "cv2.PSNR",
+      "goFn": "quality.PSNR",
+      "mode": "tolerance",
+      "tol": 1e-06,
+      "relTol": 1e-09
+    },
+    {
+      "id": "psnr-identical",
+      "fn": "psnr",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        }
+      ],
+      "upstreamFn": "cv2.PSNR",
+      "goFn": "quality.PSNR",
+      "mode": "tolerance",
+      "tol": 1e-06,
+      "relTol": 1e-09,
+      "note": "cv2.PSNR caps identical images at ~361 dB; the port returns +Inf"
+    },
+    {
+      "id": "mse-gradient-noise",
+      "fn": "mseMat",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        {
+          "gen": "noise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 20260810
+        }
+      ],
+      "upstreamFn": "mean squared difference",
+      "goFn": "cv.MSE",
+      "mode": "tolerance",
+      "tol": 1e-06,
+      "relTol": 1e-09
+    },
+    {
+      "id": "mse-identical",
+      "fn": "mseMat",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3
+        },
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3
+        }
+      ],
+      "upstreamFn": "mean squared difference",
+      "goFn": "cv.MSE",
+      "mode": "tolerance",
+      "tol": 1e-09,
+      "relTol": 1e-09
+    }
+  ]
+}

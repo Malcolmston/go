@@ -1,0 +1,38 @@
+{
+  "group": "errors",
+  "upstream": "expect@29.7.0",
+  "note": "toThrow / toThrowError. Upstream accepts nothing, a substring, a regexp, an error class or an error instance; the port accepts only an optional substring, matched against the recovered panic value.",
+  "cases": [
+    {"id": "throw-bare-throws", "fn": "toThrow", "actual": {"$": "throws", "ctor": "Error", "message": "boom"}, "upstreamFn": "expect().toThrow", "goFn": "jest.Matcher.ToThrow"},
+    {"id": "throw-bare-clean", "fn": "toThrow", "actual": {"$": "throws", "ctor": "none"}, "upstreamFn": "expect().toThrow", "goFn": "jest.Matcher.ToThrow"},
+    {"id": "throw-bare-not-clean", "fn": "toThrow", "not": true, "actual": {"$": "throws", "ctor": "none"}, "upstreamFn": "expect().not.toThrow", "goFn": "jest.Matcher.Not().ToThrow"},
+    {"id": "throw-bare-not-throws", "fn": "toThrow", "not": true, "actual": {"$": "throws", "ctor": "Error", "message": "boom"}, "upstreamFn": "expect().not.toThrow", "goFn": "jest.Matcher.Not().ToThrow"},
+    {"id": "throw-string-thrown", "fn": "toThrow", "actual": {"$": "throws", "ctor": "string", "message": "plain string throw"}, "note": "throwing a non-Error value", "upstreamFn": "expect().toThrow", "goFn": "jest.Matcher.ToThrow"},
+    {"id": "throw-typeerror", "fn": "toThrow", "actual": {"$": "throws", "ctor": "TypeError", "message": "bad type"}, "upstreamFn": "expect().toThrow", "goFn": "jest.Matcher.ToThrow"},
+    {"id": "throw-empty-message", "fn": "toThrow", "actual": {"$": "throws", "ctor": "Error", "message": ""}, "upstreamFn": "expect().toThrow", "goFn": "jest.Matcher.ToThrow"},
+
+    {"id": "throw-substring-hit", "fn": "toThrow", "actual": {"$": "throws", "ctor": "Error", "message": "the thing exploded"}, "args": ["exploded"], "upstreamFn": "expect().toThrow", "goFn": "jest.Matcher.ToThrow"},
+    {"id": "throw-substring-miss", "fn": "toThrow", "actual": {"$": "throws", "ctor": "Error", "message": "the thing exploded"}, "args": ["imploded"], "upstreamFn": "expect().toThrow", "goFn": "jest.Matcher.ToThrow"},
+    {"id": "throw-substring-full-message", "fn": "toThrow", "actual": {"$": "throws", "ctor": "Error", "message": "exact"}, "args": ["exact"], "upstreamFn": "expect().toThrow", "goFn": "jest.Matcher.ToThrow"},
+    {"id": "throw-substring-no-throw", "fn": "toThrow", "actual": {"$": "throws", "ctor": "none"}, "args": ["anything"], "upstreamFn": "expect().toThrow", "goFn": "jest.Matcher.ToThrow"},
+    {"id": "throw-substring-on-string-throw", "fn": "toThrow", "actual": {"$": "throws", "ctor": "string", "message": "raw failure"}, "args": ["failure"], "upstreamFn": "expect().toThrow", "goFn": "jest.Matcher.ToThrow"},
+    {"id": "throw-substring-not-miss", "fn": "toThrow", "not": true, "actual": {"$": "throws", "ctor": "Error", "message": "boom"}, "args": ["bang"], "upstreamFn": "expect().not.toThrow", "goFn": "jest.Matcher.Not().ToThrow"},
+
+    {"id": "throw-regexp-hit", "fn": "toThrow", "actual": {"$": "throws", "ctor": "Error", "message": "code 42 failed"}, "args": [{"$": "regexp", "source": "code \\d+"}], "deviation": "the port's ToThrow takes a substring, not a regexp; the harness passes the pattern source, which cannot match", "upstreamFn": "expect().toThrow", "goFn": "jest.Matcher.ToThrow"},
+    {"id": "throw-regexp-miss", "fn": "toThrow", "actual": {"$": "throws", "ctor": "Error", "message": "nope"}, "args": [{"$": "regexp", "source": "code \\d+"}], "deviation": "same regexp gap, but both sides happen to agree that it does not match", "upstreamFn": "expect().toThrow", "goFn": "jest.Matcher.ToThrow"},
+    {"id": "throw-regexp-anchored", "fn": "toThrow", "actual": {"$": "throws", "ctor": "Error", "message": "boom"}, "args": [{"$": "regexp", "source": "^boom$"}], "deviation": "regexp form not supported by the port", "upstreamFn": "expect().toThrow", "goFn": "jest.Matcher.ToThrow"},
+
+    {"id": "throw-class-error", "fn": "toThrow", "actual": {"$": "throws", "ctor": "TypeError", "message": "x"}, "args": [{"$": "class", "name": "Error"}], "deviation": "the port's ToThrow cannot take a class; ToBeInstanceOf-style checks are a separate matcher there", "upstreamFn": "expect().toThrow", "goFn": "— (not expressible)"},
+    {"id": "throw-class-typeerror-hit", "fn": "toThrow", "actual": {"$": "throws", "ctor": "TypeError", "message": "x"}, "args": [{"$": "class", "name": "TypeError"}], "deviation": "class form not supported by the port", "upstreamFn": "expect().toThrow", "goFn": "— (not expressible)"},
+    {"id": "throw-class-typeerror-miss", "fn": "toThrow", "actual": {"$": "throws", "ctor": "RangeError", "message": "x"}, "args": [{"$": "class", "name": "TypeError"}], "deviation": "class form not supported by the port", "upstreamFn": "expect().toThrow", "goFn": "— (not expressible)"},
+
+    {"id": "throw-instance-hit", "fn": "toThrow", "actual": {"$": "throws", "ctor": "Error", "message": "boom"}, "args": [{"$": "error", "ctor": "Error", "message": "boom"}], "deviation": "the port's ToThrow cannot take an error value", "upstreamFn": "expect().toThrow", "goFn": "— (not expressible)"},
+    {"id": "throw-instance-miss", "fn": "toThrow", "actual": {"$": "throws", "ctor": "Error", "message": "boom"}, "args": [{"$": "error", "ctor": "Error", "message": "bang"}], "deviation": "the port's ToThrow cannot take an error value", "upstreamFn": "expect().toThrow", "goFn": "— (not expressible)"},
+
+    {"id": "throw-non-function-actual", "fn": "toThrow", "actual": 42, "note": "both sides must treat a non-callable receiver as a usage error", "upstreamFn": "expect().toThrow", "goFn": "jest.Matcher.ToThrow"},
+
+    {"id": "throwerror-alias-bare", "fn": "toThrowError", "actual": {"$": "throws", "ctor": "Error", "message": "boom"}, "upstreamFn": "expect().toThrowError", "goFn": "jest.Matcher.ToThrow"},
+    {"id": "throwerror-alias-substring", "fn": "toThrowError", "actual": {"$": "throws", "ctor": "Error", "message": "boom"}, "args": ["oo"], "upstreamFn": "expect().toThrowError", "goFn": "jest.Matcher.ToThrow"},
+    {"id": "throwerror-alias-clean", "fn": "toThrowError", "actual": {"$": "throws", "ctor": "none"}, "upstreamFn": "expect().toThrowError", "goFn": "jest.Matcher.ToThrow"}
+  ]
+}

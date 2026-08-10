@@ -1,0 +1,657 @@
+{
+  "group": "bitmaps",
+  "upstream": "redis-server@8.2.2",
+  "encoding": "commands are arrays of UTF-8 argument strings; replies map integer->number, bulk string->string, nil->null, simple string->{\"status\":s}, array->array, error->{\"error\":true}",
+  "cases": [
+    {
+      "id": "bitmap-setbit-getbit",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SETBIT",
+              "k",
+              "7",
+              "1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GETBIT",
+              "k",
+              "7"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GETBIT",
+              "k",
+              "6"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GETBIT",
+              "k",
+              "100"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "STRLEN",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TYPE",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SETBIT",
+              "k",
+              "15",
+              "1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "STRLEN",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GETBIT",
+              "k",
+              "15"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SETBIT",
+              "k",
+              "7",
+              "0"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GETBIT",
+              "k",
+              "7"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "STRLEN",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GETBIT",
+              "nokey",
+              "0"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "SETBIT/GETBIT",
+      "goFn": "Store.Do SETBIT/GETBIT",
+      "note": "SETBIT returns the PREVIOUS bit and zero-extends the string"
+    },
+    {
+      "id": "bitmap-bitcount",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "x",
+              "foobar"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "BITCOUNT",
+              "x"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "BITCOUNT",
+              "x",
+              "0",
+              "0"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "BITCOUNT",
+              "x",
+              "1",
+              "1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "BITCOUNT",
+              "x",
+              "0",
+              "-5"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "BITCOUNT",
+              "x",
+              "-2",
+              "-1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "BITCOUNT",
+              "x",
+              "5",
+              "30",
+              "BIT"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "BITCOUNT",
+              "x",
+              "0",
+              "-1",
+              "BIT"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "BITCOUNT",
+              "x",
+              "0",
+              "0",
+              "BIT"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "BITCOUNT",
+              "nokey"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "BITCOUNT",
+              "x",
+              "2",
+              "1"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "BITCOUNT key [start end [BYTE|BIT]]",
+      "goFn": "Store.Do BITCOUNT",
+      "note": ""
+    },
+    {
+      "id": "bitmap-bitpos",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "x",
+              "foobar"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "BITPOS",
+              "x",
+              "1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "BITPOS",
+              "x",
+              "0"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "BITPOS",
+              "x",
+              "1",
+              "2"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "BITPOS",
+              "x",
+              "1",
+              "0",
+              "-1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "BITPOS",
+              "x",
+              "1",
+              "2",
+              "-1",
+              "BYTE"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "BITPOS",
+              "x",
+              "1",
+              "0",
+              "-1",
+              "BIT"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "BITPOS",
+              "nokey",
+              "1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "BITPOS",
+              "nokey",
+              "0"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "z",
+              "\u0000\u0000\u0000"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "BITPOS",
+              "z",
+              "1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "BITPOS",
+              "z",
+              "0"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "BITPOS key bit [start [end [BYTE|BIT]]]",
+      "goFn": "Store.Do BITPOS",
+      "note": ""
+    },
+    {
+      "id": "bitmap-bitop",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "a",
+              "abc"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "b",
+              "abd"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "BITOP",
+              "AND",
+              "d1",
+              "a",
+              "b"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "d1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "STRLEN",
+              "d1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "BITOP",
+              "OR",
+              "d2",
+              "a",
+              "b"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "d2"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "BITOP",
+              "XOR",
+              "d3",
+              "a",
+              "b"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "BITCOUNT",
+              "d3"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "STRLEN",
+              "d3"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "BITOP",
+              "NOT",
+              "d4",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "BITCOUNT",
+              "d4"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "STRLEN",
+              "d4"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "long",
+              "abcdef"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "BITOP",
+              "AND",
+              "d5",
+              "a",
+              "long"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "STRLEN",
+              "d5"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "BITCOUNT",
+              "d5"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "FLUSHALL"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "BITOP AND|OR|XOR|NOT",
+      "goFn": "Store.Do BITOP",
+      "note": "FLUSHALL at the end keeps binary results out of the dump; they are compared through BITCOUNT/STRLEN instead"
+    },
+    {
+      "id": "bitmap-errors",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SETBIT",
+              "k",
+              "7",
+              "2"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SETBIT",
+              "k",
+              "-1",
+              "1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SETBIT",
+              "k",
+              "abc",
+              "1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SETBIT",
+              "k",
+              "7"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GETBIT",
+              "k",
+              "x"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GETBIT",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "BITCOUNT",
+              "x",
+              "1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "BITCOUNT",
+              "x",
+              "0",
+              "1",
+              "NIBBLE"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "BITCOUNT"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "BITPOS",
+              "x"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "BITOP",
+              "BOGUS",
+              "d",
+              "x"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "BITOP",
+              "NOT",
+              "d",
+              "a",
+              "b"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "RPUSH",
+              "l",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SETBIT",
+              "l",
+              "7",
+              "1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "BITCOUNT",
+              "l"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GETBIT",
+              "l",
+              "0"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "BITOP",
+              "AND",
+              "d",
+              "l"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "KEYS",
+              "*"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "SETBIT/GETBIT/BITCOUNT/BITPOS/BITOP",
+      "goFn": "Store.Do (bitmap errors)",
+      "note": "wrong bit values, bad ranges, unknown units and WRONGTYPE"
+    }
+  ]
+}

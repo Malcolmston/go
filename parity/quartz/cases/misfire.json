@@ -1,0 +1,15 @@
+{
+  "group": "misfire",
+  "upstream": "org.quartz-scheduler:quartz@2.5.0",
+  "note": "Misfire-instruction classification is only partly expressible: every upstream updateAfterMisfire path except MISFIRE_INSTRUCTION_IGNORE_MISFIRE_POLICY is implemented against `new Date()`, so it is not a pure function of a supplied instant and cannot be compared deterministically (see COVERAGE.md). The ignore path is compared here: it must leave the computed next fire time untouched. args = [\"cron\", tz, expr, startInstantUTC] or [\"simple\", startInstantUTC, intervalMillis, repeatCount].",
+  "cases": [
+    { "id": "misfire-ignore-cron-daily", "fn": "misfireIgnoreNext", "args": ["cron", "UTC", "0 0 12 * * ?", "2026-01-01T00:00:00Z"], "upstreamFn": "org.quartz.impl.triggers.CronTriggerImpl.updateAfterMisfire", "goFn": "quartz.CronTrigger.UpdateAfterMisfire" },
+    { "id": "misfire-ignore-cron-start-is-fire", "fn": "misfireIgnoreNext", "args": ["cron", "UTC", "0 0 12 * * ?", "2026-01-01T12:00:00Z"], "upstreamFn": "org.quartz.impl.triggers.CronTriggerImpl.updateAfterMisfire", "goFn": "quartz.CronTrigger.UpdateAfterMisfire" },
+    { "id": "misfire-ignore-cron-zoned", "fn": "misfireIgnoreNext", "args": ["cron", "America/New_York", "0 30 8 ? * MON-FRI", "2026-03-06T00:00:00Z"], "upstreamFn": "org.quartz.impl.triggers.CronTriggerImpl.updateAfterMisfire", "goFn": "quartz.CronTrigger.UpdateAfterMisfire" },
+    { "id": "misfire-ignore-cron-impossible", "fn": "misfireIgnoreNext", "args": ["cron", "UTC", "0 0 12 30 2 ?", "2026-01-01T00:00:00Z"], "upstreamFn": "org.quartz.impl.triggers.CronTriggerImpl.updateAfterMisfire", "goFn": "quartz.CronTrigger.UpdateAfterMisfire", "note": "no fire time exists at all" },
+    { "id": "misfire-ignore-simple-forever", "fn": "misfireIgnoreNext", "args": ["simple", "2026-01-01T00:00:00Z", 60000, -1], "upstreamFn": "org.quartz.impl.triggers.SimpleTriggerImpl.updateAfterMisfire", "goFn": "quartz.SimpleTrigger.UpdateAfterMisfire" },
+    { "id": "misfire-ignore-simple-once", "fn": "misfireIgnoreNext", "args": ["simple", "2026-05-05T05:05:05Z", 1000, 0], "upstreamFn": "org.quartz.impl.triggers.SimpleTriggerImpl.updateAfterMisfire", "goFn": "quartz.SimpleTrigger.UpdateAfterMisfire" },
+    { "id": "misfire-ignore-simple-repeat-3", "fn": "misfireIgnoreNext", "args": ["simple", "2026-01-01T00:00:00Z", 3600000, 3], "upstreamFn": "org.quartz.impl.triggers.SimpleTriggerImpl.updateAfterMisfire", "goFn": "quartz.SimpleTrigger.UpdateAfterMisfire" },
+    { "id": "misfire-unknown-kind", "fn": "misfireIgnoreNext", "args": ["calendarInterval", "UTC", "2026-01-01T00:00:00Z"], "upstreamFn": "—", "goFn": "—", "note": "both runners must reject an unknown kind" }
+  ]
+}

@@ -1,0 +1,611 @@
+{
+  "group": "linalg",
+  "upstream": "numpy@2.2.6",
+  "cases": [
+    {
+      "id": "matmul-2x3-3x2",
+      "fn": "matmul",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        {
+          "arr": [
+            [
+              1.0,
+              2.0
+            ],
+            [
+              3.0,
+              4.0
+            ],
+            [
+              5.0,
+              6.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.matmul",
+      "goFn": "numpy.NDArray.MatMul"
+    },
+    {
+      "id": "matmul-3x3",
+      "fn": "matmul",
+      "args": [
+        {
+          "arr": [
+            [
+              2.0,
+              -1.0,
+              0.5
+            ],
+            [
+              3.0,
+              4.0,
+              -2.0
+            ],
+            [
+              1.0,
+              0.0,
+              7.0
+            ]
+          ]
+        },
+        {
+          "arr": [
+            [
+              2.0,
+              -1.0,
+              0.5
+            ],
+            [
+              3.0,
+              4.0,
+              -2.0
+            ],
+            [
+              1.0,
+              0.0,
+              7.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.matmul",
+      "goFn": "numpy.NDArray.MatMul"
+    },
+    {
+      "id": "matmul-identity",
+      "fn": "matmul",
+      "args": [
+        {
+          "arr": [
+            [
+              2.0,
+              -1.0,
+              0.5
+            ],
+            [
+              3.0,
+              4.0,
+              -2.0
+            ],
+            [
+              1.0,
+              0.0,
+              7.0
+            ]
+          ]
+        },
+        {
+          "arr": [
+            [
+              1.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.matmul",
+      "goFn": "numpy.NDArray.MatMul"
+    },
+    {
+      "id": "matmul-mismatch",
+      "fn": "matmul",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.matmul",
+      "goFn": "numpy.NDArray.MatMul",
+      "note": "must FAIL on both sides"
+    },
+    {
+      "id": "matmul-1d-2d",
+      "fn": "matmul",
+      "args": [
+        {
+          "arr": [
+            1.0,
+            2.0
+          ]
+        },
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.matmul",
+      "goFn": "numpy.NDArray.MatMul",
+      "deviation": "numpy promotes 1-D operands; the port requires both to be 2-D"
+    },
+    {
+      "id": "matmul-3d-error",
+      "fn": "matmul",
+      "args": [
+        {
+          "arr": [
+            [
+              [
+                0.0,
+                1.0,
+                2.0,
+                3.0
+              ],
+              [
+                4.0,
+                5.0,
+                6.0,
+                7.0
+              ],
+              [
+                8.0,
+                9.0,
+                10.0,
+                11.0
+              ]
+            ],
+            [
+              [
+                12.0,
+                13.0,
+                14.0,
+                15.0
+              ],
+              [
+                16.0,
+                17.0,
+                18.0,
+                19.0
+              ],
+              [
+                20.0,
+                21.0,
+                22.0,
+                23.0
+              ]
+            ]
+          ]
+        },
+        {
+          "arr": [
+            [
+              [
+                0.0,
+                1.0,
+                2.0,
+                3.0
+              ],
+              [
+                4.0,
+                5.0,
+                6.0,
+                7.0
+              ],
+              [
+                8.0,
+                9.0,
+                10.0,
+                11.0
+              ]
+            ],
+            [
+              [
+                12.0,
+                13.0,
+                14.0,
+                15.0
+              ],
+              [
+                16.0,
+                17.0,
+                18.0,
+                19.0
+              ],
+              [
+                20.0,
+                21.0,
+                22.0,
+                23.0
+              ]
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.matmul",
+      "goFn": "numpy.NDArray.MatMul",
+      "note": "numpy batches over the leading axes; the port rejects >2-D"
+    },
+    {
+      "id": "dot-1d",
+      "fn": "dot",
+      "args": [
+        {
+          "arr": [
+            1.0,
+            2.0,
+            3.0
+          ]
+        },
+        {
+          "arr": [
+            4.0,
+            -5.0,
+            6.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.dot",
+      "goFn": "numpy.NDArray.Dot",
+      "deviation": "numpy returns a 0-d scalar; the port returns a shape (1) array"
+    },
+    {
+      "id": "dot-2d",
+      "fn": "dot",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        {
+          "arr": [
+            [
+              1.0,
+              2.0
+            ],
+            [
+              3.0,
+              4.0
+            ],
+            [
+              5.0,
+              6.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.dot",
+      "goFn": "numpy.NDArray.Dot"
+    },
+    {
+      "id": "dot-1d-mismatch",
+      "fn": "dot",
+      "args": [
+        {
+          "arr": [
+            1.0,
+            2.0
+          ]
+        },
+        {
+          "arr": [
+            1.0,
+            2.0,
+            3.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.dot",
+      "goFn": "numpy.NDArray.Dot",
+      "note": "must FAIL on both sides"
+    },
+    {
+      "id": "dot-1d-2d",
+      "fn": "dot",
+      "args": [
+        {
+          "arr": [
+            1.0,
+            2.0
+          ]
+        },
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.dot",
+      "goFn": "numpy.NDArray.Dot",
+      "deviation": "numpy supports mixed 1-D/2-D dot; the port panics"
+    },
+    {
+      "id": "outer-2x3",
+      "fn": "outer",
+      "args": [
+        {
+          "arr": [
+            1.0,
+            2.0
+          ]
+        },
+        {
+          "arr": [
+            3.0,
+            4.0,
+            5.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.outer",
+      "goFn": "numpy.NDArray.Outer"
+    },
+    {
+      "id": "outer-flattens",
+      "fn": "outer",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        {
+          "arr": [
+            1.0,
+            -1.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.outer",
+      "goFn": "numpy.NDArray.Outer"
+    },
+    {
+      "id": "trace-3x3",
+      "fn": "trace",
+      "args": [
+        {
+          "arr": [
+            [
+              2.0,
+              -1.0,
+              0.5
+            ],
+            [
+              3.0,
+              4.0,
+              -2.0
+            ],
+            [
+              1.0,
+              0.0,
+              7.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.trace",
+      "goFn": "numpy.NDArray.Trace"
+    },
+    {
+      "id": "trace-2x3",
+      "fn": "trace",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.trace",
+      "goFn": "numpy.NDArray.Trace"
+    },
+    {
+      "id": "trace-1d-error",
+      "fn": "trace",
+      "args": [
+        {
+          "arr": [
+            5.0,
+            3.0,
+            8.0,
+            1.0,
+            9.0,
+            2.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.trace",
+      "goFn": "numpy.NDArray.Trace",
+      "note": "must FAIL on both sides"
+    },
+    {
+      "id": "norm-1d",
+      "fn": "norm",
+      "args": [
+        {
+          "arr": [
+            3.0,
+            4.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.linalg.norm",
+      "goFn": "numpy.NDArray.Norm"
+    },
+    {
+      "id": "norm-2d-frobenius",
+      "fn": "norm",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.linalg.norm",
+      "goFn": "numpy.NDArray.Norm"
+    },
+    {
+      "id": "cross-3x3",
+      "fn": "cross",
+      "args": [
+        {
+          "arr": [
+            1.0,
+            2.0,
+            3.0
+          ]
+        },
+        {
+          "arr": [
+            4.0,
+            5.0,
+            6.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.cross",
+      "goFn": "numpy.NDArray.Cross"
+    },
+    {
+      "id": "cross-bad-len",
+      "fn": "cross",
+      "args": [
+        {
+          "arr": [
+            1.0,
+            2.0,
+            3.0,
+            4.0
+          ]
+        },
+        {
+          "arr": [
+            1.0,
+            2.0,
+            3.0,
+            4.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.cross",
+      "goFn": "numpy.NDArray.Cross",
+      "note": "must FAIL on both sides"
+    }
+  ]
+}

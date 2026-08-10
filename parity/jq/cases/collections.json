@@ -1,0 +1,844 @@
+{
+  "group": "collections",
+  "upstream": "jq@1.7.1",
+  "encoding": "args = [jq program, input JSON value, optional $variables object]; value = the complete output stream as a JSON array",
+  "cases": [
+    {
+      "id": "sort-nums",
+      "fn": "run",
+      "args": [
+        "sort",
+        [
+          3,
+          1,
+          2
+        ]
+      ],
+      "upstreamFn": "sort/0",
+      "goFn": "sort/0"
+    },
+    {
+      "id": "sort-mixed-types",
+      "fn": "run",
+      "args": [
+        "sort",
+        [
+          {
+            "a": 1
+          },
+          [
+            1
+          ],
+          "s",
+          1,
+          true,
+          false,
+          null
+        ]
+      ],
+      "upstreamFn": "sort/0",
+      "goFn": "sort/0"
+    },
+    {
+      "id": "sort-objects",
+      "fn": "run",
+      "args": [
+        "sort",
+        [
+          {
+            "b": 1
+          },
+          {
+            "a": 2
+          },
+          {
+            "a": 1
+          }
+        ]
+      ],
+      "upstreamFn": "sort/0",
+      "goFn": "sort/0"
+    },
+    {
+      "id": "sort-nonarray-err",
+      "fn": "run",
+      "args": [
+        "sort",
+        5
+      ],
+      "upstreamFn": "sort/0",
+      "goFn": "sort/0"
+    },
+    {
+      "id": "sort-by-key",
+      "fn": "run",
+      "args": [
+        "sort_by(.a)",
+        [
+          {
+            "a": 3
+          },
+          {
+            "a": 1
+          },
+          {
+            "a": 2
+          }
+        ]
+      ],
+      "upstreamFn": "sort_by/1",
+      "goFn": "sort_by/1"
+    },
+    {
+      "id": "sort-by-multi",
+      "fn": "run",
+      "args": [
+        "sort_by(.a, .b)",
+        [
+          {
+            "a": 1,
+            "b": 2
+          },
+          {
+            "a": 1,
+            "b": 1
+          },
+          {
+            "a": 0,
+            "b": 9
+          }
+        ]
+      ],
+      "upstreamFn": "sort_by/1",
+      "goFn": "sort_by/1"
+    },
+    {
+      "id": "sort-by-stable",
+      "fn": "run",
+      "args": [
+        "sort_by(.a)|map(.i)",
+        [
+          {
+            "a": 1,
+            "i": 0
+          },
+          {
+            "a": 1,
+            "i": 1
+          },
+          {
+            "a": 0,
+            "i": 2
+          }
+        ]
+      ],
+      "upstreamFn": "sort_by/1",
+      "goFn": "sort_by/1",
+      "note": "stability"
+    },
+    {
+      "id": "sort-by-nonarray-err",
+      "fn": "run",
+      "args": [
+        "sort_by(.)",
+        {
+          "a": 1
+        }
+      ],
+      "upstreamFn": "sort_by/1",
+      "goFn": "sort_by/1"
+    },
+    {
+      "id": "group-by",
+      "fn": "run",
+      "args": [
+        "group_by(.a)",
+        [
+          {
+            "a": 1,
+            "x": 1
+          },
+          {
+            "a": 2
+          },
+          {
+            "a": 1,
+            "x": 2
+          }
+        ]
+      ],
+      "upstreamFn": "group_by/1",
+      "goFn": "group_by/1"
+    },
+    {
+      "id": "group-by-nonarray-err",
+      "fn": "run",
+      "args": [
+        "group_by(.)",
+        "a"
+      ],
+      "upstreamFn": "group_by/1",
+      "goFn": "group_by/1"
+    },
+    {
+      "id": "unique",
+      "fn": "run",
+      "args": [
+        "unique",
+        [
+          3,
+          1,
+          3,
+          2,
+          1
+        ]
+      ],
+      "upstreamFn": "unique/0",
+      "goFn": "unique/0"
+    },
+    {
+      "id": "unique-mixed",
+      "fn": "run",
+      "args": [
+        "unique",
+        [
+          null,
+          null,
+          1,
+          1.0,
+          "a",
+          "a"
+        ]
+      ],
+      "upstreamFn": "unique/0",
+      "goFn": "unique/0"
+    },
+    {
+      "id": "unique-nonarray-err",
+      "fn": "run",
+      "args": [
+        "unique",
+        "a"
+      ],
+      "upstreamFn": "unique/0",
+      "goFn": "unique/0"
+    },
+    {
+      "id": "unique-by",
+      "fn": "run",
+      "args": [
+        "unique_by(.a)",
+        [
+          {
+            "a": 1,
+            "i": 1
+          },
+          {
+            "a": 1,
+            "i": 2
+          },
+          {
+            "a": 2
+          }
+        ]
+      ],
+      "upstreamFn": "unique_by/1",
+      "goFn": "unique_by/1"
+    },
+    {
+      "id": "unique-by-length",
+      "fn": "run",
+      "args": [
+        "unique_by(length)",
+        [
+          "a",
+          "bb",
+          "cc",
+          "ddd"
+        ]
+      ],
+      "upstreamFn": "unique_by/1",
+      "goFn": "unique_by/1"
+    },
+    {
+      "id": "min-max",
+      "fn": "run",
+      "args": [
+        "[min, max]",
+        [
+          3,
+          1,
+          2
+        ]
+      ],
+      "upstreamFn": "min/0",
+      "goFn": "min/0"
+    },
+    {
+      "id": "min-max-empty",
+      "fn": "run",
+      "args": [
+        "[min, max]",
+        []
+      ],
+      "upstreamFn": "min/0",
+      "goFn": "min/0"
+    },
+    {
+      "id": "min-by-max-by",
+      "fn": "run",
+      "args": [
+        "[min_by(.a), max_by(.a)]",
+        [
+          {
+            "a": 3
+          },
+          {
+            "a": 1
+          },
+          {
+            "a": 2
+          }
+        ]
+      ],
+      "upstreamFn": "min_by/1",
+      "goFn": "min_by/1"
+    },
+    {
+      "id": "min-by-empty",
+      "fn": "run",
+      "args": [
+        "[min_by(.a)]",
+        []
+      ],
+      "upstreamFn": "min_by/1",
+      "goFn": "min_by/1"
+    },
+    {
+      "id": "max-by-only",
+      "fn": "run",
+      "args": [
+        "max_by(.a)",
+        [
+          {
+            "a": 1
+          },
+          {
+            "a": 5
+          }
+        ]
+      ],
+      "upstreamFn": "max_by/1",
+      "goFn": "max_by/1"
+    },
+    {
+      "id": "reverse-array",
+      "fn": "run",
+      "args": [
+        "reverse",
+        [
+          1,
+          2,
+          3
+        ]
+      ],
+      "upstreamFn": "reverse/0",
+      "goFn": "reverse/0"
+    },
+    {
+      "id": "reverse-string",
+      "fn": "run",
+      "args": [
+        "reverse",
+        "abc"
+      ],
+      "upstreamFn": "reverse/0",
+      "goFn": "reverse/0",
+      "note": "jq 1.7 cannot reverse a string; the port can"
+    },
+    {
+      "id": "reverse-null",
+      "fn": "run",
+      "args": [
+        "reverse",
+        null
+      ],
+      "upstreamFn": "reverse/0",
+      "goFn": "reverse/0"
+    },
+    {
+      "id": "reverse-num-err",
+      "fn": "run",
+      "args": [
+        "reverse",
+        5
+      ],
+      "upstreamFn": "reverse/0",
+      "goFn": "reverse/0"
+    },
+    {
+      "id": "add-array",
+      "fn": "run",
+      "args": [
+        "add",
+        [
+          1,
+          2,
+          3
+        ]
+      ],
+      "upstreamFn": "add/0",
+      "goFn": "add/0"
+    },
+    {
+      "id": "add-strings",
+      "fn": "run",
+      "args": [
+        "add",
+        [
+          "a",
+          "b"
+        ]
+      ],
+      "upstreamFn": "add/0",
+      "goFn": "add/0"
+    },
+    {
+      "id": "add-empty",
+      "fn": "run",
+      "args": [
+        "add",
+        []
+      ],
+      "upstreamFn": "add/0",
+      "goFn": "add/0"
+    },
+    {
+      "id": "add-object",
+      "fn": "run",
+      "args": [
+        "add",
+        {
+          "a": 1,
+          "b": 2
+        }
+      ],
+      "upstreamFn": "add/0",
+      "goFn": "add/0"
+    },
+    {
+      "id": "add-mixed-err",
+      "fn": "run",
+      "args": [
+        "add",
+        [
+          1,
+          "a"
+        ]
+      ],
+      "upstreamFn": "add/0",
+      "goFn": "add/0"
+    },
+    {
+      "id": "any-all",
+      "fn": "run",
+      "args": [
+        "[any, all]",
+        [
+          true,
+          false
+        ]
+      ],
+      "upstreamFn": "any/0",
+      "goFn": "any/0"
+    },
+    {
+      "id": "any-all-empty",
+      "fn": "run",
+      "args": [
+        "[any, all]",
+        []
+      ],
+      "upstreamFn": "any/0",
+      "goFn": "any/0"
+    },
+    {
+      "id": "any-all-cond",
+      "fn": "run",
+      "args": [
+        "[any(.>2), all(.>0)]",
+        [
+          1,
+          2,
+          3
+        ]
+      ],
+      "upstreamFn": "any/1",
+      "goFn": "any/1"
+    },
+    {
+      "id": "any-all-gen",
+      "fn": "run",
+      "args": [
+        "[any(range(3); . == 1), all(range(3); . > 0)]",
+        null
+      ],
+      "upstreamFn": "any/2",
+      "goFn": "any/2"
+    },
+    {
+      "id": "flatten-default",
+      "fn": "run",
+      "args": [
+        "flatten",
+        [
+          1,
+          [
+            2,
+            [
+              3,
+              [
+                4
+              ]
+            ]
+          ]
+        ]
+      ],
+      "upstreamFn": "flatten/0",
+      "goFn": "flatten/0"
+    },
+    {
+      "id": "flatten-depth",
+      "fn": "run",
+      "args": [
+        "flatten(1)",
+        [
+          1,
+          [
+            2,
+            [
+              3
+            ]
+          ]
+        ]
+      ],
+      "upstreamFn": "flatten/1",
+      "goFn": "flatten/1"
+    },
+    {
+      "id": "flatten-neg-err",
+      "fn": "run",
+      "args": [
+        "flatten(-1)",
+        [
+          [
+            1
+          ]
+        ]
+      ],
+      "upstreamFn": "flatten/1",
+      "goFn": "flatten/1"
+    },
+    {
+      "id": "flatten-nonarray",
+      "fn": "run",
+      "args": [
+        "flatten",
+        {
+          "a": 1
+        }
+      ],
+      "upstreamFn": "flatten/0",
+      "goFn": "flatten/0",
+      "note": "jq flattens an object's values; the port errors"
+    },
+    {
+      "id": "select-basic",
+      "fn": "run",
+      "args": [
+        "[.[]|select(. > 1)]",
+        [
+          1,
+          2,
+          3
+        ]
+      ],
+      "upstreamFn": "select/1",
+      "goFn": "select/1"
+    },
+    {
+      "id": "select-truthy",
+      "fn": "run",
+      "args": [
+        "[.[]|select(.)]",
+        [
+          null,
+          false,
+          0,
+          "",
+          1
+        ]
+      ],
+      "upstreamFn": "select/1",
+      "goFn": "select/1"
+    },
+    {
+      "id": "map-basic",
+      "fn": "run",
+      "args": [
+        "map(.+1)",
+        [
+          1,
+          2
+        ]
+      ],
+      "upstreamFn": "map/1",
+      "goFn": "map/1"
+    },
+    {
+      "id": "map-object",
+      "fn": "run",
+      "args": [
+        "map(.)",
+        {
+          "a": 1,
+          "b": 2
+        }
+      ],
+      "upstreamFn": "map/1",
+      "goFn": "map/1"
+    },
+    {
+      "id": "map-values-obj",
+      "fn": "run",
+      "args": [
+        "map_values(.+1)",
+        {
+          "a": 1,
+          "b": 2
+        }
+      ],
+      "upstreamFn": "map_values/1",
+      "goFn": "map_values/1"
+    },
+    {
+      "id": "map-values-empty",
+      "fn": "run",
+      "args": [
+        "map_values(empty)",
+        {
+          "a": 1,
+          "b": 2
+        }
+      ],
+      "upstreamFn": "map_values/1",
+      "goFn": "map_values/1"
+    },
+    {
+      "id": "map-values-many",
+      "fn": "run",
+      "args": [
+        "map_values(.,.)",
+        {
+          "a": 1
+        }
+      ],
+      "upstreamFn": "map_values/1",
+      "goFn": "map_values/1",
+      "note": "only the first value of the stream is kept"
+    },
+    {
+      "id": "transpose",
+      "fn": "run",
+      "args": [
+        "transpose",
+        [
+          [
+            1,
+            2
+          ],
+          [
+            3
+          ]
+        ]
+      ],
+      "upstreamFn": "transpose/0",
+      "goFn": "transpose/0"
+    },
+    {
+      "id": "transpose-uneven",
+      "fn": "run",
+      "args": [
+        "transpose",
+        [
+          [
+            1,
+            2,
+            3
+          ],
+          [
+            4
+          ]
+        ]
+      ],
+      "upstreamFn": "transpose/0",
+      "goFn": "transpose/0"
+    },
+    {
+      "id": "bsearch-found",
+      "fn": "run",
+      "args": [
+        "[bsearch(2), bsearch(5)]",
+        [
+          1,
+          2,
+          3
+        ]
+      ],
+      "upstreamFn": "bsearch/1",
+      "goFn": "bsearch/1"
+    },
+    {
+      "id": "bsearch-insert",
+      "fn": "run",
+      "args": [
+        "bsearch(2.5)",
+        [
+          1,
+          2,
+          3
+        ]
+      ],
+      "upstreamFn": "bsearch/1",
+      "goFn": "bsearch/1"
+    },
+    {
+      "id": "combinations",
+      "fn": "run",
+      "args": [
+        "[combinations]",
+        [
+          [
+            1,
+            2
+          ],
+          [
+            3,
+            4
+          ]
+        ]
+      ],
+      "upstreamFn": "combinations/0",
+      "goFn": "combinations/0"
+    },
+    {
+      "id": "combinations-n",
+      "fn": "run",
+      "args": [
+        "[combinations(2)]",
+        [
+          0,
+          1
+        ]
+      ],
+      "upstreamFn": "combinations/1",
+      "goFn": "combinations/1"
+    },
+    {
+      "id": "in-filter-1",
+      "fn": "run",
+      "args": [
+        "[1,5|IN(1,2,3)]",
+        null
+      ],
+      "upstreamFn": "IN/1",
+      "goFn": "IN/1"
+    },
+    {
+      "id": "in-filter-2",
+      "fn": "run",
+      "args": [
+        "[IN(range(3); 2)]",
+        null
+      ],
+      "upstreamFn": "IN/2",
+      "goFn": "IN/2"
+    },
+    {
+      "id": "index-builtin-1",
+      "fn": "run",
+      "args": [
+        "INDEX(.[]; .id)",
+        [
+          {
+            "id": "a"
+          },
+          {
+            "id": "b"
+          }
+        ]
+      ],
+      "upstreamFn": "INDEX/2",
+      "goFn": "INDEX/2"
+    },
+    {
+      "id": "index-builtin-2",
+      "fn": "run",
+      "args": [
+        "INDEX(.id)",
+        [
+          {
+            "id": "a"
+          },
+          {
+            "id": "b"
+          }
+        ]
+      ],
+      "upstreamFn": "INDEX/1",
+      "goFn": "INDEX/1"
+    },
+    {
+      "id": "join-builtin-2",
+      "fn": "run",
+      "args": [
+        "[JOIN({\"a\":{\"z\":1}}; .a)]",
+        [
+          {
+            "a": "a"
+          }
+        ]
+      ],
+      "upstreamFn": "JOIN/2",
+      "goFn": "JOIN/2"
+    },
+    {
+      "id": "join-builtin-3",
+      "fn": "run",
+      "args": [
+        "[JOIN({\"a\":1}; .[]; .k; .)]",
+        [
+          {
+            "k": "a"
+          }
+        ]
+      ],
+      "upstreamFn": "JOIN/3",
+      "goFn": "JOIN/3"
+    },
+    {
+      "id": "join-builtin-4",
+      "fn": "run",
+      "args": [
+        "[JOIN({\"a\":1}; .[]; .k; [.])]",
+        [
+          {
+            "k": "a"
+          }
+        ]
+      ],
+      "upstreamFn": "JOIN/4",
+      "goFn": "JOIN/4"
+    }
+  ]
+}

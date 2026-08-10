@@ -1,0 +1,30 @@
+{
+  "group": "util",
+  "upstream": "lucene@9.11.1",
+  "cases": [
+    {"id": "wc-prefix", "fn": "wildcardMatch", "args": ["net*", "network"], "upstreamFn": "WildcardQuery.getAutomaton", "goFn": "lucene.WildcardMatch"},
+    {"id": "wc-suffix", "fn": "wildcardMatch", "args": ["*work", "network"], "upstreamFn": "WildcardQuery.getAutomaton", "goFn": "lucene.WildcardMatch"},
+    {"id": "wc-single", "fn": "wildcardMatch", "args": ["n?twork", "network"], "upstreamFn": "WildcardQuery.getAutomaton", "goFn": "lucene.WildcardMatch"},
+    {"id": "wc-single-no", "fn": "wildcardMatch", "args": ["n?work", "network"], "upstreamFn": "WildcardQuery.getAutomaton", "goFn": "lucene.WildcardMatch"},
+    {"id": "wc-star-all", "fn": "wildcardMatch", "args": ["*", "anything"], "upstreamFn": "WildcardQuery.getAutomaton", "goFn": "lucene.WildcardMatch"},
+    {"id": "wc-star-empty", "fn": "wildcardMatch", "args": ["*", ""], "upstreamFn": "WildcardQuery.getAutomaton", "goFn": "lucene.WildcardMatch"},
+    {"id": "wc-empty-empty", "fn": "wildcardMatch", "args": ["", ""], "upstreamFn": "WildcardQuery.getAutomaton", "goFn": "lucene.WildcardMatch", "note": "an empty pattern compiles to the empty automaton upstream, matching nothing; the port matches the empty string"},
+    {"id": "wc-empty-nonempty", "fn": "wildcardMatch", "args": ["", "x"], "upstreamFn": "WildcardQuery.getAutomaton", "goFn": "lucene.WildcardMatch"},
+    {"id": "wc-qmark-empty", "fn": "wildcardMatch", "args": ["?", ""], "upstreamFn": "WildcardQuery.getAutomaton", "goFn": "lucene.WildcardMatch"},
+    {"id": "wc-multi-star", "fn": "wildcardMatch", "args": ["a*b*c", "axxbyyc"], "upstreamFn": "WildcardQuery.getAutomaton", "goFn": "lucene.WildcardMatch"},
+    {"id": "wc-backtrack", "fn": "wildcardMatch", "args": ["a*bc", "abcbxbc"], "upstreamFn": "WildcardQuery.getAutomaton", "goFn": "lucene.WildcardMatch"},
+    {"id": "wc-escaped-star", "fn": "wildcardMatch", "args": ["a\\*b", "a*b"], "upstreamFn": "WildcardQuery.getAutomaton", "goFn": "lucene.WildcardMatch", "note": "Lucene honours backslash escapes; the port has no escape mechanism"},
+    {"id": "wc-brackets-literal", "fn": "wildcardMatch", "args": ["[abc]", "[abc]"], "upstreamFn": "WildcardQuery.getAutomaton", "goFn": "lucene.WildcardMatch"},
+    {"id": "wc-unicode", "fn": "wildcardMatch", "args": ["日?語", "日本語"], "upstreamFn": "WildcardQuery.getAutomaton", "goFn": "lucene.WildcardMatch", "note": "one '?' must consume one code point, not one byte"},
+
+    {"id": "lev-equal-0", "fn": "withinEdits", "args": ["network", "network", 0], "upstreamFn": "LevenshteinAutomata", "goFn": "lucene.LevenshteinDistance"},
+    {"id": "lev-delete-1", "fn": "withinEdits", "args": ["network", "networ", 1], "upstreamFn": "LevenshteinAutomata", "goFn": "lucene.LevenshteinDistance"},
+    {"id": "lev-sub-1", "fn": "withinEdits", "args": ["network", "netwerk", 1], "upstreamFn": "LevenshteinAutomata", "goFn": "lucene.LevenshteinDistance"},
+    {"id": "lev-transpose-1", "fn": "withinEdits", "args": ["network", "netwrok", 1], "upstreamFn": "LevenshteinAutomata", "goFn": "lucene.LevenshteinDistance", "note": "plain Levenshtein: a transposition costs two edits"},
+    {"id": "lev-transpose-2", "fn": "withinEdits", "args": ["network", "netwrok", 2], "upstreamFn": "LevenshteinAutomata", "goFn": "lucene.LevenshteinDistance"},
+    {"id": "lev-kitten-2", "fn": "withinEdits", "args": ["kitten", "sitting", 2], "upstreamFn": "LevenshteinAutomata", "goFn": "lucene.LevenshteinDistance"},
+    {"id": "lev-empty-2", "fn": "withinEdits", "args": ["", "abc", 2], "upstreamFn": "LevenshteinAutomata", "goFn": "lucene.LevenshteinDistance"},
+    {"id": "lev-unicode-1", "fn": "withinEdits", "args": ["日本", "日x", 1], "upstreamFn": "LevenshteinAutomata", "goFn": "lucene.LevenshteinDistance", "note": "code-point edits"},
+    {"id": "lev-over-max", "fn": "withinEdits", "args": ["abc", "", 3], "upstreamFn": "LevenshteinAutomata", "goFn": "lucene.LevenshteinDistance", "note": "Lucene's automata cap at two edits; the port has no cap"}
+  ]
+}

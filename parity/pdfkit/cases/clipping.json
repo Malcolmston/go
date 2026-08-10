@@ -1,0 +1,81 @@
+{
+  "group": "clipping",
+  "upstream": "pdfkit@0.15.1",
+  "cases": [
+    {
+      "id": "clip-rect",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.clip",
+      "goFn": "Page.Clip",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "save"},
+        {"op": "rect", "args": [40, 40, 100, 100]},
+        {"op": "clip"},
+        {"op": "fillColor", "args": [[0, 0, 255]]},
+        {"op": "rect", "args": [0, 0, 400, 400]},
+        {"op": "fill"},
+        {"op": "restore"}
+      ]}]}]
+    },
+    {
+      "id": "clip-circle",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.clip",
+      "goFn": "Page.Clip",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "save"},
+        {"op": "circle", "args": [120, 120, 60]},
+        {"op": "clip"},
+        {"op": "rect", "args": [0, 0, 400, 400]},
+        {"op": "fill"},
+        {"op": "restore"}
+      ]}]}]
+    },
+    {
+      "id": "clip-even-odd",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.clip#even-odd",
+      "goFn": "Page.ClipEvenOdd",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "save"},
+        {"op": "rect", "args": [40, 40, 120, 120]},
+        {"op": "rect", "args": [70, 70, 60, 60]},
+        {"op": "clipEvenOdd"},
+        {"op": "rect", "args": [0, 0, 400, 400]},
+        {"op": "fill"},
+        {"op": "restore"}
+      ]}]}]
+    },
+    {
+      "id": "clip-nested",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.clip",
+      "goFn": "Page.Clip",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "save"},
+        {"op": "rect", "args": [40, 40, 200, 200]},
+        {"op": "clip"},
+        {"op": "save"},
+        {"op": "circle", "args": [120, 120, 50]},
+        {"op": "clip"},
+        {"op": "rect", "args": [0, 0, 400, 400]},
+        {"op": "fill"},
+        {"op": "restore"},
+        {"op": "restore"}
+      ]}]}]
+    },
+    {
+      "id": "clip-then-image",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.clip + image",
+      "goFn": "Page.Clip + DrawImage",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "save"},
+        {"op": "circle", "args": [100, 100, 40]},
+        {"op": "clip"},
+        {"op": "image", "args": ["fixtures/rgb16.jpg", 40, 40, 120, 120]},
+        {"op": "restore"}
+      ]}]}]
+    }
+  ]
+}

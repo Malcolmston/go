@@ -1,0 +1,252 @@
+{
+  "group": "txn",
+  "upstream": "sqlite3@3.45.3",
+  "cases": [
+    {
+      "id": "txn-commit-visible",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE d (a INTEGER)",
+            {
+              "txn": "begin"
+            },
+            "INSERT INTO d (a) VALUES (1)",
+            {
+              "txn": "commit"
+            }
+          ],
+          "query": "SELECT a AS a FROM d ORDER BY a"
+        }
+      ],
+      "upstreamFn": "BEGIN ... COMMIT persists",
+      "goFn": "sqlite: BEGIN ... COMMIT persists"
+    },
+    {
+      "id": "txn-rollback-discards",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE d (a INTEGER)",
+            "INSERT INTO d (a) VALUES (1)",
+            {
+              "txn": "begin"
+            },
+            "INSERT INTO d (a) VALUES (2)",
+            {
+              "txn": "rollback"
+            }
+          ],
+          "query": "SELECT count(*) AS c FROM d"
+        }
+      ],
+      "upstreamFn": "BEGIN ... ROLLBACK discards",
+      "goFn": "sqlite: BEGIN ... ROLLBACK discards"
+    },
+    {
+      "id": "txn-rollback-then-insert",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE d (a INTEGER)",
+            {
+              "txn": "begin"
+            },
+            "INSERT INTO d (a) VALUES (1)",
+            {
+              "txn": "rollback"
+            },
+            "INSERT INTO d (a) VALUES (2)"
+          ],
+          "query": "SELECT a AS a FROM d ORDER BY a"
+        }
+      ],
+      "upstreamFn": "work after a ROLLBACK",
+      "goFn": "sqlite: work after a ROLLBACK"
+    },
+    {
+      "id": "txn-rollback-update",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)",
+            {
+              "txn": "begin"
+            },
+            "UPDATE t SET qty = 0",
+            {
+              "txn": "rollback"
+            }
+          ],
+          "query": "SELECT id AS id, qty AS q FROM t ORDER BY id"
+        }
+      ],
+      "upstreamFn": "ROLLBACK of an UPDATE",
+      "goFn": "sqlite: ROLLBACK of an UPDATE"
+    },
+    {
+      "id": "txn-rollback-delete",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)",
+            {
+              "txn": "begin"
+            },
+            "DELETE FROM t",
+            {
+              "txn": "rollback"
+            }
+          ],
+          "query": "SELECT count(*) AS c FROM t"
+        }
+      ],
+      "upstreamFn": "ROLLBACK of a DELETE",
+      "goFn": "sqlite: ROLLBACK of a DELETE"
+    },
+    {
+      "id": "txn-rollback-ddl",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)",
+            {
+              "txn": "begin"
+            },
+            "CREATE TABLE tmpx (a INTEGER)",
+            {
+              "txn": "rollback"
+            }
+          ],
+          "query": "SELECT count(*) AS c FROM t"
+        }
+      ],
+      "upstreamFn": "ROLLBACK of a CREATE TABLE",
+      "goFn": "sqlite: ROLLBACK of a CREATE TABLE"
+    },
+    {
+      "id": "txn-visible-inside",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE d (a INTEGER)",
+            {
+              "txn": "begin"
+            },
+            "INSERT INTO d (a) VALUES (1)"
+          ],
+          "query": "SELECT a AS a FROM d ORDER BY a"
+        }
+      ],
+      "upstreamFn": "uncommitted rows visible to the writer",
+      "goFn": "sqlite: uncommitted rows visible to the writer"
+    },
+    {
+      "id": "txn-commit-multi",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE d (a INTEGER)",
+            {
+              "txn": "begin"
+            },
+            "INSERT INTO d (a) VALUES (1)",
+            {
+              "txn": "commit"
+            },
+            {
+              "txn": "begin"
+            },
+            "INSERT INTO d (a) VALUES (2)",
+            {
+              "txn": "commit"
+            }
+          ],
+          "query": "SELECT a AS a FROM d ORDER BY a"
+        }
+      ],
+      "upstreamFn": "two sequential transactions",
+      "goFn": "sqlite: two sequential transactions"
+    },
+    {
+      "id": "txn-raw-begin-sql",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE d (a INTEGER)",
+            "BEGIN",
+            "INSERT INTO d (a) VALUES (1)",
+            "COMMIT"
+          ],
+          "query": "SELECT a AS a FROM d ORDER BY a"
+        }
+      ],
+      "upstreamFn": "BEGIN/COMMIT as plain SQL statements",
+      "goFn": "sqlite: BEGIN/COMMIT as plain SQL statements",
+      "note": "the port refuses raw BEGIN/COMMIT: 'use the transaction API'"
+    },
+    {
+      "id": "txn-raw-begin-transaction",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE d (a INTEGER)",
+            "BEGIN TRANSACTION",
+            "INSERT INTO d (a) VALUES (1)",
+            "COMMIT TRANSACTION"
+          ],
+          "query": "SELECT a AS a FROM d ORDER BY a"
+        }
+      ],
+      "upstreamFn": "BEGIN TRANSACTION / COMMIT TRANSACTION as plain SQL",
+      "goFn": "sqlite: BEGIN TRANSACTION / COMMIT TRANSACTION as plain SQL"
+    },
+    {
+      "id": "txn-savepoint",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE d (a INTEGER)",
+            "SAVEPOINT s1",
+            "INSERT INTO d (a) VALUES (1)",
+            "RELEASE s1"
+          ],
+          "query": "SELECT a AS a FROM d ORDER BY a"
+        }
+      ],
+      "upstreamFn": "SAVEPOINT / RELEASE",
+      "goFn": "sqlite: SAVEPOINT / RELEASE"
+    },
+    {
+      "id": "txn-rollback-to-savepoint",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE d (a INTEGER)",
+            "SAVEPOINT s1",
+            "INSERT INTO d (a) VALUES (1)",
+            "ROLLBACK TO s1"
+          ],
+          "query": "SELECT count(*) AS c FROM d"
+        }
+      ],
+      "upstreamFn": "ROLLBACK TO SAVEPOINT",
+      "goFn": "sqlite: ROLLBACK TO SAVEPOINT"
+    }
+  ]
+}

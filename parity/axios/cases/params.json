@@ -1,0 +1,274 @@
+{
+  "group": "params",
+  "upstream": "axios@1.7.9",
+  "cases": [
+    {
+      "id": "params-single-scalar",
+      "fn": "request",
+      "upstreamFn": "config.params",
+      "goFn": "RequestConfig.ParamsMap",
+      "args": [
+        { "client": { "baseURL": "$BASE" }, "request": { "method": "get", "url": "/echo", "params": { "a": "1" } } }
+      ]
+    },
+    {
+      "id": "params-space-and-symbols",
+      "fn": "request",
+      "upstreamFn": "config.params",
+      "goFn": "RequestConfig.ParamsMap",
+      "note": "percent-encoding of space, & and =",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE" },
+          "request": { "method": "get", "url": "/echo", "params": { "q": "hi sp&c=d" } }
+        }
+      ]
+    },
+    {
+      "id": "params-unicode",
+      "fn": "request",
+      "upstreamFn": "config.params",
+      "goFn": "RequestConfig.ParamsMap",
+      "args": [
+        { "client": { "baseURL": "$BASE" }, "request": { "method": "get", "url": "/echo", "params": { "q": "héllo☃" } } }
+      ]
+    },
+    {
+      "id": "params-empty-string",
+      "fn": "request",
+      "upstreamFn": "config.params",
+      "goFn": "RequestConfig.ParamsMap",
+      "args": [
+        { "client": { "baseURL": "$BASE" }, "request": { "method": "get", "url": "/echo", "params": { "e": "" } } }
+      ]
+    },
+    {
+      "id": "params-null-dropped",
+      "fn": "request",
+      "upstreamFn": "config.params",
+      "goFn": "RequestConfig.ParamsMap",
+      "note": "axios drops null/undefined params entirely",
+      "args": [
+        { "client": { "baseURL": "$BASE" }, "request": { "method": "get", "url": "/echo", "params": { "n": null } } }
+      ]
+    },
+    {
+      "id": "params-boolean",
+      "fn": "request",
+      "upstreamFn": "config.params",
+      "goFn": "RequestConfig.ParamsMap",
+      "args": [
+        { "client": { "baseURL": "$BASE" }, "request": { "method": "get", "url": "/echo", "params": { "b": true } } }
+      ]
+    },
+    {
+      "id": "params-number",
+      "fn": "request",
+      "upstreamFn": "config.params",
+      "goFn": "RequestConfig.ParamsMap",
+      "args": [
+        { "client": { "baseURL": "$BASE" }, "request": { "method": "get", "url": "/echo", "params": { "n": 42 } } }
+      ]
+    },
+    {
+      "id": "params-array-default-format",
+      "fn": "request",
+      "upstreamFn": "config.params (array, default serializer)",
+      "goFn": "ArrayFormatRepeat (zero value)",
+      "note": "axios default is a[]=1&a[]=2",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE" },
+          "request": { "method": "get", "url": "/echo", "params": { "a": [1, 2] } }
+        }
+      ]
+    },
+    {
+      "id": "params-array-indexes-null",
+      "fn": "request",
+      "upstreamFn": "paramsSerializer.indexes = null",
+      "goFn": "ArrayFormatRepeat",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE" },
+          "request": {
+            "method": "get",
+            "url": "/echo",
+            "params": { "a": [1, 2] },
+            "paramsSerializer": { "indexes": null }
+          }
+        }
+      ]
+    },
+    {
+      "id": "params-array-indexes-false",
+      "fn": "request",
+      "upstreamFn": "paramsSerializer.indexes = false",
+      "goFn": "ArrayFormatBrackets",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE" },
+          "request": {
+            "method": "get",
+            "url": "/echo",
+            "params": { "a": [1, 2] },
+            "paramsSerializer": { "indexes": false }
+          }
+        }
+      ]
+    },
+    {
+      "id": "params-array-indexes-true",
+      "fn": "request",
+      "upstreamFn": "paramsSerializer.indexes = true",
+      "goFn": "ArrayFormatIndices",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE" },
+          "request": {
+            "method": "get",
+            "url": "/echo",
+            "params": { "a": [1, 2] },
+            "paramsSerializer": { "indexes": true }
+          }
+        }
+      ]
+    },
+    {
+      "id": "params-nested-object",
+      "fn": "request",
+      "upstreamFn": "config.params (nested object)",
+      "goFn": "FlattenParams",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE" },
+          "request": { "method": "get", "url": "/echo", "params": { "n": { "x": "1" } } }
+        }
+      ]
+    },
+    {
+      "id": "params-deeply-nested-object",
+      "fn": "request",
+      "upstreamFn": "config.params (nested object)",
+      "goFn": "FlattenParams",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE" },
+          "request": { "method": "get", "url": "/echo", "params": { "n": { "y": { "z": "2" } } } }
+        }
+      ]
+    },
+    {
+      "id": "params-array-of-objects",
+      "fn": "request",
+      "upstreamFn": "config.params (array of objects)",
+      "goFn": "FlattenParams",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE" },
+          "request": { "method": "get", "url": "/echo", "params": { "a": [{ "k": "v" }] } }
+        }
+      ]
+    },
+    {
+      "id": "params-multi-key-order",
+      "fn": "request",
+      "upstreamFn": "config.params (insertion order)",
+      "goFn": "SerializeParams",
+      "note": "axios preserves insertion order; url.Values.Encode sorts",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE" },
+          "request": { "method": "get", "url": "/echo", "params": { "z": "1", "a": "2" } }
+        }
+      ]
+    },
+    {
+      "id": "params-merge-client-and-request",
+      "fn": "request",
+      "upstreamFn": "mergeConfig params",
+      "goFn": "Config.ParamsMap + RequestConfig.ParamsMap",
+      "note": "axios mergeConfig: request params replace client params wholesale",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE", "params": { "c": "client" } },
+          "request": { "method": "get", "url": "/echo", "params": { "r": "req" } }
+        }
+      ]
+    },
+    {
+      "id": "params-client-only",
+      "fn": "request",
+      "upstreamFn": "defaults.params",
+      "goFn": "Config.ParamsMap",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE", "params": { "c": "client" } },
+          "request": { "method": "get", "url": "/echo" }
+        }
+      ]
+    },
+    {
+      "id": "params-existing-query-in-url",
+      "fn": "request",
+      "upstreamFn": "config.params + url query",
+      "goFn": "BuildURL",
+      "note": "axios appends with & after the existing query string",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE" },
+          "request": { "method": "get", "url": "/echo?z=9", "params": { "a": "1" } }
+        }
+      ]
+    },
+    {
+      "id": "params-custom-serializer",
+      "fn": "request",
+      "upstreamFn": "paramsSerializer.serialize",
+      "goFn": "RequestConfig.ParamsSerializer",
+      "note": "a custom serializer must fully replace the built-in encoding",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE" },
+          "request": {
+            "method": "get",
+            "url": "/echo",
+            "params": { "ignored": "yes" },
+            "paramsSerializer": { "custom": "fixed" }
+          }
+        }
+      ]
+    },
+    {
+      "id": "params-client-serializer-inherited",
+      "fn": "request",
+      "upstreamFn": "defaults.paramsSerializer",
+      "goFn": "Config.ParamsSerializer",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE", "paramsSerializer": { "custom": "fixed" } },
+          "request": { "method": "get", "url": "/echo", "params": { "ignored": "yes" } }
+        }
+      ]
+    },
+    {
+      "id": "params-empty-object",
+      "fn": "request",
+      "upstreamFn": "config.params = {}",
+      "goFn": "RequestConfig.ParamsMap",
+      "note": "no query string should be appended",
+      "args": [
+        { "client": { "baseURL": "$BASE" }, "request": { "method": "get", "url": "/echo", "params": {} } }
+      ]
+    },
+    {
+      "id": "params-empty-array",
+      "fn": "request",
+      "upstreamFn": "config.params (empty array)",
+      "goFn": "FlattenParams",
+      "args": [
+        { "client": { "baseURL": "$BASE" }, "request": { "method": "get", "url": "/echo", "params": { "a": [] } } }
+      ]
+    }
+  ]
+}

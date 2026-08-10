@@ -1,0 +1,473 @@
+{
+  "group": "objects",
+  "upstream": "jq@1.7.1",
+  "encoding": "args = [jq program, input JSON value, optional $variables object]; value = the complete output stream as a JSON array",
+  "cases": [
+    {
+      "id": "to-entries",
+      "fn": "run",
+      "args": [
+        "to_entries",
+        {
+          "a": 1,
+          "b": 2
+        }
+      ],
+      "upstreamFn": "to_entries/0",
+      "goFn": "to_entries/0"
+    },
+    {
+      "id": "to-entries-array-err",
+      "fn": "run",
+      "args": [
+        "to_entries",
+        [
+          1,
+          2
+        ]
+      ],
+      "upstreamFn": "to_entries/0",
+      "goFn": "to_entries/0"
+    },
+    {
+      "id": "from-entries",
+      "fn": "run",
+      "args": [
+        "from_entries",
+        [
+          {
+            "key": "a",
+            "value": 1
+          },
+          {
+            "name": "b",
+            "value": 2
+          }
+        ]
+      ],
+      "upstreamFn": "from_entries/0",
+      "goFn": "from_entries/0"
+    },
+    {
+      "id": "from-entries-kv",
+      "fn": "run",
+      "args": [
+        "from_entries",
+        [
+          {
+            "k": "a",
+            "v": 1
+          }
+        ]
+      ],
+      "upstreamFn": "from_entries/0",
+      "goFn": "from_entries/0",
+      "note": "jq 1.7 does not accept a bare `k` as the key alias"
+    },
+    {
+      "id": "with-entries",
+      "fn": "run",
+      "args": [
+        "with_entries(.value += 1)",
+        {
+          "a": 1,
+          "b": 2
+        }
+      ],
+      "upstreamFn": "with_entries/1",
+      "goFn": "with_entries/1"
+    },
+    {
+      "id": "with-entries-nonobj-err",
+      "fn": "run",
+      "args": [
+        "with_entries(.)",
+        [
+          1
+        ]
+      ],
+      "upstreamFn": "with_entries/1",
+      "goFn": "with_entries/1",
+      "note": "jq rejects an array input; the port turns the index into a key"
+    },
+    {
+      "id": "keys",
+      "fn": "run",
+      "args": [
+        "keys",
+        {
+          "b": 1,
+          "a": 2
+        }
+      ],
+      "upstreamFn": "keys/0",
+      "goFn": "keys/0"
+    },
+    {
+      "id": "keys-array",
+      "fn": "run",
+      "args": [
+        "keys",
+        [
+          5,
+          6
+        ]
+      ],
+      "upstreamFn": "keys/0",
+      "goFn": "keys/0"
+    },
+    {
+      "id": "keys-string-err",
+      "fn": "run",
+      "args": [
+        "keys",
+        "ab"
+      ],
+      "upstreamFn": "keys/0",
+      "goFn": "keys/0"
+    },
+    {
+      "id": "keys-unsorted",
+      "fn": "run",
+      "args": [
+        "keys_unsorted",
+        {
+          "b": 1,
+          "a": 2
+        }
+      ],
+      "upstreamFn": "keys_unsorted/0",
+      "goFn": "keys_unsorted/0",
+      "note": "jq keeps insertion order",
+      "deviation": "object key order is not preserved (map[string]any); keys_unsorted == keys"
+    },
+    {
+      "id": "values-builtin",
+      "fn": "run",
+      "args": [
+        "[.[]|values]",
+        [
+          1,
+          null,
+          "a"
+        ]
+      ],
+      "upstreamFn": "values/0",
+      "goFn": "values/0"
+    },
+    {
+      "id": "has-obj",
+      "fn": "run",
+      "args": [
+        "[has(\"a\"), has(\"z\")]",
+        {
+          "a": 1
+        }
+      ],
+      "upstreamFn": "has/1",
+      "goFn": "has/1"
+    },
+    {
+      "id": "has-array",
+      "fn": "run",
+      "args": [
+        "[has(0), has(5)]",
+        [
+          1,
+          2
+        ]
+      ],
+      "upstreamFn": "has/1",
+      "goFn": "has/1"
+    },
+    {
+      "id": "has-string-err",
+      "fn": "run",
+      "args": [
+        "has(\"a\")",
+        "abc"
+      ],
+      "upstreamFn": "has/1",
+      "goFn": "has/1"
+    },
+    {
+      "id": "has-null",
+      "fn": "run",
+      "args": [
+        "has(1)",
+        null
+      ],
+      "upstreamFn": "has/1",
+      "goFn": "has/1",
+      "note": "jq answers false rather than erroring"
+    },
+    {
+      "id": "in-op",
+      "fn": "run",
+      "args": [
+        "[.[] | in({\"a\":1,\"b\":2})]",
+        [
+          "a",
+          "z"
+        ]
+      ],
+      "upstreamFn": "in/1",
+      "goFn": "in/1"
+    },
+    {
+      "id": "in-nonobj-err",
+      "fn": "run",
+      "args": [
+        "1|in(5)",
+        null
+      ],
+      "upstreamFn": "in/1",
+      "goFn": "in/1"
+    },
+    {
+      "id": "inside",
+      "fn": "run",
+      "args": [
+        "[\"ab\" | inside(\"xaby\")]",
+        null
+      ],
+      "upstreamFn": "inside/1",
+      "goFn": "inside/1"
+    },
+    {
+      "id": "contains-str",
+      "fn": "run",
+      "args": [
+        "[(\"foobar\"|contains(\"bar\")), (\"foobar\"|contains(\"z\"))]",
+        null
+      ],
+      "upstreamFn": "contains/1",
+      "goFn": "contains/1"
+    },
+    {
+      "id": "contains-arr",
+      "fn": "run",
+      "args": [
+        "[1,[2]] | contains([[2]])",
+        null
+      ],
+      "upstreamFn": "contains/1",
+      "goFn": "contains/1"
+    },
+    {
+      "id": "contains-obj",
+      "fn": "run",
+      "args": [
+        "{a:\"xyz\"} | contains({a:\"y\"})",
+        null
+      ],
+      "upstreamFn": "contains/1",
+      "goFn": "contains/1"
+    },
+    {
+      "id": "contains-type-err",
+      "fn": "run",
+      "args": [
+        "1 | contains(1)",
+        null
+      ],
+      "upstreamFn": "contains/1",
+      "goFn": "contains/1"
+    },
+    {
+      "id": "index-str",
+      "fn": "run",
+      "args": [
+        "\"abcabc\" | index(\"b\")",
+        null
+      ],
+      "upstreamFn": "index/1",
+      "goFn": "index/1"
+    },
+    {
+      "id": "rindex-str",
+      "fn": "run",
+      "args": [
+        "\"abcabc\" | rindex(\"b\")",
+        null
+      ],
+      "upstreamFn": "rindex/1",
+      "goFn": "rindex/1"
+    },
+    {
+      "id": "indices-str",
+      "fn": "run",
+      "args": [
+        "\"a,b,c\" | indices(\",\")",
+        null
+      ],
+      "upstreamFn": "indices/1",
+      "goFn": "indices/1"
+    },
+    {
+      "id": "indices-arr",
+      "fn": "run",
+      "args": [
+        "[0,1,2,1,3,1,4] | indices([1,3])",
+        null
+      ],
+      "upstreamFn": "indices/1",
+      "goFn": "indices/1"
+    },
+    {
+      "id": "indices-null",
+      "fn": "run",
+      "args": [
+        "null | indices(\"a\")",
+        null
+      ],
+      "upstreamFn": "indices/1",
+      "goFn": "indices/1",
+      "note": "jq propagates null instead of erroring"
+    },
+    {
+      "id": "indices-empty-str",
+      "fn": "run",
+      "args": [
+        "\"abc\"|indices(\"\")",
+        null
+      ],
+      "upstreamFn": "indices/1",
+      "goFn": "indices/1"
+    },
+    {
+      "id": "indices-arr-in-str-err",
+      "fn": "run",
+      "args": [
+        "\"abc\"|indices([1])",
+        null
+      ],
+      "upstreamFn": "indices/1",
+      "goFn": "indices/1"
+    },
+    {
+      "id": "type-all",
+      "fn": "run",
+      "args": [
+        "[.[]|type]",
+        [
+          null,
+          true,
+          1,
+          "a",
+          [],
+          {}
+        ]
+      ],
+      "upstreamFn": "type/0",
+      "goFn": "type/0"
+    },
+    {
+      "id": "length-all",
+      "fn": "run",
+      "args": [
+        "[.[]|length]",
+        [
+          null,
+          true,
+          -3,
+          "abc",
+          [
+            1,
+            2
+          ],
+          {
+            "a": 1
+          }
+        ]
+      ],
+      "upstreamFn": "length/0",
+      "goFn": "length/0"
+    },
+    {
+      "id": "length-bool-err",
+      "fn": "run",
+      "args": [
+        "true|length",
+        null
+      ],
+      "upstreamFn": "length/0",
+      "goFn": "length/0"
+    },
+    {
+      "id": "utf8bytelength",
+      "fn": "run",
+      "args": [
+        "\"a\u00e9\u6f22\"|utf8bytelength",
+        null
+      ],
+      "upstreamFn": "utf8bytelength/0",
+      "goFn": "utf8bytelength/0"
+    },
+    {
+      "id": "typed-filters",
+      "fn": "run",
+      "args": [
+        "[[.[]|numbers], [.[]|strings], [.[]|booleans], [.[]|nulls], [.[]|arrays], [.[]|objects], [.[]|iterables], [.[]|scalars]]",
+        [
+          1,
+          "a",
+          true,
+          null,
+          [],
+          {}
+        ]
+      ],
+      "upstreamFn": "numbers/0",
+      "goFn": "numbers/0"
+    },
+    {
+      "id": "typed-finites-normals",
+      "fn": "run",
+      "args": [
+        "[[.[]|finites], [.[]|normals]]",
+        [
+          1,
+          0
+        ]
+      ],
+      "upstreamFn": "finites/0",
+      "goFn": "finites/0"
+    },
+    {
+      "id": "walk-sort",
+      "fn": "run",
+      "args": [
+        "walk(if type == \"array\" then sort else . end)",
+        [
+          [
+            4,
+            1,
+            7
+          ],
+          [
+            3
+          ]
+        ]
+      ],
+      "upstreamFn": "walk/1",
+      "goFn": "walk/1"
+    },
+    {
+      "id": "walk-numbers",
+      "fn": "run",
+      "args": [
+        "walk(if type==\"number\" then .+1 else . end)",
+        {
+          "a": [
+            1,
+            2
+          ],
+          "b": 3
+        }
+      ],
+      "upstreamFn": "walk/1",
+      "goFn": "walk/1"
+    }
+  ]
+}

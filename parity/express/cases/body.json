@@ -1,0 +1,22 @@
+{
+  "group": "body",
+  "upstream": "express@4.21.2",
+  "note": "express.json() and express.urlencoded() vs express.JSON() / express.URLEncoded(). The route echoes the parsed body; a trailing error handler catches parse failures.",
+  "cases": [
+    { "id": "json-object", "fn": "body", "args": [{ "method": "POST", "path": "/echo", "headers": { "Content-Type": "application/json" }, "body": "{\"a\":1,\"b\":\"two\"}" }], "upstreamFn": "express.json", "goFn": "express.JSON" },
+    { "id": "json-nested", "fn": "body", "args": [{ "method": "POST", "path": "/echo", "headers": { "Content-Type": "application/json" }, "body": "{\"o\":{\"n\":[1,2,{\"k\":true}]}}" }], "upstreamFn": "express.json", "goFn": "express.JSON" },
+    { "id": "json-array", "fn": "body", "args": [{ "method": "POST", "path": "/echo", "headers": { "Content-Type": "application/json" }, "body": "[1,2,3]" }], "upstreamFn": "express.json", "goFn": "express.JSON" },
+    { "id": "json-empty-body", "fn": "body", "args": [{ "method": "POST", "path": "/echo", "headers": { "Content-Type": "application/json" }, "body": "" }], "upstreamFn": "express.json", "goFn": "express.JSON" },
+    { "id": "json-charset", "fn": "body", "args": [{ "method": "POST", "path": "/echo", "headers": { "Content-Type": "application/json; charset=utf-8" }, "body": "{\"c\":\"\\u00e9\"}" }], "upstreamFn": "express.json", "goFn": "express.JSON" },
+    { "id": "json-malformed", "fn": "body", "args": [{ "method": "POST", "path": "/echo", "headers": { "Content-Type": "application/json" }, "body": "{\"a\":" }], "upstreamFn": "express.json", "goFn": "express.JSON", "note": "malformed JSON must route to the error handler" },
+    { "id": "json-scalar", "fn": "body", "args": [{ "method": "POST", "path": "/echo", "headers": { "Content-Type": "application/json" }, "body": "42" }], "upstreamFn": "express.json", "goFn": "express.JSON" },
+    { "id": "json-wrong-content-type", "fn": "body", "args": [{ "method": "POST", "path": "/echo", "headers": { "Content-Type": "text/plain" }, "body": "{\"a\":1}" }], "upstreamFn": "express.json", "goFn": "express.JSON", "note": "a non-JSON content type must be left unparsed" },
+    { "id": "json-no-content-type", "fn": "body", "args": [{ "method": "POST", "path": "/echo", "body": "{\"a\":1}" }], "upstreamFn": "express.json", "goFn": "express.JSON" },
+    { "id": "urlencoded-simple", "fn": "body", "args": [{ "method": "POST", "path": "/echo", "headers": { "Content-Type": "application/x-www-form-urlencoded" }, "body": "a=1&b=two" }], "upstreamFn": "express.urlencoded", "goFn": "express.URLEncoded" },
+    { "id": "urlencoded-repeated", "fn": "body", "args": [{ "method": "POST", "path": "/echo", "headers": { "Content-Type": "application/x-www-form-urlencoded" }, "body": "a=1&a=2" }], "upstreamFn": "express.urlencoded", "goFn": "express.URLEncoded" },
+    { "id": "urlencoded-escaped", "fn": "body", "args": [{ "method": "POST", "path": "/echo", "headers": { "Content-Type": "application/x-www-form-urlencoded" }, "body": "k=a%20b%26c" }], "upstreamFn": "express.urlencoded", "goFn": "express.URLEncoded" },
+    { "id": "urlencoded-empty", "fn": "body", "args": [{ "method": "POST", "path": "/echo", "headers": { "Content-Type": "application/x-www-form-urlencoded" }, "body": "" }], "upstreamFn": "express.urlencoded", "goFn": "express.URLEncoded" },
+    { "id": "urlencoded-flag-only", "fn": "body", "args": [{ "method": "POST", "path": "/echo", "headers": { "Content-Type": "application/x-www-form-urlencoded" }, "body": "flag" }], "upstreamFn": "express.urlencoded", "goFn": "express.URLEncoded" },
+    { "id": "urlencoded-malformed-escape", "fn": "body", "args": [{ "method": "POST", "path": "/echo", "headers": { "Content-Type": "application/x-www-form-urlencoded" }, "body": "k=%ZZ" }], "upstreamFn": "express.urlencoded", "goFn": "express.URLEncoded", "note": "invalid percent escape" }
+  ]
+}

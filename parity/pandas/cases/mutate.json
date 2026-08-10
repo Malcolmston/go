@@ -1,0 +1,44 @@
+{
+  "group": "mutate",
+  "upstream": "pandas==2.3.3",
+  "cases": [
+    {"id": "filter-mask", "fn": "filter_mask", "args": {"table": "sales", "mask": [true, false, true, false, false, true]}, "upstreamFn": "pandas.DataFrame.__getitem__", "goFn": "pandas.DataFrame.Filter"},
+    {"id": "filter-mask-none", "fn": "filter_mask", "args": {"table": "sales", "mask": [false, false, false, false, false, false]}, "upstreamFn": "pandas.DataFrame.__getitem__", "goFn": "pandas.DataFrame.Filter"},
+    {"id": "filter-mask-all", "fn": "filter_mask", "args": {"table": "sales", "mask": [true, true, true, true, true, true]}, "upstreamFn": "pandas.DataFrame.__getitem__", "goFn": "pandas.DataFrame.Filter"},
+    {"id": "filter-mask-wrong-length", "fn": "filter_mask", "args": {"table": "sales", "mask": [true, false]}, "upstreamFn": "pandas.DataFrame.__getitem__", "goFn": "pandas.DataFrame.Filter", "note": "must fail on both: mask length mismatch"},
+
+    {"id": "filter-gt-int", "fn": "filter_cmp", "args": {"table": "sales", "column": "units", "op": ">", "value": 5}, "upstreamFn": "pandas.DataFrame.__getitem__", "goFn": "pandas.DataFrame.FilterFunc", "note": "NA row must be excluded on both sides"},
+    {"id": "filter-le-float", "fn": "filter_cmp", "args": {"table": "sales", "column": "price", "op": "<=", "value": 2.5}, "upstreamFn": "pandas.DataFrame.__getitem__", "goFn": "pandas.DataFrame.FilterFunc"},
+    {"id": "filter-eq-string", "fn": "filter_cmp", "args": {"table": "sales", "column": "region", "op": "==", "value": "west"}, "upstreamFn": "pandas.DataFrame.__getitem__", "goFn": "pandas.DataFrame.FilterFunc"},
+    {"id": "filter-ne-string", "fn": "filter_cmp", "args": {"table": "sales", "column": "region", "op": "!=", "value": "west"}, "upstreamFn": "pandas.DataFrame.__getitem__", "goFn": "pandas.DataFrame.FilterFunc"},
+    {"id": "filter-eq-bool", "fn": "filter_cmp", "args": {"table": "sales", "column": "active", "op": "==", "value": true}, "upstreamFn": "pandas.DataFrame.__getitem__", "goFn": "pandas.DataFrame.FilterFunc"},
+    {"id": "filter-unknown-column", "fn": "filter_cmp", "args": {"table": "sales", "column": "nope", "op": ">", "value": 1}, "upstreamFn": "pandas.DataFrame.__getitem__", "goFn": "pandas.DataFrame.FilterFunc", "note": "must fail on both: unknown column"},
+
+    {"id": "with-column-new-float", "fn": "with_column", "args": {"table": "sales", "column": "bonus", "dtype": "float64", "values": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]}, "upstreamFn": "pandas.DataFrame.assign", "goFn": "pandas.DataFrame.WithColumn"},
+    {"id": "with-column-replace", "fn": "with_column", "args": {"table": "sales", "column": "units", "dtype": "int64", "values": [0, 0, 0, 0, 0, 0]}, "upstreamFn": "pandas.DataFrame.assign", "goFn": "pandas.DataFrame.WithColumn", "note": "replacing must keep the original column position"},
+    {"id": "with-column-new-string", "fn": "with_column", "args": {"table": "nums", "column": "label", "dtype": "string", "values": ["p", "q", "r", "s", "t"]}, "upstreamFn": "pandas.DataFrame.assign", "goFn": "pandas.DataFrame.WithColumn"},
+    {"id": "with-column-bad-length", "fn": "with_column", "args": {"table": "sales", "column": "bad", "dtype": "int64", "values": [1, 2]}, "upstreamFn": "pandas.DataFrame.assign", "goFn": "pandas.DataFrame.WithColumn", "note": "must fail on both: length mismatch"},
+
+    {"id": "drop-one", "fn": "drop", "args": {"table": "sales", "columns": ["price"]}, "upstreamFn": "pandas.DataFrame.drop", "goFn": "pandas.DataFrame.Drop"},
+    {"id": "drop-two", "fn": "drop", "args": {"table": "sales", "columns": ["price", "active"]}, "upstreamFn": "pandas.DataFrame.drop", "goFn": "pandas.DataFrame.Drop"},
+    {"id": "drop-unknown", "fn": "drop", "args": {"table": "sales", "columns": ["nope"]}, "upstreamFn": "pandas.DataFrame.drop", "goFn": "pandas.DataFrame.Drop", "note": "pandas raises KeyError; port ignores missing names"},
+
+    {"id": "rename-one", "fn": "rename", "args": {"table": "sales", "mapping": {"units": "qty"}}, "upstreamFn": "pandas.DataFrame.rename", "goFn": "pandas.DataFrame.Rename"},
+    {"id": "rename-two", "fn": "rename", "args": {"table": "nums", "mapping": {"a": "alpha", "c": "gamma"}}, "upstreamFn": "pandas.DataFrame.rename", "goFn": "pandas.DataFrame.Rename"},
+    {"id": "rename-unknown", "fn": "rename", "args": {"table": "sales", "mapping": {"nope": "x"}}, "upstreamFn": "pandas.DataFrame.rename", "goFn": "pandas.DataFrame.Rename", "note": "both ignore names not present"},
+
+    {"id": "sort-one-asc", "fn": "sort_by", "args": {"table": "sales", "keys": ["price"], "ascending": [true]}, "upstreamFn": "pandas.DataFrame.sort_values", "goFn": "pandas.DataFrame.SortBy"},
+    {"id": "sort-one-desc", "fn": "sort_by", "args": {"table": "sales", "keys": ["price"], "ascending": [false]}, "upstreamFn": "pandas.DataFrame.sort_values", "goFn": "pandas.DataFrame.SortBy", "note": "descending: NA must still sort last on both sides"},
+    {"id": "sort-string-key", "fn": "sort_by", "args": {"table": "sales", "keys": ["region"], "ascending": [true]}, "upstreamFn": "pandas.DataFrame.sort_values", "goFn": "pandas.DataFrame.SortBy"},
+    {"id": "sort-two-keys", "fn": "sort_by", "args": {"table": "sales", "keys": ["region", "units"], "ascending": [true, true]}, "upstreamFn": "pandas.DataFrame.sort_values", "goFn": "pandas.DataFrame.SortBy"},
+    {"id": "sort-two-keys-mixed", "fn": "sort_by", "args": {"table": "sales", "keys": ["region", "price"], "ascending": [true, false]}, "upstreamFn": "pandas.DataFrame.sort_values", "goFn": "pandas.DataFrame.SortBy"},
+    {"id": "sort-three-keys", "fn": "sort_by", "args": {"table": "ties", "keys": ["g", "n", "v"], "ascending": [true, false, true]}, "upstreamFn": "pandas.DataFrame.sort_values", "goFn": "pandas.DataFrame.SortBy"},
+    {"id": "sort-stable-ties", "fn": "sort_by", "args": {"table": "ties", "keys": ["n"], "ascending": [true]}, "upstreamFn": "pandas.DataFrame.sort_values", "goFn": "pandas.DataFrame.SortBy", "note": "stable sort: equal keys keep input order"},
+    {"id": "sort-bool-key", "fn": "sort_by", "args": {"table": "sales", "keys": ["active"], "ascending": [true]}, "upstreamFn": "pandas.DataFrame.sort_values", "goFn": "pandas.DataFrame.SortBy"},
+    {"id": "sort-unknown-key", "fn": "sort_by", "args": {"table": "sales", "keys": ["nope"], "ascending": [true]}, "upstreamFn": "pandas.DataFrame.sort_values", "goFn": "pandas.DataFrame.SortBy", "note": "must fail on both"},
+
+    {"id": "drop-duplicates", "fn": "drop_duplicates", "args": {"table": "ties"}, "upstreamFn": "pandas.DataFrame.drop_duplicates", "goFn": "pandas.DataFrame.DropDuplicates"},
+    {"id": "concat-self", "fn": "concat", "args": {"table": "whole", "right": "whole"}, "upstreamFn": "pandas.concat", "goFn": "pandas.Concat"},
+    {"id": "concat-different-columns", "fn": "concat", "args": {"table": "whole", "right": "flags"}, "upstreamFn": "pandas.concat", "goFn": "pandas.Concat", "note": "union of columns, missing filled with NA"}
+  ]
+}

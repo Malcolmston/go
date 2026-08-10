@@ -1,0 +1,83 @@
+{
+  "_comment": "Shared input tables. Each case references one by name via args.table (and args.right for merges). parity_test.go inlines the referenced table into the case before handing it to either runner, so both sides see byte-identical data. A column is {name, dtype, values}; dtype is one of int64/float64/string/bool/object and null in values means missing (NA).",
+  "sales": {
+    "columns": [
+      {"name": "region", "dtype": "string", "values": ["west", "east", "west", "north", "east", "west"]},
+      {"name": "units",  "dtype": "int64",  "values": [10, 5, 7, null, 3, 12]},
+      {"name": "price",  "dtype": "float64","values": [2.5, 3.0, 2.5, 4.25, null, 1.75]},
+      {"name": "active", "dtype": "bool",   "values": [true, false, true, true, null, false]}
+    ]
+  },
+  "keyed_tail": {
+    "columns": [
+      {"name": "id",     "dtype": "int64",   "values": [1, 2, 3]},
+      {"name": "amt",    "dtype": "float64", "values": [1.5, 2.5, 3.5]},
+      {"name": "region", "dtype": "string",  "values": ["west", "east", "west"]}
+    ]
+  },
+  "rates": {
+    "columns": [
+      {"name": "region", "dtype": "string", "values": ["west", "east", "south"]},
+      {"name": "rate",   "dtype": "float64","values": [0.1, 0.2, 0.3]}
+    ]
+  },
+  "rates_dup": {
+    "columns": [
+      {"name": "region", "dtype": "string", "values": ["west", "west", "east"]},
+      {"name": "rate",   "dtype": "float64","values": [0.1, 0.15, 0.2]}
+    ]
+  },
+  "rates_collide": {
+    "columns": [
+      {"name": "region", "dtype": "string", "values": ["west", "east"]},
+      {"name": "units",  "dtype": "int64",  "values": [100, 200]}
+    ]
+  },
+  "nums": {
+    "columns": [
+      {"name": "a", "dtype": "float64", "values": [1.5, 2.5, 3.5, 4.5, 10.0]},
+      {"name": "b", "dtype": "int64",   "values": [1, 2, 3, 4, 5]},
+      {"name": "c", "dtype": "float64", "values": [-1.0, 0.0, 2.25, null, 8.5]}
+    ]
+  },
+  "gaps": {
+    "columns": [
+      {"name": "k", "dtype": "string",  "values": ["a", "b", "c", "d"]},
+      {"name": "x", "dtype": "float64", "values": [1.0, null, 3.0, null]},
+      {"name": "y", "dtype": "int64",   "values": [null, 2, 3, 4]}
+    ]
+  },
+  "whole": {
+    "columns": [
+      {"name": "id", "dtype": "int64",   "values": [1, 2, 3]},
+      {"name": "amt","dtype": "float64", "values": [1.0, 2.0, 3.0]},
+      {"name": "tag","dtype": "string",  "values": ["p", "q", "r"]}
+    ]
+  },
+  "fractional": {
+    "columns": [
+      {"name": "id", "dtype": "int64",   "values": [1, 2, 3]},
+      {"name": "amt","dtype": "float64", "values": [1.5, 2.25, 3.75]},
+      {"name": "tag","dtype": "string",  "values": ["p", "q", "r"]}
+    ]
+  },
+  "flags": {
+    "columns": [
+      {"name": "id", "dtype": "int64", "values": [1, 2, 3]},
+      {"name": "ok", "dtype": "bool",  "values": [true, false, true]}
+    ]
+  },
+  "ties": {
+    "columns": [
+      {"name": "g", "dtype": "string",  "values": ["b", "a", "b", "a", "b"]},
+      {"name": "n", "dtype": "int64",   "values": [2, 2, 1, 1, 2]},
+      {"name": "v", "dtype": "float64", "values": [5.0, 6.0, 7.0, 8.0, 9.0]}
+    ]
+  },
+  "words": {
+    "columns": [
+      {"name": "g", "dtype": "string", "values": ["x", "y", "x"]},
+      {"name": "w", "dtype": "string", "values": ["aa", "bb", "cc"]}
+    ]
+  }
+}

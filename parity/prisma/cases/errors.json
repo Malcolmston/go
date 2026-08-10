@@ -1,0 +1,299 @@
+{
+  "group": "errors",
+  "upstream": "prisma@5.22.0",
+  "cases": [
+    {
+      "id": "unique-violation",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "create",
+            "model": "user",
+            "data": {
+              "name": "Dup",
+              "email": "ada@x.io",
+              "score": 1
+            }
+          },
+          {
+            "op": "dump",
+            "model": "user"
+          }
+        ]
+      ],
+      "upstreamFn": "P2002 from prisma.user.create",
+      "goFn": "prisma.CodeUniqueViolation via mapError"
+    },
+    {
+      "id": "unique-violation-create-many",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "createMany",
+            "model": "user",
+            "rows": [
+              {
+                "name": "A",
+                "email": "fresh@x.io",
+                "score": 1
+              },
+              {
+                "name": "B",
+                "email": "ada@x.io",
+                "score": 2
+              }
+            ]
+          },
+          {
+            "op": "dump",
+            "model": "user"
+          }
+        ]
+      ],
+      "upstreamFn": "P2002 from prisma.user.createMany",
+      "goFn": "prisma.CodeUniqueViolation via mapError",
+      "note": "the whole multi-row INSERT must roll back on both sides"
+    },
+    {
+      "id": "foreign-key-violation",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "create",
+            "model": "post",
+            "data": {
+              "title": "Orphan",
+              "views": 1,
+              "published": true,
+              "author_id": 999
+            }
+          },
+          {
+            "op": "dump",
+            "model": "post"
+          }
+        ]
+      ],
+      "upstreamFn": "P2003 from prisma.post.create",
+      "goFn": "prisma.CodeForeignKeyViolation via mapError"
+    },
+    {
+      "id": "foreign-key-violation-on-delete",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "delete",
+            "model": "user",
+            "where": {
+              "id": 1
+            }
+          },
+          {
+            "op": "dump",
+            "model": "user"
+          },
+          {
+            "op": "dump",
+            "model": "post"
+          }
+        ]
+      ],
+      "upstreamFn": "P2003 from prisma.user.delete (ON DELETE RESTRICT)",
+      "goFn": "prisma.CodeForeignKeyViolation via mapError"
+    },
+    {
+      "id": "not-null-violation",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "create",
+            "model": "user",
+            "data": {
+              "name": null,
+              "email": "nn@x.io",
+              "score": 1
+            }
+          },
+          {
+            "op": "dump",
+            "model": "user"
+          }
+        ]
+      ],
+      "upstreamFn": "prisma.user.create({ data: { name: null } })",
+      "goFn": "Query.Create with a nil *string",
+      "note": "Prisma refuses before any SQL runs and its validation error carries no code; the port lets SQLite refuse and reports P2011"
+    },
+    {
+      "id": "find-first-missing",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findFirst",
+            "model": "user",
+            "where": {
+              "city": "Rome"
+            }
+          }
+        ]
+      ],
+      "upstreamFn": "prisma.user.findFirst with no match",
+      "goFn": "Query.FindFirst -> prisma.ErrNotFound",
+      "note": "Prisma returns null; the port returns an error"
+    },
+    {
+      "id": "find-unique-missing",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findUnique",
+            "model": "user",
+            "where": {
+              "email": "nope@x.io"
+            }
+          }
+        ]
+      ],
+      "upstreamFn": "prisma.user.findUnique with no match",
+      "goFn": "Query.FindUnique -> prisma.ErrNotFound",
+      "note": "ErrNotFound is a bare sentinel and carries no P-code, unlike ErrRecordNotFound"
+    },
+    {
+      "id": "find-first-or-throw-missing",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findFirstOrThrow",
+            "model": "user",
+            "where": {
+              "city": "Rome"
+            }
+          }
+        ]
+      ],
+      "upstreamFn": "P2025 from prisma.user.findFirstOrThrow",
+      "goFn": "Query.FindFirstOrThrow -> prisma.ErrRecordNotFound"
+    },
+    {
+      "id": "find-unique-or-throw-missing",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findUniqueOrThrow",
+            "model": "user",
+            "where": {
+              "email": "nope@x.io"
+            }
+          }
+        ]
+      ],
+      "upstreamFn": "P2025 from prisma.user.findUniqueOrThrow",
+      "goFn": "Query.FindUniqueOrThrow -> prisma.ErrRecordNotFound"
+    },
+    {
+      "id": "create-explicit-id",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "create",
+            "model": "user",
+            "data": {
+              "id": 99,
+              "name": "Zed",
+              "email": "zed@x.io",
+              "score": 90
+            }
+          },
+          {
+            "op": "dump",
+            "model": "user"
+          }
+        ]
+      ],
+      "upstreamFn": "create: { data: { id: 99 } }",
+      "goFn": "Query.Create with User{ID: 99}",
+      "note": "an integer primary key is unconditionally treated as database-generated and dropped from the INSERT: there is no tag that turns that off"
+    }
+  ],
+  "note": "The must-fail-on-both cases. The comparison is whether the call failed plus the error code; message text is never compared. An error the side cannot classify reports code \"\"."
+}

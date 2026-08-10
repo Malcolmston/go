@@ -1,0 +1,176 @@
+{
+  "group": "addresses",
+  "upstream": "nodemailer@6.9.16",
+  "cases": [
+    {
+      "id": "addr-from-bare",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.from",
+      "goFn": "nodemailer.Message.SetFrom",
+      "args": [{ "from": "ada@example.com", "to": ["grace@example.com"], "text": "body" }]
+    },
+    {
+      "id": "addr-from-display-name",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.from",
+      "goFn": "nodemailer.Message.SetFrom",
+      "args": [{ "from": "Ada Lovelace <ada@example.com>", "to": ["grace@example.com"], "text": "body" }]
+    },
+    {
+      "id": "addr-to-multiple",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.to",
+      "goFn": "nodemailer.Message.AddTo",
+      "args": [{ "from": "ada@example.com", "to": ["a@example.com", "b@example.com", "Cee Cee <c@example.com>"], "text": "body" }]
+    },
+    {
+      "id": "addr-to-cc-bcc",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.to / mail.cc / mail.bcc",
+      "goFn": "nodemailer.Message.AddTo / AddCc / AddBcc",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["to1@example.com"],
+          "cc": ["cc1@example.com", "Cc Two <cc2@example.com>"],
+          "bcc": ["bcc1@example.com"],
+          "text": "body"
+        }
+      ],
+      "note": "Bcc is emitted into the message by both implementations"
+    },
+    {
+      "id": "addr-reply-to",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.replyTo",
+      "goFn": "nodemailer.Message.AddReplyTo",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["to1@example.com"],
+          "replyTo": ["Replies <replies@example.com>"],
+          "text": "body"
+        }
+      ]
+    },
+    {
+      "id": "addr-reply-to-multiple",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.replyTo",
+      "goFn": "nodemailer.Message.AddReplyTo",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["to1@example.com"],
+          "replyTo": ["r1@example.com", "r2@example.com"],
+          "text": "body"
+        }
+      ]
+    },
+    {
+      "id": "addr-non-ascii-display-name",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.to (RFC 2047 display name)",
+      "goFn": "nodemailer.Address.String",
+      "args": [
+        {
+          "from": "Ædam Ünicode <adam@example.com>",
+          "to": ["Grüße Müller <mueller@example.com>"],
+          "text": "body"
+        }
+      ]
+    },
+    {
+      "id": "addr-quoted-display-name",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.to (quoted display name)",
+      "goFn": "nodemailer.Address.String",
+      "args": [
+        {
+          "from": "\"Lovelace, Ada\" <ada@example.com>",
+          "to": ["\"Hopper; Grace\" <grace@example.com>"],
+          "text": "body"
+        }
+      ]
+    },
+    {
+      "id": "addr-group-to",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.to (RFC 5322 group)",
+      "goFn": "nodemailer.Message.AddToGroup",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["Team: a@example.com, Bee <b@example.com>;"],
+          "text": "body"
+        }
+      ]
+    },
+    {
+      "id": "addr-group-cc",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.cc (RFC 5322 group)",
+      "goFn": "nodemailer.Message.AddCcGroup",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["to1@example.com"],
+          "cc": ["Watchers: w1@example.com, w2@example.com;"],
+          "text": "body"
+        }
+      ]
+    },
+    {
+      "id": "addr-group-empty",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.to (empty group)",
+      "goFn": "nodemailer.Message.AddToGroup",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["Undisclosed recipients:;"],
+          "text": "body"
+        }
+      ]
+    },
+    {
+      "id": "addr-sender",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.sender",
+      "goFn": "—",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "sender": "postmaster@example.com",
+          "to": ["to1@example.com"],
+          "text": "body"
+        }
+      ],
+      "note": "the Go port has no Sender field"
+    },
+    {
+      "id": "addr-invalid-no-at",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.to",
+      "goFn": "nodemailer.Message.AddTo",
+      "args": [{ "from": "ada@example.com", "to": ["not-an-address"], "text": "body" }],
+      "note": "error case: does either side reject a bare token?"
+    },
+    {
+      "id": "addr-invalid-empty-domain",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.to",
+      "goFn": "nodemailer.Message.AddTo",
+      "args": [{ "from": "ada@example.com", "to": ["broken@"], "text": "body" }],
+      "note": "error case"
+    },
+    {
+      "id": "addr-idn-domain",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.to (internationalised domain)",
+      "goFn": "nodemailer.Message.AddTo",
+      "args": [{ "from": "ada@example.com", "to": ["user@müller.example"], "text": "body" }],
+      "note": "upstream punycodes the domain"
+    }
+  ]
+}

@@ -1,0 +1,125 @@
+{
+  "group": "gradients",
+  "upstream": "pdfkit@0.15.1",
+  "cases": [
+    {
+      "id": "grad-linear-fill",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.linearGradient",
+      "goFn": "pdfkit.LinearGradient + NewShadingPattern",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "fillGradient", "gradient": {"op": "linearGradient", "args": [40, 40, 240, 40],
+          "stops": [{"offset": 0, "color": [255, 0, 0]}, {"offset": 1, "color": [0, 0, 255]}]}},
+        {"op": "rect", "args": [40, 40, 200, 100]},
+        {"op": "fill"}
+      ]}]}]
+    },
+    {
+      "id": "grad-linear-three-stops",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.linearGradient",
+      "goFn": "pdfkit.LinearGradient",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "fillGradient", "gradient": {"op": "linearGradient", "args": [40, 40, 40, 240],
+          "stops": [{"offset": 0, "color": [255, 0, 0]}, {"offset": 0.35, "color": [255, 255, 0]}, {"offset": 1, "color": [0, 128, 0]}]}},
+        {"op": "rect", "args": [40, 40, 200, 200]},
+        {"op": "fill"}
+      ]}]}]
+    },
+    {
+      "id": "grad-radial-fill",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.radialGradient",
+      "goFn": "pdfkit.RadialGradient",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "fillGradient", "gradient": {"op": "radialGradient", "args": [140, 140, 0, 140, 140, 100],
+          "stops": [{"offset": 0, "color": [255, 255, 255]}, {"offset": 1, "color": [0, 0, 128]}]}},
+        {"op": "circle", "args": [140, 140, 100]},
+        {"op": "fill"}
+      ]}]}]
+    },
+    {
+      "id": "grad-stroke",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.strokeColor#gradient",
+      "goFn": "Page.SetStrokePattern",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "lineWidth", "args": [6]},
+        {"op": "strokeGradient", "gradient": {"op": "linearGradient", "args": [40, 40, 240, 40],
+          "stops": [{"offset": 0, "color": [0, 0, 0]}, {"offset": 1, "color": [255, 255, 255]}]}},
+        {"op": "rect", "args": [40, 40, 200, 100]},
+        {"op": "stroke"}
+      ]}]}]
+    },
+    {
+      "id": "grad-one-stop",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.linearGradient",
+      "goFn": "pdfkit.LinearGradient",
+      "note": "both sides must reject a gradient with fewer than two stops",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "fillGradient", "gradient": {"op": "linearGradient", "args": [40, 40, 240, 40],
+          "stops": [{"offset": 0, "color": [255, 0, 0]}]}},
+        {"op": "rect", "args": [40, 40, 200, 100]},
+        {"op": "fill"}
+      ]}]}]
+    },
+    {
+      "id": "grad-stop-opacity",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFGradient.stop#opacity",
+      "goFn": "—",
+      "note": "per-stop opacity: the port has no equivalent",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "fillGradient", "gradient": {"op": "linearGradient", "args": [40, 40, 240, 40],
+          "stops": [{"offset": 0, "color": [255, 0, 0], "opacity": 1}, {"offset": 1, "color": [0, 0, 255], "opacity": 0.2}]}},
+        {"op": "rect", "args": [40, 40, 200, 100]},
+        {"op": "fill"}
+      ]}]}]
+    },
+    {
+      "id": "grad-sh-operator",
+      "fn": "buildPDF",
+      "upstreamFn": "—",
+      "goFn": "Page.Shade",
+      "note": "the port can paint a shading directly with sh; upstream always goes through a pattern",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "save"},
+        {"op": "rect", "args": [40, 40, 200, 100]},
+        {"op": "clip"},
+        {"op": "shade", "gradient": {"op": "linearGradient", "args": [40, 40, 240, 40],
+          "stops": [{"offset": 0, "color": [255, 0, 0]}, {"offset": 1, "color": [0, 0, 255]}]}},
+        {"op": "restore"}
+      ]}]}]
+    },
+    {
+      "id": "pat-tiling-fill",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.pattern",
+      "goFn": "pdfkit.NewTilingPattern",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "fillTilingPattern", "args": [10, 10], "color": [255, 0, 0], "cell": [
+          {"op": "rect", "args": [0, 0, 5, 5]},
+          {"op": "fill"}
+        ]},
+        {"op": "rect", "args": [40, 40, 200, 100]},
+        {"op": "fill"}
+      ]}]}]
+    },
+    {
+      "id": "pat-tiling-text-in-cell",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.pattern",
+      "goFn": "pdfkit.NewTilingPattern",
+      "note": "text inside a tiling cell: the port's callback page has no document behind it and panics",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "fillTilingPattern", "args": [20, 20], "color": [0, 0, 0], "cell": [
+          {"op": "setFont", "args": ["Helvetica", 6]},
+          {"op": "text", "args": [0, 6, "x"]}
+        ]},
+        {"op": "rect", "args": [40, 40, 200, 100]},
+        {"op": "fill"}
+      ]}]}]
+    }
+  ]
+}

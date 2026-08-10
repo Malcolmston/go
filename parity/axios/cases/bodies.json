@@ -1,0 +1,569 @@
+{
+  "group": "bodies",
+  "upstream": "axios@1.7.9",
+  "cases": [
+    {
+      "id": "body-json-object",
+      "fn": "request",
+      "upstreamFn": "defaults.transformRequest (object -> JSON)",
+      "goFn": "EncodeBody (map -> JSON)",
+      "observeHeaders": [
+        "content-type",
+        "content-length"
+      ],
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE"
+          },
+          "request": {
+            "method": "post",
+            "url": "/echo",
+            "data": {
+              "json": {
+                "a": 1,
+                "b": "two"
+              }
+            }
+          },
+          "observeHeaders": [
+            "content-type",
+            "content-length"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "body-json-nested",
+      "fn": "request",
+      "upstreamFn": "defaults.transformRequest",
+      "goFn": "EncodeBody",
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE"
+          },
+          "request": {
+            "method": "post",
+            "url": "/echo",
+            "data": {
+              "json": {
+                "a": {
+                  "b": [
+                    1,
+                    2
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "body-json-array",
+      "fn": "request",
+      "upstreamFn": "defaults.transformRequest",
+      "goFn": "EncodeBody",
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE"
+          },
+          "request": {
+            "method": "post",
+            "url": "/echo",
+            "data": {
+              "json": [
+                1,
+                2,
+                3
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "body-json-null",
+      "fn": "request",
+      "upstreamFn": "defaults.transformRequest (null body)",
+      "goFn": "EncodeBody(nil)",
+      "observeHeaders": [
+        "content-type"
+      ],
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE"
+          },
+          "request": {
+            "method": "post",
+            "url": "/echo"
+          },
+          "observeHeaders": [
+            "content-type"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "body-plain-string",
+      "fn": "request",
+      "upstreamFn": "defaults.transformRequest (string)",
+      "goFn": "EncodeBody(string)",
+      "note": "axios sends a raw string with no Content-Type; the port picks text/plain",
+      "observeHeaders": [
+        "content-type"
+      ],
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE"
+          },
+          "request": {
+            "method": "post",
+            "url": "/echo",
+            "data": {
+              "text": "hello body"
+            }
+          },
+          "observeHeaders": [
+            "content-type"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "body-string-with-explicit-content-type",
+      "fn": "request",
+      "upstreamFn": "config.headers['Content-Type']",
+      "goFn": "RequestConfig.Headers",
+      "observeHeaders": [
+        "content-type"
+      ],
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE"
+          },
+          "request": {
+            "method": "post",
+            "url": "/echo",
+            "headers": {
+              "Content-Type": "application/xml"
+            },
+            "data": {
+              "text": "<x/>"
+            }
+          },
+          "observeHeaders": [
+            "content-type"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "body-urlencoded",
+      "fn": "request",
+      "upstreamFn": "URLSearchParams body",
+      "goFn": "EncodeBody(url.Values)",
+      "observeHeaders": [
+        "content-type"
+      ],
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE"
+          },
+          "request": {
+            "method": "post",
+            "url": "/echo",
+            "data": {
+              "urlencoded": {
+                "a": "1",
+                "b": "x y"
+              }
+            }
+          },
+          "observeHeaders": [
+            "content-type"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "body-bytes",
+      "fn": "request",
+      "upstreamFn": "Buffer body",
+      "goFn": "EncodeBody([]byte)",
+      "observeHeaders": [
+        "content-type"
+      ],
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE"
+          },
+          "request": {
+            "method": "post",
+            "url": "/echo",
+            "data": {
+              "bytesHex": "68656c6c6f"
+            }
+          },
+          "observeHeaders": [
+            "content-type"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "body-multipart",
+      "fn": "request",
+      "upstreamFn": "FormData body",
+      "goFn": "FormData",
+      "note": "boundary token is normalised to BOUNDARY on both sides",
+      "observeHeaders": [
+        "content-type"
+      ],
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE"
+          },
+          "request": {
+            "method": "post",
+            "url": "/echo",
+            "data": {
+              "form": {
+                "a": "1",
+                "b": "2"
+              }
+            }
+          },
+          "observeHeaders": [
+            "content-type"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "body-empty-string",
+      "fn": "request",
+      "upstreamFn": "defaults.transformRequest ('')",
+      "goFn": "EncodeBody(\"\")",
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE"
+          },
+          "request": {
+            "method": "post",
+            "url": "/echo",
+            "data": {
+              "text": ""
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "body-get-with-data",
+      "fn": "request",
+      "upstreamFn": "axios#request (GET + data)",
+      "goFn": "Client.Request",
+      "note": "a body on GET",
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE"
+          },
+          "request": {
+            "method": "get",
+            "url": "/echo",
+            "data": {
+              "json": {
+                "a": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "body-unicode-json",
+      "fn": "request",
+      "upstreamFn": "defaults.transformRequest",
+      "goFn": "EncodeBody",
+      "note": "Go's encoding/json escapes <, > and & by default",
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE"
+          },
+          "request": {
+            "method": "post",
+            "url": "/echo",
+            "data": {
+              "json": {
+                "a": "<b>&c"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "response-parsed-json",
+      "fn": "request",
+      "upstreamFn": "defaults.transformResponse",
+      "goFn": "Response.JSON",
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE"
+          },
+          "request": {
+            "method": "get",
+            "url": "/status/200"
+          }
+        }
+      ]
+    },
+    {
+      "id": "response-text-endpoint",
+      "fn": "request",
+      "upstreamFn": "res.data (text/plain)",
+      "goFn": "Response.Text",
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE"
+          },
+          "request": {
+            "method": "get",
+            "url": "/text"
+          },
+          "expose": "text"
+        }
+      ]
+    },
+    {
+      "id": "response-autoparse-json-without-content-type",
+      "fn": "request",
+      "upstreamFn": "transitional.forcedJSONParsing",
+      "goFn": "Response.Text (no auto parsing)",
+      "note": "axios JSON-parses regardless of Content-Type; the port never auto-parses",
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE"
+          },
+          "request": {
+            "method": "get",
+            "url": "/nocontenttype"
+          },
+          "expose": "auto"
+        }
+      ]
+    },
+    {
+      "id": "response-invalid-json-body",
+      "fn": "request",
+      "upstreamFn": "transitional.silentJSONParsing",
+      "goFn": "Response.Text",
+      "note": "application/json with a malformed body: axios silently falls back to the string",
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE"
+          },
+          "request": {
+            "method": "get",
+            "url": "/badjson"
+          },
+          "expose": "auto"
+        }
+      ]
+    },
+    {
+      "id": "response-type-text",
+      "fn": "request",
+      "upstreamFn": "config.responseType = 'text'",
+      "goFn": "ResponseText",
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE"
+          },
+          "request": {
+            "method": "get",
+            "url": "/text",
+            "responseType": "text"
+          },
+          "expose": "text"
+        }
+      ]
+    },
+    {
+      "id": "response-type-json",
+      "fn": "request",
+      "upstreamFn": "config.responseType = 'json'",
+      "goFn": "ResponseJSON",
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE"
+          },
+          "request": {
+            "method": "get",
+            "url": "/status/200",
+            "responseType": "json"
+          }
+        }
+      ]
+    },
+    {
+      "id": "response-status-text",
+      "fn": "request",
+      "upstreamFn": "res.statusText",
+      "goFn": "Response.StatusText",
+      "note": "axios reports 'OK'; the port reports '200 OK'",
+      "assertStatusText": true,
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE"
+          },
+          "request": {
+            "method": "get",
+            "url": "/status/200"
+          },
+          "assertStatusText": true
+        }
+      ]
+    },
+    {
+      "id": "response-204-no-content",
+      "fn": "request",
+      "upstreamFn": "res.data on 204",
+      "goFn": "Response.Text on 204",
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE"
+          },
+          "request": {
+            "method": "get",
+            "url": "/status/204"
+          },
+          "expose": "text"
+        }
+      ]
+    },
+    {
+      "id": "response-max-content-length-exceeded",
+      "fn": "request",
+      "upstreamFn": "config.maxContentLength",
+      "goFn": "Config.MaxContentLength",
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE",
+            "maxContentLength": 10
+          },
+          "request": {
+            "method": "get",
+            "url": "/bytes/100"
+          },
+          "expose": "text"
+        }
+      ]
+    },
+    {
+      "id": "response-max-content-length-ok",
+      "fn": "request",
+      "upstreamFn": "config.maxContentLength",
+      "goFn": "Config.MaxContentLength",
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE",
+            "maxContentLength": 1000
+          },
+          "request": {
+            "method": "get",
+            "url": "/bytes/100"
+          },
+          "expose": "text"
+        }
+      ]
+    },
+    {
+      "id": "body-max-body-length-exceeded",
+      "fn": "request",
+      "upstreamFn": "config.maxBodyLength",
+      "goFn": "Config.MaxBodyLength",
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE",
+            "maxBodyLength": 5
+          },
+          "request": {
+            "method": "post",
+            "url": "/echo",
+            "data": {
+              "text": "0123456789"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "body-max-body-length-ok",
+      "fn": "request",
+      "upstreamFn": "config.maxBodyLength",
+      "goFn": "Config.MaxBodyLength",
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE",
+            "maxBodyLength": 1000
+          },
+          "request": {
+            "method": "post",
+            "url": "/echo",
+            "data": {
+              "text": "0123456789"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "response-decompress-false",
+      "fn": "request",
+      "upstreamFn": "config.decompress = false",
+      "goFn": "Config.Decompress",
+      "note": "asserts the Accept-Encoding actually sent when decompression is disabled",
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE",
+            "decompress": false
+          },
+          "request": {
+            "method": "get",
+            "url": "/echo"
+          },
+          "expose": "none",
+          "observeHeaders": [
+            "accept-encoding"
+          ]
+        }
+      ]
+    }
+  ]
+}

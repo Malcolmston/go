@@ -1,0 +1,64 @@
+{
+  "group": "transforms",
+  "upstream": "matplotlib@3.10.0",
+  "note": "Data coordinates to axes coordinates for explicitly fixed limits. Upstream uses Axes.transLimits, which is exactly the data->axes-fraction part of the transform stack. The Go port has no transform API, so the Go runner places a marker at the query point and measures where in the plot rectangle it landed in the rendered SVG; hence tol 1e-4. Figure-space (transFigure) and display-space (transData) comparisons are out of scope: the port's plot rectangle uses fixed pixel padding rather than a subplot fraction, so absolute pixel positions could never agree.",
+  "cases": [
+    {
+      "id": "d2a-center",
+      "fn": "data_to_axes",
+      "args": {"x": [1.5], "y": [5], "point": [1.5, 5], "xlim": [0, 3], "ylim": [0, 10], "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "matplotlib.axes.Axes.transLimits",
+      "goFn": "matplotlib.Axes.SetXLim/SetYLim + internal tx/ty (observed via SVG)",
+      "tol": 0.0001
+    },
+    {
+      "id": "d2a-origin",
+      "fn": "data_to_axes",
+      "args": {"x": [0], "y": [0], "point": [0, 0], "xlim": [0, 3], "ylim": [0, 10], "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "matplotlib.axes.Axes.transLimits",
+      "goFn": "matplotlib.Axes.SetXLim/SetYLim + internal tx/ty (observed via SVG)",
+      "tol": 0.0001
+    },
+    {
+      "id": "d2a-corner",
+      "fn": "data_to_axes",
+      "args": {"x": [3], "y": [10], "point": [3, 10], "xlim": [0, 3], "ylim": [0, 10], "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "matplotlib.axes.Axes.transLimits",
+      "goFn": "matplotlib.Axes.SetXLim/SetYLim + internal tx/ty (observed via SVG)",
+      "tol": 0.0001
+    },
+    {
+      "id": "d2a-quarter",
+      "fn": "data_to_axes",
+      "args": {"x": [2.5], "y": [-15], "point": [2.5, -15], "xlim": [-10, 10], "ylim": [-100, 100], "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "matplotlib.axes.Axes.transLimits",
+      "goFn": "matplotlib.Axes.SetXLim/SetYLim + internal tx/ty (observed via SVG)",
+      "tol": 0.0001
+    },
+    {
+      "id": "d2a-outside-range",
+      "fn": "data_to_axes",
+      "args": {"x": [5], "y": [-2], "point": [5, -2], "xlim": [0, 3], "ylim": [0, 10], "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "matplotlib.axes.Axes.transLimits (unclipped)",
+      "goFn": "matplotlib.Axes.SetXLim/SetYLim + internal tx/ty (observed via SVG)",
+      "note": "a point outside the view must still map to a fraction outside [0,1]",
+      "tol": 0.0001
+    },
+    {
+      "id": "d2a-inverted-xlim",
+      "fn": "data_to_axes",
+      "args": {"x": [1], "y": [5], "point": [1, 5], "xlim": [3, 0], "ylim": [0, 10], "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "matplotlib.axes.Axes.transLimits with a reversed x axis",
+      "goFn": "matplotlib.Axes.SetXLim with lo > hi",
+      "tol": 0.0001
+    },
+    {
+      "id": "d2a-nonround-limits",
+      "fn": "data_to_axes",
+      "args": {"x": [0.37], "y": [1.9], "point": [0.37, 1.9], "xlim": [0.1, 0.9], "ylim": [1.1, 8.9], "figsize": [6.4, 4.8], "dpi": 100},
+      "upstreamFn": "matplotlib.axes.Axes.transLimits",
+      "goFn": "matplotlib.Axes.SetXLim/SetYLim + internal tx/ty (observed via SVG)",
+      "tol": 0.0001
+    }
+  ]
+}

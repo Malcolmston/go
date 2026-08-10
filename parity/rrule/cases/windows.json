@@ -1,0 +1,218 @@
+{
+  "group": "windows",
+  "upstream": "python-dateutil@2.9.0.post0",
+  "cases": [
+    {
+      "id": "between-basic",
+      "fn": "between",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;COUNT=10",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "after": "1997-09-04T00:00:00",
+          "before": "1997-09-07T00:00:00",
+          "inc": false
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulebase.between",
+      "goFn": "rrule.RRule.Between"
+    },
+    {
+      "id": "between-inclusive",
+      "fn": "between",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;COUNT=10",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "after": "1997-09-04T09:00:00",
+          "before": "1997-09-07T09:00:00",
+          "inc": true
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulebase.between",
+      "goFn": "rrule.RRule.Between"
+    },
+    {
+      "id": "between-exclusive-endpoints",
+      "fn": "between",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;COUNT=10",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "after": "1997-09-04T09:00:00",
+          "before": "1997-09-07T09:00:00",
+          "inc": false
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulebase.between",
+      "goFn": "rrule.RRule.Between"
+    },
+    {
+      "id": "between-empty",
+      "fn": "between",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;COUNT=10",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "after": "1998-01-01T00:00:00",
+          "before": "1998-02-01T00:00:00",
+          "inc": false
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulebase.between",
+      "goFn": "rrule.RRule.Between"
+    },
+    {
+      "id": "between-unbounded-rule",
+      "fn": "between",
+      "args": [
+        {
+          "rule": "FREQ=DAILY",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "after": "1997-10-01T00:00:00",
+          "before": "1997-10-06T00:00:00",
+          "inc": false
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulebase.between",
+      "goFn": "rrule.RRule.Between"
+    },
+    {
+      "id": "after-basic",
+      "fn": "after",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;COUNT=10",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "after": "1997-09-04T09:00:00",
+          "inc": false
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulebase.after",
+      "goFn": "rrule.RRule.After"
+    },
+    {
+      "id": "after-inclusive",
+      "fn": "after",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;COUNT=10",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "after": "1997-09-04T09:00:00",
+          "inc": true
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulebase.after",
+      "goFn": "rrule.RRule.After"
+    },
+    {
+      "id": "after-past-end",
+      "fn": "after",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;COUNT=3",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "after": "1999-01-01T00:00:00",
+          "inc": false
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulebase.after",
+      "goFn": "rrule.RRule.After",
+      "note": "no occurrence after the end: upstream returns None, port returns the zero time"
+    },
+    {
+      "id": "before-basic",
+      "fn": "before",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;COUNT=10",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "before": "1997-09-04T09:00:00",
+          "inc": false
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulebase.before",
+      "goFn": "rrule.RRule.Before"
+    },
+    {
+      "id": "before-inclusive",
+      "fn": "before",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;COUNT=10",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "before": "1997-09-04T09:00:00",
+          "inc": true
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulebase.before",
+      "goFn": "rrule.RRule.Before"
+    },
+    {
+      "id": "before-start",
+      "fn": "before",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;COUNT=10",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "before": "1997-01-01T00:00:00",
+          "inc": false
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulebase.before",
+      "goFn": "rrule.RRule.Before",
+      "note": "nothing before DTSTART"
+    },
+    {
+      "id": "count-daily-10",
+      "fn": "count",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;COUNT=10",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC"
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulebase.count",
+      "goFn": "len(rrule.RRule.All())"
+    },
+    {
+      "id": "count-until",
+      "fn": "count",
+      "args": [
+        {
+          "rule": "FREQ=WEEKLY;UNTIL=19971224T000000Z",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC"
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulebase.count",
+      "goFn": "len(rrule.RRule.All())"
+    },
+    {
+      "id": "count-empty",
+      "fn": "count",
+      "args": [
+        {
+          "rule": "FREQ=MONTHLY;BYMONTH=2;BYMONTHDAY=30;COUNT=3",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC"
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulebase.count",
+      "goFn": "len(rrule.RRule.All())",
+      "note": "impossible rule: zero occurrences"
+    }
+  ]
+}

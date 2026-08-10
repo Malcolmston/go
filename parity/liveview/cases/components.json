@@ -1,0 +1,194 @@
+{
+  "group": "components",
+  "upstream": "phoenix_live_view@1.2.9",
+  "note": "Nested stateful components: the cid placed in the parent's slot, the per-cid diffs under \"c\", and whether component statics are re-sent. cids are renumbered to first-appearance order on both sides.",
+  "cases": [
+    {
+      "id": "cmp-initial-one",
+      "fn": "session_initial",
+      "args": [
+        "withcomp",
+        {}
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "(*liveview.Session).InitialDiff",
+      "note": "one component: slot 1 carries the cid, \"c\" carries its full diff"
+    },
+    {
+      "id": "cmp-initial-two",
+      "fn": "session_initial",
+      "args": [
+        "twocomp",
+        {}
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "(*liveview.Session).InitialDiff",
+      "note": "two components of the same module"
+    },
+    {
+      "id": "cmp-initial-two-wire",
+      "fn": "session_initial_wire",
+      "args": [
+        "twocomp",
+        {}
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "(*liveview.Session).InitialDiff",
+      "note": "the un-normalised wire form: does the second component's statics get shared with the first?"
+    },
+    {
+      "id": "cmp-initial-titled",
+      "fn": "session_initial",
+      "args": [
+        "withcomp",
+        {
+          "title": "T",
+          "text": "hi"
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "(*liveview.Session).InitialDiff"
+    },
+    {
+      "id": "cmp-parent-change-only",
+      "fn": "session_event",
+      "args": [
+        "withcomp",
+        {},
+        "title",
+        {
+          "text": "T2"
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "(*liveview.Session).Event",
+      "note": "an unchanged component must contribute nothing: no cid re-send, no \"c\" entry"
+    },
+    {
+      "id": "cmp-parent-change-only-two",
+      "fn": "session_event",
+      "args": [
+        "twocomp",
+        {},
+        "title",
+        {
+          "text": "T2"
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "(*liveview.Session).Event"
+    },
+    {
+      "id": "cmp-parent-change-no-initial",
+      "fn": "session_event_no_initial",
+      "args": [
+        "withcomp",
+        {},
+        "title",
+        {
+          "text": "T2"
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "(*liveview.Session).Event",
+      "note": "the port's HTTP event path never calls InitialDiff, so nothing marks the component statics as sent"
+    },
+    {
+      "id": "cmp-parent-change-no-initial-two",
+      "fn": "session_event_no_initial",
+      "args": [
+        "twocomp",
+        {},
+        "title",
+        {
+          "text": "T2"
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "(*liveview.Session).Event"
+    },
+    {
+      "id": "cmp-parent-no-change",
+      "fn": "session_event",
+      "args": [
+        "withcomp",
+        {},
+        "nope",
+        {}
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "(*liveview.Session).Event",
+      "note": "an event nobody handles must produce an empty diff"
+    },
+    {
+      "id": "cmp-event-bump",
+      "fn": "component_event",
+      "args": [
+        "withcomp",
+        {},
+        1,
+        "bump",
+        {}
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.write_component/4",
+      "goFn": "(*liveview.Session).ComponentEvent",
+      "note": "only the changed slot inside \"c\""
+    },
+    {
+      "id": "cmp-event-bump-cid2",
+      "fn": "component_event",
+      "args": [
+        "twocomp",
+        {},
+        2,
+        "bump",
+        {}
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.write_component/4",
+      "goFn": "(*liveview.Session).ComponentEvent",
+      "note": "the sibling component must contribute nothing"
+    },
+    {
+      "id": "cmp-event-set-number",
+      "fn": "component_event",
+      "args": [
+        "withcomp",
+        {},
+        1,
+        "set",
+        {
+          "value": 7
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.write_component/4",
+      "goFn": "(*liveview.Session).ComponentEvent"
+    },
+    {
+      "id": "cmp-event-unhandled",
+      "fn": "component_event",
+      "args": [
+        "withcomp",
+        {},
+        1,
+        "nope",
+        {}
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.write_component/4",
+      "goFn": "(*liveview.Session).ComponentEvent"
+    },
+    {
+      "id": "cmp-event-unknown-cid",
+      "fn": "component_event",
+      "args": [
+        "withcomp",
+        {},
+        9,
+        "bump",
+        {}
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.write_component/4",
+      "goFn": "(*liveview.Session).ComponentEvent",
+      "note": "addressing a cid that does not exist"
+    }
+  ]
+}

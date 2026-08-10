@@ -1,0 +1,917 @@
+{
+  "group": "sortedsets",
+  "upstream": "redis-server@8.2.2",
+  "encoding": "commands are arrays of UTF-8 argument strings; replies map integer->number, bulk string->string, nil->null, simple string->{\"status\":s}, array->array, error->{\"error\":true}",
+  "cases": [
+    {
+      "id": "zset-basics",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "ZADD",
+              "z",
+              "1",
+              "a",
+              "2",
+              "b",
+              "3",
+              "c"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZCARD",
+              "z"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZSCORE",
+              "z",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZSCORE",
+              "z",
+              "zz"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZSCORE",
+              "nokey",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZADD",
+              "z",
+              "5",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZSCORE",
+              "z",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZCARD",
+              "z"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANK",
+              "z",
+              "b"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZREVRANK",
+              "z",
+              "b"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANK",
+              "z",
+              "zz"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANK",
+              "nokey",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANGE",
+              "z",
+              "0",
+              "-1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANGE",
+              "z",
+              "0",
+              "-1",
+              "WITHSCORES"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZREVRANGE",
+              "z",
+              "0",
+              "-1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZREM",
+              "z",
+              "a",
+              "zz"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZCARD",
+              "z"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "ZADD/ZCARD/ZSCORE/ZRANK/ZREVRANK/ZRANGE/ZREVRANGE/ZREM",
+      "goFn": "Store.Do ZADD/ZCARD/ZSCORE/ZRANK/ZREVRANK/ZRANGE/ZREVRANGE/ZREM",
+      "note": "ZADD returns only newly added members; re-adding updates the score"
+    },
+    {
+      "id": "zset-fractional-scores",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "ZADD",
+              "z",
+              "1.5",
+              "a",
+              "2.25",
+              "b",
+              "-0.5",
+              "c",
+              "0",
+              "d"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZSCORE",
+              "z",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZSCORE",
+              "z",
+              "c"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZSCORE",
+              "z",
+              "d"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANGE",
+              "z",
+              "0",
+              "-1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANGE",
+              "z",
+              "0",
+              "-1",
+              "WITHSCORES"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "ZADD/ZSCORE",
+      "goFn": "Store.Do ZADD/ZSCORE",
+      "note": "score reply formatting must match exactly"
+    },
+    {
+      "id": "zset-infinite-scores",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "ZADD",
+              "z",
+              "+inf",
+              "hi",
+              "-inf",
+              "lo",
+              "0",
+              "mid"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZSCORE",
+              "z",
+              "hi"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZSCORE",
+              "z",
+              "lo"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANGE",
+              "z",
+              "0",
+              "-1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANGE",
+              "z",
+              "0",
+              "-1",
+              "WITHSCORES"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "ZADD key +inf member",
+      "goFn": "Store.Do ZADD key +inf member",
+      "note": "Redis prints infinite scores as inf / -inf"
+    },
+    {
+      "id": "zset-large-scores",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "ZADD",
+              "z",
+              "3000",
+              "a",
+              "1e17",
+              "b",
+              "0.0000001",
+              "c"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZSCORE",
+              "z",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZSCORE",
+              "z",
+              "b"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZSCORE",
+              "z",
+              "c"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANGE",
+              "z",
+              "0",
+              "-1",
+              "WITHSCORES"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "ZADD/ZSCORE",
+      "goFn": "Store.Do ZADD/ZSCORE",
+      "note": "Redis never uses exponent notation in score replies"
+    },
+    {
+      "id": "zset-ties-sort-lexically",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "ZADD",
+              "z",
+              "1",
+              "b",
+              "1",
+              "a",
+              "1",
+              "c"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANGE",
+              "z",
+              "0",
+              "-1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANK",
+              "z",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANK",
+              "z",
+              "c"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZREVRANGE",
+              "z",
+              "0",
+              "-1"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "ZADD/ZRANGE",
+      "goFn": "Store.Do ZADD/ZRANGE",
+      "note": "equal scores order by member lexicographically"
+    },
+    {
+      "id": "zrange-bounds",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "ZADD",
+              "z",
+              "1",
+              "a",
+              "2",
+              "b",
+              "3",
+              "c",
+              "4",
+              "d"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANGE",
+              "z",
+              "0",
+              "0"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANGE",
+              "z",
+              "-2",
+              "-1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANGE",
+              "z",
+              "5",
+              "10"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANGE",
+              "z",
+              "-100",
+              "100"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANGE",
+              "z",
+              "3",
+              "1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANGE",
+              "nokey",
+              "0",
+              "-1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZREVRANGE",
+              "z",
+              "0",
+              "1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZREVRANGE",
+              "z",
+              "-1",
+              "-1"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "ZRANGE/ZREVRANGE",
+      "goFn": "Store.Do ZRANGE/ZREVRANGE",
+      "note": ""
+    },
+    {
+      "id": "zrangebyscore",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "ZADD",
+              "z",
+              "1",
+              "a",
+              "2",
+              "b",
+              "3",
+              "c"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANGEBYSCORE",
+              "z",
+              "1",
+              "2"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANGEBYSCORE",
+              "z",
+              "(1",
+              "3"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANGEBYSCORE",
+              "z",
+              "(1",
+              "(3"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANGEBYSCORE",
+              "z",
+              "-inf",
+              "+inf"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANGEBYSCORE",
+              "z",
+              "-inf",
+              "(2"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANGEBYSCORE",
+              "z",
+              "2",
+              "1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANGEBYSCORE",
+              "z",
+              "-inf",
+              "+inf",
+              "WITHSCORES"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANGEBYSCORE",
+              "nokey",
+              "-inf",
+              "+inf"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANGEBYSCORE",
+              "z",
+              "bad",
+              "1"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "ZRANGEBYSCORE",
+      "goFn": "Store.Do ZRANGEBYSCORE",
+      "note": "inclusive by default, ( makes a bound exclusive"
+    },
+    {
+      "id": "zadd-flags",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "ZADD",
+              "z",
+              "NX",
+              "1",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZSCORE",
+              "z",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZADD",
+              "z",
+              "NX",
+              "2",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZSCORE",
+              "z",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZADD",
+              "z",
+              "XX",
+              "3",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZSCORE",
+              "z",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZADD",
+              "z",
+              "XX",
+              "1",
+              "new"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXISTS",
+              "new"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZCARD",
+              "z"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZADD",
+              "z",
+              "GT",
+              "5",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZSCORE",
+              "z",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZADD",
+              "z",
+              "GT",
+              "1",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZSCORE",
+              "z",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZADD",
+              "z",
+              "CH",
+              "9",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZADD",
+              "z",
+              "INCR",
+              "1",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZSCORE",
+              "z",
+              "a"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "ZADD NX|XX|GT|LT|CH|INCR",
+      "goFn": "Store.Do ZADD (flags)",
+      "note": ""
+    },
+    {
+      "id": "zset-arity-and-errors",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "ZADD",
+              "z",
+              "notanumber",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZADD",
+              "z",
+              "1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZADD",
+              "z"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZADD",
+              "z",
+              "1",
+              "a",
+              "2"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZSCORE",
+              "z"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZCARD"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANGE",
+              "z",
+              "0"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANGE",
+              "z",
+              "x",
+              "1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANGE",
+              "z",
+              "0",
+              "-1",
+              "BOGUS"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZREM",
+              "z"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "KEYS",
+              "*"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "ZADD/ZSCORE/ZRANGE/ZREM",
+      "goFn": "Store.Do ZADD/ZSCORE/ZRANGE/ZREM",
+      "note": ""
+    },
+    {
+      "id": "zset-empty-removes-key",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "ZADD",
+              "z",
+              "1",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZREM",
+              "z",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXISTS",
+              "z"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZCARD",
+              "z"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TYPE",
+              "z"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "DBSIZE"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "ZREM",
+      "goFn": "Store.Do ZREM",
+      "note": ""
+    }
+  ]
+}

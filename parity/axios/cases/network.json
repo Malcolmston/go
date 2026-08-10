@@ -1,0 +1,138 @@
+{
+  "group": "network",
+  "upstream": "axios@1.7.9",
+  "cases": [
+    {
+      "id": "timeout-exceeded",
+      "fn": "request",
+      "upstreamFn": "config.timeout",
+      "goFn": "Config.Timeout",
+      "note": "axios reports code ECONNABORTED",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE", "timeoutMs": 120 },
+          "request": { "method": "get", "url": "/slow/1500" }
+        }
+      ]
+    },
+    {
+      "id": "timeout-not-exceeded",
+      "fn": "request",
+      "upstreamFn": "config.timeout",
+      "goFn": "Config.Timeout",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE", "timeoutMs": 5000 },
+          "request": { "method": "get", "url": "/slow/50" }
+        }
+      ]
+    },
+    {
+      "id": "timeout-per-request-overrides-client",
+      "fn": "request",
+      "upstreamFn": "mergeConfig timeout",
+      "goFn": "RequestConfig.Timeout",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE", "timeoutMs": 5000 },
+          "request": { "method": "get", "url": "/slow/1500", "timeoutMs": 120 }
+        }
+      ]
+    },
+    {
+      "id": "timeout-zero-means-none",
+      "fn": "request",
+      "upstreamFn": "config.timeout = 0",
+      "goFn": "Config.Timeout = 0",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE", "timeoutMs": 0 },
+          "request": { "method": "get", "url": "/slow/50" }
+        }
+      ]
+    },
+    {
+      "id": "redirect-single-followed",
+      "fn": "request",
+      "upstreamFn": "follow-redirects default",
+      "goFn": "net/http default redirect policy",
+      "note": "final observed path must be /echo",
+      "args": [
+        { "client": { "baseURL": "$BASE" }, "request": { "method": "get", "url": "/redirect/1" } }
+      ]
+    },
+    {
+      "id": "redirect-chain-of-three",
+      "fn": "request",
+      "upstreamFn": "follow-redirects default",
+      "goFn": "net/http default redirect policy",
+      "args": [
+        { "client": { "baseURL": "$BASE" }, "request": { "method": "get", "url": "/redirect/3" } }
+      ]
+    },
+    {
+      "id": "redirect-max-redirects-zero",
+      "fn": "request",
+      "upstreamFn": "config.maxRedirects = 0",
+      "goFn": "Config.MaxRedirects = 0",
+      "note": "axios: do not follow, return the 302 (which then fails validateStatus); the port treats 0 as 'use the default 10'",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE", "maxRedirects": 0 },
+          "request": { "method": "get", "url": "/redirect/1" }
+        }
+      ]
+    },
+    {
+      "id": "redirect-max-redirects-zero-validate-all",
+      "fn": "request",
+      "upstreamFn": "config.maxRedirects = 0 + validateStatus all",
+      "goFn": "Config.MaxRedirects = 0",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE", "maxRedirects": 0, "validateStatus": "all" },
+          "request": { "method": "get", "url": "/redirect/1" },
+          "expose": "text"
+        }
+      ]
+    },
+    {
+      "id": "redirect-max-redirects-negative",
+      "fn": "request",
+      "upstreamFn": "config.maxRedirects = -1",
+      "goFn": "Config.MaxRedirects < 0 disables following",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE", "maxRedirects": -1, "validateStatus": "all" },
+          "request": { "method": "get", "url": "/redirect/1" },
+          "expose": "text",
+          "assertStatusText": false
+        }
+      ]
+    },
+    {
+      "id": "redirect-exceeds-max",
+      "fn": "request",
+      "upstreamFn": "ERR_FR_TOO_MANY_REDIRECTS",
+      "goFn": "redirect cap error",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE", "maxRedirects": 2 },
+          "request": { "method": "get", "url": "/redirect/5" }
+        }
+      ]
+    },
+    {
+      "id": "redirect-within-max",
+      "fn": "request",
+      "upstreamFn": "config.maxRedirects",
+      "goFn": "Config.MaxRedirects",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE", "maxRedirects": 5 },
+          "request": { "method": "get", "url": "/redirect/3" }
+        }
+      ]
+    }
+  ]
+}

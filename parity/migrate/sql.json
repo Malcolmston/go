@@ -1,0 +1,3941 @@
+[
+  {
+    "case": "table-default-primary-key",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )"
+      }
+    }
+  },
+  {
+    "case": "table-without-id",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"k\" text NOT NULL PRIMARY KEY)"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"k\" TEXT PRIMARY KEY )"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": [
+            "sqlite_autoindex_users_1"
+          ]
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" (\"k\" text NOT NULL PRIMARY KEY)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": [
+            "sqlite_autoindex_users_1"
+          ]
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" ( \"k\" TEXT PRIMARY KEY )"
+      }
+    }
+  },
+  {
+    "case": "table-named-primary-key",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"uid\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)"
+    ],
+    "goSQL": [],
+    "upstreamRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" (\"uid\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)"
+      }
+    },
+    "goRawNames": {
+      "names": {},
+      "step_errors": [
+        {
+          "error": "migrate: CreateTable has no primary_key option",
+          "i": 0
+        }
+      ],
+      "tables_sql": {}
+    }
+  },
+  {
+    "case": "table-if-not-exists",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)",
+      "CREATE TABLE IF NOT EXISTS \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )",
+      "CREATE TABLE IF NOT EXISTS \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )"
+      }
+    }
+  },
+  {
+    "case": "table-check-constraint-inline",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"login_count\" integer, CONSTRAINT login_count_positive CHECK (login_count \u003e= 0))"
+    ],
+    "goSQL": [],
+    "upstreamRawNames": {
+      "names": {
+        "users": {
+          "checks": [
+            "login_count_positive"
+          ],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"login_count\" integer, CONSTRAINT login_count_positive CHECK (login_count \u003e= 0))"
+      }
+    },
+    "goRawNames": {
+      "names": {},
+      "step_errors": [
+        {
+          "error": "migrate: Table has no check-constraint builder",
+          "i": 0
+        }
+      ],
+      "tables_sql": {}
+    }
+  },
+  {
+    "case": "drop-table",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)",
+      "CREATE TABLE \"posts\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)",
+      "DROP TABLE \"posts\""
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )",
+      "CREATE TABLE \"posts\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )",
+      "DROP TABLE \"posts\""
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )"
+      }
+    }
+  },
+  {
+    "case": "rename-table",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)",
+      "ALTER TABLE \"users\" RENAME TO \"accounts\""
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )",
+      "ALTER TABLE \"users\" RENAME TO \"accounts\""
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "accounts": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "accounts": "CREATE TABLE \"accounts\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "accounts": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "accounts": "CREATE TABLE \"accounts\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )"
+      }
+    }
+  },
+  {
+    "case": "add-column-text",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)",
+      "ALTER TABLE \"users\" ADD \"bio\" text"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )",
+      "ALTER TABLE \"users\" ADD COLUMN \"bio\" TEXT"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer, \"bio\" text)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER , \"bio\" TEXT)"
+      }
+    }
+  },
+  {
+    "case": "add-column-not-null-default",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)",
+      "ALTER TABLE \"users\" ADD \"hits\" integer DEFAULT 0 NOT NULL"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )",
+      "ALTER TABLE \"users\" ADD COLUMN \"hits\" INTEGER NOT NULL DEFAULT 0"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer, \"hits\" integer DEFAULT 0 NOT NULL)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER , \"hits\" INTEGER NOT NULL DEFAULT 0)"
+      }
+    }
+  },
+  {
+    "case": "add-column-decimal",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)",
+      "ALTER TABLE \"users\" ADD \"amount\" decimal(8,2)"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer, \"amount\" decimal(8,2))"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [
+        {
+          "error": "migrate: AlterTable has no \"decimal\" method; add_column needs an explicit SQL type spelling",
+          "i": 1
+        }
+      ],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )"
+      }
+    }
+  },
+  {
+    "case": "remove-column",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer, \"bio\" text)",
+      "CREATE TEMPORARY TABLE \"ausers\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer, \"bio\" text)",
+      "INSERT INTO \"ausers\" (\"id\",\"n\",\"bio\") SELECT \"id\",\"n\",\"bio\" FROM \"users\"",
+      "DROP TABLE \"users\"",
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)",
+      "INSERT INTO \"users\" (\"id\",\"n\") SELECT \"id\",\"n\" FROM \"ausers\"",
+      "DROP TABLE \"ausers\""
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER, \"bio\" TEXT )",
+      "ALTER TABLE \"users\" DROP COLUMN \"bio\""
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER)"
+      }
+    }
+  },
+  {
+    "case": "rename-column",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"nick\" text)",
+      "CREATE TEMPORARY TABLE \"ausers\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"handle\" text)",
+      "INSERT INTO \"ausers\" (\"id\",\"handle\") SELECT \"id\",\"nick\" FROM \"users\"",
+      "DROP TABLE \"users\"",
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"handle\" text)",
+      "INSERT INTO \"users\" (\"id\",\"handle\") SELECT \"id\",\"handle\" FROM \"ausers\"",
+      "DROP TABLE \"ausers\""
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"nick\" TEXT )",
+      "ALTER TABLE \"users\" RENAME COLUMN \"nick\" TO \"handle\""
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"handle\" text)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"handle\" TEXT )"
+      }
+    }
+  },
+  {
+    "case": "change-column-type",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)",
+      "CREATE TEMPORARY TABLE \"ausers\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)",
+      "INSERT INTO \"ausers\" (\"id\",\"n\") SELECT \"id\",\"n\" FROM \"users\"",
+      "DROP TABLE \"users\"",
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" text)",
+      "INSERT INTO \"users\" (\"id\",\"n\") SELECT \"id\",\"n\" FROM \"ausers\"",
+      "DROP TABLE \"ausers\""
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )",
+      "ALTER TABLE \"users\" ALTER COLUMN \"n\" TYPE TEXT"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" text)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [
+        {
+          "error": "SQL logic error: near \"TYPE\": syntax error (1)",
+          "i": 1
+        }
+      ],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )"
+      }
+    }
+  },
+  {
+    "case": "change-column-null-false",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"bio\" text)",
+      "CREATE TEMPORARY TABLE \"ausers\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"bio\" text)",
+      "INSERT INTO \"ausers\" (\"id\",\"bio\") SELECT \"id\",\"bio\" FROM \"users\"",
+      "DROP TABLE \"users\"",
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"bio\" text NOT NULL)",
+      "INSERT INTO \"users\" (\"id\",\"bio\") SELECT \"id\",\"bio\" FROM \"ausers\"",
+      "DROP TABLE \"ausers\""
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"bio\" TEXT )",
+      "ALTER TABLE \"users\" ALTER COLUMN \"bio\" SET NOT NULL"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"bio\" text NOT NULL)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"bio\" TEXT NOT NULL)"
+      }
+    }
+  },
+  {
+    "case": "change-column-default",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)",
+      "CREATE TEMPORARY TABLE \"ausers\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)",
+      "INSERT INTO \"ausers\" (\"id\",\"n\") SELECT \"id\",\"n\" FROM \"users\"",
+      "DROP TABLE \"users\"",
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer DEFAULT 5)",
+      "INSERT INTO \"users\" (\"id\",\"n\") SELECT \"id\",\"n\" FROM \"ausers\"",
+      "DROP TABLE \"ausers\""
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )",
+      "ALTER TABLE \"users\" ALTER COLUMN \"n\" SET DEFAULT 5"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer DEFAULT 5)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [
+        {
+          "error": "SQL logic error: near \"DEFAULT\": syntax error (1)",
+          "i": 1
+        }
+      ],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )"
+      }
+    }
+  },
+  {
+    "case": "drop-column-default",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer DEFAULT 5)",
+      "CREATE TEMPORARY TABLE \"ausers\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer DEFAULT 5)",
+      "INSERT INTO \"ausers\" (\"id\",\"n\") SELECT \"id\",\"n\" FROM \"users\"",
+      "DROP TABLE \"users\"",
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer DEFAULT NULL)",
+      "INSERT INTO \"users\" (\"id\",\"n\") SELECT \"id\",\"n\" FROM \"ausers\"",
+      "DROP TABLE \"ausers\""
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER DEFAULT 5 )",
+      "ALTER TABLE \"users\" ALTER COLUMN \"n\" DROP DEFAULT"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer DEFAULT NULL)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [
+        {
+          "error": "SQL logic error: near \"DEFAULT\": syntax error (1)",
+          "i": 1
+        }
+      ],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER DEFAULT 5 )"
+      }
+    }
+  },
+  {
+    "case": "add-index-single",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)",
+      "CREATE INDEX \"index_users_on_email\" ON \"users\" (\"email\")"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT )",
+      "CREATE INDEX \"index_users_on_email\" ON \"users\" (\"email\")"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": [
+            "index_users_on_email"
+          ]
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": [
+            "index_users_on_email"
+          ]
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT )"
+      }
+    }
+  },
+  {
+    "case": "add-index-unique",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)",
+      "CREATE UNIQUE INDEX \"index_users_on_email\" ON \"users\" (\"email\")"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT )",
+      "CREATE UNIQUE INDEX \"index_users_on_email\" ON \"users\" (\"email\")"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": [
+            "index_users_on_email"
+          ]
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": [
+            "index_users_on_email"
+          ]
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT )"
+      }
+    }
+  },
+  {
+    "case": "add-index-composite",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"a\" text, \"b\" integer)",
+      "CREATE INDEX \"index_users_on_a_and_b\" ON \"users\" (\"a\", \"b\")"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"a\" TEXT, \"b\" INTEGER )",
+      "CREATE INDEX \"index_users_on_a_and_b\" ON \"users\" (\"a\", \"b\")"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": [
+            "index_users_on_a_and_b"
+          ]
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"a\" text, \"b\" integer)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": [
+            "index_users_on_a_and_b"
+          ]
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"a\" TEXT, \"b\" INTEGER )"
+      }
+    }
+  },
+  {
+    "case": "add-index-named",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)",
+      "CREATE INDEX \"idx_email\" ON \"users\" (\"email\")"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT )",
+      "CREATE INDEX \"idx_email\" ON \"users\" (\"email\")"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": [
+            "idx_email"
+          ]
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": [
+            "idx_email"
+          ]
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT )"
+      }
+    }
+  },
+  {
+    "case": "add-index-partial",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)",
+      "CREATE INDEX \"idx_email_present\" ON \"users\" (\"email\") WHERE email IS NOT NULL"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT )",
+      "CREATE INDEX \"idx_email_present\" ON \"users\" (\"email\") WHERE email IS NOT NULL"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": [
+            "idx_email_present"
+          ]
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": [
+            "idx_email_present"
+          ]
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT )"
+      }
+    }
+  },
+  {
+    "case": "add-index-expression",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)",
+      "CREATE INDEX \"idx_lower_email\" ON \"users\" (lower(email))"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT )",
+      "CREATE INDEX \"idx_lower_email\" ON \"users\" (lower(email))"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": [
+            "idx_lower_email"
+          ]
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": [
+            "idx_lower_email"
+          ]
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT )"
+      }
+    }
+  },
+  {
+    "case": "remove-index-by-columns",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)",
+      "CREATE INDEX \"index_users_on_email\" ON \"users\" (\"email\")",
+      "DROP INDEX \"index_users_on_email\""
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT )",
+      "CREATE INDEX \"index_users_on_email\" ON \"users\" (\"email\")",
+      "DROP INDEX \"index_users_on_email\""
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT )"
+      }
+    }
+  },
+  {
+    "case": "rename-index",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)",
+      "CREATE INDEX \"idx_old\" ON \"users\" (\"email\")",
+      "CREATE INDEX \"idx_new\" ON \"users\" (\"email\")",
+      "DROP INDEX \"idx_old\""
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT )",
+      "CREATE INDEX \"idx_old\" ON \"users\" (\"email\")",
+      "ALTER INDEX \"idx_old\" RENAME TO \"idx_new\""
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": [
+            "idx_new"
+          ]
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": [
+            "idx_old"
+          ]
+        }
+      },
+      "step_errors": [
+        {
+          "error": "SQL logic error: near \"INDEX\": syntax error (1)",
+          "i": 2
+        }
+      ],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT )"
+      }
+    }
+  },
+  {
+    "case": "add-timestamps",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)",
+      "CREATE TEMPORARY TABLE \"ausers\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)",
+      "INSERT INTO \"ausers\" (\"id\",\"n\") SELECT \"id\",\"n\" FROM \"users\"",
+      "DROP TABLE \"users\"",
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer, \"created_at\" datetime(6) NOT NULL, \"updated_at\" datetime(6) NOT NULL)",
+      "INSERT INTO \"users\" (\"id\",\"n\") SELECT \"id\",\"n\" FROM \"ausers\"",
+      "DROP TABLE \"ausers\""
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )",
+      "ALTER TABLE \"users\" ADD COLUMN \"created_at\" TIMESTAMP NOT NULL",
+      "ALTER TABLE \"users\" ADD COLUMN \"updated_at\" TIMESTAMP NOT NULL"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer, \"created_at\" datetime(6) NOT NULL, \"updated_at\" datetime(6) NOT NULL)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER , \"created_at\" TIMESTAMP NOT NULL, \"updated_at\" TIMESTAMP NOT NULL)"
+      }
+    }
+  },
+  {
+    "case": "remove-timestamps",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer, \"created_at\" datetime(6) NOT NULL, \"updated_at\" datetime(6) NOT NULL)",
+      "CREATE TEMPORARY TABLE \"ausers\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer, \"created_at\" datetime(6) NOT NULL, \"updated_at\" datetime(6) NOT NULL)",
+      "INSERT INTO \"ausers\" (\"id\",\"n\",\"created_at\",\"updated_at\") SELECT \"id\",\"n\",\"created_at\",\"updated_at\" FROM \"users\"",
+      "DROP TABLE \"users\"",
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)",
+      "INSERT INTO \"users\" (\"id\",\"n\") SELECT \"id\",\"n\" FROM \"ausers\"",
+      "DROP TABLE \"ausers\""
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER, \"created_at\" DATETIME NOT NULL, \"updated_at\" DATETIME NOT NULL )",
+      "ALTER TABLE \"users\" DROP COLUMN \"updated_at\"",
+      "ALTER TABLE \"users\" DROP COLUMN \"created_at\""
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER)"
+      }
+    }
+  },
+  {
+    "case": "table-references-plain",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)",
+      "CREATE TABLE \"posts\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"user_id\" integer)",
+      "CREATE INDEX \"index_posts_on_user_id\" ON \"posts\" (\"user_id\")"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )",
+      "CREATE TABLE \"posts\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"user_id\" BIGINT )"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "posts": {
+          "checks": [],
+          "indexes": [
+            "index_posts_on_user_id"
+          ]
+        },
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "posts": "CREATE TABLE \"posts\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"user_id\" integer)",
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "posts": {
+          "checks": [],
+          "indexes": []
+        },
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "posts": "CREATE TABLE \"posts\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"user_id\" BIGINT )",
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )"
+      }
+    }
+  },
+  {
+    "case": "table-references-foreign-key",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)",
+      "CREATE TABLE \"posts\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"user_id\" integer, CONSTRAINT \"fk_rails_5b5ddfd518\" FOREIGN KEY (\"user_id\") REFERENCES \"users\" (\"id\") )",
+      "CREATE INDEX \"index_posts_on_user_id\" ON \"posts\" (\"user_id\")"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )",
+      "CREATE TABLE \"posts\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"user_id\" BIGINT, FOREIGN KEY (\"user_id\") REFERENCES \"users\" (\"id\") )"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "posts": {
+          "checks": [],
+          "indexes": [
+            "index_posts_on_user_id"
+          ]
+        },
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "posts": "CREATE TABLE \"posts\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"user_id\" integer, CONSTRAINT \"fk_rails_5b5ddfd518\" FOREIGN KEY (\"user_id\") REFERENCES \"users\" (\"id\") )",
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "posts": {
+          "checks": [],
+          "indexes": []
+        },
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "posts": "CREATE TABLE \"posts\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"user_id\" BIGINT, FOREIGN KEY (\"user_id\") REFERENCES \"users\" (\"id\") )",
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )"
+      }
+    }
+  },
+  {
+    "case": "table-references-polymorphic",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"taggings\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"taggable_type\" varchar, \"taggable_id\" integer)",
+      "CREATE INDEX \"index_taggings_on_taggable\" ON \"taggings\" (\"taggable_type\", \"taggable_id\")"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"taggings\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"taggable_type\" VARCHAR(255), \"taggable_id\" BIGINT )"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "taggings": {
+          "checks": [],
+          "indexes": [
+            "index_taggings_on_taggable"
+          ]
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "taggings": "CREATE TABLE \"taggings\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"taggable_type\" varchar, \"taggable_id\" integer)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "taggings": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "taggings": "CREATE TABLE \"taggings\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"taggable_type\" VARCHAR(255), \"taggable_id\" BIGINT )"
+      }
+    }
+  },
+  {
+    "case": "add-reference-plain",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)",
+      "CREATE TABLE \"posts\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)",
+      "ALTER TABLE \"posts\" ADD \"user_id\" integer",
+      "CREATE INDEX \"index_posts_on_user_id\" ON \"posts\" (\"user_id\")"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )",
+      "CREATE TABLE \"posts\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )",
+      "ALTER TABLE \"posts\" ADD COLUMN \"user_id\" BIGINT"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "posts": {
+          "checks": [],
+          "indexes": [
+            "index_posts_on_user_id"
+          ]
+        },
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "posts": "CREATE TABLE \"posts\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer, \"user_id\" integer)",
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "posts": {
+          "checks": [],
+          "indexes": []
+        },
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "posts": "CREATE TABLE \"posts\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER , \"user_id\" BIGINT)",
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )"
+      }
+    }
+  },
+  {
+    "case": "add-reference-index-and-fk",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)",
+      "CREATE TABLE \"posts\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)",
+      "ALTER TABLE \"posts\" ADD \"user_id\" integer",
+      "CREATE INDEX \"index_posts_on_user_id\" ON \"posts\" (\"user_id\")",
+      "CREATE TEMPORARY TABLE \"aposts\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer, \"user_id\" integer)",
+      "CREATE INDEX \"tindex_aposts_on_user_id\" ON \"aposts\" (\"user_id\")",
+      "INSERT INTO \"aposts\" (\"id\",\"n\",\"user_id\") SELECT \"id\",\"n\",\"user_id\" FROM \"posts\"",
+      "DROP TABLE \"posts\"",
+      "CREATE TABLE \"posts\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer, \"user_id\" integer, CONSTRAINT \"fk_rails_5b5ddfd518\" FOREIGN KEY (\"user_id\") REFERENCES \"users\" (\"id\") )",
+      "CREATE INDEX \"index_posts_on_user_id\" ON \"posts\" (\"user_id\")",
+      "INSERT INTO \"posts\" (\"id\",\"n\",\"user_id\") SELECT \"id\",\"n\",\"user_id\" FROM \"aposts\"",
+      "DROP TABLE \"aposts\""
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )",
+      "CREATE TABLE \"posts\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )",
+      "ALTER TABLE \"posts\" ADD COLUMN \"user_id\" BIGINT",
+      "CREATE INDEX \"index_posts_on_user_id\" ON \"posts\" (\"user_id\")",
+      "ALTER TABLE \"posts\" ADD CONSTRAINT \"fk_posts_user_id\" FOREIGN KEY (\"user_id\") REFERENCES \"users\" (\"id\")"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "posts": {
+          "checks": [],
+          "indexes": [
+            "index_posts_on_user_id"
+          ]
+        },
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "posts": "CREATE TABLE \"posts\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer, \"user_id\" integer, CONSTRAINT \"fk_rails_5b5ddfd518\" FOREIGN KEY (\"user_id\") REFERENCES \"users\" (\"id\") )",
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "posts": {
+          "checks": [],
+          "indexes": [
+            "index_posts_on_user_id"
+          ]
+        },
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [
+        {
+          "error": "SQL logic error: near \"FOREIGN\": syntax error (1)",
+          "i": 2
+        }
+      ],
+      "tables_sql": {
+        "posts": "CREATE TABLE \"posts\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER , \"user_id\" BIGINT)",
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )"
+      }
+    }
+  },
+  {
+    "case": "add-reference-polymorphic-index",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"taggings\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)",
+      "ALTER TABLE \"taggings\" ADD \"taggable_type\" varchar",
+      "ALTER TABLE \"taggings\" ADD \"taggable_id\" integer",
+      "CREATE INDEX \"index_taggings_on_taggable\" ON \"taggings\" (\"taggable_type\", \"taggable_id\")"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"taggings\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )",
+      "ALTER TABLE \"taggings\" ADD COLUMN \"taggable_type\" VARCHAR(255)",
+      "ALTER TABLE \"taggings\" ADD COLUMN \"taggable_id\" BIGINT",
+      "CREATE INDEX \"index_taggings_on_taggable_type_and_taggable_id\" ON \"taggings\" (\"taggable_type\", \"taggable_id\")"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "taggings": {
+          "checks": [],
+          "indexes": [
+            "index_taggings_on_taggable"
+          ]
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "taggings": "CREATE TABLE \"taggings\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer, \"taggable_type\" varchar, \"taggable_id\" integer)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "taggings": {
+          "checks": [],
+          "indexes": [
+            "index_taggings_on_taggable_type_and_taggable_id"
+          ]
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "taggings": "CREATE TABLE \"taggings\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER , \"taggable_type\" VARCHAR(255), \"taggable_id\" BIGINT)"
+      }
+    }
+  },
+  {
+    "case": "remove-reference",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)",
+      "CREATE TABLE \"posts\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)",
+      "ALTER TABLE \"posts\" ADD \"user_id\" integer",
+      "CREATE INDEX \"index_posts_on_user_id\" ON \"posts\" (\"user_id\")",
+      "CREATE TEMPORARY TABLE \"aposts\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer, \"user_id\" integer)",
+      "CREATE INDEX \"tindex_aposts_on_user_id\" ON \"aposts\" (\"user_id\")",
+      "INSERT INTO \"aposts\" (\"id\",\"n\",\"user_id\") SELECT \"id\",\"n\",\"user_id\" FROM \"posts\"",
+      "DROP TABLE \"posts\"",
+      "CREATE TABLE \"posts\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)",
+      "INSERT INTO \"posts\" (\"id\",\"n\") SELECT \"id\",\"n\" FROM \"aposts\"",
+      "DROP TABLE \"aposts\""
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )",
+      "CREATE TABLE \"posts\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )",
+      "ALTER TABLE \"posts\" ADD COLUMN \"user_id\" BIGINT",
+      "ALTER TABLE \"posts\" DROP COLUMN \"user_id\""
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "posts": {
+          "checks": [],
+          "indexes": []
+        },
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "posts": "CREATE TABLE \"posts\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)",
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "posts": {
+          "checks": [],
+          "indexes": []
+        },
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "posts": "CREATE TABLE \"posts\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )",
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )"
+      }
+    }
+  },
+  {
+    "case": "add-foreign-key",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)",
+      "CREATE TABLE \"posts\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"user_id\" integer)",
+      "CREATE TEMPORARY TABLE \"aposts\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"user_id\" integer)",
+      "INSERT INTO \"aposts\" (\"id\",\"user_id\") SELECT \"id\",\"user_id\" FROM \"posts\"",
+      "DROP TABLE \"posts\"",
+      "CREATE TABLE \"posts\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"user_id\" integer, CONSTRAINT \"fk_rails_5b5ddfd518\" FOREIGN KEY (\"user_id\") REFERENCES \"users\" (\"id\") )",
+      "INSERT INTO \"posts\" (\"id\",\"user_id\") SELECT \"id\",\"user_id\" FROM \"aposts\"",
+      "DROP TABLE \"aposts\""
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )",
+      "CREATE TABLE \"posts\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"user_id\" INTEGER )",
+      "ALTER TABLE \"posts\" ADD CONSTRAINT \"fk_posts_user_id\" FOREIGN KEY (\"user_id\") REFERENCES \"users\" (\"id\")"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "posts": {
+          "checks": [],
+          "indexes": []
+        },
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "posts": "CREATE TABLE \"posts\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"user_id\" integer, CONSTRAINT \"fk_rails_5b5ddfd518\" FOREIGN KEY (\"user_id\") REFERENCES \"users\" (\"id\") )",
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "posts": {
+          "checks": [],
+          "indexes": []
+        },
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [
+        {
+          "error": "SQL logic error: near \"FOREIGN\": syntax error (1)",
+          "i": 2
+        }
+      ],
+      "tables_sql": {
+        "posts": "CREATE TABLE \"posts\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"user_id\" INTEGER )",
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )"
+      }
+    }
+  },
+  {
+    "case": "add-foreign-key-on-delete-cascade",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)",
+      "CREATE TABLE \"posts\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"user_id\" integer)",
+      "CREATE TEMPORARY TABLE \"aposts\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"user_id\" integer)",
+      "INSERT INTO \"aposts\" (\"id\",\"user_id\") SELECT \"id\",\"user_id\" FROM \"posts\"",
+      "DROP TABLE \"posts\"",
+      "CREATE TABLE \"posts\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"user_id\" integer, CONSTRAINT \"fk_rails_5b5ddfd518\" FOREIGN KEY (\"user_id\") REFERENCES \"users\" (\"id\") ON DELETE CASCADE)",
+      "INSERT INTO \"posts\" (\"id\",\"user_id\") SELECT \"id\",\"user_id\" FROM \"aposts\"",
+      "DROP TABLE \"aposts\""
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )",
+      "CREATE TABLE \"posts\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"user_id\" INTEGER )",
+      "ALTER TABLE \"posts\" ADD CONSTRAINT \"fk_posts_user_id\" FOREIGN KEY (\"user_id\") REFERENCES \"users\" (\"id\") ON DELETE CASCADE"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "posts": {
+          "checks": [],
+          "indexes": []
+        },
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "posts": "CREATE TABLE \"posts\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"user_id\" integer, CONSTRAINT \"fk_rails_5b5ddfd518\" FOREIGN KEY (\"user_id\") REFERENCES \"users\" (\"id\") ON DELETE CASCADE)",
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "posts": {
+          "checks": [],
+          "indexes": []
+        },
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [
+        {
+          "error": "SQL logic error: near \"FOREIGN\": syntax error (1)",
+          "i": 2
+        }
+      ],
+      "tables_sql": {
+        "posts": "CREATE TABLE \"posts\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"user_id\" INTEGER )",
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )"
+      }
+    }
+  },
+  {
+    "case": "remove-foreign-key",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)",
+      "CREATE TABLE \"posts\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"user_id\" integer)",
+      "CREATE TEMPORARY TABLE \"aposts\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"user_id\" integer)",
+      "INSERT INTO \"aposts\" (\"id\",\"user_id\") SELECT \"id\",\"user_id\" FROM \"posts\"",
+      "DROP TABLE \"posts\"",
+      "CREATE TABLE \"posts\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"user_id\" integer, CONSTRAINT \"fk_rails_5b5ddfd518\" FOREIGN KEY (\"user_id\") REFERENCES \"users\" (\"id\") )",
+      "INSERT INTO \"posts\" (\"id\",\"user_id\") SELECT \"id\",\"user_id\" FROM \"aposts\"",
+      "DROP TABLE \"aposts\"",
+      "CREATE TEMPORARY TABLE \"aposts\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"user_id\" integer)",
+      "INSERT INTO \"aposts\" (\"id\",\"user_id\") SELECT \"id\",\"user_id\" FROM \"posts\"",
+      "DROP TABLE \"posts\"",
+      "CREATE TABLE \"posts\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"user_id\" integer)",
+      "INSERT INTO \"posts\" (\"id\",\"user_id\") SELECT \"id\",\"user_id\" FROM \"aposts\"",
+      "DROP TABLE \"aposts\""
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )",
+      "CREATE TABLE \"posts\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"user_id\" INTEGER )",
+      "ALTER TABLE \"posts\" ADD CONSTRAINT \"fk_posts_user_id\" FOREIGN KEY (\"user_id\") REFERENCES \"users\" (\"id\")",
+      "ALTER TABLE \"posts\" DROP CONSTRAINT \"fk_posts_user_id\""
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "posts": {
+          "checks": [],
+          "indexes": []
+        },
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "posts": "CREATE TABLE \"posts\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"user_id\" integer)",
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "posts": {
+          "checks": [],
+          "indexes": []
+        },
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [
+        {
+          "error": "SQL logic error: near \"FOREIGN\": syntax error (1)",
+          "i": 2
+        },
+        {
+          "error": "SQL logic error: no such constraint: fk_posts_user_id (1)",
+          "i": 3
+        }
+      ],
+      "tables_sql": {
+        "posts": "CREATE TABLE \"posts\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"user_id\" INTEGER )",
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )"
+      }
+    }
+  },
+  {
+    "case": "add-check-constraint",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"login_count\" integer)",
+      "CREATE TEMPORARY TABLE \"ausers\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"login_count\" integer)",
+      "INSERT INTO \"ausers\" (\"id\",\"login_count\") SELECT \"id\",\"login_count\" FROM \"users\"",
+      "DROP TABLE \"users\"",
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"login_count\" integer, CONSTRAINT CHECK (login_count \u003e= 0))"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"login_count\" INTEGER )",
+      "ALTER TABLE \"users\" ADD CONSTRAINT \"chk_users_login_count____0\" CHECK (login_count \u003e= 0)"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [
+        {
+          "error": "ActiveRecord::StatementInvalid: SQLite3::SQLException: near \"CHECK\": syntax error: CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"login_count\" integer, CONSTRAINT CHECK (login_count \u003e= 0)) ^ | cause=SQLite3::SQLException: near \"CHECK\": syntax error: CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"login_count\" integer, CONSTRAINT CHECK (login_count \u003e",
+          "i": 1
+        }
+      ],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"login_count\" integer)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "users": {
+          "checks": [
+            "chk_users_login_count____0"
+          ],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"login_count\" INTEGER , CONSTRAINT \"chk_users_login_count____0\" CHECK (login_count \u003e= 0))"
+      }
+    }
+  },
+  {
+    "case": "remove-check-constraint",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"login_count\" integer)",
+      "CREATE TEMPORARY TABLE \"ausers\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"login_count\" integer)",
+      "INSERT INTO \"ausers\" (\"id\",\"login_count\") SELECT \"id\",\"login_count\" FROM \"users\"",
+      "DROP TABLE \"users\"",
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"login_count\" integer, CONSTRAINT cnt_ok CHECK (login_count \u003e= 0))",
+      "INSERT INTO \"users\" (\"id\",\"login_count\") SELECT \"id\",\"login_count\" FROM \"ausers\"",
+      "DROP TABLE \"ausers\"",
+      "CREATE TEMPORARY TABLE \"ausers\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"login_count\" integer)",
+      "INSERT INTO \"ausers\" (\"id\",\"login_count\") SELECT \"id\",\"login_count\" FROM \"users\"",
+      "DROP TABLE \"users\"",
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"login_count\" integer)",
+      "INSERT INTO \"users\" (\"id\",\"login_count\") SELECT \"id\",\"login_count\" FROM \"ausers\"",
+      "DROP TABLE \"ausers\""
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"login_count\" INTEGER )",
+      "ALTER TABLE \"users\" ADD CONSTRAINT \"cnt_ok\" CHECK (login_count \u003e= 0)",
+      "ALTER TABLE \"users\" DROP CONSTRAINT \"cnt_ok\""
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"login_count\" integer)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"login_count\" INTEGER )"
+      }
+    }
+  },
+  {
+    "case": "add-unique-constraint",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT )",
+      "ALTER TABLE \"users\" ADD CONSTRAINT \"uniq_users_email\" UNIQUE (\"email\")"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [
+        {
+          "error": "NoMethodError: undefined method `add_unique_constraint' for an instance of ActiveRecord::ConnectionAdapters::SQLite3Adapter",
+          "i": 1
+        }
+      ],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [
+        {
+          "error": "SQL logic error: near \"UNIQUE\": syntax error (1)",
+          "i": 1
+        }
+      ],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT )"
+      }
+    }
+  },
+  {
+    "case": "create-join-table",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"assemblies_parts\" (\"part_id\" integer NOT NULL, \"assembly_id\" integer NOT NULL)"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"assemblies_parts\" ( \"part_id\" BIGINT NOT NULL, \"assemblie_id\" BIGINT NOT NULL )"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "assemblies_parts": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "assemblies_parts": "CREATE TABLE \"assemblies_parts\" (\"part_id\" integer NOT NULL, \"assembly_id\" integer NOT NULL)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "assemblies_parts": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "assemblies_parts": "CREATE TABLE \"assemblies_parts\" ( \"part_id\" BIGINT NOT NULL, \"assemblie_id\" BIGINT NOT NULL )"
+      }
+    }
+  },
+  {
+    "case": "drop-join-table",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"assemblies_parts\" (\"part_id\" integer NOT NULL, \"assembly_id\" integer NOT NULL)",
+      "DROP TABLE \"assemblies_parts\""
+    ],
+    "goSQL": [
+      "CREATE TABLE \"assemblies_parts\" ( \"part_id\" BIGINT NOT NULL, \"assemblie_id\" BIGINT NOT NULL )",
+      "DROP TABLE \"assemblies_parts\""
+    ],
+    "upstreamRawNames": {
+      "names": {},
+      "step_errors": [],
+      "tables_sql": {}
+    },
+    "goRawNames": {
+      "names": {},
+      "step_errors": [],
+      "tables_sql": {}
+    }
+  },
+  {
+    "case": "truncate-table",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)",
+      "DELETE FROM \"users\""
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )",
+      "TRUNCATE TABLE \"users\""
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [
+        {
+          "error": "SQL logic error: near \"TRUNCATE\": syntax error (1)",
+          "i": 1
+        }
+      ],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )"
+      }
+    }
+  },
+  {
+    "case": "change-table-bulk",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer, \"old\" text)",
+      "ALTER TABLE \"users\" ADD \"bio\" text",
+      "CREATE TEMPORARY TABLE \"ausers\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer, \"handle\" text, \"bio\" text)",
+      "INSERT INTO \"ausers\" (\"id\",\"n\",\"handle\",\"bio\") SELECT \"id\",\"n\",\"old\",\"bio\" FROM \"users\"",
+      "DROP TABLE \"users\"",
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer, \"handle\" text, \"bio\" text)",
+      "INSERT INTO \"users\" (\"id\",\"n\",\"handle\",\"bio\") SELECT \"id\",\"n\",\"handle\",\"bio\" FROM \"ausers\"",
+      "DROP TABLE \"ausers\"",
+      "CREATE INDEX \"index_users_on_handle\" ON \"users\" (\"handle\")",
+      "CREATE TEMPORARY TABLE \"ausers\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer, \"handle\" text, \"bio\" text)",
+      "CREATE INDEX \"tindex_ausers_on_handle\" ON \"ausers\" (\"handle\")",
+      "INSERT INTO \"ausers\" (\"id\",\"n\",\"handle\",\"bio\") SELECT \"id\",\"n\",\"handle\",\"bio\" FROM \"users\"",
+      "DROP TABLE \"users\"",
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"handle\" text, \"bio\" text)",
+      "CREATE INDEX \"index_users_on_handle\" ON \"users\" (\"handle\")",
+      "INSERT INTO \"users\" (\"id\",\"handle\",\"bio\") SELECT \"id\",\"handle\",\"bio\" FROM \"ausers\"",
+      "DROP TABLE \"ausers\""
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER, \"old\" TEXT )",
+      "ALTER TABLE \"users\" ADD COLUMN \"bio\" TEXT",
+      "ALTER TABLE \"users\" RENAME COLUMN \"old\" TO \"handle\"",
+      "CREATE INDEX \"index_users_on_handle\" ON \"users\" (\"handle\")",
+      "ALTER TABLE \"users\" DROP COLUMN \"n\""
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": [
+            "index_users_on_handle"
+          ]
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"handle\" text, \"bio\" text)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": [
+            "index_users_on_handle"
+          ]
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"handle\" TEXT , \"bio\" TEXT)"
+      }
+    }
+  },
+  {
+    "case": "change-table-timestamps-and-unique-index",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)",
+      "CREATE TEMPORARY TABLE \"ausers\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)",
+      "INSERT INTO \"ausers\" (\"id\",\"email\") SELECT \"id\",\"email\" FROM \"users\"",
+      "DROP TABLE \"users\"",
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text, \"created_at\" datetime(6) NOT NULL, \"updated_at\" datetime(6) NOT NULL)",
+      "INSERT INTO \"users\" (\"id\",\"email\") SELECT \"id\",\"email\" FROM \"ausers\"",
+      "DROP TABLE \"ausers\"",
+      "CREATE UNIQUE INDEX \"index_users_on_email\" ON \"users\" (\"email\")"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT )",
+      "ALTER TABLE \"users\" ADD COLUMN \"created_at\" TIMESTAMP NOT NULL",
+      "ALTER TABLE \"users\" ADD COLUMN \"updated_at\" TIMESTAMP NOT NULL",
+      "CREATE UNIQUE INDEX \"index_users_on_email\" ON \"users\" (\"email\")"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": [
+            "index_users_on_email"
+          ]
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text, \"created_at\" datetime(6) NOT NULL, \"updated_at\" datetime(6) NOT NULL)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": [
+            "index_users_on_email"
+          ]
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT , \"created_at\" TIMESTAMP NOT NULL, \"updated_at\" TIMESTAMP NOT NULL)"
+      }
+    }
+  },
+  {
+    "case": "sequence-of-changes",
+    "group": "ddl",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text NOT NULL, \"login_count\" integer DEFAULT 0 NOT NULL, \"created_at\" datetime(6) NOT NULL, \"updated_at\" datetime(6) NOT NULL)",
+      "CREATE UNIQUE INDEX \"index_users_on_email\" ON \"users\" (\"email\")",
+      "ALTER TABLE \"users\" ADD \"nickname\" varchar",
+      "CREATE TEMPORARY TABLE \"ausers\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text NOT NULL, \"login_count\" integer DEFAULT 0 NOT NULL, \"created_at\" datetime(6) NOT NULL, \"updated_at\" datetime(6) NOT NULL, \"handle\" varchar)",
+      "CREATE UNIQUE INDEX \"tindex_ausers_on_email\" ON \"ausers\" (\"email\")",
+      "INSERT INTO \"ausers\" (\"id\",\"email\",\"login_count\",\"created_at\",\"updated_at\",\"handle\") SELECT \"id\",\"email\",\"login_count\",\"created_at\",\"updated_at\",\"nickname\" FROM \"users\"",
+      "DROP TABLE \"users\"",
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text NOT NULL, \"login_count\" integer DEFAULT 0 NOT NULL, \"created_at\" datetime(6) NOT NULL, \"updated_at\" datetime(6) NOT NULL, \"handle\" varchar)",
+      "CREATE UNIQUE INDEX \"index_users_on_email\" ON \"users\" (\"email\")",
+      "INSERT INTO \"users\" (\"id\",\"email\",\"login_count\",\"created_at\",\"updated_at\",\"handle\") SELECT \"id\",\"email\",\"login_count\",\"created_at\",\"updated_at\",\"handle\" FROM \"ausers\"",
+      "DROP TABLE \"ausers\"",
+      "CREATE INDEX \"index_users_on_handle_and_login_count\" ON \"users\" (\"handle\", \"login_count\")"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT NOT NULL, \"login_count\" INTEGER NOT NULL DEFAULT 0, \"created_at\" DATETIME NOT NULL, \"updated_at\" DATETIME NOT NULL )",
+      "CREATE UNIQUE INDEX \"index_users_on_email\" ON \"users\" (\"email\")",
+      "ALTER TABLE \"users\" ADD COLUMN \"nickname\" VARCHAR(255)",
+      "ALTER TABLE \"users\" RENAME COLUMN \"nickname\" TO \"handle\"",
+      "CREATE INDEX \"index_users_on_handle_and_login_count\" ON \"users\" (\"handle\", \"login_count\")"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": [
+            "index_users_on_email",
+            "index_users_on_handle_and_login_count"
+          ]
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text NOT NULL, \"login_count\" integer DEFAULT 0 NOT NULL, \"created_at\" datetime(6) NOT NULL, \"updated_at\" datetime(6) NOT NULL, \"handle\" varchar)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": [
+            "index_users_on_email",
+            "index_users_on_handle_and_login_count"
+          ]
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT NOT NULL, \"login_count\" INTEGER NOT NULL DEFAULT 0, \"created_at\" DATETIME NOT NULL, \"updated_at\" DATETIME NOT NULL , \"handle\" VARCHAR(255))"
+      }
+    }
+  },
+  {
+    "case": "up-all-then-version",
+    "group": "mechanics",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)",
+      "CREATE TABLE \"posts\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT )",
+      "CREATE TABLE \"posts\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )"
+    ],
+    "upstreamRawNames": {
+      "bookkeeping": {
+        "columns": [
+          {
+            "name": "version",
+            "notnull": true,
+            "pk": 1,
+            "type": "VARCHAR"
+          }
+        ],
+        "table": "schema_migrations"
+      },
+      "names": {
+        "posts": {
+          "checks": [],
+          "indexes": []
+        },
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "posts": "CREATE TABLE \"posts\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)",
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)"
+      }
+    },
+    "goRawNames": {
+      "bookkeeping": {
+        "columns": [
+          {
+            "name": "version",
+            "notnull": true,
+            "pk": 1,
+            "type": "BIGINT"
+          },
+          {
+            "name": "applied_at",
+            "notnull": true,
+            "pk": 0,
+            "type": "TIMESTAMP"
+          }
+        ],
+        "table": "schema_migrations"
+      },
+      "names": {
+        "posts": {
+          "checks": [],
+          "indexes": []
+        },
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "posts": "CREATE TABLE \"posts\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )",
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT )"
+      }
+    }
+  },
+  {
+    "case": "up-idempotent",
+    "group": "mechanics",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT )"
+    ],
+    "upstreamRawNames": {
+      "bookkeeping": {
+        "columns": [
+          {
+            "name": "version",
+            "notnull": true,
+            "pk": 1,
+            "type": "VARCHAR"
+          }
+        ],
+        "table": "schema_migrations"
+      },
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)"
+      }
+    },
+    "goRawNames": {
+      "bookkeeping": {
+        "columns": [
+          {
+            "name": "version",
+            "notnull": true,
+            "pk": 1,
+            "type": "BIGINT"
+          },
+          {
+            "name": "applied_at",
+            "notnull": true,
+            "pk": 0,
+            "type": "TIMESTAMP"
+          }
+        ],
+        "table": "schema_migrations"
+      },
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT )"
+      }
+    }
+  },
+  {
+    "case": "up-one-step-at-a-time",
+    "group": "mechanics",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)",
+      "CREATE TABLE \"posts\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)",
+      "CREATE TABLE \"tags\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"label\" text)"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT )",
+      "CREATE TABLE \"posts\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )",
+      "CREATE TABLE \"tags\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"label\" TEXT )"
+    ],
+    "upstreamRawNames": {
+      "bookkeeping": {
+        "columns": [
+          {
+            "name": "version",
+            "notnull": true,
+            "pk": 1,
+            "type": "VARCHAR"
+          }
+        ],
+        "table": "schema_migrations"
+      },
+      "names": {
+        "posts": {
+          "checks": [],
+          "indexes": []
+        },
+        "tags": {
+          "checks": [],
+          "indexes": []
+        },
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "posts": "CREATE TABLE \"posts\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)",
+        "tags": "CREATE TABLE \"tags\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"label\" text)",
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)"
+      }
+    },
+    "goRawNames": {
+      "bookkeeping": {
+        "columns": [
+          {
+            "name": "version",
+            "notnull": true,
+            "pk": 1,
+            "type": "BIGINT"
+          },
+          {
+            "name": "applied_at",
+            "notnull": true,
+            "pk": 0,
+            "type": "TIMESTAMP"
+          }
+        ],
+        "table": "schema_migrations"
+      },
+      "names": {
+        "posts": {
+          "checks": [],
+          "indexes": []
+        },
+        "tags": {
+          "checks": [],
+          "indexes": []
+        },
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "posts": "CREATE TABLE \"posts\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )",
+        "tags": "CREATE TABLE \"tags\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"label\" TEXT )",
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT )"
+      }
+    }
+  },
+  {
+    "case": "rollback-one",
+    "group": "mechanics",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)",
+      "CREATE TABLE \"posts\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)",
+      "DROP TABLE \"posts\""
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT )",
+      "CREATE TABLE \"posts\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )",
+      "DROP TABLE \"posts\""
+    ],
+    "upstreamRawNames": {
+      "bookkeeping": {
+        "columns": [
+          {
+            "name": "version",
+            "notnull": true,
+            "pk": 1,
+            "type": "VARCHAR"
+          }
+        ],
+        "table": "schema_migrations"
+      },
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)"
+      }
+    },
+    "goRawNames": {
+      "bookkeeping": {
+        "columns": [
+          {
+            "name": "version",
+            "notnull": true,
+            "pk": 1,
+            "type": "BIGINT"
+          },
+          {
+            "name": "applied_at",
+            "notnull": true,
+            "pk": 0,
+            "type": "TIMESTAMP"
+          }
+        ],
+        "table": "schema_migrations"
+      },
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT )"
+      }
+    }
+  },
+  {
+    "case": "rollback-then-reapply",
+    "group": "mechanics",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)",
+      "ALTER TABLE \"users\" ADD \"bio\" text",
+      "CREATE TEMPORARY TABLE \"ausers\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text, \"bio\" text)",
+      "INSERT INTO \"ausers\" (\"id\",\"email\",\"bio\") SELECT \"id\",\"email\",\"bio\" FROM \"users\"",
+      "DROP TABLE \"users\"",
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)",
+      "INSERT INTO \"users\" (\"id\",\"email\") SELECT \"id\",\"email\" FROM \"ausers\"",
+      "DROP TABLE \"ausers\"",
+      "ALTER TABLE \"users\" ADD \"bio\" text"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT )",
+      "ALTER TABLE \"users\" ADD COLUMN \"bio\" TEXT",
+      "ALTER TABLE \"users\" DROP COLUMN \"bio\"",
+      "ALTER TABLE \"users\" ADD COLUMN \"bio\" TEXT"
+    ],
+    "upstreamRawNames": {
+      "bookkeeping": {
+        "columns": [
+          {
+            "name": "version",
+            "notnull": true,
+            "pk": 1,
+            "type": "VARCHAR"
+          }
+        ],
+        "table": "schema_migrations"
+      },
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text, \"bio\" text)"
+      }
+    },
+    "goRawNames": {
+      "bookkeeping": {
+        "columns": [
+          {
+            "name": "version",
+            "notnull": true,
+            "pk": 1,
+            "type": "BIGINT"
+          },
+          {
+            "name": "applied_at",
+            "notnull": true,
+            "pk": 0,
+            "type": "TIMESTAMP"
+          }
+        ],
+        "table": "schema_migrations"
+      },
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT , \"bio\" TEXT)"
+      }
+    }
+  },
+  {
+    "case": "rollback-all",
+    "group": "mechanics",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)",
+      "CREATE TABLE \"posts\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)",
+      "DROP TABLE \"posts\"",
+      "DROP TABLE \"users\""
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT )",
+      "CREATE TABLE \"posts\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )",
+      "DROP TABLE \"posts\"",
+      "DROP TABLE \"users\""
+    ],
+    "upstreamRawNames": {
+      "bookkeeping": {
+        "columns": [
+          {
+            "name": "version",
+            "notnull": true,
+            "pk": 1,
+            "type": "VARCHAR"
+          }
+        ],
+        "table": "schema_migrations"
+      },
+      "names": {},
+      "step_errors": [],
+      "tables_sql": {}
+    },
+    "goRawNames": {
+      "bookkeeping": {
+        "columns": [
+          {
+            "name": "version",
+            "notnull": true,
+            "pk": 1,
+            "type": "BIGINT"
+          },
+          {
+            "name": "applied_at",
+            "notnull": true,
+            "pk": 0,
+            "type": "TIMESTAMP"
+          }
+        ],
+        "table": "schema_migrations"
+      },
+      "names": {},
+      "step_errors": [],
+      "tables_sql": {}
+    }
+  },
+  {
+    "case": "migrate-to-middle-then-forward",
+    "group": "mechanics",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)",
+      "CREATE TABLE \"posts\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)",
+      "CREATE TABLE \"tags\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"label\" text)",
+      "DROP TABLE \"tags\"",
+      "DROP TABLE \"posts\""
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT )",
+      "CREATE TABLE \"posts\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )",
+      "CREATE TABLE \"tags\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"label\" TEXT )",
+      "DROP TABLE \"tags\"",
+      "DROP TABLE \"posts\""
+    ],
+    "upstreamRawNames": {
+      "bookkeeping": {
+        "columns": [
+          {
+            "name": "version",
+            "notnull": true,
+            "pk": 1,
+            "type": "VARCHAR"
+          }
+        ],
+        "table": "schema_migrations"
+      },
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)"
+      }
+    },
+    "goRawNames": {
+      "bookkeeping": {
+        "columns": [
+          {
+            "name": "version",
+            "notnull": true,
+            "pk": 1,
+            "type": "BIGINT"
+          },
+          {
+            "name": "applied_at",
+            "notnull": true,
+            "pk": 0,
+            "type": "TIMESTAMP"
+          }
+        ],
+        "table": "schema_migrations"
+      },
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT )"
+      }
+    }
+  },
+  {
+    "case": "rollback-irreversible-no-down",
+    "group": "mechanics",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT )"
+    ],
+    "upstreamRawNames": {
+      "bookkeeping": {
+        "columns": [
+          {
+            "name": "version",
+            "notnull": true,
+            "pk": 1,
+            "type": "VARCHAR"
+          }
+        ],
+        "table": "schema_migrations"
+      },
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)"
+      }
+    },
+    "goRawNames": {
+      "bookkeeping": {
+        "columns": [
+          {
+            "name": "version",
+            "notnull": true,
+            "pk": 1,
+            "type": "BIGINT"
+          },
+          {
+            "name": "applied_at",
+            "notnull": true,
+            "pk": 0,
+            "type": "TIMESTAMP"
+          }
+        ],
+        "table": "schema_migrations"
+      },
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [
+        {
+          "error": "migrate: applied version has no registered migration: version 20240101000001 \"create_users\"",
+          "i": 1
+        }
+      ],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT )"
+      }
+    }
+  },
+  {
+    "case": "rollback-empty-down",
+    "group": "mechanics",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT )"
+    ],
+    "upstreamRawNames": {
+      "bookkeeping": {
+        "columns": [
+          {
+            "name": "version",
+            "notnull": true,
+            "pk": 1,
+            "type": "VARCHAR"
+          }
+        ],
+        "table": "schema_migrations"
+      },
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)"
+      }
+    },
+    "goRawNames": {
+      "bookkeeping": {
+        "columns": [
+          {
+            "name": "version",
+            "notnull": true,
+            "pk": 1,
+            "type": "BIGINT"
+          },
+          {
+            "name": "applied_at",
+            "notnull": true,
+            "pk": 0,
+            "type": "TIMESTAMP"
+          }
+        ],
+        "table": "schema_migrations"
+      },
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT )"
+      }
+    }
+  },
+  {
+    "case": "fail-midway-second-op",
+    "group": "mechanics",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)",
+      "CREATE TABLE \"posts\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)",
+      "CREATE INDEX \"index_nonexistent_on_nope\" ON \"nonexistent\" (\"nope\")",
+      "CREATE TABLE \"posts\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"n\" integer)",
+      "CREATE INDEX \"index_nonexistent_on_nope\" ON \"nonexistent\" (\"nope\")",
+      "DROP TABLE \"users\""
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT )",
+      "CREATE TABLE \"posts\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )",
+      "CREATE INDEX \"index_nonexistent_on_nope\" ON \"nonexistent\" (\"nope\")",
+      "CREATE TABLE \"posts\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"n\" INTEGER )",
+      "CREATE INDEX \"index_nonexistent_on_nope\" ON \"nonexistent\" (\"nope\")",
+      "DROP TABLE \"users\""
+    ],
+    "upstreamRawNames": {
+      "bookkeeping": {
+        "columns": [
+          {
+            "name": "version",
+            "notnull": true,
+            "pk": 1,
+            "type": "VARCHAR"
+          }
+        ],
+        "table": "schema_migrations"
+      },
+      "names": {},
+      "step_errors": [
+        {
+          "error": "StandardError: An error has occurred, this and all later migrations canceled: SQLite3::SQLException: no such table: main.nonexistent: CREATE INDEX \"index_nonexistent_on_nope\" ON \"nonexistent\" (\"nope\") | cause=ActiveRecord::StatementInvalid: SQLite3::SQLException: no such table: main.nonexistent: CREATE INDEX \"index_nonexistent_on_nope\" ON \"nonexistent\" (\"nope\")",
+          "i": 0
+        },
+        {
+          "error": "StandardError: An error has occurred, this and all later migrations canceled: SQLite3::SQLException: no such table: main.nonexistent: CREATE INDEX \"index_nonexistent_on_nope\" ON \"nonexistent\" (\"nope\") | cause=ActiveRecord::StatementInvalid: SQLite3::SQLException: no such table: main.nonexistent: CREATE INDEX \"index_nonexistent_on_nope\" ON \"nonexistent\" (\"nope\")",
+          "i": 2
+        }
+      ],
+      "tables_sql": {}
+    },
+    "goRawNames": {
+      "bookkeeping": {
+        "columns": [
+          {
+            "name": "version",
+            "notnull": true,
+            "pk": 1,
+            "type": "BIGINT"
+          },
+          {
+            "name": "applied_at",
+            "notnull": true,
+            "pk": 0,
+            "type": "TIMESTAMP"
+          }
+        ],
+        "table": "schema_migrations"
+      },
+      "names": {},
+      "step_errors": [
+        {
+          "error": "apply up 20240101000002 \"half_broken\": exec \"CREATE INDEX \\\"index_nonexistent_on_nope\\\" ON \\\"nonexistent\\\" (\\\"nope\\\")\": SQL logic error: no such table: main.nonexistent (1)",
+          "i": 0
+        },
+        {
+          "error": "apply up 20240101000002 \"half_broken\": exec \"CREATE INDEX \\\"index_nonexistent_on_nope\\\" ON \\\"nonexistent\\\" (\\\"nope\\\")\": SQL logic error: no such table: main.nonexistent (1)",
+          "i": 2
+        }
+      ],
+      "tables_sql": {}
+    }
+  },
+  {
+    "case": "fail-midway-then-rollback-and-retry",
+    "group": "mechanics",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)",
+      "THIS IS NOT SQL",
+      "DROP TABLE \"users\"",
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)",
+      "THIS IS NOT SQL"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT )",
+      "THIS IS NOT SQL",
+      "DROP TABLE \"users\"",
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT )",
+      "THIS IS NOT SQL"
+    ],
+    "upstreamRawNames": {
+      "bookkeeping": {
+        "columns": [
+          {
+            "name": "version",
+            "notnull": true,
+            "pk": 1,
+            "type": "VARCHAR"
+          }
+        ],
+        "table": "schema_migrations"
+      },
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [
+        {
+          "error": "StandardError: An error has occurred, this and all later migrations canceled: SQLite3::SQLException: near \"THIS\": syntax error: THIS IS NOT SQL ^ | cause=ActiveRecord::StatementInvalid: SQLite3::SQLException: near \"THIS\": syntax error: THIS IS NOT SQL ^",
+          "i": 0
+        },
+        {
+          "error": "StandardError: An error has occurred, this and all later migrations canceled: SQLite3::SQLException: near \"THIS\": syntax error: THIS IS NOT SQL ^ | cause=ActiveRecord::StatementInvalid: SQLite3::SQLException: near \"THIS\": syntax error: THIS IS NOT SQL ^",
+          "i": 2
+        }
+      ],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)"
+      }
+    },
+    "goRawNames": {
+      "bookkeeping": {
+        "columns": [
+          {
+            "name": "version",
+            "notnull": true,
+            "pk": 1,
+            "type": "BIGINT"
+          },
+          {
+            "name": "applied_at",
+            "notnull": true,
+            "pk": 0,
+            "type": "TIMESTAMP"
+          }
+        ],
+        "table": "schema_migrations"
+      },
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [
+        {
+          "error": "apply up 20240101000002 \"broken\": exec \"THIS IS NOT SQL\": SQL logic error: near \"THIS\": syntax error (1)",
+          "i": 0
+        },
+        {
+          "error": "apply up 20240101000002 \"broken\": exec \"THIS IS NOT SQL\": SQL logic error: near \"THIS\": syntax error (1)",
+          "i": 2
+        }
+      ],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT )"
+      }
+    }
+  },
+  {
+    "case": "raw-sql-two-statements",
+    "group": "mechanics",
+    "upstreamSQL": [
+      "CREATE TABLE a (id INTEGER PRIMARY KEY); CREATE TABLE b (id INTEGER PRIMARY KEY)",
+      "DROP TABLE b; DROP TABLE a"
+    ],
+    "goSQL": [
+      "CREATE TABLE a (id INTEGER PRIMARY KEY); CREATE TABLE b (id INTEGER PRIMARY KEY)"
+    ],
+    "upstreamRawNames": {
+      "bookkeeping": {
+        "columns": [
+          {
+            "name": "version",
+            "notnull": true,
+            "pk": 1,
+            "type": "VARCHAR"
+          }
+        ],
+        "table": "schema_migrations"
+      },
+      "names": {
+        "a": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [
+        {
+          "error": "StandardError: An error has occurred, this and all later migrations canceled: SQLite3::SQLException: no such table: b: DROP TABLE b; DROP TABLE a | cause=ActiveRecord::StatementInvalid: SQLite3::SQLException: no such table: b: DROP TABLE b; DROP TABLE a",
+          "i": 1
+        }
+      ],
+      "tables_sql": {
+        "a": "CREATE TABLE a (id INTEGER PRIMARY KEY)"
+      }
+    },
+    "goRawNames": {
+      "bookkeeping": {
+        "columns": [
+          {
+            "name": "version",
+            "notnull": true,
+            "pk": 1,
+            "type": "BIGINT"
+          },
+          {
+            "name": "applied_at",
+            "notnull": true,
+            "pk": 0,
+            "type": "TIMESTAMP"
+          }
+        ],
+        "table": "schema_migrations"
+      },
+      "names": {},
+      "step_errors": [],
+      "tables_sql": {}
+    }
+  },
+  {
+    "case": "raw-sql-semicolon-in-string-literal",
+    "group": "mechanics",
+    "upstreamSQL": [
+      "CREATE TABLE notes (id INTEGER PRIMARY KEY, body TEXT)",
+      "INSERT INTO notes (body) VALUES ('first; second')"
+    ],
+    "goSQL": [
+      "CREATE TABLE notes (id INTEGER PRIMARY KEY, body TEXT)",
+      "INSERT INTO notes (body) VALUES ('first; second')"
+    ],
+    "upstreamRawNames": {
+      "bookkeeping": {
+        "columns": [
+          {
+            "name": "version",
+            "notnull": true,
+            "pk": 1,
+            "type": "VARCHAR"
+          }
+        ],
+        "table": "schema_migrations"
+      },
+      "names": {
+        "notes": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "notes": "CREATE TABLE notes (id INTEGER PRIMARY KEY, body TEXT)"
+      }
+    },
+    "goRawNames": {
+      "bookkeeping": {
+        "columns": [
+          {
+            "name": "version",
+            "notnull": true,
+            "pk": 1,
+            "type": "BIGINT"
+          },
+          {
+            "name": "applied_at",
+            "notnull": true,
+            "pk": 0,
+            "type": "TIMESTAMP"
+          }
+        ],
+        "table": "schema_migrations"
+      },
+      "names": {
+        "notes": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [
+        {
+          "error": "apply up 20240101000002 \"seed_literal\": exec \"INSERT INTO notes (body) VALUES ('first\": SQL logic error: unrecognized token: \"'first\" (1)",
+          "i": 0
+        }
+      ],
+      "tables_sql": {
+        "notes": "CREATE TABLE notes (id INTEGER PRIMARY KEY, body TEXT)"
+      }
+    }
+  },
+  {
+    "case": "raw-sql-trigger-body",
+    "group": "mechanics",
+    "upstreamSQL": [
+      "CREATE TABLE notes (id INTEGER PRIMARY KEY, body TEXT, touched INTEGER DEFAULT 0)",
+      "CREATE TRIGGER notes_touch AFTER UPDATE ON notes BEGIN UPDATE notes SET touched = touched + 1 WHERE id = NEW.id; END"
+    ],
+    "goSQL": [
+      "CREATE TABLE notes (id INTEGER PRIMARY KEY, body TEXT, touched INTEGER DEFAULT 0)",
+      "CREATE TRIGGER notes_touch AFTER UPDATE ON notes BEGIN UPDATE notes SET touched = touched + 1 WHERE id = NEW.id; END"
+    ],
+    "upstreamRawNames": {
+      "bookkeeping": {
+        "columns": [
+          {
+            "name": "version",
+            "notnull": true,
+            "pk": 1,
+            "type": "VARCHAR"
+          }
+        ],
+        "table": "schema_migrations"
+      },
+      "names": {
+        "notes": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "notes": "CREATE TABLE notes (id INTEGER PRIMARY KEY, body TEXT, touched INTEGER DEFAULT 0)"
+      }
+    },
+    "goRawNames": {
+      "bookkeeping": {
+        "columns": [
+          {
+            "name": "version",
+            "notnull": true,
+            "pk": 1,
+            "type": "BIGINT"
+          },
+          {
+            "name": "applied_at",
+            "notnull": true,
+            "pk": 0,
+            "type": "TIMESTAMP"
+          }
+        ],
+        "table": "schema_migrations"
+      },
+      "names": {
+        "notes": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [
+        {
+          "error": "apply up 20240101000002 \"add_trigger\": exec \"CREATE TRIGGER notes_touch AFTER UPDATE ON notes BEGIN UPDAT...\": SQL logic error: incomplete input (1)",
+          "i": 0
+        }
+      ],
+      "tables_sql": {
+        "notes": "CREATE TABLE notes (id INTEGER PRIMARY KEY, body TEXT, touched INTEGER DEFAULT 0)"
+      }
+    }
+  },
+  {
+    "case": "raw-sql-failing-second-statement",
+    "group": "mechanics",
+    "upstreamSQL": [
+      "CREATE TABLE a (id INTEGER PRIMARY KEY); CREATE TABLE a (id INTEGER PRIMARY KEY)"
+    ],
+    "goSQL": [
+      "CREATE TABLE a (id INTEGER PRIMARY KEY); CREATE TABLE a (id INTEGER PRIMARY KEY)"
+    ],
+    "upstreamRawNames": {
+      "bookkeeping": {
+        "columns": [
+          {
+            "name": "version",
+            "notnull": true,
+            "pk": 1,
+            "type": "VARCHAR"
+          }
+        ],
+        "table": "schema_migrations"
+      },
+      "names": {
+        "a": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "a": "CREATE TABLE a (id INTEGER PRIMARY KEY)"
+      }
+    },
+    "goRawNames": {
+      "bookkeeping": {
+        "columns": [
+          {
+            "name": "version",
+            "notnull": true,
+            "pk": 1,
+            "type": "BIGINT"
+          },
+          {
+            "name": "applied_at",
+            "notnull": true,
+            "pk": 0,
+            "type": "TIMESTAMP"
+          }
+        ],
+        "table": "schema_migrations"
+      },
+      "names": {},
+      "step_errors": [
+        {
+          "error": "apply up 20240101000001 \"half_raw\": exec \"CREATE TABLE a (id INTEGER PRIMARY KEY)\": SQL logic error: table a already exists (1)",
+          "i": 0
+        }
+      ],
+      "tables_sql": {}
+    }
+  },
+  {
+    "case": "status-across-a-partial-migration",
+    "group": "mechanics",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)",
+      "NOT VALID SQL AT ALL",
+      "DROP TABLE \"users\""
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT )",
+      "NOT VALID SQL AT ALL",
+      "DROP TABLE \"users\""
+    ],
+    "upstreamRawNames": {
+      "bookkeeping": {
+        "columns": [
+          {
+            "name": "version",
+            "notnull": true,
+            "pk": 1,
+            "type": "VARCHAR"
+          }
+        ],
+        "table": "schema_migrations"
+      },
+      "names": {},
+      "step_errors": [
+        {
+          "error": "StandardError: An error has occurred, this and all later migrations canceled: SQLite3::SQLException: near \"NOT\": syntax error: NOT VALID SQL AT ALL ^ | cause=ActiveRecord::StatementInvalid: SQLite3::SQLException: near \"NOT\": syntax error: NOT VALID SQL AT ALL ^",
+          "i": 1
+        }
+      ],
+      "tables_sql": {}
+    },
+    "goRawNames": {
+      "bookkeeping": {
+        "columns": [
+          {
+            "name": "version",
+            "notnull": true,
+            "pk": 1,
+            "type": "BIGINT"
+          },
+          {
+            "name": "applied_at",
+            "notnull": true,
+            "pk": 0,
+            "type": "TIMESTAMP"
+          }
+        ],
+        "table": "schema_migrations"
+      },
+      "names": {},
+      "step_errors": [
+        {
+          "error": "apply up 20240101000002 \"broken\": exec \"NOT VALID SQL AT ALL\": SQL logic error: near \"NOT\": syntax error (1)",
+          "i": 1
+        }
+      ],
+      "tables_sql": {}
+    }
+  },
+  {
+    "case": "bookkeeping-table-shape",
+    "group": "mechanics",
+    "upstreamSQL": [
+      "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT )"
+    ],
+    "upstreamRawNames": {
+      "bookkeeping": {
+        "columns": [
+          {
+            "name": "version",
+            "notnull": true,
+            "pk": 1,
+            "type": "VARCHAR"
+          }
+        ],
+        "table": "schema_migrations"
+      },
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"email\" text)"
+      }
+    },
+    "goRawNames": {
+      "bookkeeping": {
+        "columns": [
+          {
+            "name": "version",
+            "notnull": true,
+            "pk": 1,
+            "type": "BIGINT"
+          },
+          {
+            "name": "applied_at",
+            "notnull": true,
+            "pk": 0,
+            "type": "TIMESTAMP"
+          }
+        ],
+        "table": "schema_migrations"
+      },
+      "names": {
+        "users": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "users": "CREATE TABLE \"users\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"email\" TEXT )"
+      }
+    }
+  },
+  {
+    "case": "type-string",
+    "group": "types",
+    "upstreamSQL": [
+      "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" varchar)"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" VARCHAR(255) )"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" varchar)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" VARCHAR(255) )"
+      }
+    }
+  },
+  {
+    "case": "type-string-limit",
+    "group": "types",
+    "upstreamSQL": [
+      "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" varchar(40))"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" VARCHAR(40) )"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" varchar(40))"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" VARCHAR(40) )"
+      }
+    }
+  },
+  {
+    "case": "type-text",
+    "group": "types",
+    "upstreamSQL": [
+      "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" text)"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" TEXT )"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" text)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" TEXT )"
+      }
+    }
+  },
+  {
+    "case": "type-integer",
+    "group": "types",
+    "upstreamSQL": [
+      "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" integer)"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" INTEGER )"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" integer)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" INTEGER )"
+      }
+    }
+  },
+  {
+    "case": "type-bigint",
+    "group": "types",
+    "upstreamSQL": [
+      "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" bigint)"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" BIGINT )"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" bigint)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" BIGINT )"
+      }
+    }
+  },
+  {
+    "case": "type-float",
+    "group": "types",
+    "upstreamSQL": [
+      "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" float)"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" REAL )"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" float)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" REAL )"
+      }
+    }
+  },
+  {
+    "case": "type-decimal",
+    "group": "types",
+    "upstreamSQL": [
+      "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" decimal(10,2))"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" DECIMAL(10,2) )"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" decimal(10,2))"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" DECIMAL(10,2) )"
+      }
+    }
+  },
+  {
+    "case": "type-boolean",
+    "group": "types",
+    "upstreamSQL": [
+      "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" boolean)"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" BOOLEAN )"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" boolean)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" BOOLEAN )"
+      }
+    }
+  },
+  {
+    "case": "type-date",
+    "group": "types",
+    "upstreamSQL": [
+      "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" date)"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" DATE )"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" date)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" DATE )"
+      }
+    }
+  },
+  {
+    "case": "type-time",
+    "group": "types",
+    "upstreamSQL": [
+      "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" time)"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" TIME )"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" time)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" TIME )"
+      }
+    }
+  },
+  {
+    "case": "type-datetime",
+    "group": "types",
+    "upstreamSQL": [
+      "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" datetime(6))"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" DATETIME )"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" datetime(6))"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" DATETIME )"
+      }
+    }
+  },
+  {
+    "case": "type-datetime-precision",
+    "group": "types",
+    "upstreamSQL": [
+      "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" datetime(3))"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" DATETIME )"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" datetime(3))"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" DATETIME )"
+      }
+    }
+  },
+  {
+    "case": "type-binary",
+    "group": "types",
+    "upstreamSQL": [
+      "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" blob)"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" BLOB )"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" blob)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" BLOB )"
+      }
+    }
+  },
+  {
+    "case": "type-json",
+    "group": "types",
+    "upstreamSQL": [
+      "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" json)"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" JSON )"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" json)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" JSON )"
+      }
+    }
+  },
+  {
+    "case": "type-jsonb",
+    "group": "types",
+    "upstreamSQL": [
+      "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" jsonb)"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" JSON )"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" jsonb)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" JSON )"
+      }
+    }
+  },
+  {
+    "case": "type-uuid",
+    "group": "types",
+    "upstreamSQL": [
+      "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" uuid)"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" VARCHAR(36) )"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" uuid)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" VARCHAR(36) )"
+      }
+    }
+  },
+  {
+    "case": "type-enum",
+    "group": "types",
+    "upstreamSQL": [],
+    "goSQL": [
+      "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" VARCHAR(255) )"
+    ],
+    "upstreamRawNames": {
+      "names": {},
+      "step_errors": [
+        {
+          "error": "ArgumentError: Unknown key: :values. Valid keys are: :limit, :precision, :scale, :default, :null, :collation, :comment, :primary_key, :if_exists, :if_not_exists, :as, :type, :stored",
+          "i": 0
+        }
+      ],
+      "tables_sql": {}
+    },
+    "goRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" VARCHAR(255) )"
+      }
+    }
+  },
+  {
+    "case": "type-array-of-string",
+    "group": "types",
+    "upstreamSQL": [],
+    "goSQL": [
+      "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" JSON )"
+    ],
+    "upstreamRawNames": {
+      "names": {},
+      "step_errors": [
+        {
+          "error": "ArgumentError: Unknown key: :array. Valid keys are: :limit, :precision, :scale, :default, :null, :collation, :comment, :primary_key, :if_exists, :if_not_exists, :as, :type, :stored",
+          "i": 0
+        }
+      ],
+      "tables_sql": {}
+    },
+    "goRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" JSON )"
+      }
+    }
+  },
+  {
+    "case": "type-timestamps",
+    "group": "types",
+    "upstreamSQL": [
+      "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"created_at\" datetime(6) NOT NULL, \"updated_at\" datetime(6) NOT NULL)"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"created_at\" DATETIME NOT NULL, \"updated_at\" DATETIME NOT NULL )"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"created_at\" datetime(6) NOT NULL, \"updated_at\" datetime(6) NOT NULL)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"created_at\" DATETIME NOT NULL, \"updated_at\" DATETIME NOT NULL )"
+      }
+    }
+  },
+  {
+    "case": "type-not-null-and-default",
+    "group": "types",
+    "upstreamSQL": [
+      "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" integer DEFAULT 7 NOT NULL)"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" INTEGER NOT NULL DEFAULT 7 )"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" integer DEFAULT 7 NOT NULL)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" INTEGER NOT NULL DEFAULT 7 )"
+      }
+    }
+  },
+  {
+    "case": "type-boolean-default-false",
+    "group": "types",
+    "upstreamSQL": [
+      "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" boolean DEFAULT 0)"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" BOOLEAN DEFAULT FALSE )"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" boolean DEFAULT 0)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" BOOLEAN DEFAULT FALSE )"
+      }
+    }
+  },
+  {
+    "case": "type-string-default",
+    "group": "types",
+    "upstreamSQL": [
+      "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" varchar DEFAULT 'anon')"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" VARCHAR(255) DEFAULT 'anon' )"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" varchar DEFAULT 'anon')"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" VARCHAR(255) DEFAULT 'anon' )"
+      }
+    }
+  },
+  {
+    "case": "type-datetime-default-raw",
+    "group": "types",
+    "upstreamSQL": [
+      "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" datetime(6) DEFAULT CURRENT_TIMESTAMP)"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" DATETIME DEFAULT CURRENT_TIMESTAMP )"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" datetime(6) DEFAULT CURRENT_TIMESTAMP)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": []
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" DATETIME DEFAULT CURRENT_TIMESTAMP )"
+      }
+    }
+  },
+  {
+    "case": "type-inline-unique-column",
+    "group": "types",
+    "upstreamSQL": [
+      "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" text)",
+      "CREATE UNIQUE INDEX \"index_t_on_c\" ON \"t\" (\"c\")"
+    ],
+    "goSQL": [
+      "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" TEXT )",
+      "CREATE UNIQUE INDEX \"index_t_on_c\" ON \"t\" (\"c\")"
+    ],
+    "upstreamRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": [
+            "index_t_on_c"
+          ]
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" (\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL, \"c\" text)"
+      }
+    },
+    "goRawNames": {
+      "names": {
+        "t": {
+          "checks": [],
+          "indexes": [
+            "index_t_on_c"
+          ]
+        }
+      },
+      "step_errors": [],
+      "tables_sql": {
+        "t": "CREATE TABLE \"t\" ( \"id\" INTEGER PRIMARY KEY AUTOINCREMENT, \"c\" TEXT )"
+      }
+    }
+  }
+]

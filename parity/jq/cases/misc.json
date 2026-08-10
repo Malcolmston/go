@@ -1,0 +1,451 @@
+{
+  "group": "misc",
+  "upstream": "jq@1.7.1",
+  "encoding": "args = [jq program, input JSON value, optional $variables object]; value = the complete output stream as a JSON array",
+  "cases": [
+    {
+      "id": "env-parity",
+      "fn": "run",
+      "args": [
+        "env.PARITY",
+        null
+      ],
+      "upstreamFn": "env/0",
+      "goFn": "env/0",
+      "note": "fixed environment on both sides"
+    },
+    {
+      "id": "env-keys",
+      "fn": "run",
+      "args": [
+        "$ENV | keys",
+        null
+      ],
+      "upstreamFn": "$ENV",
+      "goFn": "$ENV"
+    },
+    {
+      "id": "env-tz",
+      "fn": "run",
+      "args": [
+        "env.TZ",
+        null
+      ],
+      "upstreamFn": "env/0",
+      "goFn": "env/0"
+    },
+    {
+      "id": "env-type",
+      "fn": "run",
+      "args": [
+        "env|type",
+        null
+      ],
+      "upstreamFn": "env/0",
+      "goFn": "env/0"
+    },
+    {
+      "id": "input-line-number",
+      "fn": "run",
+      "args": [
+        "input_line_number",
+        1
+      ],
+      "upstreamFn": "input_line_number/0",
+      "goFn": "input_line_number/0"
+    },
+    {
+      "id": "input-line-number-null",
+      "fn": "run",
+      "args": [
+        "input_line_number",
+        null
+      ],
+      "upstreamFn": "input_line_number/0",
+      "goFn": "input_line_number/0"
+    },
+    {
+      "id": "input-filename",
+      "fn": "run",
+      "args": [
+        "input_filename",
+        null
+      ],
+      "upstreamFn": "input_filename/0",
+      "goFn": "input_filename/0",
+      "note": "jq reports <stdin>; the port has no notion of an input file",
+      "deviation": "the port has no file-input concept, so input_filename is null (not yet in API-DEVIATIONS.md)"
+    },
+    {
+      "id": "input-stub",
+      "fn": "run",
+      "args": [
+        "[try input catch \"err\"]",
+        null
+      ],
+      "upstreamFn": "input/0",
+      "goFn": "input/0",
+      "note": "only one input is supplied, so input must fail on both sides"
+    },
+    {
+      "id": "inputs-stub",
+      "fn": "run",
+      "args": [
+        "[try (inputs) catch \"err\"]",
+        null
+      ],
+      "upstreamFn": "inputs/0",
+      "goFn": "inputs/0"
+    },
+    {
+      "id": "builtins-count",
+      "fn": "run",
+      "args": [
+        "builtins|length > 100",
+        null
+      ],
+      "upstreamFn": "builtins/0",
+      "goFn": "builtins/0"
+    },
+    {
+      "id": "builtins-is-array",
+      "fn": "run",
+      "args": [
+        "builtins|type",
+        null
+      ],
+      "upstreamFn": "builtins/0",
+      "goFn": "builtins/0"
+    },
+    {
+      "id": "debug-passthrough",
+      "fn": "run",
+      "args": [
+        "[1|debug]",
+        null
+      ],
+      "upstreamFn": "debug/0",
+      "goFn": "debug/0",
+      "note": "debug writes to stderr"
+    },
+    {
+      "id": "debug-msg",
+      "fn": "run",
+      "args": [
+        "[1|debug(\"m\")]",
+        null
+      ],
+      "upstreamFn": "debug/1",
+      "goFn": "debug/1"
+    },
+    {
+      "id": "stderr-passthrough",
+      "fn": "run",
+      "args": [
+        "[1|stderr]",
+        null
+      ],
+      "upstreamFn": "stderr/0",
+      "goFn": "stderr/0"
+    },
+    {
+      "id": "now-type",
+      "fn": "run",
+      "args": [
+        "[now|type, (now > 1000000000)]",
+        null
+      ],
+      "upstreamFn": "now/0",
+      "goFn": "now/0",
+      "note": "value is time-dependent; only the type and a loose bound are compared"
+    },
+    {
+      "id": "todate-fromdate",
+      "fn": "run",
+      "args": [
+        "[1700000000|todate, (\"2023-11-14T22:13:20Z\"|fromdate)]",
+        null
+      ],
+      "upstreamFn": "todate/0",
+      "goFn": "todate/0"
+    },
+    {
+      "id": "date-iso",
+      "fn": "run",
+      "args": [
+        "[1700000000|todateiso8601, (\"2023-11-14T22:13:20Z\"|fromdateiso8601)]",
+        null
+      ],
+      "upstreamFn": "todateiso8601/0",
+      "goFn": "todateiso8601/0"
+    },
+    {
+      "id": "strftime",
+      "fn": "run",
+      "args": [
+        "1700000000|strftime(\"%Y-%m-%dT%H:%M:%SZ\")",
+        null
+      ],
+      "upstreamFn": "strftime/1",
+      "goFn": "strftime/1"
+    },
+    {
+      "id": "strflocaltime",
+      "fn": "run",
+      "args": [
+        "1700000000|strflocaltime(\"%Y-%m-%d\")",
+        null
+      ],
+      "upstreamFn": "strflocaltime/1",
+      "goFn": "strflocaltime/1",
+      "note": "TZ is pinned to UTC on both sides"
+    },
+    {
+      "id": "gmtime-array",
+      "fn": "run",
+      "args": [
+        "1700000000|gmtime",
+        null
+      ],
+      "upstreamFn": "gmtime/0",
+      "goFn": "gmtime/0"
+    },
+    {
+      "id": "gmtime-mktime",
+      "fn": "run",
+      "args": [
+        "1700000000|gmtime|mktime",
+        null
+      ],
+      "upstreamFn": "mktime/0",
+      "goFn": "mktime/0"
+    },
+    {
+      "id": "localtime-mktime",
+      "fn": "run",
+      "args": [
+        "1700000000|localtime|mktime",
+        null
+      ],
+      "upstreamFn": "localtime/0",
+      "goFn": "localtime/0"
+    },
+    {
+      "id": "strptime",
+      "fn": "run",
+      "args": [
+        "\"2023-11-14T22:13:20Z\"|strptime(\"%Y-%m-%dT%H:%M:%SZ\")",
+        null
+      ],
+      "upstreamFn": "strptime/1",
+      "goFn": "strptime/1"
+    },
+    {
+      "id": "module-import",
+      "fn": "run",
+      "args": [
+        "import \"foo\" as f; 1",
+        null
+      ],
+      "upstreamFn": "import",
+      "goFn": "import",
+      "deviation": "the module system (import/include/modulemeta) is documented as not implemented"
+    },
+    {
+      "id": "module-include",
+      "fn": "run",
+      "args": [
+        "include \"foo\"; 1",
+        null
+      ],
+      "upstreamFn": "include",
+      "goFn": "include",
+      "deviation": "the module system (import/include/modulemeta) is documented as not implemented"
+    },
+    {
+      "id": "modulemeta",
+      "fn": "run",
+      "args": [
+        "\"foo\"|modulemeta",
+        null
+      ],
+      "upstreamFn": "modulemeta/0",
+      "goFn": "\u2014",
+      "deviation": "the module system (import/include/modulemeta) is documented as not implemented"
+    },
+    {
+      "id": "origin-jq",
+      "fn": "run",
+      "args": [
+        "get_jq_origin",
+        null
+      ],
+      "upstreamFn": "get_jq_origin/0",
+      "goFn": "\u2014",
+      "note": "not ported"
+    },
+    {
+      "id": "origin-prog",
+      "fn": "run",
+      "args": [
+        "get_prog_origin",
+        null
+      ],
+      "upstreamFn": "get_prog_origin/0",
+      "goFn": "\u2014",
+      "note": "not ported"
+    },
+    {
+      "id": "origin-search-list",
+      "fn": "run",
+      "args": [
+        "get_search_list",
+        null
+      ],
+      "upstreamFn": "get_search_list/0",
+      "goFn": "\u2014",
+      "note": "not ported"
+    },
+    {
+      "id": "extra-trim",
+      "fn": "run",
+      "args": [
+        "[trim, ltrim, rtrim]",
+        "  hi  "
+      ],
+      "upstreamFn": "trim/0",
+      "goFn": "trim/0",
+      "note": "trim/ltrim/rtrim arrived in jq 1.8; the port has them already"
+    },
+    {
+      "id": "extra-trim-nonstring-err",
+      "fn": "run",
+      "args": [
+        "trim",
+        5
+      ],
+      "upstreamFn": "trim/0",
+      "goFn": "trim/0"
+    },
+    {
+      "id": "extra-trimstr",
+      "fn": "run",
+      "args": [
+        "\"xax\"|trimstr(\"x\")",
+        null
+      ],
+      "upstreamFn": "trimstr/1",
+      "goFn": "trimstr/1",
+      "note": "port-only"
+    },
+    {
+      "id": "extra-ascii",
+      "fn": "run",
+      "args": [
+        "[65,97]|map(ascii)",
+        null
+      ],
+      "upstreamFn": "ascii/0",
+      "goFn": "ascii/0",
+      "note": "port-only"
+    },
+    {
+      "id": "extra-have-decnum",
+      "fn": "run",
+      "args": [
+        "[have_decnum, have_literal_numbers]",
+        null
+      ],
+      "upstreamFn": "have_decnum/0",
+      "goFn": "have_decnum/0",
+      "note": "arrived in jq 1.8"
+    },
+    {
+      "id": "extra-skip",
+      "fn": "run",
+      "args": [
+        "[skip(1; range(4))]",
+        null
+      ],
+      "upstreamFn": "skip/2",
+      "goFn": "skip/2",
+      "note": "port-only"
+    },
+    {
+      "id": "extra-toarray",
+      "fn": "run",
+      "args": [
+        "[.[]|toarray]",
+        [
+          1,
+          [
+            2
+          ]
+        ]
+      ],
+      "upstreamFn": "toarray/0",
+      "goFn": "toarray/0",
+      "note": "arrived in jq 1.8"
+    },
+    {
+      "id": "extra-toboolean",
+      "fn": "run",
+      "args": [
+        "[\"true\"|toboolean]",
+        null
+      ],
+      "upstreamFn": "toboolean/0",
+      "goFn": "toboolean/0",
+      "note": "port-only"
+    },
+    {
+      "id": "extra-isvalid",
+      "fn": "run",
+      "args": [
+        "[isvalid(.a)]",
+        1
+      ],
+      "upstreamFn": "isvalid/1",
+      "goFn": "isvalid/1",
+      "note": "port-only"
+    },
+    {
+      "id": "extra-date",
+      "fn": "run",
+      "args": [
+        "1700000000|date",
+        null
+      ],
+      "upstreamFn": "date/0",
+      "goFn": "date/0",
+      "note": "port-only"
+    },
+    {
+      "id": "extra-add-1",
+      "fn": "run",
+      "args": [
+        "add(.[])",
+        [
+          1,
+          2
+        ]
+      ],
+      "upstreamFn": "add/1",
+      "goFn": "add/1",
+      "note": "arrived in jq 1.8"
+    },
+    {
+      "id": "extra-recurse-down",
+      "fn": "run",
+      "args": [
+        "[recurse_down]",
+        {
+          "a": 1
+        }
+      ],
+      "upstreamFn": "recurse_down/0",
+      "goFn": "recurse_down/0",
+      "note": "port-only"
+    }
+  ]
+}

@@ -1,0 +1,199 @@
+{
+  "group": "sign-hs",
+  "upstream": "jsonwebtoken@9.0.2",
+  "note": "HS*/none are deterministic: the exact compact serialization is compared.",
+  "cases": [
+    {
+      "id": "sign-hs256-exact",
+      "fn": "sign",
+      "args": [
+        {
+          "aud": "parity-aud",
+          "exp": 1700003600,
+          "iat": 1700000000,
+          "iss": "parity-iss",
+          "jti": "id-1",
+          "nbf": 1699999990,
+          "role": "admin",
+          "sub": "user-1"
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "algorithm": "HS256"
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jwt.Sign/Token.SignedString",
+      "note": "exact token string; HMAC is deterministic"
+    },
+    {
+      "id": "sign-hs384-exact",
+      "fn": "sign",
+      "args": [
+        {
+          "aud": "parity-aud",
+          "exp": 1700003600,
+          "iat": 1700000000,
+          "iss": "parity-iss",
+          "jti": "id-1",
+          "nbf": 1699999990,
+          "role": "admin",
+          "sub": "user-1"
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "algorithm": "HS384"
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jwt.Sign/Token.SignedString",
+      "note": "exact token string; HMAC is deterministic"
+    },
+    {
+      "id": "sign-hs512-exact",
+      "fn": "sign",
+      "args": [
+        {
+          "aud": "parity-aud",
+          "exp": 1700003600,
+          "iat": 1700000000,
+          "iss": "parity-iss",
+          "jti": "id-1",
+          "nbf": 1699999990,
+          "role": "admin",
+          "sub": "user-1"
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "algorithm": "HS512"
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jwt.Sign/Token.SignedString",
+      "note": "exact token string; HMAC is deterministic"
+    },
+    {
+      "id": "sign-hs256-minimal-exact",
+      "fn": "sign",
+      "args": [
+        {
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "algorithm": "HS256"
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jwt.NewWithClaims"
+    },
+    {
+      "id": "sign-hs256-notimestamp-exact",
+      "fn": "sign",
+      "args": [
+        {
+          "exp": 1700000060,
+          "sub": "s"
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "algorithm": "HS256",
+          "noTimestamp": true
+        }
+      ],
+      "upstreamFn": "jwt.sign options.noTimestamp",
+      "goFn": "jwt.MapClaims (no iat)",
+      "note": "exact token string"
+    },
+    {
+      "id": "sign-hs256-default-alg-exact",
+      "fn": "sign",
+      "args": [
+        {
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {}
+      ],
+      "upstreamFn": "jwt.sign (default algorithm)",
+      "goFn": "jwt.SigningMethodHS256",
+      "note": "both default to HS256"
+    },
+    {
+      "id": "sign-none-exact",
+      "fn": "sign",
+      "args": [
+        {
+          "iat": 1700000000
+        },
+        {
+          "kind": "none"
+        },
+        {
+          "algorithm": "none"
+        }
+      ],
+      "upstreamFn": "jwt.sign algorithm:'none'",
+      "goFn": "jwt.SigningMethodNoneAlg",
+      "note": "unsecured token; exact string, empty signature"
+    },
+    {
+      "id": "sign-hs256-unknown-alg",
+      "fn": "sign",
+      "args": [
+        {
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "algorithm": "HS999"
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jwt.GetSigningMethod",
+      "note": "both must fail: unknown alg"
+    },
+    {
+      "id": "sign-hs256-insertion-order",
+      "fn": "sign",
+      "args": [
+        {
+          "sub": "user-1",
+          "iat": 1700000000,
+          "aud": "parity-aud"
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "algorithm": "HS256"
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jwt.Sign",
+      "deviation": "the port serialises claims with sorted keys (Go encoding/json) while node preserves insertion order, so the token bytes differ whenever the claim order is not already alphabetical. Both tokens carry identical claims and each side verifies the other's (see crossverify)."
+    }
+  ]
+}

@@ -1,0 +1,303 @@
+{
+  "group": "geometry-resize-opts",
+  "upstream": "sharp@0.33.5",
+  "cases": [
+    {
+      "id": "opt-without-enlargement",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "resize",
+            {
+              "width": 200,
+              "height": 200,
+              "fit": "inside",
+              "kernel": "lanczos3",
+              "withoutEnlargement": true
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#resize",
+      "goFn": "Pipeline.Resize",
+      "note": "withoutEnlargement"
+    },
+    {
+      "id": "opt-without-enlargement-smaller",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "resize",
+            {
+              "width": 20,
+              "height": 20,
+              "fit": "inside",
+              "kernel": "lanczos3",
+              "withoutEnlargement": true
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#resize",
+      "goFn": "Pipeline.Resize",
+      "note": "withoutEnlargement below source size"
+    },
+    {
+      "id": "opt-without-reduction",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "resize",
+            {
+              "width": 20,
+              "height": 20,
+              "fit": "inside",
+              "kernel": "lanczos3",
+              "withoutReduction": true
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#resize",
+      "goFn": "Pipeline.Resize",
+      "note": "withoutReduction"
+    },
+    {
+      "id": "opt-position-top",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "resize",
+            {
+              "width": 32,
+              "height": 32,
+              "fit": "cover",
+              "kernel": "lanczos3",
+              "position": "top"
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#resize",
+      "goFn": "Pipeline.Resize",
+      "note": "cover crop anchored by position"
+    },
+    {
+      "id": "opt-position-centre",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "resize",
+            {
+              "width": 32,
+              "height": 32,
+              "fit": "cover",
+              "kernel": "lanczos3",
+              "position": "centre"
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#resize",
+      "goFn": "Pipeline.Resize",
+      "note": "cover crop anchored by position"
+    },
+    {
+      "id": "opt-no-dimensions",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "resize",
+            {
+              "fit": "inside",
+              "kernel": "lanczos3"
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#resize",
+      "goFn": "Pipeline.Resize",
+      "note": "neither width nor height"
+    },
+    {
+      "id": "opt-zero-width",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "resize",
+            {
+              "width": 0,
+              "height": 20,
+              "fit": "fill",
+              "kernel": "lanczos3"
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#resize",
+      "goFn": "Pipeline.Resize",
+      "note": "zero width"
+    },
+    {
+      "id": "opt-negative-width",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "resize",
+            {
+              "width": -5,
+              "height": 20,
+              "fit": "fill",
+              "kernel": "lanczos3"
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#resize",
+      "goFn": "Pipeline.Resize",
+      "note": "negative width"
+    },
+    {
+      "id": "opt-kernel-nearest",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "resize",
+            {
+              "width": 25,
+              "height": 17,
+              "fit": "fill",
+              "kernel": "nearest"
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#resize",
+      "goFn": "Pipeline.Resize",
+      "note": "kernel:nearest (geometry only)"
+    },
+    {
+      "id": "opt-kernel-linear",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "resize",
+            {
+              "width": 25,
+              "height": 17,
+              "fit": "fill",
+              "kernel": "linear"
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#resize",
+      "goFn": "Pipeline.Resize",
+      "note": "kernel:linear (geometry only)"
+    },
+    {
+      "id": "opt-kernel-cubic",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "resize",
+            {
+              "width": 25,
+              "height": 17,
+              "fit": "fill",
+              "kernel": "cubic"
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#resize",
+      "goFn": "Pipeline.Resize",
+      "note": "kernel:cubic (geometry only)"
+    },
+    {
+      "id": "opt-kernel-mitchell",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "resize",
+            {
+              "width": 25,
+              "height": 17,
+              "fit": "fill",
+              "kernel": "mitchell"
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#resize",
+      "goFn": "Pipeline.Resize",
+      "note": "kernel:mitchell (geometry only)"
+    },
+    {
+      "id": "opt-kernel-lanczos2",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "resize",
+            {
+              "width": 25,
+              "height": 17,
+              "fit": "fill",
+              "kernel": "lanczos2"
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#resize",
+      "goFn": "Pipeline.Resize",
+      "note": "kernel:lanczos2 (geometry only)"
+    },
+    {
+      "id": "opt-kernel-lanczos3",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "resize",
+            {
+              "width": 25,
+              "height": 17,
+              "fit": "fill",
+              "kernel": "lanczos3"
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#resize",
+      "goFn": "Pipeline.Resize",
+      "note": "kernel:lanczos3 (geometry only)"
+    }
+  ]
+}

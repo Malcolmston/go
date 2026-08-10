@@ -1,0 +1,249 @@
+{
+  "group": "schema-1-1-vs-1-2",
+  "upstream": "yaml@2.6.1+yaml-test-suite@da267a5c4782e7361e82889e76c0dc7df0e1e870",
+  "cases": [
+    {
+      "id": "schema-bool-yes-no",
+      "fn": "parseJSON",
+      "args": [
+        "a: yes\nb: no\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "note": "1.1 booleans; the 1.2 core schema makes these strings"
+    },
+    {
+      "id": "schema-bool-on-off",
+      "fn": "parseJSON",
+      "args": [
+        "a: on\nb: off\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "note": "1.1 booleans"
+    },
+    {
+      "id": "schema-bool-y-n",
+      "fn": "parseJSON",
+      "args": [
+        "a: y\nb: n\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "note": "1.1 single-letter booleans"
+    },
+    {
+      "id": "schema-bool-case",
+      "fn": "parseJSON",
+      "args": [
+        "a: Yes\nb: YES\nc: True\nd: TRUE\ne: tRue\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "note": "capitalisation of booleans"
+    },
+    {
+      "id": "schema-bool-true-false",
+      "fn": "parseJSON",
+      "args": [
+        "a: true\nb: false\nc: True\nd: FALSE\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "note": "1.2 core booleans"
+    },
+    {
+      "id": "schema-null-tilde",
+      "fn": "parseJSON",
+      "args": [
+        "a: ~\nb: null\nc: Null\nd: NULL\ne:\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "note": "null spellings, including the empty value"
+    },
+    {
+      "id": "schema-int-leading-zero",
+      "fn": "parseJSON",
+      "args": [
+        "a: 017\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "note": "1.1 octal; the 1.2 core schema has no leading-zero octal"
+    },
+    {
+      "id": "schema-int-octal-1-2",
+      "fn": "parseJSON",
+      "args": [
+        "a: 0o17\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "note": "1.2 octal"
+    },
+    {
+      "id": "schema-int-hex",
+      "fn": "parseJSON",
+      "args": [
+        "a: 0xC\nb: 0XC\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "note": "hexadecimal"
+    },
+    {
+      "id": "schema-int-binary",
+      "fn": "parseJSON",
+      "args": [
+        "a: 0b1010\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "note": "1.1 binary; not in the 1.2 core schema"
+    },
+    {
+      "id": "schema-int-underscores",
+      "fn": "parseJSON",
+      "args": [
+        "a: 1_000\nb: 1_000.5\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "note": "1.1 digit separators"
+    },
+    {
+      "id": "schema-int-plus",
+      "fn": "parseJSON",
+      "args": [
+        "a: +12\nb: -12\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "note": "signed integers"
+    },
+    {
+      "id": "schema-sexagesimal",
+      "fn": "parseJSON",
+      "args": [
+        "a: 12:30\nb: 190:20:30\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "note": "1.1 sexagesimal; the 1.2 core schema makes these strings"
+    },
+    {
+      "id": "schema-float-forms",
+      "fn": "parseJSON",
+      "args": [
+        "a: 1.5\nb: 1e3\nc: 1.0e+3\nd: .5\ne: 5.\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "note": "float spellings"
+    },
+    {
+      "id": "schema-float-specials",
+      "fn": "parseJSON",
+      "args": [
+        "a: .inf\nb: -.Inf\nc: .NAN\nd: .nan\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "note": "infinities and not-a-number"
+    },
+    {
+      "id": "schema-float-specials-11",
+      "fn": "parseJSON",
+      "args": [
+        "a: inf\nb: nan\nc: Infinity\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "note": "spellings that are NOT in the 1.2 core schema"
+    },
+    {
+      "id": "schema-explicit-tags",
+      "fn": "parseJSON",
+      "args": [
+        "a: !!str 1\nb: !!int 1.0\nc: !!bool yes\nd: !!float 1\ne: !!null x\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "note": "explicit tags override resolution"
+    },
+    {
+      "id": "schema-empty-string",
+      "fn": "parseJSON",
+      "args": [
+        "a: ''\nb: \"\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "note": "quoted empty scalars stay strings"
+    },
+    {
+      "id": "schema-string-lookalikes",
+      "fn": "parseJSON",
+      "args": [
+        "a: '017'\nb: '1.5'\nc: 'true'\nd: '~'\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "note": "quoting defeats resolution"
+    },
+    {
+      "id": "schema-big-int",
+      "fn": "parseJSON",
+      "args": [
+        "a: 12345678901234567890\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "note": "beyond 2^53",
+      "deviation": "a JavaScript number cannot represent this exactly; the port keeps full precision"
+    },
+    {
+      "id": "schema-dup-keys",
+      "fn": "parse",
+      "args": [
+        "a: 1\na: 2\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "note": "duplicate mapping keys"
+    },
+    {
+      "id": "schema-complex-key",
+      "fn": "parseJSON",
+      "args": [
+        "? [1, 2]\n: v\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "note": "a sequence used as a mapping key"
+    },
+    {
+      "id": "schema-merge-key",
+      "fn": "parseJSON",
+      "args": [
+        "base: &b {a: 1}\nderived:\n  <<: *b\n  b: 2\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "note": "the merge key",
+      "deviation": "the port resolves merge keys by default; yaml@2 needs {merge: true} and otherwise keeps a literal \"<<\" key"
+    },
+    {
+      "id": "schema-alias-bomb",
+      "fn": "parseJSON",
+      "args": [
+        "a: &a [x, x, x, x, x, x, x, x, x]\nb: &b [*a, *a, *a, *a, *a, *a, *a, *a, *a]\nc: &c [*b, *b, *b, *b, *b, *b, *b, *b, *b]\nd: [*c, *c, *c, *c, *c, *c, *c, *c, *c]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "note": "alias expansion: both sides guard against it, at different thresholds",
+      "deviation": "API-DEVIATIONS.md, \"Alias-expansion budget\": the port allows 1<<21 nodes, where yaml@2 rejects this document outright"
+    }
+  ]
+}

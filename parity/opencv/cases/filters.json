@@ -1,0 +1,954 @@
+{
+  "group": "filters",
+  "upstream": "opencv-python@4.11.0",
+  "cases": [
+    {
+      "id": "blur-3",
+      "fn": "blur",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 4242,
+          "amp": 60
+        },
+        3
+      ],
+      "upstreamFn": "cv2.blur",
+      "goFn": "cv.Blur",
+      "mode": "tolerance",
+      "tol": 1,
+      "meanTol": 0.5,
+      "note": "box mean rounds independently; budget 1 LSB"
+    },
+    {
+      "id": "blur-3ch-3",
+      "fn": "blur",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3,
+          "seed": 1313,
+          "amp": 50
+        },
+        3
+      ],
+      "upstreamFn": "cv2.blur",
+      "goFn": "cv.Blur",
+      "mode": "tolerance",
+      "tol": 1,
+      "meanTol": 0.5
+    },
+    {
+      "id": "blur-5",
+      "fn": "blur",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 4242,
+          "amp": 60
+        },
+        5
+      ],
+      "upstreamFn": "cv2.blur",
+      "goFn": "cv.Blur",
+      "mode": "tolerance",
+      "tol": 1,
+      "meanTol": 0.5,
+      "note": "box mean rounds independently; budget 1 LSB"
+    },
+    {
+      "id": "blur-3ch-5",
+      "fn": "blur",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3,
+          "seed": 1313,
+          "amp": 50
+        },
+        5
+      ],
+      "upstreamFn": "cv2.blur",
+      "goFn": "cv.Blur",
+      "mode": "tolerance",
+      "tol": 1,
+      "meanTol": 0.5
+    },
+    {
+      "id": "blur-7",
+      "fn": "blur",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 4242,
+          "amp": 60
+        },
+        7
+      ],
+      "upstreamFn": "cv2.blur",
+      "goFn": "cv.Blur",
+      "mode": "tolerance",
+      "tol": 1,
+      "meanTol": 0.5,
+      "note": "box mean rounds independently; budget 1 LSB"
+    },
+    {
+      "id": "blur-3ch-7",
+      "fn": "blur",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3,
+          "seed": 1313,
+          "amp": 50
+        },
+        7
+      ],
+      "upstreamFn": "cv2.blur",
+      "goFn": "cv.Blur",
+      "mode": "tolerance",
+      "tol": 1,
+      "meanTol": 0.5
+    },
+    {
+      "id": "boxfilter-3-norm",
+      "fn": "boxFilter",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 4242,
+          "amp": 60
+        },
+        3,
+        true
+      ],
+      "upstreamFn": "cv2.boxFilter",
+      "goFn": "cv.BoxFilter",
+      "mode": "tolerance",
+      "tol": 1,
+      "meanTol": 0.5
+    },
+    {
+      "id": "boxfilter-3-raw",
+      "fn": "boxFilter",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 4242,
+          "amp": 60
+        },
+        3,
+        false
+      ],
+      "upstreamFn": "cv2.boxFilter",
+      "goFn": "cv.BoxFilter",
+      "mode": "tolerance",
+      "tol": 1,
+      "meanTol": 0.5
+    },
+    {
+      "id": "boxfilter-5-norm",
+      "fn": "boxFilter",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 4242,
+          "amp": 60
+        },
+        5,
+        true
+      ],
+      "upstreamFn": "cv2.boxFilter",
+      "goFn": "cv.BoxFilter",
+      "mode": "tolerance",
+      "tol": 1,
+      "meanTol": 0.5
+    },
+    {
+      "id": "boxfilter-5-raw",
+      "fn": "boxFilter",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 4242,
+          "amp": 60
+        },
+        5,
+        false
+      ],
+      "upstreamFn": "cv2.boxFilter",
+      "goFn": "cv.BoxFilter",
+      "mode": "tolerance",
+      "tol": 1,
+      "meanTol": 0.5
+    },
+    {
+      "id": "gaussian-3-0p8",
+      "fn": "gaussianBlur",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 4242,
+          "amp": 60
+        },
+        3,
+        0.8
+      ],
+      "upstreamFn": "cv2.GaussianBlur",
+      "goFn": "cv.GaussianBlur",
+      "mode": "tolerance",
+      "tol": 2,
+      "meanTol": 0.6,
+      "note": "cv2 uses a fixed-point 8-bit kernel; budget 2 LSB"
+    },
+    {
+      "id": "gaussian-3-1p5",
+      "fn": "gaussianBlur",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 4242,
+          "amp": 60
+        },
+        3,
+        1.5
+      ],
+      "upstreamFn": "cv2.GaussianBlur",
+      "goFn": "cv.GaussianBlur",
+      "mode": "tolerance",
+      "tol": 2,
+      "meanTol": 0.6,
+      "note": "cv2 uses a fixed-point 8-bit kernel; budget 2 LSB"
+    },
+    {
+      "id": "gaussian-5-1p0",
+      "fn": "gaussianBlur",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 4242,
+          "amp": 60
+        },
+        5,
+        1.0
+      ],
+      "upstreamFn": "cv2.GaussianBlur",
+      "goFn": "cv.GaussianBlur",
+      "mode": "tolerance",
+      "tol": 2,
+      "meanTol": 0.6,
+      "note": "cv2 uses a fixed-point 8-bit kernel; budget 2 LSB"
+    },
+    {
+      "id": "gaussian-5-2p0",
+      "fn": "gaussianBlur",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 4242,
+          "amp": 60
+        },
+        5,
+        2.0
+      ],
+      "upstreamFn": "cv2.GaussianBlur",
+      "goFn": "cv.GaussianBlur",
+      "mode": "tolerance",
+      "tol": 2,
+      "meanTol": 0.6,
+      "note": "cv2 uses a fixed-point 8-bit kernel; budget 2 LSB"
+    },
+    {
+      "id": "gaussian-7-1p5",
+      "fn": "gaussianBlur",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 4242,
+          "amp": 60
+        },
+        7,
+        1.5
+      ],
+      "upstreamFn": "cv2.GaussianBlur",
+      "goFn": "cv.GaussianBlur",
+      "mode": "tolerance",
+      "tol": 2,
+      "meanTol": 0.6,
+      "note": "cv2 uses a fixed-point 8-bit kernel; budget 2 LSB"
+    },
+    {
+      "id": "gaussian-3ch",
+      "fn": "gaussianBlur",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3,
+          "seed": 1313,
+          "amp": 50
+        },
+        5,
+        1.2
+      ],
+      "upstreamFn": "cv2.GaussianBlur",
+      "goFn": "cv.GaussianBlur",
+      "mode": "tolerance",
+      "tol": 2,
+      "meanTol": 0.6
+    },
+    {
+      "id": "gaussian-even-ksize",
+      "fn": "gaussianBlur",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 4242,
+          "amp": 60
+        },
+        4,
+        1.0
+      ],
+      "upstreamFn": "cv2.GaussianBlur",
+      "goFn": "cv.GaussianBlur",
+      "mode": "exact"
+    },
+    {
+      "id": "blur-cv2-default-border",
+      "fn": "blurReflect101",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 4242,
+          "amp": 60
+        },
+        3
+      ],
+      "upstreamFn": "cv2.blur (default BORDER_REFLECT_101)",
+      "goFn": "cv.Blur",
+      "mode": "tolerance",
+      "tol": 1,
+      "meanTol": 0.5,
+      "note": "the port documents edge replication; cv2's default is BORDER_REFLECT_101, so this case records the border-convention divergence on its own"
+    },
+    {
+      "id": "gaussian-cv2-default-border",
+      "fn": "gaussianBlurReflect101",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 4242,
+          "amp": 60
+        },
+        5,
+        1.0
+      ],
+      "upstreamFn": "cv2.GaussianBlur (default BORDER_REFLECT_101)",
+      "goFn": "cv.GaussianBlur",
+      "mode": "tolerance",
+      "tol": 2,
+      "meanTol": 0.6,
+      "note": "see blur-cv2-default-border"
+    },
+    {
+      "id": "median-3",
+      "fn": "medianBlur",
+      "args": [
+        {
+          "gen": "noise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 20260810
+        },
+        3
+      ],
+      "upstreamFn": "cv2.medianBlur",
+      "goFn": "cv.MedianBlur",
+      "mode": "exact",
+      "note": "median of integers is exactly defined"
+    },
+    {
+      "id": "median-3ch-3",
+      "fn": "medianBlur",
+      "args": [
+        {
+          "gen": "noise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3,
+          "seed": 777
+        },
+        3
+      ],
+      "upstreamFn": "cv2.medianBlur",
+      "goFn": "cv.MedianBlur",
+      "mode": "exact"
+    },
+    {
+      "id": "median-5",
+      "fn": "medianBlur",
+      "args": [
+        {
+          "gen": "noise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 20260810
+        },
+        5
+      ],
+      "upstreamFn": "cv2.medianBlur",
+      "goFn": "cv.MedianBlur",
+      "mode": "exact",
+      "note": "median of integers is exactly defined"
+    },
+    {
+      "id": "median-3ch-5",
+      "fn": "medianBlur",
+      "args": [
+        {
+          "gen": "noise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3,
+          "seed": 777
+        },
+        5
+      ],
+      "upstreamFn": "cv2.medianBlur",
+      "goFn": "cv.MedianBlur",
+      "mode": "exact"
+    },
+    {
+      "id": "median-even-ksize",
+      "fn": "medianBlur",
+      "args": [
+        {
+          "gen": "noise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 20260810
+        },
+        4
+      ],
+      "upstreamFn": "cv2.medianBlur",
+      "goFn": "cv.MedianBlur",
+      "mode": "exact"
+    },
+    {
+      "id": "bilateral-5-30-10",
+      "fn": "bilateralFilter",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 4242,
+          "amp": 60
+        },
+        5,
+        30.0,
+        10.0
+      ],
+      "upstreamFn": "cv2.bilateralFilter",
+      "goFn": "cv.BilateralFilter",
+      "mode": "tolerance",
+      "tol": 4,
+      "meanTol": 1.5,
+      "note": "cv2 quantises the colour weight into a LUT; budget 4 LSB"
+    },
+    {
+      "id": "bilateral-5-75-75",
+      "fn": "bilateralFilter",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 4242,
+          "amp": 60
+        },
+        5,
+        75.0,
+        75.0
+      ],
+      "upstreamFn": "cv2.bilateralFilter",
+      "goFn": "cv.BilateralFilter",
+      "mode": "tolerance",
+      "tol": 4,
+      "meanTol": 1.5,
+      "note": "cv2 quantises the colour weight into a LUT; budget 4 LSB"
+    },
+    {
+      "id": "bilateral-9-50-20",
+      "fn": "bilateralFilter",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 4242,
+          "amp": 60
+        },
+        9,
+        50.0,
+        20.0
+      ],
+      "upstreamFn": "cv2.bilateralFilter",
+      "goFn": "cv.BilateralFilter",
+      "mode": "tolerance",
+      "tol": 4,
+      "meanTol": 1.5,
+      "note": "cv2 quantises the colour weight into a LUT; budget 4 LSB"
+    },
+    {
+      "id": "bilateral-3ch",
+      "fn": "bilateralFilter",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3,
+          "seed": 1313,
+          "amp": 50
+        },
+        5,
+        40.0,
+        15.0
+      ],
+      "upstreamFn": "cv2.bilateralFilter",
+      "goFn": "cv.BilateralFilter",
+      "mode": "tolerance",
+      "tol": 6,
+      "meanTol": 2.0
+    },
+    {
+      "id": "filter2d-identity",
+      "fn": "filter2D",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        3,
+        3,
+        [
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0
+        ],
+        0.0
+      ],
+      "upstreamFn": "cv2.filter2D",
+      "goFn": "cv.Filter2D",
+      "mode": "exact"
+    },
+    {
+      "id": "filter2d-mean",
+      "fn": "filter2D",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 4242,
+          "amp": 60
+        },
+        3,
+        3,
+        [
+          0.1111111111111111,
+          0.1111111111111111,
+          0.1111111111111111,
+          0.1111111111111111,
+          0.1111111111111111,
+          0.1111111111111111,
+          0.1111111111111111,
+          0.1111111111111111,
+          0.1111111111111111
+        ],
+        0.0
+      ],
+      "upstreamFn": "cv2.filter2D",
+      "goFn": "cv.Filter2D",
+      "mode": "tolerance",
+      "tol": 1,
+      "meanTol": 0.5
+    },
+    {
+      "id": "filter2d-sharpen",
+      "fn": "filter2D",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 4242,
+          "amp": 60
+        },
+        3,
+        3,
+        [
+          0,
+          -1,
+          0,
+          -1,
+          5,
+          -1,
+          0,
+          -1,
+          0
+        ],
+        0.0
+      ],
+      "upstreamFn": "cv2.filter2D",
+      "goFn": "cv.Filter2D",
+      "mode": "tolerance",
+      "tol": 1,
+      "meanTol": 0.5
+    },
+    {
+      "id": "filter2d-delta",
+      "fn": "filter2D",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 4242,
+          "amp": 60
+        },
+        3,
+        3,
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        33.0
+      ],
+      "upstreamFn": "cv2.filter2D",
+      "goFn": "cv.Filter2D",
+      "mode": "exact"
+    },
+    {
+      "id": "filter2d-nonsquare",
+      "fn": "filter2D",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 4242,
+          "amp": 60
+        },
+        1,
+        3,
+        [
+          0.25,
+          0.5,
+          0.25
+        ],
+        0.0
+      ],
+      "upstreamFn": "cv2.filter2D",
+      "goFn": "cv.Filter2D",
+      "mode": "tolerance",
+      "tol": 1,
+      "meanTol": 0.5
+    },
+    {
+      "id": "filter2d-3ch",
+      "fn": "filter2D",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3,
+          "seed": 1313,
+          "amp": 50
+        },
+        3,
+        3,
+        [
+          0.1111111111111111,
+          0.1111111111111111,
+          0.1111111111111111,
+          0.1111111111111111,
+          0.1111111111111111,
+          0.1111111111111111,
+          0.1111111111111111,
+          0.1111111111111111,
+          0.1111111111111111
+        ],
+        0.0
+      ],
+      "upstreamFn": "cv2.filter2D",
+      "goFn": "cv.Filter2D",
+      "mode": "tolerance",
+      "tol": 1,
+      "meanTol": 0.5
+    },
+    {
+      "id": "sepfilter-binomial",
+      "fn": "sepFilter2D",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 4242,
+          "amp": 60
+        },
+        [
+          0.25,
+          0.5,
+          0.25
+        ],
+        [
+          0.25,
+          0.5,
+          0.25
+        ],
+        0.0
+      ],
+      "upstreamFn": "cv2.sepFilter2D",
+      "goFn": "cv.Filter2DSep",
+      "mode": "tolerance",
+      "tol": 1,
+      "meanTol": 0.5
+    },
+    {
+      "id": "sepfilter-asymmetric",
+      "fn": "sepFilter2D",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 4242,
+          "amp": 60
+        },
+        [
+          1.0,
+          0.0,
+          -1.0
+        ],
+        [
+          0.25,
+          0.5,
+          0.25
+        ],
+        128.0
+      ],
+      "upstreamFn": "cv2.sepFilter2D",
+      "goFn": "cv.Filter2DSep",
+      "mode": "tolerance",
+      "tol": 1,
+      "meanTol": 0.5
+    },
+    {
+      "id": "sqrbox-3-norm",
+      "fn": "sqrBoxFilter",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 4242,
+          "amp": 60
+        },
+        3,
+        true
+      ],
+      "upstreamFn": "cv2.sqrBoxFilter",
+      "goFn": "cv.SqrBoxFilter",
+      "mode": "tolerance",
+      "tol": 1e-06,
+      "relTol": 1e-09
+    },
+    {
+      "id": "sqrbox-3-raw",
+      "fn": "sqrBoxFilter",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 4242,
+          "amp": 60
+        },
+        3,
+        false
+      ],
+      "upstreamFn": "cv2.sqrBoxFilter",
+      "goFn": "cv.SqrBoxFilter",
+      "mode": "tolerance",
+      "tol": 1e-06,
+      "relTol": 1e-09
+    },
+    {
+      "id": "sqrbox-5-norm",
+      "fn": "sqrBoxFilter",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 4242,
+          "amp": 60
+        },
+        5,
+        true
+      ],
+      "upstreamFn": "cv2.sqrBoxFilter",
+      "goFn": "cv.SqrBoxFilter",
+      "mode": "tolerance",
+      "tol": 1e-06,
+      "relTol": 1e-09
+    },
+    {
+      "id": "sqrbox-5-raw",
+      "fn": "sqrBoxFilter",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 4242,
+          "amp": 60
+        },
+        5,
+        false
+      ],
+      "upstreamFn": "cv2.sqrBoxFilter",
+      "goFn": "cv.SqrBoxFilter",
+      "mode": "tolerance",
+      "tol": 1e-06,
+      "relTol": 1e-09
+    },
+    {
+      "id": "stackblur-3",
+      "fn": "stackBlur",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 4242,
+          "amp": 60
+        },
+        3
+      ],
+      "upstreamFn": "cv2.stackBlur",
+      "goFn": "cv.StackBlur",
+      "mode": "tolerance",
+      "tol": 2,
+      "meanTol": 1.0
+    },
+    {
+      "id": "stackblur-5",
+      "fn": "stackBlur",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 4242,
+          "amp": 60
+        },
+        5
+      ],
+      "upstreamFn": "cv2.stackBlur",
+      "goFn": "cv.StackBlur",
+      "mode": "tolerance",
+      "tol": 2,
+      "meanTol": 1.0
+    }
+  ]
+}

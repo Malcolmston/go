@@ -1,0 +1,144 @@
+{
+  "group": "bugs",
+  "upstream": "morgan@1.10.0",
+  "note": "Cases written specifically to pin known divergences of github.com/malcolmston/morgan v1.2.0. They are NOT marked as deviations: each one is expected to fail until the port is fixed.",
+  "cases": [
+    {
+      "id": "bug-content-length-tiny",
+      "fn": "log",
+      "upstreamFn": "morgan('tiny')",
+      "goFn": "morgan.Tiny",
+      "args": [{
+        "format": "tiny",
+        "request": {"method": "GET", "path": "/size", "headers": {"User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 200, "body": "0123456789", "contentLength": "express", "headers": {}},
+        "options": {}
+      }],
+      "note": "handler writes a buffered body without setting Content-Length itself (express res.send does it; Go's net/http computes it inside the server). The port reads only the response header map, so :res[content-length] is '-'."
+    },
+    {
+      "id": "bug-content-length-combined",
+      "fn": "log",
+      "upstreamFn": "morgan('combined')",
+      "goFn": "morgan.Combined",
+      "args": [{
+        "format": "combined",
+        "request": {"method": "GET", "path": "/size", "headers": {"Referer": "http://example.com/from", "User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 200, "body": "0123456789", "contentLength": "express", "headers": {}},
+        "options": {}
+      }]
+    },
+    {
+      "id": "bug-content-length-common",
+      "fn": "log",
+      "upstreamFn": "morgan('common')",
+      "goFn": "morgan.Common",
+      "args": [{
+        "format": "common",
+        "request": {"method": "GET", "path": "/size", "headers": {"User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 200, "body": "0123456789", "contentLength": "express", "headers": {}},
+        "options": {}
+      }]
+    },
+    {
+      "id": "bug-content-length-short",
+      "fn": "log",
+      "upstreamFn": "morgan('short')",
+      "goFn": "morgan.Short",
+      "args": [{
+        "format": "short",
+        "request": {"method": "GET", "path": "/size", "headers": {"User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 200, "body": "0123456789", "contentLength": "express", "headers": {}},
+        "options": {}
+      }]
+    },
+    {
+      "id": "bug-content-length-dev",
+      "fn": "log",
+      "upstreamFn": "morgan('dev')",
+      "goFn": "morgan.Dev",
+      "args": [{
+        "format": "dev",
+        "request": {"method": "GET", "path": "/size", "headers": {"User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 200, "body": "0123456789", "contentLength": "express", "headers": {}},
+        "options": {}
+      }]
+    },
+    {
+      "id": "bug-json-format-invalid-json",
+      "fn": "log",
+      "upstreamFn": "—",
+      "goFn": "morgan.JSON",
+      "args": [{
+        "format": "json",
+        "request": {"method": "GET", "path": "/json", "headers": {"User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 200, "body": "0123456789", "contentLength": "express", "headers": {}},
+        "options": {}
+      }],
+      "note": "port-only format; it interpolates a bare '-' for contentLength, so the line is not valid JSON"
+    },
+    {
+      "id": "bug-url-percent-decoded",
+      "fn": "log",
+      "upstreamFn": "morgan.token('url')",
+      "goFn": ":url",
+      "args": [{
+        "format": "U=:url",
+        "request": {"method": "GET", "path": "/a%2Fb/caf%C3%A9?q=a%20b", "headers": {"User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 200, "body": "ok", "contentLength": "explicit", "headers": {}},
+        "options": {}
+      }],
+      "note": "the port builds :url from r.URL.Path, which net/http has already percent-decoded; upstream logs the raw target"
+    },
+    {
+      "id": "bug-url-percent-encoded-space",
+      "fn": "log",
+      "upstreamFn": "morgan.token('url')",
+      "goFn": ":url",
+      "args": [{
+        "format": "U=:url",
+        "request": {"method": "GET", "path": "/two%20words", "headers": {"User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 200, "body": "ok", "contentLength": "explicit", "headers": {}},
+        "options": {}
+      }]
+    },
+    {
+      "id": "bug-xff-trusted-unconditionally",
+      "fn": "log",
+      "upstreamFn": "morgan.token('remote-addr')",
+      "goFn": ":remote-addr",
+      "args": [{
+        "format": "IP=:remote-addr",
+        "request": {"method": "GET", "path": "/spoof", "headers": {"X-Forwarded-For": "203.0.113.9", "User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 200, "body": "ok", "contentLength": "explicit", "headers": {}},
+        "options": {}
+      }],
+      "note": "the port always prefers X-Forwarded-For, so any client can choose the logged address; upstream needs 'trust proxy' to be enabled"
+    },
+    {
+      "id": "bug-xff-list-renders-nil",
+      "fn": "log",
+      "upstreamFn": "morgan.token('remote-addr')",
+      "goFn": ":remote-addr",
+      "args": [{
+        "format": "IP=:remote-addr",
+        "request": {"method": "GET", "path": "/spoof", "headers": {"X-Forwarded-For": "198.51.100.7, 10.0.0.1", "User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 200, "body": "ok", "contentLength": "explicit", "headers": {}},
+        "options": {}
+      }],
+      "note": "the port stores the whole header in a net.IP, so a proxy chain parses as nil and renders the literal '<nil>'"
+    },
+    {
+      "id": "bug-xff-non-ip-value",
+      "fn": "log",
+      "upstreamFn": "morgan.token('remote-addr')",
+      "goFn": ":remote-addr",
+      "args": [{
+        "format": "IP=:remote-addr",
+        "request": {"method": "GET", "path": "/spoof", "headers": {"X-Forwarded-For": "not-an-ip", "User-Agent": "parity-harness/1.0"}},
+        "response": {"status": 200, "body": "ok", "contentLength": "explicit", "headers": {}},
+        "options": {}
+      }]
+    }
+  ]
+}

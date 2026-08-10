@@ -1,0 +1,48 @@
+{
+  "group": "encryption",
+  "upstream": "pdfkit@0.15.1",
+  "cases": [
+    {
+      "id": "enc-rc4-128-user-password",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument#options.userPassword",
+      "goFn": "Document.SetEncryption",
+      "note": "128-bit RC4 (V2/R3); content streams are not comparable once encrypted",
+      "args": [{
+        "doc": {"encrypt": {"userPassword": "secret", "allowPrinting": true}},
+        "pages": [{"size": "A4", "ops": [{"op": "rect", "args": [40, 40, 60, 60]}, {"op": "fill"}]}]
+      }]
+    },
+    {
+      "id": "enc-aes-128",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument#options.pdfVersion=1.6",
+      "goFn": "EncryptOptions.UseAES",
+      "args": [{
+        "doc": {"encrypt": {"userPassword": "secret", "ownerPassword": "owner", "useAES": true, "allowPrinting": true, "allowCopying": true}},
+        "pages": [{"size": "A4", "ops": [{"op": "rect", "args": [40, 40, 60, 60]}, {"op": "fill"}]}]
+      }]
+    },
+    {
+      "id": "enc-owner-only",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument#options.ownerPassword",
+      "goFn": "Document.SetEncryption",
+      "note": "opens without a password but keeps permission flags",
+      "args": [{
+        "doc": {"encrypt": {"ownerPassword": "owner"}},
+        "pages": [{"size": "A4", "ops": []}]
+      }]
+    },
+    {
+      "id": "enc-all-permissions",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument#options.permissions",
+      "goFn": "EncryptOptions permission flags",
+      "args": [{
+        "doc": {"encrypt": {"userPassword": "u", "ownerPassword": "o", "allowPrinting": true, "allowModify": true, "allowCopying": true, "allowAnnotations": true}},
+        "pages": [{"size": "A4", "ops": []}]
+      }]
+    }
+  ]
+}

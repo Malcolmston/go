@@ -1,0 +1,237 @@
+{
+  "group": "partials",
+  "upstream": "handlebars@4.7.8",
+  "cases": [
+    {
+      "id": "partial-simple",
+      "fn": "render",
+      "args": ["A{{> p}}B", { "n": "N" }, { "partials": { "p": "[{{n}}]" } }],
+      "upstreamFn": "Handlebars.registerPartial",
+      "goFn": "handlebars.Template.RegisterPartial"
+    },
+    {
+      "id": "partial-explicit-context",
+      "fn": "render",
+      "args": ["{{> p o}}", { "o": { "n": "inner" }, "n": "outer" }, { "partials": { "p": "[{{n}}]" } }],
+      "upstreamFn": "Handlebars.registerPartial",
+      "goFn": "handlebars.Template.RegisterPartial"
+    },
+    {
+      "id": "partial-hash-args",
+      "fn": "render",
+      "args": ["{{> p extra=\"E\"}}", { "n": "N" }, { "partials": { "p": "{{n}}-{{extra}}" } }],
+      "upstreamFn": "Handlebars.registerPartial",
+      "goFn": "handlebars.Template.RegisterPartial"
+    },
+    {
+      "id": "partial-context-and-hash",
+      "fn": "render",
+      "args": [
+        "{{> p o extra=\"E\"}}",
+        { "o": { "n": "inner" } },
+        { "partials": { "p": "{{n}}-{{extra}}" } }
+      ],
+      "upstreamFn": "Handlebars.registerPartial",
+      "goFn": "handlebars.Template.RegisterPartial"
+    },
+    {
+      "id": "partial-bracketed-name",
+      "fn": "render",
+      "args": ["{{> [my part]}}", {}, { "partials": { "my part": "OK" } }],
+      "upstreamFn": "Handlebars.registerPartial",
+      "goFn": "handlebars.Template.RegisterPartial"
+    },
+    {
+      "id": "partial-dotted-name",
+      "fn": "render",
+      "args": ["{{> a.b}}", {}, { "partials": { "a.b": "OK" } }],
+      "upstreamFn": "Handlebars.registerPartial",
+      "goFn": "handlebars.Template.RegisterPartial"
+    },
+    {
+      "id": "partial-nested",
+      "fn": "render",
+      "args": ["{{> outer}}", { "n": "N" }, { "partials": { "outer": "<{{> inner}}>", "inner": "{{n}}" } }],
+      "upstreamFn": "Handlebars.registerPartial",
+      "goFn": "handlebars.Template.RegisterPartial"
+    },
+    {
+      "id": "partial-recursive-list",
+      "fn": "render",
+      "args": [
+        "{{> node}}",
+        { "name": "root", "kids": [{ "name": "a", "kids": [] }, { "name": "b", "kids": [] }] },
+        { "partials": { "node": "{{name}}({{#each kids}}{{> node}}{{/each}})" } }
+      ],
+      "upstreamFn": "Handlebars.registerPartial",
+      "goFn": "handlebars.Template.RegisterPartial"
+    },
+    {
+      "id": "partial-missing-throws",
+      "fn": "render",
+      "args": ["{{> nope}}", {}],
+      "upstreamFn": "Handlebars.VM.invokePartial",
+      "goFn": "handlebars.Compile",
+      "note": "both sides must fail: unknown partial"
+    },
+    {
+      "id": "partial-dynamic-lookup-self",
+      "fn": "render",
+      "args": [
+        "{{> (lookup . \"which\")}}",
+        { "which": "chosen" },
+        { "partials": { "chosen": "CHOSEN", "other": "OTHER" } }
+      ],
+      "upstreamFn": "Handlebars.VM.resolvePartial",
+      "goFn": "handlebars.Compile",
+      "note": "canonical dynamic partial form"
+    },
+    {
+      "id": "partial-dynamic-bare-subexpr",
+      "fn": "render",
+      "args": [
+        "{{> (which)}}",
+        { "which": "chosen" },
+        { "partials": { "chosen": "CHOSEN", "other": "OTHER" } }
+      ],
+      "upstreamFn": "Handlebars.VM.resolvePartial",
+      "goFn": "handlebars.Compile",
+      "note": "(which) is a helper call upstream, so upstream throws; the port resolves it as a path"
+    },
+    {
+      "id": "partial-dynamic-lookup",
+      "fn": "render",
+      "args": [
+        "{{#each names}}{{> (lookup .. \"prefix\")}}{{/each}}",
+        { "prefix": "p1", "names": ["x"] },
+        { "partials": { "p1": "P1" } }
+      ],
+      "upstreamFn": "Handlebars.VM.resolvePartial",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "partial-indentation-preserved",
+      "fn": "render",
+      "args": ["a\n  {{> p}}\nb", {}, { "partials": { "p": "l1\nl2" } }],
+      "upstreamFn": "Handlebars.registerPartial",
+      "goFn": "handlebars.Template.RegisterPartial",
+      "note": "standalone partial indents every line of its output"
+    },
+    {
+      "id": "partial-block-fallback",
+      "fn": "render",
+      "args": ["{{#> missing}}fallback{{/missing}}", {}],
+      "upstreamFn": "Handlebars.VM.invokePartial",
+      "goFn": "handlebars.Compile",
+      "note": "undefined partial renders the block body"
+    },
+    {
+      "id": "partial-block-partial-block-var",
+      "fn": "render",
+      "args": [
+        "{{#> layout}}BODY{{/layout}}",
+        {},
+        { "partials": { "layout": "<main>{{> @partial-block}}</main>" } }
+      ],
+      "upstreamFn": "@partial-block",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "partial-block-uses-context",
+      "fn": "render",
+      "args": [
+        "{{#> layout}}{{n}}{{/layout}}",
+        { "n": "N" },
+        { "partials": { "layout": "[{{> @partial-block}}]" } }
+      ],
+      "upstreamFn": "@partial-block",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "partial-block-nested",
+      "fn": "render",
+      "args": [
+        "{{#> outer}}O{{/outer}}",
+        {},
+        {
+          "partials": {
+            "outer": "1{{#> inner}}2{{> @partial-block}}3{{/inner}}4",
+            "inner": "({{> @partial-block}})"
+          }
+        }
+      ],
+      "upstreamFn": "@partial-block",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "inline-partial-basic",
+      "fn": "render",
+      "args": ["{{#*inline \"row\"}}[{{n}}]{{/inline}}{{> row}}", { "n": "N" }],
+      "upstreamFn": "Handlebars.decorators.inline",
+      "goFn": "handlebars.Template.RegisterDecorator"
+    },
+    {
+      "id": "inline-partial-in-each",
+      "fn": "render",
+      "args": [
+        "{{#*inline \"row\"}}<{{name}}>{{/inline}}{{#each people}}{{> row}}{{/each}}",
+        { "people": [{ "name": "a" }, { "name": "b" }] }
+      ],
+      "upstreamFn": "Handlebars.decorators.inline",
+      "goFn": "handlebars.Template.RegisterDecorator"
+    },
+    {
+      "id": "inline-partial-scoped-to-block",
+      "fn": "render",
+      "args": [
+        "{{#each a}}{{#*inline \"r\"}}R{{/inline}}{{> r}}{{/each}}[{{> r}}]",
+        { "a": [1] }
+      ],
+      "upstreamFn": "Handlebars.decorators.inline",
+      "goFn": "handlebars.Template.RegisterDecorator",
+      "note": "inline partial is out of scope after its block: both sides must fail"
+    },
+    {
+      "id": "inline-partial-overrides-registered",
+      "fn": "render",
+      "args": [
+        "{{#*inline \"p\"}}INLINE{{/inline}}{{> p}}",
+        {},
+        { "partials": { "p": "REGISTERED" } }
+      ],
+      "upstreamFn": "Handlebars.decorators.inline",
+      "goFn": "handlebars.Template.RegisterDecorator"
+    },
+    {
+      "id": "decorator-inline-no-name-throws",
+      "fn": "render",
+      "args": ["{{#*inline}}x{{/inline}}", {}],
+      "upstreamFn": "Handlebars.decorators.inline",
+      "goFn": "handlebars.Template.RegisterDecorator",
+      "note": "inline decorator without a partial name"
+    },
+    {
+      "id": "decorator-unknown-throws",
+      "fn": "render",
+      "args": ["{{#*nosuch}}x{{/nosuch}}", {}],
+      "upstreamFn": "Handlebars.registerDecorator",
+      "goFn": "handlebars.Template.RegisterDecorator",
+      "note": "both sides must fail: unknown decorator"
+    },
+    {
+      "id": "decorator-registered-noop-block",
+      "fn": "render",
+      "args": ["A{{#*noop}}x{{/noop}}B", {}, { "decorators": ["noop"] }],
+      "upstreamFn": "Handlebars.registerDecorator",
+      "goFn": "handlebars.Template.RegisterDecorator",
+      "note": "a decorator that returns nothing"
+    },
+    {
+      "id": "decorator-registered-noop-inline",
+      "fn": "render",
+      "args": ["A{{* noop}}B", {}, { "decorators": ["noop"] }],
+      "upstreamFn": "Handlebars.registerDecorator",
+      "goFn": "handlebars.Template.RegisterDecorator"
+    }
+  ]
+}

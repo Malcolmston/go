@@ -1,0 +1,209 @@
+{
+  "group": "pyramids",
+  "upstream": "opencv-python@4.11.0",
+  "cases": [
+    {
+      "id": "pyrdown-gradnoise",
+      "fn": "pyrDown",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 4242,
+          "amp": 60
+        }
+      ],
+      "upstreamFn": "cv2.pyrDown",
+      "goFn": "cv.PyrDown",
+      "mode": "tolerance",
+      "tol": 1,
+      "meanTol": 0.5,
+      "note": "5-tap binomial kernel; budget 1 LSB. cv2 hard-codes BORDER_REFLECT_101 here and the port replicates, so border rows/columns can diverge further"
+    },
+    {
+      "id": "pyrup-gradnoise",
+      "fn": "pyrUp",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 4242,
+          "amp": 60
+        }
+      ],
+      "upstreamFn": "cv2.pyrUp",
+      "goFn": "cv.PyrUp",
+      "mode": "tolerance",
+      "tol": 1,
+      "meanTol": 0.5
+    },
+    {
+      "id": "pyrdown-shapes",
+      "fn": "pyrDown",
+      "args": [
+        {
+          "gen": "shapes",
+          "rows": 48,
+          "cols": 48,
+          "ch": 1
+        }
+      ],
+      "upstreamFn": "cv2.pyrDown",
+      "goFn": "cv.PyrDown",
+      "mode": "tolerance",
+      "tol": 1,
+      "meanTol": 0.5,
+      "note": "5-tap binomial kernel; budget 1 LSB. cv2 hard-codes BORDER_REFLECT_101 here and the port replicates, so border rows/columns can diverge further"
+    },
+    {
+      "id": "pyrup-shapes",
+      "fn": "pyrUp",
+      "args": [
+        {
+          "gen": "shapes",
+          "rows": 48,
+          "cols": 48,
+          "ch": 1
+        }
+      ],
+      "upstreamFn": "cv2.pyrUp",
+      "goFn": "cv.PyrUp",
+      "mode": "tolerance",
+      "tol": 1,
+      "meanTol": 0.5
+    },
+    {
+      "id": "pyrdown-checker",
+      "fn": "pyrDown",
+      "args": [
+        {
+          "gen": "checker",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "block": 5
+        }
+      ],
+      "upstreamFn": "cv2.pyrDown",
+      "goFn": "cv.PyrDown",
+      "mode": "tolerance",
+      "tol": 1,
+      "meanTol": 0.5,
+      "note": "5-tap binomial kernel; budget 1 LSB. cv2 hard-codes BORDER_REFLECT_101 here and the port replicates, so border rows/columns can diverge further"
+    },
+    {
+      "id": "pyrup-checker",
+      "fn": "pyrUp",
+      "args": [
+        {
+          "gen": "checker",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "block": 5
+        }
+      ],
+      "upstreamFn": "cv2.pyrUp",
+      "goFn": "cv.PyrUp",
+      "mode": "tolerance",
+      "tol": 1,
+      "meanTol": 0.5
+    },
+    {
+      "id": "pyrdown-3ch",
+      "fn": "pyrDown",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3,
+          "seed": 1313,
+          "amp": 50
+        }
+      ],
+      "upstreamFn": "cv2.pyrDown",
+      "goFn": "cv.PyrDown",
+      "mode": "tolerance",
+      "tol": 1,
+      "meanTol": 0.5
+    },
+    {
+      "id": "pyrup-3ch",
+      "fn": "pyrUp",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3,
+          "seed": 1313,
+          "amp": 50
+        }
+      ],
+      "upstreamFn": "cv2.pyrUp",
+      "goFn": "cv.PyrUp",
+      "mode": "tolerance",
+      "tol": 1,
+      "meanTol": 0.5
+    },
+    {
+      "id": "pyrdown-twice",
+      "fn": "pyrDownTwice",
+      "args": [
+        {
+          "gen": "shapes",
+          "rows": 48,
+          "cols": 48,
+          "ch": 1
+        }
+      ],
+      "upstreamFn": "cv2.pyrDown x2",
+      "goFn": "cv.PyrDown x2",
+      "mode": "tolerance",
+      "tol": 2,
+      "meanTol": 1.0
+    },
+    {
+      "id": "pyrdown-up",
+      "fn": "pyrDownUp",
+      "args": [
+        {
+          "gen": "shapes",
+          "rows": 48,
+          "cols": 48,
+          "ch": 1
+        }
+      ],
+      "upstreamFn": "cv2.pyrUp(cv2.pyrDown)",
+      "goFn": "cv.PyrUp(cv.PyrDown)",
+      "mode": "tolerance",
+      "tol": 2,
+      "meanTol": 1.0
+    },
+    {
+      "id": "pyrdown-odd-size",
+      "fn": "pyrDown",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 23,
+          "cols": 31,
+          "ch": 1,
+          "seed": 5,
+          "amp": 40
+        }
+      ],
+      "upstreamFn": "cv2.pyrDown",
+      "goFn": "cv.PyrDown",
+      "mode": "tolerance",
+      "tol": 1,
+      "meanTol": 0.5,
+      "note": "odd dimensions: shape rounding is part of the comparison"
+    }
+  ]
+}

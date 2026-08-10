@@ -1,0 +1,344 @@
+{
+  "library": "cheerio",
+  "upstream": "cheerio@1.0.0",
+  "goModule": "github.com/malcolmston/cheerio v0.0.0-20260810111529-e3282199363b",
+  "generatedBy": "go test ./parity/cheerio/",
+  "total": 317,
+  "match": 276,
+  "differ": 41,
+  "deviations": 0,
+  "parityPercent": 87.07,
+  "groups": {
+    "accessors": {
+      "differ": 3,
+      "match": 52
+    },
+    "forms-and-statics": {
+      "differ": 6,
+      "match": 14
+    },
+    "manipulation": {
+      "differ": 5,
+      "match": 43
+    },
+    "parsing": {
+      "differ": 14,
+      "match": 32
+    },
+    "selectors": {
+      "differ": 6,
+      "match": 77
+    },
+    "serialisation": {
+      "differ": 4,
+      "match": 16
+    },
+    "traversal": {
+      "differ": 3,
+      "match": 42
+    }
+  },
+  "mismatches": [
+    {
+      "id": "acc-css-absent",
+      "group": "accessors",
+      "status": "differs",
+      "upstream": "null",
+      "go": "\"\"",
+      "note": "cheerio yields undefined, the Go port yields the empty string"
+    },
+    {
+      "id": "acc-outerhtml-escapes",
+      "group": "accessors",
+      "status": "differs",
+      "upstream": "\"\\u003cdiv id=\\\"x\\\" title=\\\"a\\u0026quot;b\\u0026amp;c\\u003cd\\\"\\u003e1 \\u0026lt; 2 \\u0026amp; 3 \\u0026gt; 0 \\\"q\\\" 's'\\u003c/div\\u003e\"",
+      "go": "\"\\u003cdiv id=\\\"x\\\" title=\\\"a\\u0026quot;b\\u0026amp;c\\u0026lt;d\\\"\\u003e1 \\u0026lt; 2 \\u0026amp; 3 \\u0026gt; 0 \\\"q\\\" 's'\\u003c/div\\u003e\""
+    },
+    {
+      "id": "acc-val-no-value-attr",
+      "group": "accessors",
+      "status": "differs",
+      "upstream": "null",
+      "go": "\"\""
+    },
+    {
+      "id": "compile-empty",
+      "group": "selectors",
+      "status": "differs",
+      "upstream": "true",
+      "go": "ERROR: cheerio: empty selector"
+    },
+    {
+      "id": "compile-unknown-pseudo",
+      "group": "selectors",
+      "status": "differs",
+      "upstream": "ERROR: Unknown pseudo-class :totally-unknown",
+      "go": "true"
+    },
+    {
+      "id": "form-serialize",
+      "group": "forms-and-statics",
+      "status": "differs",
+      "upstream": "\"t=tv\\u0026h=hv\\u0026c1=on1\\u0026r=r1\\u0026ta=tav\\u0026sel=o2\\u0026multi=M1\\u0026multi=M3\"",
+      "go": "\"t=tv\\u0026h=hv\\u0026c1=on1\\u0026r=r1\\u0026ta=tav\\u0026sel=o2\\u0026multi=m1\\u0026multi=m3\""
+    },
+    {
+      "id": "form-serialize-array",
+      "group": "forms-and-statics",
+      "status": "differs",
+      "upstream": "[{\"name\":\"t\",\"value\":\"tv\"},{\"name\":\"h\",\"value\":\"hv\"},{\"name\":\"c1\",\"value\":\"on1\"},{\"name\":\"r\",\"value\":\"r1\"},{\"name\":\"ta\",\"value\":\"tav\"},{\"name\":\"sel\",\"value\":\"o2\"},{\"name\":\"multi\",\"value\":\"M1\"},{\"name\":\"multi\",\"value\":\"M3\"}]",
+      "go": "[{\"name\":\"t\",\"value\":\"tv\"},{\"name\":\"h\",\"value\":\"hv\"},{\"name\":\"c1\",\"value\":\"on1\"},{\"name\":\"r\",\"value\":\"r1\"},{\"name\":\"ta\",\"value\":\"tav\"},{\"name\":\"sel\",\"value\":\"o2\"},{\"name\":\"multi\",\"value\":\"m1\"},{\"name\":\"multi\",\"value\":\"m3\"}]"
+    },
+    {
+      "id": "form-serialize-select-multiple",
+      "group": "forms-and-statics",
+      "status": "differs",
+      "upstream": "[{\"name\":\"multi\",\"value\":\"M1\"},{\"name\":\"multi\",\"value\":\"M3\"}]",
+      "go": "[{\"name\":\"multi\",\"value\":\"m1\"},{\"name\":\"multi\",\"value\":\"m3\"}]"
+    },
+    {
+      "id": "man-addclass-dup",
+      "group": "manipulation",
+      "status": "differs",
+      "upstream": "\"\\u003cdiv class=\\\"alpha   beta   delta\\\" id=\\\"k\\\"\\u003ek\\u003c/div\\u003e\"",
+      "go": "\"\\u003cdiv class=\\\"alpha beta delta\\\" id=\\\"k\\\"\\u003ek\\u003c/div\\u003e\""
+    },
+    {
+      "id": "man-removeclass-zero-arg",
+      "group": "manipulation",
+      "status": "differs",
+      "upstream": "\"\\u003cdiv class=\\\"\\\" id=\\\"k\\\"\\u003ek\\u003c/div\\u003e\"",
+      "go": "ERROR: Go RemoveClass has no zero-argument (remove-all) form",
+      "note": "the Go port has no zero-argument remove-all form"
+    },
+    {
+      "id": "man-removedata",
+      "group": "manipulation",
+      "status": "differs",
+      "upstream": "ERROR: removeData is not part of Cheerio.prototype in cheerio@1.0.0",
+      "go": "\"\\u003cdiv data-flag=\\\"true\\\" data-foo-bar=\\\"fb\\\" data-json=\\\"{\\u0026quot;a\\u0026quot;:1}\\\" data-plain=\\\"text\\\" id=\\\"d\\\"\\u003ed\\u003c/div\\u003e\"",
+      "note": "removeData is not on Cheerio.prototype in cheerio@1.0.0"
+    },
+    {
+      "id": "man-setattr-escaping",
+      "group": "manipulation",
+      "status": "differs",
+      "upstream": "\"\\u003cdiv id=\\\"box\\\" title=\\\"a\\u0026quot;b\\u0026amp;c\\u003cd\\u003ee\\\"\\u003e\\u003cp class=\\\"a\\\"\\u003eA\\u003c/p\\u003e\\u003cp class=\\\"b\\\"\\u003eB\\u003c/p\\u003e\\u003c/div\\u003e\"",
+      "go": "\"\\u003cdiv id=\\\"box\\\" title=\\\"a\\u0026quot;b\\u0026amp;c\\u0026lt;d\\u0026gt;e\\\"\\u003e\\u003cp class=\\\"a\\\"\\u003eA\\u003c/p\\u003e\\u003cp class=\\\"b\\\"\\u003eB\\u003c/p\\u003e\\u003c/div\\u003e\"",
+      "note": "attribute-value escaping on output"
+    },
+    {
+      "id": "man-setdata",
+      "group": "manipulation",
+      "status": "differs",
+      "upstream": "\"\\u003cdiv id=\\\"box\\\"\\u003e\\u003cp class=\\\"a\\\"\\u003eA\\u003c/p\\u003e\\u003cp class=\\\"b\\\"\\u003eB\\u003c/p\\u003e\\u003c/div\\u003e\"",
+      "go": "\"\\u003cdiv data-foo-bar=\\\"v\\\" id=\\\"box\\\"\\u003e\\u003cp class=\\\"a\\\"\\u003eA\\u003c/p\\u003e\\u003cp class=\\\"b\\\"\\u003eB\\u003c/p\\u003e\\u003c/div\\u003e\"",
+      "note": "cheerio caches data in memory rather than writing the attribute"
+    },
+    {
+      "id": "parse-comments-doctype",
+      "group": "parsing",
+      "status": "differs",
+      "upstream": "\"\\u003c!-- lead --\\u003e\\u003cdiv\\u003ex\\u003c!--in--\\u003e\\u003c/div\\u003e\\u003c!-- tail --\\u003e\"",
+      "go": "\"\\u003c!doctype html\\u003e\\u003c!-- lead --\\u003e\\u003cdiv\\u003ex\\u003c!--in--\\u003e\\u003c/div\\u003e\\u003c!-- tail --\\u003e\""
+    },
+    {
+      "id": "parse-entities",
+      "group": "parsing",
+      "status": "differs",
+      "upstream": "\"\\u003cp id=\\\"e\\\"\\u003e\\u0026amp; \\u0026lt; \\u0026gt; \\\" \\u0026amp; \\u0026amp; \\u0026nbsp; © ¬anentity; \\u0026amp;\\u003c/p\\u003e\"",
+      "go": "\"\\u003cp id=\\\"e\\\"\\u003e\\u0026amp; \\u0026lt; \\u0026gt; \\\" \\u0026amp; \\u0026amp;   © \\u0026amp;notanentity; \\u0026amp;amp\\u003c/p\\u003e\""
+    },
+    {
+      "id": "parse-escape-out",
+      "group": "parsing",
+      "status": "differs",
+      "upstream": "\"\\u003cdiv id=\\\"x\\\" title=\\\"a\\u0026quot;b\\u0026amp;c\\u003cd\\\"\\u003e1 \\u0026lt; 2 \\u0026amp; 3 \\u0026gt; 0 \\\"q\\\" 's'\\u003c/div\\u003e\"",
+      "go": "\"\\u003cdiv id=\\\"x\\\" title=\\\"a\\u0026quot;b\\u0026amp;c\\u0026lt;d\\\"\\u003e1 \\u0026lt; 2 \\u0026amp; 3 \\u0026gt; 0 \\\"q\\\" 's'\\u003c/div\\u003e\"",
+      "note": "entity re-escaping on serialisation"
+    },
+    {
+      "id": "parse-misnested-deep",
+      "group": "parsing",
+      "status": "differs",
+      "upstream": "\"\\u003cp\\u003e\\u003cb\\u003e\\u003ci\\u003e\\u003cu\\u003ex\\u003c/u\\u003e\\u003c/i\\u003e\\u003c/b\\u003e\\u003c/p\\u003e\\u003cdiv\\u003e\\u003cb\\u003ey\\u003c/b\\u003e\\u003c/div\\u003e\\u003cb\\u003ez\\u003c/b\\u003e\"",
+      "go": "\"\\u003cp\\u003e\\u003cb\\u003e\\u003ci\\u003e\\u003cu\\u003ex\\u003c/u\\u003e\\u003c/i\\u003e\\u003c/b\\u003e\\u003c/p\\u003e\\u003cdiv\\u003e\\u003cb\\u003ey\\u003c/b\\u003e\\u003c/div\\u003ez\""
+    },
+    {
+      "id": "parse-misnested-format",
+      "group": "parsing",
+      "status": "differs",
+      "upstream": "\"\\u003cb\\u003e1\\u003ci\\u003e2\\u003c/i\\u003e\\u003c/b\\u003e\\u003ci\\u003e3\\u003c/i\\u003e\"",
+      "go": "\"\\u003cb\\u003e1\\u003ci\\u003e2\\u003c/i\\u003e\\u003c/b\\u003e3\"",
+      "note": "adoption agency algorithm"
+    },
+    {
+      "id": "parse-select-in-p",
+      "group": "parsing",
+      "status": "differs",
+      "upstream": "\"\\u003cp\\u003ea\\u003c/p\\u003e\\u003ctable\\u003e\\u003ctbody\\u003e\\u003ctr\\u003e\\u003ctd\\u003eb\\u003c/td\\u003e\\u003c/tr\\u003e\\u003c/tbody\\u003e\\u003c/table\\u003ec\\u003cp\\u003e\\u003c/p\\u003e\"",
+      "go": "\"\\u003cp\\u003ea\\u003c/p\\u003e\\u003ctable\\u003e\\u003ctbody\\u003e\\u003ctr\\u003e\\u003ctd\\u003eb\\u003c/td\\u003e\\u003c/tr\\u003e\\u003c/tbody\\u003e\\u003c/table\\u003ec\"",
+      "note": "\u003ctable\u003e closes an open \u003cp\u003e"
+    },
+    {
+      "id": "parse-self-closing-nonvoid",
+      "group": "parsing",
+      "status": "differs",
+      "upstream": "\"\\u003cdiv\\u003e\\u003cspan\\u003eafter\\u003c/span\\u003e\\u003c/div\\u003e\"",
+      "go": "\"\\u003cdiv\\u003e\\u003cspan\\u003e\\u003c/span\\u003eafter\\u003c/div\\u003e\"",
+      "note": "\u003cspan/\u003e is not self-closing in HTML"
+    },
+    {
+      "id": "parse-table-foster",
+      "group": "parsing",
+      "status": "differs",
+      "upstream": "\"\\u003cb\\u003estray\\u003c/b\\u003e\\u003ctable\\u003e\\u003ctbody\\u003e\\u003ctr\\u003e\\u003ctd\\u003ey\\u003c/td\\u003e\\u003c/tr\\u003e\\u003c/tbody\\u003e\\u003c/table\\u003e\"",
+      "go": "\"\\u003ctable\\u003e\\u003cb\\u003estray\\u003c/b\\u003e\\u003ctbody\\u003e\\u003ctr\\u003e\\u003ctd\\u003ey\\u003c/td\\u003e\\u003c/tr\\u003e\\u003c/tbody\\u003e\\u003c/table\\u003e\"",
+      "note": "foster parenting: \u003cb\u003e must move out of the table"
+    },
+    {
+      "id": "parse-void-elements",
+      "group": "parsing",
+      "status": "differs",
+      "upstream": "\"\\u003cdiv\\u003e\\u003cbr\\u003e\\u003chr\\u003e\\u003cimg src=\\\"a.png\\\"\\u003e\\u003cinput name=\\\"n\\\" value=\\\"v\\\"\\u003e\\u003cmeta charset=\\\"utf-8\\\"\\u003e\\u003clink rel=\\\"x\\\"\\u003e\\u003carea\\u003e\\u003cbase\\u003e\\u003cembed\\u003e\\u003csource\\u003e\\u003ctrack\\u003e\\u003cwbr\\u003e\\u003c/div\\u003e\"",
+      "go": "\"\\u003cdiv\\u003e\\u003cbr\\u003e\\u003chr\\u003e\\u003cimg src=\\\"a.png\\\"\\u003e\\u003cinput name=\\\"n\\\" value=\\\"v\\\"\\u003e\\u003cmeta charset=\\\"utf-8\\\"\\u003e\\u003clink rel=\\\"x\\\"\\u003e\\u003carea\\u003e\\u003cbase\\u003e\\u003ccol\\u003e\\u003cembed\\u003e\\u003csource\\u003e\\u003ctrack\\u003e\\u003cwbr\\u003e\\u003c/div\\u003e\""
+    },
+    {
+      "id": "pseudo-empty",
+      "group": "selectors",
+      "status": "differs",
+      "upstream": "[\"div\"]",
+      "go": "[\"div\",\"div\"]"
+    },
+    {
+      "id": "pseudo-enabled",
+      "group": "selectors",
+      "status": "differs",
+      "upstream": "20",
+      "go": "19"
+    },
+    {
+      "id": "pseudo-parent",
+      "group": "selectors",
+      "status": "differs",
+      "upstream": "2",
+      "go": "1"
+    },
+    {
+      "id": "sel-namespace-qualified",
+      "group": "selectors",
+      "status": "differs",
+      "upstream": "ERROR: Namespaced tag names are not yet supported by css-select",
+      "go": "2",
+      "note": "namespace-qualified type selector"
+    },
+    {
+      "id": "ser-doctype-preserved",
+      "group": "serialisation",
+      "status": "differs",
+      "upstream": "\"\\u003c!-- lead --\\u003e\\u003cdiv\\u003ex\\u003c!--in--\\u003e\\u003c/div\\u003e\\u003c!-- tail --\\u003e\"",
+      "go": "\"\\u003c!doctype html\\u003e\\u003c!-- lead --\\u003e\\u003cdiv\\u003ex\\u003c!--in--\\u003e\\u003c/div\\u003e\\u003c!-- tail --\\u003e\""
+    },
+    {
+      "id": "ser-entities-roundtrip",
+      "group": "serialisation",
+      "status": "differs",
+      "upstream": "\"\\u003cp id=\\\"e\\\"\\u003e\\u0026amp; \\u0026lt; \\u0026gt; \\\" \\u0026amp; \\u0026amp; \\u0026nbsp; © ¬anentity; \\u0026amp;\\u003c/p\\u003e\"",
+      "go": "\"\\u003cp id=\\\"e\\\"\\u003e\\u0026amp; \\u0026lt; \\u0026gt; \\\" \\u0026amp; \\u0026amp;   © \\u0026amp;notanentity; \\u0026amp;amp\\u003c/p\\u003e\""
+    },
+    {
+      "id": "ser-escape-out-roundtrip",
+      "group": "serialisation",
+      "status": "differs",
+      "upstream": "\"\\u003cdiv id=\\\"x\\\" title=\\\"a\\u0026quot;b\\u0026amp;c\\u003cd\\\"\\u003e1 \\u0026lt; 2 \\u0026amp; 3 \\u0026gt; 0 \\\"q\\\" 's'\\u003c/div\\u003e\"",
+      "go": "\"\\u003cdiv id=\\\"x\\\" title=\\\"a\\u0026quot;b\\u0026amp;c\\u0026lt;d\\\"\\u003e1 \\u0026lt; 2 \\u0026amp; 3 \\u0026gt; 0 \\\"q\\\" 's'\\u003c/div\\u003e\""
+    },
+    {
+      "id": "ser-escape-text-nbsp",
+      "group": "serialisation",
+      "status": "differs",
+      "upstream": "\"\\u003cdiv id=\\\"box\\\"\\u003ea\\u0026nbsp;b\\u003c/div\\u003e\"",
+      "go": "\"\\u003cdiv id=\\\"box\\\"\\u003ea b\\u003c/div\\u003e\"",
+      "note": "non-breaking space: literal or \u0026nbsp;?"
+    },
+    {
+      "id": "static-html-escapes",
+      "group": "forms-and-statics",
+      "status": "differs",
+      "upstream": "\"\\u003cdiv id=\\\"x\\\" title=\\\"a\\u0026quot;b\\u0026amp;c\\u003cd\\\"\\u003e1 \\u0026lt; 2 \\u0026amp; 3 \\u0026gt; 0 \\\"q\\\" 's'\\u003c/div\\u003e\"",
+      "go": "\"\\u003cdiv id=\\\"x\\\" title=\\\"a\\u0026quot;b\\u0026amp;c\\u0026lt;d\\\"\\u003e1 \\u0026lt; 2 \\u0026amp; 3 \\u0026gt; 0 \\\"q\\\" 's'\\u003c/div\\u003e\""
+    },
+    {
+      "id": "static-merge-overlap",
+      "group": "forms-and-statics",
+      "status": "differs",
+      "upstream": "{\"length\":4,\"tags\":[\"p\",\"p\",\"p\",\"p\"]}",
+      "go": "{\"length\":3,\"tags\":[\"p\",\"p\",\"p\"]}",
+      "note": "cheerio.merge concatenates without de-duplicating"
+    },
+    {
+      "id": "static-parsehtml-empty",
+      "group": "forms-and-statics",
+      "status": "differs",
+      "upstream": "null",
+      "go": "{\"html\":\"\",\"length\":0,\"tags\":[]}",
+      "note": "upstream returns null for empty input"
+    },
+    {
+      "id": "text-entities",
+      "group": "parsing",
+      "status": "differs",
+      "upstream": "\"\\u0026 \\u003c \\u003e \\\" \\u0026 \\u0026   © ¬anentity; \\u0026\"",
+      "go": "\"\\u0026 \\u003c \\u003e \\\" \\u0026 \\u0026   © \\u0026notanentity; \\u0026amp\""
+    },
+    {
+      "id": "tr-add-back",
+      "group": "traversal",
+      "status": "differs",
+      "upstream": "[\"b\",\"c\",\"d\",\"e\"]",
+      "go": "[\"c\",\"d\",\"e\"]"
+    },
+    {
+      "id": "tr-add-back-filtered",
+      "group": "traversal",
+      "status": "differs",
+      "upstream": "[\"b\",\"c\",\"d\",\"e\"]",
+      "go": "[\"c\",\"d\",\"e\"]"
+    },
+    {
+      "id": "tr-end",
+      "group": "traversal",
+      "status": "differs",
+      "upstream": "[\"b\"]",
+      "go": "[\"c\",\"d\",\"e\"]"
+    },
+    {
+      "id": "tree-entities-text",
+      "group": "parsing",
+      "status": "differs",
+      "upstream": "\"\\u0026 \\u003c \\u003e \\\" \\u0026 \\u0026   © ¬anentity; \\u0026\"",
+      "go": "\"\\u0026 \\u003c \\u003e \\\" \\u0026 \\u0026   © \\u0026notanentity; \\u0026amp\""
+    },
+    {
+      "id": "tree-foster-siblings",
+      "group": "parsing",
+      "status": "differs",
+      "upstream": "[\"b\",\"table\"]",
+      "go": "[\"table\"]"
+    },
+    {
+      "id": "tree-select-in-p-children",
+      "group": "parsing",
+      "status": "differs",
+      "upstream": "[\"p\",\"table\",\"p\"]",
+      "go": "[\"p\",\"table\"]"
+    },
+    {
+      "id": "tree-void-children",
+      "group": "parsing",
+      "status": "differs",
+      "upstream": "[\"br\",\"hr\",\"img\",\"input\",\"meta\",\"link\",\"area\",\"base\",\"embed\",\"source\",\"track\",\"wbr\"]",
+      "go": "[\"br\",\"hr\",\"img\",\"input\",\"meta\",\"link\",\"area\",\"base\",\"col\",\"embed\",\"source\",\"track\",\"wbr\"]"
+    }
+  ]
+}

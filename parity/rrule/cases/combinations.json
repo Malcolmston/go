@@ -1,0 +1,371 @@
+{
+  "group": "combinations",
+  "upstream": "python-dateutil@2.9.0.post0",
+  "cases": [
+    {
+      "id": "friday-the-13th",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=MONTHLY;BYDAY=FR;BYMONTHDAY=13",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 8
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "saturday-after-first-sunday",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=MONTHLY;BYDAY=SA;BYMONTHDAY=7,8,9,10,11,12,13",
+          "dtstart": "1997-09-13T09:00:00",
+          "tz": "UTC",
+          "limit": 8
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "us-election-day",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=YEARLY;INTERVAL=4;BYMONTH=11;BYDAY=TU;BYMONTHDAY=2,3,4,5,6,7,8",
+          "dtstart": "1996-11-05T09:00:00",
+          "tz": "UTC",
+          "limit": 6
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "every-other-tuesday-monthly",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=MONTHLY;INTERVAL=2;BYDAY=TU",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 18
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "impossible-feb-30",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=MONTHLY;BYMONTH=2;BYMONTHDAY=30;COUNT=3",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 5
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator",
+      "note": "can never occur; must terminate, not hang"
+    },
+    {
+      "id": "byweekno-and-bymonth",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=YEARLY;BYWEEKNO=20;BYMONTH=5;BYDAY=MO;COUNT=5",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 7
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "byyearday-and-byday",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=YEARLY;BYYEARDAY=100,200;BYDAY=MO;COUNT=5",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 7
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "monthly-byday-byhour",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=MONTHLY;BYDAY=1MO;BYHOUR=8,20;COUNT=8",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 10
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "weekly-byday-bysetpos",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=WEEKLY;BYDAY=MO,WE,FR;BYSETPOS=-1;COUNT=6",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 8
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "yearly-everything",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=YEARLY;BYMONTH=6;BYMONTHDAY=15;BYHOUR=12;BYMINUTE=30;BYSECOND=15;COUNT=4",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 6
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "hourly-byminute-bysecond",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=HOURLY;INTERVAL=6;BYMINUTE=5;BYSECOND=10;COUNT=6",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 8
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "secondly-filtered",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=SECONDLY;BYMINUTE=0;BYSECOND=0,30;COUNT=6",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 8
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "every-other-week-mo-we-fr",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=WEEKLY;INTERVAL=2;UNTIL=19971224T000000Z;WKST=SU;BYDAY=MO,WE,FR",
+          "dtstart": "1997-09-01T09:00:00",
+          "tz": "UTC",
+          "limit": 30
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "every-other-week-tu-th",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=WEEKLY;INTERVAL=2;COUNT=8;WKST=SU;BYDAY=TU,TH",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 10
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "weekly-tu-th-until",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=WEEKLY;UNTIL=19971007T000000Z;WKST=SU;BYDAY=TU,TH",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 15
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "monthly-1fr-until",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=MONTHLY;UNTIL=19971224T000000Z;BYDAY=1FR",
+          "dtstart": "1997-09-05T09:00:00",
+          "tz": "UTC",
+          "limit": 10
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "every-other-week-wkst-su-unbounded",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=WEEKLY;INTERVAL=2;WKST=SU",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 10
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "hourly-3-until-1700",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=HOURLY;INTERVAL=3;UNTIL=19970902T170000Z",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 10
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "minutely-15-count6",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=MINUTELY;INTERVAL=15;COUNT=6",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 8
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "daily-until-19971224",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;UNTIL=19971224T000000Z",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 200
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "daily-interval2-unbounded",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;INTERVAL=2",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 20
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "weekly-count10",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=WEEKLY;COUNT=10",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 12
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "weekly-until-19971224",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=WEEKLY;UNTIL=19971224T000000Z",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 30
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "weekly-tu-th-count10",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=WEEKLY;COUNT=10;WKST=SU;BYDAY=TU,TH",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 12
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "daily-count10",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;COUNT=10",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 12
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "daily-interval10-count5",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;INTERVAL=10;COUNT=5",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 7
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    }
+  ]
+}

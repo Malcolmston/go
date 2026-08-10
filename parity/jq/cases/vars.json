@@ -1,0 +1,165 @@
+{
+  "group": "vars",
+  "upstream": "jq@1.7.1",
+  "encoding": "args = [jq program, input JSON value, optional $variables object]; value = the complete output stream as a JSON array",
+  "cases": [
+    {
+      "id": "var-scalar",
+      "fn": "run",
+      "args": [
+        "$x",
+        null,
+        {
+          "x": 42
+        }
+      ],
+      "upstreamFn": "--arg/--argjson",
+      "goFn": "--arg/--argjson"
+    },
+    {
+      "id": "var-object",
+      "fn": "run",
+      "args": [
+        "$v.a",
+        null,
+        {
+          "v": {
+            "a": 7
+          }
+        }
+      ],
+      "upstreamFn": "--argjson",
+      "goFn": "--argjson"
+    },
+    {
+      "id": "var-in-filter",
+      "fn": "run",
+      "args": [
+        ".[] | select(. > $min)",
+        [
+          1,
+          2,
+          3
+        ],
+        {
+          "min": 1
+        }
+      ],
+      "upstreamFn": "--argjson",
+      "goFn": "--argjson"
+    },
+    {
+      "id": "var-many",
+      "fn": "run",
+      "args": [
+        "[$a,$b]",
+        null,
+        {
+          "a": 1,
+          "b": "s"
+        }
+      ],
+      "upstreamFn": "--argjson",
+      "goFn": "--argjson"
+    },
+    {
+      "id": "var-shadowed-by-def",
+      "fn": "run",
+      "args": [
+        "def f($a): $a; f(9)",
+        null,
+        {
+          "a": 1
+        }
+      ],
+      "upstreamFn": "--argjson",
+      "goFn": "--argjson"
+    },
+    {
+      "id": "var-unused",
+      "fn": "run",
+      "args": [
+        "1",
+        null,
+        {
+          "unused": 5
+        }
+      ],
+      "upstreamFn": "--argjson",
+      "goFn": "--argjson"
+    },
+    {
+      "id": "var-null",
+      "fn": "run",
+      "args": [
+        "[$n, ($n == null)]",
+        null,
+        {
+          "n": null
+        }
+      ],
+      "upstreamFn": "--argjson",
+      "goFn": "--argjson"
+    },
+    {
+      "id": "var-array-index",
+      "fn": "run",
+      "args": [
+        "$xs[1]",
+        null,
+        {
+          "xs": [
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      "upstreamFn": "--argjson",
+      "goFn": "--argjson"
+    },
+    {
+      "id": "var-as-path",
+      "fn": "run",
+      "args": [
+        "getpath($p)",
+        {
+          "a": {
+            "b": 3
+          }
+        },
+        {
+          "p": [
+            "a",
+            "b"
+          ]
+        }
+      ],
+      "upstreamFn": "--argjson",
+      "goFn": "--argjson"
+    },
+    {
+      "id": "var-missing",
+      "fn": "run",
+      "args": [
+        "$notgiven",
+        null,
+        {
+          "x": 1
+        }
+      ],
+      "upstreamFn": "undefined variable",
+      "goFn": "undefined variable"
+    },
+    {
+      "id": "var-env-named",
+      "fn": "run",
+      "args": [
+        "$ENV.PARITY",
+        null
+      ],
+      "upstreamFn": "$ENV",
+      "goFn": "$ENV"
+    }
+  ]
+}

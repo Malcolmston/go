@@ -1,0 +1,505 @@
+{
+  "group": "durability",
+  "upstream": "sled@0.34.7",
+  "encoding": "all keys, values and tree names are lowercase hex",
+  "cases": [
+    {
+      "id": "was-recovered-fresh",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "was_recovered"
+          },
+          {
+            "op": "insert",
+            "key": "61",
+            "value": "31"
+          },
+          {
+            "op": "flush"
+          },
+          {
+            "op": "reopen"
+          },
+          {
+            "op": "was_recovered"
+          }
+        ]
+      ],
+      "upstreamFn": "Db::was_recovered",
+      "goFn": "DB.WasRecovered"
+    },
+    {
+      "id": "flush-then-reopen",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "insert",
+            "key": "61",
+            "value": "31"
+          },
+          {
+            "op": "insert",
+            "key": "62",
+            "value": "32"
+          },
+          {
+            "op": "insert",
+            "key": "63",
+            "value": "33"
+          },
+          {
+            "op": "insert",
+            "key": "6161",
+            "value": "34"
+          },
+          {
+            "op": "insert",
+            "key": "6162",
+            "value": "35"
+          },
+          {
+            "op": "flush"
+          },
+          {
+            "op": "reopen"
+          },
+          {
+            "op": "iter"
+          },
+          {
+            "op": "len"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::flush",
+      "goFn": "DB.Flush"
+    },
+    {
+      "id": "reopen-without-explicit-flush",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "insert",
+            "key": "61",
+            "value": "31"
+          },
+          {
+            "op": "insert",
+            "key": "62",
+            "value": "32"
+          },
+          {
+            "op": "insert",
+            "key": "63",
+            "value": "33"
+          },
+          {
+            "op": "insert",
+            "key": "6161",
+            "value": "34"
+          },
+          {
+            "op": "insert",
+            "key": "6162",
+            "value": "35"
+          },
+          {
+            "op": "reopen"
+          },
+          {
+            "op": "iter"
+          }
+        ]
+      ],
+      "upstreamFn": "Db::open",
+      "goFn": "sled.Open",
+      "note": "a normal close must make prior writes durable even without an explicit flush"
+    },
+    {
+      "id": "reopen-twice",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "insert",
+            "key": "61",
+            "value": "31"
+          },
+          {
+            "op": "reopen"
+          },
+          {
+            "op": "insert",
+            "key": "62",
+            "value": "32"
+          },
+          {
+            "op": "reopen"
+          },
+          {
+            "op": "iter"
+          },
+          {
+            "op": "was_recovered"
+          }
+        ]
+      ],
+      "upstreamFn": "Db::open",
+      "goFn": "sled.Open"
+    },
+    {
+      "id": "clear-then-reopen",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "insert",
+            "key": "61",
+            "value": "31"
+          },
+          {
+            "op": "insert",
+            "key": "62",
+            "value": "32"
+          },
+          {
+            "op": "insert",
+            "key": "63",
+            "value": "33"
+          },
+          {
+            "op": "insert",
+            "key": "6161",
+            "value": "34"
+          },
+          {
+            "op": "insert",
+            "key": "6162",
+            "value": "35"
+          },
+          {
+            "op": "clear"
+          },
+          {
+            "op": "flush"
+          },
+          {
+            "op": "reopen"
+          },
+          {
+            "op": "iter"
+          },
+          {
+            "op": "len"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::clear",
+      "goFn": "Tree.Clear"
+    },
+    {
+      "id": "removes-do-not-resurrect",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "insert",
+            "key": "61",
+            "value": "31"
+          },
+          {
+            "op": "insert",
+            "key": "62",
+            "value": "32"
+          },
+          {
+            "op": "insert",
+            "key": "63",
+            "value": "33"
+          },
+          {
+            "op": "insert",
+            "key": "6161",
+            "value": "34"
+          },
+          {
+            "op": "insert",
+            "key": "6162",
+            "value": "35"
+          },
+          {
+            "op": "remove",
+            "key": "61"
+          },
+          {
+            "op": "remove",
+            "key": "6161"
+          },
+          {
+            "op": "flush"
+          },
+          {
+            "op": "reopen"
+          },
+          {
+            "op": "iter"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::remove",
+      "goFn": "Tree.GetAndDelete",
+      "note": "deleted keys must not come back after a reopen"
+    },
+    {
+      "id": "generate-id-monotonic",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "generate_id_monotonic",
+            "n": 200
+          }
+        ]
+      ],
+      "upstreamFn": "Db::generate_id",
+      "goFn": "DB.GenerateID"
+    },
+    {
+      "id": "generate-id-monotonic-across-reopen",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "generate_id_monotonic",
+            "n": 10
+          },
+          {
+            "op": "flush"
+          },
+          {
+            "op": "reopen"
+          },
+          {
+            "op": "generate_id_monotonic",
+            "n": 10
+          },
+          {
+            "op": "reopen"
+          },
+          {
+            "op": "generate_id_monotonic",
+            "n": 10
+          }
+        ]
+      ],
+      "upstreamFn": "Db::generate_id",
+      "goFn": "DB.GenerateID",
+      "note": "ids must stay strictly increasing across restarts"
+    },
+    {
+      "id": "compact-preserves-nonempty",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "open_tree",
+            "name": "t1"
+          },
+          {
+            "op": "insert",
+            "key": "61",
+            "value": "31"
+          },
+          {
+            "op": "insert",
+            "key": "62",
+            "value": "32"
+          },
+          {
+            "op": "insert",
+            "key": "63",
+            "value": "33"
+          },
+          {
+            "op": "insert",
+            "key": "6161",
+            "value": "34"
+          },
+          {
+            "op": "insert",
+            "key": "6162",
+            "value": "35"
+          },
+          {
+            "op": "insert",
+            "key": "78",
+            "value": "39",
+            "tree": "t1"
+          },
+          {
+            "op": "compact"
+          },
+          {
+            "op": "tree_names"
+          },
+          {
+            "op": "iter"
+          },
+          {
+            "op": "iter",
+            "tree": "t1"
+          },
+          {
+            "op": "reopen"
+          },
+          {
+            "op": "tree_names"
+          },
+          {
+            "op": "iter"
+          },
+          {
+            "op": "iter",
+            "tree": "t1"
+          }
+        ]
+      ],
+      "upstreamFn": "Db::flush (sled has no explicit compaction)",
+      "goFn": "DB.Compact",
+      "note": "compaction must be semantically invisible"
+    },
+    {
+      "id": "compact-destroys-empty-tree",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "open_tree",
+            "name": "t1"
+          },
+          {
+            "op": "insert",
+            "key": "61",
+            "value": "31",
+            "tree": "t1"
+          },
+          {
+            "op": "remove",
+            "key": "61",
+            "tree": "t1"
+          },
+          {
+            "op": "insert",
+            "key": "6b656570",
+            "value": "31"
+          },
+          {
+            "op": "tree_names"
+          },
+          {
+            "op": "compact"
+          },
+          {
+            "op": "tree_names"
+          },
+          {
+            "op": "reopen"
+          },
+          {
+            "op": "tree_names"
+          },
+          {
+            "op": "len",
+            "tree": "t1"
+          },
+          {
+            "op": "iter"
+          }
+        ]
+      ],
+      "upstreamFn": "Db::flush (sled has no explicit compaction)",
+      "goFn": "DB.Compact",
+      "note": "KNOWN PORT BUG: Compact() followed by a reopen silently destroys a tree that is currently empty; a plain reopen (case emptied-tree-survives-reopen) preserves it"
+    },
+    {
+      "id": "compact-after-many-overwrites",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "insert",
+            "key": "6b",
+            "value": "31"
+          },
+          {
+            "op": "insert",
+            "key": "6b",
+            "value": "32"
+          },
+          {
+            "op": "insert",
+            "key": "6b",
+            "value": "33"
+          },
+          {
+            "op": "insert",
+            "key": "6b",
+            "value": "34"
+          },
+          {
+            "op": "insert",
+            "key": "64",
+            "value": "31"
+          },
+          {
+            "op": "remove",
+            "key": "64"
+          },
+          {
+            "op": "compact"
+          },
+          {
+            "op": "iter"
+          },
+          {
+            "op": "reopen"
+          },
+          {
+            "op": "iter"
+          },
+          {
+            "op": "len"
+          }
+        ]
+      ],
+      "upstreamFn": "Db::flush (sled has no explicit compaction)",
+      "goFn": "DB.Compact"
+    },
+    {
+      "id": "empty-db-reopen",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reopen"
+          },
+          {
+            "op": "tree_names"
+          },
+          {
+            "op": "len"
+          },
+          {
+            "op": "is_empty"
+          }
+        ]
+      ],
+      "upstreamFn": "Db::open",
+      "goFn": "sled.Open"
+    }
+  ]
+}

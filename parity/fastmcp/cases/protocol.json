@@ -1,0 +1,137 @@
+{
+  "group": "protocol",
+  "upstream": "fastmcp@3.4.6",
+  "cases": [
+    {
+      "id": "ping",
+      "fn": "rpc",
+      "args": [{ "method": "ping", "params": {} }],
+      "upstreamFn": "mcp.types.PingRequest",
+      "goFn": "fastmcp.Server.route (\"ping\")"
+    },
+    {
+      "id": "cap-logging-setlevel",
+      "fn": "rpc",
+      "args": [{ "method": "logging/setLevel", "params": { "level": "debug" } }],
+      "upstreamFn": "FastMCP._set_logging_level_mcp",
+      "goFn": "—",
+      "note": "both advertise capabilities.logging; only upstream implements the method"
+    },
+    {
+      "id": "cap-logging-setlevel-bad-level",
+      "fn": "rpc",
+      "args": [{ "method": "logging/setLevel", "params": { "level": "verbose" } }],
+      "upstreamFn": "mcp.types.SetLevelRequest validation",
+      "goFn": "—"
+    },
+    {
+      "id": "unknown-method",
+      "fn": "rpc",
+      "args": [{ "method": "bogus/method", "params": {} }],
+      "upstreamFn": "mcp.types.ClientRequest validation",
+      "goFn": "fastmcp.Server.route (default)",
+      "note": "upstream rejects unknown methods as -32602 (schema validation); the port returns -32601"
+    },
+    {
+      "id": "unknown-namespaced-method",
+      "fn": "rpc",
+      "args": [{ "method": "tools/enumerate", "params": {} }],
+      "upstreamFn": "mcp.types.ClientRequest validation",
+      "goFn": "fastmcp.Server.route (default)"
+    },
+    {
+      "id": "tools-call-no-params",
+      "fn": "rpc",
+      "args": [{ "method": "tools/call" }],
+      "upstreamFn": "mcp.types.CallToolRequest validation",
+      "goFn": "fastmcp.Server.handleToolsCall"
+    },
+    {
+      "id": "tools-call-params-not-object",
+      "fn": "rpc",
+      "args": [{ "method": "tools/call", "params": [1, 2, 3] }],
+      "upstreamFn": "mcp.types.CallToolRequest validation",
+      "goFn": "fastmcp.Server.handleToolsCall"
+    },
+    {
+      "id": "tools-call-name-wrong-type",
+      "fn": "rpc",
+      "args": [{ "method": "tools/call", "params": { "name": 5, "arguments": {} } }],
+      "upstreamFn": "mcp.types.CallToolRequest validation",
+      "goFn": "fastmcp.Server.handleToolsCall"
+    },
+    {
+      "id": "tools-call-arguments-not-object",
+      "fn": "rpc",
+      "args": [{ "method": "tools/call", "params": { "name": "add", "arguments": 5 } }],
+      "upstreamFn": "mcp.types.CallToolRequest validation",
+      "goFn": "fastmcp.Server.handleToolsCall"
+    },
+    {
+      "id": "tools-call-unknown-tool",
+      "fn": "rpc",
+      "args": [{ "method": "tools/call", "params": { "name": "nope", "arguments": {} } }],
+      "upstreamFn": "fastmcp.exceptions.NotFoundError",
+      "goFn": "fastmcp.Server.handleToolsCall",
+      "note": "upstream reports an unknown tool as isError:true; the port as JSON-RPC -32602"
+    },
+    {
+      "id": "tools-list-with-cursor",
+      "fn": "rpc",
+      "args": [{ "method": "tools/list", "params": { "cursor": null } }, "tools/#name=add/name"],
+      "upstreamFn": "mcp.types.ListToolsRequest.params.cursor",
+      "goFn": "—",
+      "note": "the port ignores pagination entirely"
+    },
+    {
+      "id": "prompts-get-arguments-not-object",
+      "fn": "rpc",
+      "args": [{ "method": "prompts/get", "params": { "name": "review", "arguments": "code" } }],
+      "upstreamFn": "mcp.types.GetPromptRequest validation",
+      "goFn": "fastmcp.Server.handlePromptsGet"
+    },
+    {
+      "id": "complete-bad-ref-type",
+      "fn": "rpc",
+      "args": [
+        {
+          "method": "completion/complete",
+          "params": {
+            "ref": { "type": "ref/bogus", "name": "summarize" },
+            "argument": { "name": "style", "value": "c" }
+          }
+        }
+      ],
+      "upstreamFn": "mcp.types.CompleteRequest validation",
+      "goFn": "fastmcp.Server.handleComplete"
+    },
+    {
+      "id": "sequence-list-then-call",
+      "fn": "rpc",
+      "args": [
+        [
+          { "method": "ping", "params": {} },
+          { "method": "tools/call", "params": { "name": "add", "arguments": { "a": 1, "b": 1 } } }
+        ],
+        "content"
+      ],
+      "upstreamFn": "FastMCP._call_tool_mcp",
+      "goFn": "fastmcp.Server.Dispatch",
+      "note": "two requests on one session, to prove the session is reusable"
+    },
+    {
+      "id": "sequence-read-then-read",
+      "fn": "rpc",
+      "args": [
+        [
+          { "method": "resources/read", "params": { "uri": "res://greeting" } },
+          { "method": "resources/read", "params": { "uri": "res://greeting" } }
+        ],
+        "contents/0/text"
+      ],
+      "upstreamFn": "FastMCP._read_resource_mcp",
+      "goFn": "fastmcp.Server.handleResourcesRead",
+      "note": "resource reads must be idempotent"
+    }
+  ]
+}

@@ -1,0 +1,122 @@
+{
+  "group": "byyearday",
+  "upstream": "python-dateutil@2.9.0.post0",
+  "cases": [
+    {
+      "id": "byyearday-1-100-200",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=YEARLY;INTERVAL=3;COUNT=10;BYYEARDAY=1,100,200",
+          "dtstart": "1997-01-01T09:00:00",
+          "tz": "UTC",
+          "limit": 12
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "byyearday-negative",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=YEARLY;BYYEARDAY=-1,-100;COUNT=6",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 8
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "byyearday-366",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=YEARLY;BYYEARDAY=366;COUNT=4",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 6
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator",
+      "note": "only leap years have a 366th day"
+    },
+    {
+      "id": "byyearday-neg366",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=YEARLY;BYYEARDAY=-366;COUNT=4",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 6
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "byyearday-daily-filter",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;BYYEARDAY=1,200;COUNT=5",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 7
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "byyearday-monthly",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=MONTHLY;BYYEARDAY=1;COUNT=3",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 5
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator",
+      "note": "RFC 5545 forbids BYYEARDAY with MONTHLY; dateutil is the oracle"
+    },
+    {
+      "id": "byyearday-0",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=YEARLY;BYYEARDAY=0;COUNT=3",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 5
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator",
+      "note": "out of range"
+    },
+    {
+      "id": "byyearday-367",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=YEARLY;BYYEARDAY=367;COUNT=3",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 5
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator",
+      "note": "out of range"
+    }
+  ]
+}

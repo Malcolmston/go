@@ -1,0 +1,83 @@
+{
+  "group": "transparency",
+  "upstream": "pdfkit@0.15.1",
+  "cases": [
+    {
+      "id": "alpha-fill-opacity",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.fillOpacity",
+      "goFn": "Page.SetAlpha",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "fillOpacity", "args": [0.5]},
+        {"op": "fillColor", "args": [[255, 0, 0]]},
+        {"op": "rect", "args": [40, 40, 120, 80]},
+        {"op": "fill"}
+      ]}]}]
+    },
+    {
+      "id": "alpha-stroke-opacity",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.strokeOpacity",
+      "goFn": "Page.SetAlpha",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "strokeOpacity", "args": [0.25]},
+        {"op": "lineWidth", "args": [8]},
+        {"op": "rect", "args": [40, 40, 120, 80]},
+        {"op": "stroke"}
+      ]}]}]
+    },
+    {
+      "id": "alpha-both",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.opacity",
+      "goFn": "Page.SetAlpha",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "opacity", "args": [0.75]},
+        {"op": "rect", "args": [40, 40, 120, 80]},
+        {"op": "fillStroke"}
+      ]}]}]
+    },
+    {
+      "id": "alpha-scoped",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.save/fillOpacity/restore",
+      "goFn": "Page.Save/SetAlpha/Restore",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "save"},
+        {"op": "fillOpacity", "args": [0.2]},
+        {"op": "rect", "args": [40, 40, 80, 80]},
+        {"op": "fill"},
+        {"op": "restore"},
+        {"op": "rect", "args": [140, 40, 80, 80]},
+        {"op": "fill"}
+      ]}]}]
+    },
+    {
+      "id": "alpha-reused-state",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.fillOpacity",
+      "goFn": "Page.SetAlpha",
+      "note": "the same alpha twice: is the ExtGState reused?",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "fillOpacity", "args": [0.5]},
+        {"op": "rect", "args": [40, 40, 60, 60]},
+        {"op": "fill"},
+        {"op": "fillOpacity", "args": [0.5]},
+        {"op": "rect", "args": [140, 40, 60, 60]},
+        {"op": "fill"}
+      ]}]}]
+    },
+    {
+      "id": "alpha-blend-multiply",
+      "fn": "buildPDF",
+      "upstreamFn": "—",
+      "goFn": "Page.SetBlendMode",
+      "note": "blend modes: the port has them, upstream has no API",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "blendMode", "args": ["Multiply"]},
+        {"op": "rect", "args": [40, 40, 120, 80]},
+        {"op": "fill"}
+      ]}]}]
+    }
+  ]
+}

@@ -1,0 +1,817 @@
+{
+  "group": "strings",
+  "upstream": "redis-server@8.2.2",
+  "encoding": "commands are arrays of UTF-8 argument strings; replies map integer->number, bulk string->string, nil->null, simple string->{\"status\":s}, array->array, error->{\"error\":true}",
+  "cases": [
+    {
+      "id": "set-get-basic",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "k",
+              "v1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "missing"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "k",
+              "v2"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "STRLEN",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "APPEND",
+              "k",
+              "!"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "STRLEN",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "APPEND",
+              "fresh",
+              "x"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "fresh"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "STRLEN",
+              "missing"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "SET/GET/STRLEN/APPEND",
+      "goFn": "Store.Do SET/GET/STRLEN/APPEND",
+      "note": "SET returns +OK, GET of a missing key is nil, APPEND creates the key"
+    },
+    {
+      "id": "set-empty-value",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "k",
+              ""
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "STRLEN",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXISTS",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "APPEND",
+              "k",
+              "ab"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "k"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "SET/GET",
+      "goFn": "Store.Do SET/GET",
+      "note": "the empty string is a real value, not an absent key"
+    },
+    {
+      "id": "set-nx-xx",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "a",
+              "1",
+              "NX"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "a",
+              "2",
+              "NX"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "a",
+              "3",
+              "XX"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "b",
+              "1",
+              "XX"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXISTS",
+              "b"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "b"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "SET key value NX|XX",
+      "goFn": "Store.Do SET .. NX|XX",
+      "note": "a rejected NX/XX SET replies nil, not an error"
+    },
+    {
+      "id": "set-nx-and-xx",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "a",
+              "1",
+              "NX",
+              "XX"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXISTS",
+              "a"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "SET key value NX XX",
+      "goFn": "Store.Do SET .. NX XX",
+      "note": "NX and XX together is a syntax error"
+    },
+    {
+      "id": "set-ex-clears-on-plain-set",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "k",
+              "v",
+              "EX",
+              "100"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TTL",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "k",
+              "v2"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TTL",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "k"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "SET key value EX",
+      "goFn": "Store.Do SET .. EX",
+      "note": "a plain SET discards the previous TTL"
+    },
+    {
+      "id": "set-keepttl",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "k",
+              "v",
+              "EX",
+              "100"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TTL",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "k",
+              "v2",
+              "KEEPTTL"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TTL",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "k"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "SET key value KEEPTTL",
+      "goFn": "Store.Do SET .. KEEPTTL",
+      "note": "KEEPTTL retains the TTL across a rewrite"
+    },
+    {
+      "id": "set-px",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "k",
+              "v",
+              "PX",
+              "100000"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PTTL",
+              "k"
+            ],
+            "round": 1000
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TTL",
+              "k"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "SET key value PX",
+      "goFn": "Store.Do SET .. PX",
+      "note": "PTTL rounded up to whole seconds for determinism"
+    },
+    {
+      "id": "set-ex-invalid",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "a",
+              "v",
+              "EX",
+              "0"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXISTS",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "b",
+              "v",
+              "EX",
+              "-1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXISTS",
+              "b"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "c",
+              "v",
+              "EX",
+              "abc"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXISTS",
+              "c"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "d",
+              "v",
+              "EX"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXISTS",
+              "d"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "e",
+              "v",
+              "BOGUS"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXISTS",
+              "e"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "SET key value EX seconds",
+      "goFn": "Store.Do SET .. EX",
+      "note": "a non-positive or non-integer expire is an error and must not create the key"
+    },
+    {
+      "id": "getset",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "k",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GETSET",
+              "k",
+              "b"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GETSET",
+              "fresh",
+              "z"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "fresh"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "GETSET",
+      "goFn": "Store.Do GETSET",
+      "note": "GETSET returns the previous value, nil when absent"
+    },
+    {
+      "id": "incr-decr",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "n",
+              "10"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "INCR",
+              "n"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "INCRBY",
+              "n",
+              "5"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "DECR",
+              "n"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "DECRBY",
+              "n",
+              "3"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "n"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "INCR",
+              "fresh"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "fresh"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "DECRBY",
+              "fresh",
+              "10"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "fresh"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "INCRBY",
+              "n",
+              "0"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TYPE",
+              "n"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "INCR/DECR/INCRBY/DECRBY",
+      "goFn": "Store.Do INCR/DECR/INCRBY/DECRBY",
+      "note": "counters are stored as decimal strings"
+    },
+    {
+      "id": "incr-errors",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "s",
+              "abc"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "INCR",
+              "s"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "f",
+              "3.0"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "INCR",
+              "f"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "e",
+              ""
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "INCR",
+              "e"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "sp",
+              " 1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "INCR",
+              "sp"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "big",
+              "9223372036854775807"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "INCR",
+              "big"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "big"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "n",
+              "1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "INCRBY",
+              "n",
+              "notanumber"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "n"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "INCR",
+      "goFn": "Store.Do INCR",
+      "note": "non-integer content and 64-bit overflow are errors"
+    },
+    {
+      "id": "decrby-llong-min",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "n",
+              "0"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "DECRBY",
+              "n",
+              "-9223372036854775808"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "n"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "INCRBY",
+              "n",
+              "9223372036854775807"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "INCRBY",
+              "n",
+              "1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "n"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "DECRBY/INCRBY",
+      "goFn": "Store.Do DECRBY/INCRBY",
+      "note": "negating LLONG_MIN is not representable and must be rejected"
+    }
+  ]
+}

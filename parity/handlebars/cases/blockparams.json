@@ -1,0 +1,85 @@
+{
+  "group": "blockparams",
+  "upstream": "handlebars@4.7.8",
+  "cases": [
+    {
+      "id": "bp-each-item",
+      "fn": "render",
+      "args": ["{{#each items as |item|}}[{{item}}]{{/each}}", { "items": ["a", "b"] }],
+      "upstreamFn": "Handlebars.helpers.each",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "bp-each-item-index",
+      "fn": "render",
+      "args": [
+        "{{#each items as |item idx|}}{{idx}}={{item}};{{/each}}",
+        { "items": ["a", "b"] }
+      ],
+      "upstreamFn": "Handlebars.helpers.each",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "bp-each-object-key",
+      "fn": "render",
+      "args": ["{{#each o as |v k|}}{{k}}:{{v}};{{/each}}", { "o": { "a": 1, "b": 2 } }],
+      "upstreamFn": "Handlebars.helpers.each",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "bp-with",
+      "fn": "render",
+      "args": ["{{#with o as |it|}}{{it.k}}{{/with}}", { "o": { "k": "K" } }],
+      "upstreamFn": "Handlebars.helpers.with",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "bp-shadowing",
+      "fn": "render",
+      "args": [
+        "{{#each items as |x|}}{{#each x as |x|}}{{x}}{{/each}}{{/each}}",
+        { "items": [["1", "2"], ["3"]] }
+      ],
+      "upstreamFn": "Handlebars.helpers.each",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "bp-outer-visible-inside",
+      "fn": "render",
+      "args": [
+        "{{#each a as |outer|}}{{#each outer.n as |inner|}}{{outer.id}}{{inner}} {{/each}}{{/each}}",
+        { "a": [{ "id": "A", "n": [1, 2] }] }
+      ],
+      "upstreamFn": "Handlebars.helpers.each",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "bp-context-still-available",
+      "fn": "render",
+      "args": [
+        "{{#each people as |p|}}{{p.name}}/{{name}} {{/each}}",
+        { "people": [{ "name": "a" }] }
+      ],
+      "upstreamFn": "Handlebars.helpers.each",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "bp-custom-helper",
+      "fn": "render",
+      "args": [
+        "{{#pair x y as |a b|}}{{a}}+{{b}}{{/pair}}",
+        { "x": "L", "y": "R" },
+        { "helpers": ["pair"] }
+      ],
+      "upstreamFn": "options.fn(this,{blockParams})",
+      "goFn": "handlebars.Options.FnWithBlockParams"
+    },
+    {
+      "id": "bp-unused-extra-name",
+      "fn": "render",
+      "args": ["{{#with o as |v extra|}}{{v.k}}[{{extra}}]{{/with}}", { "o": { "k": "K" } }],
+      "upstreamFn": "Handlebars.helpers.with",
+      "goFn": "handlebars.Compile"
+    }
+  ]
+}

@@ -1,0 +1,121 @@
+{
+  "group": "bugs",
+  "upstream": "sqlite3@3.45.3",
+  "cases": [
+    {
+      "id": "bug-left-join-unaliased",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)",
+            "CREATE TABLE o (oid INTEGER PRIMARY KEY, tid INTEGER, amount INTEGER)",
+            "INSERT INTO o (oid, tid, amount) VALUES (10,1,100),(11,1,200),(12,2,300),(13,9,400)"
+          ],
+          "query": "SELECT t.id AS id, o.amount AS amt FROM t LEFT JOIN o ON o.tid = t.id ORDER BY t.id, o.amount"
+        }
+      ],
+      "upstreamFn": "LEFT JOIN on an un-aliased table",
+      "goFn": "sqlite: LEFT JOIN on an un-aliased table",
+      "note": "port bug: LEFT is consumed as the alias of t, so the join silently degrades to INNER and the unmatched rows vanish with no error"
+    },
+    {
+      "id": "bug-left-join-unaliased-count",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)",
+            "CREATE TABLE o (oid INTEGER PRIMARY KEY, tid INTEGER, amount INTEGER)",
+            "INSERT INTO o (oid, tid, amount) VALUES (10,1,100),(11,1,200),(12,2,300),(13,9,400)"
+          ],
+          "query": "SELECT count(*) AS c FROM t LEFT JOIN o ON o.tid = t.id"
+        }
+      ],
+      "upstreamFn": "LEFT JOIN row count on an un-aliased table",
+      "goFn": "sqlite: LEFT JOIN row count on an un-aliased table",
+      "note": "the same bug seen as a wrong count"
+    },
+    {
+      "id": "bug-left-join-unaliased-nulls",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)",
+            "CREATE TABLE o (oid INTEGER PRIMARY KEY, tid INTEGER, amount INTEGER)",
+            "INSERT INTO o (oid, tid, amount) VALUES (10,1,100),(11,1,200),(12,2,300),(13,9,400)"
+          ],
+          "query": "SELECT count(*) AS c FROM t LEFT JOIN o ON o.tid = t.id WHERE o.amount IS NULL"
+        }
+      ],
+      "upstreamFn": "LEFT JOIN unmatched rows",
+      "goFn": "sqlite: LEFT JOIN unmatched rows",
+      "note": "upstream sees the unmatched left rows; the port sees none"
+    },
+    {
+      "id": "bug-rowid-omitted-pk",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE p (id INTEGER PRIMARY KEY, name TEXT)",
+            "INSERT INTO p (name) VALUES ('a')"
+          ],
+          "query": "SELECT id AS id, name AS name FROM p ORDER BY id"
+        }
+      ],
+      "upstreamFn": "INSERT omitting INTEGER PRIMARY KEY auto-assigns a rowid",
+      "goFn": "sqlite: INSERT omitting INTEGER PRIMARY KEY auto-assigns a rowid",
+      "note": "port bug: no rowid is assigned; the INSERT fails with a NOT NULL constraint error instead of auto-numbering"
+    },
+    {
+      "id": "bug-rowid-omitted-pk-multi",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE p (id INTEGER PRIMARY KEY, name TEXT)",
+            "INSERT INTO p (name) VALUES ('a'),('b'),('c')"
+          ],
+          "query": "SELECT id AS id FROM p ORDER BY id"
+        }
+      ],
+      "upstreamFn": "INTEGER PRIMARY KEY auto-numbering sequence",
+      "goFn": "sqlite: INTEGER PRIMARY KEY auto-numbering sequence"
+    },
+    {
+      "id": "bug-rowid-explicit-null",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE p (id INTEGER PRIMARY KEY, name TEXT)",
+            "INSERT INTO p (id, name) VALUES (NULL, 'a')"
+          ],
+          "query": "SELECT id AS id FROM p ORDER BY id"
+        }
+      ],
+      "upstreamFn": "explicit NULL into INTEGER PRIMARY KEY auto-assigns a rowid",
+      "goFn": "sqlite: explicit NULL into INTEGER PRIMARY KEY auto-assigns a rowid"
+    },
+    {
+      "id": "bug-rowid-pseudo-column",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE q (name TEXT)",
+            "INSERT INTO q (name) VALUES ('a'),('b')"
+          ],
+          "query": "SELECT rowid AS r, name AS n FROM q ORDER BY r"
+        }
+      ],
+      "upstreamFn": "implicit rowid pseudo-column",
+      "goFn": "sqlite: implicit rowid pseudo-column"
+    }
+  ]
+}

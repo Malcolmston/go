@@ -1,0 +1,475 @@
+{
+  "group": "broadcasting",
+  "upstream": "numpy@2.2.6",
+  "cases": [
+    {
+      "id": "bcast-3x1-1x4",
+      "fn": "add",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0
+            ],
+            [
+              2.0
+            ],
+            [
+              3.0
+            ]
+          ]
+        },
+        {
+          "arr": [
+            [
+              10.0,
+              20.0,
+              30.0,
+              40.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.add",
+      "goFn": "numpy.NDArray.Add"
+    },
+    {
+      "id": "bcast-2x3-row",
+      "fn": "add",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        {
+          "arr": [
+            10.0,
+            20.0,
+            30.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.add",
+      "goFn": "numpy.NDArray.Add"
+    },
+    {
+      "id": "bcast-2x3-col",
+      "fn": "mul",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        {
+          "arr": [
+            [
+              10.0
+            ],
+            [
+              100.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.multiply",
+      "goFn": "numpy.NDArray.Mul"
+    },
+    {
+      "id": "bcast-scalarish",
+      "fn": "add",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        {
+          "arr": [
+            5.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.add",
+      "goFn": "numpy.NDArray.Add"
+    },
+    {
+      "id": "bcast-3d-2d",
+      "fn": "add",
+      "args": [
+        {
+          "arr": [
+            [
+              [
+                0.0,
+                1.0,
+                2.0,
+                3.0
+              ],
+              [
+                4.0,
+                5.0,
+                6.0,
+                7.0
+              ],
+              [
+                8.0,
+                9.0,
+                10.0,
+                11.0
+              ]
+            ],
+            [
+              [
+                12.0,
+                13.0,
+                14.0,
+                15.0
+              ],
+              [
+                16.0,
+                17.0,
+                18.0,
+                19.0
+              ],
+              [
+                20.0,
+                21.0,
+                22.0,
+                23.0
+              ]
+            ]
+          ]
+        },
+        {
+          "arr": [
+            [
+              0.0,
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0,
+              7.0
+            ],
+            [
+              8.0,
+              9.0,
+              10.0,
+              11.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.add",
+      "goFn": "numpy.NDArray.Add"
+    },
+    {
+      "id": "bcast-3d-row",
+      "fn": "sub",
+      "args": [
+        {
+          "arr": [
+            [
+              [
+                0.0,
+                1.0,
+                2.0,
+                3.0
+              ],
+              [
+                4.0,
+                5.0,
+                6.0,
+                7.0
+              ],
+              [
+                8.0,
+                9.0,
+                10.0,
+                11.0
+              ]
+            ],
+            [
+              [
+                12.0,
+                13.0,
+                14.0,
+                15.0
+              ],
+              [
+                16.0,
+                17.0,
+                18.0,
+                19.0
+              ],
+              [
+                20.0,
+                21.0,
+                22.0,
+                23.0
+              ]
+            ]
+          ]
+        },
+        {
+          "arr": [
+            1.0,
+            2.0,
+            3.0,
+            4.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.subtract",
+      "goFn": "numpy.NDArray.Sub"
+    },
+    {
+      "id": "bcast-incompatible",
+      "fn": "add",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        {
+          "arr": [
+            1.0,
+            2.0,
+            3.0,
+            4.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.add",
+      "goFn": "numpy.NDArray.Add",
+      "note": "must FAIL on both sides"
+    },
+    {
+      "id": "bcast-incompatible-2d",
+      "fn": "add",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        {
+          "arr": [
+            [
+              1.0,
+              2.0
+            ],
+            [
+              3.0,
+              4.0
+            ],
+            [
+              5.0,
+              6.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.add",
+      "goFn": "numpy.NDArray.Add",
+      "note": "must FAIL on both sides"
+    },
+    {
+      "id": "broadcast-to-3x4",
+      "fn": "broadcast_to",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0,
+              4.0
+            ]
+          ]
+        },
+        [
+          3,
+          4
+        ]
+      ],
+      "upstreamFn": "numpy.broadcast_to",
+      "goFn": "numpy.NDArray.BroadcastTo"
+    },
+    {
+      "id": "broadcast-to-1d",
+      "fn": "broadcast_to",
+      "args": [
+        {
+          "arr": [
+            7.0
+          ]
+        },
+        [
+          2,
+          3
+        ]
+      ],
+      "upstreamFn": "numpy.broadcast_to",
+      "goFn": "numpy.NDArray.BroadcastTo"
+    },
+    {
+      "id": "broadcast-to-add-axis",
+      "fn": "broadcast_to",
+      "args": [
+        {
+          "arr": [
+            1.0,
+            2.0,
+            3.0
+          ]
+        },
+        [
+          2,
+          2,
+          3
+        ]
+      ],
+      "upstreamFn": "numpy.broadcast_to",
+      "goFn": "numpy.NDArray.BroadcastTo"
+    },
+    {
+      "id": "broadcast-to-bad",
+      "fn": "broadcast_to",
+      "args": [
+        {
+          "arr": [
+            1.0,
+            2.0,
+            3.0
+          ]
+        },
+        [
+          3,
+          4
+        ]
+      ],
+      "upstreamFn": "numpy.broadcast_to",
+      "goFn": "numpy.NDArray.BroadcastTo",
+      "note": "must FAIL on both sides"
+    },
+    {
+      "id": "broadcast-to-shrink",
+      "fn": "broadcast_to",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        [
+          3
+        ]
+      ],
+      "upstreamFn": "numpy.broadcast_to",
+      "goFn": "numpy.NDArray.BroadcastTo",
+      "note": "must FAIL on both sides"
+    },
+    {
+      "id": "bcast-where",
+      "fn": "where",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        {
+          "arr": [
+            [
+              100.0
+            ],
+            [
+              200.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.where",
+      "goFn": "numpy.Where"
+    }
+  ]
+}

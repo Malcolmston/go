@@ -1,0 +1,84 @@
+{
+  "group": "surface",
+  "upstream": "sharp@0.33.5",
+  "cases": [
+    {
+      "id": "surface-output-formats",
+      "fn": "outputFormats",
+      "args": [
+        [
+          "avif",
+          "bmp",
+          "gif",
+          "heif",
+          "jp2",
+          "jpeg",
+          "jxl",
+          "png",
+          "raw",
+          "tiff",
+          "webp",
+          "xyz"
+        ]
+      ],
+      "upstreamFn": "Sharp#toFormat",
+      "goFn": "Pipeline.ToFormat",
+      "note": "probe: each candidate is actually encoded"
+    },
+    {
+      "id": "surface-input-formats",
+      "fn": "inputFormats",
+      "args": [
+        [
+          "gradient.png",
+          "odd.png",
+          "wide.png",
+          "tall.png",
+          "checker.png",
+          "circle.png",
+          "opaque-rgba.png",
+          "mask.png",
+          "gradient.jpg",
+          "gradient.gif",
+          "gradient.tiff",
+          "gradient.bmp",
+          "gradient.webp",
+          "gradient.avif",
+          "garbage.bin",
+          "empty.bin",
+          "truncated.png"
+        ]
+      ],
+      "upstreamFn": "sharp()",
+      "goFn": "sharp.FromFile",
+      "note": "probe: each candidate is actually decoded"
+    },
+    {
+      "id": "surface-raw-roundtrip-grad",
+      "fn": "rawRoundTrip",
+      "args": [
+        "gradient.png"
+      ],
+      "upstreamFn": "Sharp#raw",
+      "goFn": "sharp.FromRaw"
+    },
+    {
+      "id": "surface-raw-roundtrip-circle",
+      "fn": "rawRoundTrip",
+      "args": [
+        "circle.png"
+      ],
+      "upstreamFn": "Sharp#raw",
+      "goFn": "sharp.FromRaw"
+    },
+    {
+      "id": "surface-raw-roundtrip-orgba",
+      "fn": "rawRoundTrip",
+      "args": [
+        "opaque-rgba.png"
+      ],
+      "upstreamFn": "Sharp#raw",
+      "goFn": "sharp.FromRaw"
+    }
+  ]
+}

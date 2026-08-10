@@ -1,0 +1,409 @@
+{
+  "group": "keyspace",
+  "upstream": "redis-server@8.2.2",
+  "encoding": "commands are arrays of UTF-8 argument strings; replies map integer->number, bulk string->string, nil->null, simple string->{\"status\":s}, array->array, error->{\"error\":true}",
+  "cases": [
+    {
+      "id": "exists-del",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "a",
+              "1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "b",
+              "2"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXISTS",
+              "a",
+              "b",
+              "nosuch"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXISTS",
+              "a",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "DEL",
+              "a",
+              "nosuch"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXISTS",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "DEL",
+              "b"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "DBSIZE"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "EXISTS/DEL",
+      "goFn": "Store.Do EXISTS/DEL",
+      "note": "EXISTS counts repeats, DEL returns how many were removed"
+    },
+    {
+      "id": "type-of-every-kind",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "s",
+              "1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "RPUSH",
+              "l",
+              "x"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HSET",
+              "h",
+              "f",
+              "v"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SADD",
+              "st",
+              "m"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZADD",
+              "z",
+              "1",
+              "m"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TYPE",
+              "s"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TYPE",
+              "l"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TYPE",
+              "h"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TYPE",
+              "st"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TYPE",
+              "z"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TYPE",
+              "missing"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "DBSIZE"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "TYPE",
+      "goFn": "Store.Do TYPE",
+      "note": "TYPE is a simple string; a missing key is 'none'"
+    },
+    {
+      "id": "keys-glob",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "abc",
+              "1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "abd",
+              "1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "b",
+              "1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "xyz",
+              "1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "KEYS",
+              "*"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "KEYS",
+              "ab*"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "KEYS",
+              "?"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "KEYS",
+              "[ab]*"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "KEYS",
+              "ab?"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "KEYS",
+              "nomatch*"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "KEYS",
+              "a*c"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "KEYS pattern",
+      "goFn": "Store.Do KEYS",
+      "note": "results sorted on both sides"
+    },
+    {
+      "id": "flushall-dbsize",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "a",
+              "1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "RPUSH",
+              "l",
+              "x"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "DBSIZE"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "FLUSHALL"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "DBSIZE"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "KEYS",
+              "*"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "a"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "FLUSHALL/DBSIZE",
+      "goFn": "Store.Do FLUSHALL/DBSIZE",
+      "note": ""
+    },
+    {
+      "id": "del-mixed-types",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "s",
+              "1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "RPUSH",
+              "l",
+              "x"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HSET",
+              "h",
+              "f",
+              "v"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SADD",
+              "st",
+              "m"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZADD",
+              "z",
+              "1",
+              "m"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "DEL",
+              "s",
+              "l",
+              "h",
+              "st",
+              "z",
+              "nope"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "DBSIZE"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "KEYS",
+              "*"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "DEL",
+      "goFn": "Store.Do DEL",
+      "note": "DEL works on every value type"
+    }
+  ]
+}

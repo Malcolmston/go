@@ -1,0 +1,201 @@
+{
+  "group": "headers",
+  "upstream": "nodemailer@6.9.16",
+  "cases": [
+    {
+      "id": "hdr-custom-single",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.headers",
+      "goFn": "nodemailer.Message.AddHeader",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "body",
+          "headers": [{ "key": "X-Parity", "value": "one" }]
+        }
+      ]
+    },
+    {
+      "id": "hdr-custom-multiple",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.headers",
+      "goFn": "nodemailer.Message.AddHeader",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "body",
+          "headers": [
+            { "key": "X-Parity", "value": "one" },
+            { "key": "X-Other", "value": "two" },
+            { "key": "X-Parity", "value": "three" }
+          ]
+        }
+      ],
+      "note": "duplicate header field names must survive"
+    },
+    {
+      "id": "hdr-custom-non-ascii",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.headers (RFC 2047 value)",
+      "goFn": "nodemailer.Message.AddHeader",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "body",
+          "headers": [{ "key": "X-Comment", "value": "grüße aus münchen" }]
+        }
+      ]
+    },
+    {
+      "id": "hdr-custom-long-value",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.headers (folding)",
+      "goFn": "nodemailer.Message.AddHeader",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "body",
+          "headers": [
+            {
+              "key": "X-Long",
+              "value": "token1 token2 token3 token4 token5 token6 token7 token8 token9 token10 token11 token12 token13 token14"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hdr-priority-high",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.priority",
+      "goFn": "nodemailer.Message.SetPriority",
+      "args": [{ "from": "ada@example.com", "to": ["b@example.com"], "text": "body", "priority": "high" }]
+    },
+    {
+      "id": "hdr-priority-low",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.priority",
+      "goFn": "nodemailer.Message.SetPriority",
+      "args": [{ "from": "ada@example.com", "to": ["b@example.com"], "text": "body", "priority": "low" }]
+    },
+    {
+      "id": "hdr-priority-normal",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.priority",
+      "goFn": "nodemailer.Message.SetPriority",
+      "args": [{ "from": "ada@example.com", "to": ["b@example.com"], "text": "body", "priority": "normal" }],
+      "note": "normal priority must emit no priority headers"
+    },
+    {
+      "id": "hdr-in-reply-to",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.inReplyTo",
+      "goFn": "nodemailer.Message.SetInReplyTo",
+      "args": [
+        { "from": "ada@example.com", "to": ["b@example.com"], "text": "body", "inReplyTo": "<parent@example.com>" }
+      ]
+    },
+    {
+      "id": "hdr-references-single",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.references",
+      "goFn": "nodemailer.Message.AddReferences",
+      "args": [
+        { "from": "ada@example.com", "to": ["b@example.com"], "text": "body", "references": ["<r1@example.com>"] }
+      ]
+    },
+    {
+      "id": "hdr-references-multiple",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.references",
+      "goFn": "nodemailer.Message.AddReferences",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "body",
+          "inReplyTo": "<r3@example.com>",
+          "references": ["<r1@example.com>", "<r2@example.com>", "<r3@example.com>"]
+        }
+      ],
+      "note": "References is a space-separated msg-id list, not comma separated"
+    },
+    {
+      "id": "hdr-list-unsubscribe",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.list.unsubscribe",
+      "goFn": "nodemailer.Message.SetListUnsubscribe",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "body",
+          "list": { "unsubscribe": ["mailto:unsub@example.com", "https://example.com/unsub"] }
+        }
+      ]
+    },
+    {
+      "id": "hdr-list-unsubscribe-post",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.headers List-Unsubscribe-Post (RFC 8058)",
+      "goFn": "nodemailer.Message.SetListUnsubscribePost",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "body",
+          "list": { "unsubscribe": ["https://example.com/unsub"], "unsubscribePost": true }
+        }
+      ],
+      "deviation": "the Go port adds a SetListUnsubscribePost helper that emits List-Unsubscribe-Post: List-Unsubscribe=One-Click; upstream 6.9.16 has no such option, so the header is absent there",
+      "note": "Go-only helper"
+    },
+    {
+      "id": "hdr-list-id-and-help",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.list.id / mail.list.help",
+      "goFn": "nodemailer.Message.AddListHeader",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "body",
+          "list": {
+            "id": "<parity.list.example.com>",
+            "help": "<mailto:help@example.com>",
+            "headers": [
+              { "key": "ID", "value": "<parity.list.example.com>" },
+              { "key": "Help", "value": "<mailto:help@example.com>" }
+            ]
+          }
+        }
+      ],
+      "note": "list.headers[] drives the Go side; list.id/list.help drive upstream"
+    },
+    {
+      "id": "hdr-mixed-everything",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.headers + priority + references",
+      "goFn": "nodemailer.Message.AddHeader + SetPriority + AddReferences",
+      "args": [
+        {
+          "from": "Ada Lovelace <ada@example.com>",
+          "to": ["b@example.com"],
+          "cc": ["c@example.com"],
+          "subject": "Everything at once — ünïcode",
+          "text": "plain",
+          "html": "<p>rich</p>",
+          "priority": "high",
+          "inReplyTo": "<parent@example.com>",
+          "references": ["<r1@example.com>"],
+          "headers": [{ "key": "X-Campaign", "value": "parity" }],
+          "list": { "unsubscribe": ["mailto:unsub@example.com"] }
+        }
+      ]
+    }
+  ]
+}

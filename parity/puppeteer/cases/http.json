@@ -1,0 +1,240 @@
+{
+  "group": "http",
+  "upstream": "cheerio@1.0.0 + tough-cookie@5.1.2 + node WHATWG fetch/URL",
+  "note": "Each side drives its own in-process loopback fixture server (identical routes) and reports the observable navigation result. Host:port is normalised to SRV. The oracle is node's WHATWG fetch (redirects, status) + URL (relative resolution) + tough-cookie (RFC 6265 jar).",
+  "cases": [
+    {
+      "id": "http-status-200",
+      "fn": "http",
+      "args": [
+        "status-200"
+      ],
+      "upstreamFn": "fetch/URL/tough-cookie",
+      "goFn": "puppeteer.Page.Goto"
+    },
+    {
+      "id": "http-status-201",
+      "fn": "http",
+      "args": [
+        "status-201"
+      ],
+      "upstreamFn": "fetch/URL/tough-cookie",
+      "goFn": "puppeteer.Page.Goto"
+    },
+    {
+      "id": "http-status-404",
+      "fn": "http",
+      "args": [
+        "status-404"
+      ],
+      "upstreamFn": "fetch/URL/tough-cookie",
+      "goFn": "puppeteer.Page.Goto",
+      "note": "a 4xx must not be reported as an error"
+    },
+    {
+      "id": "http-status-500",
+      "fn": "http",
+      "args": [
+        "status-500"
+      ],
+      "upstreamFn": "fetch/URL/tough-cookie",
+      "goFn": "puppeteer.Page.Goto"
+    },
+    {
+      "id": "http-status-204",
+      "fn": "http",
+      "args": [
+        "status-204"
+      ],
+      "upstreamFn": "fetch/URL/tough-cookie",
+      "goFn": "puppeteer.Page.Goto",
+      "note": "no body at all"
+    },
+    {
+      "id": "http-redirect-absolute",
+      "fn": "http",
+      "args": [
+        "redirect-absolute"
+      ],
+      "upstreamFn": "fetch/URL/tough-cookie",
+      "goFn": "puppeteer.Page.Goto",
+      "note": "302 to an absolute URL"
+    },
+    {
+      "id": "http-redirect-relative",
+      "fn": "http",
+      "args": [
+        "redirect-relative"
+      ],
+      "upstreamFn": "fetch/URL/tough-cookie",
+      "goFn": "puppeteer.Page.Goto",
+      "note": "302 with a relative Location (../final)"
+    },
+    {
+      "id": "http-redirect-pathonly",
+      "fn": "http",
+      "args": [
+        "redirect-pathonly"
+      ],
+      "upstreamFn": "fetch/URL/tough-cookie",
+      "goFn": "puppeteer.Page.Goto",
+      "note": "302 with a root-relative Location"
+    },
+    {
+      "id": "http-redirect-permanent",
+      "fn": "http",
+      "args": [
+        "redirect-permanent"
+      ],
+      "upstreamFn": "fetch/URL/tough-cookie",
+      "goFn": "puppeteer.Page.Goto",
+      "note": "301"
+    },
+    {
+      "id": "http-redirect-chain",
+      "fn": "http",
+      "args": [
+        "redirect-chain"
+      ],
+      "upstreamFn": "fetch/URL/tough-cookie",
+      "goFn": "puppeteer.Page.Goto",
+      "note": "three hops"
+    },
+    {
+      "id": "http-redirect-no-follow",
+      "fn": "http",
+      "args": [
+        "redirect-no-follow"
+      ],
+      "upstreamFn": "fetch/URL/tough-cookie",
+      "goFn": "puppeteer.Page.Goto",
+      "note": "redirect following disabled"
+    },
+    {
+      "id": "http-relative-goto-dotdot",
+      "fn": "http",
+      "args": [
+        "relative-goto-dotdot"
+      ],
+      "upstreamFn": "fetch/URL/tough-cookie",
+      "goFn": "puppeteer.Page.Goto",
+      "note": "Goto('../other') resolved against the current URL"
+    },
+    {
+      "id": "http-relative-goto-sibling",
+      "fn": "http",
+      "args": [
+        "relative-goto-sibling"
+      ],
+      "upstreamFn": "fetch/URL/tough-cookie",
+      "goFn": "puppeteer.Page.Goto",
+      "note": "Goto('sibling')"
+    },
+    {
+      "id": "http-relative-goto-absolute-path",
+      "fn": "http",
+      "args": [
+        "relative-goto-absolute-path"
+      ],
+      "upstreamFn": "fetch/URL/tough-cookie",
+      "goFn": "puppeteer.Page.Goto"
+    },
+    {
+      "id": "http-links-resolved",
+      "fn": "http",
+      "args": [
+        "links-resolved"
+      ],
+      "upstreamFn": "fetch/URL/tough-cookie",
+      "goFn": "puppeteer.Page.Goto",
+      "note": "document.links semantics: a[href] and area[href], resolved and de-duplicated"
+    },
+    {
+      "id": "http-cookie-roundtrip",
+      "fn": "http",
+      "args": [
+        "cookie-roundtrip"
+      ],
+      "upstreamFn": "fetch/URL/tough-cookie",
+      "goFn": "puppeteer.Page.Goto",
+      "note": "Set-Cookie stored in the jar and replayed on the next navigation"
+    },
+    {
+      "id": "http-cookie-two",
+      "fn": "http",
+      "args": [
+        "cookie-two"
+      ],
+      "upstreamFn": "fetch/URL/tough-cookie",
+      "goFn": "puppeteer.Page.Goto",
+      "note": "two Set-Cookie headers on one response"
+    },
+    {
+      "id": "http-cookie-path-excluded",
+      "fn": "http",
+      "args": [
+        "cookie-path-excluded"
+      ],
+      "upstreamFn": "fetch/URL/tough-cookie",
+      "goFn": "puppeteer.Page.Goto",
+      "note": "a Path=/scoped cookie must not be sent to /cookie/echo"
+    },
+    {
+      "id": "http-cookie-path-included",
+      "fn": "http",
+      "args": [
+        "cookie-path-included"
+      ],
+      "upstreamFn": "fetch/URL/tough-cookie",
+      "goFn": "puppeteer.Page.Goto"
+    },
+    {
+      "id": "http-cookie-none",
+      "fn": "http",
+      "args": [
+        "cookie-not-leaked-before-set"
+      ],
+      "upstreamFn": "fetch/URL/tough-cookie",
+      "goFn": "puppeteer.Page.Goto"
+    },
+    {
+      "id": "http-echo-get-query",
+      "fn": "http",
+      "args": [
+        "echo-get-query"
+      ],
+      "upstreamFn": "fetch/URL/tough-cookie",
+      "goFn": "puppeteer.Page.Goto",
+      "note": "query string is preserved verbatim"
+    },
+    {
+      "id": "http-page-title",
+      "fn": "http",
+      "args": [
+        "page-title"
+      ],
+      "upstreamFn": "fetch/URL/tough-cookie",
+      "goFn": "puppeteer.Page.Goto"
+    },
+    {
+      "id": "http-page-content",
+      "fn": "http",
+      "args": [
+        "page-content"
+      ],
+      "upstreamFn": "fetch/URL/tough-cookie",
+      "goFn": "puppeteer.Page.Goto",
+      "note": "raw response body"
+    },
+    {
+      "id": "http-page-html",
+      "fn": "http",
+      "args": [
+        "page-html"
+      ],
+      "upstreamFn": "fetch/URL/tough-cookie",
+      "goFn": "puppeteer.Page.Goto",
+      "note": "re-serialised DOM"
+    }
+  ]
+}

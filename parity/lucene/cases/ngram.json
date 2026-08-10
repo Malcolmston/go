@@ -1,0 +1,31 @@
+{
+  "group": "ngram",
+  "upstream": "lucene@9.11.1",
+  "cases": [
+    {"id": "ng-3", "fn": "ngrams", "args": ["network", 3], "upstreamFn": "NGramTokenizer", "goFn": "lucene.NGrams"},
+    {"id": "ng-1", "fn": "ngrams", "args": ["abc", 1], "upstreamFn": "NGramTokenizer", "goFn": "lucene.NGrams"},
+    {"id": "ng-exact-len", "fn": "ngrams", "args": ["abc", 3], "upstreamFn": "NGramTokenizer", "goFn": "lucene.NGrams"},
+    {"id": "ng-too-long", "fn": "ngrams", "args": ["ab", 5], "upstreamFn": "NGramTokenizer", "goFn": "lucene.NGrams", "note": "n larger than the input"},
+    {"id": "ng-empty", "fn": "ngrams", "args": ["", 2], "upstreamFn": "NGramTokenizer", "goFn": "lucene.NGrams"},
+    {"id": "ng-zero", "fn": "ngrams", "args": ["abc", 0], "upstreamFn": "NGramTokenizer", "goFn": "lucene.NGrams", "note": "Lucene rejects minGram < 1"},
+    {"id": "ng-negative", "fn": "ngrams", "args": ["abc", -1], "upstreamFn": "NGramTokenizer", "goFn": "lucene.NGrams", "note": "Lucene rejects a negative gram size"},
+    {"id": "ng-unicode", "fn": "ngrams", "args": ["日本語です", 2], "upstreamFn": "NGramTokenizer", "goFn": "lucene.NGrams", "note": "code-point granularity"},
+    {"id": "ng-space", "fn": "ngrams", "args": ["a b", 2], "upstreamFn": "NGramTokenizer", "goFn": "lucene.NGrams", "note": "NGramTokenizer does not treat space specially by default"},
+
+    {"id": "eng-1-3", "fn": "edgeNgrams", "args": ["network", 1, 3], "upstreamFn": "EdgeNGramTokenizer", "goFn": "lucene.EdgeNGrams"},
+    {"id": "eng-2-2", "fn": "edgeNgrams", "args": ["network", 2, 2], "upstreamFn": "EdgeNGramTokenizer", "goFn": "lucene.EdgeNGrams"},
+    {"id": "eng-clamp-max", "fn": "edgeNgrams", "args": ["ab", 1, 9], "upstreamFn": "EdgeNGramTokenizer", "goFn": "lucene.EdgeNGrams", "note": "maxGram beyond the input length"},
+    {"id": "eng-min-zero", "fn": "edgeNgrams", "args": ["abc", 0, 2], "upstreamFn": "EdgeNGramTokenizer", "goFn": "lucene.EdgeNGrams", "note": "Lucene rejects minGram < 1"},
+    {"id": "eng-max-lt-min", "fn": "edgeNgrams", "args": ["abc", 3, 1], "upstreamFn": "EdgeNGramTokenizer", "goFn": "lucene.EdgeNGrams", "note": "Lucene rejects maxGram < minGram"},
+    {"id": "eng-empty", "fn": "edgeNgrams", "args": ["", 1, 3], "upstreamFn": "EdgeNGramTokenizer", "goFn": "lucene.EdgeNGrams"},
+    {"id": "eng-unicode", "fn": "edgeNgrams", "args": ["日本語", 1, 2], "upstreamFn": "EdgeNGramTokenizer", "goFn": "lucene.EdgeNGrams"},
+
+    {"id": "sh-2", "fn": "shingles", "args": [["the", "quick", "brown", "fox"], 2], "upstreamFn": "ShingleFilter", "goFn": "lucene.Shingles"},
+    {"id": "sh-3", "fn": "shingles", "args": [["the", "quick", "brown", "fox"], 3], "upstreamFn": "ShingleFilter", "goFn": "lucene.Shingles"},
+    {"id": "sh-exact", "fn": "shingles", "args": [["a", "b"], 2], "upstreamFn": "ShingleFilter", "goFn": "lucene.Shingles"},
+    {"id": "sh-too-few", "fn": "shingles", "args": [["a"], 2], "upstreamFn": "ShingleFilter", "goFn": "lucene.Shingles", "note": "fewer tokens than the shingle size"},
+    {"id": "sh-one", "fn": "shingles", "args": [["a", "b", "c"], 1], "upstreamFn": "ShingleFilter", "goFn": "lucene.Shingles", "note": "Lucene requires minShingleSize >= 2"},
+    {"id": "sh-empty", "fn": "shingles", "args": [[], 2], "upstreamFn": "ShingleFilter", "goFn": "lucene.Shingles"},
+    {"id": "sh-zero", "fn": "shingles", "args": [["a", "b", "c"], 0], "upstreamFn": "ShingleFilter", "goFn": "lucene.Shingles", "note": "the port silently defaults n<1 to 2"}
+  ]
+}

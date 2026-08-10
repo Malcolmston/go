@@ -1,0 +1,336 @@
+{
+  "group": "operators",
+  "upstream": "sqlite3@3.45.3",
+  "cases": [
+    {
+      "id": "like-00",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 'abc' LIKE 'abc' AS v"
+        }
+      ],
+      "upstreamFn": "LIKE",
+      "goFn": "sqlite: LIKE"
+    },
+    {
+      "id": "like-01",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 'abc' LIKE 'a%' AS v"
+        }
+      ],
+      "upstreamFn": "LIKE",
+      "goFn": "sqlite: LIKE"
+    },
+    {
+      "id": "like-02",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 'abc' LIKE '%c' AS v"
+        }
+      ],
+      "upstreamFn": "LIKE",
+      "goFn": "sqlite: LIKE"
+    },
+    {
+      "id": "like-03",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 'abc' LIKE '%b%' AS v"
+        }
+      ],
+      "upstreamFn": "LIKE",
+      "goFn": "sqlite: LIKE"
+    },
+    {
+      "id": "like-04",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 'abc' LIKE 'a_c' AS v"
+        }
+      ],
+      "upstreamFn": "LIKE",
+      "goFn": "sqlite: LIKE"
+    },
+    {
+      "id": "like-05",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 'abc' LIKE 'a__' AS v"
+        }
+      ],
+      "upstreamFn": "LIKE",
+      "goFn": "sqlite: LIKE"
+    },
+    {
+      "id": "like-06",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 'abc' LIKE 'A%' AS v"
+        }
+      ],
+      "upstreamFn": "LIKE",
+      "goFn": "sqlite: LIKE"
+    },
+    {
+      "id": "like-07",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 'ABC' LIKE 'a%' AS v"
+        }
+      ],
+      "upstreamFn": "LIKE",
+      "goFn": "sqlite: LIKE"
+    },
+    {
+      "id": "like-08",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT '' LIKE '%' AS v"
+        }
+      ],
+      "upstreamFn": "LIKE",
+      "goFn": "sqlite: LIKE"
+    },
+    {
+      "id": "like-09",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT '' LIKE '_' AS v"
+        }
+      ],
+      "upstreamFn": "LIKE",
+      "goFn": "sqlite: LIKE"
+    },
+    {
+      "id": "like-10",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT '100%' LIKE '100%' AS v"
+        }
+      ],
+      "upstreamFn": "LIKE",
+      "goFn": "sqlite: LIKE"
+    },
+    {
+      "id": "not-like",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 'abc' NOT LIKE 'z%' AS v"
+        }
+      ],
+      "upstreamFn": "NOT LIKE",
+      "goFn": "sqlite: NOT LIKE"
+    },
+    {
+      "id": "glob-00",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 'abc' GLOB 'abc' AS v"
+        }
+      ],
+      "upstreamFn": "GLOB",
+      "goFn": "sqlite: GLOB"
+    },
+    {
+      "id": "glob-01",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 'abc' GLOB 'a*' AS v"
+        }
+      ],
+      "upstreamFn": "GLOB",
+      "goFn": "sqlite: GLOB"
+    },
+    {
+      "id": "glob-02",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 'abc' GLOB '*c' AS v"
+        }
+      ],
+      "upstreamFn": "GLOB",
+      "goFn": "sqlite: GLOB"
+    },
+    {
+      "id": "glob-03",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 'abc' GLOB 'a?c' AS v"
+        }
+      ],
+      "upstreamFn": "GLOB",
+      "goFn": "sqlite: GLOB"
+    },
+    {
+      "id": "glob-04",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 'abc' GLOB 'A*' AS v"
+        }
+      ],
+      "upstreamFn": "GLOB",
+      "goFn": "sqlite: GLOB"
+    },
+    {
+      "id": "glob-05",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 'abc' GLOB '[abc]bc' AS v"
+        }
+      ],
+      "upstreamFn": "GLOB",
+      "goFn": "sqlite: GLOB"
+    },
+    {
+      "id": "glob-06",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 'abc' GLOB '[^x]bc' AS v"
+        }
+      ],
+      "upstreamFn": "GLOB",
+      "goFn": "sqlite: GLOB"
+    },
+    {
+      "id": "glob-07",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 'abc' GLOB 'a[b-d]c' AS v"
+        }
+      ],
+      "upstreamFn": "GLOB",
+      "goFn": "sqlite: GLOB"
+    },
+    {
+      "id": "not-glob",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 'abc' NOT GLOB 'z*' AS v"
+        }
+      ],
+      "upstreamFn": "NOT GLOB",
+      "goFn": "sqlite: NOT GLOB"
+    },
+    {
+      "id": "glob-func",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT glob('a*', 'abc') AS v"
+        }
+      ],
+      "upstreamFn": "glob() function",
+      "goFn": "sqlite: glob() function"
+    },
+    {
+      "id": "like-func",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT like('a%', 'abc') AS v"
+        }
+      ],
+      "upstreamFn": "like() function",
+      "goFn": "sqlite: like() function"
+    },
+    {
+      "id": "prec-mul-add",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 2 + 3 * 4 AS v"
+        }
+      ],
+      "upstreamFn": "precedence: * over +",
+      "goFn": "sqlite: precedence: * over +"
+    },
+    {
+      "id": "prec-and-or",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 1 OR 0 AND 0 AS v"
+        }
+      ],
+      "upstreamFn": "precedence: AND over OR",
+      "goFn": "sqlite: precedence: AND over OR"
+    },
+    {
+      "id": "prec-concat-cmp",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 'a' || 'b' = 'ab' AS v"
+        }
+      ],
+      "upstreamFn": "precedence: || over =",
+      "goFn": "sqlite: precedence: || over ="
+    },
+    {
+      "id": "bool-true",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 1 = 1 AS v"
+        }
+      ],
+      "upstreamFn": "true is 1",
+      "goFn": "sqlite: true is 1"
+    },
+    {
+      "id": "bool-false",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 1 = 2 AS v"
+        }
+      ],
+      "upstreamFn": "false is 0",
+      "goFn": "sqlite: false is 0"
+    },
+    {
+      "id": "in-mixed",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 1 IN (1, 'a') AS v"
+        }
+      ],
+      "upstreamFn": "IN with mixed types",
+      "goFn": "sqlite: IN with mixed types"
+    },
+    {
+      "id": "in-real",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 1 IN (1.0) AS v"
+        }
+      ],
+      "upstreamFn": "IN comparing INTEGER to REAL",
+      "goFn": "sqlite: IN comparing INTEGER to REAL"
+    }
+  ]
+}

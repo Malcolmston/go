@@ -1,0 +1,396 @@
+{
+  "group": "aggregates",
+  "upstream": "sqlite3@3.45.3",
+  "cases": [
+    {
+      "id": "agg-count-star",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT count(*) AS c FROM t"
+        }
+      ],
+      "upstreamFn": "count(*)",
+      "goFn": "sqlite: count(*)"
+    },
+    {
+      "id": "agg-count-col",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT count(qty) AS c FROM t"
+        }
+      ],
+      "upstreamFn": "count(column) skips NULL",
+      "goFn": "sqlite: count(column) skips NULL"
+    },
+    {
+      "id": "agg-count-distinct",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT count(DISTINCT qty) AS c FROM t"
+        }
+      ],
+      "upstreamFn": "count(DISTINCT x)",
+      "goFn": "sqlite: count(DISTINCT x)"
+    },
+    {
+      "id": "agg-sum",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT sum(qty) AS s FROM t"
+        }
+      ],
+      "upstreamFn": "sum()",
+      "goFn": "sqlite: sum()"
+    },
+    {
+      "id": "agg-sum-real",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT sum(price) AS s FROM t"
+        }
+      ],
+      "upstreamFn": "sum() over REAL",
+      "goFn": "sqlite: sum() over REAL"
+    },
+    {
+      "id": "agg-sum-empty",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT sum(qty) AS s FROM t WHERE 0"
+        }
+      ],
+      "upstreamFn": "sum() over no rows -> NULL",
+      "goFn": "sqlite: sum() over no rows -> NULL"
+    },
+    {
+      "id": "agg-count-empty",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT count(*) AS c FROM t WHERE 0"
+        }
+      ],
+      "upstreamFn": "count(*) over no rows -> 0",
+      "goFn": "sqlite: count(*) over no rows -> 0"
+    },
+    {
+      "id": "agg-avg",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT avg(qty) AS a FROM t"
+        }
+      ],
+      "upstreamFn": "avg()",
+      "goFn": "sqlite: avg()"
+    },
+    {
+      "id": "agg-avg-int-exact",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT avg(id) AS a FROM t WHERE id IN (1,3)"
+        }
+      ],
+      "upstreamFn": "avg() of integers is REAL",
+      "goFn": "sqlite: avg() of integers is REAL"
+    },
+    {
+      "id": "agg-min",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT min(qty) AS m FROM t"
+        }
+      ],
+      "upstreamFn": "min() aggregate",
+      "goFn": "sqlite: min() aggregate"
+    },
+    {
+      "id": "agg-max",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT max(qty) AS m FROM t"
+        }
+      ],
+      "upstreamFn": "max() aggregate",
+      "goFn": "sqlite: max() aggregate"
+    },
+    {
+      "id": "agg-min-text",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT min(name) AS m FROM t"
+        }
+      ],
+      "upstreamFn": "min() over TEXT",
+      "goFn": "sqlite: min() over TEXT"
+    },
+    {
+      "id": "agg-max-text",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT max(name) AS m FROM t"
+        }
+      ],
+      "upstreamFn": "max() over TEXT",
+      "goFn": "sqlite: max() over TEXT"
+    },
+    {
+      "id": "agg-multi",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT count(*) AS c, sum(qty) AS s, min(id) AS lo, max(id) AS hi FROM t"
+        }
+      ],
+      "upstreamFn": "several aggregates in one SELECT",
+      "goFn": "sqlite: several aggregates in one SELECT"
+    },
+    {
+      "id": "agg-expr",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT sum(qty * 2) AS s FROM t"
+        }
+      ],
+      "upstreamFn": "aggregate over an expression",
+      "goFn": "sqlite: aggregate over an expression"
+    },
+    {
+      "id": "group-by",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT qty AS q, count(*) AS c FROM t GROUP BY qty ORDER BY q"
+        }
+      ],
+      "upstreamFn": "GROUP BY",
+      "goFn": "sqlite: GROUP BY"
+    },
+    {
+      "id": "group-by-having",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT qty AS q, count(*) AS c FROM t GROUP BY qty HAVING count(*) > 1 ORDER BY q"
+        }
+      ],
+      "upstreamFn": "GROUP BY ... HAVING",
+      "goFn": "sqlite: GROUP BY ... HAVING"
+    },
+    {
+      "id": "group-by-having-sum",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT qty AS q, sum(price) AS s FROM t GROUP BY qty HAVING sum(price) >= 3 ORDER BY q"
+        }
+      ],
+      "upstreamFn": "HAVING over sum()",
+      "goFn": "sqlite: HAVING over sum()"
+    },
+    {
+      "id": "group-by-two",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT qty AS q, price AS p, count(*) AS c FROM t GROUP BY qty, price ORDER BY q, p"
+        }
+      ],
+      "upstreamFn": "GROUP BY a, b",
+      "goFn": "sqlite: GROUP BY a, b"
+    },
+    {
+      "id": "group-by-null",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT qty AS q, count(*) AS c FROM t GROUP BY qty ORDER BY q IS NOT NULL, q"
+        }
+      ],
+      "upstreamFn": "GROUP BY groups NULLs together",
+      "goFn": "sqlite: GROUP BY groups NULLs together"
+    },
+    {
+      "id": "agg-distinct-sum",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT sum(DISTINCT qty) AS s FROM t"
+        }
+      ],
+      "upstreamFn": "sum(DISTINCT x)",
+      "goFn": "sqlite: sum(DISTINCT x)"
+    },
+    {
+      "id": "agg-group-concat",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT group_concat(name) AS g FROM t"
+        }
+      ],
+      "upstreamFn": "group_concat()",
+      "goFn": "sqlite: group_concat()"
+    },
+    {
+      "id": "agg-group-concat-sep",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT group_concat(name, '|') AS g FROM t"
+        }
+      ],
+      "upstreamFn": "group_concat(x, sep)",
+      "goFn": "sqlite: group_concat(x, sep)"
+    },
+    {
+      "id": "agg-total",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT total(qty) AS s FROM t"
+        }
+      ],
+      "upstreamFn": "total()",
+      "goFn": "sqlite: total()"
+    },
+    {
+      "id": "agg-count-distinct-text",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT count(DISTINCT name) AS c FROM t"
+        }
+      ],
+      "upstreamFn": "count(DISTINCT text)",
+      "goFn": "sqlite: count(DISTINCT text)"
+    },
+    {
+      "id": "agg-avg-null-only",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT avg(qty) AS a FROM t WHERE qty IS NULL"
+        }
+      ],
+      "upstreamFn": "avg() over only NULLs",
+      "goFn": "sqlite: avg() over only NULLs"
+    }
+  ]
+}

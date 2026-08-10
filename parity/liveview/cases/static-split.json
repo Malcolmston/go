@@ -1,0 +1,271 @@
+{
+  "group": "static-split",
+  "upstream": "phoenix_live_view@1.2.9",
+  "note": "For one render of a given template and assigns, compare the static/dynamic split: the statics list under \"s\" and the value of every numbered dynamic slot.",
+  "cases": [
+    {
+      "id": "split-counter-full",
+      "fn": "render_full",
+      "args": [
+        "counter",
+        {
+          "label": "Counter",
+          "count": 0
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "liveview.FullDiff",
+      "note": "the port's own Counter template, two slots"
+    },
+    {
+      "id": "split-pair-adjacent",
+      "fn": "render_full",
+      "args": [
+        "pair",
+        {
+          "a": "1",
+          "b": "2"
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "liveview.FullDiff",
+      "note": "two adjacent slots: the static between them must be \"\""
+    },
+    {
+      "id": "split-lead",
+      "fn": "render_full",
+      "args": [
+        "lead",
+        {
+          "a": "z"
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "liveview.FullDiff",
+      "note": "slot first: statics[0] must be \"\""
+    },
+    {
+      "id": "split-trail",
+      "fn": "render_full",
+      "args": [
+        "trail",
+        {
+          "a": "z"
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "liveview.FullDiff",
+      "note": "slot last: the final static must be \"\""
+    },
+    {
+      "id": "split-plain-no-slots",
+      "fn": "render_full",
+      "args": [
+        "plain",
+        {}
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "liveview.FullDiff",
+      "note": "no dynamics at all"
+    },
+    {
+      "id": "split-one",
+      "fn": "render_full",
+      "args": [
+        "one",
+        {
+          "a": "q"
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "liveview.FullDiff"
+    },
+    {
+      "id": "split-empty-string",
+      "fn": "render_full",
+      "args": [
+        "one",
+        {
+          "a": ""
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "liveview.FullDiff"
+    },
+    {
+      "id": "split-nested-subtemplate",
+      "fn": "render_full",
+      "args": [
+        "nest",
+        {
+          "a": "x",
+          "v": "y"
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "liveview.FullDiff",
+      "note": "a nested Rendered: the sub-template's own statics live inside the slot"
+    },
+    {
+      "id": "split-missing-assign",
+      "fn": "render_full",
+      "args": [
+        "missing",
+        {}
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "liveview.FullDiff",
+      "note": "slot names an assign that was never set"
+    },
+    {
+      "id": "split-int",
+      "fn": "render_full",
+      "args": [
+        "one",
+        {
+          "a": 5
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "liveview.FullDiff"
+    },
+    {
+      "id": "split-int-zero",
+      "fn": "render_full",
+      "args": [
+        "one",
+        {
+          "a": 0
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "liveview.FullDiff"
+    },
+    {
+      "id": "split-int-negative",
+      "fn": "render_full",
+      "args": [
+        "one",
+        {
+          "a": -7
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "liveview.FullDiff"
+    },
+    {
+      "id": "split-float-whole",
+      "fn": "render_full",
+      "args": [
+        "one",
+        {
+          "a": 1.0
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "liveview.FullDiff",
+      "note": "JSON 1.0 — how is a whole float stringified?"
+    },
+    {
+      "id": "split-float-frac",
+      "fn": "render_full",
+      "args": [
+        "one",
+        {
+          "a": 1.5
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "liveview.FullDiff"
+    },
+    {
+      "id": "split-bool-true",
+      "fn": "render_full",
+      "args": [
+        "one",
+        {
+          "a": true
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "liveview.FullDiff"
+    },
+    {
+      "id": "split-bool-false",
+      "fn": "render_full",
+      "args": [
+        "one",
+        {
+          "a": false
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "liveview.FullDiff"
+    },
+    {
+      "id": "split-nil",
+      "fn": "render_full",
+      "args": [
+        "one",
+        {
+          "a": null
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "liveview.FullDiff"
+    },
+    {
+      "id": "split-list-interp",
+      "fn": "render_full",
+      "args": [
+        "one",
+        {
+          "a": [
+            "a",
+            "b"
+          ]
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "liveview.FullDiff",
+      "note": "a list interpolated into a single slot"
+    },
+    {
+      "id": "split-html-counter",
+      "fn": "render_html",
+      "args": [
+        "counter",
+        {
+          "label": "Counter",
+          "count": 0
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.to_iodata/1",
+      "goFn": "(*liveview.Rendered).HTML",
+      "note": "same split, materialised as HTML"
+    },
+    {
+      "id": "split-html-nested",
+      "fn": "render_html",
+      "args": [
+        "nest",
+        {
+          "a": "x",
+          "v": "y"
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.to_iodata/1",
+      "goFn": "(*liveview.Rendered).HTML"
+    },
+    {
+      "id": "split-html-plain",
+      "fn": "render_html",
+      "args": [
+        "plain",
+        {}
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.to_iodata/1",
+      "goFn": "(*liveview.Rendered).HTML"
+    }
+  ]
+}

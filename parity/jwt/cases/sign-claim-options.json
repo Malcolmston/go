@@ -1,0 +1,230 @@
+{
+  "group": "sign-claim-options",
+  "upstream": "jsonwebtoken@9.0.2",
+  "note": "node-jsonwebtoken's sign-time option->claim projection. The Go port has no sign options; the Go runner sets the corresponding claim or header directly.",
+  "cases": [
+    {
+      "id": "opt-expiresin-int",
+      "fn": "tokenParts",
+      "args": [
+        {
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "algorithm": "HS256",
+          "expiresIn": 3600
+        }
+      ],
+      "upstreamFn": "jwt.sign options.expiresIn",
+      "goFn": "jwt.MapClaims[\"exp\"]"
+    },
+    {
+      "id": "opt-notbefore-int",
+      "fn": "tokenParts",
+      "args": [
+        {
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "algorithm": "HS256",
+          "notBefore": 60
+        }
+      ],
+      "upstreamFn": "jwt.sign options.notBefore",
+      "goFn": "jwt.MapClaims[\"nbf\"]"
+    },
+    {
+      "id": "opt-audience-string",
+      "fn": "tokenParts",
+      "args": [
+        {
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "algorithm": "HS256",
+          "audience": "svc-a"
+        }
+      ],
+      "upstreamFn": "jwt.sign options.audience",
+      "goFn": "jwt.ClaimStrings"
+    },
+    {
+      "id": "opt-audience-array",
+      "fn": "tokenParts",
+      "args": [
+        {
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "algorithm": "HS256",
+          "audience": [
+            "svc-a",
+            "svc-b"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.sign options.audience",
+      "goFn": "jwt.ClaimStrings"
+    },
+    {
+      "id": "opt-issuer",
+      "fn": "tokenParts",
+      "args": [
+        {
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "algorithm": "HS256",
+          "issuer": "https://iss.example"
+        }
+      ],
+      "upstreamFn": "jwt.sign options.issuer",
+      "goFn": "jwt.RegisteredClaims.Issuer"
+    },
+    {
+      "id": "opt-subject",
+      "fn": "tokenParts",
+      "args": [
+        {
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "algorithm": "HS256",
+          "subject": "user-9"
+        }
+      ],
+      "upstreamFn": "jwt.sign options.subject",
+      "goFn": "jwt.RegisteredClaims.Subject"
+    },
+    {
+      "id": "opt-jwtid",
+      "fn": "tokenParts",
+      "args": [
+        {
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "algorithm": "HS256",
+          "jwtid": "tok-1"
+        }
+      ],
+      "upstreamFn": "jwt.sign options.jwtid",
+      "goFn": "jwt.RegisteredClaims.ID"
+    },
+    {
+      "id": "opt-all-claims",
+      "fn": "tokenParts",
+      "args": [
+        {
+          "iat": 1700000000,
+          "scope": "read"
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "algorithm": "HS256",
+          "expiresIn": 900,
+          "notBefore": 0,
+          "audience": "svc-a",
+          "issuer": "iss",
+          "subject": "sub",
+          "jwtid": "jti",
+          "keyid": "kid"
+        }
+      ],
+      "upstreamFn": "jwt.sign options.*",
+      "goFn": "jwt.MapClaims + Token.SetKID"
+    },
+    {
+      "id": "opt-expiresin-timespan",
+      "fn": "tokenParts",
+      "args": [
+        {
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "algorithm": "HS256",
+          "expiresIn": "1h"
+        }
+      ],
+      "upstreamFn": "jwt.sign options.expiresIn (string timespan)",
+      "goFn": "\u2014",
+      "note": "upstream parses 'ms' timespan strings; the port has no sign options at all"
+    },
+    {
+      "id": "opt-notbefore-timespan",
+      "fn": "tokenParts",
+      "args": [
+        {
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "algorithm": "HS256",
+          "notBefore": "2 days"
+        }
+      ],
+      "upstreamFn": "jwt.sign options.notBefore (string timespan)",
+      "goFn": "\u2014",
+      "note": "upstream parses 'ms' timespan strings"
+    },
+    {
+      "id": "opt-expiresin-conflict",
+      "fn": "tokenParts",
+      "args": [
+        {
+          "exp": 1700000005,
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "algorithm": "HS256",
+          "expiresIn": 3600
+        }
+      ],
+      "upstreamFn": "jwt.sign options.expiresIn",
+      "goFn": "\u2014",
+      "note": "both must fail: exp claim and expiresIn option conflict"
+    }
+  ]
+}

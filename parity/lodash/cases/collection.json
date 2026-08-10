@@ -1,0 +1,107 @@
+{
+  "group": "collection",
+  "upstream": "lodash@4.17.21",
+  "cases": [
+    { "id": "countBy-mod3", "fn": "countBy", "args": [[1, 2, 3, 4, 5], { "$fn": "mod3" }], "upstreamFn": "_.countBy", "goFn": "lodash.CountBy" },
+    { "id": "countBy-empty", "fn": "countBy", "args": [[], { "$fn": "mod3" }], "upstreamFn": "_.countBy", "goFn": "lodash.CountBy" },
+    { "id": "countBy-strings", "fn": "countBy", "args": [["one", "two", "six"], { "$fn": "lenOf" }], "upstreamFn": "_.countBy", "goFn": "lodash.CountBy" },
+    { "id": "countByMap-obj", "fn": "countByMap", "args": [{ "a": 1, "b": 2, "c": 4 }, { "$fn": "mod3" }], "upstreamFn": "_.countBy", "goFn": "lodash.MapToSlice+count", "note": "Go has no CountByMap; folded over MapToSlice" },
+
+    { "id": "every-true", "fn": "every", "args": [[2, 4], { "$fn": "isEven" }], "upstreamFn": "_.every", "goFn": "lodash.Every" },
+    { "id": "every-false", "fn": "every", "args": [[2, 3], { "$fn": "isEven" }], "upstreamFn": "_.every", "goFn": "lodash.Every" },
+    { "id": "every-empty", "fn": "every", "args": [[], { "$fn": "isEven" }], "upstreamFn": "_.every", "goFn": "lodash.Every", "note": "vacuous truth" },
+    { "id": "everyMap-true", "fn": "everyMap", "args": [{ "a": 2, "b": 4 }, { "$fn": "isEven" }], "upstreamFn": "_.every", "goFn": "lodash.EveryMap" },
+    { "id": "everyMap-false", "fn": "everyMap", "args": [{ "a": 2, "b": 3 }, { "$fn": "isEven" }], "upstreamFn": "_.every", "goFn": "lodash.EveryMap" },
+
+    { "id": "some-true", "fn": "some", "args": [[1, 2], { "$fn": "isEven" }], "upstreamFn": "_.some", "goFn": "lodash.Some" },
+    { "id": "some-false", "fn": "some", "args": [[1, 3], { "$fn": "isEven" }], "upstreamFn": "_.some", "goFn": "lodash.Some" },
+    { "id": "some-empty", "fn": "some", "args": [[], { "$fn": "isEven" }], "upstreamFn": "_.some", "goFn": "lodash.Some" },
+    { "id": "someMap-true", "fn": "someMap", "args": [{ "a": 1, "b": 2 }, { "$fn": "isEven" }], "upstreamFn": "_.some", "goFn": "lodash.SomeMap" },
+    { "id": "none-true", "fn": "none", "args": [[1, 3], { "$fn": "isEven" }], "upstreamFn": "_.some (negated)", "goFn": "lodash.None", "note": "Go-only helper" },
+    { "id": "noneMap-false", "fn": "noneMap", "args": [{ "a": 2 }, { "$fn": "isEven" }], "upstreamFn": "_.some (negated)", "goFn": "lodash.NoneMap", "note": "Go-only helper" },
+
+    { "id": "filter-even", "fn": "filter", "args": [[1, 2, 3, 4], { "$fn": "isEven" }], "upstreamFn": "_.filter", "goFn": "lodash.Filter" },
+    { "id": "filter-none", "fn": "filter", "args": [[1, 3], { "$fn": "isEven" }], "upstreamFn": "_.filter", "goFn": "lodash.Filter" },
+    { "id": "filter-empty", "fn": "filter", "args": [[], { "$fn": "isEven" }], "upstreamFn": "_.filter", "goFn": "lodash.Filter" },
+    { "id": "filter-truthy", "fn": "filter", "args": [[0, 1, "", "x", null, false], { "$fn": "truthy" }], "upstreamFn": "_.filter", "goFn": "lodash.Filter" },
+    { "id": "filter-objects", "fn": "filter", "args": [[{ "flag": true, "n": 1 }, { "flag": false, "n": 2 }], { "$fn": "hasFlag" }], "upstreamFn": "_.filter", "goFn": "lodash.Filter" },
+    { "id": "filterMap-obj", "fn": "filterMap", "args": [{ "a": 1, "b": 2, "c": 4 }, { "$fn": "isEven" }], "upstreamFn": "_.filter", "goFn": "lodash.FilterMap", "note": "results sorted on both sides" },
+    { "id": "filterMap-empty", "fn": "filterMap", "args": [{}, { "$fn": "isEven" }], "upstreamFn": "_.filter", "goFn": "lodash.FilterMap" },
+
+    { "id": "reject-even", "fn": "reject", "args": [[1, 2, 3, 4], { "$fn": "isEven" }], "upstreamFn": "_.reject", "goFn": "lodash.Reject" },
+    { "id": "rejectMap-obj", "fn": "rejectMap", "args": [{ "a": 1, "b": 2 }, { "$fn": "isEven" }], "upstreamFn": "_.reject", "goFn": "lodash.RejectMap" },
+
+    { "id": "find-hit", "fn": "find", "args": [[1, 2, 3], { "$fn": "isEven" }], "upstreamFn": "_.find", "goFn": "lodash.Find" },
+    { "id": "find-miss", "fn": "find", "args": [[1, 3], { "$fn": "isEven" }], "upstreamFn": "_.find", "goFn": "lodash.Find" },
+    { "id": "findLast-hit", "fn": "findLast", "args": [[1, 2, 3, 4], { "$fn": "isEven" }], "upstreamFn": "_.findLast", "goFn": "lodash.FindLast" },
+    { "id": "findMap-hit", "fn": "findMap", "args": [{ "a": 2 }, { "$fn": "isEven" }], "upstreamFn": "_.find", "goFn": "lodash.FindMap" },
+    { "id": "findMap-miss", "fn": "findMap", "args": [{ "a": 1 }, { "$fn": "isEven" }], "upstreamFn": "_.find", "goFn": "lodash.FindMap" },
+
+    { "id": "flatMap-dup", "fn": "flatMap", "args": [[1, 2], { "$fn": "dupArr" }], "upstreamFn": "_.flatMap", "goFn": "lodash.FlatMap" },
+    { "id": "flatMap-wrap", "fn": "flatMap", "args": [[1, 2], { "$fn": "wrapArr" }], "upstreamFn": "_.flatMap", "goFn": "lodash.FlatMap" },
+    { "id": "flatMapDeep-dup", "fn": "flatMapDeep", "args": [[1, 2], { "$fn": "dupArr" }], "upstreamFn": "_.flatMapDeep", "goFn": "lodash.FlatMapDeep" },
+    { "id": "flatMapDepth-1", "fn": "flatMapDepth", "args": [[1, 2], { "$fn": "dupArr" }, 1], "upstreamFn": "_.flatMapDepth", "goFn": "lodash.FlatMapDepth" },
+
+    { "id": "forEach-collect", "fn": "forEach-collect", "args": [[1, 2, 3], { "$fn": "double" }], "upstreamFn": "_.forEach", "goFn": "lodash.ForEach" },
+    { "id": "forEach-collect-empty", "fn": "forEach-collect", "args": [[], { "$fn": "double" }], "upstreamFn": "_.forEach", "goFn": "lodash.ForEach" },
+    { "id": "forEachRight-collect", "fn": "forEachRight-collect", "args": [[1, 2, 3], { "$fn": "double" }], "upstreamFn": "_.forEachRight", "goFn": "lodash.ForEachRight" },
+    { "id": "forEachI-collect", "fn": "forEachI-collect", "args": [[5, 6, 7], { "$fn": "mulIdx" }], "upstreamFn": "_.forEach (index arg)", "goFn": "lodash.ForEachI" },
+    { "id": "each-alias", "fn": "each", "args": [[1, 2], { "$fn": "double" }], "upstreamFn": "_.each", "goFn": "lodash.ForEach" },
+    { "id": "eachRight-alias", "fn": "eachRight", "args": [[1, 2], { "$fn": "double" }], "upstreamFn": "_.eachRight", "goFn": "lodash.ForEachRight" },
+
+    { "id": "groupBy-mod3", "fn": "groupBy", "args": [[1, 2, 3, 4], { "$fn": "mod3" }], "upstreamFn": "_.groupBy", "goFn": "lodash.GroupBy" },
+    { "id": "groupBy-len", "fn": "groupBy", "args": [["one", "two", "three"], { "$fn": "lenOf" }], "upstreamFn": "_.groupBy", "goFn": "lodash.GroupBy" },
+    { "id": "groupByMap-obj", "fn": "groupByMap", "args": [{ "a": 1, "b": 4, "c": 2 }, { "$fn": "mod3" }], "upstreamFn": "_.groupBy", "goFn": "lodash.GroupByMap" },
+
+    { "id": "includes-array", "fn": "includes", "args": [[1, 2, 3], 2], "upstreamFn": "_.includes", "goFn": "lodash.Includes" },
+    { "id": "includes-array-miss", "fn": "includes", "args": [[1, 2], 9], "upstreamFn": "_.includes", "goFn": "lodash.Includes" },
+    { "id": "includes-string", "fn": "includes", "args": ["abcd", "bc"], "upstreamFn": "_.includes", "goFn": "strings.Contains", "note": "Go Includes is slice-only; runner falls back to strings.Contains" },
+    { "id": "includesValue-obj", "fn": "includesValue", "args": [{ "a": 1, "b": 2 }, 2], "upstreamFn": "_.includes", "goFn": "lodash.IncludesValue" },
+
+    { "id": "keyBy-prop", "fn": "keyBy", "args": [[{ "name": "a", "n": 1 }, { "name": "b", "n": 2 }], { "$fn": "propName" }], "upstreamFn": "_.keyBy", "goFn": "lodash.KeyBy" },
+    { "id": "keyBy-collision", "fn": "keyBy", "args": [[{ "name": "a", "n": 1 }, { "name": "a", "n": 2 }], { "$fn": "propName" }], "upstreamFn": "_.keyBy", "goFn": "lodash.KeyBy" },
+
+    { "id": "map-double", "fn": "map", "args": [[1, 2, 3], { "$fn": "double" }], "upstreamFn": "_.map", "goFn": "lodash.Map" },
+    { "id": "map-empty", "fn": "map", "args": [[], { "$fn": "double" }], "upstreamFn": "_.map", "goFn": "lodash.Map" },
+    { "id": "map-prop", "fn": "map", "args": [[{ "n": 1 }, { "n": 2 }], { "$fn": "propN" }], "upstreamFn": "_.map", "goFn": "lodash.Map" },
+    { "id": "map-prop-missing", "fn": "map", "args": [[{ "n": 1 }, {}], { "$fn": "propN" }], "upstreamFn": "_.map", "goFn": "lodash.Map", "note": "missing key -> undefined in JS, nil in Go" },
+    { "id": "map-tostr", "fn": "map", "args": [[1, null, true], { "$fn": "toStr" }], "upstreamFn": "_.map", "goFn": "lodash.Map", "note": "type coercion" },
+    { "id": "mapI-index", "fn": "mapI", "args": [[5, 6, 7], { "$fn": "mulIdx" }], "upstreamFn": "_.map (index arg)", "goFn": "lodash.MapI" },
+    { "id": "mapI-pair", "fn": "mapI", "args": [["a", "b"], { "$fn": "pairIdx" }], "upstreamFn": "_.map (index arg)", "goFn": "lodash.MapI" },
+    { "id": "mapToSlice-obj", "fn": "mapToSlice", "args": [{ "a": 1, "b": 2 }, { "$fn": "double" }], "upstreamFn": "_.map", "goFn": "lodash.MapToSlice" },
+
+    { "id": "orderBy-single-asc", "fn": "orderBy", "args": [[{ "age": 30 }, { "age": 20 }], [{ "$fn": "propAge" }], ["asc"]], "upstreamFn": "_.orderBy", "goFn": "lodash.OrderBy" },
+    { "id": "orderBy-single-desc", "fn": "orderBy", "args": [[{ "age": 20 }, { "age": 30 }], [{ "$fn": "propAge" }], ["desc"]], "upstreamFn": "_.orderBy", "goFn": "lodash.OrderBy" },
+    { "id": "orderBy-two-keys", "fn": "orderBy", "args": [[{ "name": "b", "age": 1 }, { "name": "a", "age": 2 }, { "name": "a", "age": 1 }], [{ "$fn": "propName" }, { "$fn": "propAge" }], ["asc", "desc"]], "upstreamFn": "_.orderBy", "goFn": "lodash.OrderBy" },
+
+    { "id": "partition-even", "fn": "partition", "args": [[1, 2, 3, 4], { "$fn": "isEven" }], "upstreamFn": "_.partition", "goFn": "lodash.Partition" },
+    { "id": "partition-empty", "fn": "partition", "args": [[], { "$fn": "isEven" }], "upstreamFn": "_.partition", "goFn": "lodash.Partition" },
+    { "id": "partitionMap-obj", "fn": "partitionMap", "args": [{ "a": 1, "b": 2 }, { "$fn": "isEven" }], "upstreamFn": "_.partition", "goFn": "lodash.PartitionMap" },
+
+    { "id": "reduce-sum", "fn": "reduce", "args": [[1, 2, 3], { "$fn": "add2" }, 0], "upstreamFn": "_.reduce", "goFn": "lodash.Reduce" },
+    { "id": "reduce-concat", "fn": "reduce", "args": [["a", "b"], { "$fn": "concat2" }, ""], "upstreamFn": "_.reduce", "goFn": "lodash.Reduce" },
+    { "id": "reduce-empty", "fn": "reduce", "args": [[], { "$fn": "add2" }, 7], "upstreamFn": "_.reduce", "goFn": "lodash.Reduce" },
+    { "id": "reduceRight-concat", "fn": "reduceRight", "args": [["a", "b", "c"], { "$fn": "concat2" }, ""], "upstreamFn": "_.reduceRight", "goFn": "lodash.ReduceRight" },
+    { "id": "reduceMap-sum", "fn": "reduceMap", "args": [{ "a": 1, "b": 2 }, { "$fn": "add2" }, 0], "upstreamFn": "_.reduce", "goFn": "lodash.ReduceMap", "note": "commutative reducer only: Go map order is random" },
+    { "id": "transform-sum", "deviation": "Go Transform is a pure fold over the map; lodash transform mutates an accumulator and ignores the iteratee return value", "fn": "transform", "args": [{ "a": 1, "b": 2, "c": 3 }, { "$fn": "add2" }, 0], "upstreamFn": "_.transform", "goFn": "lodash.Transform" },
+
+    { "id": "sample-membership", "fn": "sample", "args": [[1, 2, 3]], "upstreamFn": "_.sample", "goFn": "lodash.Sample", "note": "random: compares the invariant (drawn element is a member)" },
+    { "id": "sample-empty", "fn": "sample", "args": [[]], "upstreamFn": "_.sample", "goFn": "lodash.Sample" },
+    { "id": "sampleSize-2", "fn": "sampleSize", "args": [[1, 2, 3, 4], 2], "upstreamFn": "_.sampleSize", "goFn": "lodash.SampleN", "note": "random: compares size and membership" },
+    { "id": "sampleSize-over", "fn": "sampleSize", "args": [[1, 2], 9], "upstreamFn": "_.sampleSize", "goFn": "lodash.SampleN" },
+    { "id": "shuffle-sorted", "fn": "shuffle", "args": [[1, 2, 3, 4]], "upstreamFn": "_.shuffle", "goFn": "lodash.Shuffle", "note": "random: both sides sorted, so this checks it is a permutation" },
+
+    { "id": "size-array", "fn": "size", "args": [[1, 2, 3]], "upstreamFn": "_.size", "goFn": "lodash.Size" },
+    { "id": "size-object", "fn": "size", "args": [{ "a": 1, "b": 2 }], "upstreamFn": "_.size", "goFn": "lodash.Size" },
+    { "id": "size-string", "fn": "size", "args": ["abc"], "upstreamFn": "_.size", "goFn": "lodash.Size" },
+    { "id": "size-null", "fn": "size", "args": [null], "upstreamFn": "_.size", "goFn": "lodash.Size" },
+
+    { "id": "sortBy-num", "fn": "sortBy", "args": [[3, 1, 2], { "$fn": "identity" }], "upstreamFn": "_.sortBy", "goFn": "lodash.SortBy" },
+    { "id": "sortBy-prop", "fn": "sortBy", "args": [[{ "age": 3 }, { "age": 1 }], { "$fn": "propAge" }], "upstreamFn": "_.sortBy", "goFn": "lodash.SortBy" },
+    { "id": "sortBy-str", "fn": "sortBy", "args": [["cc", "a", "bb"], { "$fn": "toStr" }], "upstreamFn": "_.sortBy", "goFn": "lodash.SortBy" },
+    { "id": "sortBy-stable", "fn": "sortBy", "args": [[{ "name": "b", "age": 1 }, { "name": "a", "age": 1 }], { "$fn": "propAge" }], "upstreamFn": "_.sortBy", "goFn": "lodash.SortBy", "note": "stability" },
+
+    { "id": "maxByMap-obj", "fn": "maxByMap", "args": [{ "a": 1, "b": 5 }, { "$fn": "identity" }], "upstreamFn": "_.maxBy", "goFn": "lodash.MaxByMap" },
+    { "id": "minByMap-obj", "fn": "minByMap", "args": [{ "a": 1, "b": 5 }, { "$fn": "identity" }], "upstreamFn": "_.minBy", "goFn": "lodash.MinByMap" }
+  ]
+}

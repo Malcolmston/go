@@ -1,0 +1,330 @@
+{
+  "group": "colors",
+  "upstream": "matplotlib@3.10.0",
+  "note": "Colour handling: hex parsing and formatting, named colours, the default property cycle, colormap sampling and the Normalize/LogNorm scalar mappings. All of these are pure computations and are compared at the default tolerance (1e-9). RGBA is always encoded as four floats in [0,1].",
+  "cases": [
+    {
+      "id": "hex-6-digit",
+      "fn": "hex_parse",
+      "args": {"s": "#1f77b4"},
+      "upstreamFn": "matplotlib.colors.to_rgba",
+      "goFn": "matplotlib.Hex"
+    },
+    {
+      "id": "hex-3-digit",
+      "fn": "hex_parse",
+      "args": {"s": "#abc"},
+      "upstreamFn": "matplotlib.colors.to_rgba",
+      "goFn": "matplotlib.Hex"
+    },
+    {
+      "id": "hex-uppercase",
+      "fn": "hex_parse",
+      "args": {"s": "#ABCDEF"},
+      "upstreamFn": "matplotlib.colors.to_rgba",
+      "goFn": "matplotlib.Hex"
+    },
+    {
+      "id": "hex-white",
+      "fn": "hex_parse",
+      "args": {"s": "#ffffff"},
+      "upstreamFn": "matplotlib.colors.to_rgba",
+      "goFn": "matplotlib.Hex"
+    },
+    {
+      "id": "hex-8-digit-alpha",
+      "fn": "hex_parse",
+      "args": {"s": "#1f77b480"},
+      "upstreamFn": "matplotlib.colors.to_rgba (#rrggbbaa form)",
+      "goFn": "matplotlib.Hex",
+      "note": "matplotlib accepts an alpha suffix; the port rejects any length other than 3 or 6"
+    },
+    {
+      "id": "hex-no-hash",
+      "fn": "hex_parse",
+      "args": {"s": "1f77b4"},
+      "upstreamFn": "matplotlib.colors.to_rgba (must reject)",
+      "goFn": "matplotlib.Hex",
+      "note": "matplotlib requires the leading '#'; the port accepts the bare digits"
+    },
+    {
+      "id": "hex-bad-digits",
+      "fn": "hex_parse",
+      "args": {"s": "#gg0000"},
+      "upstreamFn": "matplotlib.colors.to_rgba",
+      "goFn": "matplotlib.Hex",
+      "note": "both sides must fail"
+    },
+    {
+      "id": "hex-bad-length",
+      "fn": "hex_parse",
+      "args": {"s": "#12345"},
+      "upstreamFn": "matplotlib.colors.to_rgba",
+      "goFn": "matplotlib.Hex",
+      "note": "both sides must fail"
+    },
+    {
+      "id": "hexfmt-tab-blue",
+      "fn": "hex_format",
+      "args": {"rgb": [31, 119, 180]},
+      "upstreamFn": "matplotlib.colors.to_hex",
+      "goFn": "matplotlib.Color.Hex"
+    },
+    {
+      "id": "hexfmt-black",
+      "fn": "hex_format",
+      "args": {"rgb": [0, 0, 0]},
+      "upstreamFn": "matplotlib.colors.to_hex",
+      "goFn": "matplotlib.Color.Hex"
+    },
+    {
+      "id": "hexfmt-white",
+      "fn": "hex_format",
+      "args": {"rgb": [255, 255, 255]},
+      "upstreamFn": "matplotlib.colors.to_hex",
+      "goFn": "matplotlib.Color.Hex"
+    },
+    {
+      "id": "hexfmt-low",
+      "fn": "hex_format",
+      "args": {"rgb": [1, 2, 3]},
+      "upstreamFn": "matplotlib.colors.to_hex",
+      "goFn": "matplotlib.Color.Hex"
+    },
+    {
+      "id": "named-black",
+      "fn": "named_color",
+      "args": {"name": "black"},
+      "upstreamFn": "matplotlib.colors.to_rgba('black')",
+      "goFn": "matplotlib.Black"
+    },
+    {
+      "id": "named-white",
+      "fn": "named_color",
+      "args": {"name": "white"},
+      "upstreamFn": "matplotlib.colors.to_rgba('white')",
+      "goFn": "matplotlib.White"
+    },
+    {
+      "id": "named-red",
+      "fn": "named_color",
+      "args": {"name": "red"},
+      "upstreamFn": "matplotlib.colors.to_rgba('red')",
+      "goFn": "matplotlib.Red",
+      "note": "CSS 'red' is (1,0,0,1); the port's Red is the tab10 red"
+    },
+    {
+      "id": "named-green",
+      "fn": "named_color",
+      "args": {"name": "green"},
+      "upstreamFn": "matplotlib.colors.to_rgba('green')",
+      "goFn": "matplotlib.Green"
+    },
+    {
+      "id": "named-blue",
+      "fn": "named_color",
+      "args": {"name": "blue"},
+      "upstreamFn": "matplotlib.colors.to_rgba('blue')",
+      "goFn": "matplotlib.Blue"
+    },
+    {
+      "id": "cycle-0",
+      "fn": "cycle_color",
+      "args": {"index": 0},
+      "upstreamFn": "matplotlib.rcParams['axes.prop_cycle']",
+      "goFn": "matplotlib.DefaultColors"
+    },
+    {
+      "id": "cycle-3",
+      "fn": "cycle_color",
+      "args": {"index": 3},
+      "upstreamFn": "matplotlib.rcParams['axes.prop_cycle']",
+      "goFn": "matplotlib.DefaultColors"
+    },
+    {
+      "id": "cycle-9",
+      "fn": "cycle_color",
+      "args": {"index": 9},
+      "upstreamFn": "matplotlib.rcParams['axes.prop_cycle']",
+      "goFn": "matplotlib.DefaultColors"
+    },
+    {
+      "id": "cycle-wrap-12",
+      "fn": "cycle_color",
+      "args": {"index": 12},
+      "upstreamFn": "matplotlib.rcParams['axes.prop_cycle']",
+      "goFn": "matplotlib.DefaultColors"
+    },
+    {
+      "id": "cmap-viridis",
+      "fn": "cmap_sample",
+      "args": {"name": "viridis", "fractions": [0, 0.25, 0.5, 0.75, 1]},
+      "upstreamFn": "matplotlib.pyplot.get_cmap('viridis').__call__",
+      "goFn": "matplotlib.Viridis().At",
+      "note": "the port documents Viridis as a five-anchor approximation"
+    },
+    {
+      "id": "cmap-plasma",
+      "fn": "cmap_sample",
+      "args": {"name": "plasma", "fractions": [0, 0.5, 1]},
+      "upstreamFn": "matplotlib.pyplot.get_cmap('plasma').__call__",
+      "goFn": "matplotlib.Plasma().At"
+    },
+    {
+      "id": "cmap-jet",
+      "fn": "cmap_sample",
+      "args": {"name": "jet", "fractions": [0, 0.5, 1]},
+      "upstreamFn": "matplotlib.pyplot.get_cmap('jet').__call__",
+      "goFn": "matplotlib.Jet().At"
+    },
+    {
+      "id": "cmap-coolwarm",
+      "fn": "cmap_sample",
+      "args": {"name": "coolwarm", "fractions": [0, 0.5, 1]},
+      "upstreamFn": "matplotlib.pyplot.get_cmap('coolwarm').__call__",
+      "goFn": "matplotlib.Coolwarm().At"
+    },
+    {
+      "id": "cmap-gray",
+      "fn": "cmap_sample",
+      "args": {"name": "gray", "fractions": [0, 0.25, 0.5, 0.75, 1]},
+      "upstreamFn": "matplotlib.pyplot.get_cmap('gray').__call__",
+      "goFn": "matplotlib.Grays().At"
+    },
+    {
+      "id": "cmap-clamped-out-of-range",
+      "fn": "cmap_sample",
+      "args": {"name": "gray", "fractions": [-0.5, 1.5]},
+      "upstreamFn": "Colormap.__call__ under/over colours",
+      "goFn": "matplotlib.Colormap.At clamping"
+    },
+    {
+      "id": "norm-clip-in-range",
+      "fn": "normalize",
+      "args": {"min": 0, "max": 10, "clip": true, "values": [0, 2.5, 5, 7.5, 10]},
+      "upstreamFn": "matplotlib.colors.Normalize.__call__",
+      "goFn": "matplotlib.Normalize.Norm"
+    },
+    {
+      "id": "norm-clip-out-of-range",
+      "fn": "normalize",
+      "args": {"min": 0, "max": 10, "clip": true, "values": [-5, 15]},
+      "upstreamFn": "matplotlib.colors.Normalize(clip=True)",
+      "goFn": "matplotlib.Normalize.Norm"
+    },
+    {
+      "id": "norm-noclip-out-of-range",
+      "fn": "normalize",
+      "args": {"min": 0, "max": 10, "clip": false, "values": [-5, 15]},
+      "upstreamFn": "matplotlib.colors.Normalize(clip=False)",
+      "goFn": "matplotlib.Normalize.Norm",
+      "note": "matplotlib returns values outside [0,1] when clip is off; the port always clamps"
+    },
+    {
+      "id": "norm-negative-range",
+      "fn": "normalize",
+      "args": {"min": -20, "max": -10, "clip": true, "values": [-20, -15, -10]},
+      "upstreamFn": "matplotlib.colors.Normalize.__call__",
+      "goFn": "matplotlib.Normalize.Norm"
+    },
+    {
+      "id": "norm-degenerate",
+      "fn": "normalize",
+      "args": {"min": 5, "max": 5, "clip": true, "values": [5, 6]},
+      "upstreamFn": "matplotlib.colors.Normalize with vmin == vmax",
+      "goFn": "matplotlib.Normalize.Norm degenerate range"
+    },
+    {
+      "id": "lognorm-decades",
+      "fn": "lognorm",
+      "args": {"min": 1, "max": 1000, "clip": true, "values": [1, 10, 100, 1000]},
+      "upstreamFn": "matplotlib.colors.LogNorm.__call__",
+      "goFn": "matplotlib.LogNorm.Norm"
+    },
+    {
+      "id": "lognorm-fractional",
+      "fn": "lognorm",
+      "args": {"min": 0.01, "max": 100, "clip": true, "values": [0.01, 1, 100, 3.16227766016838]},
+      "upstreamFn": "matplotlib.colors.LogNorm.__call__",
+      "goFn": "matplotlib.LogNorm.Norm"
+    },
+    {
+      "id": "lognorm-clip-out-of-range",
+      "fn": "lognorm",
+      "args": {"min": 1, "max": 100, "clip": true, "values": [0.5, 500]},
+      "upstreamFn": "matplotlib.colors.LogNorm(clip=True)",
+      "goFn": "matplotlib.LogNorm.Norm"
+    },
+    {
+      "id": "lognorm-nonpositive-value",
+      "fn": "lognorm",
+      "args": {"min": 1, "max": 100, "clip": false, "values": [0, -3]},
+      "upstreamFn": "matplotlib.colors.LogNorm on non-positive input",
+      "goFn": "matplotlib.LogNorm.Norm",
+      "note": "matplotlib masks non-positive values (reported here as NaN); the port returns 0"
+    },
+    {
+      "id": "rgb2hsv-red",
+      "fn": "rgb_to_hsv",
+      "args": {"rgb": [1, 0, 0]},
+      "upstreamFn": "matplotlib.colors.rgb_to_hsv",
+      "goFn": "matplotlib.RGBToHSV"
+    },
+    {
+      "id": "rgb2hsv-green",
+      "fn": "rgb_to_hsv",
+      "args": {"rgb": [0, 1, 0]},
+      "upstreamFn": "matplotlib.colors.rgb_to_hsv",
+      "goFn": "matplotlib.RGBToHSV"
+    },
+    {
+      "id": "rgb2hsv-gray",
+      "fn": "rgb_to_hsv",
+      "args": {"rgb": [0.4, 0.4, 0.4]},
+      "upstreamFn": "matplotlib.colors.rgb_to_hsv",
+      "goFn": "matplotlib.RGBToHSV"
+    },
+    {
+      "id": "rgb2hsv-black",
+      "fn": "rgb_to_hsv",
+      "args": {"rgb": [0, 0, 0]},
+      "upstreamFn": "matplotlib.colors.rgb_to_hsv",
+      "goFn": "matplotlib.RGBToHSV"
+    },
+    {
+      "id": "rgb2hsv-tab-blue",
+      "fn": "rgb_to_hsv",
+      "args": {"rgb": [0.12156862745098039, 0.4666666666666667, 0.7058823529411765]},
+      "upstreamFn": "matplotlib.colors.rgb_to_hsv",
+      "goFn": "matplotlib.RGBToHSV"
+    },
+    {
+      "id": "hsv2rgb-magenta",
+      "fn": "hsv_to_rgb",
+      "args": {"hsv": [0.8333333333333334, 1, 1]},
+      "upstreamFn": "matplotlib.colors.hsv_to_rgb",
+      "goFn": "matplotlib.HSVToRGB"
+    },
+    {
+      "id": "hsv2rgb-unsaturated",
+      "fn": "hsv_to_rgb",
+      "args": {"hsv": [0.25, 0, 0.6]},
+      "upstreamFn": "matplotlib.colors.hsv_to_rgb",
+      "goFn": "matplotlib.HSVToRGB"
+    },
+    {
+      "id": "hsv2rgb-teal",
+      "fn": "hsv_to_rgb",
+      "args": {"hsv": [0.5, 0.5, 0.5]},
+      "upstreamFn": "matplotlib.colors.hsv_to_rgb",
+      "goFn": "matplotlib.HSVToRGB"
+    },
+    {
+      "id": "hsv2rgb-wrap-hue-1",
+      "fn": "hsv_to_rgb",
+      "args": {"hsv": [1, 1, 1]},
+      "upstreamFn": "matplotlib.colors.hsv_to_rgb at h == 1",
+      "goFn": "matplotlib.HSVToRGB"
+    }
+  ]
+}

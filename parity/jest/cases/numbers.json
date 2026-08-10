@@ -1,0 +1,418 @@
+{
+  "group": "numbers",
+  "upstream": "expect@29.7.0",
+  "note": "ordering matchers and toBeCloseTo. JS's toBeCloseTo takes a digit count; the port takes an absolute epsilon, so the harness converts precision p to 10^-p/2 and the default-argument case is the interesting one.",
+  "cases": [
+    {
+      "id": "gt-true",
+      "fn": "toBeGreaterThan",
+      "actual": 3,
+      "args": [
+        2
+      ],
+      "upstreamFn": "expect().toBeGreaterThan",
+      "goFn": "jest.Matcher.ToBeGreaterThan"
+    },
+    {
+      "id": "gt-false",
+      "fn": "toBeGreaterThan",
+      "actual": 2,
+      "args": [
+        3
+      ],
+      "upstreamFn": "expect().toBeGreaterThan",
+      "goFn": "jest.Matcher.ToBeGreaterThan"
+    },
+    {
+      "id": "gt-equal",
+      "fn": "toBeGreaterThan",
+      "actual": 2,
+      "args": [
+        2
+      ],
+      "upstreamFn": "expect().toBeGreaterThan",
+      "goFn": "jest.Matcher.ToBeGreaterThan"
+    },
+    {
+      "id": "gt-negative",
+      "fn": "toBeGreaterThan",
+      "actual": -1,
+      "args": [
+        -2
+      ],
+      "upstreamFn": "expect().toBeGreaterThan",
+      "goFn": "jest.Matcher.ToBeGreaterThan"
+    },
+    {
+      "id": "gt-nan-left",
+      "fn": "toBeGreaterThan",
+      "actual": {
+        "$": "nan"
+      },
+      "args": [
+        1
+      ],
+      "note": "every comparison with NaN is false in JS",
+      "upstreamFn": "expect().toBeGreaterThan",
+      "goFn": "jest.Matcher.ToBeGreaterThan"
+    },
+    {
+      "id": "gt-nan-right",
+      "fn": "toBeGreaterThan",
+      "actual": 1,
+      "args": [
+        {
+          "$": "nan"
+        }
+      ],
+      "upstreamFn": "expect().toBeGreaterThan",
+      "goFn": "jest.Matcher.ToBeGreaterThan"
+    },
+    {
+      "id": "gt-inf",
+      "fn": "toBeGreaterThan",
+      "actual": {
+        "$": "inf"
+      },
+      "args": [
+        1e+308
+      ],
+      "upstreamFn": "expect().toBeGreaterThan",
+      "goFn": "jest.Matcher.ToBeGreaterThan"
+    },
+    {
+      "id": "gt-zero-vs-negzero",
+      "fn": "toBeGreaterThan",
+      "actual": 0,
+      "args": [
+        {
+          "$": "negzero"
+        }
+      ],
+      "upstreamFn": "expect().toBeGreaterThan",
+      "goFn": "jest.Matcher.ToBeGreaterThan"
+    },
+    {
+      "id": "gt-not-false",
+      "fn": "toBeGreaterThan",
+      "not": true,
+      "actual": 2,
+      "args": [
+        3
+      ],
+      "upstreamFn": "expect().not.toBeGreaterThan",
+      "goFn": "jest.Matcher.Not().ToBeGreaterThan"
+    },
+    {
+      "id": "gte-equal",
+      "fn": "toBeGreaterThanOrEqual",
+      "actual": 2,
+      "args": [
+        2
+      ],
+      "upstreamFn": "expect().toBeGreaterThanOrEqual",
+      "goFn": "jest.Matcher.ToBeGreaterThanOrEqual"
+    },
+    {
+      "id": "gte-greater",
+      "fn": "toBeGreaterThanOrEqual",
+      "actual": 3,
+      "args": [
+        2
+      ],
+      "upstreamFn": "expect().toBeGreaterThanOrEqual",
+      "goFn": "jest.Matcher.ToBeGreaterThanOrEqual"
+    },
+    {
+      "id": "gte-less",
+      "fn": "toBeGreaterThanOrEqual",
+      "actual": 1,
+      "args": [
+        2
+      ],
+      "upstreamFn": "expect().toBeGreaterThanOrEqual",
+      "goFn": "jest.Matcher.ToBeGreaterThanOrEqual"
+    },
+    {
+      "id": "gte-zero-vs-negzero",
+      "fn": "toBeGreaterThanOrEqual",
+      "actual": 0,
+      "args": [
+        {
+          "$": "negzero"
+        }
+      ],
+      "upstreamFn": "expect().toBeGreaterThanOrEqual",
+      "goFn": "jest.Matcher.ToBeGreaterThanOrEqual"
+    },
+    {
+      "id": "lt-true",
+      "fn": "toBeLessThan",
+      "actual": 1,
+      "args": [
+        2
+      ],
+      "upstreamFn": "expect().toBeLessThan",
+      "goFn": "jest.Matcher.ToBeLessThan"
+    },
+    {
+      "id": "lt-false",
+      "fn": "toBeLessThan",
+      "actual": 2,
+      "args": [
+        1
+      ],
+      "upstreamFn": "expect().toBeLessThan",
+      "goFn": "jest.Matcher.ToBeLessThan"
+    },
+    {
+      "id": "lt-equal",
+      "fn": "toBeLessThan",
+      "actual": 2,
+      "args": [
+        2
+      ],
+      "upstreamFn": "expect().toBeLessThan",
+      "goFn": "jest.Matcher.ToBeLessThan"
+    },
+    {
+      "id": "lt-ninf",
+      "fn": "toBeLessThan",
+      "actual": {
+        "$": "ninf"
+      },
+      "args": [
+        0
+      ],
+      "upstreamFn": "expect().toBeLessThan",
+      "goFn": "jest.Matcher.ToBeLessThan"
+    },
+    {
+      "id": "lt-nan",
+      "fn": "toBeLessThan",
+      "actual": {
+        "$": "nan"
+      },
+      "args": [
+        1
+      ],
+      "upstreamFn": "expect().toBeLessThan",
+      "goFn": "jest.Matcher.ToBeLessThan"
+    },
+    {
+      "id": "lte-equal",
+      "fn": "toBeLessThanOrEqual",
+      "actual": 2,
+      "args": [
+        2
+      ],
+      "upstreamFn": "expect().toBeLessThanOrEqual",
+      "goFn": "jest.Matcher.ToBeLessThanOrEqual"
+    },
+    {
+      "id": "lte-less",
+      "fn": "toBeLessThanOrEqual",
+      "actual": 1,
+      "args": [
+        2
+      ],
+      "upstreamFn": "expect().toBeLessThanOrEqual",
+      "goFn": "jest.Matcher.ToBeLessThanOrEqual"
+    },
+    {
+      "id": "lte-greater",
+      "fn": "toBeLessThanOrEqual",
+      "actual": 3,
+      "args": [
+        2
+      ],
+      "upstreamFn": "expect().toBeLessThanOrEqual",
+      "goFn": "jest.Matcher.ToBeLessThanOrEqual"
+    },
+    {
+      "id": "lte-not-greater",
+      "fn": "toBeLessThanOrEqual",
+      "not": true,
+      "actual": 3,
+      "args": [
+        2
+      ],
+      "upstreamFn": "expect().not.toBeLessThanOrEqual",
+      "goFn": "jest.Matcher.Not().ToBeLessThanOrEqual"
+    },
+    {
+      "id": "closeto-default-classic",
+      "fn": "toBeCloseTo",
+      "actual": 0.30000000000000004,
+      "args": [
+        0.3
+      ],
+      "note": "the canonical 0.1+0.2 case",
+      "upstreamFn": "expect().toBeCloseTo",
+      "goFn": "jest.Matcher.ToBeCloseTo"
+    },
+    {
+      "id": "closeto-default-loose",
+      "fn": "toBeCloseTo",
+      "actual": 0.301,
+      "args": [
+        0.3
+      ],
+      "deviation": "JS defaults to 2 digits (epsilon 0.005); the port defaults to an absolute epsilon of 1e-9",
+      "upstreamFn": "expect().toBeCloseTo",
+      "goFn": "jest.Matcher.ToBeCloseTo"
+    },
+    {
+      "id": "closeto-default-far",
+      "fn": "toBeCloseTo",
+      "actual": 0.4,
+      "args": [
+        0.3
+      ],
+      "upstreamFn": "expect().toBeCloseTo",
+      "goFn": "jest.Matcher.ToBeCloseTo"
+    },
+    {
+      "id": "closeto-prec5-in",
+      "fn": "toBeCloseTo",
+      "actual": 1e-06,
+      "args": [
+        2e-06,
+        5
+      ],
+      "upstreamFn": "expect().toBeCloseTo",
+      "goFn": "jest.Matcher.ToBeCloseTo"
+    },
+    {
+      "id": "closeto-prec5-out",
+      "fn": "toBeCloseTo",
+      "actual": 0.0001,
+      "args": [
+        0.0002,
+        5
+      ],
+      "upstreamFn": "expect().toBeCloseTo",
+      "goFn": "jest.Matcher.ToBeCloseTo"
+    },
+    {
+      "id": "closeto-prec0",
+      "fn": "toBeCloseTo",
+      "actual": 1.2,
+      "args": [
+        1,
+        0
+      ],
+      "upstreamFn": "expect().toBeCloseTo",
+      "goFn": "jest.Matcher.ToBeCloseTo"
+    },
+    {
+      "id": "closeto-prec1",
+      "fn": "toBeCloseTo",
+      "actual": 1.04,
+      "args": [
+        1,
+        1
+      ],
+      "upstreamFn": "expect().toBeCloseTo",
+      "goFn": "jest.Matcher.ToBeCloseTo"
+    },
+    {
+      "id": "closeto-exact",
+      "fn": "toBeCloseTo",
+      "actual": 5,
+      "args": [
+        5
+      ],
+      "upstreamFn": "expect().toBeCloseTo",
+      "goFn": "jest.Matcher.ToBeCloseTo"
+    },
+    {
+      "id": "closeto-negzero",
+      "fn": "toBeCloseTo",
+      "actual": {
+        "$": "negzero"
+      },
+      "args": [
+        0
+      ],
+      "upstreamFn": "expect().toBeCloseTo",
+      "goFn": "jest.Matcher.ToBeCloseTo"
+    },
+    {
+      "id": "closeto-inf-both",
+      "fn": "toBeCloseTo",
+      "actual": {
+        "$": "inf"
+      },
+      "args": [
+        {
+          "$": "inf"
+        }
+      ],
+      "note": "jest short-circuits Infinity === Infinity",
+      "upstreamFn": "expect().toBeCloseTo",
+      "goFn": "jest.Matcher.ToBeCloseTo"
+    },
+    {
+      "id": "closeto-inf-vs-ninf",
+      "fn": "toBeCloseTo",
+      "actual": {
+        "$": "inf"
+      },
+      "args": [
+        {
+          "$": "ninf"
+        }
+      ],
+      "upstreamFn": "expect().toBeCloseTo",
+      "goFn": "jest.Matcher.ToBeCloseTo"
+    },
+    {
+      "id": "closeto-nan",
+      "fn": "toBeCloseTo",
+      "actual": {
+        "$": "nan"
+      },
+      "args": [
+        {
+          "$": "nan"
+        }
+      ],
+      "upstreamFn": "expect().toBeCloseTo",
+      "goFn": "jest.Matcher.ToBeCloseTo"
+    },
+    {
+      "id": "closeto-not-far",
+      "fn": "toBeCloseTo",
+      "not": true,
+      "actual": 0.4,
+      "args": [
+        0.3,
+        5
+      ],
+      "upstreamFn": "expect().not.toBeCloseTo",
+      "goFn": "jest.Matcher.Not().ToBeCloseTo"
+    },
+    {
+      "id": "gt-strings",
+      "fn": "toBeGreaterThan",
+      "actual": "b",
+      "args": [
+        "a"
+      ],
+      "note": "both sides must reject a non-numeric comparison as a usage error, not an assertion failure",
+      "upstreamFn": "expect().toBeGreaterThan",
+      "goFn": "jest.Matcher.ToBeGreaterThan"
+    },
+    {
+      "id": "lt-strings",
+      "fn": "toBeLessThan",
+      "actual": "a",
+      "args": [
+        "b"
+      ],
+      "upstreamFn": "expect().toBeLessThan",
+      "goFn": "jest.Matcher.ToBeLessThan"
+    }
+  ]
+}

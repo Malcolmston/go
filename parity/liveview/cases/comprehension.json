@@ -1,0 +1,247 @@
+{
+  "group": "comprehension",
+  "upstream": "phoenix_live_view@1.2.9",
+  "note": "List-comprehension encoding. Upstream 1.2.9 emits a keyed comprehension — shared statics under \"s\" plus a \"k\" map of per-entry dynamics and a \"kc\" count (the \"d\" dynamics array of LiveView <= 1.0). The Go port has no comprehension construct at all; the runner splices one nested Rendered per entry, which is the most faithful encoding available to it.",
+  "cases": [
+    {
+      "id": "comp-two-entries",
+      "fn": "render_full",
+      "args": [
+        "items",
+        {
+          "items": [
+            "a",
+            "b"
+          ]
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Comprehension",
+      "goFn": "liveview.FullDiff"
+    },
+    {
+      "id": "comp-one-entry",
+      "fn": "render_full",
+      "args": [
+        "items",
+        {
+          "items": [
+            "a"
+          ]
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Comprehension",
+      "goFn": "liveview.FullDiff"
+    },
+    {
+      "id": "comp-empty",
+      "fn": "render_full",
+      "args": [
+        "items",
+        {
+          "items": []
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Comprehension",
+      "goFn": "liveview.FullDiff"
+    },
+    {
+      "id": "comp-five-entries",
+      "fn": "render_full",
+      "args": [
+        "items",
+        {
+          "items": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e"
+          ]
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Comprehension",
+      "goFn": "liveview.FullDiff",
+      "note": "the per-entry statics must be shared, not repeated five times"
+    },
+    {
+      "id": "comp-escape-entry",
+      "fn": "render_full",
+      "args": [
+        "items",
+        {
+          "items": [
+            "<b>",
+            "&"
+          ]
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Comprehension",
+      "goFn": "liveview.FullDiff"
+    },
+    {
+      "id": "comp-multi-slot",
+      "fn": "render_full",
+      "args": [
+        "rows",
+        {
+          "items": [
+            "x",
+            "y"
+          ]
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Comprehension",
+      "goFn": "liveview.FullDiff",
+      "note": "two slots per entry"
+    },
+    {
+      "id": "comp-append-one",
+      "fn": "render_diff",
+      "args": [
+        "items",
+        {
+          "items": [
+            "a"
+          ]
+        },
+        {
+          "items": [
+            "a",
+            "b"
+          ]
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "liveview.DiffRendered",
+      "note": "appending one entry must not re-send the statics or the untouched entry"
+    },
+    {
+      "id": "comp-change-one",
+      "fn": "render_diff",
+      "args": [
+        "items",
+        {
+          "items": [
+            "a",
+            "b"
+          ]
+        },
+        {
+          "items": [
+            "a",
+            "z"
+          ]
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "liveview.DiffRendered"
+    },
+    {
+      "id": "comp-remove-one",
+      "fn": "render_diff",
+      "args": [
+        "items",
+        {
+          "items": [
+            "a",
+            "b"
+          ]
+        },
+        {
+          "items": [
+            "a"
+          ]
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "liveview.DiffRendered"
+    },
+    {
+      "id": "comp-unchanged",
+      "fn": "render_diff",
+      "args": [
+        "items",
+        {
+          "items": [
+            "a",
+            "b"
+          ]
+        },
+        {
+          "items": [
+            "a",
+            "b"
+          ]
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "liveview.DiffRendered"
+    },
+    {
+      "id": "comp-grow-from-empty",
+      "fn": "render_diff",
+      "args": [
+        "items",
+        {
+          "items": []
+        },
+        {
+          "items": [
+            "a"
+          ]
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "liveview.DiffRendered"
+    },
+    {
+      "id": "comp-rows-change-one",
+      "fn": "render_diff",
+      "args": [
+        "rows",
+        {
+          "items": [
+            "x",
+            "y"
+          ]
+        },
+        {
+          "items": [
+            "x",
+            "z"
+          ]
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "liveview.DiffRendered"
+    },
+    {
+      "id": "comp-html-two",
+      "fn": "render_html",
+      "args": [
+        "items",
+        {
+          "items": [
+            "a",
+            "<b>"
+          ]
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.to_iodata/1",
+      "goFn": "(*liveview.Rendered).HTML",
+      "note": "the materialised HTML should agree even where the encoding does not"
+    },
+    {
+      "id": "comp-html-empty",
+      "fn": "render_html",
+      "args": [
+        "items",
+        {
+          "items": []
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.to_iodata/1",
+      "goFn": "(*liveview.Rendered).HTML"
+    }
+  ]
+}

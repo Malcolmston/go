@@ -1,0 +1,250 @@
+{
+  "group": "algorithms",
+  "upstream": "jsonwebtoken@9.0.2",
+  "note": "Algorithm allowlisting and algorithm-confusion attacks.",
+  "cases": [
+    {
+      "id": "alg-allowlist-match",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMH0.uSyiX6mW2QalXyp6PI6h2UsPl323b6Mz8hggXGyW0rw",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "options.algorithms",
+      "goFn": "jwt.WithValidMethods"
+    },
+    {
+      "id": "alg-allowlist-multi",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMH0.uSyiX6mW2QalXyp6PI6h2UsPl323b6Mz8hggXGyW0rw",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "HS384",
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "options.algorithms",
+      "goFn": "jwt.WithValidMethods"
+    },
+    {
+      "id": "alg-allowlist-excludes",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMH0.uSyiX6mW2QalXyp6PI6h2UsPl323b6Mz8hggXGyW0rw",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "HS384"
+          ]
+        }
+      ],
+      "upstreamFn": "options.algorithms",
+      "goFn": "jwt.WithValidMethods",
+      "note": "both must fail: token alg is not in the allowlist"
+    },
+    {
+      "id": "alg-allowlist-empty",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMH0.uSyiX6mW2QalXyp6PI6h2UsPl323b6Mz8hggXGyW0rw",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": []
+        }
+      ],
+      "upstreamFn": "options.algorithms",
+      "goFn": "jwt.WithValidMethods",
+      "note": "both must fail: an empty allowlist permits nothing"
+    },
+    {
+      "id": "alg-confusion-hs-token-rs-allowlist",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMCwic3ViIjoiYXR0YWNrZXIifQ.AlobPGdy1Vq7VLsN2P9oz3DC0phkPddsglG5gC1Oxi4",
+        {
+          "kind": "oct",
+          "file": "rsa-2048.pub.pem"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "RS256"
+          ]
+        }
+      ],
+      "upstreamFn": "options.algorithms",
+      "goFn": "jwt.WithValidMethods",
+      "note": "both must fail: HS256 token forged with the RSA public-key PEM as the HMAC secret, offered to an RS256 verifier"
+    },
+    {
+      "id": "alg-confusion-hs-token-rsa-pubkey-object",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMCwic3ViIjoiYXR0YWNrZXIifQ.AlobPGdy1Vq7VLsN2P9oz3DC0phkPddsglG5gC1Oxi4",
+        {
+          "kind": "rsa",
+          "file": "rsa-2048.pub.pem"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "RS256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "both must fail: HS256 token, RSA public key"
+    },
+    {
+      "id": "alg-confusion-hs-token-rsa-pubkey-no-allowlist",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMCwic3ViIjoiYXR0YWNrZXIifQ.AlobPGdy1Vq7VLsN2P9oz3DC0phkPddsglG5gC1Oxi4",
+        {
+          "kind": "rsa",
+          "file": "rsa-2048.pub.pem"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "both must fail: no allowlist, but an HS256 token must never verify against an RSA public key"
+    },
+    {
+      "id": "alg-confusion-hs-token-pem-secret-no-allowlist",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMCwic3ViIjoiYXR0YWNrZXIifQ.AlobPGdy1Vq7VLsN2P9oz3DC0phkPddsglG5gC1Oxi4",
+        {
+          "kind": "oct",
+          "file": "rsa-2048.pub.pem"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true
+        }
+      ],
+      "upstreamFn": "jwt.verify (infers algorithms from key material)",
+      "goFn": "jwt.Parse",
+      "note": "SECURITY: upstream inspects the key material, sees a PEM public key and restricts itself to RS*/PS*, rejecting the HS256 token. The port has no such inference, so with no allowlist it accepts the forged token."
+    },
+    {
+      "id": "alg-rs256-token-hs256-allowlist",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMCwic3ViIjoiY3Jvc3MifQ.sNYac12OJTErVbLN8bPfui7j7BYdLDuZROIvtkeGrqjMVU08ZoVhHth6j3pBYAtYwYv8v6Nb7rNojZH3MyFMVMS6u_7WiIh-c2EQi57p0T7NJU5YS8UQBtm3mq9DbHUfcakNvu7zknq5MvllxEb1R7QZatq9IiCPs0C_ZNDrQOigv61y4ziVz8dCrvuVg-mDsIMVqdSD-gKmI-GDOpo2AnSoEzGZJOmE3FZX0p4XuQPbLDDlkBgomdseULmcESAGWkCDdTR4dnExOZt65X5F9Wk_PXwSlFV8G8D_xci53viW3KM_PWB9IRK521oj1vyWmoy3cjZHypdqNvObdHM6oQ",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "both must fail: RS256 token offered to an HS256 verifier"
+    },
+    {
+      "id": "alg-rs256-token-rsa-key-ps256-allowlist",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMCwic3ViIjoiY3Jvc3MifQ.sNYac12OJTErVbLN8bPfui7j7BYdLDuZROIvtkeGrqjMVU08ZoVhHth6j3pBYAtYwYv8v6Nb7rNojZH3MyFMVMS6u_7WiIh-c2EQi57p0T7NJU5YS8UQBtm3mq9DbHUfcakNvu7zknq5MvllxEb1R7QZatq9IiCPs0C_ZNDrQOigv61y4ziVz8dCrvuVg-mDsIMVqdSD-gKmI-GDOpo2AnSoEzGZJOmE3FZX0p4XuQPbLDDlkBgomdseULmcESAGWkCDdTR4dnExOZt65X5F9Wk_PXwSlFV8G8D_xci53viW3KM_PWB9IRK521oj1vyWmoy3cjZHypdqNvObdHM6oQ",
+        {
+          "kind": "rsa",
+          "file": "rsa-2048.pub.pem"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "PS256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "both must fail: RS256 and PS256 share a key type but are distinct algorithms"
+    },
+    {
+      "id": "alg-es256-token-es384-allowlist",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMCwic3ViIjoiY3Jvc3MifQ.w8U6PFFrubHIE07XMvLRjvI-0s9AaxoPc-fTsHeAruKTDT7lG0PtjCsvViYVgYtUZZUXUC5gKWvYCtgyQJEGvA",
+        {
+          "kind": "ec",
+          "file": "ec-p256.pub.pem"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "ES384"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "both must fail"
+    },
+    {
+      "id": "alg-unknown-in-header",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzEyOSIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMH0.uSyiX6mW2QalXyp6PI6h2UsPl323b6Mz8hggXGyW0rw",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "HS129"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "both must fail: unregistered alg"
+    }
+  ]
+}

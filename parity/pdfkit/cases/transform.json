@@ -1,0 +1,93 @@
+{
+  "group": "transform",
+  "upstream": "pdfkit@0.15.1",
+  "cases": [
+    {
+      "id": "xf-translate",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.translate",
+      "goFn": "Page.Translate",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "translate", "args": [100, 50]},
+        {"op": "rect", "args": [0, 0, 60, 30]},
+        {"op": "fill"}
+      ]}]}]
+    },
+    {
+      "id": "xf-scale",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.scale",
+      "goFn": "Page.Scale",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "scale", "args": [2, 0.5]},
+        {"op": "rect", "args": [20, 20, 60, 30]},
+        {"op": "fill"}
+      ]}]}]
+    },
+    {
+      "id": "xf-matrix",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.transform",
+      "goFn": "Page.Transform",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "transform", "args": [1, 0.25, -0.25, 1, 40, 60]},
+        {"op": "rect", "args": [0, 0, 80, 40]},
+        {"op": "stroke"}
+      ]}]}]
+    },
+    {
+      "id": "xf-nested",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.save/translate/scale/restore",
+      "goFn": "Page.Save/Translate/Scale/Restore",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "save"},
+        {"op": "translate", "args": [100, 100]},
+        {"op": "scale", "args": [1.5, 1.5]},
+        {"op": "rect", "args": [0, 0, 40, 20]},
+        {"op": "fill"},
+        {"op": "restore"},
+        {"op": "rect", "args": [0, 0, 40, 20]},
+        {"op": "stroke"}
+      ]}]}]
+    },
+    {
+      "id": "xf-rotate",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.rotate",
+      "goFn": "—",
+      "note": "the port has no rotate transform",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "rotate", "args": [30]},
+        {"op": "rect", "args": [100, 100, 80, 40]},
+        {"op": "fill"}
+      ]}]}]
+    },
+    {
+      "id": "xf-rotate-origin",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.rotate#origin",
+      "goFn": "—",
+      "note": "the port has no rotate transform, let alone an origin option",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "rotate", "args": [45], "origin": [150, 150]},
+        {"op": "rect", "args": [100, 100, 80, 40]},
+        {"op": "fill"}
+      ]}]}]
+    },
+    {
+      "id": "xf-text-under-transform",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.scale + text",
+      "goFn": "Page.Scale + DrawText",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "setFont", "args": ["Courier", 10]},
+        {"op": "save"},
+        {"op": "translate", "args": [50, 50]},
+        {"op": "scale", "args": [2, 2]},
+        {"op": "text", "args": [0, 0, "scaled"]},
+        {"op": "restore"}
+      ]}]}]
+    }
+  ]
+}

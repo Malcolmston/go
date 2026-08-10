@@ -1,0 +1,239 @@
+{
+  "group": "limits-series",
+  "upstream": "sympy@1.14.0",
+  "goModule": "github.com/malcolmston/algebra@v0.8.0",
+  "cases": [
+    {
+      "id": "lim-sin-over-x",
+      "fn": "limit",
+      "args": ["sin(x)/x", "x", "0"],
+      "mode": "numeric",
+      "upstreamFn": "sympy.limit",
+      "goFn": "algebra.Limit"
+    },
+    {
+      "id": "lim-tan-over-x",
+      "fn": "limit",
+      "args": ["tan(x)/x", "x", "0"],
+      "mode": "numeric",
+      "upstreamFn": "sympy.limit",
+      "goFn": "algebra.Limit"
+    },
+    {
+      "id": "lim-one-minus-cos",
+      "fn": "limit",
+      "args": ["(1-cos(x))/x^2", "x", "0"],
+      "mode": "numeric",
+      "upstreamFn": "sympy.limit",
+      "goFn": "algebra.Limit"
+    },
+    {
+      "id": "lim-removable-hole",
+      "fn": "limit",
+      "args": ["(x^2-1)/(x-1)", "x", "1"],
+      "mode": "numeric",
+      "upstreamFn": "sympy.limit",
+      "goFn": "algebra.Limit"
+    },
+    {
+      "id": "lim-lhopital-exp",
+      "fn": "limit",
+      "args": ["(exp(x)-1)/x", "x", "0"],
+      "mode": "numeric",
+      "upstreamFn": "sympy.limit",
+      "goFn": "algebra.Limit"
+    },
+    {
+      "id": "lim-lhopital-sqrt",
+      "fn": "limit",
+      "args": ["(sqrt(x+1)-1)/x", "x", "0"],
+      "mode": "numeric",
+      "upstreamFn": "sympy.limit",
+      "goFn": "algebra.Limit"
+    },
+    {
+      "id": "lim-rational-at-infinity",
+      "fn": "limit",
+      "args": ["(3*x^2+2)/(x^2-1)", "x", "oo"],
+      "mode": "numeric",
+      "upstreamFn": "sympy.limit",
+      "goFn": "algebra.Limit"
+    },
+    {
+      "id": "lim-exp-decay-at-infinity",
+      "fn": "limit",
+      "args": ["exp(-x)", "x", "oo"],
+      "mode": "numeric",
+      "upstreamFn": "sympy.limit",
+      "goFn": "algebra.Limit"
+    },
+    {
+      "id": "lim-euler-definition",
+      "fn": "limit",
+      "args": ["(1+1/x)^x", "x", "oo"],
+      "mode": "numeric",
+      "upstreamFn": "sympy.limit",
+      "goFn": "algebra.Limit",
+      "note": "answer is exactly E; a numeric extrapolation will not reach 1e-9"
+    },
+    {
+      "id": "lim-x-log-x",
+      "fn": "limit",
+      "args": ["x*log(x)", "x", "0"],
+      "mode": "numeric",
+      "upstreamFn": "sympy.limit",
+      "goFn": "algebra.Limit",
+      "note": "0 * (-oo) indeterminate form"
+    },
+    {
+      "id": "series-exp",
+      "fn": "series",
+      "args": ["exp(x)", "x", "0", 5],
+      "mode": "numeric",
+      "vars": ["x"],
+      "samples": [{"x": 0.1}, {"x": 0.2}, {"x": 0.35}, {"x": 0.5}, {"x": 0.75}],
+      "upstreamFn": "sympy.series",
+      "goFn": "algebra.Series"
+    },
+    {
+      "id": "series-sin",
+      "fn": "series",
+      "args": ["sin(x)", "x", "0", 6],
+      "mode": "numeric",
+      "vars": ["x"],
+      "samples": [{"x": 0.1}, {"x": 0.2}, {"x": 0.35}, {"x": 0.5}, {"x": 0.75}],
+      "upstreamFn": "sympy.series",
+      "goFn": "algebra.Series"
+    },
+    {
+      "id": "series-cos",
+      "fn": "series",
+      "args": ["cos(x)", "x", "0", 6],
+      "mode": "numeric",
+      "vars": ["x"],
+      "samples": [{"x": 0.1}, {"x": 0.2}, {"x": 0.35}, {"x": 0.5}, {"x": 0.75}],
+      "upstreamFn": "sympy.series",
+      "goFn": "algebra.Series"
+    },
+    {
+      "id": "series-log1p",
+      "fn": "series",
+      "args": ["log(1+x)", "x", "0", 4],
+      "mode": "numeric",
+      "vars": ["x"],
+      "samples": [{"x": 0.1}, {"x": 0.2}, {"x": 0.35}, {"x": 0.5}, {"x": 0.75}],
+      "upstreamFn": "sympy.series",
+      "goFn": "algebra.Series"
+    },
+    {
+      "id": "series-geometric",
+      "fn": "series",
+      "args": ["1/(1-x)", "x", "0", 5],
+      "mode": "numeric",
+      "vars": ["x"],
+      "samples": [{"x": 0.1}, {"x": 0.2}, {"x": 0.35}, {"x": 0.5}, {"x": 0.75}],
+      "upstreamFn": "sympy.series",
+      "goFn": "algebra.Series"
+    },
+    {
+      "id": "series-sqrt1p",
+      "fn": "series",
+      "args": ["sqrt(1+x)", "x", "0", 4],
+      "mode": "numeric",
+      "vars": ["x"],
+      "samples": [{"x": 0.1}, {"x": 0.2}, {"x": 0.35}, {"x": 0.5}, {"x": 0.75}],
+      "upstreamFn": "sympy.series",
+      "goFn": "algebra.Series"
+    },
+    {
+      "id": "series-tan",
+      "fn": "series",
+      "args": ["tan(x)", "x", "0", 6],
+      "mode": "numeric",
+      "vars": ["x"],
+      "samples": [{"x": 0.1}, {"x": 0.2}, {"x": 0.35}, {"x": 0.5}, {"x": 0.75}],
+      "upstreamFn": "sympy.series",
+      "goFn": "algebra.Series"
+    },
+    {
+      "id": "series-taylor-at-one",
+      "fn": "series",
+      "args": ["exp(x)", "x", "1", 3],
+      "mode": "numeric",
+      "vars": ["x"],
+      "samples": [{"x": 0.9}, {"x": 0.95}, {"x": 1.05}, {"x": 1.2}, {"x": 1.4}],
+      "upstreamFn": "sympy.series",
+      "goFn": "algebra.Series",
+      "note": "expansion point other than 0"
+    },
+    {
+      "id": "sum-k",
+      "fn": "summation",
+      "args": ["k", "k", "1", "n"],
+      "mode": "numeric",
+      "vars": ["n"],
+      "upstreamFn": "sympy.summation",
+      "goFn": "algebra.Summation"
+    },
+    {
+      "id": "sum-k-squared",
+      "fn": "summation",
+      "args": ["k^2", "k", "1", "n"],
+      "mode": "numeric",
+      "vars": ["n"],
+      "upstreamFn": "sympy.summation",
+      "goFn": "algebra.Summation"
+    },
+    {
+      "id": "sum-k-cubed",
+      "fn": "summation",
+      "args": ["k^3", "k", "1", "n"],
+      "mode": "numeric",
+      "vars": ["n"],
+      "upstreamFn": "sympy.summation",
+      "goFn": "algebra.Summation"
+    },
+    {
+      "id": "sum-constant",
+      "fn": "summation",
+      "args": ["3", "k", "1", "n"],
+      "mode": "numeric",
+      "vars": ["n"],
+      "upstreamFn": "sympy.summation",
+      "goFn": "algebra.Summation"
+    },
+    {
+      "id": "sum-geometric-numeric",
+      "fn": "summation",
+      "args": ["2^k", "k", "0", "10"],
+      "mode": "numeric",
+      "upstreamFn": "sympy.summation",
+      "goFn": "algebra.Summation"
+    },
+    {
+      "id": "sum-geometric-symbolic",
+      "fn": "summation",
+      "args": ["r^k", "k", "0", "n"],
+      "mode": "numeric",
+      "vars": ["r", "n"],
+      "upstreamFn": "sympy.summation",
+      "goFn": "algebra.Summation"
+    },
+    {
+      "id": "product-factorial",
+      "fn": "product",
+      "args": ["k", "k", "1", "5"],
+      "mode": "numeric",
+      "upstreamFn": "sympy.product",
+      "goFn": "algebra.Product"
+    },
+    {
+      "id": "product-k-squared",
+      "fn": "product",
+      "args": ["k^2", "k", "1", "4"],
+      "mode": "numeric",
+      "upstreamFn": "sympy.product",
+      "goFn": "algebra.Product"
+    }
+  ]
+}

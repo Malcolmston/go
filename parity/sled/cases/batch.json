@@ -1,0 +1,265 @@
+{
+  "group": "batch",
+  "upstream": "sled@0.34.7",
+  "encoding": "all keys, values and tree names are lowercase hex",
+  "cases": [
+    {
+      "id": "batch-mixed",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "insert",
+            "key": "61",
+            "value": "30"
+          },
+          {
+            "op": "insert",
+            "key": "7a",
+            "value": "30"
+          },
+          {
+            "op": "batch",
+            "ops": [
+              {
+                "op": "insert",
+                "key": "61",
+                "value": "31"
+              },
+              {
+                "op": "insert",
+                "key": "62",
+                "value": "32"
+              },
+              {
+                "op": "remove",
+                "key": "7a"
+              }
+            ]
+          },
+          {
+            "op": "iter"
+          },
+          {
+            "op": "len"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::apply_batch",
+      "goFn": "Tree.ApplyBatch"
+    },
+    {
+      "id": "batch-same-key-twice",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "batch",
+            "ops": [
+              {
+                "op": "insert",
+                "key": "61",
+                "value": "31"
+              },
+              {
+                "op": "insert",
+                "key": "61",
+                "value": "32"
+              }
+            ]
+          },
+          {
+            "op": "get",
+            "key": "61"
+          },
+          {
+            "op": "batch",
+            "ops": [
+              {
+                "op": "insert",
+                "key": "61",
+                "value": "33"
+              },
+              {
+                "op": "remove",
+                "key": "61"
+              }
+            ]
+          },
+          {
+            "op": "get",
+            "key": "61"
+          },
+          {
+            "op": "len"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::apply_batch",
+      "goFn": "Tree.ApplyBatch",
+      "note": "later operations in a batch win"
+    },
+    {
+      "id": "batch-atomic-across-reopen",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "batch",
+            "ops": [
+              {
+                "op": "insert",
+                "key": "61",
+                "value": "31"
+              },
+              {
+                "op": "insert",
+                "key": "62",
+                "value": "32"
+              },
+              {
+                "op": "insert",
+                "key": "63",
+                "value": "33"
+              }
+            ]
+          },
+          {
+            "op": "flush"
+          },
+          {
+            "op": "reopen"
+          },
+          {
+            "op": "iter"
+          },
+          {
+            "op": "len"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::apply_batch",
+      "goFn": "Tree.ApplyBatch",
+      "note": "a committed batch is applied all-or-nothing and survives a reopen"
+    },
+    {
+      "id": "batch-named-tree",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "open_tree",
+            "name": "t1"
+          },
+          {
+            "op": "batch",
+            "tree": "t1",
+            "ops": [
+              {
+                "op": "insert",
+                "key": "61",
+                "value": "31"
+              },
+              {
+                "op": "insert",
+                "key": "62",
+                "value": "32"
+              }
+            ]
+          },
+          {
+            "op": "iter",
+            "tree": "t1"
+          },
+          {
+            "op": "iter"
+          },
+          {
+            "op": "len"
+          },
+          {
+            "op": "len",
+            "tree": "t1"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::apply_batch",
+      "goFn": "Tree.ApplyBatch",
+      "note": "a batch applies to the tree it is applied against, not the default tree"
+    },
+    {
+      "id": "batch-remove-absent",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "batch",
+            "ops": [
+              {
+                "op": "remove",
+                "key": "6e6f7065"
+              },
+              {
+                "op": "insert",
+                "key": "61",
+                "value": "31"
+              }
+            ]
+          },
+          {
+            "op": "iter"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::apply_batch",
+      "goFn": "Tree.ApplyBatch"
+    },
+    {
+      "id": "batch-empty-key",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "batch",
+            "ops": [
+              {
+                "op": "insert",
+                "key": "61",
+                "value": "31"
+              },
+              {
+                "op": "insert",
+                "key": "",
+                "value": "32"
+              }
+            ]
+          },
+          {
+            "op": "iter"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::apply_batch",
+      "goFn": "Tree.ApplyBatch",
+      "note": "sled accepts the empty key; the Go port rejects the whole batch",
+      "deviation": "Go port rejects empty keys (sled.ErrEmptyKey) and applies nothing"
+    },
+    {
+      "id": "batch-empty",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "batch",
+            "ops": []
+          },
+          {
+            "op": "len"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::apply_batch",
+      "goFn": "Tree.ApplyBatch"
+    }
+  ]
+}

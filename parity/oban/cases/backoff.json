@@ -1,0 +1,26 @@
+{
+  "group": "backoff",
+  "upstream": "oban@2.23.1",
+  "note": "Retry-delay computation. Upstream's default worker backoff (Oban.Worker.backoff/1) folds jitter into the same call, so the deterministic component is compared through Oban.Backoff.exponential/2 with the exact option set Oban.Worker.backoff/1 passes (mult: 1, max_pow: 100, min_pad: 15); the jittered value is checked separately against its documented bounds. All values are whole seconds.",
+  "cases": [
+    {"id": "exp-attempt-1", "fn": "backoff_exponential", "args": [1, 1, 10, 0], "upstreamFn": "Oban.Backoff.exponential/2", "goFn": "—", "note": "upstream doctest: 2"},
+    {"id": "exp-mult-100", "fn": "backoff_exponential", "args": [1, 100, 10, 0], "upstreamFn": "Oban.Backoff.exponential/2", "goFn": "—", "note": "upstream doctest: 200"},
+    {"id": "exp-min-pad-10", "fn": "backoff_exponential", "args": [1, 1, 10, 10], "upstreamFn": "Oban.Backoff.exponential/2", "goFn": "—", "note": "upstream doctest: 12"},
+    {"id": "exp-attempt-10", "fn": "backoff_exponential", "args": [10, 1, 10, 0], "upstreamFn": "Oban.Backoff.exponential/2", "goFn": "—", "note": "upstream doctest: 1024"},
+    {"id": "exp-attempt-11-clamped", "fn": "backoff_exponential", "args": [11, 1, 10, 0], "upstreamFn": "Oban.Backoff.exponential/2", "goFn": "—", "note": "upstream doctest: 1024 (exponent clamped by max_pow)"},
+
+    {"id": "worker-backoff-1", "fn": "worker_backoff_base", "args": [1, 20], "upstreamFn": "Oban.Worker.backoff/1", "goFn": "(*oban.ExponentialBackoff).Next"},
+    {"id": "worker-backoff-2", "fn": "worker_backoff_base", "args": [2, 20], "upstreamFn": "Oban.Worker.backoff/1", "goFn": "(*oban.ExponentialBackoff).Next"},
+    {"id": "worker-backoff-3", "fn": "worker_backoff_base", "args": [3, 20], "upstreamFn": "Oban.Worker.backoff/1", "goFn": "(*oban.ExponentialBackoff).Next"},
+    {"id": "worker-backoff-5", "fn": "worker_backoff_base", "args": [5, 20], "upstreamFn": "Oban.Worker.backoff/1", "goFn": "(*oban.ExponentialBackoff).Next"},
+    {"id": "worker-backoff-10", "fn": "worker_backoff_base", "args": [10, 20], "upstreamFn": "Oban.Worker.backoff/1", "goFn": "(*oban.ExponentialBackoff).Next"},
+    {"id": "worker-backoff-20", "fn": "worker_backoff_base", "args": [20, 20], "upstreamFn": "Oban.Worker.backoff/1", "goFn": "(*oban.ExponentialBackoff).Next"},
+    {"id": "worker-backoff-clamped-attempt", "fn": "worker_backoff_base", "args": [25, 50], "upstreamFn": "Oban.Worker.backoff/1", "goFn": "(*oban.ExponentialBackoff).Next", "note": "max_attempts above 20 scales the attempt into 1..20 upstream"},
+
+    {"id": "worker-backoff-jitter-mode", "fn": "worker_backoff_jitter", "args": [], "upstreamFn": "Oban.Backoff.jitter/2", "goFn": "oban.ExponentialBackoff.Jitter", "note": "which jitter the default retry policy applies"},
+
+    {"id": "worker-backoff-bounds-1", "fn": "worker_backoff_in_bounds", "args": [1, 20], "upstreamFn": "Oban.Worker.backoff/1", "goFn": "(*oban.ExponentialBackoff).Next", "note": "jittered value must stay inside [base, base + 10%]"},
+    {"id": "worker-backoff-bounds-5", "fn": "worker_backoff_in_bounds", "args": [5, 20], "upstreamFn": "Oban.Worker.backoff/1", "goFn": "(*oban.ExponentialBackoff).Next"},
+    {"id": "worker-backoff-bounds-20", "fn": "worker_backoff_in_bounds", "args": [20, 20], "upstreamFn": "Oban.Worker.backoff/1", "goFn": "(*oban.ExponentialBackoff).Next"}
+  ]
+}

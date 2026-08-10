@@ -1,0 +1,362 @@
+{
+  "group": "regex",
+  "upstream": "jq@1.7.1",
+  "encoding": "args = [jq program, input JSON value, optional $variables object]; value = the complete output stream as a JSON array",
+  "cases": [
+    {
+      "id": "test-basic",
+      "fn": "run",
+      "args": [
+        "[test(\"^a\"), test(\"z\")]",
+        "abc"
+      ],
+      "upstreamFn": "test/1",
+      "goFn": "test/1"
+    },
+    {
+      "id": "test-flags-i",
+      "fn": "run",
+      "args": [
+        "test(\"ABC\"; \"i\")",
+        "xabcx"
+      ],
+      "upstreamFn": "test/2",
+      "goFn": "test/2"
+    },
+    {
+      "id": "test-array-arg",
+      "fn": "run",
+      "args": [
+        "test([\"AB\";\"i\"])",
+        "ab"
+      ],
+      "upstreamFn": "test/1",
+      "goFn": "test/1"
+    },
+    {
+      "id": "test-nonstring-err",
+      "fn": "run",
+      "args": [
+        "test(\"a\")",
+        5
+      ],
+      "upstreamFn": "test/1",
+      "goFn": "test/1"
+    },
+    {
+      "id": "test-bad-regex-err",
+      "fn": "run",
+      "args": [
+        "test(\"[\")",
+        "a"
+      ],
+      "upstreamFn": "test/1",
+      "goFn": "test/1"
+    },
+    {
+      "id": "test-null-flags",
+      "fn": "run",
+      "args": [
+        "\"ab\"|test(\"A\"; null)",
+        null
+      ],
+      "upstreamFn": "test/2",
+      "goFn": "test/2"
+    },
+    {
+      "id": "match-basic",
+      "fn": "run",
+      "args": [
+        "[match(\"a(b)(c)?\")]",
+        "abd"
+      ],
+      "upstreamFn": "match/1",
+      "goFn": "match/1"
+    },
+    {
+      "id": "match-global",
+      "fn": "run",
+      "args": [
+        "[match(\"a\"; \"g\")|.offset]",
+        "aXa"
+      ],
+      "upstreamFn": "match/2",
+      "goFn": "match/2"
+    },
+    {
+      "id": "match-named",
+      "fn": "run",
+      "args": [
+        "[match(\"(?<x>a)(?<y>b)\")|.captures]",
+        "ab"
+      ],
+      "upstreamFn": "match/1",
+      "goFn": "match/1"
+    },
+    {
+      "id": "match-unicode-offset",
+      "fn": "run",
+      "args": [
+        "[match(\"\u6f22\")|.offset,.length]",
+        "a\u00e9\u6f22z"
+      ],
+      "upstreamFn": "match/1",
+      "goFn": "match/1",
+      "note": "offsets are in codepoints"
+    },
+    {
+      "id": "match-empty-regex",
+      "fn": "run",
+      "args": [
+        "[\"ab\"|match(\"\";\"g\")|.offset]",
+        null
+      ],
+      "upstreamFn": "match/2",
+      "goFn": "match/2"
+    },
+    {
+      "id": "match-n-flag",
+      "fn": "run",
+      "args": [
+        "[match(\"(a)?b\"; \"n\")]",
+        "b"
+      ],
+      "upstreamFn": "match/2",
+      "goFn": "match/2"
+    },
+    {
+      "id": "capture-named",
+      "fn": "run",
+      "args": [
+        "capture(\"(?<n>[a-z]+)-(?<d>[0-9]+)\")",
+        "ab-12"
+      ],
+      "upstreamFn": "capture/1",
+      "goFn": "capture/1"
+    },
+    {
+      "id": "capture-nomatch",
+      "fn": "run",
+      "args": [
+        "[capture(\"z(?<n>a)\")]",
+        "abc"
+      ],
+      "upstreamFn": "capture/1",
+      "goFn": "capture/1"
+    },
+    {
+      "id": "capture-multi-flags",
+      "fn": "run",
+      "args": [
+        "[\"aA\"|capture(\"(?<x>a)\";\"gi\")]",
+        null
+      ],
+      "upstreamFn": "capture/2",
+      "goFn": "capture/2"
+    },
+    {
+      "id": "sub-basic",
+      "fn": "run",
+      "args": [
+        "sub(\"a\";\"X\")",
+        "aba"
+      ],
+      "upstreamFn": "sub/2",
+      "goFn": "sub/2"
+    },
+    {
+      "id": "sub-global-flag",
+      "fn": "run",
+      "args": [
+        "sub(\"a\";\"X\";\"g\")",
+        "aba"
+      ],
+      "upstreamFn": "sub/3",
+      "goFn": "sub/3"
+    },
+    {
+      "id": "sub-refs",
+      "fn": "run",
+      "args": [
+        "sub(\"(?<x>a)\";\"[\\(.x)]\")",
+        "abc"
+      ],
+      "upstreamFn": "sub/2",
+      "goFn": "sub/2"
+    },
+    {
+      "id": "sub-many-replacements",
+      "fn": "run",
+      "args": [
+        "[sub(\"a\";(\"X\",\"Y\"))]",
+        "aa"
+      ],
+      "upstreamFn": "sub/2",
+      "goFn": "sub/2",
+      "note": "a multi-valued replacement yields a stream"
+    },
+    {
+      "id": "sub-flags-g-named",
+      "fn": "run",
+      "args": [
+        "\"aa\"|[sub(\"(?<x>a)\";\"\\(.x)!\";\"g\")]",
+        null
+      ],
+      "upstreamFn": "sub/3",
+      "goFn": "sub/3"
+    },
+    {
+      "id": "gsub-basic",
+      "fn": "run",
+      "args": [
+        "gsub(\"a\";\"X\")",
+        "banana"
+      ],
+      "upstreamFn": "gsub/2",
+      "goFn": "gsub/2"
+    },
+    {
+      "id": "gsub-empty-match",
+      "fn": "run",
+      "args": [
+        "gsub(\"\";\"-\")",
+        "ab"
+      ],
+      "upstreamFn": "gsub/2",
+      "goFn": "gsub/2"
+    },
+    {
+      "id": "gsub-named",
+      "fn": "run",
+      "args": [
+        "gsub(\"(?<c>[aeiou])\";\"<\\(.c)>\")",
+        "hello"
+      ],
+      "upstreamFn": "gsub/2",
+      "goFn": "gsub/2"
+    },
+    {
+      "id": "gsub-flags",
+      "fn": "run",
+      "args": [
+        "gsub(\"A\";\"x\";\"i\")",
+        "aAa"
+      ],
+      "upstreamFn": "gsub/3",
+      "goFn": "gsub/3"
+    },
+    {
+      "id": "scan-basic",
+      "fn": "run",
+      "args": [
+        "[scan(\"[a-z]+\")]",
+        "ab 12 cd"
+      ],
+      "upstreamFn": "scan/1",
+      "goFn": "scan/1"
+    },
+    {
+      "id": "scan-groups",
+      "fn": "run",
+      "args": [
+        "[scan(\"([a-z])([0-9])\")]",
+        "a1 b2"
+      ],
+      "upstreamFn": "scan/1",
+      "goFn": "scan/1"
+    },
+    {
+      "id": "scan-flags",
+      "fn": "run",
+      "args": [
+        "[scan(\"A\";\"g\")]",
+        "aA"
+      ],
+      "upstreamFn": "scan/2",
+      "goFn": "scan/2"
+    },
+    {
+      "id": "scan-no-match",
+      "fn": "run",
+      "args": [
+        "[\"abc\"|scan(\"z\")]",
+        null
+      ],
+      "upstreamFn": "scan/1",
+      "goFn": "scan/1"
+    },
+    {
+      "id": "splits-basic",
+      "fn": "run",
+      "args": [
+        "[splits(\",\")]",
+        "a,b,c"
+      ],
+      "upstreamFn": "splits/1",
+      "goFn": "splits/1"
+    },
+    {
+      "id": "splits-regex",
+      "fn": "run",
+      "args": [
+        "[splits(\"[0-9]+\")]",
+        "a1b22c"
+      ],
+      "upstreamFn": "splits/1",
+      "goFn": "splits/1"
+    },
+    {
+      "id": "splits-empty",
+      "fn": "run",
+      "args": [
+        "[\"\"|splits(\",\")]",
+        null
+      ],
+      "upstreamFn": "splits/1",
+      "goFn": "splits/1"
+    },
+    {
+      "id": "splits-null-flags",
+      "fn": "run",
+      "args": [
+        "[\"a1b\"|splits(\"[0-9]\"; null)]",
+        null
+      ],
+      "upstreamFn": "splits/2",
+      "goFn": "splits/2"
+    },
+    {
+      "id": "regex-x-flag",
+      "fn": "run",
+      "args": [
+        "test(\"a b\"; \"x\")",
+        "ab"
+      ],
+      "upstreamFn": "test/2",
+      "goFn": "test/2"
+    },
+    {
+      "id": "regex-lookahead",
+      "fn": "run",
+      "args": [
+        "[test(\"a(?=b)\")]",
+        "ab"
+      ],
+      "upstreamFn": "test/1",
+      "goFn": "test/1",
+      "note": "oniguruma supports lookahead, RE2 does not",
+      "deviation": "regexp is RE2, so lookaround and backreferences are unsupported"
+    },
+    {
+      "id": "regex-backref",
+      "fn": "run",
+      "args": [
+        "[test(\"(a)\\\\1\")]",
+        "aa"
+      ],
+      "upstreamFn": "test/1",
+      "goFn": "test/1",
+      "deviation": "regexp is RE2, so lookaround and backreferences are unsupported"
+    }
+  ]
+}

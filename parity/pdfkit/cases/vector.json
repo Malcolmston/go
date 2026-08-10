@@ -1,0 +1,285 @@
+{
+  "group": "vector",
+  "upstream": "pdfkit@0.15.1",
+  "cases": [
+    {
+      "id": "vec-line-stroke",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.moveTo/lineTo/stroke",
+      "goFn": "Page.MoveTo/LineTo/Stroke",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "moveTo", "args": [20, 20]},
+        {"op": "lineTo", "args": [200, 120]},
+        {"op": "stroke"}
+      ]}]}]
+    },
+    {
+      "id": "vec-rect-fill",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.rect/fill",
+      "goFn": "Page.Rect/Fill",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "fillColor", "args": [[255, 128, 0]]},
+        {"op": "rect", "args": [30, 40, 120, 60]},
+        {"op": "fill"}
+      ]}]}]
+    },
+    {
+      "id": "vec-rect-fill-stroke",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.fillAndStroke",
+      "goFn": "Page.FillStroke",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "fillColor", "args": [[0, 0, 255]]},
+        {"op": "strokeColor", "args": [[255, 255, 0]]},
+        {"op": "lineWidth", "args": [3]},
+        {"op": "rect", "args": [30, 40, 120, 60]},
+        {"op": "fillStroke"}
+      ]}]}]
+    },
+    {
+      "id": "vec-rounded-rect",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.roundedRect",
+      "goFn": "Page.RoundedRect",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "roundedRect", "args": [30, 40, 120, 60, 12]},
+        {"op": "stroke"}
+      ]}]}]
+    },
+    {
+      "id": "vec-circle",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.circle",
+      "goFn": "Page.Circle",
+      "note": "four-Bezier circle approximation on both sides",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "circle", "args": [150, 150, 60]},
+        {"op": "stroke"}
+      ]}]}]
+    },
+    {
+      "id": "vec-ellipse",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.ellipse",
+      "goFn": "Page.Ellipse",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "ellipse", "args": [150, 150, 80, 40]},
+        {"op": "fill"}
+      ]}]}]
+    },
+    {
+      "id": "vec-bezier",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.bezierCurveTo",
+      "goFn": "Page.CurveTo",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "moveTo", "args": [20, 200]},
+        {"op": "curveTo", "args": [60, 100, 140, 300, 200, 200]},
+        {"op": "stroke"}
+      ]}]}]
+    },
+    {
+      "id": "vec-quadratic",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.quadraticCurveTo",
+      "goFn": "—",
+      "note": "the port has no quadratic curve helper",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "moveTo", "args": [20, 200]},
+        {"op": "quadraticCurveTo", "args": [110, 100, 200, 200]},
+        {"op": "stroke"}
+      ]}]}]
+    },
+    {
+      "id": "vec-polygon",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.polygon",
+      "goFn": "Page.Polygon",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "polygon", "args": [30, 30, 130, 60, 90, 160]},
+        {"op": "fill"}
+      ]}]}]
+    },
+    {
+      "id": "vec-close-path",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.closePath",
+      "goFn": "Page.ClosePath",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "moveTo", "args": [20, 20]},
+        {"op": "lineTo", "args": [120, 20]},
+        {"op": "lineTo", "args": [70, 120]},
+        {"op": "closePath"},
+        {"op": "stroke"}
+      ]}]}]
+    },
+    {
+      "id": "vec-even-odd-fill",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.fill#even-odd",
+      "goFn": "Page.FillEvenOdd",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "circle", "args": [120, 120, 60]},
+        {"op": "circle", "args": [120, 120, 30]},
+        {"op": "fillEvenOdd"}
+      ]}]}]
+    },
+    {
+      "id": "vec-svg-path",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.path",
+      "goFn": "Page.SVGPath",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "svgPath", "args": ["M 20 20 L 120 20 L 70 120 Z"]},
+        {"op": "stroke"}
+      ]}]}]
+    },
+    {
+      "id": "vec-svg-path-curves",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.path",
+      "goFn": "Page.SVGPath",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "svgPath", "args": ["M10 80 C 40 10, 65 10, 95 80 S 150 150, 180 80 Q 210 10 240 80 T 300 80 H 320 V 120 z"]},
+        {"op": "stroke"}
+      ]}]}]
+    },
+    {
+      "id": "vec-svg-path-arc",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.path",
+      "goFn": "Page.SVGPath",
+      "note": "elliptical arc flattened to Beziers by both sides",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "svgPath", "args": ["M 100 100 A 50 30 0 1 1 200 150"]},
+        {"op": "stroke"}
+      ]}]}]
+    },
+    {
+      "id": "vec-svg-path-malformed",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.path",
+      "goFn": "Page.SVGPath",
+      "note": "both sides must reject malformed path data",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "svgPath", "args": ["M 10 10 Q"]},
+        {"op": "stroke"}
+      ]}]}]
+    },
+    {
+      "id": "vec-line-width",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.lineWidth",
+      "goFn": "Page.SetLineWidth",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "lineWidth", "args": [0.5]}, {"op": "moveTo", "args": [20, 20]}, {"op": "lineTo", "args": [200, 20]}, {"op": "stroke"},
+        {"op": "lineWidth", "args": [4]}, {"op": "moveTo", "args": [20, 40]}, {"op": "lineTo", "args": [200, 40]}, {"op": "stroke"},
+        {"op": "lineWidth", "args": [12.25]}, {"op": "moveTo", "args": [20, 70]}, {"op": "lineTo", "args": [200, 70]}, {"op": "stroke"}
+      ]}]}]
+    },
+    {
+      "id": "vec-line-caps",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.lineCap",
+      "goFn": "Page.SetLineCap",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "lineWidth", "args": [10]},
+        {"op": "lineCap", "args": [0]}, {"op": "moveTo", "args": [20, 20]}, {"op": "lineTo", "args": [200, 20]}, {"op": "stroke"},
+        {"op": "lineCap", "args": [1]}, {"op": "moveTo", "args": [20, 50]}, {"op": "lineTo", "args": [200, 50]}, {"op": "stroke"},
+        {"op": "lineCap", "args": [2]}, {"op": "moveTo", "args": [20, 80]}, {"op": "lineTo", "args": [200, 80]}, {"op": "stroke"}
+      ]}]}]
+    },
+    {
+      "id": "vec-line-joins",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.lineJoin",
+      "goFn": "Page.SetLineJoin",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "lineWidth", "args": [10]},
+        {"op": "lineJoin", "args": [0]}, {"op": "moveTo", "args": [20, 60]}, {"op": "lineTo", "args": [60, 20]}, {"op": "lineTo", "args": [100, 60]}, {"op": "stroke"},
+        {"op": "lineJoin", "args": [1]}, {"op": "moveTo", "args": [120, 60]}, {"op": "lineTo", "args": [160, 20]}, {"op": "lineTo", "args": [200, 60]}, {"op": "stroke"},
+        {"op": "lineJoin", "args": [2]}, {"op": "moveTo", "args": [220, 60]}, {"op": "lineTo", "args": [260, 20]}, {"op": "lineTo", "args": [300, 60]}, {"op": "stroke"}
+      ]}]}]
+    },
+    {
+      "id": "vec-miter-limit",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.miterLimit",
+      "goFn": "Page.SetMiterLimit",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "miterLimit", "args": [3.5]},
+        {"op": "moveTo", "args": [20, 60]}, {"op": "lineTo", "args": [60, 20]}, {"op": "lineTo", "args": [100, 60]}, {"op": "stroke"}
+      ]}]}]
+    },
+    {
+      "id": "vec-dash-simple",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.dash",
+      "goFn": "Page.SetDash",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "dash", "args": [0, 6, 3]},
+        {"op": "moveTo", "args": [20, 20]}, {"op": "lineTo", "args": [300, 20]}, {"op": "stroke"}
+      ]}]}]
+    },
+    {
+      "id": "vec-dash-phase",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.dash#phase",
+      "goFn": "Page.SetDash",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "dash", "args": [2.5, 8, 4, 2, 4]},
+        {"op": "moveTo", "args": [20, 20]}, {"op": "lineTo", "args": [300, 20]}, {"op": "stroke"}
+      ]}]}]
+    },
+    {
+      "id": "vec-undash",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.undash",
+      "goFn": "Page.SetDash",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "dash", "args": [0, 6, 3]},
+        {"op": "moveTo", "args": [20, 20]}, {"op": "lineTo", "args": [300, 20]}, {"op": "stroke"},
+        {"op": "undash"},
+        {"op": "moveTo", "args": [20, 40]}, {"op": "lineTo", "args": [300, 40]}, {"op": "stroke"}
+      ]}]}]
+    },
+    {
+      "id": "vec-dash-zero-length",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.dash",
+      "goFn": "Page.SetDash",
+      "note": "upstream rejects a zero dash length; does the port?",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "dash", "args": [0, 0, 3]},
+        {"op": "moveTo", "args": [20, 20]}, {"op": "lineTo", "args": [300, 20]}, {"op": "stroke"}
+      ]}]}]
+    },
+    {
+      "id": "vec-cmyk-colours",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.fillColor#cmyk",
+      "goFn": "Page.SetFillCMYK",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "fillCMYK", "args": [[0, 100, 100, 0]]},
+        {"op": "strokeCMYK", "args": [[100, 0, 0, 20]]},
+        {"op": "lineWidth", "args": [2]},
+        {"op": "rect", "args": [30, 40, 120, 60]},
+        {"op": "fillStroke"}
+      ]}]}]
+    },
+    {
+      "id": "vec-save-restore",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.save/restore",
+      "goFn": "Page.Save/Restore",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "save"},
+        {"op": "lineWidth", "args": [8]},
+        {"op": "moveTo", "args": [20, 20]}, {"op": "lineTo", "args": [200, 20]}, {"op": "stroke"},
+        {"op": "restore"},
+        {"op": "moveTo", "args": [20, 50]}, {"op": "lineTo", "args": [200, 50]}, {"op": "stroke"}
+      ]}]}]
+    }
+  ]
+}

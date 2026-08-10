@@ -1,0 +1,18 @@
+{
+  "group": "merge",
+  "upstream": "pandas==2.3.3",
+  "cases": [
+    {"id": "merge-inner", "fn": "merge", "args": {"table": "sales", "right": "rates", "on": "region", "how": "inner"}, "upstreamFn": "pandas.DataFrame.merge", "goFn": "pandas.DataFrame.Merge"},
+    {"id": "merge-left", "fn": "merge", "args": {"table": "sales", "right": "rates", "on": "region", "how": "left"}, "upstreamFn": "pandas.DataFrame.merge", "goFn": "pandas.DataFrame.Merge"},
+    {"id": "merge-inner-duplicate-right-keys", "fn": "merge", "args": {"table": "sales", "right": "rates_dup", "on": "region", "how": "inner"}, "upstreamFn": "pandas.DataFrame.merge", "goFn": "pandas.DataFrame.Merge", "note": "one left row fans out to several right rows"},
+    {"id": "merge-left-duplicate-right-keys", "fn": "merge", "args": {"table": "sales", "right": "rates_dup", "on": "region", "how": "left"}, "upstreamFn": "pandas.DataFrame.merge", "goFn": "pandas.DataFrame.Merge"},
+    {"id": "merge-key-not-first-column", "fn": "merge", "args": {"table": "keyed_tail", "right": "rates", "on": "region", "how": "inner"}, "upstreamFn": "pandas.DataFrame.merge", "goFn": "pandas.DataFrame.Merge", "note": "output column order when the join key is not the left frame's first column"},
+    {"id": "merge-key-not-first-column-left", "fn": "merge", "args": {"table": "keyed_tail", "right": "rates", "on": "region", "how": "left"}, "upstreamFn": "pandas.DataFrame.merge", "goFn": "pandas.DataFrame.Merge"},
+    {"id": "merge-colliding-columns", "fn": "merge", "args": {"table": "sales", "right": "rates_collide", "on": "region", "how": "inner"}, "upstreamFn": "pandas.DataFrame.merge", "goFn": "pandas.DataFrame.Merge", "note": "non-key collision: port suffixes _left/_right, pandas _x/_y"},
+    {"id": "merge-no-overlap", "fn": "merge", "args": {"table": "words", "right": "rates", "on": "g", "how": "inner"}, "upstreamFn": "pandas.DataFrame.merge", "goFn": "pandas.DataFrame.Merge", "note": "must fail on both: key absent from the right frame"},
+    {"id": "merge-bad-key", "fn": "merge", "args": {"table": "sales", "right": "rates", "on": "nope", "how": "inner"}, "upstreamFn": "pandas.DataFrame.merge", "goFn": "pandas.DataFrame.Merge", "note": "must fail on both: key absent from both frames"},
+    {"id": "merge-right-unsupported", "fn": "merge", "args": {"table": "sales", "right": "rates", "on": "region", "how": "right"}, "upstreamFn": "pandas.DataFrame.merge", "goFn": "—", "note": "the port has no right join; expected to fail on the Go side only"},
+    {"id": "merge-outer-unsupported", "fn": "merge", "args": {"table": "sales", "right": "rates", "on": "region", "how": "outer"}, "upstreamFn": "pandas.DataFrame.merge", "goFn": "—", "note": "the port has no outer join; expected to fail on the Go side only"},
+    {"id": "merge-cross-unsupported", "fn": "merge", "args": {"table": "words", "right": "flags", "on": "", "how": "cross"}, "upstreamFn": "pandas.DataFrame.merge", "goFn": "—", "note": "the port has no cross join; expected to fail on the Go side only"}
+  ]
+}

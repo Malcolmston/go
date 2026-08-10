@@ -1,0 +1,282 @@
+{
+  "group": "tools-call",
+  "upstream": "fastmcp@3.4.6",
+  "cases": [
+    {
+      "id": "call-add",
+      "fn": "rpc",
+      "args": [
+        { "method": "tools/call", "params": { "name": "add", "arguments": { "a": 2, "b": 3 } } }
+      ],
+      "upstreamFn": "FastMCP._call_tool_mcp",
+      "goFn": "fastmcp.Server.handleToolsCall"
+    },
+    {
+      "id": "call-add-content",
+      "fn": "rpc",
+      "args": [
+        { "method": "tools/call", "params": { "name": "add", "arguments": { "a": 2, "b": 3 } } },
+        "content"
+      ],
+      "upstreamFn": "mcp.types.CallToolResult.content",
+      "goFn": "fastmcp.toContent"
+    },
+    {
+      "id": "call-add-structured",
+      "fn": "rpc",
+      "args": [
+        { "method": "tools/call", "params": { "name": "add", "arguments": { "a": 2, "b": 3 } } },
+        "structuredContent"
+      ],
+      "upstreamFn": "mcp.types.CallToolResult.structuredContent",
+      "goFn": "—",
+      "note": "upstream wraps scalar results as {\"result\": ...}; the port emits none"
+    },
+    {
+      "id": "call-add-iserror",
+      "fn": "rpc",
+      "args": [
+        { "method": "tools/call", "params": { "name": "add", "arguments": { "a": 2, "b": 3 } } },
+        "isError"
+      ],
+      "upstreamFn": "mcp.types.CallToolResult.isError",
+      "goFn": "fastmcp.Server.handleToolsCall",
+      "note": "upstream always sets isError; the port omits it on success"
+    },
+    {
+      "id": "call-add-negative",
+      "fn": "rpc",
+      "args": [
+        {
+          "method": "tools/call",
+          "params": { "name": "add", "arguments": { "a": -7, "b": 4 } }
+        },
+        "content"
+      ],
+      "upstreamFn": "FastMCP._call_tool_mcp",
+      "goFn": "fastmcp.Server.handleToolsCall"
+    },
+    {
+      "id": "call-greet-both",
+      "fn": "rpc",
+      "args": [
+        {
+          "method": "tools/call",
+          "params": { "name": "greet", "arguments": { "name": "Ada", "greeting": "Hi" } }
+        },
+        "content"
+      ],
+      "upstreamFn": "FastMCP._call_tool_mcp",
+      "goFn": "fastmcp.Server.handleToolsCall"
+    },
+    {
+      "id": "call-greet-default",
+      "fn": "rpc",
+      "args": [
+        {
+          "method": "tools/call",
+          "params": { "name": "greet", "arguments": { "name": "Ada" } }
+        },
+        "content"
+      ],
+      "upstreamFn": "FastMCP._call_tool_mcp",
+      "goFn": "fastmcp.Server.handleToolsCall",
+      "note": "the declared default must actually be applied when the argument is omitted"
+    },
+    {
+      "id": "call-search-defaults",
+      "fn": "rpc",
+      "args": [
+        {
+          "method": "tools/call",
+          "params": { "name": "search", "arguments": { "query": "mcp" } }
+        },
+        "content"
+      ],
+      "upstreamFn": "FastMCP._call_tool_mcp",
+      "goFn": "fastmcp.Server.handleToolsCall"
+    },
+    {
+      "id": "call-search-explicit",
+      "fn": "rpc",
+      "args": [
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "search",
+            "arguments": { "query": "mcp", "limit": 3, "verbose": true, "tags": ["a", "b"] }
+          }
+        },
+        "content"
+      ],
+      "upstreamFn": "FastMCP._call_tool_mcp",
+      "goFn": "fastmcp.Server.handleToolsCall"
+    },
+    {
+      "id": "call-echo-map",
+      "fn": "rpc",
+      "args": [
+        {
+          "method": "tools/call",
+          "params": {
+            "name": "echo_map",
+            "arguments": { "payload": { "z": 1, "a": [1, 2], "n": null } }
+          }
+        },
+        "content"
+      ],
+      "upstreamFn": "FastMCP._call_tool_mcp",
+      "goFn": "fastmcp.Server.handleToolsCall"
+    },
+    {
+      "id": "call-nickname-set",
+      "fn": "rpc",
+      "args": [
+        {
+          "method": "tools/call",
+          "params": { "name": "nickname", "arguments": { "name": "Ada", "nickname": "A" } }
+        },
+        "content"
+      ],
+      "upstreamFn": "FastMCP._call_tool_mcp",
+      "goFn": "fastmcp.Server.handleToolsCall"
+    },
+    {
+      "id": "call-nickname-unset",
+      "fn": "rpc",
+      "args": [
+        {
+          "method": "tools/call",
+          "params": { "name": "nickname", "arguments": { "name": "Ada" } }
+        },
+        "content"
+      ],
+      "upstreamFn": "FastMCP._call_tool_mcp",
+      "goFn": "fastmcp.Server.handleToolsCall"
+    },
+    {
+      "id": "call-nickname-null",
+      "fn": "rpc",
+      "args": [
+        {
+          "method": "tools/call",
+          "params": { "name": "nickname", "arguments": { "name": "Ada", "nickname": null } }
+        },
+        "content"
+      ],
+      "upstreamFn": "FastMCP._call_tool_mcp",
+      "goFn": "fastmcp.Server.handleToolsCall"
+    },
+    {
+      "id": "call-stats-structured",
+      "fn": "rpc",
+      "args": [
+        {
+          "method": "tools/call",
+          "params": { "name": "stats", "arguments": { "values": [1, 2, 3] } }
+        },
+        "structuredContent"
+      ],
+      "upstreamFn": "mcp.types.CallToolResult.structuredContent",
+      "goFn": "fastmcp.Server.ToolWithOutput"
+    },
+    {
+      "id": "call-stats-content",
+      "fn": "rpc",
+      "args": [
+        {
+          "method": "tools/call",
+          "params": { "name": "stats", "arguments": { "values": [1, 2, 3] } }
+        },
+        "content"
+      ],
+      "upstreamFn": "mcp.types.CallToolResult.content",
+      "goFn": "fastmcp.toContent",
+      "note": "float rendering: upstream writes 6.0, encoding/json writes 6"
+    },
+    {
+      "id": "call-stats-empty",
+      "fn": "rpc",
+      "args": [
+        {
+          "method": "tools/call",
+          "params": { "name": "stats", "arguments": { "values": [] } }
+        },
+        "structuredContent"
+      ],
+      "upstreamFn": "FastMCP._call_tool_mcp",
+      "goFn": "fastmcp.Server.ToolWithOutput"
+    },
+    {
+      "id": "call-fail-iserror",
+      "fn": "rpc",
+      "args": [
+        {
+          "method": "tools/call",
+          "params": { "name": "fail", "arguments": { "reason": "boom" } }
+        },
+        "isError"
+      ],
+      "upstreamFn": "fastmcp.exceptions.ToolError",
+      "goFn": "fastmcp.Server.handleToolsCall",
+      "note": "a raising tool is a successful JSON-RPC result with isError:true"
+    },
+    {
+      "id": "call-fail-content-type",
+      "fn": "rpc",
+      "args": [
+        {
+          "method": "tools/call",
+          "params": { "name": "fail", "arguments": { "reason": "boom" } }
+        },
+        "content/0/type"
+      ],
+      "upstreamFn": "fastmcp.exceptions.ToolError",
+      "goFn": "fastmcp.Server.handleToolsCall"
+    },
+    {
+      "id": "call-wrong-arg-type",
+      "fn": "rpc",
+      "args": [
+        {
+          "method": "tools/call",
+          "params": { "name": "add", "arguments": { "a": "x", "b": 3 } }
+        },
+        "isError"
+      ],
+      "upstreamFn": "pydantic validation",
+      "goFn": "fastmcp.buildToolEntry (json.Unmarshal)"
+    },
+    {
+      "id": "call-missing-required-arg",
+      "fn": "rpc",
+      "args": [
+        { "method": "tools/call", "params": { "name": "add", "arguments": { "a": 1 } } },
+        "isError"
+      ],
+      "upstreamFn": "pydantic validation",
+      "goFn": "fastmcp.buildToolEntry (json.Unmarshal)",
+      "note": "the port silently zero-fills a missing required argument"
+    },
+    {
+      "id": "call-extra-arg",
+      "fn": "rpc",
+      "args": [
+        {
+          "method": "tools/call",
+          "params": { "name": "add", "arguments": { "a": 1, "b": 2, "c": 3 } }
+        },
+        "isError"
+      ],
+      "upstreamFn": "additionalProperties:false",
+      "goFn": "fastmcp.buildToolEntry (json.Unmarshal)"
+    },
+    {
+      "id": "call-no-arguments-key",
+      "fn": "rpc",
+      "args": [{ "method": "tools/call", "params": { "name": "add" } }, "isError"],
+      "upstreamFn": "FastMCP._call_tool_mcp",
+      "goFn": "fastmcp.Server.handleToolsCall"
+    }
+  ]
+}

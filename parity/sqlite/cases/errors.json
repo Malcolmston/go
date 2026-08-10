@@ -1,0 +1,275 @@
+{
+  "group": "errors",
+  "upstream": "sqlite3@3.45.3",
+  "cases": [
+    {
+      "id": "err-syntax-garbage",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELCT 1"
+        }
+      ],
+      "upstreamFn": "malformed statement",
+      "goFn": "sqlite: malformed statement"
+    },
+    {
+      "id": "err-syntax-trailing",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 1 AS v FROM"
+        }
+      ],
+      "upstreamFn": "FROM with no table",
+      "goFn": "sqlite: FROM with no table"
+    },
+    {
+      "id": "err-no-such-table",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT a AS a FROM nosuchtable"
+        }
+      ],
+      "upstreamFn": "unknown table",
+      "goFn": "sqlite: unknown table"
+    },
+    {
+      "id": "err-no-such-column",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT nosuchcol AS c FROM t"
+        }
+      ],
+      "upstreamFn": "unknown column",
+      "goFn": "sqlite: unknown column"
+    },
+    {
+      "id": "err-no-such-column-where",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT id AS id FROM t WHERE nope = 1"
+        }
+      ],
+      "upstreamFn": "unknown column in WHERE",
+      "goFn": "sqlite: unknown column in WHERE"
+    },
+    {
+      "id": "err-no-such-column-order",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT id AS id FROM t ORDER BY nope"
+        }
+      ],
+      "upstreamFn": "unknown column in ORDER BY",
+      "goFn": "sqlite: unknown column in ORDER BY"
+    },
+    {
+      "id": "err-insert-count-mismatch",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE x (a INTEGER, b INTEGER)",
+            "INSERT INTO x (a,b) VALUES (1)"
+          ],
+          "query": "SELECT a AS a FROM x ORDER BY a"
+        }
+      ],
+      "upstreamFn": "INSERT value/column count mismatch",
+      "goFn": "sqlite: INSERT value/column count mismatch"
+    },
+    {
+      "id": "err-insert-unknown-column",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE x (a INTEGER)",
+            "INSERT INTO x (nope) VALUES (1)"
+          ],
+          "query": "SELECT a AS a FROM x ORDER BY a"
+        }
+      ],
+      "upstreamFn": "INSERT into an unknown column",
+      "goFn": "sqlite: INSERT into an unknown column"
+    },
+    {
+      "id": "err-insert-no-table",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "INSERT INTO nope (a) VALUES (1)"
+          ],
+          "query": "SELECT 1 AS v"
+        }
+      ],
+      "upstreamFn": "INSERT into an unknown table",
+      "goFn": "sqlite: INSERT into an unknown table"
+    },
+    {
+      "id": "err-update-no-table",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "UPDATE nope SET a = 1"
+          ],
+          "query": "SELECT 1 AS v"
+        }
+      ],
+      "upstreamFn": "UPDATE an unknown table",
+      "goFn": "sqlite: UPDATE an unknown table"
+    },
+    {
+      "id": "err-delete-no-table",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "DELETE FROM nope"
+          ],
+          "query": "SELECT 1 AS v"
+        }
+      ],
+      "upstreamFn": "DELETE from an unknown table",
+      "goFn": "sqlite: DELETE from an unknown table"
+    },
+    {
+      "id": "err-unknown-table-qualifier",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT zz.id AS id FROM t"
+        }
+      ],
+      "upstreamFn": "unknown table qualifier",
+      "goFn": "sqlite: unknown table qualifier"
+    },
+    {
+      "id": "err-select-star-no-from",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT * "
+        }
+      ],
+      "upstreamFn": "SELECT * with no FROM",
+      "goFn": "sqlite: SELECT * with no FROM"
+    },
+    {
+      "id": "err-unclosed-string",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 'abc AS v"
+        }
+      ],
+      "upstreamFn": "unterminated string literal",
+      "goFn": "sqlite: unterminated string literal"
+    },
+    {
+      "id": "err-unclosed-paren",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT (1 AS v"
+        }
+      ],
+      "upstreamFn": "unbalanced parenthesis",
+      "goFn": "sqlite: unbalanced parenthesis"
+    },
+    {
+      "id": "err-group-by-unknown",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT count(*) AS c FROM t GROUP BY nope"
+        }
+      ],
+      "upstreamFn": "GROUP BY an unknown column",
+      "goFn": "sqlite: GROUP BY an unknown column"
+    },
+    {
+      "id": "err-bad-blob-literal",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT x'6g' AS v"
+        }
+      ],
+      "upstreamFn": "malformed BLOB literal",
+      "goFn": "sqlite: malformed BLOB literal"
+    },
+    {
+      "id": "err-agg-in-where",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT id AS id FROM t WHERE count(*) > 1"
+        }
+      ],
+      "upstreamFn": "aggregate in WHERE",
+      "goFn": "sqlite: aggregate in WHERE"
+    },
+    {
+      "id": "err-select-no-list",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT FROM t"
+        }
+      ],
+      "upstreamFn": "SELECT with an empty column list",
+      "goFn": "sqlite: SELECT with an empty column list"
+    },
+    {
+      "id": "err-order-by-missing",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT id AS id FROM t ORDER BY"
+        }
+      ],
+      "upstreamFn": "ORDER BY with no term",
+      "goFn": "sqlite: ORDER BY with no term"
+    }
+  ]
+}

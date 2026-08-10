@@ -1,0 +1,348 @@
+{
+  "group": "channels",
+  "upstream": "sharp@0.33.5",
+  "cases": [
+    {
+      "id": "ch-grayscale",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "grayscale"
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#grayscale",
+      "goFn": "Pipeline.Grayscale"
+    },
+    {
+      "id": "ch-tocolourspace-bw",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "toColourspace",
+            {
+              "space": "b-w"
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#toColourspace",
+      "goFn": "Pipeline.ToColourspace"
+    },
+    {
+      "id": "ch-tocolourspace-srgb",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "toColourspace",
+            {
+              "space": "srgb"
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#toColourspace",
+      "goFn": "Pipeline.ToColourspace"
+    },
+    {
+      "id": "ch-tocolourspace-bogus",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "toColourspace",
+            {
+              "space": "not-a-space"
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#toColourspace",
+      "goFn": "Pipeline.ToColourspace",
+      "note": "unknown colourspace"
+    },
+    {
+      "id": "ch-ensure-alpha",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "ensureAlpha",
+            {
+              "alpha": 1
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#ensureAlpha",
+      "goFn": "Pipeline.EnsureAlpha"
+    },
+    {
+      "id": "ch-ensure-alpha-half",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "ensureAlpha",
+            {
+              "alpha": 0.5
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#ensureAlpha",
+      "goFn": "Pipeline.EnsureAlpha"
+    },
+    {
+      "id": "ch-remove-alpha",
+      "fn": "geometry",
+      "args": [
+        "circle.png",
+        [
+          [
+            "removeAlpha"
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#removeAlpha",
+      "goFn": "Pipeline.RemoveAlpha"
+    },
+    {
+      "id": "ch-remove-alpha-opaque",
+      "fn": "geometry",
+      "args": [
+        "opaque-rgba.png",
+        [
+          [
+            "removeAlpha"
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#removeAlpha",
+      "goFn": "Pipeline.RemoveAlpha"
+    },
+    {
+      "id": "ch-flatten",
+      "fn": "geometry",
+      "args": [
+        "circle.png",
+        [
+          [
+            "flatten",
+            {
+              "background": {
+                "r": 255,
+                "g": 255,
+                "b": 255,
+                "alpha": 1
+              }
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#flatten",
+      "goFn": "Pipeline.Flatten"
+    },
+    {
+      "id": "ch-unflatten",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "unflatten"
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#unflatten",
+      "goFn": "Pipeline.Unflatten"
+    },
+    {
+      "id": "ch-extract-r",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "extractChannel",
+            {
+              "channel": 0
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#extractChannel",
+      "goFn": "Pipeline.ExtractChannel"
+    },
+    {
+      "id": "ch-extract-g",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "extractChannel",
+            {
+              "channel": 1
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#extractChannel",
+      "goFn": "Pipeline.ExtractChannel"
+    },
+    {
+      "id": "ch-extract-b",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "extractChannel",
+            {
+              "channel": 2
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#extractChannel",
+      "goFn": "Pipeline.ExtractChannel"
+    },
+    {
+      "id": "ch-extract-a-missing",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "extractChannel",
+            {
+              "channel": 3
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#extractChannel",
+      "goFn": "Pipeline.ExtractChannel",
+      "note": "alpha channel of an image that has none"
+    },
+    {
+      "id": "ch-extract-a-present",
+      "fn": "geometry",
+      "args": [
+        "circle.png",
+        [
+          [
+            "extractChannel",
+            {
+              "channel": 3
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#extractChannel",
+      "goFn": "Pipeline.ExtractChannel"
+    },
+    {
+      "id": "ch-bandbool-and",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "bandbool",
+            {
+              "operator": "and"
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#bandbool",
+      "goFn": "Pipeline.Bandbool"
+    },
+    {
+      "id": "ch-boolean-eor",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "boolean",
+            {
+              "operand": "mask.png",
+              "operator": "eor"
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#boolean",
+      "goFn": "Pipeline.Boolean",
+      "note": "XOR of two opaque images: the port XORs the alpha band too"
+    },
+    {
+      "id": "ch-boolean-and",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "boolean",
+            {
+              "operand": "mask.png",
+              "operator": "and"
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#boolean",
+      "goFn": "Pipeline.Boolean"
+    },
+    {
+      "id": "ch-boolean-size-mismatch",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "boolean",
+            {
+              "operand": "odd.png",
+              "operator": "or"
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#boolean",
+      "goFn": "Pipeline.Boolean",
+      "note": "operand of a different size"
+    },
+    {
+      "id": "ch-boolean-bogus-op",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "boolean",
+            {
+              "operand": "mask.png",
+              "operator": "nand"
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#boolean",
+      "goFn": "Pipeline.Boolean",
+      "note": "unknown operator"
+    }
+  ]
+}

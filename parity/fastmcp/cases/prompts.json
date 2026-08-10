@@ -1,0 +1,160 @@
+{
+  "group": "prompts",
+  "upstream": "fastmcp@3.4.6",
+  "cases": [
+    {
+      "id": "prompts-list-full",
+      "fn": "rpc",
+      "args": [{ "method": "prompts/list", "params": {} }],
+      "upstreamFn": "FastMCP._list_prompts_mcp",
+      "goFn": "fastmcp.Server.handlePromptsList"
+    },
+    {
+      "id": "prompt-descriptor-review",
+      "fn": "rpc",
+      "args": [{ "method": "prompts/list", "params": {} }, "prompts/#name=review"],
+      "upstreamFn": "mcp.types.Prompt",
+      "goFn": "fastmcp.Server.Prompt"
+    },
+    {
+      "id": "prompt-args-summarize",
+      "fn": "rpc",
+      "args": [{ "method": "prompts/list", "params": {} }, "prompts/#name=summarize/arguments"],
+      "upstreamFn": "mcp.types.PromptArgument",
+      "goFn": "fastmcp.PromptArgument",
+      "note": "upstream appends a JSON-schema hint to each argument description"
+    },
+    {
+      "id": "prompt-arg-required-text",
+      "fn": "rpc",
+      "args": [
+        { "method": "prompts/list", "params": {} },
+        "prompts/#name=summarize/arguments/#name=text/required"
+      ],
+      "upstreamFn": "mcp.types.PromptArgument.required",
+      "goFn": "fastmcp.PromptArgument.Required"
+    },
+    {
+      "id": "prompt-arg-required-style",
+      "fn": "rpc",
+      "args": [
+        { "method": "prompts/list", "params": {} },
+        "prompts/#name=summarize/arguments/#name=style/required"
+      ],
+      "upstreamFn": "mcp.types.PromptArgument.required",
+      "goFn": "fastmcp.PromptArgument.Required",
+      "note": "the port omits required:false entirely (omitempty), upstream emits false"
+    },
+    {
+      "id": "prompt-arg-names",
+      "fn": "rpc",
+      "args": [
+        { "method": "prompts/list", "params": {} },
+        "prompts/#name=summarize/arguments/#name=style/name"
+      ],
+      "upstreamFn": "mcp.types.PromptArgument.name",
+      "goFn": "fastmcp.PromptArgument.Name"
+    },
+    {
+      "id": "prompts-get-summarize",
+      "fn": "rpc",
+      "args": [
+        {
+          "method": "prompts/get",
+          "params": { "name": "summarize", "arguments": { "text": "hi", "style": "terse" } }
+        }
+      ],
+      "upstreamFn": "FastMCP._get_prompt_mcp",
+      "goFn": "fastmcp.Server.handlePromptsGet"
+    },
+    {
+      "id": "prompts-get-summarize-default",
+      "fn": "rpc",
+      "args": [
+        { "method": "prompts/get", "params": { "name": "summarize", "arguments": { "text": "hi" } } },
+        "messages"
+      ],
+      "upstreamFn": "FastMCP._get_prompt_mcp",
+      "goFn": "fastmcp.Server.handlePromptsGet"
+    },
+    {
+      "id": "prompts-get-review",
+      "fn": "rpc",
+      "args": [
+        {
+          "method": "prompts/get",
+          "params": { "name": "review", "arguments": { "code": "x := 1" } }
+        },
+        "messages/0"
+      ],
+      "upstreamFn": "FastMCP._get_prompt_mcp",
+      "goFn": "fastmcp.Server.handlePromptsGet"
+    },
+    {
+      "id": "prompts-get-description",
+      "fn": "rpc",
+      "args": [
+        {
+          "method": "prompts/get",
+          "params": { "name": "review", "arguments": { "code": "x := 1" } }
+        },
+        "description"
+      ],
+      "upstreamFn": "mcp.types.GetPromptResult.description",
+      "goFn": "fastmcp.Server.handlePromptsGet"
+    },
+    {
+      "id": "prompts-get-missing-required",
+      "fn": "rpc",
+      "args": [{ "method": "prompts/get", "params": { "name": "review", "arguments": {} } }],
+      "upstreamFn": "fastmcp.exceptions.PromptError",
+      "goFn": "fastmcp.Server.handlePromptsGet",
+      "note": "the port renders the prompt with an empty argument instead of failing"
+    },
+    {
+      "id": "prompts-get-unknown",
+      "fn": "rpc",
+      "args": [{ "method": "prompts/get", "params": { "name": "nope", "arguments": {} } }],
+      "upstreamFn": "fastmcp.exceptions.NotFoundError",
+      "goFn": "fastmcp.Server.handlePromptsGet"
+    },
+    {
+      "id": "prompts-get-no-name",
+      "fn": "rpc",
+      "args": [{ "method": "prompts/get", "params": {} }],
+      "upstreamFn": "mcp.types.GetPromptRequest validation",
+      "goFn": "fastmcp.Server.handlePromptsGet"
+    },
+    {
+      "id": "complete-prompt-arg",
+      "fn": "rpc",
+      "args": [
+        {
+          "method": "completion/complete",
+          "params": {
+            "ref": { "type": "ref/prompt", "name": "summarize" },
+            "argument": { "name": "style", "value": "c" }
+          }
+        }
+      ],
+      "upstreamFn": "mcp.server.lowlevel.Server.completion",
+      "goFn": "fastmcp.Server.handleComplete",
+      "note": "the port advertises completions:{}; upstream 3.4.6 registers no completion handler"
+    },
+    {
+      "id": "complete-resource-template",
+      "fn": "rpc",
+      "args": [
+        {
+          "method": "completion/complete",
+          "params": {
+            "ref": { "type": "ref/resource", "uri": "res://user/{id}" },
+            "argument": { "name": "id", "value": "4" }
+          }
+        }
+      ],
+      "upstreamFn": "mcp.server.lowlevel.Server.completion",
+      "goFn": "fastmcp.Server.handleComplete"
+    }
+  ]
+}

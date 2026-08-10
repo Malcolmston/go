@@ -1,0 +1,664 @@
+{
+  "group": "core",
+  "upstream": "jq@1.7.1",
+  "encoding": "args = [jq program, input JSON value, optional $variables object]; value = the complete output stream as a JSON array",
+  "cases": [
+    {
+      "id": "identity",
+      "fn": "run",
+      "args": [
+        ".",
+        {
+          "a": 1
+        }
+      ],
+      "upstreamFn": ".",
+      "goFn": "."
+    },
+    {
+      "id": "field",
+      "fn": "run",
+      "args": [
+        ".a",
+        {
+          "a": {
+            "b": 2
+          }
+        }
+      ],
+      "upstreamFn": ".foo",
+      "goFn": ".foo"
+    },
+    {
+      "id": "field-nested",
+      "fn": "run",
+      "args": [
+        ".a.b",
+        {
+          "a": {
+            "b": 2
+          }
+        }
+      ],
+      "upstreamFn": ".foo.bar",
+      "goFn": ".foo.bar"
+    },
+    {
+      "id": "field-missing",
+      "fn": "run",
+      "args": [
+        ".x",
+        {
+          "a": 1
+        }
+      ],
+      "upstreamFn": ".foo",
+      "goFn": ".foo",
+      "note": "absent key is null"
+    },
+    {
+      "id": "field-opt-on-num",
+      "fn": "run",
+      "args": [
+        ".a?",
+        3
+      ],
+      "upstreamFn": ".foo?",
+      "goFn": ".foo?",
+      "note": "optional swallows the type error"
+    },
+    {
+      "id": "field-opt-on-null",
+      "fn": "run",
+      "args": [
+        ".a?",
+        null
+      ],
+      "upstreamFn": ".foo?",
+      "goFn": ".foo?"
+    },
+    {
+      "id": "field-bracket",
+      "fn": "run",
+      "args": [
+        ".[\"a b\"]",
+        {
+          "a b": 7
+        }
+      ],
+      "upstreamFn": ".[\"foo\"]",
+      "goFn": ".[\"foo\"]"
+    },
+    {
+      "id": "field-bracket-opt",
+      "fn": "run",
+      "args": [
+        ".[\"a\"]?",
+        3
+      ],
+      "upstreamFn": ".[\"foo\"]?",
+      "goFn": ".[\"foo\"]?"
+    },
+    {
+      "id": "field-on-array-err",
+      "fn": "run",
+      "args": [
+        ".a",
+        [
+          1,
+          2
+        ]
+      ],
+      "upstreamFn": ".foo",
+      "goFn": ".foo",
+      "note": "both must fail"
+    },
+    {
+      "id": "pipe-chain",
+      "fn": "run",
+      "args": [
+        ".a|.b|.c",
+        {
+          "a": {
+            "b": {
+              "c": 9
+            }
+          }
+        }
+      ],
+      "upstreamFn": "|",
+      "goFn": "|"
+    },
+    {
+      "id": "comma",
+      "fn": "run",
+      "args": [
+        ".a, .b",
+        {
+          "a": 1,
+          "b": 2
+        }
+      ],
+      "upstreamFn": ",",
+      "goFn": ",",
+      "note": "two-value stream"
+    },
+    {
+      "id": "iterate-array",
+      "fn": "run",
+      "args": [
+        ".[]",
+        [
+          1,
+          2,
+          3
+        ]
+      ],
+      "upstreamFn": ".[]",
+      "goFn": ".[]"
+    },
+    {
+      "id": "iterate-object",
+      "fn": "run",
+      "args": [
+        ".[]",
+        {
+          "a": 1,
+          "b": 2
+        }
+      ],
+      "upstreamFn": ".[]",
+      "goFn": ".[]"
+    },
+    {
+      "id": "iterate-empty",
+      "fn": "run",
+      "args": [
+        ".[]",
+        []
+      ],
+      "upstreamFn": ".[]",
+      "goFn": ".[]",
+      "note": "empty stream"
+    },
+    {
+      "id": "iterate-num-err",
+      "fn": "run",
+      "args": [
+        ".[]",
+        5
+      ],
+      "upstreamFn": ".[]",
+      "goFn": ".[]"
+    },
+    {
+      "id": "iterate-null-err",
+      "fn": "run",
+      "args": [
+        ".[]",
+        null
+      ],
+      "upstreamFn": ".[]",
+      "goFn": ".[]"
+    },
+    {
+      "id": "iterate-opt-num",
+      "fn": "run",
+      "args": [
+        ".[]?",
+        5
+      ],
+      "upstreamFn": ".[]?",
+      "goFn": ".[]?"
+    },
+    {
+      "id": "index-int",
+      "fn": "run",
+      "args": [
+        ".[1]",
+        [
+          1,
+          2,
+          3
+        ]
+      ],
+      "upstreamFn": ".[n]",
+      "goFn": ".[n]"
+    },
+    {
+      "id": "index-neg",
+      "fn": "run",
+      "args": [
+        ".[-1]",
+        [
+          1,
+          2,
+          3
+        ]
+      ],
+      "upstreamFn": ".[-n]",
+      "goFn": ".[-n]"
+    },
+    {
+      "id": "index-oob",
+      "fn": "run",
+      "args": [
+        ".[9]",
+        [
+          1,
+          2,
+          3
+        ]
+      ],
+      "upstreamFn": ".[n]",
+      "goFn": ".[n]"
+    },
+    {
+      "id": "index-neg-oob",
+      "fn": "run",
+      "args": [
+        ".[-9]",
+        [
+          1,
+          2,
+          3
+        ]
+      ],
+      "upstreamFn": ".[-n]",
+      "goFn": ".[-n]"
+    },
+    {
+      "id": "index-null",
+      "fn": "run",
+      "args": [
+        ".[0]",
+        null
+      ],
+      "upstreamFn": ".[n]",
+      "goFn": ".[n]"
+    },
+    {
+      "id": "index-object-with-num-err",
+      "fn": "run",
+      "args": [
+        ".[0]",
+        {
+          "a": 1
+        }
+      ],
+      "upstreamFn": ".[n]",
+      "goFn": ".[n]"
+    },
+    {
+      "id": "index-string-with-num-err",
+      "fn": "run",
+      "args": [
+        ".[0]",
+        "abc"
+      ],
+      "upstreamFn": ".[n]",
+      "goFn": ".[n]"
+    },
+    {
+      "id": "index-array-with-string-err",
+      "fn": "run",
+      "args": [
+        ".[\"a\"]",
+        [
+          1
+        ]
+      ],
+      "upstreamFn": ".[\"foo\"]",
+      "goFn": ".[\"foo\"]"
+    },
+    {
+      "id": "slice",
+      "fn": "run",
+      "args": [
+        ".[1:3]",
+        [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      ],
+      "upstreamFn": ".[a:b]",
+      "goFn": ".[a:b]"
+    },
+    {
+      "id": "slice-neg",
+      "fn": "run",
+      "args": [
+        ".[-2:]",
+        [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      ],
+      "upstreamFn": ".[a:b]",
+      "goFn": ".[a:b]"
+    },
+    {
+      "id": "slice-open-left",
+      "fn": "run",
+      "args": [
+        ".[:2]",
+        [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      ],
+      "upstreamFn": ".[a:b]",
+      "goFn": ".[a:b]"
+    },
+    {
+      "id": "slice-rev-bounds",
+      "fn": "run",
+      "args": [
+        ".[3:1]",
+        [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      ],
+      "upstreamFn": ".[a:b]",
+      "goFn": ".[a:b]"
+    },
+    {
+      "id": "slice-string",
+      "fn": "run",
+      "args": [
+        ".[1:3]",
+        "abcdef"
+      ],
+      "upstreamFn": ".[a:b]",
+      "goFn": ".[a:b]"
+    },
+    {
+      "id": "slice-null",
+      "fn": "run",
+      "args": [
+        ".[1:3]",
+        null
+      ],
+      "upstreamFn": ".[a:b]",
+      "goFn": ".[a:b]"
+    },
+    {
+      "id": "slice-oob",
+      "fn": "run",
+      "args": [
+        ".[2:99]",
+        [
+          1,
+          2,
+          3
+        ]
+      ],
+      "upstreamFn": ".[a:b]",
+      "goFn": ".[a:b]"
+    },
+    {
+      "id": "slice-noninteger",
+      "fn": "run",
+      "args": [
+        "[.[1.7:2.9]]",
+        [
+          1,
+          2,
+          3,
+          4
+        ]
+      ],
+      "upstreamFn": ".[a:b]",
+      "goFn": ".[a:b]"
+    },
+    {
+      "id": "slice-object-err",
+      "fn": "run",
+      "args": [
+        ".[1:2]",
+        {
+          "a": 1
+        }
+      ],
+      "upstreamFn": ".[a:b]",
+      "goFn": ".[a:b]"
+    },
+    {
+      "id": "slice-string-bound-err",
+      "fn": "run",
+      "args": [
+        ".[\"a\":2]",
+        [
+          1,
+          2
+        ]
+      ],
+      "upstreamFn": ".[a:b]",
+      "goFn": ".[a:b]"
+    },
+    {
+      "id": "multi-index-iterate",
+      "fn": "run",
+      "args": [
+        ".[].a",
+        [
+          {
+            "a": 1
+          },
+          {
+            "a": 2
+          }
+        ]
+      ],
+      "upstreamFn": ".[]",
+      "goFn": ".[]"
+    },
+    {
+      "id": "recursive-descent",
+      "fn": "run",
+      "args": [
+        "[..]",
+        {
+          "a": [
+            1
+          ]
+        }
+      ],
+      "upstreamFn": "..",
+      "goFn": ".."
+    },
+    {
+      "id": "recursive-descent-select",
+      "fn": "run",
+      "args": [
+        "[.. | numbers]",
+        {
+          "a": [
+            1,
+            {
+              "b": 2
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "..",
+      "goFn": ".."
+    },
+    {
+      "id": "nested-construct",
+      "fn": "run",
+      "args": [
+        "{x: .a, y: [.b, .c]}",
+        {
+          "a": 1,
+          "b": 2,
+          "c": 3
+        }
+      ],
+      "upstreamFn": "{}",
+      "goFn": "{}"
+    },
+    {
+      "id": "obj-shorthand",
+      "fn": "run",
+      "args": [
+        "{a, b}",
+        {
+          "a": 1,
+          "b": 2,
+          "c": 3
+        }
+      ],
+      "upstreamFn": "{}",
+      "goFn": "{}"
+    },
+    {
+      "id": "obj-computed-key",
+      "fn": "run",
+      "args": [
+        "{(.k): .v}",
+        {
+          "k": "kk",
+          "v": 5
+        }
+      ],
+      "upstreamFn": "{}",
+      "goFn": "{}"
+    },
+    {
+      "id": "obj-string-key-interp",
+      "fn": "run",
+      "args": [
+        "{\"a\\(.n)\": 1}",
+        {
+          "n": 2
+        }
+      ],
+      "upstreamFn": "{}",
+      "goFn": "{}"
+    },
+    {
+      "id": "obj-key-nonstring-err",
+      "fn": "run",
+      "args": [
+        "{(1): 2}",
+        null
+      ],
+      "upstreamFn": "{}",
+      "goFn": "{}"
+    },
+    {
+      "id": "obj-multi-values",
+      "fn": "run",
+      "args": [
+        "{a: (1,2)}",
+        null
+      ],
+      "upstreamFn": "{}",
+      "goFn": "{}",
+      "note": "object construction is a stream"
+    },
+    {
+      "id": "arr-construct",
+      "fn": "run",
+      "args": [
+        "[.a, .b]",
+        {
+          "a": 1,
+          "b": 2
+        }
+      ],
+      "upstreamFn": "[]",
+      "goFn": "[]"
+    },
+    {
+      "id": "arr-collect-stream",
+      "fn": "run",
+      "args": [
+        "[.[]|.*2]",
+        [
+          1,
+          2,
+          3
+        ]
+      ],
+      "upstreamFn": "[]",
+      "goFn": "[]"
+    },
+    {
+      "id": "arr-empty",
+      "fn": "run",
+      "args": [
+        "[]",
+        null
+      ],
+      "upstreamFn": "[]",
+      "goFn": "[]"
+    },
+    {
+      "id": "obj-empty",
+      "fn": "run",
+      "args": [
+        "{}",
+        null
+      ],
+      "upstreamFn": "{}",
+      "goFn": "{}"
+    },
+    {
+      "id": "string-interp",
+      "fn": "run",
+      "args": [
+        "\"a\\(1+1)b\"",
+        null
+      ],
+      "upstreamFn": "\"\\(f)\"",
+      "goFn": "\"\\(f)\""
+    },
+    {
+      "id": "string-interp-obj",
+      "fn": "run",
+      "args": [
+        "\"v=\\(.)\"",
+        {
+          "a": 1
+        }
+      ],
+      "upstreamFn": "\"\\(f)\"",
+      "goFn": "\"\\(f)\""
+    },
+    {
+      "id": "string-escapes",
+      "fn": "run",
+      "args": [
+        "\"tab:\\t nl:\\n q:\\\" u:\\u00e9\"",
+        null
+      ],
+      "upstreamFn": "\"...\"",
+      "goFn": "\"...\""
+    },
+    {
+      "id": "loc-builtin",
+      "fn": "run",
+      "args": [
+        "$__loc__",
+        null
+      ],
+      "upstreamFn": "$__loc__",
+      "goFn": "$__loc__"
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "group": "mocks",
+  "upstream": "expect@29.7.0 + jest-mock@29.7.0",
+  "note": "the call/return matchers. The mock spec primes a return value and replays a fixed call list, so both sides inspect the same recorded history.",
+  "cases": [
+    {"id": "called-yes", "fn": "toHaveBeenCalled", "actual": {"$": "mock", "name": "m", "calls": [[1]]}, "upstreamFn": "expect().toHaveBeenCalled", "goFn": "jest.Matcher.ToHaveBeenCalled"},
+    {"id": "called-no", "fn": "toHaveBeenCalled", "actual": {"$": "mock", "name": "m", "calls": []}, "upstreamFn": "expect().toHaveBeenCalled", "goFn": "jest.Matcher.ToHaveBeenCalled"},
+    {"id": "called-not-no", "fn": "toHaveBeenCalled", "not": true, "actual": {"$": "mock", "name": "m", "calls": []}, "upstreamFn": "expect().not.toHaveBeenCalled", "goFn": "jest.Matcher.Not().ToHaveBeenCalled"},
+    {"id": "called-alias-yes", "fn": "toBeCalled", "actual": {"$": "mock", "name": "m", "calls": [[1]]}, "upstreamFn": "expect().toBeCalled", "goFn": "jest.Matcher.ToBeCalled"},
+
+    {"id": "calledtimes-exact", "fn": "toHaveBeenCalledTimes", "actual": {"$": "mock", "name": "m", "calls": [[1], [2]]}, "args": [2], "upstreamFn": "expect().toHaveBeenCalledTimes", "goFn": "jest.Matcher.ToHaveBeenCalledTimes"},
+    {"id": "calledtimes-wrong", "fn": "toHaveBeenCalledTimes", "actual": {"$": "mock", "name": "m", "calls": [[1], [2]]}, "args": [3], "upstreamFn": "expect().toHaveBeenCalledTimes", "goFn": "jest.Matcher.ToHaveBeenCalledTimes"},
+    {"id": "calledtimes-zero", "fn": "toHaveBeenCalledTimes", "actual": {"$": "mock", "name": "m", "calls": []}, "args": [0], "upstreamFn": "expect().toHaveBeenCalledTimes", "goFn": "jest.Matcher.ToHaveBeenCalledTimes"},
+    {"id": "calledtimes-alias", "fn": "toBeCalledTimes", "actual": {"$": "mock", "name": "m", "calls": [[1]]}, "args": [1], "upstreamFn": "expect().toBeCalledTimes", "goFn": "jest.Matcher.ToBeCalledTimes"},
+
+    {"id": "calledwith-hit", "fn": "toHaveBeenCalledWith", "actual": {"$": "mock", "name": "m", "calls": [[1, "a"]]}, "args": [1, "a"], "upstreamFn": "expect().toHaveBeenCalledWith", "goFn": "jest.Matcher.ToHaveBeenCalledWith"},
+    {"id": "calledwith-miss", "fn": "toHaveBeenCalledWith", "actual": {"$": "mock", "name": "m", "calls": [[1, "a"]]}, "args": [1, "b"], "upstreamFn": "expect().toHaveBeenCalledWith", "goFn": "jest.Matcher.ToHaveBeenCalledWith"},
+    {"id": "calledwith-arity-miss", "fn": "toHaveBeenCalledWith", "actual": {"$": "mock", "name": "m", "calls": [[1]]}, "args": [1, 2], "upstreamFn": "expect().toHaveBeenCalledWith", "goFn": "jest.Matcher.ToHaveBeenCalledWith"},
+    {"id": "calledwith-no-args", "fn": "toHaveBeenCalledWith", "actual": {"$": "mock", "name": "m", "calls": [[]]}, "args": [], "upstreamFn": "expect().toHaveBeenCalledWith", "goFn": "jest.Matcher.ToHaveBeenCalledWith"},
+    {"id": "calledwith-deep-object", "fn": "toHaveBeenCalledWith", "actual": {"$": "mock", "name": "m", "calls": [[{"a": {"b": 1}}]]}, "args": [{"a": {"b": 1}}], "upstreamFn": "expect().toHaveBeenCalledWith", "goFn": "jest.Matcher.ToHaveBeenCalledWith"},
+    {"id": "calledwith-asymmetric", "fn": "toHaveBeenCalledWith", "actual": {"$": "mock", "name": "m", "calls": [["hello"]]}, "args": [{"$": "any", "type": "String"}], "upstreamFn": "expect().toHaveBeenCalledWith", "goFn": "jest.Matcher.ToHaveBeenCalledWith"},
+    {"id": "calledwith-second-call", "fn": "toHaveBeenCalledWith", "actual": {"$": "mock", "name": "m", "calls": [[1], [2]]}, "args": [2], "note": "any call may match", "upstreamFn": "expect().toHaveBeenCalledWith", "goFn": "jest.Matcher.ToHaveBeenCalledWith"},
+    {"id": "calledwith-not-miss", "fn": "toHaveBeenCalledWith", "not": true, "actual": {"$": "mock", "name": "m", "calls": [[1]]}, "args": [2], "upstreamFn": "expect().not.toHaveBeenCalledWith", "goFn": "jest.Matcher.Not().ToHaveBeenCalledWith"},
+    {"id": "calledwith-alias", "fn": "toBeCalledWith", "actual": {"$": "mock", "name": "m", "calls": [[7]]}, "args": [7], "upstreamFn": "expect().toBeCalledWith", "goFn": "jest.Matcher.ToBeCalledWith"},
+
+    {"id": "lastcalledwith-hit", "fn": "toHaveBeenLastCalledWith", "actual": {"$": "mock", "name": "m", "calls": [[1], [2]]}, "args": [2], "upstreamFn": "expect().toHaveBeenLastCalledWith", "goFn": "jest.Matcher.ToHaveBeenLastCalledWith"},
+    {"id": "lastcalledwith-miss", "fn": "toHaveBeenLastCalledWith", "actual": {"$": "mock", "name": "m", "calls": [[1], [2]]}, "args": [1], "upstreamFn": "expect().toHaveBeenLastCalledWith", "goFn": "jest.Matcher.ToHaveBeenLastCalledWith"},
+    {"id": "lastcalledwith-never-called", "fn": "toHaveBeenLastCalledWith", "actual": {"$": "mock", "name": "m", "calls": []}, "args": [1], "upstreamFn": "expect().toHaveBeenLastCalledWith", "goFn": "jest.Matcher.ToHaveBeenLastCalledWith"},
+    {"id": "lastcalledwith-alias", "fn": "lastCalledWith", "actual": {"$": "mock", "name": "m", "calls": [[1], [2]]}, "args": [2], "upstreamFn": "expect().lastCalledWith", "goFn": "jest.Matcher.LastCalledWith"},
+
+    {"id": "nthcalledwith-first", "fn": "toHaveBeenNthCalledWith", "actual": {"$": "mock", "name": "m", "calls": [[1], [2]]}, "args": [1, 1], "upstreamFn": "expect().toHaveBeenNthCalledWith", "goFn": "jest.Matcher.ToHaveBeenNthCalledWith"},
+    {"id": "nthcalledwith-second", "fn": "toHaveBeenNthCalledWith", "actual": {"$": "mock", "name": "m", "calls": [[1], [2]]}, "args": [2, 2], "upstreamFn": "expect().toHaveBeenNthCalledWith", "goFn": "jest.Matcher.ToHaveBeenNthCalledWith"},
+    {"id": "nthcalledwith-wrong", "fn": "toHaveBeenNthCalledWith", "actual": {"$": "mock", "name": "m", "calls": [[1], [2]]}, "args": [2, 1], "upstreamFn": "expect().toHaveBeenNthCalledWith", "goFn": "jest.Matcher.ToHaveBeenNthCalledWith"},
+    {"id": "nthcalledwith-out-of-range", "fn": "toHaveBeenNthCalledWith", "actual": {"$": "mock", "name": "m", "calls": [[1]]}, "args": [5, 1], "upstreamFn": "expect().toHaveBeenNthCalledWith", "goFn": "jest.Matcher.ToHaveBeenNthCalledWith"},
+    {"id": "nthcalledwith-alias", "fn": "nthCalledWith", "actual": {"$": "mock", "name": "m", "calls": [[1]]}, "args": [1, 1], "upstreamFn": "expect().nthCalledWith", "goFn": "jest.Matcher.NthCalledWith"},
+
+    {"id": "returned-yes", "fn": "toHaveReturned", "actual": {"$": "mock", "name": "m", "returns": 5, "calls": [[]]}, "upstreamFn": "expect().toHaveReturned", "goFn": "jest.Matcher.ToHaveReturned"},
+    {"id": "returned-never-called", "fn": "toHaveReturned", "actual": {"$": "mock", "name": "m", "returns": 5, "calls": []}, "upstreamFn": "expect().toHaveReturned", "goFn": "jest.Matcher.ToHaveReturned"},
+    {"id": "returned-threw", "fn": "toHaveReturned", "actual": {"$": "mock", "name": "m", "throwsOnCall": "nope", "calls": [[]]}, "note": "a call that threw did not return", "upstreamFn": "expect().toHaveReturned", "goFn": "jest.Matcher.ToHaveReturned"},
+    {"id": "returned-alias", "fn": "toReturn", "actual": {"$": "mock", "name": "m", "returns": 5, "calls": [[]]}, "upstreamFn": "expect().toReturn", "goFn": "jest.Matcher.ToReturn"},
+
+    {"id": "returnedtimes-exact", "fn": "toHaveReturnedTimes", "actual": {"$": "mock", "name": "m", "returns": 5, "calls": [[], []]}, "args": [2], "upstreamFn": "expect().toHaveReturnedTimes", "goFn": "jest.Matcher.ToHaveReturnedTimes"},
+    {"id": "returnedtimes-wrong", "fn": "toHaveReturnedTimes", "actual": {"$": "mock", "name": "m", "returns": 5, "calls": [[]]}, "args": [2], "upstreamFn": "expect().toHaveReturnedTimes", "goFn": "jest.Matcher.ToHaveReturnedTimes"},
+
+    {"id": "returnedwith-hit", "fn": "toHaveReturnedWith", "actual": {"$": "mock", "name": "m", "returns": 5, "calls": [[]]}, "args": [5], "upstreamFn": "expect().toHaveReturnedWith", "goFn": "jest.Matcher.ToHaveReturnedWith"},
+    {"id": "returnedwith-miss", "fn": "toHaveReturnedWith", "actual": {"$": "mock", "name": "m", "returns": 5, "calls": [[]]}, "args": [6], "upstreamFn": "expect().toHaveReturnedWith", "goFn": "jest.Matcher.ToHaveReturnedWith"},
+    {"id": "returnedwith-object", "fn": "toHaveReturnedWith", "actual": {"$": "mock", "name": "m", "returns": {"a": 1}, "calls": [[]]}, "args": [{"a": 1}], "upstreamFn": "expect().toHaveReturnedWith", "goFn": "jest.Matcher.ToHaveReturnedWith"},
+    {"id": "returnedwith-undefined", "fn": "toHaveReturnedWith", "actual": {"$": "mock", "name": "m", "calls": [[]]}, "args": [{"$": "undefined"}], "note": "a mock with no configured return value yields undefined in JS; the port records no result at all", "upstreamFn": "expect().toHaveReturnedWith", "goFn": "jest.Matcher.ToHaveReturnedWith"},
+    {"id": "returnedwith-alias", "fn": "toReturnWith", "actual": {"$": "mock", "name": "m", "returns": 5, "calls": [[]]}, "args": [5], "upstreamFn": "expect().toReturnWith", "goFn": "jest.Matcher.ToReturnWith"},
+
+    {"id": "lastreturnedwith-hit", "fn": "toHaveLastReturnedWith", "actual": {"$": "mock", "name": "m", "returns": 5, "calls": [[], []]}, "args": [5], "upstreamFn": "expect().toHaveLastReturnedWith", "goFn": "jest.Matcher.ToHaveLastReturnedWith"},
+    {"id": "lastreturnedwith-miss", "fn": "toHaveLastReturnedWith", "actual": {"$": "mock", "name": "m", "returns": 5, "calls": [[]]}, "args": [6], "upstreamFn": "expect().toHaveLastReturnedWith", "goFn": "jest.Matcher.ToHaveLastReturnedWith"},
+    {"id": "nthreturnedwith-hit", "fn": "toHaveNthReturnedWith", "actual": {"$": "mock", "name": "m", "returns": 5, "calls": [[], []]}, "args": [2, 5], "upstreamFn": "expect().toHaveNthReturnedWith", "goFn": "jest.Matcher.ToHaveNthReturnedWith"},
+    {"id": "nthreturnedwith-out-of-range", "fn": "toHaveNthReturnedWith", "actual": {"$": "mock", "name": "m", "returns": 5, "calls": [[]]}, "args": [3, 5], "upstreamFn": "expect().toHaveNthReturnedWith", "goFn": "jest.Matcher.ToHaveNthReturnedWith"},
+
+    {"id": "returntimes-alias-missing", "fn": "toReturnTimes", "actual": {"$": "mock", "name": "m", "returns": 5, "calls": [[]]}, "args": [1], "deviation": "the port has no ToReturnTimes alias", "upstreamFn": "expect().toReturnTimes", "goFn": "—"},
+    {"id": "lastreturnedwith-alias-missing", "fn": "lastReturnedWith", "actual": {"$": "mock", "name": "m", "returns": 5, "calls": [[]]}, "args": [5], "deviation": "the port has no LastReturnedWith alias (only ToHaveLastReturnedWith)", "upstreamFn": "expect().lastReturnedWith", "goFn": "—"},
+    {"id": "nthreturnedwith-alias-missing", "fn": "nthReturnedWith", "actual": {"$": "mock", "name": "m", "returns": 5, "calls": [[]]}, "args": [1, 5], "deviation": "the port has no NthReturnedWith alias (only ToHaveNthReturnedWith)", "upstreamFn": "expect().nthReturnedWith", "goFn": "—"},
+
+    {"id": "called-on-non-mock", "fn": "toHaveBeenCalled", "actual": 42, "note": "both sides must reject a non-mock receiver as a usage error", "upstreamFn": "expect().toHaveBeenCalled", "goFn": "jest.Matcher.ToHaveBeenCalled"}
+  ]
+}

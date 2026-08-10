@@ -1,0 +1,29 @@
+{
+  "group": "groupby",
+  "upstream": "pandas==2.3.3",
+  "cases": [
+    {"id": "gb-groups-count", "fn": "groupby_groups", "args": {"table": "sales", "keys": ["region"]}, "upstreamFn": "pandas.DataFrame.groupby", "goFn": "pandas.GroupBy.Groups"},
+    {"id": "gb-groups-two-keys", "fn": "groupby_groups", "args": {"table": "ties", "keys": ["g", "n"]}, "upstreamFn": "pandas.DataFrame.groupby", "goFn": "pandas.GroupBy.Groups"},
+
+    {"id": "gb-sum", "fn": "groupby_agg", "args": {"table": "sales", "keys": ["region"], "spec": [["units", "sum"]]}, "upstreamFn": "pandas.core.groupby.GroupBy.sum", "goFn": "pandas.GroupBy.Sum"},
+    {"id": "gb-mean", "fn": "groupby_agg", "args": {"table": "sales", "keys": ["region"], "spec": [["price", "mean"]]}, "upstreamFn": "pandas.core.groupby.GroupBy.mean", "goFn": "pandas.GroupBy.Mean"},
+    {"id": "gb-min", "fn": "groupby_agg", "args": {"table": "sales", "keys": ["region"], "spec": [["price", "min"]]}, "upstreamFn": "pandas.core.groupby.GroupBy.min", "goFn": "pandas.GroupBy.Min"},
+    {"id": "gb-max", "fn": "groupby_agg", "args": {"table": "sales", "keys": ["region"], "spec": [["price", "max"]]}, "upstreamFn": "pandas.core.groupby.GroupBy.max", "goFn": "pandas.GroupBy.Max"},
+    {"id": "gb-count", "fn": "groupby_agg", "args": {"table": "sales", "keys": ["region"], "spec": [["units", "count"]]}, "upstreamFn": "pandas.core.groupby.GroupBy.count", "goFn": "pandas.GroupBy.Count", "note": "count must skip NA on both sides"},
+    {"id": "gb-std", "fn": "groupby_agg", "args": {"table": "sales", "keys": ["region"], "spec": [["price", "std"]]}, "upstreamFn": "pandas.core.groupby.GroupBy.std", "goFn": "pandas.GroupBy.Std", "note": "sample std (ddof=1); single-member group must be NA"},
+    {"id": "gb-all-aggs", "fn": "groupby_agg", "args": {"table": "sales", "keys": ["region"], "spec": [["price", "sum"], ["price", "mean"], ["price", "min"], ["price", "max"], ["price", "count"], ["price", "std"]]}, "upstreamFn": "pandas.core.groupby.DataFrameGroupBy.agg", "goFn": "pandas.GroupBy.Agg", "note": "the port's complete AggFunc set in one call"},
+    {"id": "gb-multi-column-aggs", "fn": "groupby_agg", "args": {"table": "sales", "keys": ["region"], "spec": [["units", "sum"], ["price", "mean"]]}, "upstreamFn": "pandas.core.groupby.DataFrameGroupBy.agg", "goFn": "pandas.GroupBy.Agg"},
+    {"id": "gb-two-keys-mean", "fn": "groupby_agg", "args": {"table": "ties", "keys": ["g", "n"], "spec": [["v", "mean"]]}, "upstreamFn": "pandas.core.groupby.DataFrameGroupBy.agg", "goFn": "pandas.GroupBy.Agg"},
+    {"id": "gb-two-keys-sum-count", "fn": "groupby_agg", "args": {"table": "ties", "keys": ["g", "n"], "spec": [["v", "sum"], ["v", "count"]]}, "upstreamFn": "pandas.core.groupby.DataFrameGroupBy.agg", "goFn": "pandas.GroupBy.Agg"},
+    {"id": "gb-all-na-group", "fn": "groupby_agg", "args": {"table": "gaps", "keys": ["k"], "spec": [["x", "sum"], ["x", "mean"], ["x", "count"]]}, "upstreamFn": "pandas.core.groupby.DataFrameGroupBy.agg", "goFn": "pandas.GroupBy.Agg", "note": "one-row groups where the value is NA"},
+    {"id": "gb-bool-agg", "fn": "groupby_agg", "args": {"table": "flags", "keys": ["ok"], "spec": [["id", "sum"]]}, "upstreamFn": "pandas.core.groupby.DataFrameGroupBy.agg", "goFn": "pandas.GroupBy.Agg", "note": "boolean group key"},
+
+    {"id": "gb-mean-of-string", "fn": "groupby_agg", "args": {"table": "words", "keys": ["g"], "spec": [["w", "mean"]]}, "upstreamFn": "pandas.core.groupby.DataFrameGroupBy.agg", "goFn": "pandas.GroupBy.Mean", "note": "must fail on both: aggregating a non-numeric column with mean"},
+    {"id": "gb-std-of-string", "fn": "groupby_agg", "args": {"table": "words", "keys": ["g"], "spec": [["w", "std"]]}, "upstreamFn": "pandas.core.groupby.DataFrameGroupBy.agg", "goFn": "pandas.GroupBy.Std", "note": "must fail on both: std of a non-numeric column"},
+    {"id": "gb-sum-of-string", "fn": "groupby_agg", "args": {"table": "words", "keys": ["g"], "spec": [["w", "sum"]]}, "upstreamFn": "pandas.core.groupby.DataFrameGroupBy.agg", "goFn": "pandas.GroupBy.Sum", "note": "pandas concatenates strings; port yields NA"},
+    {"id": "gb-unknown-key", "fn": "groupby_agg", "args": {"table": "sales", "keys": ["nope"], "spec": [["units", "sum"]]}, "upstreamFn": "pandas.DataFrame.groupby", "goFn": "pandas.DataFrame.GroupBy", "note": "must fail on both: unknown group key"},
+    {"id": "gb-unknown-agg-column", "fn": "groupby_agg", "args": {"table": "sales", "keys": ["region"], "spec": [["nope", "sum"]]}, "upstreamFn": "pandas.core.groupby.DataFrameGroupBy.agg", "goFn": "pandas.GroupBy.Sum", "note": "must fail on both: unknown aggregated column"},
+
+    {"id": "gb-default-naming", "fn": "groupby_plain", "args": {"table": "sales", "keys": ["region"], "column": "units", "agg": "sum"}, "upstreamFn": "pandas.core.groupby.GroupBy.sum", "goFn": "pandas.GroupBy.Sum", "deviation": "the port always names the output column <col>_<agg>; pandas keeps the source column name"}
+  ]
+}

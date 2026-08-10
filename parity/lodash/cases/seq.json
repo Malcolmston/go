@@ -1,0 +1,33 @@
+{
+  "group": "seq",
+  "upstream": "lodash@4.17.21",
+  "cases": [
+    { "id": "seq-filter-take-value", "fn": "seq", "args": [[1, 2, 3, 4, 5, 6], [["filter", { "$fn": "isEven" }], ["take", 2], ["value"]]], "upstreamFn": "_.chain", "goFn": "lodash.ChainSlice" },
+    { "id": "seq-reject-reverse", "fn": "seq", "args": [[1, 2, 3, 4], [["reject", { "$fn": "isEven" }], ["reverse"], ["value"]]], "upstreamFn": "_.chain", "goFn": "lodash.ChainSlice" },
+    { "id": "seq-drop-dropRight", "fn": "seq", "args": [[1, 2, 3, 4, 5], [["drop", 1], ["dropRight", 1], ["value"]]], "upstreamFn": "_.chain", "goFn": "lodash.ChainSlice" },
+    { "id": "seq-takeWhile-dropWhile", "fn": "seq", "args": [[1, 2, 3, 1], [["dropWhile", { "$fn": "lt3" }], ["value"]]], "upstreamFn": "_.chain", "goFn": "lodash.ChainSlice" },
+    { "id": "seq-takeRight-join", "fn": "seq", "args": [["a", "b", "c"], [["takeRight", 2], ["join", "-"]]], "upstreamFn": "_.chain", "goFn": "lodash.ChainSlice" },
+    { "id": "seq-tail-initial", "fn": "seq", "args": [[1, 2, 3, 4], [["tail"], ["initial"], ["value"]]], "upstreamFn": "_.chain", "goFn": "lodash.ChainSlice" },
+    { "id": "seq-slice-head", "fn": "seq", "args": [[1, 2, 3, 4], [["slice", 1, 3], ["head"]]], "upstreamFn": "_.chain", "goFn": "lodash.ChainSlice" },
+    { "id": "seq-concat-last", "fn": "seq", "args": [[1, 2], [["concat", [3, 4]], ["last"]]], "upstreamFn": "_.chain", "goFn": "lodash.ChainSlice" },
+    { "id": "seq-nth", "fn": "seq", "args": [[1, 2, 3], [["nth", 1]]], "upstreamFn": "_.chain", "goFn": "lodash.ChainSlice" },
+    { "id": "seq-nth-negative", "fn": "seq", "args": [[1, 2, 3], [["nth", -1]]], "upstreamFn": "_.chain", "goFn": "lodash.ChainSlice" },
+    { "id": "seq-size", "fn": "seq", "args": [[1, 2, 3], [["filter", { "$fn": "isEven" }], ["size"]]], "upstreamFn": "_.chain", "goFn": "lodash.ChainSlice" },
+    { "id": "seq-isEmpty", "fn": "seq", "args": [[1, 3], [["filter", { "$fn": "isEven" }], ["isEmpty"]]], "upstreamFn": "_.chain", "goFn": "lodash.ChainSlice" },
+    { "id": "seq-chunk", "fn": "seq", "args": [[1, 2, 3, 4, 5], [["drop", 1], ["chunk", 2]]], "upstreamFn": "_.chain", "goFn": "lodash.ChainSlice" },
+    { "id": "seq-empty-input", "fn": "seq", "args": [[], [["filter", { "$fn": "isEven" }], ["value"]]], "upstreamFn": "_.chain", "goFn": "lodash.ChainSlice" },
+    { "id": "seq-head-empty", "fn": "seq", "args": [[], [["head"]]], "upstreamFn": "_.chain", "goFn": "lodash.ChainSlice" },
+
+    { "id": "seqSet-uniq-union", "fn": "seqSet", "args": [[1, 2, 2, 3], [["uniq"], ["union", [3, 4]], ["value"]]], "upstreamFn": "_.chain", "goFn": "lodash.ChainSet" },
+    { "id": "seqSet-compact-without", "deviation": "SetSeq.Compact delegates to Compact, which removes the zero value of T rather than JS-falsy values", "fn": "seqSet", "args": [[0, 1, 2, null], [["compact"], ["without", [2]], ["value"]]], "upstreamFn": "_.chain", "goFn": "lodash.ChainSet" },
+    { "id": "seqSet-intersection", "fn": "seqSet", "args": [[1, 2, 3], [["intersection", [2, 3, 4]], ["value"]]], "upstreamFn": "_.chain", "goFn": "lodash.ChainSet" },
+    { "id": "seqSet-difference-size", "fn": "seqSet", "args": [[1, 2, 3], [["difference", [2]], ["size"]]], "upstreamFn": "_.chain", "goFn": "lodash.ChainSet" },
+    { "id": "seqSet-includes", "fn": "seqSet", "args": [[1, 2, 3], [["filter", { "$fn": "isEven" }], ["includes", 2]]], "upstreamFn": "_.chain", "goFn": "lodash.ChainSet" },
+    { "id": "seqSet-indexOf", "fn": "seqSet", "args": [[1, 2, 3], [["reverse"], ["indexOf", 1]]], "upstreamFn": "_.chain", "goFn": "lodash.ChainSet" },
+
+    { "id": "chainValue-scalar", "fn": "chainValue", "args": [7], "upstreamFn": "_.chain", "goFn": "lodash.Chain" },
+    { "id": "chainValue-object", "fn": "chainValue", "args": [{ "a": 1 }], "upstreamFn": "_.chain", "goFn": "lodash.Chain" },
+    { "id": "thru-double", "fn": "thru", "args": [21, { "$fn": "double" }], "upstreamFn": "_.thru", "goFn": "lodash.Thru" },
+    { "id": "tap-observes", "fn": "tap", "args": [[1, 2], { "$fn": "identity" }], "upstreamFn": "_.tap", "goFn": "lodash.Tap" }
+  ]
+}

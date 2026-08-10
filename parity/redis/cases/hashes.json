@@ -1,0 +1,384 @@
+{
+  "group": "hashes",
+  "upstream": "redis-server@8.2.2",
+  "encoding": "commands are arrays of UTF-8 argument strings; replies map integer->number, bulk string->string, nil->null, simple string->{\"status\":s}, array->array, error->{\"error\":true}",
+  "cases": [
+    {
+      "id": "hash-basics",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "HSET",
+              "h",
+              "f1",
+              "v1",
+              "f2",
+              "v2"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HGET",
+              "h",
+              "f1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HGET",
+              "h",
+              "nope"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HGET",
+              "nokey",
+              "f"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HLEN",
+              "h"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HSET",
+              "h",
+              "f1",
+              "v9"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HGET",
+              "h",
+              "f1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HSET",
+              "h",
+              "f3",
+              "v3",
+              "f1",
+              "v1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HEXISTS",
+              "h",
+              "f1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HEXISTS",
+              "h",
+              "zz"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HEXISTS",
+              "nokey",
+              "f"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HKEYS",
+              "h"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HVALS",
+              "h"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HGETALL",
+              "h"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "HSET/HGET/HEXISTS/HLEN/HKEYS/HVALS/HGETALL",
+      "goFn": "Store.Do HSET/HGET/HEXISTS/HLEN/HKEYS/HVALS/HGETALL",
+      "note": "HSET returns the number of NEW fields; HKEYS/HVALS/HGETALL sorted on both sides"
+    },
+    {
+      "id": "hash-delete-empties-key",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "HSET",
+              "h",
+              "f",
+              "v",
+              "g",
+              "w"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HDEL",
+              "h",
+              "f",
+              "zz"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HLEN",
+              "h"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HDEL",
+              "h",
+              "g"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXISTS",
+              "h"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TYPE",
+              "h"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HLEN",
+              "h"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "DBSIZE"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "HDEL",
+      "goFn": "Store.Do HDEL",
+      "note": "a hash with no fields stops existing"
+    },
+    {
+      "id": "hash-missing-key-replies",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "HGETALL",
+              "nokey"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HKEYS",
+              "nokey"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HVALS",
+              "nokey"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HLEN",
+              "nokey"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HDEL",
+              "nokey",
+              "f"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "DBSIZE"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "HGETALL/HKEYS/HVALS/HLEN",
+      "goFn": "Store.Do HGETALL/HKEYS/HVALS/HLEN",
+      "note": "empty array / zero, never an error"
+    },
+    {
+      "id": "hash-arity",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "HSET",
+              "h",
+              "f"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HSET",
+              "h"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HSET",
+              "h",
+              "f",
+              "v",
+              "g"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HGET",
+              "h"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HGET",
+              "h",
+              "f",
+              "x"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HDEL",
+              "h"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXISTS",
+              "h"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "HSET/HGET/HDEL",
+      "goFn": "Store.Do HSET/HGET/HDEL",
+      "note": "odd field/value counts are an error"
+    },
+    {
+      "id": "hash-empty-field-and-value",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "HSET",
+              "h",
+              "",
+              "v"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HGET",
+              "h",
+              ""
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HSET",
+              "h",
+              "f",
+              ""
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HGET",
+              "h",
+              "f"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HLEN",
+              "h"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HGETALL",
+              "h"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "HSET",
+      "goFn": "Store.Do HSET",
+      "note": "empty field names and values are legal"
+    }
+  ]
+}

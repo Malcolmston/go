@@ -1,0 +1,1075 @@
+{
+  "group": "selectors",
+  "upstream": "cheerio@1.0.0 + tough-cookie@5.1.2 + node WHATWG fetch/URL",
+  "note": "The Go port's selector engine is only reachable from a Page that has completed an HTTP navigation, so the Go runner serves each fixture from a loopback httptest server and calls Page.QuerySelectorAll. The oracle is cheerio@1.0.0 (css-select) over the same fixture string.",
+  "cases": [
+    {
+      "id": "sel-type",
+      "fn": "select",
+      "args": [
+        "selectors",
+        "p",
+        "texts"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "sel-universal",
+      "fn": "select",
+      "args": [
+        "selectors",
+        "*",
+        "count"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "sel-id",
+      "fn": "select",
+      "args": [
+        "selectors",
+        "#root",
+        "tags"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "sel-class",
+      "fn": "select",
+      "args": [
+        "selectors",
+        ".one",
+        "tags"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "sel-class-multi",
+      "fn": "select",
+      "args": [
+        "selectors",
+        ".two.alt",
+        "tags"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "sel-type-class",
+      "fn": "select",
+      "args": [
+        "selectors",
+        "p.one",
+        "texts"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "sel-list",
+      "fn": "select",
+      "args": [
+        "selectors",
+        "h2, h5, em",
+        "tags"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "sel-descendant",
+      "fn": "select",
+      "args": [
+        "selectors",
+        "div li",
+        "texts"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "sel-child",
+      "fn": "select",
+      "args": [
+        "selectors",
+        "#root > p",
+        "texts"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "sel-child-deep",
+      "fn": "select",
+      "args": [
+        "selectors",
+        "ul > li",
+        "count"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "sel-adjacent",
+      "fn": "select",
+      "args": [
+        "selectors",
+        "p + p",
+        "texts"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "sel-adjacent-diff",
+      "fn": "select",
+      "args": [
+        "selectors",
+        "p + span",
+        "texts"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "sel-general-sibling",
+      "fn": "select",
+      "args": [
+        "selectors",
+        "p ~ span",
+        "texts"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "sel-general-sibling-many",
+      "fn": "select",
+      "args": [
+        "selectors",
+        ".one ~ a",
+        "count"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "sel-nested-combinator",
+      "fn": "select",
+      "args": [
+        "selectors",
+        "#root > ul > li.last",
+        "texts"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "sel-extra-whitespace",
+      "fn": "select",
+      "args": [
+        "selectors",
+        "  #root   >   p  ",
+        "texts"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll",
+      "note": "leading/inner/trailing whitespace"
+    },
+    {
+      "id": "sel-type-uppercase",
+      "fn": "select",
+      "args": [
+        "selectors",
+        "P",
+        "texts"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll",
+      "note": "type selectors are ASCII case-insensitive in HTML"
+    },
+    {
+      "id": "sel-uppercase-fixture-tag",
+      "fn": "select",
+      "args": [
+        "case-folding",
+        "span",
+        "tags"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "sel-uppercase-fixture-id",
+      "fn": "select",
+      "args": [
+        "case-folding",
+        "#Big",
+        "tags"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll",
+      "note": "id values stay case-sensitive"
+    },
+    {
+      "id": "sel-uppercase-fixture-class",
+      "fn": "select",
+      "args": [
+        "case-folding",
+        ".Cls",
+        "tags"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "sel-outer",
+      "fn": "select",
+      "args": [
+        "selectors",
+        ".two",
+        "outerAll"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "sel-inner",
+      "fn": "select",
+      "args": [
+        "selectors",
+        "ul",
+        "innerAll"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "sel-innertexts",
+      "fn": "select",
+      "args": [
+        "selectors",
+        "section",
+        "innerTexts"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "sel-classes",
+      "fn": "select",
+      "args": [
+        "selectors",
+        "#root",
+        "classes"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "attr-presence",
+      "fn": "select",
+      "args": [
+        "attrs",
+        "[data-v]",
+        "ids"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "attr-exact",
+      "fn": "select",
+      "args": [
+        "attrs",
+        "[data-v=alpha-beta]",
+        "ids"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "attr-exact-quoted",
+      "fn": "select",
+      "args": [
+        "attrs",
+        "[data-v=\"alpha-beta\"]",
+        "ids"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "attr-exact-empty",
+      "fn": "select",
+      "args": [
+        "attrs",
+        "[data-v='']",
+        "ids"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "attr-prefix",
+      "fn": "select",
+      "args": [
+        "attrs",
+        "[data-v^=alpha]",
+        "ids"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "attr-suffix",
+      "fn": "select",
+      "args": [
+        "attrs",
+        "[data-v$=beta]",
+        "ids"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "attr-substring",
+      "fn": "select",
+      "args": [
+        "attrs",
+        "[data-v*=lph]",
+        "ids"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "attr-includes-ws",
+      "fn": "select",
+      "args": [
+        "attrs",
+        "[rel~=nofollow]",
+        "ids"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "attr-dash",
+      "fn": "select",
+      "args": [
+        "attrs",
+        "[lang|=en]",
+        "ids"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "attr-dash-exact",
+      "fn": "select",
+      "args": [
+        "attrs",
+        "[lang|=fr]",
+        "ids"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "attr-href-suffix",
+      "fn": "select",
+      "args": [
+        "attrs",
+        "[href$='.pdf']",
+        "ids"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "attr-boolean",
+      "fn": "select",
+      "args": [
+        "attrs",
+        "[hidden]",
+        "ids"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "attr-ci-flag",
+      "fn": "select",
+      "args": [
+        "attrs",
+        "[title=hello i]",
+        "ids"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll",
+      "note": "the Selectors 4 case-insensitivity flag"
+    },
+    {
+      "id": "attr-value-case-sensitive",
+      "fn": "select",
+      "args": [
+        "attrs",
+        "[title=hello]",
+        "ids"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "attr-name-case",
+      "fn": "select",
+      "args": [
+        "attrs",
+        "[DATA-V]",
+        "ids"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll",
+      "note": "attribute names are case-insensitive in HTML"
+    },
+    {
+      "id": "attr-missing",
+      "fn": "select",
+      "args": [
+        "attrs",
+        "[nope]",
+        "count"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "attr-substring-empty",
+      "fn": "select",
+      "args": [
+        "attrs",
+        "[data-v*='']",
+        "count"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll",
+      "note": "an empty operand matches nothing per spec"
+    },
+    {
+      "id": "nth-2",
+      "fn": "select",
+      "args": [
+        "nth",
+        "li:nth-child(2)",
+        "texts"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "nth-odd",
+      "fn": "select",
+      "args": [
+        "nth",
+        "li:nth-child(odd)",
+        "texts"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "nth-even",
+      "fn": "select",
+      "args": [
+        "nth",
+        "li:nth-child(even)",
+        "texts"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "nth-2n1",
+      "fn": "select",
+      "args": [
+        "nth",
+        "li:nth-child(2n+1)",
+        "texts"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "nth-negative",
+      "fn": "select",
+      "args": [
+        "nth",
+        "li:nth-child(-n+3)",
+        "texts"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "nth-3n",
+      "fn": "select",
+      "args": [
+        "nth",
+        "li:nth-child(3n)",
+        "texts"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "nth-3n0",
+      "fn": "select",
+      "args": [
+        "nth",
+        "li:nth-child(3n+0)",
+        "texts"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "nth-zero",
+      "fn": "select",
+      "args": [
+        "nth",
+        "li:nth-child(0)",
+        "count"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "nth-out-of-range",
+      "fn": "select",
+      "args": [
+        "nth",
+        "li:nth-child(11)",
+        "count"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "nth-inner-space",
+      "fn": "select",
+      "args": [
+        "nth",
+        "li:nth-child( 2n + 1 )",
+        "texts"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll",
+      "note": "whitespace inside the An+B microsyntax"
+    },
+    {
+      "id": "nth-last-2",
+      "fn": "select",
+      "args": [
+        "nth",
+        "li:nth-last-child(2)",
+        "texts"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "nth-last-odd",
+      "fn": "select",
+      "args": [
+        "nth",
+        "li:nth-last-child(odd)",
+        "texts"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "nth-first-child",
+      "fn": "select",
+      "args": [
+        "nth",
+        "li:first-child",
+        "texts"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "nth-last-child",
+      "fn": "select",
+      "args": [
+        "nth",
+        "li:last-child",
+        "texts"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "nth-only-child",
+      "fn": "select",
+      "args": [
+        "onlychild",
+        "p:only-child",
+        "texts"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "nth-of-type-2",
+      "fn": "select",
+      "args": [
+        "nth-mixed",
+        "p:nth-of-type(2)",
+        "texts"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "nth-of-type-odd",
+      "fn": "select",
+      "args": [
+        "nth-mixed",
+        "span:nth-of-type(odd)",
+        "texts"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "nth-last-of-type-1",
+      "fn": "select",
+      "args": [
+        "nth-mixed",
+        "p:nth-last-of-type(1)",
+        "texts"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "nth-first-of-type",
+      "fn": "select",
+      "args": [
+        "nth-mixed",
+        "span:first-of-type",
+        "texts"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "nth-last-of-type",
+      "fn": "select",
+      "args": [
+        "nth-mixed",
+        "span:last-of-type",
+        "texts"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "nth-only-of-type",
+      "fn": "select",
+      "args": [
+        "onlychild",
+        "span:only-of-type",
+        "texts"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "pseudo-empty",
+      "fn": "select",
+      "args": [
+        "selectors",
+        "div:empty",
+        "classes"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "pseudo-empty-whitespace",
+      "fn": "select",
+      "args": [
+        "selectors",
+        ".ws:empty",
+        "count"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll",
+      "note": "whitespace-only element: :empty per CSS2 vs the Selectors 4 relaxation"
+    },
+    {
+      "id": "pseudo-root",
+      "fn": "select",
+      "args": [
+        "selectors",
+        ":root",
+        "tags"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "pseudo-not-simple",
+      "fn": "select",
+      "args": [
+        "selectors",
+        "p:not(.one)",
+        "texts"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "pseudo-not-type",
+      "fn": "select",
+      "args": [
+        "selectors",
+        "#root > *:not(p)",
+        "tags"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "pseudo-not-attr",
+      "fn": "select",
+      "args": [
+        "attrs",
+        "a:not([hidden])",
+        "ids"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "pseudo-not-list",
+      "fn": "select",
+      "args": [
+        "selectors",
+        "#root > :not(p, span)",
+        "tags"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll",
+      "note": "a selector list inside :not() (Selectors 4)"
+    },
+    {
+      "id": "pseudo-not-compound",
+      "fn": "select",
+      "args": [
+        "selectors",
+        "#root > :not(p.one)",
+        "count"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "pseudo-not-nested",
+      "fn": "select",
+      "args": [
+        "selectors",
+        "p:not(:first-child)",
+        "texts"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "pseudo-has",
+      "fn": "select",
+      "args": [
+        "selectors",
+        "ul:has(li.last)",
+        "tags"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll",
+      "note": ":has()"
+    },
+    {
+      "id": "pseudo-has-child",
+      "fn": "select",
+      "args": [
+        "selectors",
+        "section:has(> h2)",
+        "count"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll",
+      "note": ":has() with a child combinator"
+    },
+    {
+      "id": "pseudo-checked",
+      "fn": "select",
+      "args": [
+        "states",
+        "input:checked",
+        "ids"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "pseudo-disabled-attr",
+      "fn": "select",
+      "args": [
+        "states",
+        "input[disabled]",
+        "ids"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "pseudo-disabled",
+      "fn": "select",
+      "args": [
+        "states",
+        "input:disabled",
+        "ids"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "pseudo-enabled",
+      "fn": "select",
+      "args": [
+        "states",
+        "input:enabled",
+        "count"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "pseudo-selected",
+      "fn": "select",
+      "args": [
+        "states",
+        "option:selected",
+        "ids"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "pseudo-contains",
+      "fn": "select",
+      "args": [
+        "selectors",
+        "p:contains(P1)",
+        "count"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll",
+      "note": "cheerio/jQuery extension"
+    },
+    {
+      "id": "pseudo-first-positional",
+      "fn": "select",
+      "args": [
+        "selectors",
+        "p:first",
+        "count"
+      ],
+      "upstreamFn": "cheerio $(selector) (css-select)",
+      "goFn": "puppeteer.Page.QuerySelectorAll",
+      "note": "jQuery positional pseudo-class"
+    },
+    {
+      "id": "compile-unknown-pseudo",
+      "fn": "compile",
+      "args": [
+        ":totally-unknown"
+      ],
+      "upstreamFn": "cheerio $(sel) (css-what parse)",
+      "goFn": "puppeteer.Page.QuerySelectorAll",
+      "note": "an unknown pseudo-class must be rejected"
+    },
+    {
+      "id": "compile-empty",
+      "fn": "compile",
+      "args": [
+        ""
+      ],
+      "upstreamFn": "cheerio $(sel) (css-what parse)",
+      "goFn": "puppeteer.Page.QuerySelectorAll",
+      "note": "the empty selector"
+    },
+    {
+      "id": "compile-open-bracket",
+      "fn": "compile",
+      "args": [
+        "["
+      ],
+      "upstreamFn": "cheerio $(sel) (css-what parse)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "compile-dangling-combinator",
+      "fn": "compile",
+      "args": [
+        "div >"
+      ],
+      "upstreamFn": "cheerio $(sel) (css-what parse)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "compile-nth-garbage",
+      "fn": "compile",
+      "args": [
+        ":nth-child(abc)"
+      ],
+      "upstreamFn": "cheerio $(sel) (css-what parse)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "compile-trailing-comma",
+      "fn": "compile",
+      "args": [
+        "div,"
+      ],
+      "upstreamFn": "cheerio $(sel) (css-what parse)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "compile-double-comma",
+      "fn": "compile",
+      "args": [
+        "div,,p"
+      ],
+      "upstreamFn": "cheerio $(sel) (css-what parse)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "compile-bad-attr-op",
+      "fn": "compile",
+      "args": [
+        "[a!=b]"
+      ],
+      "upstreamFn": "cheerio $(sel) (css-what parse)",
+      "goFn": "puppeteer.Page.QuerySelectorAll"
+    },
+    {
+      "id": "matches-true",
+      "fn": "matches",
+      "args": [
+        "selectors",
+        "p.one",
+        "p.one"
+      ],
+      "upstreamFn": "cheerio .is()",
+      "goFn": "puppeteer.Element.Matches"
+    },
+    {
+      "id": "matches-attr",
+      "fn": "matches",
+      "args": [
+        "attrs",
+        "#a1",
+        "[rel~=next]"
+      ],
+      "upstreamFn": "cheerio .is()",
+      "goFn": "puppeteer.Element.Matches"
+    },
+    {
+      "id": "matches-not",
+      "fn": "matches",
+      "args": [
+        "selectors",
+        "p.one",
+        ":not(.two)"
+      ],
+      "upstreamFn": "cheerio .is()",
+      "goFn": "puppeteer.Element.Matches"
+    },
+    {
+      "id": "matches-descendant",
+      "fn": "matches",
+      "args": [
+        "selectors",
+        "li.last",
+        "#root li"
+      ],
+      "upstreamFn": "cheerio .is()",
+      "goFn": "puppeteer.Element.Matches",
+      "note": "a complex selector passed to matches()"
+    },
+    {
+      "id": "matches-false",
+      "fn": "matches",
+      "args": [
+        "selectors",
+        "p.one",
+        "span"
+      ],
+      "upstreamFn": "cheerio .is()",
+      "goFn": "puppeteer.Element.Matches"
+    },
+    {
+      "id": "closest-type",
+      "fn": "closest",
+      "args": [
+        "deep-tree",
+        "#sp",
+        "div"
+      ],
+      "upstreamFn": "cheerio .closest()",
+      "goFn": "puppeteer.Element.Closest"
+    },
+    {
+      "id": "closest-self",
+      "fn": "closest",
+      "args": [
+        "deep-tree",
+        "#l2",
+        "#l2"
+      ],
+      "upstreamFn": "cheerio .closest()",
+      "goFn": "puppeteer.Element.Closest",
+      "note": "closest() includes the element itself"
+    },
+    {
+      "id": "closest-none",
+      "fn": "closest",
+      "args": [
+        "deep-tree",
+        "#sp",
+        "table"
+      ],
+      "upstreamFn": "cheerio .closest()",
+      "goFn": "puppeteer.Element.Closest"
+    },
+    {
+      "id": "closest-far",
+      "fn": "closest",
+      "args": [
+        "deep-tree",
+        "#sp",
+        "#l1"
+      ],
+      "upstreamFn": "cheerio .closest()",
+      "goFn": "puppeteer.Element.Closest"
+    }
+  ]
+}

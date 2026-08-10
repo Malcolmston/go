@@ -1,0 +1,474 @@
+{
+  "group": "arith",
+  "upstream": "jq@1.7.1",
+  "encoding": "args = [jq program, input JSON value, optional $variables object]; value = the complete output stream as a JSON array",
+  "cases": [
+    {
+      "id": "add-nums",
+      "fn": "run",
+      "args": [
+        "1+2",
+        null
+      ],
+      "upstreamFn": "+",
+      "goFn": "+"
+    },
+    {
+      "id": "add-str",
+      "fn": "run",
+      "args": [
+        "\"a\"+\"b\"",
+        null
+      ],
+      "upstreamFn": "+",
+      "goFn": "+"
+    },
+    {
+      "id": "add-arr",
+      "fn": "run",
+      "args": [
+        "[1]+[2]",
+        null
+      ],
+      "upstreamFn": "+",
+      "goFn": "+"
+    },
+    {
+      "id": "add-obj-merge",
+      "fn": "run",
+      "args": [
+        "{a:1,b:2}+{b:3,c:4}",
+        null
+      ],
+      "upstreamFn": "+",
+      "goFn": "+",
+      "note": "right operand wins"
+    },
+    {
+      "id": "add-null-left",
+      "fn": "run",
+      "args": [
+        "null + 1",
+        null
+      ],
+      "upstreamFn": "+",
+      "goFn": "+"
+    },
+    {
+      "id": "add-null-right",
+      "fn": "run",
+      "args": [
+        "1 + null",
+        null
+      ],
+      "upstreamFn": "+",
+      "goFn": "+"
+    },
+    {
+      "id": "add-null-null",
+      "fn": "run",
+      "args": [
+        "null+null",
+        null
+      ],
+      "upstreamFn": "+",
+      "goFn": "+"
+    },
+    {
+      "id": "add-str-num-err",
+      "fn": "run",
+      "args": [
+        "\"a\" + 1",
+        null
+      ],
+      "upstreamFn": "+",
+      "goFn": "+",
+      "note": "type error on both sides"
+    },
+    {
+      "id": "add-obj-arr-err",
+      "fn": "run",
+      "args": [
+        "{} + []",
+        null
+      ],
+      "upstreamFn": "+",
+      "goFn": "+"
+    },
+    {
+      "id": "sub-nums",
+      "fn": "run",
+      "args": [
+        "5-2",
+        null
+      ],
+      "upstreamFn": "-",
+      "goFn": "-"
+    },
+    {
+      "id": "sub-arrays",
+      "fn": "run",
+      "args": [
+        "[1,2,3,2] - [2]",
+        null
+      ],
+      "upstreamFn": "-",
+      "goFn": "-",
+      "note": "array difference removes every occurrence"
+    },
+    {
+      "id": "sub-str-err",
+      "fn": "run",
+      "args": [
+        "\"ab\" - \"a\"",
+        null
+      ],
+      "upstreamFn": "-",
+      "goFn": "-"
+    },
+    {
+      "id": "mul-nums",
+      "fn": "run",
+      "args": [
+        "3*4",
+        null
+      ],
+      "upstreamFn": "*",
+      "goFn": "*"
+    },
+    {
+      "id": "mul-str-num",
+      "fn": "run",
+      "args": [
+        "\"ab\" * 3",
+        null
+      ],
+      "upstreamFn": "*",
+      "goFn": "*"
+    },
+    {
+      "id": "mul-str-zero",
+      "fn": "run",
+      "args": [
+        "\"ab\" * 0",
+        null
+      ],
+      "upstreamFn": "*",
+      "goFn": "*"
+    },
+    {
+      "id": "mul-obj-deep-merge",
+      "fn": "run",
+      "args": [
+        "{a:{b:1,c:2}} * {a:{b:9}}",
+        null
+      ],
+      "upstreamFn": "*",
+      "goFn": "*"
+    },
+    {
+      "id": "div-nums",
+      "fn": "run",
+      "args": [
+        "7/2",
+        null
+      ],
+      "upstreamFn": "/",
+      "goFn": "/"
+    },
+    {
+      "id": "div-zero",
+      "fn": "run",
+      "args": [
+        "1/0",
+        null
+      ],
+      "upstreamFn": "/",
+      "goFn": "/",
+      "note": "division by zero must fail on both sides"
+    },
+    {
+      "id": "div-zero-zero",
+      "fn": "run",
+      "args": [
+        "0/0",
+        null
+      ],
+      "upstreamFn": "/",
+      "goFn": "/"
+    },
+    {
+      "id": "div-strings-split",
+      "fn": "run",
+      "args": [
+        "\"a,b,c\" / \",\"",
+        null
+      ],
+      "upstreamFn": "/",
+      "goFn": "/"
+    },
+    {
+      "id": "mod-nums",
+      "fn": "run",
+      "args": [
+        "7 % 3",
+        null
+      ],
+      "upstreamFn": "%",
+      "goFn": "%"
+    },
+    {
+      "id": "mod-neg",
+      "fn": "run",
+      "args": [
+        "-7 % 3",
+        null
+      ],
+      "upstreamFn": "%",
+      "goFn": "%"
+    },
+    {
+      "id": "mod-zero",
+      "fn": "run",
+      "args": [
+        "1 % 0",
+        null
+      ],
+      "upstreamFn": "%",
+      "goFn": "%"
+    },
+    {
+      "id": "mod-float-trunc",
+      "fn": "run",
+      "args": [
+        "7.9 % 3.2",
+        null
+      ],
+      "upstreamFn": "%",
+      "goFn": "%"
+    },
+    {
+      "id": "neg-unary",
+      "fn": "run",
+      "args": [
+        "-(.a)",
+        {
+          "a": 5
+        }
+      ],
+      "upstreamFn": "-(unary)",
+      "goFn": "-(unary)"
+    },
+    {
+      "id": "neg-string-err",
+      "fn": "run",
+      "args": [
+        "-\"a\"",
+        null
+      ],
+      "upstreamFn": "-(unary)",
+      "goFn": "-(unary)"
+    },
+    {
+      "id": "cmp-lt-nums",
+      "fn": "run",
+      "args": [
+        "1 < 2",
+        null
+      ],
+      "upstreamFn": "<",
+      "goFn": "<"
+    },
+    {
+      "id": "cmp-sort-order-types",
+      "fn": "run",
+      "args": [
+        "[ (null < false), (false < true), (true < 0), (0 < \"a\"), (\"a\" < []), ([] < {}) ]",
+        null
+      ],
+      "upstreamFn": "<",
+      "goFn": "<",
+      "note": "jq's total order across types"
+    },
+    {
+      "id": "cmp-eq-objects",
+      "fn": "run",
+      "args": [
+        "{a:1} == {a:1}",
+        null
+      ],
+      "upstreamFn": "==",
+      "goFn": "=="
+    },
+    {
+      "id": "cmp-ne",
+      "fn": "run",
+      "args": [
+        "1 != 2",
+        null
+      ],
+      "upstreamFn": "!=",
+      "goFn": "!="
+    },
+    {
+      "id": "cmp-ge-le",
+      "fn": "run",
+      "args": [
+        "[2>=2, 2<=1]",
+        null
+      ],
+      "upstreamFn": ">=",
+      "goFn": ">="
+    },
+    {
+      "id": "bool-and",
+      "fn": "run",
+      "args": [
+        "[true and false, true and true, null and true, 1 and 2]",
+        null
+      ],
+      "upstreamFn": "and",
+      "goFn": "and"
+    },
+    {
+      "id": "bool-or",
+      "fn": "run",
+      "args": [
+        "[false or false, false or true, null or null, 0 or false]",
+        null
+      ],
+      "upstreamFn": "or",
+      "goFn": "or"
+    },
+    {
+      "id": "bool-not",
+      "fn": "run",
+      "args": [
+        "[true|not, false|not, null|not, 0|not, \"\"|not]",
+        null
+      ],
+      "upstreamFn": "not/0",
+      "goFn": "not/0"
+    },
+    {
+      "id": "bool-shortcircuit",
+      "fn": "run",
+      "args": [
+        "[false and error(\"boom\"), true or error(\"boom\")]",
+        null
+      ],
+      "upstreamFn": "and",
+      "goFn": "and",
+      "note": "short circuit must not evaluate the error"
+    },
+    {
+      "id": "number-float-format",
+      "fn": "run",
+      "args": [
+        "[1.0, 1.5, 1e10, 0.1]|tojson",
+        null
+      ],
+      "upstreamFn": "tojson/0",
+      "goFn": "tojson/0",
+      "note": "jq keeps the literal text",
+      "deviation": "numbers are float64 only; jq preserves the literal text of untouched numbers"
+    },
+    {
+      "id": "number-precision-int",
+      "fn": "run",
+      "args": [
+        "[.]|tojson",
+        100000000000000000000000
+      ],
+      "upstreamFn": "tojson/0",
+      "goFn": "tojson/0",
+      "note": "large integer through the program unchanged",
+      "deviation": "numbers are float64 only; jq preserves the literal text of untouched numbers"
+    },
+    {
+      "id": "number-big-literal",
+      "fn": "run",
+      "args": [
+        "100000000000000000000000|tojson",
+        null
+      ],
+      "upstreamFn": "tojson/0",
+      "goFn": "tojson/0",
+      "deviation": "numbers are float64 only; jq preserves the literal text of untouched numbers"
+    },
+    {
+      "id": "number-large-int-arith",
+      "fn": "run",
+      "args": [
+        "9007199254740993|tojson",
+        null
+      ],
+      "upstreamFn": "tojson/0",
+      "goFn": "tojson/0",
+      "note": "beyond 2^53",
+      "deviation": "numbers are float64 only; jq preserves the literal text of untouched numbers"
+    },
+    {
+      "id": "tostring-number",
+      "fn": "run",
+      "args": [
+        "[1.0, 100000000000000000000000]|map(tostring)",
+        null
+      ],
+      "upstreamFn": "tostring/0",
+      "goFn": "tostring/0",
+      "deviation": "numbers are float64 only; jq preserves the literal text of untouched numbers"
+    },
+    {
+      "id": "number-neg-zero",
+      "fn": "run",
+      "args": [
+        "-0|tojson",
+        null
+      ],
+      "upstreamFn": "tojson/0",
+      "goFn": "tojson/0"
+    },
+    {
+      "id": "nan-output",
+      "fn": "run",
+      "args": [
+        "[nan]",
+        null
+      ],
+      "upstreamFn": "nan/0",
+      "goFn": "nan/0",
+      "note": "jq prints nan as null"
+    },
+    {
+      "id": "infinite-output",
+      "fn": "run",
+      "args": [
+        "[infinite, -infinite]",
+        null
+      ],
+      "upstreamFn": "infinite/0",
+      "goFn": "infinite/0"
+    },
+    {
+      "id": "nan-inf-predicates",
+      "fn": "run",
+      "args": [
+        "[(nan|isnan), (infinite|isinfinite), (1|isnormal), (infinite > 1e308)]",
+        null
+      ],
+      "upstreamFn": "isnan/0",
+      "goFn": "isnan/0"
+    },
+    {
+      "id": "tojson-nan",
+      "fn": "run",
+      "args": [
+        "nan|tojson",
+        null
+      ],
+      "upstreamFn": "tojson/0",
+      "goFn": "tojson/0"
+    }
+  ]
+}

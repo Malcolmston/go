@@ -1,0 +1,135 @@
+{
+  "group": "inline",
+  "upstream": "nodemailer@6.9.16",
+  "cases": [
+    {
+      "id": "cid-single-image",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.attachments[].cid",
+      "goFn": "nodemailer.Message.Embed",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "html": "<p>logo: <img src=\"cid:logo@parity\"></p>",
+          "attachments": [
+            {
+              "filename": "logo.png",
+              "mode": "buffer",
+              "content": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGMAAQAABQABAAAAAA==",
+              "cid": "logo@parity"
+            }
+          ]
+        }
+      ],
+      "note": "expects multipart/related with type=\"text/html\""
+    },
+    {
+      "id": "cid-image-with-text-alternative",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.attachments[].cid + mail.text",
+      "goFn": "nodemailer.Message.Embed",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "plain fallback",
+          "html": "<p><img src=\"cid:logo@parity\"></p>",
+          "attachments": [
+            {
+              "filename": "logo.png",
+              "mode": "buffer",
+              "content": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGMAAQAABQABAAAAAA==",
+              "cid": "logo@parity"
+            }
+          ]
+        }
+      ],
+      "note": "expects multipart/alternative nested inside multipart/related"
+    },
+    {
+      "id": "cid-two-images",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.attachments[].cid",
+      "goFn": "nodemailer.Message.Embed",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "html": "<img src=\"cid:a@parity\"><img src=\"cid:b@parity\">",
+          "attachments": [
+            { "filename": "a.png", "mode": "buffer", "content": "AAEC", "cid": "a@parity", "contentType": "image/png" },
+            { "filename": "b.gif", "mode": "buffer", "content": "AwQF", "cid": "b@parity", "contentType": "image/gif" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cid-plus-regular-attachment",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.attachments[] (mixed related + attached)",
+      "goFn": "nodemailer.Message.Embed + Attach",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "plain fallback",
+          "html": "<img src=\"cid:pic@parity\">",
+          "attachments": [
+            { "filename": "pic.png", "mode": "buffer", "content": "AAEC", "cid": "pic@parity", "contentType": "image/png" },
+            { "filename": "doc.txt", "mode": "string", "content": "a document" }
+          ]
+        }
+      ],
+      "note": "expects mixed > (related > (alternative)) nesting"
+    },
+    {
+      "id": "cid-from-path",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.attachments[].cid + .path",
+      "goFn": "nodemailer.Message.EmbedFile",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "html": "<img src=\"cid:tiny@parity\">",
+          "attachments": [{ "mode": "path", "path": "fixtures/tiny.png", "cid": "tiny@parity" }]
+        }
+      ]
+    },
+    {
+      "id": "cid-no-html",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.attachments[].cid without html",
+      "goFn": "nodemailer.Message.Embed",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "no html here",
+          "attachments": [
+            { "filename": "orphan.png", "mode": "buffer", "content": "AAEC", "cid": "orphan@parity", "contentType": "image/png" }
+          ]
+        }
+      ],
+      "note": "upstream demotes a cid attachment to a regular attachment when there is no html node"
+    },
+    {
+      "id": "cid-non-image",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.attachments[].cid on a non-image",
+      "goFn": "nodemailer.Message.Embed",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "html": "<a href=\"cid:doc@parity\">doc</a>",
+          "attachments": [
+            { "filename": "thing.txt", "mode": "string", "content": "text resource", "cid": "doc@parity" }
+          ]
+        }
+      ],
+      "note": "upstream only defaults to Content-Disposition: inline for image/* cid parts"
+    }
+  ]
+}

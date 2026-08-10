@@ -1,0 +1,574 @@
+{
+  "group": "crossverify",
+  "upstream": "jsonwebtoken@9.0.2",
+  "note": "Committed fixture tokens: one set minted by the upstream runner, one by the Go runner. Both runners verify both sets.",
+  "cases": [
+    {
+      "id": "cross-upstream-signed-hs256",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMCwic3ViIjoiY3Jvc3MifQ.JZmDD5bzTXhrzrC4QCbHzGtH0NzTrIKL28GFClJgxNI",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "token minted by jsonwebtoken@9.0.2; both sides must verify it"
+    },
+    {
+      "id": "cross-go-signed-hs256",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMCwic3ViIjoiY3Jvc3MifQ.JZmDD5bzTXhrzrC4QCbHzGtH0NzTrIKL28GFClJgxNI",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "token minted by github.com/malcolmston/jwt; both sides must verify it"
+    },
+    {
+      "id": "cross-upstream-signed-hs384",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzM4NCIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMCwic3ViIjoiY3Jvc3MifQ.SMwgQsAxGlfMhlcQAJGvexN4QxNem4-XT5hHi7hLSAl9NPoFANEDgUkmnWEOsxe_",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "HS384"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "token minted by jsonwebtoken@9.0.2; both sides must verify it"
+    },
+    {
+      "id": "cross-go-signed-hs384",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzM4NCIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMCwic3ViIjoiY3Jvc3MifQ.SMwgQsAxGlfMhlcQAJGvexN4QxNem4-XT5hHi7hLSAl9NPoFANEDgUkmnWEOsxe_",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "HS384"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "token minted by github.com/malcolmston/jwt; both sides must verify it"
+    },
+    {
+      "id": "cross-upstream-signed-hs512",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMCwic3ViIjoiY3Jvc3MifQ.InLdqXXqGCjSo3dK6Lu87cm2t-qMhbMjak4ClNG8s0VpNWJgAmZyBpyyfcKrZBpo8jA9ABgZjDLS9ID7J1ILTA",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "HS512"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "token minted by jsonwebtoken@9.0.2; both sides must verify it"
+    },
+    {
+      "id": "cross-go-signed-hs512",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMCwic3ViIjoiY3Jvc3MifQ.InLdqXXqGCjSo3dK6Lu87cm2t-qMhbMjak4ClNG8s0VpNWJgAmZyBpyyfcKrZBpo8jA9ABgZjDLS9ID7J1ILTA",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "HS512"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "token minted by github.com/malcolmston/jwt; both sides must verify it"
+    },
+    {
+      "id": "cross-upstream-signed-rs256",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMCwic3ViIjoiY3Jvc3MifQ.sNYac12OJTErVbLN8bPfui7j7BYdLDuZROIvtkeGrqjMVU08ZoVhHth6j3pBYAtYwYv8v6Nb7rNojZH3MyFMVMS6u_7WiIh-c2EQi57p0T7NJU5YS8UQBtm3mq9DbHUfcakNvu7zknq5MvllxEb1R7QZatq9IiCPs0C_ZNDrQOigv61y4ziVz8dCrvuVg-mDsIMVqdSD-gKmI-GDOpo2AnSoEzGZJOmE3FZX0p4XuQPbLDDlkBgomdseULmcESAGWkCDdTR4dnExOZt65X5F9Wk_PXwSlFV8G8D_xci53viW3KM_PWB9IRK521oj1vyWmoy3cjZHypdqNvObdHM6oQ",
+        {
+          "kind": "rsa",
+          "file": "rsa-2048.pub.pem"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "RS256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "token minted by jsonwebtoken@9.0.2; both sides must verify it"
+    },
+    {
+      "id": "cross-go-signed-rs256",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMCwic3ViIjoiY3Jvc3MifQ.sNYac12OJTErVbLN8bPfui7j7BYdLDuZROIvtkeGrqjMVU08ZoVhHth6j3pBYAtYwYv8v6Nb7rNojZH3MyFMVMS6u_7WiIh-c2EQi57p0T7NJU5YS8UQBtm3mq9DbHUfcakNvu7zknq5MvllxEb1R7QZatq9IiCPs0C_ZNDrQOigv61y4ziVz8dCrvuVg-mDsIMVqdSD-gKmI-GDOpo2AnSoEzGZJOmE3FZX0p4XuQPbLDDlkBgomdseULmcESAGWkCDdTR4dnExOZt65X5F9Wk_PXwSlFV8G8D_xci53viW3KM_PWB9IRK521oj1vyWmoy3cjZHypdqNvObdHM6oQ",
+        {
+          "kind": "rsa",
+          "file": "rsa-2048.pub.pem"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "RS256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "token minted by github.com/malcolmston/jwt; both sides must verify it"
+    },
+    {
+      "id": "cross-upstream-signed-rs384",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJSUzM4NCIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMCwic3ViIjoiY3Jvc3MifQ.z09Z-03QtinrJBENwvqJDaja7bwhZu6RE2EB0-DOO6XMx_HeoUsFd0mdxWRCsz3MqOBAk44fyHq-qfRNXR32Y75ECfom3e4ltVh7Gy4J-lSSjmF22wtmkWFG261KPhSVyrDq3ctAIcebODAlrmMhk0MTNMqgYZjNpK0NfLlWPZozug_lPnnOeEcmt6ulPdO7Fi-HItxWeLsuZSMXCc9jygGoQeJxkFF2XpgQAiIvtqc0EN7Z2oYOloS5Wtm89KiRP0hAqJ-YCk8BLMIuSXbjvL5lqkmm4TkyYWovSQiGeuqD-0VKbIsP0Cy7DC-vx_xOX-CQ9KOFpX4HYyfzKUH5YQ",
+        {
+          "kind": "rsa",
+          "file": "rsa-2048.pub.pem"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "RS384"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "token minted by jsonwebtoken@9.0.2; both sides must verify it"
+    },
+    {
+      "id": "cross-go-signed-rs384",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJSUzM4NCIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMCwic3ViIjoiY3Jvc3MifQ.z09Z-03QtinrJBENwvqJDaja7bwhZu6RE2EB0-DOO6XMx_HeoUsFd0mdxWRCsz3MqOBAk44fyHq-qfRNXR32Y75ECfom3e4ltVh7Gy4J-lSSjmF22wtmkWFG261KPhSVyrDq3ctAIcebODAlrmMhk0MTNMqgYZjNpK0NfLlWPZozug_lPnnOeEcmt6ulPdO7Fi-HItxWeLsuZSMXCc9jygGoQeJxkFF2XpgQAiIvtqc0EN7Z2oYOloS5Wtm89KiRP0hAqJ-YCk8BLMIuSXbjvL5lqkmm4TkyYWovSQiGeuqD-0VKbIsP0Cy7DC-vx_xOX-CQ9KOFpX4HYyfzKUH5YQ",
+        {
+          "kind": "rsa",
+          "file": "rsa-2048.pub.pem"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "RS384"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "token minted by github.com/malcolmston/jwt; both sides must verify it"
+    },
+    {
+      "id": "cross-upstream-signed-rs512",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMCwic3ViIjoiY3Jvc3MifQ.zYEi0afqeIgciFemYSdcTpqMXtk5GG3LPTsG9Gns9Rxpq2toFFZ6qSAJ-gvk8tciXOa4rDMSM4s2Tba01cWNb-KRishRWLNK7aDTR1BtDohm5grO71mkL9MT0_QLZ6g6tqe36j0gBRLEsoSDXKupvORzt7HkuoohTHWz7z7J15mkUg4yY9fxhhUnxFE67vOHEjQ-v0QCcvk-bEzjJZRHnRUVV_6PRiTZwLNg6nSjiJDRVKzlacteFX68z7M2v7mreVcjSCgXyMowpVxHXlmVHVkjrgBRO1qf3DRZEt-1zfddP58R0-vKVl-gH1nW-RRSbMRFYDSzYKHDl0-LQGDxww",
+        {
+          "kind": "rsa",
+          "file": "rsa-2048.pub.pem"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "RS512"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "token minted by jsonwebtoken@9.0.2; both sides must verify it"
+    },
+    {
+      "id": "cross-go-signed-rs512",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMCwic3ViIjoiY3Jvc3MifQ.zYEi0afqeIgciFemYSdcTpqMXtk5GG3LPTsG9Gns9Rxpq2toFFZ6qSAJ-gvk8tciXOa4rDMSM4s2Tba01cWNb-KRishRWLNK7aDTR1BtDohm5grO71mkL9MT0_QLZ6g6tqe36j0gBRLEsoSDXKupvORzt7HkuoohTHWz7z7J15mkUg4yY9fxhhUnxFE67vOHEjQ-v0QCcvk-bEzjJZRHnRUVV_6PRiTZwLNg6nSjiJDRVKzlacteFX68z7M2v7mreVcjSCgXyMowpVxHXlmVHVkjrgBRO1qf3DRZEt-1zfddP58R0-vKVl-gH1nW-RRSbMRFYDSzYKHDl0-LQGDxww",
+        {
+          "kind": "rsa",
+          "file": "rsa-2048.pub.pem"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "RS512"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "token minted by github.com/malcolmston/jwt; both sides must verify it"
+    },
+    {
+      "id": "cross-upstream-signed-ps256",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJQUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMCwic3ViIjoiY3Jvc3MifQ.Eo0cshABbzSwcxt7Otjs8RUH72_PfaYsiJri0_C751m1NkDnyOiphgxId980V3_z4icnY-xt-nQVHhOO50tdGbrsY8P35e78OpxBmnBrF4Y2QXSUC496QaljvSd2SohV741vvKFYXQLu6-mHS-RQ1crhUw4BtqIeixt3B6SW1oguS7y_itRShIjpDDwyqjH9pgwEpJHoGLag3HlsErRp6ifX9gwfKhbnQ-HCnJe85HuSoFzNOQU6-imGO1wlb_l7sZlJUsLlccVl2xxBbVhbdKVlG1xoYYqZDvJZau_bFobcmegK0fWziVuFgORj-puqGi-3i__9dd0_GxezsZi6aQ",
+        {
+          "kind": "rsa",
+          "file": "rsa-2048.pub.pem"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "PS256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "token minted by jsonwebtoken@9.0.2; both sides must verify it"
+    },
+    {
+      "id": "cross-go-signed-ps256",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJQUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMCwic3ViIjoiY3Jvc3MifQ.tR0cVuv4Hq08NMVkZpE4ykEdwO2Yz-w0Uxcm2kpSQtjU2DnonqxItfhNPIB7zQ1TITOs4UxwyqhVnJupzU_KUQVjLx8Jh0KT39wNGPnhbffWKTWy2WaY-eXm_n9AoXIeib_DNx2OGcxfbTOwQECN5uKUBF4x1ZrFx3z5g6Wv10wTur1lrLrd0snJrgIxbemHZzF-PJEMr0YryOD-BxaUesw36FaLsr2IZAVUu3M7IkRdCi_AgxI5v_86ma8NvJnKrwiA8IDhkSWjMjjrY8wZCV1A2IOECkyKsUThjLAm7TvnMp83HYQ0X8F2Hrs-zVqAUehLTNqu5K1o-YrGnlegdg",
+        {
+          "kind": "rsa",
+          "file": "rsa-2048.pub.pem"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "PS256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "token minted by github.com/malcolmston/jwt; both sides must verify it"
+    },
+    {
+      "id": "cross-upstream-signed-ps384",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJQUzM4NCIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMCwic3ViIjoiY3Jvc3MifQ.zQeEnPWGmHVFq_KzDY-oGQZhZMx0uhU6LeTD_-lXKysBzyoiCtJC2Au_p7pikTssNKyhD0XPpyHxiBqZNBVO6fryykkcuYDHwLiKIhzzIld5lEdALVONbuibwFjxDIw6GdSO42CH1eSymbPJBjuO2b6nOvk9EU9rDK7B6lfMGDcsMu5P1fO6j7yTnVlo1UMKPCMkHHEePOfyKhnAr2vmAuLFU5ROhMxiMUGY1ht3eBoh8a1PgklAbuHiny5z_LvSLqAxjai_fGnK_ZOXqLKjVTXLEgvbAiaZUgjK8VGR9UbIk961zmyIzkq0hg1-4x-hje7ytDP3BUhKhsxV3-rZ6Q",
+        {
+          "kind": "rsa",
+          "file": "rsa-2048.pub.pem"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "PS384"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "token minted by jsonwebtoken@9.0.2; both sides must verify it"
+    },
+    {
+      "id": "cross-go-signed-ps384",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJQUzM4NCIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMCwic3ViIjoiY3Jvc3MifQ.pECJaYH0tNjuJiOi6kyuIUyJu0h4IGUNiKmeT_zJHqiBBaH69zgM3GUH4da9OYB2rev4lQ6awmkX9pbA9BJ6z3-Z5gs5K0AIRXKXK8DMoaRKg9MIHjABhux6xExUpCGZYCZ-Xc-ysFKREp7wrF0yTfqi-qluSBcU0McEIzUmQ1mqfXSFoLQYyzOdz4R4M39tErc-ZexvmCdsS0Jz0WpGuyLlTQIbIPU_S4YLC41xVcutI3eC6-VO9-aSnkqzlGx2SbKewDY0ADk3JfQXGCg4XostSYiuPpegW2r6wqzgP7CVXZaEPKQS8stFC06KerLXAbXNwR2oXPgXw7Ah_I-4rQ",
+        {
+          "kind": "rsa",
+          "file": "rsa-2048.pub.pem"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "PS384"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "token minted by github.com/malcolmston/jwt; both sides must verify it"
+    },
+    {
+      "id": "cross-upstream-signed-ps512",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJQUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMCwic3ViIjoiY3Jvc3MifQ.udXqZ2bzziuon9Ox1oz5dR20iOT-8_2Rqn4rQZg05p4ukAS25Spjs4zD_rvnh3BvSZYDjv-wnlG1vmiNuqwPJfyohZMMPD7-MS4z_iuDMnIjDQHbFAj1DNTuPT5bsWnGu7PTC8ben_AFbW2YO6-20768la7bdAjTJcxvZ44O8orApoCPHdFOIm7KRDuSZy07y5WUfjsuWqScwRxuTRR00wgVYZbEuEUbnkP-z-DVpPwGsV5xAsIfWlxGHysei7ywhO_5I2cAd-oUbO4cI1O_b8VgLntn6IqBbJ1fn6ZfPP8Iab1Fca1ZTGKaN8INFgGSJRx1zrM-U-ub0kk5owd8vA",
+        {
+          "kind": "rsa",
+          "file": "rsa-2048.pub.pem"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "PS512"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "token minted by jsonwebtoken@9.0.2; both sides must verify it"
+    },
+    {
+      "id": "cross-go-signed-ps512",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJQUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMCwic3ViIjoiY3Jvc3MifQ.eqZEx_FdcJ4mRKKKa5Xr0o1YTHnXWN0hz1prT8MduNPgJPdARxa56IrXn22P6xAQiZHp2DA7H6GnakAYc2dkMC8TlveNBe8U0kbOQoQQVSiRhH419mwQ6eBrV9bnvqdlLpLsb-q5NGkZjTpdwMloHLaqnxpVlXTNzUjFufkMzldm4VAXP8AJU2aDkLn9BfSIDzlh2AGc2JNJZ2ic9S1KBK-lvsb89ANG1nKOMpTXygAw3yq86PpNMLT1oneAyivBkAFrLjqXJ5drp-3NLhWPJRl-XatyFETBlvtnGrFC9ag1aNPjcQPETjE3CRG02ec2ED_l2L0Lsj326_06vK97BQ",
+        {
+          "kind": "rsa",
+          "file": "rsa-2048.pub.pem"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "PS512"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "token minted by github.com/malcolmston/jwt; both sides must verify it"
+    },
+    {
+      "id": "cross-upstream-signed-es256",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMCwic3ViIjoiY3Jvc3MifQ.w8U6PFFrubHIE07XMvLRjvI-0s9AaxoPc-fTsHeAruKTDT7lG0PtjCsvViYVgYtUZZUXUC5gKWvYCtgyQJEGvA",
+        {
+          "kind": "ec",
+          "file": "ec-p256.pub.pem"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "ES256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "token minted by jsonwebtoken@9.0.2; both sides must verify it"
+    },
+    {
+      "id": "cross-go-signed-es256",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMCwic3ViIjoiY3Jvc3MifQ.7BI3bWVbdFz__SMwMy9jDDBvx74B4qVnP6bdT_-9WySKPI8aqWeSLnLiK0Fbgf1Wy-SAQJG4Eql53lUmTKXeQQ",
+        {
+          "kind": "ec",
+          "file": "ec-p256.pub.pem"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "ES256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "token minted by github.com/malcolmston/jwt; both sides must verify it"
+    },
+    {
+      "id": "cross-upstream-signed-es384",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJFUzM4NCIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMCwic3ViIjoiY3Jvc3MifQ.aNtOcmySfHwUj0otwXMLJgJ4pkGY8yWihwOsPqixdIPpLo5mrkbnA1vniA0EYcBbhU-8ynB7XcJag66HopILUfQKjudrgSGjN7Jj4eYSS6S56I4z7e2P_iYx-RoBuu2i",
+        {
+          "kind": "ec",
+          "file": "ec-p384.pub.pem"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "ES384"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "token minted by jsonwebtoken@9.0.2; both sides must verify it"
+    },
+    {
+      "id": "cross-go-signed-es384",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJFUzM4NCIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMCwic3ViIjoiY3Jvc3MifQ.3tkUASP4oH14CMFLtmH8eaPRUX7pqGuHD7OuM14mQZTRZEOiqBRXUWGtH4aSC0mHfNlFHwQDx8r-nDL117ttirpxnhg8HcTU8GHhtkrFIIJpOYHwUk8mec8vnlCf54dX",
+        {
+          "kind": "ec",
+          "file": "ec-p384.pub.pem"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "ES384"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "token minted by github.com/malcolmston/jwt; both sides must verify it"
+    },
+    {
+      "id": "cross-upstream-signed-es512",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJFUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMCwic3ViIjoiY3Jvc3MifQ.APD0kNUjyy6m4GWcA6vzqIzMtHSUhN7FKCgZU34nAV_7aMYR6HDXyi9EFB6d4T0T3ABcnGkNd2EizNcjy69OPrILABD5TQ1j_BFigC62fERZ5ZMKDkj83u5Awq_NhbgwAHGSj2tv_JDCX_2nJXy9eQYKiYMaNwNDvNyOFqM9dtJSSQfG",
+        {
+          "kind": "ec",
+          "file": "ec-p521.pub.pem"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "ES512"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "token minted by jsonwebtoken@9.0.2; both sides must verify it"
+    },
+    {
+      "id": "cross-go-signed-es512",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJFUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMCwic3ViIjoiY3Jvc3MifQ.ACfy2pv66K1L42VBVDBO8lBT9fcQMk745JoEYIGkOYMN8_vpGPEMdTQii46vo3iAWy-Rm-rWaWUMqlZLUryU8uunAI-8kjERnfFCwQpL7sLEGxbEVPGz39cU8pjcp_z0wQi1XQ6vadpTlwtD8VlEOVroBV-nYhdgqQoFJDdAwFVv7tV_",
+        {
+          "kind": "ec",
+          "file": "ec-p521.pub.pem"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "ES512"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "token minted by github.com/malcolmston/jwt; both sides must verify it"
+    },
+    {
+      "id": "cross-go-signed-eddsa",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMCwic3ViIjoiY3Jvc3MifQ.XG3VLQDK1RcMktLhIhfQnEEoBVSPweI4ursG_LNaHfBPvBONLE5n28hYwrhusM5Yy86NtIMRdVdV2iJnJOwvAA",
+        {
+          "kind": "ed",
+          "file": "ed25519.pub.pem"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "EdDSA"
+          ]
+        }
+      ],
+      "upstreamFn": "\u2014",
+      "goFn": "jwt.Parse",
+      "deviation": "EdDSA is port-only; jsonwebtoken@9.0.2 cannot verify it"
+    },
+    {
+      "id": "cross-rs256-tampered-payload",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMCwic3ViIjoiYXR0YWNrZXIifQ.sNYac12OJTErVbLN8bPfui7j7BYdLDuZROIvtkeGrqjMVU08ZoVhHth6j3pBYAtYwYv8v6Nb7rNojZH3MyFMVMS6u_7WiIh-c2EQi57p0T7NJU5YS8UQBtm3mq9DbHUfcakNvu7zknq5MvllxEb1R7QZatq9IiCPs0C_ZNDrQOigv61y4ziVz8dCrvuVg-mDsIMVqdSD-gKmI-GDOpo2AnSoEzGZJOmE3FZX0p4XuQPbLDDlkBgomdseULmcESAGWkCDdTR4dnExOZt65X5F9Wk_PXwSlFV8G8D_xci53viW3KM_PWB9IRK521oj1vyWmoy3cjZHypdqNvObdHM6oQ",
+        {
+          "kind": "rsa",
+          "file": "rsa-2048.pub.pem"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "RS256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "both must fail: payload mutated under an otherwise valid RS256 signature"
+    },
+    {
+      "id": "cross-rs256-wrong-public-key",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDAwMDM2MDAsImlhdCI6MTcwMDAwMDAwMCwic3ViIjoiY3Jvc3MifQ.sNYac12OJTErVbLN8bPfui7j7BYdLDuZROIvtkeGrqjMVU08ZoVhHth6j3pBYAtYwYv8v6Nb7rNojZH3MyFMVMS6u_7WiIh-c2EQi57p0T7NJU5YS8UQBtm3mq9DbHUfcakNvu7zknq5MvllxEb1R7QZatq9IiCPs0C_ZNDrQOigv61y4ziVz8dCrvuVg-mDsIMVqdSD-gKmI-GDOpo2AnSoEzGZJOmE3FZX0p4XuQPbLDDlkBgomdseULmcESAGWkCDdTR4dnExOZt65X5F9Wk_PXwSlFV8G8D_xci53viW3KM_PWB9IRK521oj1vyWmoy3cjZHypdqNvObdHM6oQ",
+        {
+          "kind": "rsa",
+          "file": "rsa-2048-other.pub.pem"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "RS256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "both must fail: unrelated RSA public key"
+    }
+  ]
+}

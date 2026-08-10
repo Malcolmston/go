@@ -1,0 +1,118 @@
+{
+  "group": "api",
+  "upstream": "commonmark@0.31.2",
+  "source": "hand-written: covers the exported API that rendering HTML does not reach (Parse, Node, NodeType, RenderTo, ErrWrite)",
+  "note": "AST comparison uses a field subset that both sides define with the same meaning; see COVERAGE.md for exactly which fields are masked and why.",
+  "cases": [
+    {
+      "id": "api-ast-headings-and-text",
+      "fn": "ast",
+      "args": ["# a\n\n## b\n\nplain *emph* and **strong**\n"],
+      "upstreamFn": "new Parser().parse",
+      "goFn": "(*markdown.Markdown).Parse"
+    },
+    {
+      "id": "api-ast-lists",
+      "fn": "ast",
+      "args": ["- a\n- b\n\n1) c\n2) d\n\n5. loose\n\n6. list\n"],
+      "upstreamFn": "new Parser().parse",
+      "goFn": "(*markdown.Markdown).Parse"
+    },
+    {
+      "id": "api-ast-code-blocks",
+      "fn": "ast",
+      "args": ["```go meta\nx := 1\n```\n\n    indented\n"],
+      "upstreamFn": "new Parser().parse",
+      "goFn": "(*markdown.Markdown).Parse"
+    },
+    {
+      "id": "api-ast-links-and-images",
+      "fn": "ast",
+      "args": ["[a](/u \"t\") ![b](/i \"ti\")\n\n<https://auto.example>\n"],
+      "upstreamFn": "new Parser().parse",
+      "goFn": "(*markdown.Markdown).Parse"
+    },
+    {
+      "id": "api-ast-blockquote-and-breaks",
+      "fn": "ast",
+      "args": ["> q\n> soft\n> hard\\\nbreak\n\n---\n"],
+      "upstreamFn": "new Parser().parse",
+      "goFn": "(*markdown.Markdown).Parse"
+    },
+    {
+      "id": "api-ast-raw-html",
+      "fn": "ast",
+      "args": ["<div>\nblock\n</div>\n\ninline <span>x</span>\n"],
+      "upstreamFn": "new Parser().parse",
+      "goFn": "(*markdown.Markdown).Parse"
+    },
+    {
+      "id": "api-ast-code-span",
+      "fn": "ast",
+      "args": ["a `code` b\n"],
+      "upstreamFn": "new Parser().parse",
+      "goFn": "(*markdown.Markdown).Parse"
+    },
+    {
+      "id": "api-ast-empty",
+      "fn": "ast",
+      "args": [""],
+      "upstreamFn": "new Parser().parse",
+      "goFn": "(*markdown.Markdown).Parse"
+    },
+    {
+      "id": "api-node-types-all-constructs",
+      "fn": "node_types",
+      "args": ["# h\n\n> q\n\n- i\n\n```f\nc\n```\n\n    ic\n\n---\n\np *e* **s** `c` [l](/u) ![i](/i) <span>h</span> soft\nbreak hard\\\nbreak\n\n<div>b</div>\n"],
+      "upstreamFn": "Node#walker",
+      "goFn": "markdown.Parse + (*Node).Walk + NodeType.String",
+      "note": "the distinct node-type names a document containing every construct produces"
+    },
+    {
+      "id": "api-node-nav-document",
+      "fn": "node_nav",
+      "args": ["# a\n\npara\n\n- list\n"],
+      "upstreamFn": "Node#firstChild / #parent / #walker",
+      "goFn": "(*Node).FirstChild / .LastChild / .Parent / .Walk"
+    },
+    {
+      "id": "api-node-nav-empty",
+      "fn": "node_nav",
+      "args": [""],
+      "upstreamFn": "Node#firstChild / #parent / #walker",
+      "goFn": "(*Node).FirstChild / .LastChild / .Parent / .Walk"
+    },
+    {
+      "id": "api-append-child",
+      "fn": "append_child",
+      "args": [],
+      "upstreamFn": "new Node(type) + Node#appendChild",
+      "goFn": "&markdown.Node{...} + (*Node).AppendChild",
+      "note": "the port has no exported renderer for a *Node, so the resulting tree is compared, not its HTML"
+    },
+    {
+      "id": "api-render-to-matches-render",
+      "fn": "render_to",
+      "args": ["# a\n\n- b\n\n[c](/d)\n"],
+      "upstreamFn": "new HtmlRenderer().render(...)",
+      "goFn": "markdown.RenderTo",
+      "note": "the io.Writer entry point must produce exactly what upstream's render() returns"
+    },
+    {
+      "id": "api-render-to-write-error",
+      "fn": "render_to_bad_writer",
+      "args": ["# a\n"],
+      "upstreamFn": "—",
+      "goFn": "markdown.RenderTo + ErrWrite / ErrMarkdown",
+      "note": "both sides fail, which is parity: upstream has no writer to fail, and the port's error wraps ErrWrite, ErrMarkdown and the writer's own error"
+    },
+    {
+      "id": "api-block-types",
+      "fn": "block_types",
+      "args": [],
+      "upstreamFn": "—",
+      "goFn": "markdown.NodeType.IsBlock",
+      "note": "no upstream counterpart; commonmark.js only has Node#isContainer, a different question"
+    }
+  ]
+}

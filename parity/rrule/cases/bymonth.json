@@ -1,0 +1,148 @@
+{
+  "group": "bymonth",
+  "upstream": "python-dateutil@2.9.0.post0",
+  "cases": [
+    {
+      "id": "bymonth-6-7",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=YEARLY;COUNT=10;BYMONTH=6,7",
+          "dtstart": "1997-06-10T09:00:00",
+          "tz": "UTC",
+          "limit": 12
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "bymonth-1-2-3-alt-years",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=YEARLY;INTERVAL=2;COUNT=10;BYMONTH=1,2,3",
+          "dtstart": "1997-03-10T09:00:00",
+          "tz": "UTC",
+          "limit": 12
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "bymonth-january-daily",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;UNTIL=20000131T140000Z;BYMONTH=1",
+          "dtstart": "1998-01-01T09:00:00",
+          "tz": "UTC",
+          "limit": 40
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "bymonth-january-yearly-byday",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=YEARLY;UNTIL=20000131T140000Z;BYMONTH=1;BYDAY=SU,MO,TU,WE,TH,FR,SA",
+          "dtstart": "1998-01-01T09:00:00",
+          "tz": "UTC",
+          "limit": 40
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "bymonth-monthly-filter",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=MONTHLY;BYMONTH=3,6,9,12;COUNT=8",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 10
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "bymonth-weekly-filter",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=WEEKLY;BYMONTH=1;COUNT=6",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 8
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "bymonth-13",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=YEARLY;BYMONTH=13;COUNT=3",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 5
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator",
+      "note": "out of range"
+    },
+    {
+      "id": "bymonth-0",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=YEARLY;BYMONTH=0;COUNT=3",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 5
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator",
+      "note": "out of range"
+    },
+    {
+      "id": "bymonth-with-byday-th",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=YEARLY;BYMONTH=3;BYDAY=TH",
+          "dtstart": "1997-03-13T09:00:00",
+          "tz": "UTC",
+          "limit": 12
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "bymonth-summer-thursdays",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=YEARLY;BYDAY=TH;BYMONTH=6,7,8",
+          "dtstart": "1997-06-05T09:00:00",
+          "tz": "UTC",
+          "limit": 20
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    }
+  ]
+}

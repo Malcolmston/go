@@ -1,0 +1,813 @@
+{
+  "group": "roundtrip",
+  "upstream": "jsonwebtoken@9.0.2",
+  "note": "Per-algorithm sign-then-verify with fixed committed keys and a fixed clock.",
+  "cases": [
+    {
+      "id": "rt-hs256",
+      "fn": "roundtrip",
+      "args": [
+        {
+          "exp": 1700003600,
+          "iat": 1700000000,
+          "sub": "user-1"
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "algorithm": "HS256"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.sign + jwt.verify",
+      "goFn": "jwt.Sign + jwt.Parse",
+      "note": "sign then verify in-process; the only safe value comparison for the randomised PS*/ES* signatures"
+    },
+    {
+      "id": "rt-hs256-wrongkey",
+      "fn": "roundtrip",
+      "args": [
+        {
+          "exp": 1700003600,
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "kind": "oct",
+          "secret": "a-completely-different-secret-value"
+        },
+        {
+          "algorithm": "HS256"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "both must fail: verification key is unrelated to the signing key"
+    },
+    {
+      "id": "rt-hs384",
+      "fn": "roundtrip",
+      "args": [
+        {
+          "exp": 1700003600,
+          "iat": 1700000000,
+          "sub": "user-1"
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "algorithm": "HS384"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "HS384"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.sign + jwt.verify",
+      "goFn": "jwt.Sign + jwt.Parse",
+      "note": "sign then verify in-process; the only safe value comparison for the randomised PS*/ES* signatures"
+    },
+    {
+      "id": "rt-hs384-wrongkey",
+      "fn": "roundtrip",
+      "args": [
+        {
+          "exp": 1700003600,
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "kind": "oct",
+          "secret": "a-completely-different-secret-value"
+        },
+        {
+          "algorithm": "HS384"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "HS384"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "both must fail: verification key is unrelated to the signing key"
+    },
+    {
+      "id": "rt-hs512",
+      "fn": "roundtrip",
+      "args": [
+        {
+          "exp": 1700003600,
+          "iat": 1700000000,
+          "sub": "user-1"
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "algorithm": "HS512"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "HS512"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.sign + jwt.verify",
+      "goFn": "jwt.Sign + jwt.Parse",
+      "note": "sign then verify in-process; the only safe value comparison for the randomised PS*/ES* signatures"
+    },
+    {
+      "id": "rt-hs512-wrongkey",
+      "fn": "roundtrip",
+      "args": [
+        {
+          "exp": 1700003600,
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "kind": "oct",
+          "secret": "a-completely-different-secret-value"
+        },
+        {
+          "algorithm": "HS512"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "HS512"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "both must fail: verification key is unrelated to the signing key"
+    },
+    {
+      "id": "rt-rs256",
+      "fn": "roundtrip",
+      "args": [
+        {
+          "exp": 1700003600,
+          "iat": 1700000000,
+          "sub": "user-1"
+        },
+        {
+          "kind": "rsa",
+          "file": "rsa-2048.priv.pem",
+          "private": true
+        },
+        {
+          "kind": "rsa",
+          "file": "rsa-2048.pub.pem"
+        },
+        {
+          "algorithm": "RS256"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "RS256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.sign + jwt.verify",
+      "goFn": "jwt.Sign + jwt.Parse",
+      "note": "sign then verify in-process; the only safe value comparison for the randomised PS*/ES* signatures"
+    },
+    {
+      "id": "rt-rs256-wrongkey",
+      "fn": "roundtrip",
+      "args": [
+        {
+          "exp": 1700003600,
+          "iat": 1700000000
+        },
+        {
+          "kind": "rsa",
+          "file": "rsa-2048.priv.pem",
+          "private": true
+        },
+        {
+          "kind": "rsa",
+          "file": "rsa-2048-other.pub.pem"
+        },
+        {
+          "algorithm": "RS256"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "RS256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "both must fail: verification key is unrelated to the signing key"
+    },
+    {
+      "id": "rt-rs384",
+      "fn": "roundtrip",
+      "args": [
+        {
+          "exp": 1700003600,
+          "iat": 1700000000,
+          "sub": "user-1"
+        },
+        {
+          "kind": "rsa",
+          "file": "rsa-2048.priv.pem",
+          "private": true
+        },
+        {
+          "kind": "rsa",
+          "file": "rsa-2048.pub.pem"
+        },
+        {
+          "algorithm": "RS384"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "RS384"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.sign + jwt.verify",
+      "goFn": "jwt.Sign + jwt.Parse",
+      "note": "sign then verify in-process; the only safe value comparison for the randomised PS*/ES* signatures"
+    },
+    {
+      "id": "rt-rs384-wrongkey",
+      "fn": "roundtrip",
+      "args": [
+        {
+          "exp": 1700003600,
+          "iat": 1700000000
+        },
+        {
+          "kind": "rsa",
+          "file": "rsa-2048.priv.pem",
+          "private": true
+        },
+        {
+          "kind": "rsa",
+          "file": "rsa-2048-other.pub.pem"
+        },
+        {
+          "algorithm": "RS384"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "RS384"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "both must fail: verification key is unrelated to the signing key"
+    },
+    {
+      "id": "rt-rs512",
+      "fn": "roundtrip",
+      "args": [
+        {
+          "exp": 1700003600,
+          "iat": 1700000000,
+          "sub": "user-1"
+        },
+        {
+          "kind": "rsa",
+          "file": "rsa-2048.priv.pem",
+          "private": true
+        },
+        {
+          "kind": "rsa",
+          "file": "rsa-2048.pub.pem"
+        },
+        {
+          "algorithm": "RS512"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "RS512"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.sign + jwt.verify",
+      "goFn": "jwt.Sign + jwt.Parse",
+      "note": "sign then verify in-process; the only safe value comparison for the randomised PS*/ES* signatures"
+    },
+    {
+      "id": "rt-rs512-wrongkey",
+      "fn": "roundtrip",
+      "args": [
+        {
+          "exp": 1700003600,
+          "iat": 1700000000
+        },
+        {
+          "kind": "rsa",
+          "file": "rsa-2048.priv.pem",
+          "private": true
+        },
+        {
+          "kind": "rsa",
+          "file": "rsa-2048-other.pub.pem"
+        },
+        {
+          "algorithm": "RS512"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "RS512"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "both must fail: verification key is unrelated to the signing key"
+    },
+    {
+      "id": "rt-ps256",
+      "fn": "roundtrip",
+      "args": [
+        {
+          "exp": 1700003600,
+          "iat": 1700000000,
+          "sub": "user-1"
+        },
+        {
+          "kind": "rsa",
+          "file": "rsa-2048.priv.pem",
+          "private": true
+        },
+        {
+          "kind": "rsa",
+          "file": "rsa-2048.pub.pem"
+        },
+        {
+          "algorithm": "PS256"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "PS256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.sign + jwt.verify",
+      "goFn": "jwt.Sign + jwt.Parse",
+      "note": "sign then verify in-process; the only safe value comparison for the randomised PS*/ES* signatures"
+    },
+    {
+      "id": "rt-ps256-wrongkey",
+      "fn": "roundtrip",
+      "args": [
+        {
+          "exp": 1700003600,
+          "iat": 1700000000
+        },
+        {
+          "kind": "rsa",
+          "file": "rsa-2048.priv.pem",
+          "private": true
+        },
+        {
+          "kind": "rsa",
+          "file": "rsa-2048-other.pub.pem"
+        },
+        {
+          "algorithm": "PS256"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "PS256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "both must fail: verification key is unrelated to the signing key"
+    },
+    {
+      "id": "rt-ps384",
+      "fn": "roundtrip",
+      "args": [
+        {
+          "exp": 1700003600,
+          "iat": 1700000000,
+          "sub": "user-1"
+        },
+        {
+          "kind": "rsa",
+          "file": "rsa-2048.priv.pem",
+          "private": true
+        },
+        {
+          "kind": "rsa",
+          "file": "rsa-2048.pub.pem"
+        },
+        {
+          "algorithm": "PS384"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "PS384"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.sign + jwt.verify",
+      "goFn": "jwt.Sign + jwt.Parse",
+      "note": "sign then verify in-process; the only safe value comparison for the randomised PS*/ES* signatures"
+    },
+    {
+      "id": "rt-ps384-wrongkey",
+      "fn": "roundtrip",
+      "args": [
+        {
+          "exp": 1700003600,
+          "iat": 1700000000
+        },
+        {
+          "kind": "rsa",
+          "file": "rsa-2048.priv.pem",
+          "private": true
+        },
+        {
+          "kind": "rsa",
+          "file": "rsa-2048-other.pub.pem"
+        },
+        {
+          "algorithm": "PS384"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "PS384"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "both must fail: verification key is unrelated to the signing key"
+    },
+    {
+      "id": "rt-ps512",
+      "fn": "roundtrip",
+      "args": [
+        {
+          "exp": 1700003600,
+          "iat": 1700000000,
+          "sub": "user-1"
+        },
+        {
+          "kind": "rsa",
+          "file": "rsa-2048.priv.pem",
+          "private": true
+        },
+        {
+          "kind": "rsa",
+          "file": "rsa-2048.pub.pem"
+        },
+        {
+          "algorithm": "PS512"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "PS512"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.sign + jwt.verify",
+      "goFn": "jwt.Sign + jwt.Parse",
+      "note": "sign then verify in-process; the only safe value comparison for the randomised PS*/ES* signatures"
+    },
+    {
+      "id": "rt-ps512-wrongkey",
+      "fn": "roundtrip",
+      "args": [
+        {
+          "exp": 1700003600,
+          "iat": 1700000000
+        },
+        {
+          "kind": "rsa",
+          "file": "rsa-2048.priv.pem",
+          "private": true
+        },
+        {
+          "kind": "rsa",
+          "file": "rsa-2048-other.pub.pem"
+        },
+        {
+          "algorithm": "PS512"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "PS512"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "both must fail: verification key is unrelated to the signing key"
+    },
+    {
+      "id": "rt-es256",
+      "fn": "roundtrip",
+      "args": [
+        {
+          "exp": 1700003600,
+          "iat": 1700000000,
+          "sub": "user-1"
+        },
+        {
+          "kind": "ec",
+          "file": "ec-p256.priv.pem",
+          "private": true
+        },
+        {
+          "kind": "ec",
+          "file": "ec-p256.pub.pem"
+        },
+        {
+          "algorithm": "ES256"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "ES256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.sign + jwt.verify",
+      "goFn": "jwt.Sign + jwt.Parse",
+      "note": "sign then verify in-process; the only safe value comparison for the randomised PS*/ES* signatures"
+    },
+    {
+      "id": "rt-es256-wrongkey",
+      "fn": "roundtrip",
+      "args": [
+        {
+          "exp": 1700003600,
+          "iat": 1700000000
+        },
+        {
+          "kind": "ec",
+          "file": "ec-p256.priv.pem",
+          "private": true
+        },
+        {
+          "kind": "ec",
+          "file": "ec-p256-other.pub.pem"
+        },
+        {
+          "algorithm": "ES256"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "ES256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "both must fail: verification key is unrelated to the signing key"
+    },
+    {
+      "id": "rt-es384",
+      "fn": "roundtrip",
+      "args": [
+        {
+          "exp": 1700003600,
+          "iat": 1700000000,
+          "sub": "user-1"
+        },
+        {
+          "kind": "ec",
+          "file": "ec-p384.priv.pem",
+          "private": true
+        },
+        {
+          "kind": "ec",
+          "file": "ec-p384.pub.pem"
+        },
+        {
+          "algorithm": "ES384"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "ES384"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.sign + jwt.verify",
+      "goFn": "jwt.Sign + jwt.Parse",
+      "note": "sign then verify in-process; the only safe value comparison for the randomised PS*/ES* signatures"
+    },
+    {
+      "id": "rt-es384-wrongkey",
+      "fn": "roundtrip",
+      "args": [
+        {
+          "exp": 1700003600,
+          "iat": 1700000000
+        },
+        {
+          "kind": "ec",
+          "file": "ec-p384.priv.pem",
+          "private": true
+        },
+        {
+          "kind": "ec",
+          "file": "ec-p384-other.pub.pem"
+        },
+        {
+          "algorithm": "ES384"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "ES384"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "both must fail: verification key is unrelated to the signing key"
+    },
+    {
+      "id": "rt-es512",
+      "fn": "roundtrip",
+      "args": [
+        {
+          "exp": 1700003600,
+          "iat": 1700000000,
+          "sub": "user-1"
+        },
+        {
+          "kind": "ec",
+          "file": "ec-p521.priv.pem",
+          "private": true
+        },
+        {
+          "kind": "ec",
+          "file": "ec-p521.pub.pem"
+        },
+        {
+          "algorithm": "ES512"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "ES512"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.sign + jwt.verify",
+      "goFn": "jwt.Sign + jwt.Parse",
+      "note": "sign then verify in-process; the only safe value comparison for the randomised PS*/ES* signatures"
+    },
+    {
+      "id": "rt-es512-wrongkey",
+      "fn": "roundtrip",
+      "args": [
+        {
+          "exp": 1700003600,
+          "iat": 1700000000
+        },
+        {
+          "kind": "ec",
+          "file": "ec-p521.priv.pem",
+          "private": true
+        },
+        {
+          "kind": "ec",
+          "file": "ec-p521-other.pub.pem"
+        },
+        {
+          "algorithm": "ES512"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "ES512"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jwt.Parse",
+      "note": "both must fail: verification key is unrelated to the signing key"
+    },
+    {
+      "id": "rt-eddsa",
+      "fn": "roundtrip",
+      "args": [
+        {
+          "exp": 1700003600,
+          "iat": 1700000000
+        },
+        {
+          "kind": "ed",
+          "file": "ed25519.priv.pem",
+          "private": true
+        },
+        {
+          "kind": "ed",
+          "file": "ed25519.pub.pem"
+        },
+        {
+          "algorithm": "EdDSA"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "complete": true,
+          "algorithms": [
+            "EdDSA"
+          ]
+        }
+      ],
+      "upstreamFn": "\u2014",
+      "goFn": "jwt.SigningMethodEdDSA",
+      "deviation": "the port supports EdDSA (RFC 8037); jsonwebtoken@9.0.2 (jws@3) does not"
+    }
+  ]
+}

@@ -1,0 +1,221 @@
+{
+  "group": "timeofday",
+  "upstream": "python-dateutil@2.9.0.post0",
+  "cases": [
+    {
+      "id": "byhour-daily",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;BYHOUR=9,12,15;COUNT=9",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 11
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "byminute-daily",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;BYMINUTE=0,30;COUNT=6",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 8
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "bysecond-daily",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;BYSECOND=0,30;COUNT=6",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 8
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "byhour-byminute-daily",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;BYHOUR=9,10,11,12,13,14,15,16;BYMINUTE=0,20,40",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 30
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "byhour-minutely",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=MINUTELY;INTERVAL=20;BYHOUR=9,10,11,12,13,14,15,16",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 30
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "byhour-hourly-filter",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=HOURLY;BYHOUR=9,17;COUNT=6",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 8
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "byminute-hourly-expand",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=HOURLY;BYMINUTE=0,15,30,45;COUNT=10",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 12
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "bysecond-minutely-expand",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=MINUTELY;BYSECOND=0,20,40;COUNT=9",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 11
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "byhour-yearly",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=YEARLY;BYHOUR=6,18;COUNT=6",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 8
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "all-three-times",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;BYHOUR=6,18;BYMINUTE=15,45;BYSECOND=0,30;COUNT=12",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 14
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "byhour-24",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;BYHOUR=24;COUNT=3",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 5
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator",
+      "note": "out of range"
+    },
+    {
+      "id": "byminute-60",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;BYMINUTE=60;COUNT=3",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 5
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator",
+      "note": "out of range"
+    },
+    {
+      "id": "bysecond-60",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;BYSECOND=60;COUNT=3",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 5
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator",
+      "note": "RFC 5545 allows second 60 for leap seconds"
+    },
+    {
+      "id": "bysecond-61",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;BYSECOND=61;COUNT=3",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 5
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator",
+      "note": "out of range"
+    },
+    {
+      "id": "byhour-unreachable-interval",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=HOURLY;INTERVAL=2;BYHOUR=10;COUNT=3",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 5
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator",
+      "note": "odd DTSTART hour with INTERVAL=2 can never reach hour 10"
+    }
+  ]
+}

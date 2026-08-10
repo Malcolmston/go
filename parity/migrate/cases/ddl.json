@@ -1,0 +1,483 @@
+{
+  "group": "ddl",
+  "upstream": "rails/rails activerecord@8.0.2 (sqlite3 gem 2.7.4, SQLite backend)",
+  "encoding": "the compared value is a canonical read-back of the SQLite catalogue; see COVERAGE.md for the normalisations",
+  "note": "structural cases use only integer/text columns so a column-type mapping difference cannot pollute them",
+  "cases": [
+    {
+      "id": "table-default-primary-key",
+      "fn": "ddl",
+      "upstreamFn": "create_table",
+      "goFn": "Schema.CreateTable",
+      "args": [[{"op": "create_table", "table": "users", "columns": [{"type": "integer", "name": "n"}]}]]
+    },
+    {
+      "id": "table-without-id",
+      "fn": "ddl",
+      "upstreamFn": "create_table id: false",
+      "goFn": "Schema.CreateTable + WithoutID",
+      "args": [[{"op": "create_table", "table": "users", "id": false, "columns": [{"type": "text", "name": "k", "primary_key": true, "null": false}]}]]
+    },
+    {
+      "id": "table-named-primary-key",
+      "fn": "ddl",
+      "upstreamFn": "create_table primary_key:",
+      "goFn": "—",
+      "args": [[{"op": "create_table", "table": "users", "primary_key": "uid", "columns": [{"type": "integer", "name": "n"}]}]]
+    },
+    {
+      "id": "table-if-not-exists",
+      "fn": "ddl",
+      "upstreamFn": "create_table if_not_exists: true",
+      "goFn": "Schema.CreateTable + IfNotExists",
+      "args": [[
+        {"op": "create_table", "table": "users", "columns": [{"type": "integer", "name": "n"}]},
+        {"op": "create_table", "table": "users", "if_not_exists": true, "columns": [{"type": "integer", "name": "n"}]}
+      ]]
+    },
+    {
+      "id": "table-check-constraint-inline",
+      "fn": "ddl",
+      "upstreamFn": "t.check_constraint",
+      "goFn": "—",
+      "args": [[{"op": "create_table", "table": "users", "columns": [
+        {"type": "integer", "name": "login_count"},
+        {"type": "check", "expression": "login_count >= 0", "name": "login_count_positive"}
+      ]}]]
+    },
+    {
+      "id": "drop-table",
+      "fn": "ddl",
+      "upstreamFn": "drop_table",
+      "goFn": "Schema.DropTable",
+      "args": [[
+        {"op": "create_table", "table": "users", "columns": [{"type": "integer", "name": "n"}]},
+        {"op": "create_table", "table": "posts", "columns": [{"type": "integer", "name": "n"}]},
+        {"op": "drop_table", "table": "posts"}
+      ]]
+    },
+    {
+      "id": "rename-table",
+      "fn": "ddl",
+      "upstreamFn": "rename_table",
+      "goFn": "Schema.RenameTable",
+      "args": [[
+        {"op": "create_table", "table": "users", "columns": [{"type": "integer", "name": "n"}]},
+        {"op": "rename_table", "from": "users", "to": "accounts"}
+      ]]
+    },
+    {
+      "id": "add-column-text",
+      "fn": "ddl",
+      "upstreamFn": "add_column",
+      "goFn": "Schema.ChangeTable + AlterTable.Text",
+      "args": [[
+        {"op": "create_table", "table": "users", "columns": [{"type": "integer", "name": "n"}]},
+        {"op": "add_column", "table": "users", "name": "bio", "type": "text"}
+      ]]
+    },
+    {
+      "id": "add-column-not-null-default",
+      "fn": "ddl",
+      "upstreamFn": "add_column null: false, default:",
+      "goFn": "AlterTable.Integer + NotNull + Default",
+      "args": [[
+        {"op": "create_table", "table": "users", "columns": [{"type": "integer", "name": "n"}]},
+        {"op": "add_column", "table": "users", "name": "hits", "type": "integer", "null": false, "default": 0}
+      ]]
+    },
+    {
+      "id": "add-column-decimal",
+      "fn": "ddl",
+      "note": "AlterTable has no abstract decimal; the port needs a raw SQL type spelling here",
+      "upstreamFn": "add_column :decimal",
+      "goFn": "Schema.AddColumn (raw type only)",
+      "args": [[
+        {"op": "create_table", "table": "users", "columns": [{"type": "integer", "name": "n"}]},
+        {"op": "add_column", "table": "users", "name": "amount", "type": "decimal", "precision": 8, "scale": 2}
+      ]]
+    },
+    {
+      "id": "remove-column",
+      "fn": "ddl",
+      "upstreamFn": "remove_column",
+      "goFn": "Schema.DropColumn",
+      "args": [[
+        {"op": "create_table", "table": "users", "columns": [{"type": "integer", "name": "n"}, {"type": "text", "name": "bio"}]},
+        {"op": "remove_column", "table": "users", "name": "bio"}
+      ]]
+    },
+    {
+      "id": "rename-column",
+      "fn": "ddl",
+      "upstreamFn": "rename_column",
+      "goFn": "Schema.RenameColumn",
+      "args": [[
+        {"op": "create_table", "table": "users", "columns": [{"type": "text", "name": "nick"}]},
+        {"op": "rename_column", "table": "users", "from": "nick", "to": "handle"}
+      ]]
+    },
+    {
+      "id": "change-column-type",
+      "fn": "ddl",
+      "note": "SQLite cannot ALTER COLUMN ... TYPE; ActiveRecord rebuilds the table instead",
+      "upstreamFn": "change_column",
+      "goFn": "Schema.ChangeColumn",
+      "args": [[
+        {"op": "create_table", "table": "users", "columns": [{"type": "integer", "name": "n"}]},
+        {"op": "change_column", "table": "users", "name": "n", "type": "text", "sql_type": "TEXT"}
+      ]]
+    },
+    {
+      "id": "change-column-null-false",
+      "fn": "ddl",
+      "note": "SQLite cannot ALTER COLUMN ... SET NOT NULL; ActiveRecord rebuilds the table",
+      "upstreamFn": "change_column_null",
+      "goFn": "Schema.ChangeColumnNull",
+      "args": [[
+        {"op": "create_table", "table": "users", "columns": [{"type": "text", "name": "bio"}]},
+        {"op": "change_column_null", "table": "users", "column": "bio", "null": false}
+      ]]
+    },
+    {
+      "id": "change-column-default",
+      "fn": "ddl",
+      "note": "SQLite cannot ALTER COLUMN ... SET DEFAULT; ActiveRecord rebuilds the table",
+      "upstreamFn": "change_column_default",
+      "goFn": "Schema.ChangeColumnDefault",
+      "args": [[
+        {"op": "create_table", "table": "users", "columns": [{"type": "integer", "name": "n"}]},
+        {"op": "change_column_default", "table": "users", "column": "n", "default": 5}
+      ]]
+    },
+    {
+      "id": "drop-column-default",
+      "fn": "ddl",
+      "upstreamFn": "change_column_default(nil)",
+      "goFn": "Schema.DropColumnDefault",
+      "args": [[
+        {"op": "create_table", "table": "users", "columns": [{"type": "integer", "name": "n", "default": 5}]},
+        {"op": "change_column_default", "table": "users", "column": "n", "default": null}
+      ]]
+    },
+    {
+      "id": "add-index-single",
+      "fn": "ddl",
+      "upstreamFn": "add_index",
+      "goFn": "Schema.AddIndex",
+      "args": [[
+        {"op": "create_table", "table": "users", "columns": [{"type": "text", "name": "email"}]},
+        {"op": "add_index", "table": "users", "columns": ["email"]}
+      ]]
+    },
+    {
+      "id": "add-index-unique",
+      "fn": "ddl",
+      "upstreamFn": "add_index unique: true",
+      "goFn": "Schema.AddIndex + UniqueIndex",
+      "args": [[
+        {"op": "create_table", "table": "users", "columns": [{"type": "text", "name": "email"}]},
+        {"op": "add_index", "table": "users", "columns": ["email"], "unique": true}
+      ]]
+    },
+    {
+      "id": "add-index-composite",
+      "fn": "ddl",
+      "upstreamFn": "add_index [a, b]",
+      "goFn": "Schema.AddIndex (multi-column)",
+      "args": [[
+        {"op": "create_table", "table": "users", "columns": [{"type": "text", "name": "a"}, {"type": "integer", "name": "b"}]},
+        {"op": "add_index", "table": "users", "columns": ["a", "b"]}
+      ]]
+    },
+    {
+      "id": "add-index-named",
+      "fn": "ddl",
+      "upstreamFn": "add_index name:",
+      "goFn": "Schema.AddIndex + IndexName",
+      "args": [[
+        {"op": "create_table", "table": "users", "columns": [{"type": "text", "name": "email"}]},
+        {"op": "add_index", "table": "users", "columns": ["email"], "name": "idx_email"}
+      ]]
+    },
+    {
+      "id": "add-index-partial",
+      "fn": "ddl",
+      "upstreamFn": "add_index where:",
+      "goFn": "Schema.AddIndex + Where",
+      "args": [[
+        {"op": "create_table", "table": "users", "columns": [{"type": "text", "name": "email"}]},
+        {"op": "add_index", "table": "users", "columns": ["email"], "where": "email IS NOT NULL", "name": "idx_email_present"}
+      ]]
+    },
+    {
+      "id": "add-index-expression",
+      "fn": "ddl",
+      "upstreamFn": "add_index \"lower(email)\"",
+      "goFn": "Schema.AddIndex (expression column)",
+      "args": [[
+        {"op": "create_table", "table": "users", "columns": [{"type": "text", "name": "email"}]},
+        {"op": "add_index", "table": "users", "columns": ["lower(email)"], "name": "idx_lower_email"}
+      ]]
+    },
+    {
+      "id": "remove-index-by-columns",
+      "fn": "ddl",
+      "upstreamFn": "remove_index",
+      "goFn": "Schema.DropIndex (name only)",
+      "args": [[
+        {"op": "create_table", "table": "users", "columns": [{"type": "text", "name": "email"}]},
+        {"op": "add_index", "table": "users", "columns": ["email"]},
+        {"op": "remove_index", "table": "users", "columns": ["email"]}
+      ]]
+    },
+    {
+      "id": "rename-index",
+      "fn": "ddl",
+      "note": "SQLite has no ALTER INDEX; ActiveRecord drops and recreates",
+      "upstreamFn": "rename_index",
+      "goFn": "Schema.RenameIndex",
+      "args": [[
+        {"op": "create_table", "table": "users", "columns": [{"type": "text", "name": "email"}]},
+        {"op": "add_index", "table": "users", "columns": ["email"], "name": "idx_old"},
+        {"op": "rename_index", "table": "users", "from": "idx_old", "to": "idx_new"}
+      ]]
+    },
+    {
+      "id": "add-timestamps",
+      "fn": "ddl",
+      "upstreamFn": "add_timestamps",
+      "goFn": "Schema.AddTimestamps",
+      "args": [[
+        {"op": "create_table", "table": "users", "columns": [{"type": "integer", "name": "n"}]},
+        {"op": "add_timestamps", "table": "users"}
+      ]]
+    },
+    {
+      "id": "remove-timestamps",
+      "fn": "ddl",
+      "upstreamFn": "remove_timestamps",
+      "goFn": "Schema.RemoveTimestamps",
+      "args": [[
+        {"op": "create_table", "table": "users", "columns": [{"type": "integer", "name": "n"}, {"type": "timestamps"}]},
+        {"op": "remove_timestamps", "table": "users"}
+      ]]
+    },
+    {
+      "id": "table-references-plain",
+      "fn": "ddl",
+      "upstreamFn": "t.references",
+      "goFn": "Table.References",
+      "args": [[
+        {"op": "create_table", "table": "users", "columns": [{"type": "integer", "name": "n"}]},
+        {"op": "create_table", "table": "posts", "columns": [{"type": "references", "name": "user"}]}
+      ]]
+    },
+    {
+      "id": "table-references-foreign-key",
+      "fn": "ddl",
+      "upstreamFn": "t.references foreign_key: true",
+      "goFn": "Table.References + WithForeignKey",
+      "args": [[
+        {"op": "create_table", "table": "users", "columns": [{"type": "integer", "name": "n"}]},
+        {"op": "create_table", "table": "posts", "columns": [{"type": "references", "name": "user", "foreign_key": true}]}
+      ]]
+    },
+    {
+      "id": "table-references-polymorphic",
+      "fn": "ddl",
+      "upstreamFn": "t.references polymorphic: true",
+      "goFn": "Table.References + Polymorphic",
+      "args": [[
+        {"op": "create_table", "table": "taggings", "columns": [{"type": "references", "name": "taggable", "polymorphic": true}]}
+      ]]
+    },
+    {
+      "id": "add-reference-plain",
+      "fn": "ddl",
+      "upstreamFn": "add_reference",
+      "goFn": "Schema.AddReference",
+      "args": [[
+        {"op": "create_table", "table": "users", "columns": [{"type": "integer", "name": "n"}]},
+        {"op": "create_table", "table": "posts", "columns": [{"type": "integer", "name": "n"}]},
+        {"op": "add_reference", "table": "posts", "name": "user"}
+      ]]
+    },
+    {
+      "id": "add-reference-index-and-fk",
+      "fn": "ddl",
+      "upstreamFn": "add_reference index: true, foreign_key: true",
+      "goFn": "Schema.AddReference + ReferenceIndex + WithForeignKey",
+      "args": [[
+        {"op": "create_table", "table": "users", "columns": [{"type": "integer", "name": "n"}]},
+        {"op": "create_table", "table": "posts", "columns": [{"type": "integer", "name": "n"}]},
+        {"op": "add_reference", "table": "posts", "name": "user", "index": true, "foreign_key": true}
+      ]]
+    },
+    {
+      "id": "add-reference-polymorphic-index",
+      "fn": "ddl",
+      "upstreamFn": "add_reference polymorphic: true, index: true",
+      "goFn": "Schema.AddReference + Polymorphic + ReferenceIndex",
+      "args": [[
+        {"op": "create_table", "table": "taggings", "columns": [{"type": "integer", "name": "n"}]},
+        {"op": "add_reference", "table": "taggings", "name": "taggable", "polymorphic": true, "index": true}
+      ]]
+    },
+    {
+      "id": "remove-reference",
+      "fn": "ddl",
+      "upstreamFn": "remove_reference",
+      "goFn": "Schema.RemoveReference",
+      "args": [[
+        {"op": "create_table", "table": "users", "columns": [{"type": "integer", "name": "n"}]},
+        {"op": "create_table", "table": "posts", "columns": [{"type": "integer", "name": "n"}]},
+        {"op": "add_reference", "table": "posts", "name": "user"},
+        {"op": "remove_reference", "table": "posts", "name": "user"}
+      ]]
+    },
+    {
+      "id": "add-foreign-key",
+      "fn": "ddl",
+      "note": "SQLite cannot ALTER TABLE ADD CONSTRAINT; ActiveRecord rebuilds the table",
+      "upstreamFn": "add_foreign_key",
+      "goFn": "Schema.AddForeignKey",
+      "args": [[
+        {"op": "create_table", "table": "users", "columns": [{"type": "integer", "name": "n"}]},
+        {"op": "create_table", "table": "posts", "columns": [{"type": "integer", "name": "user_id"}]},
+        {"op": "add_foreign_key", "from": "posts", "to": "users"}
+      ]]
+    },
+    {
+      "id": "add-foreign-key-on-delete-cascade",
+      "fn": "ddl",
+      "upstreamFn": "add_foreign_key on_delete: :cascade",
+      "goFn": "Schema.AddForeignKey + OnDelete(Cascade)",
+      "args": [[
+        {"op": "create_table", "table": "users", "columns": [{"type": "integer", "name": "n"}]},
+        {"op": "create_table", "table": "posts", "columns": [{"type": "integer", "name": "user_id"}]},
+        {"op": "add_foreign_key", "from": "posts", "to": "users", "on_delete": "cascade"}
+      ]]
+    },
+    {
+      "id": "remove-foreign-key",
+      "fn": "ddl",
+      "upstreamFn": "remove_foreign_key",
+      "goFn": "Schema.RemoveForeignKey",
+      "args": [[
+        {"op": "create_table", "table": "users", "columns": [{"type": "integer", "name": "n"}]},
+        {"op": "create_table", "table": "posts", "columns": [{"type": "integer", "name": "user_id"}]},
+        {"op": "add_foreign_key", "from": "posts", "to": "users"},
+        {"op": "remove_foreign_key", "from": "posts", "to": "users"}
+      ]]
+    },
+    {
+      "id": "add-check-constraint",
+      "fn": "ddl",
+      "note": "the port's generated constraint name is mangled (chk_users_login_count____0); recorded raw in the diagnostics",
+      "upstreamFn": "add_check_constraint",
+      "goFn": "Schema.AddCheckConstraint",
+      "args": [[
+        {"op": "create_table", "table": "users", "columns": [{"type": "integer", "name": "login_count"}]},
+        {"op": "add_check_constraint", "table": "users", "expression": "login_count >= 0"}
+      ]]
+    },
+    {
+      "id": "remove-check-constraint",
+      "fn": "ddl",
+      "upstreamFn": "remove_check_constraint",
+      "goFn": "Schema.RemoveCheckConstraint",
+      "args": [[
+        {"op": "create_table", "table": "users", "columns": [{"type": "integer", "name": "login_count"}]},
+        {"op": "add_check_constraint", "table": "users", "expression": "login_count >= 0", "name": "cnt_ok"},
+        {"op": "remove_check_constraint", "table": "users", "expression": "login_count >= 0", "name": "cnt_ok"}
+      ]]
+    },
+    {
+      "id": "add-unique-constraint",
+      "fn": "ddl",
+      "note": "ActiveRecord's SQLite3 adapter has no add_unique_constraint at all; the port emits ALTER TABLE ADD CONSTRAINT which SQLite rejects",
+      "upstreamFn": "add_unique_constraint",
+      "goFn": "Schema.AddUniqueConstraint",
+      "args": [[
+        {"op": "create_table", "table": "users", "columns": [{"type": "text", "name": "email"}]},
+        {"op": "add_unique_constraint", "table": "users", "columns": ["email"]}
+      ]]
+    },
+    {
+      "id": "create-join-table",
+      "fn": "ddl",
+      "upstreamFn": "create_join_table",
+      "goFn": "Schema.CreateJoinTable",
+      "args": [[{"op": "create_join_table", "table1": "parts", "table2": "assemblies"}]]
+    },
+    {
+      "id": "drop-join-table",
+      "fn": "ddl",
+      "upstreamFn": "drop_join_table",
+      "goFn": "Schema.DropJoinTable",
+      "args": [[
+        {"op": "create_join_table", "table1": "parts", "table2": "assemblies"},
+        {"op": "drop_join_table", "table1": "parts", "table2": "assemblies"}
+      ]]
+    },
+    {
+      "id": "truncate-table",
+      "fn": "ddl",
+      "note": "SQLite has no TRUNCATE; ActiveRecord issues DELETE FROM",
+      "upstreamFn": "truncate",
+      "goFn": "Schema.TruncateTable",
+      "args": [[
+        {"op": "create_table", "table": "users", "columns": [{"type": "integer", "name": "n"}]},
+        {"op": "truncate_table", "table": "users"}
+      ]]
+    },
+    {
+      "id": "change-table-bulk",
+      "fn": "ddl",
+      "note": "the change_table bulk-alter block: add, rename, index and drop in one go",
+      "upstreamFn": "change_table",
+      "goFn": "Schema.ChangeTable + AlterTable",
+      "args": [[
+        {"op": "create_table", "table": "users", "columns": [{"type": "integer", "name": "n"}, {"type": "text", "name": "old"}]},
+        {"op": "change_table", "table": "users", "changes": [
+          {"kind": "column", "type": "text", "name": "bio"},
+          {"kind": "rename", "from": "old", "to": "handle"},
+          {"kind": "index", "columns": ["handle"]},
+          {"kind": "remove", "names": ["n"]}
+        ]}
+      ]]
+    },
+    {
+      "id": "change-table-timestamps-and-unique-index",
+      "fn": "ddl",
+      "upstreamFn": "change_table (t.timestamps, t.index unique)",
+      "goFn": "AlterTable.Timestamps + AlterTable.Index + UniqueIndex",
+      "args": [[
+        {"op": "create_table", "table": "users", "columns": [{"type": "text", "name": "email"}]},
+        {"op": "change_table", "table": "users", "changes": [
+          {"kind": "timestamps"},
+          {"kind": "index", "columns": ["email"], "unique": true}
+        ]}
+      ]]
+    },
+    {
+      "id": "sequence-of-changes",
+      "fn": "ddl",
+      "note": "a realistic multi-step schema definition exercised end to end",
+      "upstreamFn": "create_table + add_column + add_index + rename_column",
+      "goFn": "Schema.CreateTable + ChangeTable + AddIndex + RenameColumn",
+      "args": [[
+        {"op": "create_table", "table": "users", "columns": [
+          {"type": "text", "name": "email", "null": false},
+          {"type": "integer", "name": "login_count", "null": false, "default": 0},
+          {"type": "timestamps"}
+        ]},
+        {"op": "add_index", "table": "users", "columns": ["email"], "unique": true},
+        {"op": "add_column", "table": "users", "name": "nickname", "type": "string"},
+        {"op": "rename_column", "table": "users", "from": "nickname", "to": "handle"},
+        {"op": "add_index", "table": "users", "columns": ["handle", "login_count"]}
+      ]]
+    }
+  ]
+}

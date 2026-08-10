@@ -1,0 +1,85 @@
+{
+  "group": "subject",
+  "upstream": "nodemailer@6.9.16",
+  "cases": [
+    {
+      "id": "subject-ascii",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.subject",
+      "goFn": "nodemailer.Message.SetSubject",
+      "args": [{ "from": "ada@example.com", "to": ["b@example.com"], "subject": "Plain ASCII subject", "text": "body" }]
+    },
+    {
+      "id": "subject-empty",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.subject",
+      "goFn": "nodemailer.Message.SetSubject",
+      "args": [{ "from": "ada@example.com", "to": ["b@example.com"], "subject": "", "text": "body" }]
+    },
+    {
+      "id": "subject-non-ascii",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.subject (RFC 2047)",
+      "goFn": "nodemailer.EncodeWord",
+      "args": [{ "from": "ada@example.com", "to": ["b@example.com"], "subject": "Héllo wörld — grüß dich", "text": "body" }]
+    },
+    {
+      "id": "subject-cjk",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.subject (RFC 2047)",
+      "goFn": "nodemailer.EncodeWord",
+      "args": [{ "from": "ada@example.com", "to": ["b@example.com"], "subject": "日本語の件名テストです", "text": "body" }]
+    },
+    {
+      "id": "subject-emoji",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.subject (RFC 2047, astral plane)",
+      "goFn": "nodemailer.EncodeWord",
+      "args": [{ "from": "ada@example.com", "to": ["b@example.com"], "subject": "Deploy done 🚀🎉", "text": "body" }],
+      "note": "encoded words must not split a surrogate pair / multi-byte rune"
+    },
+    {
+      "id": "subject-long-ascii",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.subject (header folding)",
+      "goFn": "nodemailer mime header folding",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "subject": "The quick brown fox jumps over the lazy dog and then keeps on running for a very long time indeed so that this header must be folded",
+          "text": "body"
+        }
+      ]
+    },
+    {
+      "id": "subject-long-non-ascii",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.subject (folded encoded words)",
+      "goFn": "nodemailer mime header folding",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "subject": "Über die möglichen Gründe für außergewöhnlich lange Betreffzeilen in Nachrichten mit Sonderzeichen wie ä ö ü ß",
+          "text": "body"
+        }
+      ]
+    },
+    {
+      "id": "subject-with-newline",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.subject (header injection)",
+      "goFn": "nodemailer.Message.SetSubject",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "subject": "Innocent\r\nX-Injected: yes",
+          "text": "body"
+        }
+      ],
+      "note": "header-injection guard: neither side may emit an X-Injected header"
+    }
+  ]
+}

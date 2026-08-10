@@ -1,0 +1,32 @@
+{
+  "group": "index",
+  "upstream": "lucene@9.11.1",
+  "cases": [
+    {"id": "ix-numdocs-stop", "fn": "numDocs", "args": [{"index": "stop"}], "upstreamFn": "IndexReader.numDocs", "goFn": "lucene.Index.NumDocs"},
+    {"id": "ix-numdocs-standard", "fn": "numDocs", "args": [{"index": "standard"}], "upstreamFn": "IndexReader.numDocs", "goFn": "lucene.Index.NumDocs"},
+    {"id": "ix-fields-stop", "fn": "fields", "args": [{"index": "stop"}], "upstreamFn": "FieldInfos", "goFn": "lucene.Index.Fields"},
+
+    {"id": "ix-terms-text-stop", "fn": "terms", "args": [{"index": "stop", "field": "text"}], "upstreamFn": "Terms/TermsEnum", "goFn": "lucene.Index.Terms", "note": "the whole term dictionary, sorted; proves both sides indexed the same tokens"},
+    {"id": "ix-terms-title-stop", "fn": "terms", "args": [{"index": "stop", "field": "title"}], "upstreamFn": "Terms/TermsEnum", "goFn": "lucene.Index.Terms"},
+    {"id": "ix-terms-text-standard", "fn": "terms", "args": [{"index": "standard", "field": "text"}], "upstreamFn": "Terms/TermsEnum", "goFn": "lucene.Index.Terms", "note": "stemmed dictionary; divergences here are stemmer divergences"},
+    {"id": "ix-terms-unknown-field", "fn": "terms", "args": [{"index": "stop", "field": "nope"}], "upstreamFn": "LeafReader.terms", "goFn": "lucene.Index.Terms"},
+
+    {"id": "ix-termcount-text", "fn": "termCount", "args": [{"index": "stop", "field": "text"}], "upstreamFn": "Terms.size", "goFn": "lucene.Index.TermCount"},
+    {"id": "ix-termcount-title", "fn": "termCount", "args": [{"index": "stop", "field": "title"}], "upstreamFn": "Terms.size", "goFn": "lucene.Index.TermCount"},
+    {"id": "ix-termcount-unknown", "fn": "termCount", "args": [{"index": "stop", "field": "nope"}], "upstreamFn": "Terms.size", "goFn": "lucene.Index.TermCount"},
+
+    {"id": "ix-docfreq-search", "fn": "docFreq", "args": [{"index": "stop", "field": "text", "term": "search"}], "upstreamFn": "IndexReader.docFreq", "goFn": "lucene.Index.DocFreq"},
+    {"id": "ix-docfreq-lists", "fn": "docFreq", "args": [{"index": "stop", "field": "text", "term": "lists"}], "upstreamFn": "IndexReader.docFreq", "goFn": "lucene.Index.DocFreq"},
+    {"id": "ix-docfreq-uppercase", "fn": "docFreq", "args": [{"index": "stop", "field": "text", "term": "SEARCH"}], "upstreamFn": "IndexReader.docFreq", "goFn": "lucene.Index.DocFreq"},
+    {"id": "ix-docfreq-stopword", "fn": "docFreq", "args": [{"index": "stop", "field": "text", "term": "the"}], "upstreamFn": "IndexReader.docFreq", "goFn": "lucene.Index.DocFreq"},
+    {"id": "ix-docfreq-missing", "fn": "docFreq", "args": [{"index": "stop", "field": "text", "term": "zzz"}], "upstreamFn": "IndexReader.docFreq", "goFn": "lucene.Index.DocFreq"},
+    {"id": "ix-docfreq-unknown-field", "fn": "docFreq", "args": [{"index": "stop", "field": "nope", "term": "search"}], "upstreamFn": "IndexReader.docFreq", "goFn": "lucene.Index.DocFreq"},
+
+    {"id": "ix-ttf-lists", "fn": "totalTermFreq", "args": [{"index": "stop", "field": "text", "term": "lists"}], "upstreamFn": "IndexReader.totalTermFreq", "goFn": "lucene.Index.TotalTermFreq", "note": "two occurrences in one document"},
+    {"id": "ix-ttf-search", "fn": "totalTermFreq", "args": [{"index": "stop", "field": "text", "term": "search"}], "upstreamFn": "IndexReader.totalTermFreq", "goFn": "lucene.Index.TotalTermFreq"},
+    {"id": "ix-ttf-missing", "fn": "totalTermFreq", "args": [{"index": "stop", "field": "text", "term": "zzz"}], "upstreamFn": "IndexReader.totalTermFreq", "goFn": "lucene.Index.TotalTermFreq"},
+
+    {"id": "ix-docfreq-std-documents", "fn": "docFreq", "args": [{"index": "standard", "field": "text", "term": "documents"}], "upstreamFn": "IndexReader.docFreq", "goFn": "lucene.Index.DocFreq", "note": "term is analysed with the stemming analyzer on both sides"},
+    {"id": "ix-docfreq-std-runners", "fn": "docFreq", "args": [{"index": "standard", "field": "text", "term": "runners"}], "upstreamFn": "IndexReader.docFreq", "goFn": "lucene.Index.DocFreq"}
+  ]
+}

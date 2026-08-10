@@ -1,0 +1,478 @@
+{
+  "group": "aggregates",
+  "upstream": "prisma@5.22.0",
+  "cases": [
+    {
+      "id": "count-where",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "count",
+            "model": "user",
+            "where": {
+              "city": "Paris"
+            }
+          }
+        ]
+      ],
+      "upstreamFn": "prisma.user.count",
+      "goFn": "Query.Count"
+    },
+    {
+      "id": "count-all",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "count",
+            "model": "post"
+          }
+        ]
+      ],
+      "upstreamFn": "prisma.post.count",
+      "goFn": "Query.Count"
+    },
+    {
+      "id": "count-with-take",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "count",
+            "model": "user",
+            "where": {
+              "score": {
+                "gte": 30
+              }
+            },
+            "take": 2
+          }
+        ]
+      ],
+      "upstreamFn": "prisma.user.count({ take })",
+      "goFn": "Query.Take(...).Count",
+      "note": "the port deliberately counts a LIMITed subquery, believing Prisma applies take to count"
+    },
+    {
+      "id": "aggregate-all-functions",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "aggregate",
+            "model": "post",
+            "_count": true,
+            "_sum": [
+              "views"
+            ],
+            "_avg": [
+              "views"
+            ],
+            "_min": [
+              "views"
+            ],
+            "_max": [
+              "views"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "prisma.post.aggregate",
+      "goFn": "Query.Aggregate().Count().Sum().Avg().Min().Max()",
+      "note": "the seed makes every average exact so no floating-point rounding can enter the comparison"
+    },
+    {
+      "id": "aggregate-mixed-columns",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "aggregate",
+            "model": "user",
+            "_count": true,
+            "_sum": [
+              "score"
+            ],
+            "_avg": [
+              "score",
+              "age"
+            ],
+            "_min": [
+              "age"
+            ],
+            "_max": [
+              "age"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "prisma.user.aggregate",
+      "goFn": "Query.Aggregate()",
+      "note": "age is nullable: the average must skip the NULLs"
+    },
+    {
+      "id": "aggregate-empty-set",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "aggregate",
+            "model": "post",
+            "where": {
+              "views": {
+                "gt": 1000
+              }
+            },
+            "_count": true,
+            "_sum": [
+              "views"
+            ],
+            "_avg": [
+              "views"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "prisma.post.aggregate over no rows",
+      "goFn": "Query.Aggregate() over no rows",
+      "note": "Prisma reports the column with a null value; the port omits the key entirely"
+    },
+    {
+      "id": "aggregate-string-min-max",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "aggregate",
+            "model": "user",
+            "_min": [
+              "name"
+            ],
+            "_max": [
+              "name"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "aggregate: { _min: { name } }",
+      "goFn": "Query.Aggregate().Min(\"name\")",
+      "note": "AggregateResult is float64-only, so MIN/MAX over a text column has nowhere to land"
+    },
+    {
+      "id": "groupby-one-key",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "groupBy",
+            "model": "user",
+            "by": [
+              "city"
+            ],
+            "orderBy": [
+              {
+                "city": "asc"
+              }
+            ],
+            "_count": true,
+            "_sum": [
+              "score"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "prisma.user.groupBy",
+      "goFn": "Query.GroupBy(\"city\").Count().Sum(\"score\")",
+      "note": "the NULL city forms its own group"
+    },
+    {
+      "id": "groupby-two-keys",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "groupBy",
+            "model": "post",
+            "by": [
+              "author_id",
+              "published"
+            ],
+            "orderBy": [
+              {
+                "author_id": "asc"
+              },
+              {
+                "published": "asc"
+              }
+            ],
+            "_count": true
+          }
+        ]
+      ],
+      "upstreamFn": "groupBy: { by: [author_id, published] }",
+      "goFn": "Query.GroupBy(\"author_id\", \"published\")"
+    },
+    {
+      "id": "groupby-having-sum",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "groupBy",
+            "model": "post",
+            "by": [
+              "author_id"
+            ],
+            "orderBy": [
+              {
+                "author_id": "asc"
+              }
+            ],
+            "_count": true,
+            "_sum": [
+              "views"
+            ],
+            "having": {
+              "views": {
+                "_sum": {
+                  "gt": 100
+                }
+              }
+            }
+          }
+        ]
+      ],
+      "upstreamFn": "having: { views: { _sum: { gt } } }",
+      "goFn": "GroupQuery.Having(prisma.Gt(\"_sum_views\", 100))"
+    },
+    {
+      "id": "groupby-having-count",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "groupBy",
+            "model": "post",
+            "by": [
+              "author_id"
+            ],
+            "orderBy": [
+              {
+                "author_id": "asc"
+              }
+            ],
+            "_count": true,
+            "having": {
+              "id": {
+                "_count": {
+                  "gt": 2
+                }
+              }
+            }
+          }
+        ]
+      ],
+      "upstreamFn": "having: { id: { _count: { gt } } }",
+      "goFn": "GroupQuery.Having(prisma.Gt(\"_count\", 2))"
+    },
+    {
+      "id": "groupby-having-avg",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "groupBy",
+            "model": "post",
+            "by": [
+              "published"
+            ],
+            "orderBy": [
+              {
+                "published": "asc"
+              }
+            ],
+            "_avg": [
+              "views"
+            ],
+            "having": {
+              "views": {
+                "_avg": {
+                  "gt": 45
+                }
+              }
+            }
+          }
+        ]
+      ],
+      "upstreamFn": "having: { views: { _avg: { gt } } }",
+      "goFn": "GroupQuery.Having(prisma.Gt(\"_avg_views\", 45))"
+    },
+    {
+      "id": "groupby-string-min-max",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "groupBy",
+            "model": "user",
+            "by": [
+              "city"
+            ],
+            "orderBy": [
+              {
+                "city": "asc"
+              }
+            ],
+            "_min": [
+              "name"
+            ],
+            "_max": [
+              "name"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "groupBy: { _min: { name } }",
+      "goFn": "GroupQuery.Min(\"name\")",
+      "note": "GroupQuery scans into any, unlike Aggregate, so text min/max has somewhere to land"
+    },
+    {
+      "id": "groupby-where-then-having",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "groupBy",
+            "model": "post",
+            "where": {
+              "views": {
+                "gte": 20
+              }
+            },
+            "by": [
+              "author_id"
+            ],
+            "orderBy": [
+              {
+                "author_id": "asc"
+              }
+            ],
+            "_count": true,
+            "_sum": [
+              "views"
+            ],
+            "having": {
+              "views": {
+                "_sum": {
+                  "gte": 100
+                }
+              }
+            }
+          }
+        ]
+      ],
+      "upstreamFn": "groupBy with where and having",
+      "goFn": "Query.Where(...).GroupBy(...).Having(...)"
+    }
+  ],
+  "note": "count / aggregate / groupBy with having. The port exposes aggregates as float64 maps and names its group-by outputs <fn>_<column>; the runner reshapes those names onto Prisma's nested shape but never touches a value."
+}

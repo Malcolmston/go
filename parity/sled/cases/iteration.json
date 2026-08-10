@@ -1,0 +1,560 @@
+{
+  "group": "iteration",
+  "upstream": "sled@0.34.7",
+  "encoding": "all keys, values and tree names are lowercase hex",
+  "cases": [
+    {
+      "id": "iter-forward-reverse",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "insert",
+            "key": "61",
+            "value": "31"
+          },
+          {
+            "op": "insert",
+            "key": "6161",
+            "value": "32"
+          },
+          {
+            "op": "insert",
+            "key": "6162",
+            "value": "33"
+          },
+          {
+            "op": "insert",
+            "key": "62",
+            "value": "34"
+          },
+          {
+            "op": "insert",
+            "key": "6261",
+            "value": "35"
+          },
+          {
+            "op": "insert",
+            "key": "63",
+            "value": "36"
+          },
+          {
+            "op": "insert",
+            "key": "00",
+            "value": "37"
+          },
+          {
+            "op": "insert",
+            "key": "ff",
+            "value": "38"
+          },
+          {
+            "op": "iter"
+          },
+          {
+            "op": "iter",
+            "reverse": true
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::iter",
+      "goFn": "Tree.Scan"
+    },
+    {
+      "id": "iter-empty-tree",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "iter"
+          },
+          {
+            "op": "iter",
+            "reverse": true
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::iter",
+      "goFn": "Tree.Scan"
+    },
+    {
+      "id": "prefix-forward-reverse",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "insert",
+            "key": "61",
+            "value": "31"
+          },
+          {
+            "op": "insert",
+            "key": "6161",
+            "value": "32"
+          },
+          {
+            "op": "insert",
+            "key": "6162",
+            "value": "33"
+          },
+          {
+            "op": "insert",
+            "key": "62",
+            "value": "34"
+          },
+          {
+            "op": "insert",
+            "key": "6261",
+            "value": "35"
+          },
+          {
+            "op": "insert",
+            "key": "63",
+            "value": "36"
+          },
+          {
+            "op": "insert",
+            "key": "00",
+            "value": "37"
+          },
+          {
+            "op": "insert",
+            "key": "ff",
+            "value": "38"
+          },
+          {
+            "op": "scan_prefix",
+            "prefix": "61"
+          },
+          {
+            "op": "scan_prefix",
+            "prefix": "61",
+            "reverse": true
+          },
+          {
+            "op": "scan_prefix",
+            "prefix": "62"
+          },
+          {
+            "op": "scan_prefix",
+            "prefix": "7a7a7a"
+          },
+          {
+            "op": "scan_prefix",
+            "prefix": ""
+          },
+          {
+            "op": "scan_prefix",
+            "prefix": "ff"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::scan_prefix",
+      "goFn": "Tree.ScanPrefix"
+    },
+    {
+      "id": "range-lower-inclusive-upper-exclusive",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "insert",
+            "key": "61",
+            "value": "31"
+          },
+          {
+            "op": "insert",
+            "key": "6161",
+            "value": "32"
+          },
+          {
+            "op": "insert",
+            "key": "6162",
+            "value": "33"
+          },
+          {
+            "op": "insert",
+            "key": "62",
+            "value": "34"
+          },
+          {
+            "op": "insert",
+            "key": "6261",
+            "value": "35"
+          },
+          {
+            "op": "insert",
+            "key": "63",
+            "value": "36"
+          },
+          {
+            "op": "insert",
+            "key": "00",
+            "value": "37"
+          },
+          {
+            "op": "insert",
+            "key": "ff",
+            "value": "38"
+          },
+          {
+            "op": "range",
+            "lower": "6161",
+            "upper": "63"
+          },
+          {
+            "op": "range",
+            "lower": "6161",
+            "upper": "63",
+            "reverse": true
+          },
+          {
+            "op": "range",
+            "lower": "61"
+          },
+          {
+            "op": "range",
+            "upper": "62"
+          },
+          {
+            "op": "range"
+          },
+          {
+            "op": "range",
+            "lower": "62",
+            "upper": "62"
+          },
+          {
+            "op": "range",
+            "lower": "63",
+            "upper": "61"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::range",
+      "goFn": "Tree.Scan",
+      "note": "Lower inclusive / Upper exclusive is the only form the Go port can express"
+    },
+    {
+      "id": "range-exclusive-lower",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "insert",
+            "key": "61",
+            "value": "31"
+          },
+          {
+            "op": "insert",
+            "key": "6161",
+            "value": "32"
+          },
+          {
+            "op": "insert",
+            "key": "6162",
+            "value": "33"
+          },
+          {
+            "op": "insert",
+            "key": "62",
+            "value": "34"
+          },
+          {
+            "op": "insert",
+            "key": "6261",
+            "value": "35"
+          },
+          {
+            "op": "insert",
+            "key": "63",
+            "value": "36"
+          },
+          {
+            "op": "insert",
+            "key": "00",
+            "value": "37"
+          },
+          {
+            "op": "insert",
+            "key": "ff",
+            "value": "38"
+          },
+          {
+            "op": "range",
+            "lower": "6161",
+            "lowerIncl": false,
+            "upper": "63"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::range",
+      "goFn": "Tree.Scan",
+      "note": "sled accepts Bound::Excluded lower; sled.Range has no exclusive lower bound",
+      "deviation": "Go port's Range.Lower is always inclusive"
+    },
+    {
+      "id": "range-inclusive-upper",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "insert",
+            "key": "61",
+            "value": "31"
+          },
+          {
+            "op": "insert",
+            "key": "6161",
+            "value": "32"
+          },
+          {
+            "op": "insert",
+            "key": "6162",
+            "value": "33"
+          },
+          {
+            "op": "insert",
+            "key": "62",
+            "value": "34"
+          },
+          {
+            "op": "insert",
+            "key": "6261",
+            "value": "35"
+          },
+          {
+            "op": "insert",
+            "key": "63",
+            "value": "36"
+          },
+          {
+            "op": "insert",
+            "key": "00",
+            "value": "37"
+          },
+          {
+            "op": "insert",
+            "key": "ff",
+            "value": "38"
+          },
+          {
+            "op": "range",
+            "lower": "6161",
+            "upper": "63",
+            "upperIncl": true
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::range",
+      "goFn": "Tree.Scan",
+      "note": "sled accepts Bound::Included upper (..=hi); sled.Range has no inclusive upper bound",
+      "deviation": "Go port's Range.Upper is always exclusive"
+    },
+    {
+      "id": "range-non-utf8-bounds",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "insert",
+            "key": "61",
+            "value": "31"
+          },
+          {
+            "op": "insert",
+            "key": "6161",
+            "value": "32"
+          },
+          {
+            "op": "insert",
+            "key": "6162",
+            "value": "33"
+          },
+          {
+            "op": "insert",
+            "key": "62",
+            "value": "34"
+          },
+          {
+            "op": "insert",
+            "key": "6261",
+            "value": "35"
+          },
+          {
+            "op": "insert",
+            "key": "63",
+            "value": "36"
+          },
+          {
+            "op": "insert",
+            "key": "00",
+            "value": "37"
+          },
+          {
+            "op": "insert",
+            "key": "ff",
+            "value": "38"
+          },
+          {
+            "op": "range",
+            "lower": "00",
+            "upper": "ff"
+          },
+          {
+            "op": "range",
+            "lower": "ff"
+          },
+          {
+            "op": "range",
+            "lower": "ff",
+            "reverse": true
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::range",
+      "goFn": "Tree.Scan"
+    },
+    {
+      "id": "iter-after-removes",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "insert",
+            "key": "61",
+            "value": "31"
+          },
+          {
+            "op": "insert",
+            "key": "6161",
+            "value": "32"
+          },
+          {
+            "op": "insert",
+            "key": "6162",
+            "value": "33"
+          },
+          {
+            "op": "insert",
+            "key": "62",
+            "value": "34"
+          },
+          {
+            "op": "insert",
+            "key": "6261",
+            "value": "35"
+          },
+          {
+            "op": "insert",
+            "key": "63",
+            "value": "36"
+          },
+          {
+            "op": "insert",
+            "key": "00",
+            "value": "37"
+          },
+          {
+            "op": "insert",
+            "key": "ff",
+            "value": "38"
+          },
+          {
+            "op": "remove",
+            "key": "6161"
+          },
+          {
+            "op": "remove",
+            "key": "ff"
+          },
+          {
+            "op": "remove",
+            "key": "6e6f7065"
+          },
+          {
+            "op": "iter"
+          },
+          {
+            "op": "iter",
+            "reverse": true
+          },
+          {
+            "op": "scan_prefix",
+            "prefix": "61"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::iter",
+      "goFn": "Tree.Scan"
+    },
+    {
+      "id": "iter-survives-reopen",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "insert",
+            "key": "61",
+            "value": "31"
+          },
+          {
+            "op": "insert",
+            "key": "6161",
+            "value": "32"
+          },
+          {
+            "op": "insert",
+            "key": "6162",
+            "value": "33"
+          },
+          {
+            "op": "insert",
+            "key": "62",
+            "value": "34"
+          },
+          {
+            "op": "insert",
+            "key": "6261",
+            "value": "35"
+          },
+          {
+            "op": "insert",
+            "key": "63",
+            "value": "36"
+          },
+          {
+            "op": "insert",
+            "key": "00",
+            "value": "37"
+          },
+          {
+            "op": "insert",
+            "key": "ff",
+            "value": "38"
+          },
+          {
+            "op": "flush"
+          },
+          {
+            "op": "reopen"
+          },
+          {
+            "op": "iter"
+          },
+          {
+            "op": "scan_prefix",
+            "prefix": "61"
+          },
+          {
+            "op": "range",
+            "lower": "62",
+            "upper": "63"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::iter",
+      "goFn": "Tree.Scan"
+    }
+  ]
+}

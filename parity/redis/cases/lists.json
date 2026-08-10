@@ -1,0 +1,486 @@
+{
+  "group": "lists",
+  "upstream": "redis-server@8.2.2",
+  "encoding": "commands are arrays of UTF-8 argument strings; replies map integer->number, bulk string->string, nil->null, simple string->{\"status\":s}, array->array, error->{\"error\":true}",
+  "cases": [
+    {
+      "id": "list-push-pop",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "RPUSH",
+              "l",
+              "a",
+              "b",
+              "c"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LPUSH",
+              "l",
+              "z"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LRANGE",
+              "l",
+              "0",
+              "-1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LLEN",
+              "l"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LINDEX",
+              "l",
+              "0"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LINDEX",
+              "l",
+              "-1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LINDEX",
+              "l",
+              "99"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LINDEX",
+              "l",
+              "-99"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LPOP",
+              "l"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "RPOP",
+              "l"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LRANGE",
+              "l",
+              "0",
+              "-1"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "LPUSH/RPUSH/LPOP/RPOP/LLEN/LINDEX/LRANGE",
+      "goFn": "Store.Do LPUSH/RPUSH/LPOP/RPOP/LLEN/LINDEX/LRANGE",
+      "note": ""
+    },
+    {
+      "id": "lrange-bounds",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "RPUSH",
+              "l",
+              "a",
+              "b",
+              "c",
+              "d",
+              "e"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LRANGE",
+              "l",
+              "0",
+              "0"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LRANGE",
+              "l",
+              "-2",
+              "-1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LRANGE",
+              "l",
+              "5",
+              "10"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LRANGE",
+              "l",
+              "-100",
+              "100"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LRANGE",
+              "l",
+              "3",
+              "1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LRANGE",
+              "l",
+              "0",
+              "-6"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LRANGE",
+              "nokey",
+              "0",
+              "-1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LLEN",
+              "nokey"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "LRANGE",
+      "goFn": "Store.Do LRANGE",
+      "note": "out-of-range and inverted windows clamp to an empty array"
+    },
+    {
+      "id": "list-pop-empties-key",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "RPUSH",
+              "l",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LPOP",
+              "l"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXISTS",
+              "l"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LPOP",
+              "l"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "RPOP",
+              "l"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LLEN",
+              "l"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TYPE",
+              "l"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "DBSIZE"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "LPOP/RPOP",
+      "goFn": "Store.Do LPOP/RPOP",
+      "note": "an emptied list stops existing"
+    },
+    {
+      "id": "list-arity-and-non-integer",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "RPUSH",
+              "l"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LPUSH",
+              "l"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "RPUSH",
+              "l",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LRANGE",
+              "l",
+              "x",
+              "1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LRANGE",
+              "l",
+              "0"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LINDEX",
+              "l",
+              "x"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LINDEX",
+              "l"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LLEN"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LLEN",
+              "l",
+              "x"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LRANGE",
+              "l",
+              "0",
+              "-1"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "RPUSH/LPUSH/LRANGE/LINDEX/LLEN",
+      "goFn": "Store.Do RPUSH/LPUSH/LRANGE/LINDEX/LLEN",
+      "note": "arity errors and non-integer indexes"
+    },
+    {
+      "id": "list-pop-with-count",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "RPUSH",
+              "l",
+              "a",
+              "b",
+              "c"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LPOP",
+              "l",
+              "2"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LRANGE",
+              "l",
+              "0",
+              "-1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "RPOP",
+              "l",
+              "1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LLEN",
+              "l"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LPOP",
+              "l",
+              "0"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LPOP",
+              "l",
+              "-1"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "LPOP key [count]",
+      "goFn": "Store.Do LPOP key count",
+      "note": "the optional count argument of LPOP/RPOP"
+    },
+    {
+      "id": "list-duplicates-and-order",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "RPUSH",
+              "l",
+              "a",
+              "a",
+              "b"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LPUSH",
+              "l",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LRANGE",
+              "l",
+              "0",
+              "-1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LLEN",
+              "l"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "RPUSH",
+              "l",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LRANGE",
+              "l",
+              "0",
+              "-1"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "RPUSH/LPUSH",
+      "goFn": "Store.Do RPUSH/LPUSH",
+      "note": "lists keep duplicates and insertion order"
+    }
+  ]
+}

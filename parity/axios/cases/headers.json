@@ -1,0 +1,538 @@
+{
+  "group": "headers",
+  "upstream": "axios@1.7.9",
+  "cases": [
+    {
+      "id": "headers-default-accept",
+      "fn": "request",
+      "upstreamFn": "defaults.headers.common.Accept",
+      "goFn": "DefaultHeaderGroups",
+      "note": "axios sends 'application/json, text/plain, */*' by default",
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE"
+          },
+          "request": {
+            "method": "get",
+            "url": "/echo"
+          },
+          "expose": "none",
+          "observeHeaders": [
+            "accept"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "headers-default-accept-encoding",
+      "fn": "request",
+      "upstreamFn": "http adapter Accept-Encoding",
+      "goFn": "net/http Accept-Encoding",
+      "note": "axios asks for gzip, compress, deflate, br",
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE"
+          },
+          "request": {
+            "method": "get",
+            "url": "/echo"
+          },
+          "expose": "none",
+          "observeHeaders": [
+            "accept-encoding"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "headers-default-user-agent",
+      "fn": "request",
+      "upstreamFn": "defaults.headers['User-Agent']",
+      "goFn": "net/http User-Agent",
+      "note": "axios sends axios/<version>; the port leaves the stdlib default",
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE"
+          },
+          "request": {
+            "method": "get",
+            "url": "/echo"
+          },
+          "expose": "none",
+          "observeHeaders": [
+            "user-agent"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "headers-request-custom",
+      "fn": "request",
+      "upstreamFn": "config.headers",
+      "goFn": "RequestConfig.Headers",
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE"
+          },
+          "request": {
+            "method": "get",
+            "url": "/echo",
+            "headers": {
+              "X-One": "1"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "headers-client-default",
+      "fn": "request",
+      "upstreamFn": "defaults.headers",
+      "goFn": "Config.Headers",
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE",
+            "headers": {
+              "X-Client": "c"
+            }
+          },
+          "request": {
+            "method": "get",
+            "url": "/echo"
+          }
+        }
+      ]
+    },
+    {
+      "id": "headers-merge-client-and-request",
+      "fn": "request",
+      "upstreamFn": "mergeConfig headers",
+      "goFn": "Config.Headers + RequestConfig.Headers",
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE",
+            "headers": {
+              "X-Client": "c"
+            }
+          },
+          "request": {
+            "method": "get",
+            "url": "/echo",
+            "headers": {
+              "X-Req": "r"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "headers-request-overrides-client",
+      "fn": "request",
+      "upstreamFn": "mergeConfig headers",
+      "goFn": "Config.Headers + RequestConfig.Headers",
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE",
+            "headers": {
+              "X-Both": "client"
+            }
+          },
+          "request": {
+            "method": "get",
+            "url": "/echo",
+            "headers": {
+              "X-Both": "request"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "headers-case-insensitive-override",
+      "fn": "request",
+      "upstreamFn": "AxiosHeaders normalisation",
+      "goFn": "http.Header canonicalisation",
+      "note": "differently-cased keys must collapse to one header",
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE",
+            "headers": {
+              "x-both": "client"
+            }
+          },
+          "request": {
+            "method": "get",
+            "url": "/echo",
+            "headers": {
+              "X-BOTH": "request"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "headers-group-common",
+      "fn": "request",
+      "upstreamFn": "defaults.headers.common",
+      "goFn": "HeaderDefaults.Common",
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE",
+            "headers": {
+              "common": {
+                "X-Common": "yes"
+              }
+            }
+          },
+          "request": {
+            "method": "get",
+            "url": "/echo"
+          }
+        }
+      ]
+    },
+    {
+      "id": "headers-group-method-matching",
+      "fn": "request",
+      "upstreamFn": "defaults.headers.post",
+      "goFn": "HeaderDefaults.Post",
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE",
+            "headers": {
+              "post": {
+                "X-Post": "yes"
+              }
+            }
+          },
+          "request": {
+            "method": "post",
+            "url": "/echo",
+            "data": {
+              "json": {
+                "a": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "headers-group-method-not-matching",
+      "fn": "request",
+      "upstreamFn": "defaults.headers.post",
+      "goFn": "HeaderDefaults.Post",
+      "note": "a post-scoped default must not appear on GET",
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE",
+            "headers": {
+              "post": {
+                "X-Post": "yes"
+              }
+            }
+          },
+          "request": {
+            "method": "get",
+            "url": "/echo"
+          }
+        }
+      ]
+    },
+    {
+      "id": "headers-group-get",
+      "fn": "request",
+      "upstreamFn": "defaults.headers.get",
+      "goFn": "HeaderDefaults.Get",
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE",
+            "headers": {
+              "get": {
+                "X-Get": "yes"
+              }
+            }
+          },
+          "request": {
+            "method": "get",
+            "url": "/echo"
+          }
+        }
+      ]
+    },
+    {
+      "id": "headers-group-and-flat-together",
+      "fn": "request",
+      "upstreamFn": "defaults.headers.common + per-request",
+      "goFn": "HeaderDefaults + Config.Headers",
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE",
+            "headers": {
+              "common": {
+                "X-Common": "c"
+              },
+              "X-Flat": "f"
+            }
+          },
+          "request": {
+            "method": "get",
+            "url": "/echo"
+          }
+        }
+      ]
+    },
+    {
+      "id": "headers-basic-auth",
+      "fn": "request",
+      "upstreamFn": "config.auth",
+      "goFn": "Config.BasicAuth",
+      "note": "asserts the exact Authorization value on the wire",
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE",
+            "auth": {
+              "username": "u",
+              "password": "p"
+            }
+          },
+          "request": {
+            "method": "get",
+            "url": "/echo"
+          },
+          "expose": "none",
+          "observeHeaders": [
+            "authorization"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "headers-basic-auth-per-request",
+      "fn": "request",
+      "upstreamFn": "config.auth",
+      "goFn": "RequestConfig.BasicAuth",
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE"
+          },
+          "request": {
+            "method": "get",
+            "url": "/echo",
+            "auth": {
+              "username": "u2",
+              "password": "p2"
+            }
+          },
+          "expose": "none",
+          "observeHeaders": [
+            "authorization"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "headers-basic-auth-unicode-password",
+      "fn": "request",
+      "upstreamFn": "config.auth (non-latin1)",
+      "goFn": "Config.BasicAuth",
+      "note": "axios throws for non-latin1 credentials",
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE",
+            "auth": {
+              "username": "u",
+              "password": "p\u00e4"
+            }
+          },
+          "request": {
+            "method": "get",
+            "url": "/echo"
+          },
+          "expose": "none",
+          "observeHeaders": [
+            "authorization"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "headers-explicit-authorization-vs-auth",
+      "fn": "request",
+      "upstreamFn": "config.auth overriding headers.Authorization",
+      "goFn": "BasicAuth vs Headers",
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE",
+            "auth": {
+              "username": "u",
+              "password": "p"
+            }
+          },
+          "request": {
+            "method": "get",
+            "url": "/echo",
+            "headers": {
+              "Authorization": "Bearer tok"
+            }
+          },
+          "expose": "none",
+          "observeHeaders": [
+            "authorization"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "headers-numeric-value",
+      "fn": "request",
+      "upstreamFn": "config.headers (number value)",
+      "goFn": "RequestConfig.Headers",
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE"
+          },
+          "request": {
+            "method": "get",
+            "url": "/echo",
+            "headers": {
+              "X-Num": 7
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "headers-response-exposed",
+      "fn": "request",
+      "upstreamFn": "res.headers",
+      "goFn": "Response.Headers",
+      "note": "response header keys must be lower-cased and complete",
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE"
+          },
+          "request": {
+            "method": "get",
+            "url": "/text"
+          },
+          "expose": "text"
+        }
+      ]
+    },
+    {
+      "id": "headers-group-put",
+      "fn": "request",
+      "upstreamFn": "defaults.headers.put",
+      "goFn": "HeaderDefaults.Put",
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE",
+            "headers": {
+              "put": {
+                "X-Put": "yes"
+              }
+            }
+          },
+          "request": {
+            "method": "put",
+            "url": "/echo",
+            "data": {
+              "json": {
+                "a": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "headers-group-delete",
+      "fn": "request",
+      "upstreamFn": "defaults.headers.delete",
+      "goFn": "HeaderDefaults.Delete",
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE",
+            "headers": {
+              "delete": {
+                "X-Del": "yes"
+              }
+            }
+          },
+          "request": {
+            "method": "delete",
+            "url": "/echo"
+          }
+        }
+      ]
+    },
+    {
+      "id": "headers-group-head",
+      "fn": "request",
+      "upstreamFn": "defaults.headers.head",
+      "goFn": "HeaderDefaults.Head",
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE",
+            "headers": {
+              "head": {
+                "X-Hd": "yes"
+              }
+            }
+          },
+          "request": {
+            "method": "get",
+            "url": "/echo"
+          }
+        }
+      ]
+    },
+    {
+      "id": "headers-null-value-removes",
+      "fn": "request",
+      "upstreamFn": "config.headers value null",
+      "goFn": "Headers with nil value",
+      "note": "axios treats a null header value as a removal",
+      "args": [
+        {
+          "client": {
+            "baseURL": "$BASE",
+            "headers": {
+              "X-Gone": "1"
+            }
+          },
+          "request": {
+            "method": "get",
+            "url": "/echo",
+            "headers": {
+              "X-Gone": null
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,224 @@
+{
+  "group": "tools-list",
+  "upstream": "fastmcp@3.4.6",
+  "cases": [
+    {
+      "id": "tools-list-full",
+      "fn": "rpc",
+      "args": [{ "method": "tools/list", "params": {} }],
+      "upstreamFn": "FastMCP._list_tools_mcp",
+      "goFn": "fastmcp.Server.handleToolsList",
+      "note": "the whole ListToolsResult"
+    },
+    {
+      "id": "tools-list-names",
+      "fn": "rpc",
+      "args": [{ "method": "tools/list", "params": {} }, "tools"],
+      "upstreamFn": "FastMCP.list_tools",
+      "goFn": "fastmcp.Server.handleToolsList"
+    },
+
+    {
+      "id": "schema-add",
+      "fn": "rpc",
+      "args": [{ "method": "tools/list", "params": {} }, "tools/#name=add/inputSchema"],
+      "upstreamFn": "fastmcp.tools.FunctionTool.parameters",
+      "goFn": "fastmcp.reflectStructSchema",
+      "note": "two required integers, both described"
+    },
+    {
+      "id": "schema-add-required",
+      "fn": "rpc",
+      "args": [{ "method": "tools/list", "params": {} }, "tools/#name=add/inputSchema/required"],
+      "upstreamFn": "fastmcp.tools.FunctionTool.parameters",
+      "goFn": "fastmcp.reflectStructSchema"
+    },
+    {
+      "id": "schema-add-prop-a",
+      "fn": "rpc",
+      "args": [{ "method": "tools/list", "params": {} }, "tools/#name=add/inputSchema/properties/a"],
+      "upstreamFn": "fastmcp.tools.FunctionTool.parameters",
+      "goFn": "fastmcp.fieldSchema"
+    },
+
+    {
+      "id": "schema-greet",
+      "fn": "rpc",
+      "args": [{ "method": "tools/list", "params": {} }, "tools/#name=greet/inputSchema"],
+      "upstreamFn": "fastmcp.tools.FunctionTool.parameters",
+      "goFn": "fastmcp.reflectStructSchema",
+      "note": "a defaulted scalar must not be required"
+    },
+    {
+      "id": "schema-greet-required",
+      "fn": "rpc",
+      "args": [{ "method": "tools/list", "params": {} }, "tools/#name=greet/inputSchema/required"],
+      "upstreamFn": "fastmcp.tools.FunctionTool.parameters",
+      "goFn": "fastmcp.reflectStructSchema",
+      "note": "known port bug: greeting has a default yet is listed required"
+    },
+    {
+      "id": "schema-greet-prop-greeting",
+      "fn": "rpc",
+      "args": [{ "method": "tools/list", "params": {} }, "tools/#name=greet/inputSchema/properties/greeting"],
+      "upstreamFn": "fastmcp.tools.FunctionTool.parameters",
+      "goFn": "fastmcp.parseJSONSchemaTag"
+    },
+
+    {
+      "id": "schema-search",
+      "fn": "rpc",
+      "args": [{ "method": "tools/list", "params": {} }, "tools/#name=search/inputSchema"],
+      "upstreamFn": "fastmcp.tools.FunctionTool.parameters",
+      "goFn": "fastmcp.reflectStructSchema"
+    },
+    {
+      "id": "schema-search-required",
+      "fn": "rpc",
+      "args": [{ "method": "tools/list", "params": {} }, "tools/#name=search/inputSchema/required"],
+      "upstreamFn": "fastmcp.tools.FunctionTool.parameters",
+      "goFn": "fastmcp.reflectStructSchema"
+    },
+    {
+      "id": "schema-search-default-int",
+      "fn": "rpc",
+      "args": [
+        { "method": "tools/list", "params": {} },
+        "tools/#name=search/inputSchema/properties/limit/default"
+      ],
+      "upstreamFn": "fastmcp.tools.FunctionTool.parameters",
+      "goFn": "fastmcp.parseJSONSchemaTag",
+      "note": "default must keep its JSON type (number, not string)"
+    },
+    {
+      "id": "schema-search-default-bool",
+      "fn": "rpc",
+      "args": [
+        { "method": "tools/list", "params": {} },
+        "tools/#name=search/inputSchema/properties/verbose/default"
+      ],
+      "upstreamFn": "fastmcp.tools.FunctionTool.parameters",
+      "goFn": "fastmcp.parseJSONSchemaTag"
+    },
+    {
+      "id": "schema-search-default-array",
+      "fn": "rpc",
+      "args": [
+        { "method": "tools/list", "params": {} },
+        "tools/#name=search/inputSchema/properties/tags/default"
+      ],
+      "upstreamFn": "fastmcp.tools.FunctionTool.parameters",
+      "goFn": "fastmcp.parseJSONSchemaTag"
+    },
+    {
+      "id": "schema-search-prop-tags",
+      "fn": "rpc",
+      "args": [
+        { "method": "tools/list", "params": {} },
+        "tools/#name=search/inputSchema/properties/tags/items"
+      ],
+      "upstreamFn": "fastmcp.tools.FunctionTool.parameters",
+      "goFn": "fastmcp.typeSchema"
+    },
+
+    {
+      "id": "schema-echo-map",
+      "fn": "rpc",
+      "args": [{ "method": "tools/list", "params": {} }, "tools/#name=echo_map/inputSchema"],
+      "upstreamFn": "fastmcp.tools.FunctionTool.parameters",
+      "goFn": "fastmcp.buildToolEntry (dynamic map form)",
+      "note": "known port bug: dynamic map tools lose all argument information"
+    },
+    {
+      "id": "schema-echo-map-properties",
+      "fn": "rpc",
+      "args": [
+        { "method": "tools/list", "params": {} },
+        "tools/#name=echo_map/inputSchema/properties"
+      ],
+      "upstreamFn": "fastmcp.tools.FunctionTool.parameters",
+      "goFn": "fastmcp.buildToolEntry (dynamic map form)"
+    },
+
+    {
+      "id": "schema-nickname",
+      "fn": "rpc",
+      "args": [{ "method": "tools/list", "params": {} }, "tools/#name=nickname/inputSchema"],
+      "upstreamFn": "fastmcp.tools.FunctionTool.parameters",
+      "goFn": "fastmcp.reflectStructSchema"
+    },
+    {
+      "id": "schema-nickname-required",
+      "fn": "rpc",
+      "args": [
+        { "method": "tools/list", "params": {} },
+        "tools/#name=nickname/inputSchema/required"
+      ],
+      "upstreamFn": "fastmcp.tools.FunctionTool.parameters",
+      "goFn": "fastmcp.isOptional",
+      "note": "a pointer field is optional on both sides"
+    },
+    {
+      "id": "schema-nickname-nullable",
+      "fn": "rpc",
+      "args": [
+        { "method": "tools/list", "params": {} },
+        "tools/#name=nickname/inputSchema/properties/nickname"
+      ],
+      "upstreamFn": "fastmcp.tools.FunctionTool.parameters",
+      "goFn": "fastmcp.typeSchema",
+      "note": "upstream emits anyOf[string,null]; the port emits a plain string"
+    },
+
+    {
+      "id": "schema-stats-input",
+      "fn": "rpc",
+      "args": [{ "method": "tools/list", "params": {} }, "tools/#name=stats/inputSchema"],
+      "upstreamFn": "fastmcp.tools.FunctionTool.parameters",
+      "goFn": "fastmcp.reflectStructSchema"
+    },
+    {
+      "id": "schema-stats-output",
+      "fn": "rpc",
+      "args": [{ "method": "tools/list", "params": {} }, "tools/#name=stats/outputSchema"],
+      "upstreamFn": "fastmcp.tools.FunctionTool.output_schema",
+      "goFn": "fastmcp.Server.ToolWithOutput"
+    },
+    {
+      "id": "schema-add-output",
+      "fn": "rpc",
+      "args": [{ "method": "tools/list", "params": {} }, "tools/#name=add/outputSchema"],
+      "upstreamFn": "fastmcp.tools.FunctionTool.output_schema",
+      "goFn": "—",
+      "note": "upstream infers an outputSchema for every tool; the port only for ToolWithOutput"
+    },
+    {
+      "id": "descriptor-add",
+      "fn": "rpc",
+      "args": [{ "method": "tools/list", "params": {} }, "tools/#name=add"],
+      "upstreamFn": "mcp.types.Tool",
+      "goFn": "fastmcp.Server.handleToolsList"
+    },
+    {
+      "id": "descriptor-add-description",
+      "fn": "rpc",
+      "args": [{ "method": "tools/list", "params": {} }, "tools/#name=add/description"],
+      "upstreamFn": "mcp.types.Tool.description",
+      "goFn": "fastmcp.Server.handleToolsList"
+    },
+    {
+      "id": "descriptor-add-title",
+      "fn": "rpc",
+      "args": [{ "method": "tools/list", "params": {} }, "tools/#name=add/title"],
+      "upstreamFn": "mcp.types.Tool.title",
+      "goFn": "—"
+    },
+    {
+      "id": "descriptor-add-annotations",
+      "fn": "rpc",
+      "args": [{ "method": "tools/list", "params": {} }, "tools/#name=add/annotations"],
+      "upstreamFn": "mcp.types.Tool.annotations",
+      "goFn": "—"
+    }
+  ]
+}

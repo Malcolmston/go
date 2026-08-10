@@ -1,0 +1,436 @@
+{
+  "group": "math",
+  "upstream": "jq@1.7.1",
+  "encoding": "args = [jq program, input JSON value, optional $variables object]; value = the complete output stream as a JSON array",
+  "cases": [
+    {
+      "id": "math-trig",
+      "fn": "run",
+      "args": [
+        "def r: .*1e12|round|./1e12; [(0.5|asin|r),(0.5|acos|r),(0.5|atan|r),(0.5|sin|r),(0.5|cos|r),(0.5|tan|r)]",
+        null
+      ],
+      "upstreamFn": "asin/0",
+      "goFn": "asin/0",
+      "note": "rounded to 12 decimals to take libm ULP noise out of play"
+    },
+    {
+      "id": "math-hyper",
+      "fn": "run",
+      "args": [
+        "def r: .*1e12|round|./1e12; [(0.5|sinh|r),(0.5|cosh|r),(0.5|tanh|r),(0.5|asinh|r),(1.5|acosh|r),(0.5|atanh|r)]",
+        null
+      ],
+      "upstreamFn": "sinh/0",
+      "goFn": "sinh/0"
+    },
+    {
+      "id": "math-exp-log",
+      "fn": "run",
+      "args": [
+        "def r: .*1e12|round|./1e12; [(1|exp|r),(1|exp2|r),(1|exp10|r),(1|expm1|r),(2|log|r),(2|log2|r),(2|log10|r),(2|log1p|r)]",
+        null
+      ],
+      "upstreamFn": "exp/0",
+      "goFn": "exp/0"
+    },
+    {
+      "id": "math-roots",
+      "fn": "run",
+      "args": [
+        "def r: .*1e12|round|./1e12; [(8|cbrt|r),(9|sqrt|r),pow(2;8)]",
+        null
+      ],
+      "upstreamFn": "cbrt/0",
+      "goFn": "cbrt/0"
+    },
+    {
+      "id": "math-sqrt-exact",
+      "fn": "run",
+      "args": [
+        "[(4|sqrt),(16|sqrt),pow(2;10)]",
+        null
+      ],
+      "upstreamFn": "sqrt/0",
+      "goFn": "sqrt/0"
+    },
+    {
+      "id": "math-sqrt-string-err",
+      "fn": "run",
+      "args": [
+        "sqrt",
+        "a"
+      ],
+      "upstreamFn": "sqrt/0",
+      "goFn": "sqrt/0"
+    },
+    {
+      "id": "math-sqrt-neg-nan",
+      "fn": "run",
+      "args": [
+        "-1|sqrt|isnan",
+        null
+      ],
+      "upstreamFn": "sqrt/0",
+      "goFn": "sqrt/0"
+    },
+    {
+      "id": "math-pow-string-err",
+      "fn": "run",
+      "args": [
+        "pow(\"a\";2)",
+        null
+      ],
+      "upstreamFn": "pow/2",
+      "goFn": "pow/2"
+    },
+    {
+      "id": "math-rounding",
+      "fn": "run",
+      "args": [
+        "[(2.5|floor),(2.5|ceil),(2.5|round),(2.5|trunc),(2.5|rint),(2.5|nearbyint),(-2.5|fabs)]",
+        null
+      ],
+      "upstreamFn": "floor/0",
+      "goFn": "floor/0"
+    },
+    {
+      "id": "math-floor-string-err",
+      "fn": "run",
+      "args": [
+        "floor",
+        "a"
+      ],
+      "upstreamFn": "floor/0",
+      "goFn": "floor/0"
+    },
+    {
+      "id": "math-abs",
+      "fn": "run",
+      "args": [
+        "[(-3|fabs),(-3|abs),(-3.5|abs)]",
+        null
+      ],
+      "upstreamFn": "abs/0",
+      "goFn": "abs/0"
+    },
+    {
+      "id": "math-two-arg",
+      "fn": "run",
+      "args": [
+        "def r: .*1e12|round|./1e12; [(atan2(1;2)|r),(hypot(3;4)|r),fmod(7;3),drem(7;3),ldexp(3;2)]",
+        null
+      ],
+      "upstreamFn": "atan2/2",
+      "goFn": "atan2/2"
+    },
+    {
+      "id": "math-logb-significand",
+      "fn": "run",
+      "args": [
+        "[(8|logb),(8|significand)]",
+        null
+      ],
+      "upstreamFn": "logb/0",
+      "goFn": "logb/0"
+    },
+    {
+      "id": "math-asin-ulp",
+      "fn": "run",
+      "args": [
+        "0.5|asin",
+        null
+      ],
+      "upstreamFn": "asin/0",
+      "goFn": "asin/0",
+      "note": "unrounded: jq's libm and Go's math differ in the last bit",
+      "deviation": "C libm vs Go math: last-ULP difference (not yet in API-DEVIATIONS.md)"
+    },
+    {
+      "id": "math-copysign",
+      "fn": "run",
+      "args": [
+        "copysign(3;-1)",
+        null
+      ],
+      "upstreamFn": "copysign/2",
+      "goFn": "\u2014",
+      "note": "not ported"
+    },
+    {
+      "id": "math-fmin",
+      "fn": "run",
+      "args": [
+        "fmin(1;2)",
+        null
+      ],
+      "upstreamFn": "fmin/2",
+      "goFn": "\u2014",
+      "note": "not ported"
+    },
+    {
+      "id": "math-fmax",
+      "fn": "run",
+      "args": [
+        "fmax(1;2)",
+        null
+      ],
+      "upstreamFn": "fmax/2",
+      "goFn": "\u2014",
+      "note": "not ported"
+    },
+    {
+      "id": "math-fdim",
+      "fn": "run",
+      "args": [
+        "fdim(5;2)",
+        null
+      ],
+      "upstreamFn": "fdim/2",
+      "goFn": "\u2014",
+      "note": "not ported"
+    },
+    {
+      "id": "math-fma",
+      "fn": "run",
+      "args": [
+        "fma(2;3;4)",
+        null
+      ],
+      "upstreamFn": "fma/3",
+      "goFn": "\u2014",
+      "note": "not ported"
+    },
+    {
+      "id": "math-frexp",
+      "fn": "run",
+      "args": [
+        "8|frexp",
+        null
+      ],
+      "upstreamFn": "frexp/0",
+      "goFn": "\u2014",
+      "note": "not ported"
+    },
+    {
+      "id": "math-modf",
+      "fn": "run",
+      "args": [
+        "3.5|modf",
+        null
+      ],
+      "upstreamFn": "modf/0",
+      "goFn": "\u2014",
+      "note": "not ported"
+    },
+    {
+      "id": "math-tgamma",
+      "fn": "run",
+      "args": [
+        "5|tgamma",
+        null
+      ],
+      "upstreamFn": "tgamma/0",
+      "goFn": "\u2014",
+      "note": "not ported"
+    },
+    {
+      "id": "math-lgamma",
+      "fn": "run",
+      "args": [
+        "5|lgamma",
+        null
+      ],
+      "upstreamFn": "lgamma/0",
+      "goFn": "\u2014",
+      "note": "not ported"
+    },
+    {
+      "id": "math-gamma",
+      "fn": "run",
+      "args": [
+        "5|gamma",
+        null
+      ],
+      "upstreamFn": "gamma/0",
+      "goFn": "\u2014",
+      "note": "not ported"
+    },
+    {
+      "id": "math-lgamma-r",
+      "fn": "run",
+      "args": [
+        "5|lgamma_r",
+        null
+      ],
+      "upstreamFn": "lgamma_r/0",
+      "goFn": "\u2014",
+      "note": "not ported"
+    },
+    {
+      "id": "math-erf",
+      "fn": "run",
+      "args": [
+        "0.5|erf",
+        null
+      ],
+      "upstreamFn": "erf/0",
+      "goFn": "\u2014",
+      "note": "not ported"
+    },
+    {
+      "id": "math-erfc",
+      "fn": "run",
+      "args": [
+        "0.5|erfc",
+        null
+      ],
+      "upstreamFn": "erfc/0",
+      "goFn": "\u2014",
+      "note": "not ported"
+    },
+    {
+      "id": "math-j0",
+      "fn": "run",
+      "args": [
+        "1|j0",
+        null
+      ],
+      "upstreamFn": "j0/0",
+      "goFn": "\u2014",
+      "note": "not ported"
+    },
+    {
+      "id": "math-j1",
+      "fn": "run",
+      "args": [
+        "1|j1",
+        null
+      ],
+      "upstreamFn": "j1/0",
+      "goFn": "\u2014",
+      "note": "not ported"
+    },
+    {
+      "id": "math-jn",
+      "fn": "run",
+      "args": [
+        "jn(1;1)",
+        null
+      ],
+      "upstreamFn": "jn/2",
+      "goFn": "\u2014",
+      "note": "not ported"
+    },
+    {
+      "id": "math-y0",
+      "fn": "run",
+      "args": [
+        "1|y0",
+        null
+      ],
+      "upstreamFn": "y0/0",
+      "goFn": "\u2014",
+      "note": "not ported"
+    },
+    {
+      "id": "math-y1",
+      "fn": "run",
+      "args": [
+        "1|y1",
+        null
+      ],
+      "upstreamFn": "y1/0",
+      "goFn": "\u2014",
+      "note": "not ported"
+    },
+    {
+      "id": "math-yn",
+      "fn": "run",
+      "args": [
+        "yn(1;1)",
+        null
+      ],
+      "upstreamFn": "yn/2",
+      "goFn": "\u2014",
+      "note": "not ported"
+    },
+    {
+      "id": "math-nextafter",
+      "fn": "run",
+      "args": [
+        "nextafter(1;2)",
+        null
+      ],
+      "upstreamFn": "nextafter/2",
+      "goFn": "\u2014",
+      "note": "not ported"
+    },
+    {
+      "id": "math-nexttoward",
+      "fn": "run",
+      "args": [
+        "nexttoward(1;2)",
+        null
+      ],
+      "upstreamFn": "nexttoward/2",
+      "goFn": "\u2014",
+      "note": "not ported"
+    },
+    {
+      "id": "math-remainder",
+      "fn": "run",
+      "args": [
+        "remainder(7;3)",
+        null
+      ],
+      "upstreamFn": "remainder/2",
+      "goFn": "\u2014",
+      "note": "not ported"
+    },
+    {
+      "id": "math-scalb",
+      "fn": "run",
+      "args": [
+        "scalb(3;2)",
+        null
+      ],
+      "upstreamFn": "scalb/2",
+      "goFn": "\u2014",
+      "note": "not ported"
+    },
+    {
+      "id": "math-scalbln",
+      "fn": "run",
+      "args": [
+        "scalbln(3;2)",
+        null
+      ],
+      "upstreamFn": "scalbln/2",
+      "goFn": "\u2014",
+      "note": "not ported"
+    },
+    {
+      "id": "math-pow10",
+      "fn": "run",
+      "args": [
+        "2|pow10",
+        null
+      ],
+      "upstreamFn": "pow10/0",
+      "goFn": "\u2014",
+      "note": "this jq build has no pow10 either, so both fail"
+    },
+    {
+      "id": "math-isfinite",
+      "fn": "run",
+      "args": [
+        "[1|isfinite]",
+        null
+      ],
+      "upstreamFn": "isfinite/0",
+      "goFn": "\u2014",
+      "note": "not ported"
+    }
+  ]
+}

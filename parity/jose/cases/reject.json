@@ -1,0 +1,608 @@
+{
+  "group": "reject",
+  "upstream": "jose@5.9.6",
+  "cases": [
+    {
+      "id": "rej-jws-tampered-signature",
+      "fn": "verify.compact",
+      "args": [
+        "eyJhbGciOiJIUzI1NiJ9.SXQncyBhIGRhbmdlcm91cyBidXNpbmVzcywgRnJvZG8sIGdvaW5nIG91dCB5b3VyIGRvb3Iu.THOZXfrz9Xd5D1CyX-xk-GrGGQEuwrjXyxA6aCrsT9E",
+        "oct-32",
+        {}
+      ],
+      "mustFail": true,
+      "upstreamFn": "jose.compactVerify",
+      "goFn": "jose.Verify",
+      "note": "first character of the MAC flipped (the final base64url character carries spare bits a decoder discards, so flipping it is a no-op)"
+    },
+    {
+      "id": "rej-jws-tampered-payload",
+      "fn": "verify.compact",
+      "args": [
+        "eyJhbGciOiJIUzI1NiJ9.TXQncyBhIGRhbmdlcm91cyBidXNpbmVzcywgRnJvZG8sIGdvaW5nIG91dCB5b3VyIGRvb3Iu.SHOZXfrz9Xd5D1CyX-xk-GrGGQEuwrjXyxA6aCrsT9E",
+        "oct-32",
+        {}
+      ],
+      "mustFail": true,
+      "upstreamFn": "jose.compactVerify",
+      "goFn": "jose.Verify"
+    },
+    {
+      "id": "rej-jws-wrong-key",
+      "fn": "verify.compact",
+      "args": [
+        "eyJhbGciOiJIUzI1NiJ9.SXQncyBhIGRhbmdlcm91cyBidXNpbmVzcywgRnJvZG8sIGdvaW5nIG91dCB5b3VyIGRvb3Iu.SHOZXfrz9Xd5D1CyX-xk-GrGGQEuwrjXyxA6aCrsT9E",
+        "oct-32-other",
+        {}
+      ],
+      "mustFail": true,
+      "upstreamFn": "jose.compactVerify",
+      "goFn": "jose.Verify"
+    },
+    {
+      "id": "rej-jws-alg-none",
+      "fn": "verify.compact",
+      "args": [
+        "eyJhbGciOiJub25lIn0.SXQncyBhIGRhbmdlcm91cyBidXNpbmVzcywgRnJvZG8sIGdvaW5nIG91dCB5b3VyIGRvb3Iu.",
+        "oct-32",
+        {}
+      ],
+      "mustFail": true,
+      "upstreamFn": "jose.compactVerify",
+      "goFn": "jose.Verify",
+      "note": "the unsecured JWS must never verify"
+    },
+    {
+      "id": "rej-jws-alg-unsupported",
+      "fn": "verify.compact",
+      "args": [
+        "eyJhbGciOiJIUzEifQ.SXQncyBhIGRhbmdlcm91cyBidXNpbmVzcywgRnJvZG8sIGdvaW5nIG91dCB5b3VyIGRvb3Iu.SHOZXfrz9Xd5D1CyX-xk-GrGGQEuwrjXyxA6aCrsT9E",
+        "oct-32",
+        {}
+      ],
+      "mustFail": true,
+      "upstreamFn": "jose.compactVerify",
+      "goFn": "jose.Verify"
+    },
+    {
+      "id": "rej-jws-alg-missing",
+      "fn": "verify.compact",
+      "args": [
+        "eyJ0eXAiOiJKV1QifQ.SXQncyBhIGRhbmdlcm91cyBidXNpbmVzcywgRnJvZG8sIGdvaW5nIG91dCB5b3VyIGRvb3Iu.SHOZXfrz9Xd5D1CyX-xk-GrGGQEuwrjXyxA6aCrsT9E",
+        "oct-32",
+        {}
+      ],
+      "mustFail": true,
+      "upstreamFn": "jose.compactVerify",
+      "goFn": "jose.Verify"
+    },
+    {
+      "id": "rej-jws-alg-not-allowed",
+      "fn": "verify.compact",
+      "args": [
+        "eyJhbGciOiJIUzI1NiJ9.SXQncyBhIGRhbmdlcm91cyBidXNpbmVzcywgRnJvZG8sIGdvaW5nIG91dCB5b3VyIGRvb3Iu.SHOZXfrz9Xd5D1CyX-xk-GrGGQEuwrjXyxA6aCrsT9E",
+        "oct-32",
+        {
+          "algorithms": [
+            "RS256"
+          ]
+        }
+      ],
+      "mustFail": true,
+      "upstreamFn": "jose.compactVerify",
+      "goFn": "jose.VerifyWithOptions",
+      "note": "algorithm allow-list closes the alg-confusion door"
+    },
+    {
+      "id": "rej-jws-crit-unknown",
+      "fn": "verify.compact",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsImNyaXQiOlsieCJdLCJ4IjoieSJ9.SXQncyBhIGRhbmdlcm91cyBidXNpbmVzcywgRnJvZG8sIGdvaW5nIG91dCB5b3VyIGRvb3Iu.rOtrbVMFB5i3iAU178J4O5i4eh7Ix-cb3CDnuQwavrA",
+        "oct-32",
+        {}
+      ],
+      "mustFail": true,
+      "upstreamFn": "jose.compactVerify",
+      "goFn": "jose.Verify",
+      "note": "RFC 7515 section 4.1.11: a crit extension the recipient has not declared must be refused"
+    },
+    {
+      "id": "rej-jws-crit-registered",
+      "fn": "verify.compact",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsImNyaXQiOlsiYWxnIl19.SXQncyBhIGRhbmdlcm91cyBidXNpbmVzcywgRnJvZG8sIGdvaW5nIG91dCB5b3VyIGRvb3Iu.SHOZXfrz9Xd5D1CyX-xk-GrGGQEuwrjXyxA6aCrsT9E",
+        "oct-32",
+        {}
+      ],
+      "mustFail": true,
+      "upstreamFn": "jose.compactVerify",
+      "goFn": "jose.Verify",
+      "note": "crit must not list a registered header parameter"
+    },
+    {
+      "id": "rej-jws-crit-empty",
+      "fn": "verify.compact",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsImNyaXQiOltdfQ.SXQncyBhIGRhbmdlcm91cyBidXNpbmVzcywgRnJvZG8sIGdvaW5nIG91dCB5b3VyIGRvb3Iu.SHOZXfrz9Xd5D1CyX-xk-GrGGQEuwrjXyxA6aCrsT9E",
+        "oct-32",
+        {}
+      ],
+      "mustFail": true,
+      "upstreamFn": "jose.compactVerify",
+      "goFn": "jose.Verify"
+    },
+    {
+      "id": "rej-jws-crit-absent-parameter",
+      "fn": "verify.compact",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsImNyaXQiOlsibm9wZSJdfQ.SXQncyBhIGRhbmdlcm91cyBidXNpbmVzcywgRnJvZG8sIGdvaW5nIG91dCB5b3VyIGRvb3Iu.SHOZXfrz9Xd5D1CyX-xk-GrGGQEuwrjXyxA6aCrsT9E",
+        "oct-32",
+        {
+          "knownCrit": [
+            "nope"
+          ]
+        }
+      ],
+      "mustFail": true,
+      "upstreamFn": "jose.compactVerify",
+      "goFn": "jose.VerifyWithOptions",
+      "note": "crit names a parameter that is not in the header"
+    },
+    {
+      "id": "rej-jws-detached-no-payload",
+      "fn": "verify.compact",
+      "args": [
+        "eyJhbGciOiJIUzI1NiJ9..SHOZXfrz9Xd5D1CyX-xk-GrGGQEuwrjXyxA6aCrsT9E",
+        "oct-32",
+        {}
+      ],
+      "mustFail": true,
+      "upstreamFn": "jose.compactVerify",
+      "goFn": "jose.Verify",
+      "note": "detached payload not supplied out of band"
+    },
+    {
+      "id": "rej-jws-not-base64url",
+      "fn": "verify.compact",
+      "args": [
+        "!!!.!!!.!!!",
+        "oct-32",
+        {}
+      ],
+      "mustFail": true,
+      "upstreamFn": "jose.compactVerify",
+      "goFn": "jose.Verify"
+    },
+    {
+      "id": "rej-jws-too-few-segments",
+      "fn": "verify.compact",
+      "args": [
+        "eyJhbGciOiJIUzI1NiJ9.SXQncyBhIGRhbmdlcm91cyBidXNpbmVzcw",
+        "oct-32",
+        {}
+      ],
+      "mustFail": true,
+      "upstreamFn": "jose.compactVerify",
+      "goFn": "jose.Verify"
+    },
+    {
+      "id": "rej-jws-json-no-protected-no-header",
+      "fn": "verify.flattened",
+      "args": [
+        {
+          "payload": "SXQncyBhIGRhbmdlcm91cyBidXNpbmVzcywgRnJvZG8sIGdvaW5nIG91dCB5b3VyIGRvb3Iu",
+          "signature": "SHOZXfrz9Xd5D1CyX-xk-GrGGQEuwrjXyxA6aCrsT9E"
+        },
+        "oct-32",
+        {}
+      ],
+      "mustFail": true,
+      "upstreamFn": "jose.flattenedVerify",
+      "goFn": "jose.VerifyJSON",
+      "note": "a flattened JWS with neither protected nor header member is malformed"
+    },
+    {
+      "id": "rej-jws-jwk-use-enc-for-signing",
+      "fn": "sign.compact",
+      "args": [
+        "It's a dangerous business, Frodo, going out your door.",
+        "oct-32-use-enc",
+        {
+          "alg": "HS256"
+        }
+      ],
+      "mustFail": true,
+      "upstreamFn": "jose.CompactSign",
+      "goFn": "jose.Sign",
+      "note": "JWK use:enc must not be usable for a signature (RFC 7517 section 4.2)"
+    },
+    {
+      "id": "rej-jws-jwk-use-enc-for-verifying",
+      "fn": "verify.compact",
+      "args": [
+        "eyJhbGciOiJIUzI1NiJ9.SXQncyBhIGRhbmdlcm91cyBidXNpbmVzcywgRnJvZG8sIGdvaW5nIG91dCB5b3VyIGRvb3Iu.SHOZXfrz9Xd5D1CyX-xk-GrGGQEuwrjXyxA6aCrsT9E",
+        "oct-32-use-enc",
+        {}
+      ],
+      "mustFail": true,
+      "upstreamFn": "jose.compactVerify",
+      "goFn": "jose.Verify",
+      "note": "same key material as oct-32, only the use member differs"
+    },
+    {
+      "id": "rej-jws-jwk-key-ops-without-sign",
+      "fn": "sign.compact",
+      "args": [
+        "It's a dangerous business, Frodo, going out your door.",
+        "oct-32-keyops-encrypt",
+        {
+          "alg": "HS256"
+        }
+      ],
+      "mustFail": true,
+      "upstreamFn": "jose.CompactSign",
+      "goFn": "jose.Sign",
+      "note": "JWK key_ops does not include sign (RFC 7517 section 4.3)"
+    },
+    {
+      "id": "rej-jws-jwk-key-ops-without-verify",
+      "fn": "verify.compact",
+      "args": [
+        "eyJhbGciOiJIUzI1NiJ9.SXQncyBhIGRhbmdlcm91cyBidXNpbmVzcywgRnJvZG8sIGdvaW5nIG91dCB5b3VyIGRvb3Iu.SHOZXfrz9Xd5D1CyX-xk-GrGGQEuwrjXyxA6aCrsT9E",
+        "oct-32-keyops-encrypt",
+        {}
+      ],
+      "mustFail": true,
+      "upstreamFn": "jose.compactVerify",
+      "goFn": "jose.Verify"
+    },
+    {
+      "id": "rej-jws-jwk-alg-mismatch-sign",
+      "fn": "sign.compact",
+      "args": [
+        "It's a dangerous business, Frodo, going out your door.",
+        "oct-32-alg-hs512",
+        {
+          "alg": "HS256"
+        }
+      ],
+      "mustFail": true,
+      "upstreamFn": "jose.CompactSign",
+      "goFn": "jose.Sign",
+      "note": "JWK alg says HS512, the header says HS256 (RFC 7517 section 4.4)"
+    },
+    {
+      "id": "rej-jws-jwk-alg-mismatch-verify",
+      "fn": "verify.compact",
+      "args": [
+        "eyJhbGciOiJIUzI1NiJ9.SXQncyBhIGRhbmdlcm91cyBidXNpbmVzcywgRnJvZG8sIGdvaW5nIG91dCB5b3VyIGRvb3Iu.SHOZXfrz9Xd5D1CyX-xk-GrGGQEuwrjXyxA6aCrsT9E",
+        "oct-32-alg-hs512",
+        {}
+      ],
+      "mustFail": true,
+      "upstreamFn": "jose.compactVerify",
+      "goFn": "jose.Verify"
+    },
+    {
+      "id": "rej-jws-b64-false-in-unprotected-with-crit",
+      "fn": "verify.general",
+      "args": [
+        {
+          "payload": "SXQncyBhIGRhbmdlcm91cyBidXNpbmVzcywgRnJvZG8sIGdvaW5nIG91dCB5b3VyIGRvb3Iu",
+          "signatures": [
+            {
+              "header": {
+                "b64": false
+              },
+              "protected": "eyJhbGciOiJIUzI1NiIsImNyaXQiOlsiYjY0Il19",
+              "signature": "ppChox5SDDSKjeO7hsCj_RuoNiq-FenHSY0bnCTqIus"
+            }
+          ]
+        },
+        "oct-32",
+        {}
+      ],
+      "mustFail": true,
+      "upstreamFn": "jose.generalVerify",
+      "goFn": "jose.VerifyJSON",
+      "note": "RFC 7797 requires b64 to be integrity protected; here it is only in the unprotected header while crit demands it"
+    },
+    {
+      "id": "rej-jws-b64-false-in-unprotected-no-crit",
+      "fn": "verify.general",
+      "args": [
+        {
+          "payload": "SXQncyBhIGRhbmdlcm91cyBidXNpbmVzcywgRnJvZG8sIGdvaW5nIG91dCB5b3VyIGRvb3Iu",
+          "signatures": [
+            {
+              "header": {
+                "b64": false
+              },
+              "protected": "eyJhbGciOiJIUzI1NiJ9",
+              "signature": "SHOZXfrz9Xd5D1CyX-xk-GrGGQEuwrjXyxA6aCrsT9E"
+            }
+          ]
+        },
+        "oct-32",
+        {}
+      ],
+      "upstreamFn": "jose.generalVerify",
+      "goFn": "jose.VerifyJSON",
+      "note": "an attacker adds b64:false to the unprotected header of an otherwise ordinary JWS; the signature still checks out, so what matters is which payload each side reports"
+    },
+    {
+      "id": "rej-jwe-tampered-ciphertext",
+      "fn": "decrypt.compact",
+      "args": [
+        "eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..q4nQ9E7G1uIRuqfe.AOYpuywvhdnJQ6x1M2lY9LQgsMxL2g.wa62r-DarOGLqYmmX5zseA",
+        "oct-32",
+        {
+          "alg": "dir"
+        }
+      ],
+      "mustFail": true,
+      "upstreamFn": "jose.compactDecrypt",
+      "goFn": "jose.Decrypt"
+    },
+    {
+      "id": "rej-jwe-tampered-tag",
+      "fn": "decrypt.compact",
+      "args": [
+        "eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..q4nQ9E7G1uIRuqfe.zOYpuywvhdnJQ6x1M2lY9LQgsMxL2g.xa62r-DarOGLqYmmX5zseA",
+        "oct-32",
+        {
+          "alg": "dir"
+        }
+      ],
+      "mustFail": true,
+      "upstreamFn": "jose.compactDecrypt",
+      "goFn": "jose.Decrypt"
+    },
+    {
+      "id": "rej-jwe-tampered-iv",
+      "fn": "decrypt.compact",
+      "args": [
+        "eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..r4nQ9E7G1uIRuqfe.zOYpuywvhdnJQ6x1M2lY9LQgsMxL2g.wa62r-DarOGLqYmmX5zseA",
+        "oct-32",
+        {
+          "alg": "dir"
+        }
+      ],
+      "mustFail": true,
+      "upstreamFn": "jose.compactDecrypt",
+      "goFn": "jose.Decrypt"
+    },
+    {
+      "id": "rej-jwe-tampered-protected-header",
+      "fn": "decrypt.compact",
+      "args": [
+        "eyJlbmMiOiJBMjU2R0NNIiwiYWxnIjoiZGlyIn0..q4nQ9E7G1uIRuqfe.zOYpuywvhdnJQ6x1M2lY9LQgsMxL2g.wa62r-DarOGLqYmmX5zseA",
+        "oct-32",
+        {
+          "alg": "dir"
+        }
+      ],
+      "mustFail": true,
+      "upstreamFn": "jose.compactDecrypt",
+      "goFn": "jose.Decrypt",
+      "note": "the protected header is re-serialized with the members reordered; it is part of the AAD, so the tag must no longer match"
+    },
+    {
+      "id": "rej-jwe-wrong-symmetric-key",
+      "fn": "decrypt.compact",
+      "args": [
+        "eyJhbGciOiJBMjU2S1ciLCJlbmMiOiJBMjU2R0NNIn0.A8EYaVlCtaco1ni1OgfSM3dAvqeOeyGVKALpt7_A3VjxcIHObNwLrg.sLWA0GclDxVXZ3xi.nTQHNrsiPgzJ3ur7Uil6TB0fuJYnLQ.wGNFPOEiW2XTPq77QNMUVA",
+        "oct-32-other",
+        {
+          "alg": "A256KW"
+        }
+      ],
+      "mustFail": true,
+      "upstreamFn": "jose.compactDecrypt",
+      "goFn": "jose.Decrypt"
+    },
+    {
+      "id": "rej-jwe-wrong-rsa-key",
+      "fn": "decrypt.compact",
+      "args": [
+        "eyJhbGciOiJSU0EtT0FFUC0yNTYiLCJlbmMiOiJBMjU2R0NNIn0.QoMyZqMkW4pkjdyBZuO5-jvmSpwdX4JFLhK-gmAyQRxKoANRxF0DdFfAjMlPOxU5rS2f25Jg0Az1ZHCXb2ymmR00RKLF4Efaa1wZ43pWRKDnaMpLdqSPwtAlhDVERneFlaAX5pTeA3TOrkbYyk6cWhfj7p2C1AHKwZhUch9a5AewTVQ3CCIrU4-6La8KLjSivvVpSuUVDlaetZvjfjg6cKJFk-aMrB-LiV4rJomy9TRGAJhHcEpYbQbeimQQNUOo64NbAvYil9jKX8XTpk9SVzgyvvj2i1m6-XjVgnoZ4zdwTBhnu5sBMAQ_zpGe43cnj2lDBgWq8Rg_xiCC14u4jg.wnAvn1UNCFZL2tsB.5n0opdr7I_KvK-lF1FiVcKFl93nOdg.UrCV6vHtrbW5qXOkV1Qakw",
+        "rsa2048-other-priv",
+        {
+          "alg": "RSA-OAEP-256"
+        }
+      ],
+      "mustFail": true,
+      "upstreamFn": "jose.compactDecrypt",
+      "goFn": "jose.Decrypt"
+    },
+    {
+      "id": "rej-jwe-alg-unsupported",
+      "fn": "decrypt.compact",
+      "args": [
+        "eyJhbGciOiJSU0EtT0FFUC0zODQiLCJlbmMiOiJBMjU2R0NNIn0.AAAA.AAAA.AAAA.AAAA",
+        "rsa2048-priv",
+        {}
+      ],
+      "mustFail": true,
+      "upstreamFn": "jose.compactDecrypt",
+      "goFn": "jose.Decrypt"
+    },
+    {
+      "id": "rej-jwe-enc-unsupported",
+      "fn": "decrypt.compact",
+      "args": [
+        "eyJhbGciOiJkaXIiLCJlbmMiOiJBMTI4Q0JDIn0..AAAAAAAAAAAAAAAA.AAAA.AAAAAAAAAAAAAAAAAAAAAA",
+        "oct-32",
+        {}
+      ],
+      "mustFail": true,
+      "upstreamFn": "jose.compactDecrypt",
+      "goFn": "jose.Decrypt"
+    },
+    {
+      "id": "rej-jwe-alg-not-allowed",
+      "fn": "decrypt.compact",
+      "args": [
+        "eyJhbGciOiJBMjU2S1ciLCJlbmMiOiJBMjU2R0NNIn0.A8EYaVlCtaco1ni1OgfSM3dAvqeOeyGVKALpt7_A3VjxcIHObNwLrg.sLWA0GclDxVXZ3xi.nTQHNrsiPgzJ3ur7Uil6TB0fuJYnLQ.wGNFPOEiW2XTPq77QNMUVA",
+        "oct-32",
+        {
+          "alg": "A256KW",
+          "keyManagement": [
+            "A128KW"
+          ]
+        }
+      ],
+      "mustFail": true,
+      "upstreamFn": "jose.compactDecrypt",
+      "goFn": "jose.DecryptWithOptions"
+    },
+    {
+      "id": "rej-jwe-enc-not-allowed",
+      "fn": "decrypt.compact",
+      "args": [
+        "eyJhbGciOiJBMjU2S1ciLCJlbmMiOiJBMjU2R0NNIn0.A8EYaVlCtaco1ni1OgfSM3dAvqeOeyGVKALpt7_A3VjxcIHObNwLrg.sLWA0GclDxVXZ3xi.nTQHNrsiPgzJ3ur7Uil6TB0fuJYnLQ.wGNFPOEiW2XTPq77QNMUVA",
+        "oct-32",
+        {
+          "alg": "A256KW",
+          "encryptions": [
+            "A128GCM"
+          ]
+        }
+      ],
+      "mustFail": true,
+      "upstreamFn": "jose.compactDecrypt",
+      "goFn": "jose.DecryptWithOptions"
+    },
+    {
+      "id": "rej-jwe-truncated",
+      "fn": "decrypt.compact",
+      "args": [
+        "eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..q4nQ9E7G1uIRuqfe.zOYpuywvhdnJQ6x1M2lY9LQgsMxL2g",
+        "oct-32",
+        {
+          "alg": "dir"
+        }
+      ],
+      "mustFail": true,
+      "upstreamFn": "jose.compactDecrypt",
+      "goFn": "jose.Decrypt"
+    },
+    {
+      "id": "rej-jwe-json-mixed-forms",
+      "fn": "decrypt.general",
+      "args": [
+        {
+          "protected": "eyJhbGciOiJBMjU2S1ciLCJlbmMiOiJBMjU2R0NNIn0",
+          "encrypted_key": "A8EYaVlCtaco1ni1OgfSM3dAvqeOeyGVKALpt7_A3VjxcIHObNwLrg",
+          "recipients": [
+            {
+              "encrypted_key": "A8EYaVlCtaco1ni1OgfSM3dAvqeOeyGVKALpt7_A3VjxcIHObNwLrg"
+            }
+          ],
+          "iv": "sLWA0GclDxVXZ3xi",
+          "ciphertext": "nTQHNrsiPgzJ3ur7Uil6TB0fuJYnLQ",
+          "tag": "wGNFPOEiW2XTPq77QNMUVA"
+        },
+        "oct-32",
+        {
+          "alg": "A256KW"
+        }
+      ],
+      "upstreamFn": "jose.generalDecrypt",
+      "goFn": "jose.DecryptJSON",
+      "note": "a JWE that carries both the general recipients array and a top-level encrypted_key; the port refuses it, upstream decrypts it anyway"
+    },
+    {
+      "id": "rej-jwe-zip-def",
+      "fn": "encrypt.compact",
+      "args": [
+        "Live long and prosper.",
+        "oct-32",
+        {
+          "alg": "dir",
+          "enc": "A256GCM",
+          "zip": "DEF"
+        }
+      ],
+      "upstreamFn": "jose.CompactEncrypt",
+      "goFn": "jose.Encrypt",
+      "note": "jose 5 removed zip entirely (JOSENotSupported); the port implements RFC 7516 DEF compression"
+    },
+    {
+      "id": "rej-jwe-pbes2-p2c-below-minimum",
+      "fn": "decrypt.compact",
+      "args": [
+        "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJlbmMiOiJBMTI4R0NNIiwicDJjIjoxMCwicDJzIjoibVZXZFQ4bzIyVzRFSW9RTjVUczVtUSJ9.oSZ9iFVHt3_oGzQT_t4eQnVFNrG8g56Q.irXZzwvPh9kOn2b9.eHLmPhatQT4KYwChKkol0uk-FroDmg.OR3VMzPJOQoE-OkY90j1iQ",
+        "password",
+        {
+          "alg": "PBES2-HS256+A128KW",
+          "keyManagement": [
+            "PBES2-HS256+A128KW"
+          ]
+        }
+      ],
+      "upstreamFn": "jose.compactDecrypt",
+      "goFn": "jose.Decrypt",
+      "note": "p2c is 10; the port enforces MinPBES2Count = 1000, upstream has no lower bound"
+    },
+    {
+      "id": "rej-jwe-tampered-ciphertext-roundtrip",
+      "kind": "cross",
+      "fn": "encrypt.compact",
+      "args": [
+        "Live long and prosper.",
+        "oct-32",
+        {
+          "alg": "A256KW",
+          "enc": "A256CBC-HS512"
+        }
+      ],
+      "consumeFn": "decrypt.compact",
+      "consumeArgs": [
+        "$OUT",
+        "oct-32-other",
+        {
+          "alg": "A256KW"
+        }
+      ],
+      "mustFail": true,
+      "upstreamFn": "jose.compactDecrypt",
+      "goFn": "jose.Decrypt",
+      "note": "freshly produced on each side, then decrypted with the wrong key"
+    },
+    {
+      "id": "rej-jws-wrong-key-roundtrip",
+      "kind": "cross",
+      "fn": "sign.compact",
+      "args": [
+        "It's a dangerous business, Frodo, going out your door.",
+        "ec-p256-priv",
+        {
+          "alg": "ES256"
+        }
+      ],
+      "consumeFn": "verify.compact",
+      "consumeArgs": [
+        "$OUT",
+        "ec-p256-other-pub",
+        {}
+      ],
+      "mustFail": true,
+      "upstreamFn": "jose.compactVerify",
+      "goFn": "jose.Verify",
+      "note": "signature from one P-256 key checked against another"
+    },
+    {
+      "id": "rej-jwe-pbes2-without-opt-in",
+      "fn": "decrypt.compact",
+      "args": [
+        "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJlbmMiOiJBMTI4R0NNIiwicDJjIjoyMDQ4LCJwMnMiOiJ3SmlJTE5mZXpZUFA2a1ZDcGYwZ3JBIn0.Y6BfHcBvrJbmZV61Nq0676CphbDx81Xv.k0j7-cTSkre_EQvJ.7pConCwRSwun46N4vZ4eUfn8W5PT7g.N7XZlS8eIbnlcWxnGc924A",
+        "password",
+        {}
+      ],
+      "upstreamFn": "jose.compactDecrypt",
+      "goFn": "jose.Decrypt",
+      "note": "upstream refuses every PBES2 alg on decrypt unless keyManagementAlgorithms names it explicitly; the port has no such opt-in"
+    }
+  ]
+}

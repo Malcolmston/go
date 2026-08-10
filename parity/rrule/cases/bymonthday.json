@@ -1,0 +1,178 @@
+{
+  "group": "bymonthday",
+  "upstream": "python-dateutil@2.9.0.post0",
+  "cases": [
+    {
+      "id": "bymonthday-2-15",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=MONTHLY;COUNT=10;BYMONTHDAY=2,15",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 12
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "bymonthday-first-and-last",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=MONTHLY;COUNT=10;BYMONTHDAY=1,-1",
+          "dtstart": "1997-09-30T09:00:00",
+          "tz": "UTC",
+          "limit": 12
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "bymonthday-neg3",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=MONTHLY;BYMONTHDAY=-3",
+          "dtstart": "1997-09-28T09:00:00",
+          "tz": "UTC",
+          "limit": 8
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "bymonthday-31",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=MONTHLY;BYMONTHDAY=31;COUNT=8",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 10
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator",
+      "note": "skips months with fewer than 31 days"
+    },
+    {
+      "id": "bymonthday-neg31",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=MONTHLY;BYMONTHDAY=-31;COUNT=6",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 8
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "bymonthday-29-feb",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=YEARLY;BYMONTH=2;BYMONTHDAY=29;COUNT=4",
+          "dtstart": "1996-02-29T09:00:00",
+          "tz": "UTC",
+          "limit": 6
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "bymonthday-range-10-15",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=MONTHLY;INTERVAL=18;COUNT=10;BYMONTHDAY=10,11,12,13,14,15",
+          "dtstart": "1997-09-10T09:00:00",
+          "tz": "UTC",
+          "limit": 12
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "bymonthday-invalid-30-ignored",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=MONTHLY;BYMONTHDAY=15,30;COUNT=5",
+          "dtstart": "2007-01-15T09:00:00",
+          "tz": "UTC",
+          "limit": 7
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator",
+      "note": "RFC 5545 3.8.5.3: February 30 is simply ignored"
+    },
+    {
+      "id": "bymonthday-yearly",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=YEARLY;BYMONTHDAY=1,-1;COUNT=8",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 10
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "bymonthday-daily-filter",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;BYMONTHDAY=1,15;COUNT=6",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 8
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "bymonthday-zero",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=MONTHLY;BYMONTHDAY=0;COUNT=3",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 5
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator",
+      "note": "0 is out of range; both sides must fail"
+    },
+    {
+      "id": "bymonthday-32",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=MONTHLY;BYMONTHDAY=32;COUNT=3",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 5
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator",
+      "note": "out of range"
+    }
+  ]
+}

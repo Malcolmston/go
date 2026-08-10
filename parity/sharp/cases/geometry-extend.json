@@ -1,0 +1,290 @@
+{
+  "group": "geometry-extend",
+  "upstream": "sharp@0.33.5",
+  "cases": [
+    {
+      "id": "extend-all",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "extend",
+            {
+              "top": 2,
+              "right": 3,
+              "bottom": 4,
+              "left": 5
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#extend",
+      "goFn": "Pipeline.Extend"
+    },
+    {
+      "id": "extend-top",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "extend",
+            {
+              "top": 7
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#extend",
+      "goFn": "Pipeline.Extend"
+    },
+    {
+      "id": "extend-right",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "extend",
+            {
+              "right": 7
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#extend",
+      "goFn": "Pipeline.Extend"
+    },
+    {
+      "id": "extend-bottom",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "extend",
+            {
+              "bottom": 7
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#extend",
+      "goFn": "Pipeline.Extend"
+    },
+    {
+      "id": "extend-left",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "extend",
+            {
+              "left": 7
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#extend",
+      "goFn": "Pipeline.Extend"
+    },
+    {
+      "id": "extend-zero",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "extend",
+            {}
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#extend",
+      "goFn": "Pipeline.Extend"
+    },
+    {
+      "id": "extend-negative",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "extend",
+            {
+              "top": -3,
+              "left": 4
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#extend",
+      "goFn": "Pipeline.Extend",
+      "note": "negative padding"
+    },
+    {
+      "id": "extend-opaque-bg",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "extend",
+            {
+              "top": 4,
+              "left": 4,
+              "background": {
+                "r": 10,
+                "g": 20,
+                "b": 30,
+                "alpha": 1
+              }
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#extend",
+      "goFn": "Pipeline.Extend",
+      "note": "opaque background keeps the band count"
+    },
+    {
+      "id": "extend-alpha-bg",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "extend",
+            {
+              "top": 4,
+              "left": 4,
+              "background": {
+                "r": 10,
+                "g": 20,
+                "b": 30,
+                "alpha": 0.5
+              }
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#extend",
+      "goFn": "Pipeline.Extend",
+      "note": "translucent background must add an alpha band"
+    },
+    {
+      "id": "extend-with-background",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "extend",
+            {
+              "top": 4,
+              "right": 4,
+              "bottom": 4,
+              "left": 4,
+              "extendWith": "background",
+              "background": {
+                "r": 10,
+                "g": 20,
+                "b": 30,
+                "alpha": 1
+              }
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#extend(extendWith)",
+      "goFn": "Pipeline.ExtendWith",
+      "note": "extendWith:background"
+    },
+    {
+      "id": "extend-with-copy",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "extend",
+            {
+              "top": 4,
+              "right": 4,
+              "bottom": 4,
+              "left": 4,
+              "extendWith": "copy",
+              "background": {
+                "r": 10,
+                "g": 20,
+                "b": 30,
+                "alpha": 1
+              }
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#extend(extendWith)",
+      "goFn": "Pipeline.ExtendWith",
+      "note": "extendWith:copy"
+    },
+    {
+      "id": "extend-with-repeat",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "extend",
+            {
+              "top": 4,
+              "right": 4,
+              "bottom": 4,
+              "left": 4,
+              "extendWith": "repeat",
+              "background": {
+                "r": 10,
+                "g": 20,
+                "b": 30,
+                "alpha": 1
+              }
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#extend(extendWith)",
+      "goFn": "Pipeline.ExtendWith",
+      "note": "extendWith:repeat"
+    },
+    {
+      "id": "extend-with-mirror",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "extend",
+            {
+              "top": 4,
+              "right": 4,
+              "bottom": 4,
+              "left": 4,
+              "extendWith": "mirror",
+              "background": {
+                "r": 10,
+                "g": 20,
+                "b": 30,
+                "alpha": 1
+              }
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#extend(extendWith)",
+      "goFn": "Pipeline.ExtendWith",
+      "note": "extendWith:mirror"
+    }
+  ]
+}

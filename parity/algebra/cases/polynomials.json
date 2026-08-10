@@ -1,0 +1,179 @@
+{
+  "group": "polynomials",
+  "upstream": "sympy@1.14.0",
+  "goModule": "github.com/malcolmston/algebra@v0.8.0",
+  "note": "factor_degrees compares the sorted multiset of 'degree:multiplicity' pairs of the irreducible factors, which is canonical across spellings; poly_gcd compares the monic gcd's coefficient list low power first; discriminant and resultant are canonical rationals",
+  "cases": [
+    {
+      "id": "factor-degrees-quadratic",
+      "fn": "factor_degrees",
+      "args": ["x^2-5*x+6", "x"],
+      "mode": "exact",
+      "upstreamFn": "sympy.factor_list",
+      "goFn": "algebra.Poly.Factor"
+    },
+    {
+      "id": "factor-degrees-irreducible-quadratic",
+      "fn": "factor_degrees",
+      "args": ["x^2+x+1", "x"],
+      "mode": "exact",
+      "upstreamFn": "sympy.factor_list",
+      "goFn": "algebra.Poly.Factor"
+    },
+    {
+      "id": "factor-degrees-x3-minus-1",
+      "fn": "factor_degrees",
+      "args": ["x^3-1", "x"],
+      "mode": "exact",
+      "upstreamFn": "sympy.factor_list",
+      "goFn": "algebra.Poly.Factor"
+    },
+    {
+      "id": "factor-degrees-x4-minus-1",
+      "fn": "factor_degrees",
+      "args": ["x^4-1", "x"],
+      "mode": "exact",
+      "upstreamFn": "sympy.factor_list",
+      "goFn": "algebra.Poly.Factor"
+    },
+    {
+      "id": "factor-degrees-repeated-quadratic",
+      "fn": "factor_degrees",
+      "args": ["x^4+2*x^2+1", "x"],
+      "mode": "exact",
+      "upstreamFn": "sympy.factor_list",
+      "goFn": "algebra.Poly.Factor"
+    },
+    {
+      "id": "factor-degrees-double-roots",
+      "fn": "factor_degrees",
+      "args": ["x^4-2*x^3+x^2", "x"],
+      "mode": "exact",
+      "upstreamFn": "sympy.factor_list",
+      "goFn": "algebra.Poly.Factor"
+    },
+    {
+      "id": "factor-degrees-quintic",
+      "fn": "factor_degrees",
+      "args": ["x^5-1", "x"],
+      "mode": "exact",
+      "upstreamFn": "sympy.factor_list",
+      "goFn": "algebra.Poly.Factor"
+    },
+    {
+      "id": "factor-degrees-non-monic",
+      "fn": "factor_degrees",
+      "args": ["6*x^2-5*x+1", "x"],
+      "mode": "exact",
+      "upstreamFn": "sympy.factor_list",
+      "goFn": "algebra.Poly.Factor"
+    },
+    {
+      "id": "factor-numeric-cubic",
+      "fn": "factor",
+      "args": ["x^3-6*x^2+11*x-6", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upstreamFn": "sympy.factor",
+      "goFn": "algebra.Factor",
+      "note": "the factored form must still equal the original polynomial"
+    },
+    {
+      "id": "factor-numeric-quartic",
+      "fn": "factor",
+      "args": ["x^4-1", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upstreamFn": "sympy.factor",
+      "goFn": "algebra.Factor"
+    },
+    {
+      "id": "polygcd-x4-x2",
+      "fn": "poly_gcd",
+      "args": ["x^4-1", "x^2-1", "x"],
+      "mode": "exact",
+      "upstreamFn": "sympy.gcd",
+      "goFn": "algebra.PolyGCD"
+    },
+    {
+      "id": "polygcd-linear-factor",
+      "fn": "poly_gcd",
+      "args": ["x^3-x", "x^2-2*x+1", "x"],
+      "mode": "exact",
+      "upstreamFn": "sympy.gcd",
+      "goFn": "algebra.PolyGCD"
+    },
+    {
+      "id": "polygcd-coprime",
+      "fn": "poly_gcd",
+      "args": ["x^2+1", "x-1", "x"],
+      "mode": "exact",
+      "upstreamFn": "sympy.gcd",
+      "goFn": "algebra.PolyGCD"
+    },
+    {
+      "id": "polygcd-non-monic-inputs",
+      "fn": "poly_gcd",
+      "args": ["4*x^2-4", "6*x^3-6*x^2", "x"],
+      "mode": "exact",
+      "upstreamFn": "sympy.gcd",
+      "goFn": "algebra.PolyGCD"
+    },
+    {
+      "id": "discriminant-quadratic",
+      "fn": "discriminant",
+      "args": ["x^2-5*x+6", "x"],
+      "mode": "exact",
+      "upstreamFn": "sympy.discriminant",
+      "goFn": "algebra.Poly.Discriminant"
+    },
+    {
+      "id": "discriminant-quadratic-negative",
+      "fn": "discriminant",
+      "args": ["x^2+x+1", "x"],
+      "mode": "exact",
+      "upstreamFn": "sympy.discriminant",
+      "goFn": "algebra.Poly.Discriminant"
+    },
+    {
+      "id": "discriminant-cubic",
+      "fn": "discriminant",
+      "args": ["x^3-3*x+1", "x"],
+      "mode": "exact",
+      "upstreamFn": "sympy.discriminant",
+      "goFn": "algebra.Poly.Discriminant"
+    },
+    {
+      "id": "discriminant-quartic",
+      "fn": "discriminant",
+      "args": ["x^4-1", "x"],
+      "mode": "exact",
+      "upstreamFn": "sympy.discriminant",
+      "goFn": "algebra.Poly.Discriminant"
+    },
+    {
+      "id": "resultant-common-factor",
+      "fn": "resultant",
+      "args": ["x^4-1", "x^2-1", "x"],
+      "mode": "exact",
+      "upstreamFn": "sympy.resultant",
+      "goFn": "algebra.Poly.Resultant"
+    },
+    {
+      "id": "resultant-coprime",
+      "fn": "resultant",
+      "args": ["x^2-2", "x^2-3", "x"],
+      "mode": "exact",
+      "upstreamFn": "sympy.resultant",
+      "goFn": "algebra.Poly.Resultant"
+    },
+    {
+      "id": "resultant-linear-pair",
+      "fn": "resultant",
+      "args": ["2*x-4", "3*x+1", "x"],
+      "mode": "exact",
+      "upstreamFn": "sympy.resultant",
+      "goFn": "algebra.Poly.Resultant"
+    }
+  ]
+}

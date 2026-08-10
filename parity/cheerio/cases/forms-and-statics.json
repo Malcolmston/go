@@ -1,0 +1,27 @@
+{
+  "group": "forms-and-statics",
+  "upstream": "cheerio@1.0.0",
+  "cases": [
+    { "id": "form-serialize-array", "fn": "chain", "args": ["form", [["find", "#f"], ["serializeArray"]]], "upstreamFn": "Cheerio.prototype.serializeArray", "goFn": "Selection.SerializeArray" },
+    { "id": "form-serialize", "fn": "chain", "args": ["form", [["find", "#f"], ["serialize"]]], "upstreamFn": "Cheerio.prototype.serialize", "goFn": "Selection.Serialize" },
+    { "id": "form-serialize-inputs-only", "fn": "chain", "args": ["form", [["find", "input"], ["serializeArray"]]], "upstreamFn": "Cheerio.prototype.serializeArray", "goFn": "Selection.SerializeArray" },
+    { "id": "form-serialize-select-multiple", "fn": "chain", "args": ["form", [["find", "select[name=multi]"], ["serializeArray"]]], "upstreamFn": "Cheerio.prototype.serializeArray", "goFn": "Selection.SerializeArray" },
+    { "id": "form-serialize-empty", "fn": "chain", "args": ["manip", [["find", "#box"], ["serializeArray"]]], "upstreamFn": "Cheerio.prototype.serializeArray", "goFn": "Selection.SerializeArray" },
+    { "id": "form-serialize-encoding", "fn": "chain", "args": ["manip", [["find", "#box"], ["html", "<form><input name=\"a b\" value=\"x&y=z\"></form>"], ["find", "form"], ["serialize"]]], "upstreamFn": "Cheerio.prototype.serialize", "goFn": "Selection.Serialize" },
+
+    { "id": "static-text-nodes", "fn": "static.text", "args": ["selectors", "p"], "upstreamFn": "$.text", "goFn": "cheerio.TextOf" },
+    { "id": "static-text-empty", "fn": "static.text", "args": ["selectors", "blockquote"], "upstreamFn": "$.text", "goFn": "cheerio.TextOf" },
+    { "id": "static-html-nodes", "fn": "static.html", "args": ["selectors", "li"], "upstreamFn": "$.html", "goFn": "cheerio.RenderNodes" },
+    { "id": "static-html-escapes", "fn": "static.html", "args": ["escape-out", "#x"], "upstreamFn": "$.html", "goFn": "cheerio.RenderNodes" },
+    { "id": "static-contains-true", "fn": "static.contains", "args": ["traversal", "#a", "#g"], "upstreamFn": "cheerio.contains", "goFn": "cheerio.Contains" },
+    { "id": "static-contains-false", "fn": "static.contains", "args": ["traversal", "#f", "#c"], "upstreamFn": "cheerio.contains", "goFn": "cheerio.Contains" },
+    { "id": "static-contains-self", "fn": "static.contains", "args": ["traversal", "#a", "#a"], "upstreamFn": "cheerio.contains", "goFn": "cheerio.Contains" },
+    { "id": "static-merge", "fn": "static.merge", "args": ["traversal", "p", "span"], "upstreamFn": "cheerio.merge", "goFn": "cheerio.Merge" },
+    { "id": "static-merge-overlap", "fn": "static.merge", "args": ["traversal", "p", "#c"], "upstreamFn": "cheerio.merge", "goFn": "cheerio.Merge", "note": "cheerio.merge concatenates without de-duplicating" },
+    { "id": "static-parsehtml-simple", "fn": "static.parseHTML", "args": ["<p>a</p><p>b</p>"], "upstreamFn": "$.parseHTML", "goFn": "cheerio.ParseHTML" },
+    { "id": "static-parsehtml-text", "fn": "static.parseHTML", "args": ["hello & goodbye"], "upstreamFn": "$.parseHTML", "goFn": "cheerio.ParseHTML" },
+    { "id": "static-parsehtml-table", "fn": "static.parseHTML", "args": ["<table><tr><td>x</td></tr></table>"], "upstreamFn": "$.parseHTML", "goFn": "cheerio.ParseHTML" },
+    { "id": "static-parsehtml-broken", "fn": "static.parseHTML", "args": ["<div><p>unclosed"], "upstreamFn": "$.parseHTML", "goFn": "cheerio.ParseHTML" },
+    { "id": "static-parsehtml-empty", "fn": "static.parseHTML", "args": [""], "upstreamFn": "$.parseHTML", "goFn": "cheerio.ParseHTML", "note": "upstream returns null for empty input" }
+  ]
+}

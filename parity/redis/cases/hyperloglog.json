@@ -1,0 +1,327 @@
+{
+  "group": "hyperloglog",
+  "upstream": "redis-server@8.2.2",
+  "encoding": "commands are arrays of UTF-8 argument strings; replies map integer->number, bulk string->string, nil->null, simple string->{\"status\":s}, array->array, error->{\"error\":true}",
+  "cases": [
+    {
+      "id": "hll-basic",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "PFADD",
+              "h",
+              "a",
+              "b",
+              "c"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PFCOUNT",
+              "h"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PFADD",
+              "h",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PFCOUNT",
+              "h"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PFADD",
+              "h",
+              "d"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PFCOUNT",
+              "h"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PFADD",
+              "h2",
+              "c",
+              "d"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PFCOUNT",
+              "h2"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PFCOUNT",
+              "h",
+              "h2"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PFMERGE",
+              "m",
+              "h",
+              "h2"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PFCOUNT",
+              "m"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TYPE",
+              "h"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXISTS",
+              "h"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PFCOUNT",
+              "nokey"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "FLUSHALL"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "PFADD/PFCOUNT/PFMERGE",
+      "goFn": "Store.Do PFADD/PFCOUNT/PFMERGE",
+      "note": "PFADD replies 1 only when the sketch changed"
+    },
+    {
+      "id": "hll-cardinality-20",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "PFADD",
+              "h",
+              "m00",
+              "m01",
+              "m02",
+              "m03",
+              "m04",
+              "m05",
+              "m06",
+              "m07",
+              "m08",
+              "m09",
+              "m10",
+              "m11",
+              "m12",
+              "m13",
+              "m14",
+              "m15",
+              "m16",
+              "m17",
+              "m18",
+              "m19"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PFCOUNT",
+              "h"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PFADD",
+              "h",
+              "m10",
+              "m11",
+              "m12",
+              "m13",
+              "m14",
+              "m15",
+              "m16",
+              "m17",
+              "m18",
+              "m19",
+              "m20",
+              "m21",
+              "m22",
+              "m23",
+              "m24",
+              "m25",
+              "m26",
+              "m27",
+              "m28",
+              "m29"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PFCOUNT",
+              "h"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "FLUSHALL"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "PFCOUNT",
+      "goFn": "Store.Do PFCOUNT",
+      "note": "small-cardinality estimates must agree exactly, not approximately"
+    },
+    {
+      "id": "hll-empty-and-errors",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "PFADD",
+              "e"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXISTS",
+              "e"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PFCOUNT",
+              "e"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "s",
+              "abc"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PFADD",
+              "s",
+              "x"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PFCOUNT",
+              "s"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "RPUSH",
+              "l",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PFADD",
+              "l",
+              "x"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PFCOUNT",
+              "l"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PFMERGE",
+              "m",
+              "s"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PFADD"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PFCOUNT"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PFMERGE"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "FLUSHALL"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "PFADD/PFCOUNT/PFMERGE",
+      "goFn": "Store.Do (HLL errors)",
+      "note": "PFADD with no elements still creates the key; non-HLL strings are WRONGTYPE"
+    }
+  ]
+}

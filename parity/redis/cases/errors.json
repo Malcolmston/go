@@ -1,0 +1,794 @@
+{
+  "group": "errors",
+  "upstream": "redis-server@8.2.2",
+  "encoding": "commands are arrays of UTF-8 argument strings; replies map integer->number, bulk string->string, nil->null, simple string->{\"status\":s}, array->array, error->{\"error\":true}",
+  "cases": [
+    {
+      "id": "wrongtype-list-ops-on-string",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "s",
+              "v"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LPUSH",
+              "s",
+              "x"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "RPUSH",
+              "s",
+              "x"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LPOP",
+              "s"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "RPOP",
+              "s"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LRANGE",
+              "s",
+              "0",
+              "-1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LLEN",
+              "s"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LINDEX",
+              "s",
+              "0"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "s"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TYPE",
+              "s"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "WRONGTYPE",
+      "goFn": "Store.Do (ErrWrongType)",
+      "note": "only whether it errored is compared"
+    },
+    {
+      "id": "wrongtype-hash-ops-on-list",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "RPUSH",
+              "l",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HSET",
+              "l",
+              "f",
+              "v"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HGET",
+              "l",
+              "f"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HGETALL",
+              "l"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HLEN",
+              "l"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HKEYS",
+              "l"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HVALS",
+              "l"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HDEL",
+              "l",
+              "f"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HEXISTS",
+              "l",
+              "f"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LRANGE",
+              "l",
+              "0",
+              "-1"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "WRONGTYPE",
+      "goFn": "Store.Do (ErrWrongType)",
+      "note": ""
+    },
+    {
+      "id": "wrongtype-set-ops-on-hash",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "HSET",
+              "h",
+              "f",
+              "v"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SADD",
+              "h",
+              "m"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SREM",
+              "h",
+              "m"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SMEMBERS",
+              "h"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SCARD",
+              "h"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SISMEMBER",
+              "h",
+              "m"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SINTER",
+              "h"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SUNION",
+              "h"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SDIFF",
+              "h"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HGETALL",
+              "h"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "WRONGTYPE",
+      "goFn": "Store.Do (ErrWrongType)",
+      "note": ""
+    },
+    {
+      "id": "wrongtype-zset-ops-on-set",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SADD",
+              "s",
+              "m"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZADD",
+              "s",
+              "1",
+              "m"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZSCORE",
+              "s",
+              "m"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZCARD",
+              "s"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANGE",
+              "s",
+              "0",
+              "-1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANGEBYSCORE",
+              "s",
+              "-inf",
+              "+inf"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANK",
+              "s",
+              "m"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZREM",
+              "s",
+              "m"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SMEMBERS",
+              "s"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "WRONGTYPE",
+      "goFn": "Store.Do (ErrWrongType)",
+      "note": ""
+    },
+    {
+      "id": "wrongtype-string-ops-on-list",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "RPUSH",
+              "l",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "l"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "APPEND",
+              "l",
+              "x"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "STRLEN",
+              "l"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "INCR",
+              "l"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "DECRBY",
+              "l",
+              "1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GETSET",
+              "l",
+              "v"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LRANGE",
+              "l",
+              "0",
+              "-1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "l",
+              "v"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TYPE",
+              "l"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "l"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "WRONGTYPE",
+      "goFn": "Store.Do (ErrWrongType)",
+      "note": "SET replaces a key of any type; the read commands must all fail"
+    },
+    {
+      "id": "wrongtype-string-ops-on-zset",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "ZADD",
+              "z",
+              "1",
+              "m"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "z"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "APPEND",
+              "z",
+              "x"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "INCR",
+              "z"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "STRLEN",
+              "z"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LPUSH",
+              "z",
+              "x"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SADD",
+              "z",
+              "x"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HSET",
+              "z",
+              "f",
+              "v"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANGE",
+              "z",
+              "0",
+              "-1"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "WRONGTYPE",
+      "goFn": "Store.Do (ErrWrongType)",
+      "note": ""
+    },
+    {
+      "id": "arity-generic",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "GET"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "a",
+              "b"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SET"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TTL"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TTL",
+              "a",
+              "b"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PTTL"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TYPE"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TYPE",
+              "a",
+              "b"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXISTS"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "DEL"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PERSIST"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PERSIST",
+              "a",
+              "b"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "STRLEN"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "STRLEN",
+              "a",
+              "b"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "APPEND",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GETSET",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "INCR"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "INCR",
+              "a",
+              "b"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "INCRBY",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "KEYS"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "KEYS",
+              "*",
+              "*"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "DBSIZE",
+              "x"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "DBSIZE"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "wrong number of arguments",
+      "goFn": "Store.Do (ErrWrongArgs)",
+      "note": ""
+    },
+    {
+      "id": "unknown-command",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "NOSUCHCOMMAND"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "NOSUCHCOMMAND",
+              "a",
+              "b"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "DBSIZE"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "unknown command",
+      "goFn": "Store.Do (ErrUnknownCommand)",
+      "note": ""
+    },
+    {
+      "id": "case-insensitive-command-names",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "set",
+              "k",
+              "v"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "Get",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "sEt",
+              "k2",
+              "v2",
+              "nx"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TtL",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "hset",
+              "h",
+              "f",
+              "v"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HgEtAlL",
+              "h"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "command names are case-insensitive",
+      "goFn": "Store.Do (strings.ToUpper)",
+      "note": ""
+    }
+  ]
+}

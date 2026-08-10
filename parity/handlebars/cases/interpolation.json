@@ -1,0 +1,157 @@
+{
+  "group": "interpolation",
+  "upstream": "handlebars@4.7.8",
+  "cases": [
+    {
+      "id": "var-basic",
+      "fn": "render",
+      "args": ["Hello {{name}}!", { "name": "World" }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "var-escape-html",
+      "fn": "render",
+      "args": ["{{v}}", { "v": "<a href='x' title=\"y\">&`=</a>" }],
+      "upstreamFn": "Handlebars.Utils.escapeExpression",
+      "goFn": "handlebars.EscapeHTML",
+      "note": "escaping set is & < > \" ' ` ="
+    },
+    {
+      "id": "var-triple-stash",
+      "fn": "render",
+      "args": ["{{{v}}}", { "v": "<b>bold</b>" }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "var-amp-unescaped",
+      "fn": "render",
+      "args": ["{{& v}}", { "v": "<b>bold</b>" }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "var-missing-bare",
+      "fn": "render",
+      "args": ["[{{nope}}]", {}],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "var-missing-dotted",
+      "fn": "render",
+      "args": ["[{{a.b.c}}]", {}],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "var-missing-through-null",
+      "fn": "render",
+      "args": ["[{{a.b}}]", { "a": null }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "var-this",
+      "fn": "render",
+      "args": ["<{{this}}>", "scalar"],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "var-dot",
+      "fn": "render",
+      "args": ["<{{.}}>", "scalar"],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "var-this-field",
+      "fn": "render",
+      "args": ["{{this.name}}|{{./name}}", { "name": "n" }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "var-literal-string-ref",
+      "fn": "render",
+      "args": ["{{\"foo bar\"}}", { "foo bar": "spacey" }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile",
+      "note": "string literal in leading position is a literal reference"
+    },
+    {
+      "id": "var-literal-number-ref",
+      "fn": "render",
+      "args": ["{{1}}", { "1": "one" }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "var-bracketed-segment",
+      "fn": "render",
+      "args": ["{{[foo bar]}}/{{a.[b.c]}}", { "foo bar": "x", "a": { "b.c": "y" } }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "var-empty-template",
+      "fn": "render",
+      "args": ["", {}],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "var-no-mustaches",
+      "fn": "render",
+      "args": ["plain <b>text</b> & more", {}],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "var-repeated",
+      "fn": "render",
+      "args": ["{{a}}{{a}}{{a}}", { "a": "x" }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "var-already-escaped-input",
+      "fn": "render",
+      "args": ["{{v}}", { "v": "&amp;" }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile",
+      "note": "double escaping is expected on both sides"
+    },
+    {
+      "id": "var-unicode",
+      "fn": "render",
+      "args": ["{{v}}", { "v": "héllo — 日本語 🎉" }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "comment-inline",
+      "fn": "render",
+      "args": ["a{{! ignored }}b", {}],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "comment-long-form",
+      "fn": "render",
+      "args": ["a{{!-- has }} and {{mustache}} --}}b", {}],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "comment-standalone",
+      "fn": "render",
+      "args": ["a\n  {{! standalone }}\nb", {}],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile",
+      "note": "standalone comment line is removed entirely"
+    }
+  ]
+}

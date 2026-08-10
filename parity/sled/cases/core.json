@@ -1,0 +1,329 @@
+{
+  "group": "core",
+  "upstream": "sled@0.34.7",
+  "encoding": "all keys, values and tree names are lowercase hex",
+  "cases": [
+    {
+      "id": "insert-get-remove",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "insert",
+            "key": "6b",
+            "value": "7631"
+          },
+          {
+            "op": "get",
+            "key": "6b"
+          },
+          {
+            "op": "insert",
+            "key": "6b",
+            "value": "7632"
+          },
+          {
+            "op": "get",
+            "key": "6b"
+          },
+          {
+            "op": "remove",
+            "key": "6b"
+          },
+          {
+            "op": "get",
+            "key": "6b"
+          },
+          {
+            "op": "remove",
+            "key": "6b"
+          },
+          {
+            "op": "len"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::insert / Tree::get / Tree::remove",
+      "goFn": "Tree.GetAndSet / Tree.Get / Tree.GetAndDelete",
+      "note": "sled returns the PREVIOUS value from insert and remove; null when the key was absent"
+    },
+    {
+      "id": "insert-returns-previous-empty",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "insert",
+            "key": "6b",
+            "value": ""
+          },
+          {
+            "op": "insert",
+            "key": "6b",
+            "value": "78"
+          },
+          {
+            "op": "insert",
+            "key": "6b",
+            "value": ""
+          },
+          {
+            "op": "get",
+            "key": "6b"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::insert",
+      "goFn": "Tree.GetAndSet",
+      "note": "an existing empty value must come back as an empty string, not null"
+    },
+    {
+      "id": "remove-absent",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "remove",
+            "key": "7a7a"
+          },
+          {
+            "op": "len"
+          },
+          {
+            "op": "is_empty"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::remove",
+      "goFn": "Tree.GetAndDelete"
+    },
+    {
+      "id": "empty-value-roundtrip",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "insert",
+            "key": "6b",
+            "value": ""
+          },
+          {
+            "op": "get",
+            "key": "6b"
+          },
+          {
+            "op": "contains_key",
+            "key": "6b"
+          },
+          {
+            "op": "len"
+          },
+          {
+            "op": "cas",
+            "key": "6b",
+            "old": "",
+            "new": "76"
+          },
+          {
+            "op": "get",
+            "key": "6b"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::get",
+      "goFn": "Tree.Get",
+      "note": "empty value is distinct from an absent key"
+    },
+    {
+      "id": "non-utf8-keys",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "insert",
+            "key": "00",
+            "value": "7a65726f"
+          },
+          {
+            "op": "insert",
+            "key": "ff",
+            "value": "68696768"
+          },
+          {
+            "op": "insert",
+            "key": "80ff00",
+            "value": "6d69786564"
+          },
+          {
+            "op": "insert",
+            "key": "ff00",
+            "value": "686967687a65726f"
+          },
+          {
+            "op": "iter"
+          },
+          {
+            "op": "get",
+            "key": "80ff00"
+          },
+          {
+            "op": "remove",
+            "key": "ff"
+          },
+          {
+            "op": "iter"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::insert",
+      "goFn": "Tree.GetAndSet",
+      "note": "keys are opaque bytes ordered lexicographically by unsigned byte value"
+    },
+    {
+      "id": "non-utf8-values",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "insert",
+            "key": "6b",
+            "value": "0001feff"
+          },
+          {
+            "op": "get",
+            "key": "6b"
+          },
+          {
+            "op": "iter"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::insert",
+      "goFn": "Tree.GetAndSet"
+    },
+    {
+      "id": "empty-key",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "insert",
+            "key": "",
+            "value": "76"
+          },
+          {
+            "op": "get",
+            "key": ""
+          },
+          {
+            "op": "contains_key",
+            "key": ""
+          },
+          {
+            "op": "insert",
+            "key": "61",
+            "value": "31"
+          },
+          {
+            "op": "iter"
+          },
+          {
+            "op": "remove",
+            "key": ""
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::insert",
+      "goFn": "Tree.GetAndSet",
+      "note": "upstream sled accepts a zero-length key; the Go port rejects it with ErrEmptyKey",
+      "deviation": "Go port documents keys must be non-empty (sled.ErrEmptyKey)"
+    },
+    {
+      "id": "len-clear-is-empty",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "is_empty"
+          },
+          {
+            "op": "insert",
+            "key": "61",
+            "value": "31"
+          },
+          {
+            "op": "insert",
+            "key": "62",
+            "value": "32"
+          },
+          {
+            "op": "insert",
+            "key": "63",
+            "value": "33"
+          },
+          {
+            "op": "insert",
+            "key": "6161",
+            "value": "34"
+          },
+          {
+            "op": "insert",
+            "key": "6162",
+            "value": "35"
+          },
+          {
+            "op": "len"
+          },
+          {
+            "op": "is_empty"
+          },
+          {
+            "op": "clear"
+          },
+          {
+            "op": "len"
+          },
+          {
+            "op": "is_empty"
+          },
+          {
+            "op": "iter"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::len / Tree::clear / Tree::is_empty",
+      "goFn": "Tree.Len / Tree.Clear / Tree.IsEmpty"
+    },
+    {
+      "id": "contains-key",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "insert",
+            "key": "61",
+            "value": "31"
+          },
+          {
+            "op": "contains_key",
+            "key": "61"
+          },
+          {
+            "op": "contains_key",
+            "key": "62"
+          },
+          {
+            "op": "remove",
+            "key": "61"
+          },
+          {
+            "op": "contains_key",
+            "key": "61"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::contains_key",
+      "goFn": "Tree.ContainsKey"
+    }
+  ]
+}

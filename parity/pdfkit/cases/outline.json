@@ -1,0 +1,59 @@
+{
+  "group": "outline",
+  "upstream": "pdfkit@0.15.1",
+  "cases": [
+    {
+      "id": "outline-flat",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFOutline.addItem",
+      "goFn": "Outline.Add",
+      "args": [{
+        "pages": [{"size": "A4", "ops": []}, {"size": "A4", "ops": []}],
+        "outline": [
+          {"title": "One", "page": 0, "y": 0},
+          {"title": "Two", "page": 1, "y": 0}
+        ]
+      }]
+    },
+    {
+      "id": "outline-nested",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFOutline.addItem",
+      "goFn": "Bookmark.Add",
+      "args": [{
+        "pages": [{"size": "A4", "ops": []}, {"size": "A4", "ops": []}, {"size": "A4", "ops": []}],
+        "outline": [
+          {"title": "Part I", "page": 0, "y": 0, "children": [
+            {"title": "Chapter 1", "page": 1, "y": 0},
+            {"title": "Chapter 2", "page": 2, "y": 0}
+          ]},
+          {"title": "Part II", "page": 2, "y": 0}
+        ]
+      }]
+    },
+    {
+      "id": "outline-dest-y",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFOutline.addItem",
+      "goFn": "Outline.Add",
+      "note": "a vertical position for the destination: upstream always uses /Fit",
+      "args": [{
+        "pages": [{"size": "A4", "ops": []}],
+        "outline": [{"title": "Mid page", "page": 0, "y": 400}]
+      }]
+    },
+    {
+      "id": "outline-expanded",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFOutline.addItem#expanded",
+      "goFn": "—",
+      "note": "an initially open outline entry: the port has no option for it",
+      "args": [{
+        "pages": [{"size": "A4", "ops": []}],
+        "outline": [{"title": "Open", "page": 0, "y": 0, "expanded": true, "children": [
+          {"title": "Child", "page": 0, "y": 0}
+        ]}]
+      }]
+    }
+  ]
+}

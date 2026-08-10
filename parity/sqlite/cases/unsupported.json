@@ -1,0 +1,696 @@
+{
+  "group": "unsupported",
+  "upstream": "sqlite3@3.45.3",
+  "cases": [
+    {
+      "id": "u-case-when",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT CASE WHEN 1 THEN 'y' ELSE 'n' END AS v"
+        }
+      ],
+      "upstreamFn": "CASE WHEN ... THEN ... ELSE ... END",
+      "goFn": "sqlite: CASE WHEN ... THEN ... ELSE ... END"
+    },
+    {
+      "id": "u-case-operand",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT CASE 2 WHEN 1 THEN 'a' WHEN 2 THEN 'b' END AS v"
+        }
+      ],
+      "upstreamFn": "CASE <expr> WHEN",
+      "goFn": "sqlite: CASE <expr> WHEN"
+    },
+    {
+      "id": "u-case-no-else",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT CASE WHEN 0 THEN 'y' END AS v"
+        }
+      ],
+      "upstreamFn": "CASE with no ELSE",
+      "goFn": "sqlite: CASE with no ELSE"
+    },
+    {
+      "id": "u-between",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT id AS id FROM t WHERE qty BETWEEN 3 AND 7 ORDER BY id"
+        }
+      ],
+      "upstreamFn": "BETWEEN ... AND",
+      "goFn": "sqlite: BETWEEN ... AND"
+    },
+    {
+      "id": "u-not-between",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT id AS id FROM t WHERE qty NOT BETWEEN 4 AND 9 ORDER BY id"
+        }
+      ],
+      "upstreamFn": "NOT BETWEEN",
+      "goFn": "sqlite: NOT BETWEEN"
+    },
+    {
+      "id": "u-union",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 1 AS v UNION SELECT 2 ORDER BY v"
+        }
+      ],
+      "upstreamFn": "UNION",
+      "goFn": "sqlite: UNION"
+    },
+    {
+      "id": "u-union-all",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 1 AS v UNION ALL SELECT 1 ORDER BY v"
+        }
+      ],
+      "upstreamFn": "UNION ALL",
+      "goFn": "sqlite: UNION ALL"
+    },
+    {
+      "id": "u-intersect",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 1 AS v INTERSECT SELECT 1"
+        }
+      ],
+      "upstreamFn": "INTERSECT",
+      "goFn": "sqlite: INTERSECT"
+    },
+    {
+      "id": "u-except",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 1 AS v EXCEPT SELECT 2"
+        }
+      ],
+      "upstreamFn": "EXCEPT",
+      "goFn": "sqlite: EXCEPT"
+    },
+    {
+      "id": "u-subquery-scalar",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT (SELECT max(id) FROM t) AS v"
+        }
+      ],
+      "upstreamFn": "scalar subquery",
+      "goFn": "sqlite: scalar subquery"
+    },
+    {
+      "id": "u-subquery-in",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)",
+            "CREATE TABLE o (oid INTEGER PRIMARY KEY, tid INTEGER, amount INTEGER)",
+            "INSERT INTO o (oid, tid, amount) VALUES (10,1,100),(11,1,200),(12,2,300),(13,9,400)"
+          ],
+          "query": "SELECT id AS id FROM t WHERE id IN (SELECT tid FROM o) ORDER BY id"
+        }
+      ],
+      "upstreamFn": "IN (subquery)",
+      "goFn": "sqlite: IN (subquery)"
+    },
+    {
+      "id": "u-subquery-exists",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)",
+            "CREATE TABLE o (oid INTEGER PRIMARY KEY, tid INTEGER, amount INTEGER)",
+            "INSERT INTO o (oid, tid, amount) VALUES (10,1,100),(11,1,200),(12,2,300),(13,9,400)"
+          ],
+          "query": "SELECT id AS id FROM t WHERE EXISTS (SELECT 1 FROM o WHERE o.tid = t.id) ORDER BY id"
+        }
+      ],
+      "upstreamFn": "EXISTS (subquery)",
+      "goFn": "sqlite: EXISTS (subquery)"
+    },
+    {
+      "id": "u-subquery-not-exists",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)",
+            "CREATE TABLE o (oid INTEGER PRIMARY KEY, tid INTEGER, amount INTEGER)",
+            "INSERT INTO o (oid, tid, amount) VALUES (10,1,100),(11,1,200),(12,2,300),(13,9,400)"
+          ],
+          "query": "SELECT id AS id FROM t WHERE NOT EXISTS (SELECT 1 FROM o WHERE o.tid = t.id) ORDER BY id"
+        }
+      ],
+      "upstreamFn": "NOT EXISTS (subquery)",
+      "goFn": "sqlite: NOT EXISTS (subquery)"
+    },
+    {
+      "id": "u-subquery-from",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT s.id AS id FROM (SELECT id FROM t WHERE id < 3) AS s ORDER BY s.id"
+        }
+      ],
+      "upstreamFn": "derived table FROM (SELECT ...)",
+      "goFn": "sqlite: derived table FROM (SELECT ...)"
+    },
+    {
+      "id": "u-subquery-correlated",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)",
+            "CREATE TABLE o (oid INTEGER PRIMARY KEY, tid INTEGER, amount INTEGER)",
+            "INSERT INTO o (oid, tid, amount) VALUES (10,1,100),(11,1,200),(12,2,300),(13,9,400)"
+          ],
+          "query": "SELECT id AS id, (SELECT count(*) FROM o WHERE o.tid = t.id) AS c FROM t ORDER BY id"
+        }
+      ],
+      "upstreamFn": "correlated scalar subquery",
+      "goFn": "sqlite: correlated scalar subquery"
+    },
+    {
+      "id": "u-cte",
+      "fn": "script",
+      "args": [
+        {
+          "query": "WITH c AS (SELECT 1 AS v) SELECT v AS v FROM c"
+        }
+      ],
+      "upstreamFn": "WITH ... (common table expression)",
+      "goFn": "sqlite: WITH ... (common table expression)"
+    },
+    {
+      "id": "u-cte-recursive",
+      "fn": "script",
+      "args": [
+        {
+          "query": "WITH RECURSIVE c(v) AS (SELECT 1 UNION ALL SELECT v+1 FROM c WHERE v < 3) SELECT v AS v FROM c ORDER BY v"
+        }
+      ],
+      "upstreamFn": "WITH RECURSIVE",
+      "goFn": "sqlite: WITH RECURSIVE"
+    },
+    {
+      "id": "u-window-row-number",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT id AS id, row_number() OVER (ORDER BY id) AS rn FROM t ORDER BY id"
+        }
+      ],
+      "upstreamFn": "window function OVER ()",
+      "goFn": "sqlite: window function OVER ()"
+    },
+    {
+      "id": "u-cast-expr",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT CAST(qty AS TEXT) AS v FROM t ORDER BY id"
+        }
+      ],
+      "upstreamFn": "CAST in a SELECT list",
+      "goFn": "sqlite: CAST in a SELECT list"
+    },
+    {
+      "id": "u-is-value",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 1 IS 1 AS v"
+        }
+      ],
+      "upstreamFn": "IS with a non-NULL operand",
+      "goFn": "sqlite: IS with a non-NULL operand"
+    },
+    {
+      "id": "u-is-not-value",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 1 IS NOT 2 AS v"
+        }
+      ],
+      "upstreamFn": "IS NOT with a non-NULL operand",
+      "goFn": "sqlite: IS NOT with a non-NULL operand"
+    },
+    {
+      "id": "u-like-escape",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 'a%c' LIKE 'a!%c' ESCAPE '!' AS v"
+        }
+      ],
+      "upstreamFn": "LIKE ... ESCAPE",
+      "goFn": "sqlite: LIKE ... ESCAPE"
+    },
+    {
+      "id": "u-regexp",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 'abc' REGEXP 'a.c' AS v"
+        }
+      ],
+      "upstreamFn": "REGEXP operator",
+      "goFn": "sqlite: REGEXP operator"
+    },
+    {
+      "id": "u-collate-expr",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 'A' = 'a' COLLATE NOCASE AS v"
+        }
+      ],
+      "upstreamFn": "COLLATE in an expression",
+      "goFn": "sqlite: COLLATE in an expression"
+    },
+    {
+      "id": "u-order-collate",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT name AS n FROM t ORDER BY name COLLATE NOCASE"
+        }
+      ],
+      "upstreamFn": "ORDER BY ... COLLATE",
+      "goFn": "sqlite: ORDER BY ... COLLATE"
+    },
+    {
+      "id": "u-order-ordinal",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT id AS id FROM t ORDER BY 1"
+        }
+      ],
+      "upstreamFn": "ORDER BY ordinal",
+      "goFn": "sqlite: ORDER BY ordinal"
+    },
+    {
+      "id": "u-order-nulls-last",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT qty AS q FROM t ORDER BY qty NULLS LAST, id"
+        }
+      ],
+      "upstreamFn": "ORDER BY ... NULLS LAST",
+      "goFn": "sqlite: ORDER BY ... NULLS LAST"
+    },
+    {
+      "id": "u-bitand",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 6 & 3 AS v"
+        }
+      ],
+      "upstreamFn": "bitwise &",
+      "goFn": "sqlite: bitwise &"
+    },
+    {
+      "id": "u-bitor",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 6 | 3 AS v"
+        }
+      ],
+      "upstreamFn": "bitwise |",
+      "goFn": "sqlite: bitwise |"
+    },
+    {
+      "id": "u-bitnot",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT ~0 AS v"
+        }
+      ],
+      "upstreamFn": "bitwise ~",
+      "goFn": "sqlite: bitwise ~"
+    },
+    {
+      "id": "u-shift-left",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 1 << 4 AS v"
+        }
+      ],
+      "upstreamFn": "bitwise <<",
+      "goFn": "sqlite: bitwise <<"
+    },
+    {
+      "id": "u-shift-right",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 16 >> 2 AS v"
+        }
+      ],
+      "upstreamFn": "bitwise >>",
+      "goFn": "sqlite: bitwise >>"
+    },
+    {
+      "id": "u-ne-bang",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 1 != 2 AS v"
+        }
+      ],
+      "upstreamFn": "!= operator",
+      "goFn": "sqlite: != operator"
+    },
+    {
+      "id": "u-values-stmt",
+      "fn": "script",
+      "args": [
+        {
+          "query": "VALUES (1), (2)"
+        }
+      ],
+      "upstreamFn": "bare VALUES statement",
+      "goFn": "sqlite: bare VALUES statement"
+    },
+    {
+      "id": "u-pragma-table-info",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)",
+            "PRAGMA table_info(t)"
+          ],
+          "query": "SELECT 1 AS ok"
+        }
+      ],
+      "upstreamFn": "PRAGMA table_info",
+      "goFn": "sqlite: PRAGMA table_info"
+    },
+    {
+      "id": "u-pragma-foreign-keys",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "PRAGMA foreign_keys = ON"
+          ],
+          "query": "SELECT 1 AS ok"
+        }
+      ],
+      "upstreamFn": "PRAGMA foreign_keys = ON",
+      "goFn": "sqlite: PRAGMA foreign_keys = ON"
+    },
+    {
+      "id": "u-pragma-user-version",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "PRAGMA user_version = 3"
+          ],
+          "query": "SELECT 1 AS ok"
+        }
+      ],
+      "upstreamFn": "PRAGMA user_version",
+      "goFn": "sqlite: PRAGMA user_version"
+    },
+    {
+      "id": "u-explain",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)",
+            "EXPLAIN SELECT id FROM t"
+          ],
+          "query": "SELECT 1 AS ok"
+        }
+      ],
+      "upstreamFn": "EXPLAIN",
+      "goFn": "sqlite: EXPLAIN"
+    },
+    {
+      "id": "u-explain-qp",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)",
+            "EXPLAIN QUERY PLAN SELECT id FROM t"
+          ],
+          "query": "SELECT 1 AS ok"
+        }
+      ],
+      "upstreamFn": "EXPLAIN QUERY PLAN",
+      "goFn": "sqlite: EXPLAIN QUERY PLAN"
+    },
+    {
+      "id": "u-analyze",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)",
+            "ANALYZE"
+          ],
+          "query": "SELECT 1 AS ok"
+        }
+      ],
+      "upstreamFn": "ANALYZE",
+      "goFn": "sqlite: ANALYZE"
+    },
+    {
+      "id": "u-vacuum",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)",
+            "VACUUM"
+          ],
+          "query": "SELECT 1 AS ok"
+        }
+      ],
+      "upstreamFn": "VACUUM",
+      "goFn": "sqlite: VACUUM"
+    },
+    {
+      "id": "u-attach",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "ATTACH DATABASE ':memory:' AS aux"
+          ],
+          "query": "SELECT 1 AS ok"
+        }
+      ],
+      "upstreamFn": "ATTACH DATABASE",
+      "goFn": "sqlite: ATTACH DATABASE"
+    },
+    {
+      "id": "u-sqlite-master",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT name AS n FROM sqlite_master WHERE type = 'table' ORDER BY n"
+        }
+      ],
+      "upstreamFn": "sqlite_master catalogue",
+      "goFn": "sqlite: sqlite_master catalogue"
+    },
+    {
+      "id": "u-group-by-expr",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT qty * 2 AS q2, count(*) AS c FROM t GROUP BY qty * 2 ORDER BY q2"
+        }
+      ],
+      "upstreamFn": "GROUP BY an expression",
+      "goFn": "sqlite: GROUP BY an expression"
+    },
+    {
+      "id": "u-distinct-multi",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT DISTINCT qty AS q, price AS p FROM t ORDER BY q, p"
+        }
+      ],
+      "upstreamFn": "SELECT DISTINCT over two columns",
+      "goFn": "sqlite: SELECT DISTINCT over two columns"
+    },
+    {
+      "id": "u-select-all-kw",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT ALL id AS id FROM t ORDER BY id"
+        }
+      ],
+      "upstreamFn": "SELECT ALL",
+      "goFn": "sqlite: SELECT ALL"
+    },
+    {
+      "id": "u-comment-line",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 1 AS v -- trailing comment"
+        }
+      ],
+      "upstreamFn": "-- line comment",
+      "goFn": "sqlite: -- line comment"
+    },
+    {
+      "id": "u-comment-block",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT /* inline */ 1 AS v"
+        }
+      ],
+      "upstreamFn": "/* block comment */",
+      "goFn": "sqlite: /* block comment */"
+    },
+    {
+      "id": "u-multi-values-select",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT column1 AS v FROM (VALUES (1),(2)) ORDER BY v"
+        }
+      ],
+      "upstreamFn": "FROM (VALUES ...)",
+      "goFn": "sqlite: FROM (VALUES ...)"
+    },
+    {
+      "id": "u-exists-expr",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT EXISTS (SELECT 1) AS v"
+        }
+      ],
+      "upstreamFn": "EXISTS in a SELECT list",
+      "goFn": "sqlite: EXISTS in a SELECT list"
+    },
+    {
+      "id": "u-filter-clause",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT count(*) FILTER (WHERE qty = 7) AS c FROM t"
+        }
+      ],
+      "upstreamFn": "aggregate FILTER clause",
+      "goFn": "sqlite: aggregate FILTER clause"
+    },
+    {
+      "id": "u-agg-over-window",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT sum(qty) OVER () AS s FROM t ORDER BY s"
+        }
+      ],
+      "upstreamFn": "aggregate used as a window function",
+      "goFn": "sqlite: aggregate used as a window function"
+    }
+  ]
+}

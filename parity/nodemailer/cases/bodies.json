@@ -1,0 +1,153 @@
+{
+  "group": "bodies",
+  "upstream": "nodemailer@6.9.16",
+  "cases": [
+    {
+      "id": "body-text-only",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.text",
+      "goFn": "nodemailer.Message.SetText",
+      "args": [{ "from": "ada@example.com", "to": ["b@example.com"], "text": "Just plain text." }]
+    },
+    {
+      "id": "body-html-only",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.html",
+      "goFn": "nodemailer.Message.SetHTML",
+      "args": [{ "from": "ada@example.com", "to": ["b@example.com"], "html": "<p>Just <b>HTML</b>.</p>" }]
+    },
+    {
+      "id": "body-text-and-html",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.text + mail.html",
+      "goFn": "nodemailer.Message.SetText + SetHTML",
+      "args": [
+        { "from": "ada@example.com", "to": ["b@example.com"], "text": "Plain version.", "html": "<p>Rich version.</p>" }
+      ],
+      "note": "expects multipart/alternative"
+    },
+    {
+      "id": "body-empty",
+      "fn": "buildMessage",
+      "upstreamFn": "(no body)",
+      "goFn": "nodemailer.Message.Build",
+      "args": [{ "from": "ada@example.com", "to": ["b@example.com"], "subject": "No body at all" }]
+    },
+    {
+      "id": "body-watch-html",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.watchHtml",
+      "goFn": "nodemailer.Message.SetWatchHTML",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "Plain version.",
+          "watchHtml": "<b>Watch version.</b>",
+          "html": "<p>Rich version.</p>"
+        }
+      ],
+      "note": "text/watch-html alternative; upstream orders text, watch-html, amp, html"
+    },
+    {
+      "id": "body-amp",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.amp",
+      "goFn": "nodemailer.Message.SetAMP",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "Plain version.",
+          "amp": "<!doctype html><html amp><body>AMP</body></html>",
+          "html": "<p>Rich version.</p>"
+        }
+      ],
+      "note": "text/x-amp-html alternative"
+    },
+    {
+      "id": "body-watch-and-amp",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.watchHtml + mail.amp",
+      "goFn": "nodemailer.Message.SetWatchHTML + SetAMP",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "Plain version.",
+          "watchHtml": "<b>Watch version.</b>",
+          "amp": "<!doctype html><html amp><body>AMP</body></html>",
+          "html": "<p>Rich version.</p>"
+        }
+      ]
+    },
+    {
+      "id": "body-custom-alternative",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.alternatives",
+      "goFn": "nodemailer.Message.AddAlternative",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "Plain version.",
+          "alternatives": [{ "contentType": "text/x-web-markdown", "content": "**Markdown** version." }]
+        }
+      ]
+    },
+    {
+      "id": "body-two-alternatives",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.alternatives",
+      "goFn": "nodemailer.Message.AddAlternative",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "Plain version.",
+          "html": "<p>Rich version.</p>",
+          "alternatives": [
+            { "contentType": "text/x-web-markdown", "content": "**Markdown** version." },
+            { "contentType": "application/json", "content": "{\"k\":1}" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "body-ical-event",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.icalEvent",
+      "goFn": "nodemailer.Message.ICalEvent",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "See invite.",
+          "icalEvent": {
+            "method": "REQUEST",
+            "filename": "invite.ics",
+            "content": "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nUID:parity-1\r\nDTSTART:20260102T150405Z\r\nSUMMARY:Parity review\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n"
+          }
+        }
+      ]
+    },
+    {
+      "id": "body-text-multiline",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.text",
+      "goFn": "nodemailer.Message.SetText",
+      "args": [
+        { "from": "ada@example.com", "to": ["b@example.com"], "text": "line one\r\nline two\r\nline three" }
+      ]
+    },
+    {
+      "id": "body-html-non-ascii",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.html",
+      "goFn": "nodemailer.Message.SetHTML",
+      "args": [
+        { "from": "ada@example.com", "to": ["b@example.com"], "html": "<p>Grüße aus München — 日本語</p>" }
+      ]
+    }
+  ]
+}

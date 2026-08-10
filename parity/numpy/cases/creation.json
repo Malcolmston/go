@@ -1,0 +1,553 @@
+{
+  "group": "creation",
+  "upstream": "numpy@2.2.6",
+  "cases": [
+    {
+      "id": "zeros-2x3",
+      "fn": "zeros",
+      "args": [
+        [
+          2,
+          3
+        ]
+      ],
+      "upstreamFn": "numpy.zeros",
+      "goFn": "numpy.Zeros"
+    },
+    {
+      "id": "zeros-1d",
+      "fn": "zeros",
+      "args": [
+        [
+          5
+        ]
+      ],
+      "upstreamFn": "numpy.zeros",
+      "goFn": "numpy.Zeros"
+    },
+    {
+      "id": "ones-3d",
+      "fn": "ones",
+      "args": [
+        [
+          2,
+          2,
+          2
+        ]
+      ],
+      "upstreamFn": "numpy.ones",
+      "goFn": "numpy.Ones"
+    },
+    {
+      "id": "ones-1d",
+      "fn": "ones",
+      "args": [
+        [
+          3
+        ]
+      ],
+      "upstreamFn": "numpy.ones",
+      "goFn": "numpy.Ones"
+    },
+    {
+      "id": "full-2x3",
+      "fn": "full",
+      "args": [
+        [
+          2,
+          3
+        ],
+        7.5
+      ],
+      "upstreamFn": "numpy.full",
+      "goFn": "numpy.Full"
+    },
+    {
+      "id": "full-neg",
+      "fn": "full",
+      "args": [
+        [
+          4
+        ],
+        -2.25
+      ],
+      "upstreamFn": "numpy.full",
+      "goFn": "numpy.Full"
+    },
+    {
+      "id": "arange-0-10-1",
+      "fn": "arange",
+      "args": [
+        0,
+        10,
+        1
+      ],
+      "upstreamFn": "numpy.arange",
+      "goFn": "numpy.Arange"
+    },
+    {
+      "id": "arange-frac",
+      "fn": "arange",
+      "args": [
+        1,
+        2,
+        0.25
+      ],
+      "upstreamFn": "numpy.arange",
+      "goFn": "numpy.Arange"
+    },
+    {
+      "id": "arange-neg-step",
+      "fn": "arange",
+      "args": [
+        5,
+        1,
+        -1
+      ],
+      "upstreamFn": "numpy.arange",
+      "goFn": "numpy.Arange"
+    },
+    {
+      "id": "arange-empty",
+      "fn": "arange",
+      "args": [
+        5,
+        5,
+        1
+      ],
+      "upstreamFn": "numpy.arange",
+      "goFn": "numpy.Arange"
+    },
+    {
+      "id": "arange-wrong-dir",
+      "fn": "arange",
+      "args": [
+        0,
+        10,
+        -1
+      ],
+      "upstreamFn": "numpy.arange",
+      "goFn": "numpy.Arange",
+      "note": "empty result, not an error"
+    },
+    {
+      "id": "arange-zero-step",
+      "fn": "arange",
+      "args": [
+        0,
+        10,
+        0
+      ],
+      "upstreamFn": "numpy.arange",
+      "goFn": "numpy.Arange",
+      "note": "must FAIL on both sides"
+    },
+    {
+      "id": "linspace-endpoint",
+      "fn": "linspace",
+      "args": [
+        0,
+        1,
+        5,
+        true
+      ],
+      "upstreamFn": "numpy.linspace",
+      "goFn": "numpy.Linspace"
+    },
+    {
+      "id": "linspace-open",
+      "fn": "linspace",
+      "args": [
+        0,
+        1,
+        5,
+        false
+      ],
+      "upstreamFn": "numpy.linspace",
+      "goFn": "numpy.Linspace"
+    },
+    {
+      "id": "linspace-one",
+      "fn": "linspace",
+      "args": [
+        2,
+        3,
+        1,
+        true
+      ],
+      "upstreamFn": "numpy.linspace",
+      "goFn": "numpy.Linspace"
+    },
+    {
+      "id": "linspace-zero",
+      "fn": "linspace",
+      "args": [
+        2,
+        3,
+        0,
+        true
+      ],
+      "upstreamFn": "numpy.linspace",
+      "goFn": "numpy.Linspace"
+    },
+    {
+      "id": "linspace-negative-num",
+      "fn": "linspace",
+      "args": [
+        0,
+        1,
+        -3,
+        true
+      ],
+      "upstreamFn": "numpy.linspace",
+      "goFn": "numpy.Linspace",
+      "note": "must FAIL on both sides"
+    },
+    {
+      "id": "eye-3",
+      "fn": "eye",
+      "args": [
+        3,
+        3,
+        0
+      ],
+      "upstreamFn": "numpy.eye",
+      "goFn": "numpy.Eye"
+    },
+    {
+      "id": "eye-3x4-k1",
+      "fn": "eye",
+      "args": [
+        3,
+        4,
+        1
+      ],
+      "upstreamFn": "numpy.eye",
+      "goFn": "numpy.Eye"
+    },
+    {
+      "id": "eye-4x3-km1",
+      "fn": "eye",
+      "args": [
+        4,
+        3,
+        -1
+      ],
+      "upstreamFn": "numpy.eye",
+      "goFn": "numpy.Eye"
+    },
+    {
+      "id": "identity-4",
+      "fn": "identity",
+      "args": [
+        4
+      ],
+      "upstreamFn": "numpy.identity",
+      "goFn": "numpy.Identity"
+    },
+    {
+      "id": "zeros-like",
+      "fn": "zeros_like",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.zeros_like",
+      "goFn": "numpy.ZerosLike"
+    },
+    {
+      "id": "ones-like",
+      "fn": "ones_like",
+      "args": [
+        {
+          "arr": [
+            [
+              [
+                0.0,
+                1.0,
+                2.0,
+                3.0
+              ],
+              [
+                4.0,
+                5.0,
+                6.0,
+                7.0
+              ],
+              [
+                8.0,
+                9.0,
+                10.0,
+                11.0
+              ]
+            ],
+            [
+              [
+                12.0,
+                13.0,
+                14.0,
+                15.0
+              ],
+              [
+                16.0,
+                17.0,
+                18.0,
+                19.0
+              ],
+              [
+                20.0,
+                21.0,
+                22.0,
+                23.0
+              ]
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.ones_like",
+      "goFn": "numpy.OnesLike"
+    },
+    {
+      "id": "from-nested-2d",
+      "fn": "from_nested",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.array",
+      "goFn": "numpy.FromNested"
+    },
+    {
+      "id": "from-nested-3d",
+      "fn": "from_nested",
+      "args": [
+        {
+          "arr": [
+            [
+              [
+                0.0,
+                1.0,
+                2.0,
+                3.0
+              ],
+              [
+                4.0,
+                5.0,
+                6.0,
+                7.0
+              ],
+              [
+                8.0,
+                9.0,
+                10.0,
+                11.0
+              ]
+            ],
+            [
+              [
+                12.0,
+                13.0,
+                14.0,
+                15.0
+              ],
+              [
+                16.0,
+                17.0,
+                18.0,
+                19.0
+              ],
+              [
+                20.0,
+                21.0,
+                22.0,
+                23.0
+              ]
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.array",
+      "goFn": "numpy.FromNested"
+    },
+    {
+      "id": "shape-3d",
+      "fn": "shape",
+      "args": [
+        {
+          "arr": [
+            [
+              [
+                0.0,
+                1.0,
+                2.0,
+                3.0
+              ],
+              [
+                4.0,
+                5.0,
+                6.0,
+                7.0
+              ],
+              [
+                8.0,
+                9.0,
+                10.0,
+                11.0
+              ]
+            ],
+            [
+              [
+                12.0,
+                13.0,
+                14.0,
+                15.0
+              ],
+              [
+                16.0,
+                17.0,
+                18.0,
+                19.0
+              ],
+              [
+                20.0,
+                21.0,
+                22.0,
+                23.0
+              ]
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.ndarray.shape",
+      "goFn": "numpy.NDArray.Shape"
+    },
+    {
+      "id": "ndim-3d",
+      "fn": "ndim",
+      "args": [
+        {
+          "arr": [
+            [
+              [
+                0.0,
+                1.0,
+                2.0,
+                3.0
+              ],
+              [
+                4.0,
+                5.0,
+                6.0,
+                7.0
+              ],
+              [
+                8.0,
+                9.0,
+                10.0,
+                11.0
+              ]
+            ],
+            [
+              [
+                12.0,
+                13.0,
+                14.0,
+                15.0
+              ],
+              [
+                16.0,
+                17.0,
+                18.0,
+                19.0
+              ],
+              [
+                20.0,
+                21.0,
+                22.0,
+                23.0
+              ]
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.ndarray.ndim",
+      "goFn": "numpy.NDArray.Ndim"
+    },
+    {
+      "id": "size-3d",
+      "fn": "size",
+      "args": [
+        {
+          "arr": [
+            [
+              [
+                0.0,
+                1.0,
+                2.0,
+                3.0
+              ],
+              [
+                4.0,
+                5.0,
+                6.0,
+                7.0
+              ],
+              [
+                8.0,
+                9.0,
+                10.0,
+                11.0
+              ]
+            ],
+            [
+              [
+                12.0,
+                13.0,
+                14.0,
+                15.0
+              ],
+              [
+                16.0,
+                17.0,
+                18.0,
+                19.0
+              ],
+              [
+                20.0,
+                21.0,
+                22.0,
+                23.0
+              ]
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.ndarray.size",
+      "goFn": "numpy.NDArray.Size"
+    }
+  ]
+}

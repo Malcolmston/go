@@ -1,0 +1,1052 @@
+{
+  "group": "sorting",
+  "upstream": "numpy@2.2.6",
+  "cases": [
+    {
+      "id": "sort-1d",
+      "fn": "sort",
+      "args": [
+        {
+          "arr": [
+            5.0,
+            3.0,
+            8.0,
+            1.0,
+            9.0,
+            2.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.sort",
+      "goFn": "numpy.NDArray.Sort"
+    },
+    {
+      "id": "sort-dupes",
+      "fn": "sort",
+      "args": [
+        {
+          "arr": [
+            4.0,
+            1.0,
+            7.0,
+            1.0,
+            3.0,
+            9.0,
+            3.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.sort",
+      "goFn": "numpy.NDArray.Sort"
+    },
+    {
+      "id": "sort-2d-flat",
+      "fn": "sort",
+      "args": [
+        {
+          "arr": [
+            [
+              2.0,
+              -1.0,
+              0.5
+            ],
+            [
+              3.0,
+              4.0,
+              -2.0
+            ],
+            [
+              1.0,
+              0.0,
+              7.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.sort",
+      "goFn": "numpy.NDArray.Sort",
+      "note": "the port always flattens; compared against numpy.sort(a, axis=None)"
+    },
+    {
+      "id": "sort-with-nan",
+      "fn": "sort",
+      "args": [
+        {
+          "arr": [
+            3.0,
+            "NaN",
+            1.0,
+            2.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.sort",
+      "goFn": "numpy.NDArray.Sort",
+      "note": "NaN sorts last on both sides"
+    },
+    {
+      "id": "sort-neg-zero",
+      "fn": "sort",
+      "args": [
+        {
+          "arr": [
+            1.0,
+            -0.0,
+            0.0,
+            -1.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.sort",
+      "goFn": "numpy.NDArray.Sort"
+    },
+    {
+      "id": "argsort-1d",
+      "fn": "argsort",
+      "args": [
+        {
+          "arr": [
+            5.0,
+            3.0,
+            8.0,
+            1.0,
+            9.0,
+            2.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.argsort",
+      "goFn": "numpy.NDArray.Argsort"
+    },
+    {
+      "id": "argsort-stable-dupes",
+      "fn": "argsort",
+      "args": [
+        {
+          "arr": [
+            4.0,
+            1.0,
+            7.0,
+            1.0,
+            3.0,
+            9.0,
+            3.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.argsort",
+      "goFn": "numpy.NDArray.Argsort",
+      "note": "stable: equal elements keep their input order"
+    },
+    {
+      "id": "argsort-2d-flat",
+      "fn": "argsort",
+      "args": [
+        {
+          "arr": [
+            [
+              2.0,
+              -1.0,
+              0.5
+            ],
+            [
+              3.0,
+              4.0,
+              -2.0
+            ],
+            [
+              1.0,
+              0.0,
+              7.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.argsort",
+      "goFn": "numpy.NDArray.Argsort"
+    },
+    {
+      "id": "argmax-1d",
+      "fn": "argmax",
+      "args": [
+        {
+          "arr": [
+            5.0,
+            3.0,
+            8.0,
+            1.0,
+            9.0,
+            2.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.argmax",
+      "goFn": "numpy.NDArray.Argmax"
+    },
+    {
+      "id": "argmax-ties",
+      "fn": "argmax",
+      "args": [
+        {
+          "arr": [
+            1.0,
+            9.0,
+            9.0,
+            2.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.argmax",
+      "goFn": "numpy.NDArray.Argmax",
+      "note": "first maximum wins"
+    },
+    {
+      "id": "argmax-2d-flat",
+      "fn": "argmax",
+      "args": [
+        {
+          "arr": [
+            [
+              2.0,
+              -1.0,
+              0.5
+            ],
+            [
+              3.0,
+              4.0,
+              -2.0
+            ],
+            [
+              1.0,
+              0.0,
+              7.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.argmax",
+      "goFn": "numpy.NDArray.Argmax"
+    },
+    {
+      "id": "argmin-1d",
+      "fn": "argmin",
+      "args": [
+        {
+          "arr": [
+            5.0,
+            3.0,
+            8.0,
+            1.0,
+            9.0,
+            2.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.argmin",
+      "goFn": "numpy.NDArray.Argmin"
+    },
+    {
+      "id": "argmin-ties",
+      "fn": "argmin",
+      "args": [
+        {
+          "arr": [
+            5.0,
+            1.0,
+            1.0,
+            7.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.argmin",
+      "goFn": "numpy.NDArray.Argmin"
+    },
+    {
+      "id": "argmax-empty",
+      "fn": "argmax",
+      "args": [
+        {
+          "arr": []
+        }
+      ],
+      "upstreamFn": "numpy.argmax",
+      "goFn": "numpy.NDArray.Argmax",
+      "note": "must FAIL on both sides"
+    },
+    {
+      "id": "argmin-empty",
+      "fn": "argmin",
+      "args": [
+        {
+          "arr": []
+        }
+      ],
+      "upstreamFn": "numpy.argmin",
+      "goFn": "numpy.NDArray.Argmin",
+      "note": "must FAIL on both sides"
+    },
+    {
+      "id": "unique-1d",
+      "fn": "unique",
+      "args": [
+        {
+          "arr": [
+            4.0,
+            1.0,
+            7.0,
+            1.0,
+            3.0,
+            9.0,
+            3.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.unique",
+      "goFn": "numpy.NDArray.Unique"
+    },
+    {
+      "id": "unique-2d",
+      "fn": "unique",
+      "args": [
+        {
+          "arr": [
+            [
+              3.0,
+              1.0
+            ],
+            [
+              1.0,
+              3.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.unique",
+      "goFn": "numpy.NDArray.Unique"
+    },
+    {
+      "id": "unique-negzero",
+      "fn": "unique",
+      "args": [
+        {
+          "arr": [
+            0.0,
+            -0.0,
+            1.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.unique",
+      "goFn": "numpy.NDArray.Unique"
+    },
+    {
+      "id": "searchsorted-mid",
+      "fn": "searchsorted",
+      "args": [
+        {
+          "arr": [
+            1.0,
+            3.0,
+            5.0,
+            7.0
+          ]
+        },
+        4.0
+      ],
+      "upstreamFn": "numpy.searchsorted",
+      "goFn": "numpy.NDArray.SearchSorted"
+    },
+    {
+      "id": "searchsorted-exact",
+      "fn": "searchsorted",
+      "args": [
+        {
+          "arr": [
+            1.0,
+            3.0,
+            3.0,
+            7.0
+          ]
+        },
+        3.0
+      ],
+      "upstreamFn": "numpy.searchsorted",
+      "goFn": "numpy.NDArray.SearchSorted",
+      "note": "side=left"
+    },
+    {
+      "id": "searchsorted-below",
+      "fn": "searchsorted",
+      "args": [
+        {
+          "arr": [
+            1.0,
+            3.0,
+            5.0
+          ]
+        },
+        0.0
+      ],
+      "upstreamFn": "numpy.searchsorted",
+      "goFn": "numpy.NDArray.SearchSorted"
+    },
+    {
+      "id": "searchsorted-above",
+      "fn": "searchsorted",
+      "args": [
+        {
+          "arr": [
+            1.0,
+            3.0,
+            5.0
+          ]
+        },
+        99.0
+      ],
+      "upstreamFn": "numpy.searchsorted",
+      "goFn": "numpy.NDArray.SearchSorted"
+    },
+    {
+      "id": "where-basic",
+      "fn": "where",
+      "args": [
+        {
+          "arr": [
+            1.0,
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        {
+          "arr": [
+            10.0,
+            20.0,
+            30.0,
+            40.0
+          ]
+        },
+        {
+          "arr": [
+            -1.0,
+            -2.0,
+            -3.0,
+            -4.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.where",
+      "goFn": "numpy.Where"
+    },
+    {
+      "id": "where-2d",
+      "fn": "where",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              0.0,
+              1.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0
+            ]
+          ]
+        },
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        {
+          "arr": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.where",
+      "goFn": "numpy.Where"
+    },
+    {
+      "id": "where-mismatch",
+      "fn": "where",
+      "args": [
+        {
+          "arr": [
+            1.0,
+            0.0
+          ]
+        },
+        {
+          "arr": [
+            1.0,
+            2.0,
+            3.0
+          ]
+        },
+        {
+          "arr": [
+            4.0,
+            5.0,
+            6.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.where",
+      "goFn": "numpy.Where",
+      "note": "must FAIL on both sides"
+    },
+    {
+      "id": "mask-select-1d",
+      "fn": "mask_select",
+      "args": [
+        {
+          "arr": [
+            5.0,
+            3.0,
+            8.0,
+            1.0,
+            9.0,
+            2.0
+          ]
+        },
+        {
+          "arr": [
+            1.0,
+            0.0,
+            1.0,
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.ndarray.__getitem__",
+      "goFn": "numpy.NDArray.MaskSelect"
+    },
+    {
+      "id": "mask-select-2d",
+      "fn": "mask_select",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        {
+          "arr": [
+            [
+              1.0,
+              0.0,
+              1.0
+            ],
+            [
+              0.0,
+              1.0,
+              1.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.ndarray.__getitem__",
+      "goFn": "numpy.NDArray.MaskSelect"
+    },
+    {
+      "id": "mask-select-broadcast",
+      "fn": "mask_select",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        {
+          "arr": [
+            1.0,
+            0.0,
+            1.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.ndarray.__getitem__",
+      "goFn": "numpy.NDArray.MaskSelect"
+    },
+    {
+      "id": "greater",
+      "fn": "greater",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        {
+          "arr": [
+            [
+              2.0,
+              2.0,
+              2.0
+            ],
+            [
+              5.0,
+              5.0,
+              5.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.greater",
+      "goFn": "numpy.NDArray.Greater"
+    },
+    {
+      "id": "greater-equal",
+      "fn": "greater_equal",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        {
+          "arr": [
+            [
+              2.0,
+              2.0,
+              2.0
+            ],
+            [
+              5.0,
+              5.0,
+              5.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.greater_equal",
+      "goFn": "numpy.NDArray.GreaterEqual"
+    },
+    {
+      "id": "less",
+      "fn": "less",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        {
+          "arr": [
+            3.0,
+            3.0,
+            3.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.less",
+      "goFn": "numpy.NDArray.Less"
+    },
+    {
+      "id": "less-equal",
+      "fn": "less_equal",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        {
+          "arr": [
+            3.0,
+            3.0,
+            3.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.less_equal",
+      "goFn": "numpy.NDArray.LessEqual"
+    },
+    {
+      "id": "equal-mask",
+      "fn": "equal_mask",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        {
+          "arr": [
+            [
+              1.0,
+              0.0,
+              3.0
+            ],
+            [
+              0.0,
+              5.0,
+              0.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.equal",
+      "goFn": "numpy.NDArray.EqualMask"
+    },
+    {
+      "id": "not-equal-mask",
+      "fn": "not_equal_mask",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        {
+          "arr": [
+            [
+              1.0,
+              0.0,
+              3.0
+            ],
+            [
+              0.0,
+              5.0,
+              0.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.not_equal",
+      "goFn": "numpy.NDArray.NotEqualMask"
+    },
+    {
+      "id": "greater-scalar",
+      "fn": "greater_scalar",
+      "args": [
+        {
+          "arr": [
+            3.0,
+            -1.0,
+            4.0,
+            -1.5
+          ]
+        },
+        0.0
+      ],
+      "upstreamFn": "numpy.greater",
+      "goFn": "numpy.NDArray.GreaterScalar"
+    },
+    {
+      "id": "less-scalar",
+      "fn": "less_scalar",
+      "args": [
+        {
+          "arr": [
+            3.0,
+            -1.0,
+            4.0,
+            -1.5
+          ]
+        },
+        0.0
+      ],
+      "upstreamFn": "numpy.less",
+      "goFn": "numpy.NDArray.LessScalar"
+    },
+    {
+      "id": "equal-scalar",
+      "fn": "equal_scalar",
+      "args": [
+        {
+          "arr": [
+            3.0,
+            -1.0,
+            4.0,
+            -1.5
+          ]
+        },
+        4.0
+      ],
+      "upstreamFn": "numpy.equal",
+      "goFn": "numpy.NDArray.EqualScalar"
+    },
+    {
+      "id": "equal-mask-nan",
+      "fn": "equal_mask",
+      "args": [
+        {
+          "arr": [
+            "NaN"
+          ]
+        },
+        {
+          "arr": [
+            "NaN"
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.equal",
+      "goFn": "numpy.NDArray.EqualMask",
+      "note": "NaN != NaN"
+    },
+    {
+      "id": "array-equal-true",
+      "fn": "array_equal",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.array_equal",
+      "goFn": "numpy.NDArray.Equal"
+    },
+    {
+      "id": "array-equal-shape",
+      "fn": "array_equal",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        },
+        {
+          "arr": [
+            [
+              1.0,
+              2.0
+            ],
+            [
+              3.0,
+              4.0
+            ],
+            [
+              5.0,
+              6.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.array_equal",
+      "goFn": "numpy.NDArray.Equal"
+    },
+    {
+      "id": "allclose-true",
+      "fn": "allclose",
+      "args": [
+        {
+          "arr": [
+            1.0,
+            2.0
+          ]
+        },
+        {
+          "arr": [
+            1.0000001,
+            2.0
+          ]
+        },
+        1e-05
+      ],
+      "upstreamFn": "numpy.allclose",
+      "goFn": "numpy.NDArray.AllClose"
+    },
+    {
+      "id": "allclose-false",
+      "fn": "allclose",
+      "args": [
+        {
+          "arr": [
+            1.0,
+            2.0
+          ]
+        },
+        {
+          "arr": [
+            1.1,
+            2.0
+          ]
+        },
+        1e-05
+      ],
+      "upstreamFn": "numpy.allclose",
+      "goFn": "numpy.NDArray.AllClose"
+    },
+    {
+      "id": "argsort-with-nan",
+      "fn": "argsort",
+      "args": [
+        {
+          "arr": [
+            3.0,
+            "NaN",
+            1.0,
+            2.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.argsort",
+      "goFn": "numpy.NDArray.Argsort",
+      "note": "NaN must be ordered last"
+    },
+    {
+      "id": "unique-with-nan",
+      "fn": "unique",
+      "args": [
+        {
+          "arr": [
+            2.0,
+            "NaN",
+            1.0,
+            "NaN"
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.unique",
+      "goFn": "numpy.NDArray.Unique",
+      "note": "numpy collapses NaN to a single trailing entry"
+    },
+    {
+      "id": "argmax-with-nan",
+      "fn": "argmax",
+      "args": [
+        {
+          "arr": [
+            1.0,
+            "NaN",
+            3.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.argmax",
+      "goFn": "numpy.NDArray.Argmax",
+      "note": "numpy.argmax returns the NaN position"
+    }
+  ]
+}

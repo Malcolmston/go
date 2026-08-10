@@ -1,0 +1,29 @@
+{
+  "group": "strings",
+  "upstream": "expect@29.7.0",
+  "note": "toMatch (string = substring, regexp = pattern) and toContain on strings",
+  "cases": [
+    {"id": "match-regexp-hit", "fn": "toMatch", "actual": "hello world", "args": [{"$": "regexp", "source": "^hello"}], "upstreamFn": "expect().toMatch", "goFn": "jest.Matcher.ToMatch"},
+    {"id": "match-regexp-miss", "fn": "toMatch", "actual": "hello world", "args": [{"$": "regexp", "source": "^world"}], "upstreamFn": "expect().toMatch", "goFn": "jest.Matcher.ToMatch"},
+    {"id": "match-regexp-anchor-end", "fn": "toMatch", "actual": "hello world", "args": [{"$": "regexp", "source": "world$"}], "upstreamFn": "expect().toMatch", "goFn": "jest.Matcher.ToMatch"},
+    {"id": "match-regexp-alternation", "fn": "toMatch", "actual": "cat", "args": [{"$": "regexp", "source": "^(cat|dog)$"}], "upstreamFn": "expect().toMatch", "goFn": "jest.Matcher.ToMatch"},
+    {"id": "match-regexp-class", "fn": "toMatch", "actual": "abc123", "args": [{"$": "regexp", "source": "[0-9]{3}$"}], "upstreamFn": "expect().toMatch", "goFn": "jest.Matcher.ToMatch"},
+    {"id": "match-regexp-ignorecase", "fn": "toMatch", "actual": "HELLO", "args": [{"$": "regexp", "source": "hello", "flags": "i"}], "deviation": "the port's ToMatch takes a pattern string with no flags argument, so the i flag is dropped", "upstreamFn": "expect().toMatch", "goFn": "jest.Matcher.ToMatch"},
+    {"id": "match-regexp-empty", "fn": "toMatch", "actual": "anything", "args": [{"$": "regexp", "source": ""}], "upstreamFn": "expect().toMatch", "goFn": "jest.Matcher.ToMatch"},
+    {"id": "match-string-substring-hit", "fn": "toMatch", "actual": "hello world", "args": ["lo wo"], "note": "a string argument is a plain substring check in JS", "upstreamFn": "expect().toMatch", "goFn": "jest.Matcher.ToMatch"},
+    {"id": "match-string-substring-miss", "fn": "toMatch", "actual": "hello world", "args": ["nope"], "upstreamFn": "expect().toMatch", "goFn": "jest.Matcher.ToMatch"},
+    {"id": "match-string-with-metachars", "fn": "toMatch", "actual": "a.c", "args": ["a.c"], "note": "JS treats a string argument literally; the port compiles it as a regexp", "upstreamFn": "expect().toMatch", "goFn": "jest.Matcher.ToMatch"},
+    {"id": "match-string-metachars-only-regexp-would-match", "fn": "toMatch", "actual": "abc", "args": ["a.c"], "note": "JS: literal substring \"a.c\" is absent, so false; a regexp engine would match", "upstreamFn": "expect().toMatch", "goFn": "jest.Matcher.ToMatch"},
+    {"id": "match-string-invalid-regexp", "fn": "toMatch", "actual": "a(b", "args": ["a(b"], "note": "an unbalanced paren is a fine substring in JS but not a compilable pattern", "upstreamFn": "expect().toMatch", "goFn": "jest.Matcher.ToMatch"},
+    {"id": "match-empty-actual", "fn": "toMatch", "actual": "", "args": [""], "upstreamFn": "expect().toMatch", "goFn": "jest.Matcher.ToMatch"},
+    {"id": "match-not-miss", "fn": "toMatch", "not": true, "actual": "hello", "args": [{"$": "regexp", "source": "zzz"}], "upstreamFn": "expect().not.toMatch", "goFn": "jest.Matcher.Not().ToMatch"},
+    {"id": "match-non-string-actual", "fn": "toMatch", "actual": 123, "args": [{"$": "regexp", "source": "2"}], "note": "JS rejects a non-string receiver; the port stringifies it with %v", "upstreamFn": "expect().toMatch", "goFn": "jest.Matcher.ToMatch"},
+
+    {"id": "contain-str-hit", "fn": "toContain", "actual": "hello world", "args": ["lo wo"], "upstreamFn": "expect().toContain", "goFn": "jest.Matcher.ToContain"},
+    {"id": "contain-str-miss", "fn": "toContain", "actual": "hello world", "args": ["nope"], "upstreamFn": "expect().toContain", "goFn": "jest.Matcher.ToContain"},
+    {"id": "contain-str-empty-needle", "fn": "toContain", "actual": "hello", "args": [""], "upstreamFn": "expect().toContain", "goFn": "jest.Matcher.ToContain"},
+    {"id": "contain-str-full", "fn": "toContain", "actual": "hello", "args": ["hello"], "upstreamFn": "expect().toContain", "goFn": "jest.Matcher.ToContain"},
+    {"id": "contain-str-unicode", "fn": "toContain", "actual": "naïve café", "args": ["ï"], "upstreamFn": "expect().toContain", "goFn": "jest.Matcher.ToContain"},
+    {"id": "contain-str-not-miss", "fn": "toContain", "not": true, "actual": "hello", "args": ["zzz"], "upstreamFn": "expect().not.toContain", "goFn": "jest.Matcher.Not().ToContain"}
+  ]
+}

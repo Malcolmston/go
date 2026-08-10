@@ -1,0 +1,996 @@
+{
+  "group": "asymmetric",
+  "upstream": "expect@29.7.0",
+  "note": "the asymmetric matchers, exercised through toEqual (and toBeInstanceOf for the class-shaped ones)",
+  "cases": [
+    {
+      "id": "any-string-hit",
+      "fn": "toEqual",
+      "actual": "hi",
+      "args": [
+        {
+          "$": "any",
+          "type": "String"
+        }
+      ],
+      "upstreamFn": "expect.any",
+      "goFn": "jest.Any"
+    },
+    {
+      "id": "any-string-miss",
+      "fn": "toEqual",
+      "actual": 1,
+      "args": [
+        {
+          "$": "any",
+          "type": "String"
+        }
+      ],
+      "upstreamFn": "expect.any",
+      "goFn": "jest.Any"
+    },
+    {
+      "id": "any-number-hit",
+      "fn": "toEqual",
+      "actual": 3.5,
+      "args": [
+        {
+          "$": "any",
+          "type": "Number"
+        }
+      ],
+      "upstreamFn": "expect.any",
+      "goFn": "jest.Any"
+    },
+    {
+      "id": "any-number-nan",
+      "fn": "toEqual",
+      "actual": {
+        "$": "nan"
+      },
+      "args": [
+        {
+          "$": "any",
+          "type": "Number"
+        }
+      ],
+      "note": "NaN is still typeof number",
+      "upstreamFn": "expect.any",
+      "goFn": "jest.Any"
+    },
+    {
+      "id": "any-boolean-hit",
+      "fn": "toEqual",
+      "actual": false,
+      "args": [
+        {
+          "$": "any",
+          "type": "Boolean"
+        }
+      ],
+      "upstreamFn": "expect.any",
+      "goFn": "jest.Any"
+    },
+    {
+      "id": "any-array-hit",
+      "fn": "toEqual",
+      "actual": [
+        1
+      ],
+      "args": [
+        {
+          "$": "any",
+          "type": "Array"
+        }
+      ],
+      "upstreamFn": "expect.any",
+      "goFn": "jest.Any"
+    },
+    {
+      "id": "any-object-hit",
+      "fn": "toEqual",
+      "actual": {
+        "a": 1
+      },
+      "args": [
+        {
+          "$": "any",
+          "type": "Object"
+        }
+      ],
+      "upstreamFn": "expect.any",
+      "goFn": "jest.Any"
+    },
+    {
+      "id": "any-object-on-array",
+      "fn": "toEqual",
+      "actual": [
+        1
+      ],
+      "args": [
+        {
+          "$": "any",
+          "type": "Object"
+        }
+      ],
+      "note": "an array is an instanceof Object in JS but []any is not assignable to map[string]any in Go",
+      "upstreamFn": "expect.any",
+      "goFn": "jest.Any"
+    },
+    {
+      "id": "any-error-hit",
+      "fn": "toEqual",
+      "actual": {
+        "$": "error",
+        "ctor": "Error",
+        "message": "x"
+      },
+      "args": [
+        {
+          "$": "any",
+          "type": "Error"
+        }
+      ],
+      "upstreamFn": "expect.any",
+      "goFn": "jest.Any"
+    },
+    {
+      "id": "any-error-on-typeerror",
+      "fn": "toEqual",
+      "actual": {
+        "$": "error",
+        "ctor": "TypeError",
+        "message": "x"
+      },
+      "args": [
+        {
+          "$": "any",
+          "type": "Error"
+        }
+      ],
+      "deviation": "Any takes a sample value, so it compares concrete types; a TypeError is not assignable to the sample's *errors.errorString",
+      "upstreamFn": "expect.any",
+      "goFn": "jest.Any"
+    },
+    {
+      "id": "any-date-hit",
+      "fn": "toEqual",
+      "actual": {
+        "$": "date",
+        "iso": "2020-01-01T00:00:00.000Z"
+      },
+      "args": [
+        {
+          "$": "any",
+          "type": "Date"
+        }
+      ],
+      "upstreamFn": "expect.any",
+      "goFn": "jest.Any"
+    },
+    {
+      "id": "any-nested-in-object",
+      "fn": "toEqual",
+      "actual": {
+        "id": 7,
+        "name": "x"
+      },
+      "args": [
+        {
+          "id": {
+            "$": "any",
+            "type": "Number"
+          },
+          "name": {
+            "$": "any",
+            "type": "String"
+          }
+        }
+      ],
+      "upstreamFn": "expect.any",
+      "goFn": "jest.Any"
+    },
+    {
+      "id": "any-nested-in-array",
+      "fn": "toEqual",
+      "actual": [
+        1,
+        "a"
+      ],
+      "args": [
+        [
+          {
+            "$": "any",
+            "type": "Number"
+          },
+          {
+            "$": "any",
+            "type": "String"
+          }
+        ]
+      ],
+      "upstreamFn": "expect.any",
+      "goFn": "jest.Any"
+    },
+    {
+      "id": "any-null-actual",
+      "fn": "toEqual",
+      "actual": null,
+      "args": [
+        {
+          "$": "any",
+          "type": "Object"
+        }
+      ],
+      "upstreamFn": "expect.any",
+      "goFn": "jest.Any"
+    },
+    {
+      "id": "anything-number",
+      "fn": "toEqual",
+      "actual": 0,
+      "args": [
+        {
+          "$": "anything"
+        }
+      ],
+      "upstreamFn": "expect.anything",
+      "goFn": "jest.Anything"
+    },
+    {
+      "id": "anything-empty-str",
+      "fn": "toEqual",
+      "actual": "",
+      "args": [
+        {
+          "$": "anything"
+        }
+      ],
+      "upstreamFn": "expect.anything",
+      "goFn": "jest.Anything"
+    },
+    {
+      "id": "anything-null",
+      "fn": "toEqual",
+      "actual": null,
+      "note": "anything() rejects null and undefined",
+      "args": [
+        {
+          "$": "anything"
+        }
+      ],
+      "upstreamFn": "expect.anything",
+      "goFn": "jest.Anything"
+    },
+    {
+      "id": "anything-undefined",
+      "fn": "toEqual",
+      "actual": {
+        "$": "undefined"
+      },
+      "args": [
+        {
+          "$": "anything"
+        }
+      ],
+      "upstreamFn": "expect.anything",
+      "goFn": "jest.Anything"
+    },
+    {
+      "id": "anything-nested",
+      "fn": "toEqual",
+      "actual": {
+        "a": 1
+      },
+      "args": [
+        {
+          "a": {
+            "$": "anything"
+          }
+        }
+      ],
+      "upstreamFn": "expect.anything",
+      "goFn": "jest.Anything"
+    },
+    {
+      "id": "anything-nested-null",
+      "fn": "toEqual",
+      "actual": {
+        "a": null
+      },
+      "args": [
+        {
+          "a": {
+            "$": "anything"
+          }
+        }
+      ],
+      "upstreamFn": "expect.anything",
+      "goFn": "jest.Anything"
+    },
+    {
+      "id": "arraycontaining-hit",
+      "fn": "toEqual",
+      "actual": [
+        1,
+        2,
+        3
+      ],
+      "args": [
+        {
+          "$": "arrayContaining",
+          "values": [
+            2,
+            3
+          ]
+        }
+      ],
+      "upstreamFn": "expect.arrayContaining",
+      "goFn": "jest.ArrayContaining"
+    },
+    {
+      "id": "arraycontaining-miss",
+      "fn": "toEqual",
+      "actual": [
+        1,
+        2
+      ],
+      "args": [
+        {
+          "$": "arrayContaining",
+          "values": [
+            3
+          ]
+        }
+      ],
+      "upstreamFn": "expect.arrayContaining",
+      "goFn": "jest.ArrayContaining"
+    },
+    {
+      "id": "arraycontaining-empty",
+      "fn": "toEqual",
+      "actual": [
+        1
+      ],
+      "args": [
+        {
+          "$": "arrayContaining",
+          "values": []
+        }
+      ],
+      "upstreamFn": "expect.arrayContaining",
+      "goFn": "jest.ArrayContaining"
+    },
+    {
+      "id": "arraycontaining-deep-members",
+      "fn": "toEqual",
+      "actual": [
+        {
+          "a": 1
+        },
+        {
+          "b": 2
+        }
+      ],
+      "args": [
+        {
+          "$": "arrayContaining",
+          "values": [
+            {
+              "b": 2
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "expect.arrayContaining",
+      "goFn": "jest.ArrayContaining"
+    },
+    {
+      "id": "arraycontaining-nested-asym",
+      "fn": "toEqual",
+      "actual": [
+        1,
+        "x"
+      ],
+      "args": [
+        {
+          "$": "arrayContaining",
+          "values": [
+            {
+              "$": "any",
+              "type": "String"
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "expect.arrayContaining",
+      "goFn": "jest.ArrayContaining"
+    },
+    {
+      "id": "arraycontaining-on-non-array",
+      "fn": "toEqual",
+      "actual": {
+        "a": 1
+      },
+      "args": [
+        {
+          "$": "arrayContaining",
+          "values": [
+            1
+          ]
+        }
+      ],
+      "upstreamFn": "expect.arrayContaining",
+      "goFn": "jest.ArrayContaining"
+    },
+    {
+      "id": "arraycontaining-in-object",
+      "fn": "toEqual",
+      "actual": {
+        "xs": [
+          1,
+          2,
+          3
+        ]
+      },
+      "args": [
+        {
+          "xs": {
+            "$": "arrayContaining",
+            "values": [
+              1
+            ]
+          }
+        }
+      ],
+      "upstreamFn": "expect.arrayContaining",
+      "goFn": "jest.ArrayContaining"
+    },
+    {
+      "id": "not-arraycontaining-hit",
+      "fn": "toEqual",
+      "actual": [
+        1,
+        2
+      ],
+      "args": [
+        {
+          "$": "notArrayContaining",
+          "values": [
+            3
+          ]
+        }
+      ],
+      "upstreamFn": "expect.not.arrayContaining",
+      "goFn": "jest.NotArrayContaining"
+    },
+    {
+      "id": "not-arraycontaining-miss",
+      "fn": "toEqual",
+      "actual": [
+        1,
+        2
+      ],
+      "args": [
+        {
+          "$": "notArrayContaining",
+          "values": [
+            2
+          ]
+        }
+      ],
+      "upstreamFn": "expect.not.arrayContaining",
+      "goFn": "jest.NotArrayContaining"
+    },
+    {
+      "id": "objectcontaining-hit",
+      "fn": "toEqual",
+      "actual": {
+        "a": 1,
+        "b": 2
+      },
+      "args": [
+        {
+          "$": "objectContaining",
+          "entries": [
+            [
+              "a",
+              1
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "expect.objectContaining",
+      "goFn": "jest.ObjectContaining"
+    },
+    {
+      "id": "objectcontaining-miss-value",
+      "fn": "toEqual",
+      "actual": {
+        "a": 1
+      },
+      "args": [
+        {
+          "$": "objectContaining",
+          "entries": [
+            [
+              "a",
+              2
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "expect.objectContaining",
+      "goFn": "jest.ObjectContaining"
+    },
+    {
+      "id": "objectcontaining-miss-key",
+      "fn": "toEqual",
+      "actual": {
+        "a": 1
+      },
+      "args": [
+        {
+          "$": "objectContaining",
+          "entries": [
+            [
+              "z",
+              1
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "expect.objectContaining",
+      "goFn": "jest.ObjectContaining"
+    },
+    {
+      "id": "objectcontaining-empty",
+      "fn": "toEqual",
+      "actual": {
+        "a": 1
+      },
+      "args": [
+        {
+          "$": "objectContaining",
+          "entries": []
+        }
+      ],
+      "upstreamFn": "expect.objectContaining",
+      "goFn": "jest.ObjectContaining"
+    },
+    {
+      "id": "objectcontaining-nested-asym",
+      "fn": "toEqual",
+      "actual": {
+        "a": "s"
+      },
+      "args": [
+        {
+          "$": "objectContaining",
+          "entries": [
+            [
+              "a",
+              {
+                "$": "any",
+                "type": "String"
+              }
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "expect.objectContaining",
+      "goFn": "jest.ObjectContaining"
+    },
+    {
+      "id": "objectcontaining-nested-object",
+      "fn": "toEqual",
+      "actual": {
+        "a": {
+          "b": 1,
+          "c": 2
+        }
+      },
+      "args": [
+        {
+          "$": "objectContaining",
+          "entries": [
+            [
+              "a",
+              {
+                "$": "objectContaining",
+                "entries": [
+                  [
+                    "b",
+                    1
+                  ]
+                ]
+              }
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "expect.objectContaining",
+      "goFn": "jest.ObjectContaining"
+    },
+    {
+      "id": "objectcontaining-on-array",
+      "fn": "toEqual",
+      "actual": [
+        1
+      ],
+      "args": [
+        {
+          "$": "objectContaining",
+          "entries": [
+            [
+              "0",
+              1
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "expect.objectContaining",
+      "goFn": "jest.ObjectContaining"
+    },
+    {
+      "id": "not-objectcontaining-hit",
+      "fn": "toEqual",
+      "actual": {
+        "a": 1
+      },
+      "args": [
+        {
+          "$": "notObjectContaining",
+          "entries": [
+            [
+              "a",
+              2
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "expect.not.objectContaining",
+      "goFn": "jest.NotObjectContaining"
+    },
+    {
+      "id": "not-objectcontaining-miss",
+      "fn": "toEqual",
+      "actual": {
+        "a": 1
+      },
+      "args": [
+        {
+          "$": "notObjectContaining",
+          "entries": [
+            [
+              "a",
+              1
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "expect.not.objectContaining",
+      "goFn": "jest.NotObjectContaining"
+    },
+    {
+      "id": "stringcontaining-hit",
+      "fn": "toEqual",
+      "actual": "hello world",
+      "args": [
+        {
+          "$": "stringContaining",
+          "value": "lo wo"
+        }
+      ],
+      "upstreamFn": "expect.stringContaining",
+      "goFn": "jest.StringContaining"
+    },
+    {
+      "id": "stringcontaining-miss",
+      "fn": "toEqual",
+      "actual": "hello",
+      "args": [
+        {
+          "$": "stringContaining",
+          "value": "zzz"
+        }
+      ],
+      "upstreamFn": "expect.stringContaining",
+      "goFn": "jest.StringContaining"
+    },
+    {
+      "id": "stringcontaining-empty",
+      "fn": "toEqual",
+      "actual": "hello",
+      "args": [
+        {
+          "$": "stringContaining",
+          "value": ""
+        }
+      ],
+      "upstreamFn": "expect.stringContaining",
+      "goFn": "jest.StringContaining"
+    },
+    {
+      "id": "stringcontaining-non-string",
+      "fn": "toEqual",
+      "actual": 12345,
+      "args": [
+        {
+          "$": "stringContaining",
+          "value": "234"
+        }
+      ],
+      "upstreamFn": "expect.stringContaining",
+      "goFn": "jest.StringContaining"
+    },
+    {
+      "id": "stringcontaining-nested",
+      "fn": "toEqual",
+      "actual": {
+        "msg": "abc"
+      },
+      "args": [
+        {
+          "msg": {
+            "$": "stringContaining",
+            "value": "b"
+          }
+        }
+      ],
+      "upstreamFn": "expect.stringContaining",
+      "goFn": "jest.StringContaining"
+    },
+    {
+      "id": "not-stringcontaining-hit",
+      "fn": "toEqual",
+      "actual": "hello",
+      "args": [
+        {
+          "$": "notStringContaining",
+          "value": "zzz"
+        }
+      ],
+      "upstreamFn": "expect.not.stringContaining",
+      "goFn": "jest.NotStringContaining"
+    },
+    {
+      "id": "not-stringcontaining-miss",
+      "fn": "toEqual",
+      "actual": "hello",
+      "args": [
+        {
+          "$": "notStringContaining",
+          "value": "ell"
+        }
+      ],
+      "upstreamFn": "expect.not.stringContaining",
+      "goFn": "jest.NotStringContaining"
+    },
+    {
+      "id": "stringmatching-hit",
+      "fn": "toEqual",
+      "actual": "abc123",
+      "args": [
+        {
+          "$": "stringMatching",
+          "value": "[0-9]+$"
+        }
+      ],
+      "upstreamFn": "expect.stringMatching",
+      "goFn": "jest.StringMatching"
+    },
+    {
+      "id": "stringmatching-miss",
+      "fn": "toEqual",
+      "actual": "abc",
+      "args": [
+        {
+          "$": "stringMatching",
+          "value": "[0-9]+$"
+        }
+      ],
+      "upstreamFn": "expect.stringMatching",
+      "goFn": "jest.StringMatching"
+    },
+    {
+      "id": "stringmatching-anchored",
+      "fn": "toEqual",
+      "actual": "exact",
+      "args": [
+        {
+          "$": "stringMatching",
+          "value": "^exact$"
+        }
+      ],
+      "upstreamFn": "expect.stringMatching",
+      "goFn": "jest.StringMatching"
+    },
+    {
+      "id": "stringmatching-non-string",
+      "fn": "toEqual",
+      "actual": 123,
+      "args": [
+        {
+          "$": "stringMatching",
+          "value": "2"
+        }
+      ],
+      "upstreamFn": "expect.stringMatching",
+      "goFn": "jest.StringMatching"
+    },
+    {
+      "id": "stringmatching-nested",
+      "fn": "toEqual",
+      "actual": {
+        "msg": "id-9"
+      },
+      "args": [
+        {
+          "msg": {
+            "$": "stringMatching",
+            "value": "^id-"
+          }
+        }
+      ],
+      "upstreamFn": "expect.stringMatching",
+      "goFn": "jest.StringMatching"
+    },
+    {
+      "id": "not-stringmatching-hit",
+      "fn": "toEqual",
+      "actual": "abc",
+      "args": [
+        {
+          "$": "notStringMatching",
+          "value": "[0-9]"
+        }
+      ],
+      "upstreamFn": "expect.not.stringMatching",
+      "goFn": "jest.NotStringMatching"
+    },
+    {
+      "id": "not-stringmatching-miss",
+      "fn": "toEqual",
+      "actual": "abc1",
+      "args": [
+        {
+          "$": "notStringMatching",
+          "value": "[0-9]"
+        }
+      ],
+      "upstreamFn": "expect.not.stringMatching",
+      "goFn": "jest.NotStringMatching"
+    },
+    {
+      "id": "closeto-asym-default-hit",
+      "fn": "toEqual",
+      "actual": 0.30000000000000004,
+      "args": [
+        {
+          "$": "closeTo",
+          "value": 0.3
+        }
+      ],
+      "upstreamFn": "expect.closeTo",
+      "goFn": "jest.CloseTo"
+    },
+    {
+      "id": "closeto-asym-default-miss",
+      "fn": "toEqual",
+      "actual": 0.4,
+      "args": [
+        {
+          "$": "closeTo",
+          "value": 0.3
+        }
+      ],
+      "upstreamFn": "expect.closeTo",
+      "goFn": "jest.CloseTo"
+    },
+    {
+      "id": "closeto-asym-prec-hit",
+      "fn": "toEqual",
+      "actual": 0.30001,
+      "args": [
+        {
+          "$": "closeTo",
+          "value": 0.3,
+          "precision": 3
+        }
+      ],
+      "upstreamFn": "expect.closeTo",
+      "goFn": "jest.CloseTo"
+    },
+    {
+      "id": "closeto-asym-prec-miss",
+      "fn": "toEqual",
+      "actual": 0.31,
+      "args": [
+        {
+          "$": "closeTo",
+          "value": 0.3,
+          "precision": 3
+        }
+      ],
+      "upstreamFn": "expect.closeTo",
+      "goFn": "jest.CloseTo"
+    },
+    {
+      "id": "closeto-asym-nested",
+      "fn": "toEqual",
+      "actual": {
+        "v": 1.0001
+      },
+      "args": [
+        {
+          "v": {
+            "$": "closeTo",
+            "value": 1,
+            "precision": 3
+          }
+        }
+      ],
+      "upstreamFn": "expect.closeTo",
+      "goFn": "jest.CloseTo"
+    },
+    {
+      "id": "closeto-asym-non-number",
+      "fn": "toEqual",
+      "actual": "x",
+      "args": [
+        {
+          "$": "closeTo",
+          "value": 1
+        }
+      ],
+      "upstreamFn": "expect.closeTo",
+      "goFn": "jest.CloseTo"
+    },
+    {
+      "id": "closeto-asym-nan",
+      "fn": "toEqual",
+      "actual": {
+        "$": "nan"
+      },
+      "args": [
+        {
+          "$": "closeTo",
+          "value": 1
+        }
+      ],
+      "upstreamFn": "expect.closeTo",
+      "goFn": "jest.CloseTo"
+    },
+    {
+      "id": "not-closeto-hit",
+      "fn": "toEqual",
+      "actual": 0.4,
+      "args": [
+        {
+          "$": "notCloseTo",
+          "value": 0.3,
+          "precision": 3
+        }
+      ],
+      "deviation": "the port has no Not(CloseTo(...)) constructor; NotArrayContaining/NotObjectContaining/NotStringContaining/NotStringMatching exist but there is no NotCloseTo",
+      "upstreamFn": "expect.not.closeTo",
+      "goFn": "\u2014"
+    },
+    {
+      "id": "not-closeto-miss",
+      "fn": "toEqual",
+      "actual": 0.3,
+      "args": [
+        {
+          "$": "notCloseTo",
+          "value": 0.3,
+          "precision": 3
+        }
+      ],
+      "deviation": "the port has no Not(CloseTo(...)) constructor",
+      "upstreamFn": "expect.not.closeTo",
+      "goFn": "\u2014"
+    }
+  ]
+}

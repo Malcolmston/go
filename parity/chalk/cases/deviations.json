@@ -1,0 +1,96 @@
+{
+  "group": "deviations",
+  "upstream": "chalk@5.3.0",
+  "cases": [
+    {
+      "id": "strip-basic",
+      "fn": "strip",
+      "args": [
+        "\u001b[31mred\u001b[39m"
+      ],
+      "upstreamFn": "\u2014",
+      "goFn": "chalk.Strip",
+      "deviation": "Go-only helper; chalk leaves this to strip-ansi"
+    },
+    {
+      "id": "strip-nested",
+      "fn": "strip",
+      "args": [
+        "\u001b[31ma\u001b[34mb\u001b[39m\u001b[31mc\u001b[39m"
+      ],
+      "upstreamFn": "\u2014",
+      "goFn": "chalk.Strip",
+      "deviation": "Go-only helper; chalk leaves this to strip-ansi"
+    },
+    {
+      "id": "strip-plain",
+      "fn": "strip",
+      "args": [
+        "plain"
+      ],
+      "upstreamFn": "\u2014",
+      "goFn": "chalk.Strip",
+      "deviation": "Go-only helper; chalk leaves this to strip-ansi"
+    },
+    {
+      "id": "template-plain",
+      "fn": "template",
+      "args": [
+        3,
+        [
+          "red"
+        ],
+        [
+          "hello"
+        ],
+        []
+      ],
+      "upstreamFn": "chalk.red`...` (tagged template)",
+      "goFn": "\u2014",
+      "deviation": "tagged template literals have no Go equivalent"
+    },
+    {
+      "id": "template-interp",
+      "fn": "template",
+      "args": [
+        3,
+        [
+          "red"
+        ],
+        [
+          "a",
+          "b"
+        ],
+        [
+          1
+        ]
+      ],
+      "upstreamFn": "chalk.red`...` (tagged template)",
+      "goFn": "\u2014",
+      "deviation": "tagged template literals have no Go equivalent"
+    },
+    {
+      "id": "template-chain",
+      "fn": "template",
+      "args": [
+        3,
+        [
+          "red",
+          "bold"
+        ],
+        [
+          "a",
+          "b",
+          "c"
+        ],
+        [
+          "X",
+          "Y"
+        ]
+      ],
+      "upstreamFn": "chalk.red`...` (tagged template)",
+      "goFn": "\u2014",
+      "deviation": "tagged template literals have no Go equivalent"
+    }
+  ]
+}

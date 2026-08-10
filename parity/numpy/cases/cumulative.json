@@ -1,0 +1,188 @@
+{
+  "group": "cumulative",
+  "upstream": "numpy@2.2.6",
+  "cases": [
+    {
+      "id": "cumsum-1d",
+      "fn": "cumsum",
+      "args": [
+        {
+          "arr": [
+            1.0,
+            2.0,
+            3.0,
+            4.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.cumsum",
+      "goFn": "numpy.NDArray.Cumsum"
+    },
+    {
+      "id": "cumsum-2d-flat",
+      "fn": "cumsum",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.cumsum",
+      "goFn": "numpy.NDArray.Cumsum",
+      "note": "both flatten when no axis is given"
+    },
+    {
+      "id": "cumsum-negatives",
+      "fn": "cumsum",
+      "args": [
+        {
+          "arr": [
+            3.0,
+            -1.0,
+            4.0,
+            -1.5
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.cumsum",
+      "goFn": "numpy.NDArray.Cumsum"
+    },
+    {
+      "id": "cumsum-empty",
+      "fn": "cumsum",
+      "args": [
+        {
+          "arr": []
+        }
+      ],
+      "upstreamFn": "numpy.cumsum",
+      "goFn": "numpy.NDArray.Cumsum"
+    },
+    {
+      "id": "cumprod-1d",
+      "fn": "cumprod",
+      "args": [
+        {
+          "arr": [
+            1.0,
+            2.0,
+            3.0,
+            4.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.cumprod",
+      "goFn": "numpy.NDArray.Cumprod"
+    },
+    {
+      "id": "cumprod-2d-flat",
+      "fn": "cumprod",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.cumprod",
+      "goFn": "numpy.NDArray.Cumprod"
+    },
+    {
+      "id": "cumprod-zero",
+      "fn": "cumprod",
+      "args": [
+        {
+          "arr": [
+            2.0,
+            0.0,
+            5.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.cumprod",
+      "goFn": "numpy.NDArray.Cumprod"
+    },
+    {
+      "id": "diff-1d",
+      "fn": "diff",
+      "args": [
+        {
+          "arr": [
+            1.0,
+            4.0,
+            9.0,
+            16.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.diff",
+      "goFn": "numpy.NDArray.Diff"
+    },
+    {
+      "id": "diff-2d-flat",
+      "fn": "diff",
+      "args": [
+        {
+          "arr": [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.diff",
+      "goFn": "numpy.NDArray.Diff",
+      "note": "the port flattens first; compared against numpy.diff(a.ravel())"
+    },
+    {
+      "id": "diff-single",
+      "fn": "diff",
+      "args": [
+        {
+          "arr": [
+            7.0
+          ]
+        }
+      ],
+      "upstreamFn": "numpy.diff",
+      "goFn": "numpy.NDArray.Diff"
+    },
+    {
+      "id": "diff-empty",
+      "fn": "diff",
+      "args": [
+        {
+          "arr": []
+        }
+      ],
+      "upstreamFn": "numpy.diff",
+      "goFn": "numpy.NDArray.Diff"
+    }
+  ]
+}

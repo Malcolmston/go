@@ -1,0 +1,337 @@
+{
+  "group": "forms",
+  "upstream": "cheerio@1.0.0 + tough-cookie@5.1.2 + node WHATWG fetch/URL",
+  "note": "Form serialisation and the request a submission produces. The oracle is cheerio's .serialize()/.serializeArray() (the HTML form-serialisation algorithm) plus the spec rules for method/enctype/action.",
+  "cases": [
+    {
+      "id": "form-serialize-basic",
+      "fn": "form.serialize",
+      "args": [
+        "form-basic",
+        "#f"
+      ],
+      "upstreamFn": "cheerio .serialize()",
+      "goFn": "puppeteer.Form.Values().Encode",
+      "note": "the full control zoo: text, hidden, checkbox, radio, submit, reset, file, disabled, nameless, textarea, select, button"
+    },
+    {
+      "id": "form-serialize-get",
+      "fn": "form.serialize",
+      "args": [
+        "form-get",
+        "#f"
+      ],
+      "upstreamFn": "cheerio .serialize()",
+      "goFn": "puppeteer.Form.Values().Encode",
+      "note": "method=GET with an action that already carries a query string"
+    },
+    {
+      "id": "form-serialize-multipart",
+      "fn": "form.serialize",
+      "args": [
+        "form-multipart",
+        "#f"
+      ],
+      "upstreamFn": "cheerio .serialize()",
+      "goFn": "puppeteer.Form.Values().Encode",
+      "note": "the form declares enctype=multipart/form-data"
+    },
+    {
+      "id": "form-serialize-submit-only",
+      "fn": "form.serialize",
+      "args": [
+        "form-submit-only",
+        "#f"
+      ],
+      "upstreamFn": "cheerio .serialize()",
+      "goFn": "puppeteer.Form.Values().Encode",
+      "note": "a submit button with a name and a value"
+    },
+    {
+      "id": "form-serialize-select-multiple",
+      "fn": "form.serialize",
+      "args": [
+        "form-select-multiple",
+        "#f"
+      ],
+      "upstreamFn": "cheerio .serialize()",
+      "goFn": "puppeteer.Form.Values().Encode",
+      "note": "<select multiple> with two selected options"
+    },
+    {
+      "id": "form-serialize-order",
+      "fn": "form.serialize",
+      "args": [
+        "form-order",
+        "#f"
+      ],
+      "upstreamFn": "cheerio .serialize()",
+      "goFn": "puppeteer.Form.Values().Encode",
+      "note": "field order: document order vs sorted"
+    },
+    {
+      "id": "form-serialize-noaction",
+      "fn": "form.serialize",
+      "args": [
+        "form-noaction",
+        "#f"
+      ],
+      "upstreamFn": "cheerio .serialize()",
+      "goFn": "puppeteer.Form.Values().Encode",
+      "note": "no action attribute: submit to the document URL"
+    },
+    {
+      "id": "form-serialize-novalue",
+      "fn": "form.serialize",
+      "args": [
+        "form-novalue",
+        "#f"
+      ],
+      "upstreamFn": "cheerio .serialize()",
+      "goFn": "puppeteer.Form.Values().Encode",
+      "note": "controls with no value attribute"
+    },
+    {
+      "id": "form-fields-basic",
+      "fn": "form.fields",
+      "args": [
+        "form-basic",
+        "#f"
+      ],
+      "upstreamFn": "cheerio .serializeArray()",
+      "goFn": "puppeteer.Form.Values",
+      "note": "which controls are included (sorted on both sides, so order is not under test here)"
+    },
+    {
+      "id": "form-fields-get",
+      "fn": "form.fields",
+      "args": [
+        "form-get",
+        "#f"
+      ],
+      "upstreamFn": "cheerio .serializeArray()",
+      "goFn": "puppeteer.Form.Values",
+      "note": "which controls are included (sorted on both sides, so order is not under test here)"
+    },
+    {
+      "id": "form-fields-multipart",
+      "fn": "form.fields",
+      "args": [
+        "form-multipart",
+        "#f"
+      ],
+      "upstreamFn": "cheerio .serializeArray()",
+      "goFn": "puppeteer.Form.Values",
+      "note": "which controls are included (sorted on both sides, so order is not under test here)"
+    },
+    {
+      "id": "form-fields-submit-only",
+      "fn": "form.fields",
+      "args": [
+        "form-submit-only",
+        "#f"
+      ],
+      "upstreamFn": "cheerio .serializeArray()",
+      "goFn": "puppeteer.Form.Values",
+      "note": "which controls are included (sorted on both sides, so order is not under test here)"
+    },
+    {
+      "id": "form-fields-select-multiple",
+      "fn": "form.fields",
+      "args": [
+        "form-select-multiple",
+        "#f"
+      ],
+      "upstreamFn": "cheerio .serializeArray()",
+      "goFn": "puppeteer.Form.Values",
+      "note": "which controls are included (sorted on both sides, so order is not under test here)"
+    },
+    {
+      "id": "form-fields-order",
+      "fn": "form.fields",
+      "args": [
+        "form-order",
+        "#f"
+      ],
+      "upstreamFn": "cheerio .serializeArray()",
+      "goFn": "puppeteer.Form.Values",
+      "note": "which controls are included (sorted on both sides, so order is not under test here)"
+    },
+    {
+      "id": "form-fields-noaction",
+      "fn": "form.fields",
+      "args": [
+        "form-noaction",
+        "#f"
+      ],
+      "upstreamFn": "cheerio .serializeArray()",
+      "goFn": "puppeteer.Form.Values",
+      "note": "which controls are included (sorted on both sides, so order is not under test here)"
+    },
+    {
+      "id": "form-fields-novalue",
+      "fn": "form.fields",
+      "args": [
+        "form-novalue",
+        "#f"
+      ],
+      "upstreamFn": "cheerio .serializeArray()",
+      "goFn": "puppeteer.Form.Values",
+      "note": "which controls are included (sorted on both sides, so order is not under test here)"
+    },
+    {
+      "id": "form-request-basic",
+      "fn": "form.request",
+      "args": [
+        "form-basic",
+        "#f"
+      ],
+      "upstreamFn": "HTML form submission algorithm (method/enctype/action)",
+      "goFn": "puppeteer.Form.BuildRequest",
+      "note": "the full control zoo: text, hidden, checkbox, radio, submit, reset, file, disabled, nameless, textarea, select, button"
+    },
+    {
+      "id": "form-request-get",
+      "fn": "form.request",
+      "args": [
+        "form-get",
+        "#f"
+      ],
+      "upstreamFn": "HTML form submission algorithm (method/enctype/action)",
+      "goFn": "puppeteer.Form.BuildRequest",
+      "note": "method=GET with an action that already carries a query string"
+    },
+    {
+      "id": "form-request-multipart",
+      "fn": "form.request",
+      "args": [
+        "form-multipart",
+        "#f"
+      ],
+      "upstreamFn": "HTML form submission algorithm (method/enctype/action)",
+      "goFn": "puppeteer.Form.BuildRequest",
+      "note": "the form declares enctype=multipart/form-data"
+    },
+    {
+      "id": "form-request-submit-only",
+      "fn": "form.request",
+      "args": [
+        "form-submit-only",
+        "#f"
+      ],
+      "upstreamFn": "HTML form submission algorithm (method/enctype/action)",
+      "goFn": "puppeteer.Form.BuildRequest",
+      "note": "a submit button with a name and a value"
+    },
+    {
+      "id": "form-request-select-multiple",
+      "fn": "form.request",
+      "args": [
+        "form-select-multiple",
+        "#f"
+      ],
+      "upstreamFn": "HTML form submission algorithm (method/enctype/action)",
+      "goFn": "puppeteer.Form.BuildRequest",
+      "note": "<select multiple> with two selected options"
+    },
+    {
+      "id": "form-request-order",
+      "fn": "form.request",
+      "args": [
+        "form-order",
+        "#f"
+      ],
+      "upstreamFn": "HTML form submission algorithm (method/enctype/action)",
+      "goFn": "puppeteer.Form.BuildRequest",
+      "note": "field order: document order vs sorted"
+    },
+    {
+      "id": "form-request-noaction",
+      "fn": "form.request",
+      "args": [
+        "form-noaction",
+        "#f"
+      ],
+      "upstreamFn": "HTML form submission algorithm (method/enctype/action)",
+      "goFn": "puppeteer.Form.BuildRequest",
+      "note": "no action attribute: submit to the document URL"
+    },
+    {
+      "id": "form-request-novalue",
+      "fn": "form.request",
+      "args": [
+        "form-novalue",
+        "#f"
+      ],
+      "upstreamFn": "HTML form submission algorithm (method/enctype/action)",
+      "goFn": "puppeteer.Form.BuildRequest",
+      "note": "controls with no value attribute"
+    },
+    {
+      "id": "form-submit-basic",
+      "fn": "form.submit",
+      "args": [
+        "form-basic",
+        "#f"
+      ],
+      "upstreamFn": "fetch(action, {method, enctype, body})",
+      "goFn": "puppeteer.Form.Submit",
+      "note": "end-to-end: the server echoes method, content-type, query and raw body"
+    },
+    {
+      "id": "form-submit-get",
+      "fn": "form.submit",
+      "args": [
+        "form-get",
+        "#f"
+      ],
+      "upstreamFn": "fetch(action, {method, enctype, body})",
+      "goFn": "puppeteer.Form.Submit",
+      "note": "end-to-end: the server echoes method, content-type, query and raw body"
+    },
+    {
+      "id": "form-submit-order",
+      "fn": "form.submit",
+      "args": [
+        "form-order",
+        "#f"
+      ],
+      "upstreamFn": "fetch(action, {method, enctype, body})",
+      "goFn": "puppeteer.Form.Submit",
+      "note": "end-to-end: the server echoes method, content-type, query and raw body"
+    },
+    {
+      "id": "form-submit-submit-only",
+      "fn": "form.submit",
+      "args": [
+        "form-submit-only",
+        "#f"
+      ],
+      "upstreamFn": "fetch(action, {method, enctype, body})",
+      "goFn": "puppeteer.Form.Submit",
+      "note": "end-to-end: the server echoes method, content-type, query and raw body"
+    },
+    {
+      "id": "form-submit-novalue",
+      "fn": "form.submit",
+      "args": [
+        "form-novalue",
+        "#f"
+      ],
+      "upstreamFn": "fetch(action, {method, enctype, body})",
+      "goFn": "puppeteer.Form.Submit",
+      "note": "end-to-end: the server echoes method, content-type, query and raw body"
+    },
+    {
+      "id": "form-submit-select-multiple",
+      "fn": "form.submit",
+      "args": [
+        "form-select-multiple",
+        "#f"
+      ],
+      "upstreamFn": "fetch(action, {method, enctype, body})",
+      "goFn": "puppeteer.Form.Submit",
+      "note": "end-to-end: the server echoes method, content-type, query and raw body"
+    }
+  ]
+}

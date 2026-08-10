@@ -1,0 +1,264 @@
+{
+  "group": "diff-minimality",
+  "upstream": "phoenix_live_view@1.2.9",
+  "note": "Render, change one assign, render again, and compare the DIFF: which slots are present, and whether the statics are re-sent. render_diff marks only the assigns whose value actually changed; render_diff_reassign marks every assign changed, the shape produced by a view that re-assigns unconditionally.",
+  "cases": [
+    {
+      "id": "min-count-only",
+      "fn": "render_diff",
+      "args": [
+        "counter",
+        {
+          "label": "Counter",
+          "count": 0
+        },
+        {
+          "label": "Counter",
+          "count": 1
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "liveview.DiffRendered",
+      "note": "only slot 1 may travel, and no \"s\""
+    },
+    {
+      "id": "min-label-only",
+      "fn": "render_diff",
+      "args": [
+        "counter",
+        {
+          "label": "A",
+          "count": 0
+        },
+        {
+          "label": "B",
+          "count": 0
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "liveview.DiffRendered"
+    },
+    {
+      "id": "min-both",
+      "fn": "render_diff",
+      "args": [
+        "counter",
+        {
+          "label": "A",
+          "count": 0
+        },
+        {
+          "label": "B",
+          "count": 1
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "liveview.DiffRendered"
+    },
+    {
+      "id": "min-nothing",
+      "fn": "render_diff",
+      "args": [
+        "counter",
+        {
+          "label": "A",
+          "count": 0
+        },
+        {
+          "label": "A",
+          "count": 0
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "liveview.DiffRendered",
+      "note": "identical renders must produce an empty diff"
+    },
+    {
+      "id": "min-empty-to-value",
+      "fn": "render_diff",
+      "args": [
+        "one",
+        {
+          "a": ""
+        },
+        {
+          "a": "x"
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "liveview.DiffRendered"
+    },
+    {
+      "id": "min-value-to-empty",
+      "fn": "render_diff",
+      "args": [
+        "one",
+        {
+          "a": "x"
+        },
+        {
+          "a": ""
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "liveview.DiffRendered"
+    },
+    {
+      "id": "min-pair-first-only",
+      "fn": "render_diff",
+      "args": [
+        "pair",
+        {
+          "a": "1",
+          "b": "2"
+        },
+        {
+          "a": "9",
+          "b": "2"
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "liveview.DiffRendered"
+    },
+    {
+      "id": "min-pair-second-only",
+      "fn": "render_diff",
+      "args": [
+        "pair",
+        {
+          "a": "1",
+          "b": "2"
+        },
+        {
+          "a": "1",
+          "b": "9"
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "liveview.DiffRendered"
+    },
+    {
+      "id": "min-nested-inner-only",
+      "fn": "render_diff",
+      "args": [
+        "nest",
+        {
+          "a": "x",
+          "v": "y"
+        },
+        {
+          "a": "x",
+          "v": "z"
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "liveview.DiffRendered",
+      "note": "only the nested sub-diff may travel"
+    },
+    {
+      "id": "min-nested-outer-only",
+      "fn": "render_diff",
+      "args": [
+        "nest",
+        {
+          "a": "x",
+          "v": "y"
+        },
+        {
+          "a": "w",
+          "v": "y"
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "liveview.DiffRendered",
+      "note": "the nested slot must be omitted entirely"
+    },
+    {
+      "id": "min-nested-nothing",
+      "fn": "render_diff",
+      "args": [
+        "nest",
+        {
+          "a": "x",
+          "v": "y"
+        },
+        {
+          "a": "x",
+          "v": "y"
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "liveview.DiffRendered"
+    },
+    {
+      "id": "min-nested-both",
+      "fn": "render_diff",
+      "args": [
+        "nest",
+        {
+          "a": "x",
+          "v": "y"
+        },
+        {
+          "a": "w",
+          "v": "z"
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "liveview.DiffRendered"
+    },
+    {
+      "id": "min-reassign-same-values",
+      "fn": "render_diff_reassign",
+      "args": [
+        "counter",
+        {
+          "label": "A",
+          "count": 0
+        },
+        {
+          "label": "A",
+          "count": 0
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "liveview.DiffRendered",
+      "note": "every assign re-assigned to the same value"
+    },
+    {
+      "id": "min-reassign-one-changed",
+      "fn": "render_diff_reassign",
+      "args": [
+        "counter",
+        {
+          "label": "A",
+          "count": 0
+        },
+        {
+          "label": "A",
+          "count": 1
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "liveview.DiffRendered",
+      "note": "every assign re-assigned, one value actually different"
+    },
+    {
+      "id": "min-reassign-nested",
+      "fn": "render_diff_reassign",
+      "args": [
+        "nest",
+        {
+          "a": "x",
+          "v": "y"
+        },
+        {
+          "a": "x",
+          "v": "y"
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "liveview.DiffRendered"
+    }
+  ]
+}

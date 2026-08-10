@@ -1,0 +1,19 @@
+{
+  "group": "routing-options",
+  "upstream": "express@4.21.2",
+  "note": "Strict routing and case-sensitive routing. Upstream sets them with app.set(...); the Go port has no such settings, the route.appset fixture sets them the same way on both sides, and the route.strict/route.case fixtures use the nearest Go equivalent, express.NewRouter(RouterOptions{...}) mounted at the root. See COVERAGE.md.",
+  "cases": [
+    { "id": "appset-strict-exact", "fn": "route.appset", "args": [{ "method": "GET", "path": "/s" }], "upstreamFn": "app.set('strict routing')", "goFn": "Application.Set" },
+    { "id": "appset-strict-extra-slash", "fn": "route.appset", "args": [{ "method": "GET", "path": "/s/" }], "upstreamFn": "app.set('strict routing')", "goFn": "Application.Set", "note": "does app.set actually reach the root router?" },
+    { "id": "appset-case-exact", "fn": "route.appset", "args": [{ "method": "GET", "path": "/Foo" }], "upstreamFn": "app.set('case sensitive routing')", "goFn": "Application.Set" },
+    { "id": "appset-case-wrong", "fn": "route.appset", "args": [{ "method": "GET", "path": "/foo" }], "upstreamFn": "app.set('case sensitive routing')", "goFn": "Application.Set" },
+    { "id": "strict-exact", "fn": "route.strict", "args": [{ "method": "GET", "path": "/s" }], "upstreamFn": "app.set('strict routing')", "goFn": "RouterOptions{Strict:true}" },
+    { "id": "strict-extra-slash", "fn": "route.strict", "args": [{ "method": "GET", "path": "/s/" }], "upstreamFn": "app.set('strict routing')", "goFn": "RouterOptions{Strict:true}", "note": "strict: /s/ must NOT match /s" },
+    { "id": "strict-declared-slash", "fn": "route.strict", "args": [{ "method": "GET", "path": "/t/" }], "upstreamFn": "app.set('strict routing')", "goFn": "RouterOptions{Strict:true}" },
+    { "id": "strict-declared-no-slash", "fn": "route.strict", "args": [{ "method": "GET", "path": "/t" }], "upstreamFn": "app.set('strict routing')", "goFn": "RouterOptions{Strict:true}", "note": "strict: /t must NOT match /t/" },
+    { "id": "case-exact", "fn": "route.case", "args": [{ "method": "GET", "path": "/Foo" }], "upstreamFn": "app.set('case sensitive routing')", "goFn": "RouterOptions{CaseSensitive:true}" },
+    { "id": "case-wrong", "fn": "route.case", "args": [{ "method": "GET", "path": "/foo" }], "upstreamFn": "app.set('case sensitive routing')", "goFn": "RouterOptions{CaseSensitive:true}", "note": "case sensitive: /foo must NOT match /Foo" },
+    { "id": "case-lower-exact", "fn": "route.case", "args": [{ "method": "GET", "path": "/bar" }], "upstreamFn": "app.set('case sensitive routing')", "goFn": "RouterOptions{CaseSensitive:true}" },
+    { "id": "case-lower-wrong", "fn": "route.case", "args": [{ "method": "GET", "path": "/BAR" }], "upstreamFn": "app.set('case sensitive routing')", "goFn": "RouterOptions{CaseSensitive:true}" }
+  ]
+}

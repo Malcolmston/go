@@ -1,0 +1,685 @@
+{
+  "group": "linalg",
+  "upstream": "opencv-python@4.11.0",
+  "cases": [
+    {
+      "id": "determinant-3x3",
+      "fn": "determinant",
+      "args": [
+        [
+          4.0,
+          1.0,
+          2.0,
+          1.0,
+          3.0,
+          0.0,
+          2.0,
+          0.0,
+          5.0
+        ],
+        3
+      ],
+      "upstreamFn": "cv2.determinant",
+      "goFn": "cv.Determinant",
+      "mode": "tolerance",
+      "tol": 1e-09,
+      "relTol": 1e-09
+    },
+    {
+      "id": "determinant-singular",
+      "fn": "determinant",
+      "args": [
+        [
+          1.0,
+          2.0,
+          2.0,
+          4.0
+        ],
+        2
+      ],
+      "upstreamFn": "cv2.determinant",
+      "goFn": "cv.Determinant",
+      "mode": "tolerance",
+      "tol": 1e-09,
+      "relTol": 1e-09
+    },
+    {
+      "id": "invert-3x3",
+      "fn": "invert",
+      "args": [
+        [
+          4.0,
+          1.0,
+          2.0,
+          1.0,
+          3.0,
+          0.0,
+          2.0,
+          0.0,
+          5.0
+        ],
+        3
+      ],
+      "upstreamFn": "cv2.invert",
+      "goFn": "cv.Invert",
+      "mode": "tolerance",
+      "tol": 1e-09,
+      "relTol": 1e-09
+    },
+    {
+      "id": "invert-singular",
+      "fn": "invert",
+      "args": [
+        [
+          1.0,
+          2.0,
+          2.0,
+          4.0
+        ],
+        2
+      ],
+      "upstreamFn": "cv2.invert",
+      "goFn": "cv.Invert",
+      "mode": "tolerance",
+      "tol": 1e-09,
+      "relTol": 1e-09
+    },
+    {
+      "id": "solve-3x3",
+      "fn": "solve",
+      "args": [
+        [
+          4.0,
+          1.0,
+          2.0,
+          1.0,
+          3.0,
+          0.0,
+          2.0,
+          0.0,
+          5.0
+        ],
+        [
+          1.0,
+          2.0,
+          3.0
+        ],
+        3
+      ],
+      "upstreamFn": "cv2.solve",
+      "goFn": "cv.Solve",
+      "mode": "tolerance",
+      "tol": 1e-09,
+      "relTol": 1e-09
+    },
+    {
+      "id": "solve-singular",
+      "fn": "solve",
+      "args": [
+        [
+          1.0,
+          2.0,
+          2.0,
+          4.0
+        ],
+        [
+          1.0,
+          2.0
+        ],
+        2
+      ],
+      "upstreamFn": "cv2.solve",
+      "goFn": "cv.Solve",
+      "mode": "tolerance",
+      "tol": 1e-09,
+      "relTol": 1e-09
+    },
+    {
+      "id": "trace-3x3",
+      "fn": "trace",
+      "args": [
+        [
+          4.0,
+          1.0,
+          2.0,
+          1.0,
+          3.0,
+          0.0,
+          2.0,
+          0.0,
+          5.0
+        ],
+        3
+      ],
+      "upstreamFn": "cv2.trace",
+      "goFn": "cv.Trace",
+      "mode": "tolerance",
+      "tol": 1e-09,
+      "relTol": 1e-09
+    },
+    {
+      "id": "gemm-2x3-3x2",
+      "fn": "gemm",
+      "args": [
+        [
+          1.0,
+          2.0,
+          3.0,
+          4.0,
+          5.0,
+          6.0
+        ],
+        2,
+        3,
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        3,
+        2,
+        1.0
+      ],
+      "upstreamFn": "cv2.gemm",
+      "goFn": "cv.Gemm",
+      "mode": "tolerance",
+      "tol": 1e-09,
+      "relTol": 1e-09
+    },
+    {
+      "id": "gemm-alpha",
+      "fn": "gemm",
+      "args": [
+        [
+          1.0,
+          2.0,
+          3.0,
+          4.0
+        ],
+        2,
+        2,
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        2,
+        2,
+        2.5
+      ],
+      "upstreamFn": "cv2.gemm",
+      "goFn": "cv.Gemm",
+      "mode": "tolerance",
+      "tol": 1e-09,
+      "relTol": 1e-09
+    },
+    {
+      "id": "gemm-shape-mismatch",
+      "fn": "gemm",
+      "args": [
+        [
+          1.0,
+          2.0,
+          3.0,
+          4.0
+        ],
+        2,
+        2,
+        [
+          1.0,
+          2.0,
+          3.0
+        ],
+        3,
+        1,
+        1.0
+      ],
+      "upstreamFn": "cv2.gemm",
+      "goFn": "cv.Gemm",
+      "mode": "tolerance",
+      "tol": 1e-09,
+      "relTol": 1e-09
+    },
+    {
+      "id": "dct-4x4",
+      "fn": "dct",
+      "args": [
+        [
+          0.0,
+          1.0,
+          2.0,
+          3.0,
+          4.0,
+          5.0,
+          6.0,
+          7.0,
+          8.0,
+          9.0,
+          10.0,
+          11.0,
+          12.0,
+          13.0,
+          14.0,
+          15.0
+        ],
+        4
+      ],
+      "upstreamFn": "cv2.dct",
+      "goFn": "cv.DCT",
+      "mode": "tolerance",
+      "tol": 1e-09,
+      "relTol": 1e-09
+    },
+    {
+      "id": "dft-magnitude-4x4",
+      "fn": "dftMagnitude",
+      "args": [
+        [
+          0.0,
+          7.0,
+          3.0,
+          10.0,
+          6.0,
+          2.0,
+          9.0,
+          5.0,
+          1.0,
+          8.0,
+          4.0,
+          0.0,
+          7.0,
+          3.0,
+          10.0,
+          6.0
+        ],
+        4
+      ],
+      "upstreamFn": "cv2.dft + cv2.magnitude",
+      "goFn": "cv.DFT + cv.Magnitude",
+      "mode": "tolerance",
+      "tol": 1e-09,
+      "relTol": 1e-09
+    },
+    {
+      "id": "cart-to-polar-rad",
+      "fn": "cartToPolar",
+      "args": [
+        [
+          3.0,
+          0.0,
+          -1.0,
+          2.0
+        ],
+        [
+          4.0,
+          1.0,
+          0.0,
+          -2.0
+        ],
+        2,
+        false
+      ],
+      "upstreamFn": "cv2.cartToPolar",
+      "goFn": "cv.CartToPolar",
+      "mode": "tolerance",
+      "tol": 0.002,
+      "relTol": 0.001
+    },
+    {
+      "id": "cart-to-polar-deg",
+      "fn": "cartToPolar",
+      "args": [
+        [
+          3.0,
+          0.0,
+          -1.0,
+          2.0
+        ],
+        [
+          4.0,
+          1.0,
+          0.0,
+          -2.0
+        ],
+        2,
+        true
+      ],
+      "upstreamFn": "cv2.cartToPolar",
+      "goFn": "cv.CartToPolar",
+      "mode": "tolerance",
+      "tol": 0.002,
+      "relTol": 0.001
+    },
+    {
+      "id": "set-identity-3x3",
+      "fn": "setIdentity",
+      "args": [
+        3,
+        3,
+        1.0
+      ],
+      "upstreamFn": "cv2.setIdentity",
+      "goFn": "cv.SetIdentity",
+      "mode": "tolerance",
+      "tol": 1e-12,
+      "relTol": 1e-12
+    },
+    {
+      "id": "set-identity-nonsquare",
+      "fn": "setIdentity",
+      "args": [
+        2,
+        4,
+        2.5
+      ],
+      "upstreamFn": "cv2.setIdentity",
+      "goFn": "cv.SetIdentity",
+      "mode": "tolerance",
+      "tol": 1e-12,
+      "relTol": 1e-12
+    },
+    {
+      "id": "reduce-row-sum",
+      "fn": "reduce",
+      "args": [
+        [
+          1.0,
+          5.0,
+          3.0,
+          4.0,
+          2.0,
+          6.0
+        ],
+        2,
+        3,
+        true,
+        "ReduceSum"
+      ],
+      "upstreamFn": "cv2.reduce",
+      "goFn": "cv.Reduce",
+      "mode": "tolerance",
+      "tol": 1e-09,
+      "relTol": 1e-09
+    },
+    {
+      "id": "reduce-row-avg",
+      "fn": "reduce",
+      "args": [
+        [
+          1.0,
+          5.0,
+          3.0,
+          4.0,
+          2.0,
+          6.0
+        ],
+        2,
+        3,
+        true,
+        "ReduceAvg"
+      ],
+      "upstreamFn": "cv2.reduce",
+      "goFn": "cv.Reduce",
+      "mode": "tolerance",
+      "tol": 1e-09,
+      "relTol": 1e-09
+    },
+    {
+      "id": "reduce-row-max",
+      "fn": "reduce",
+      "args": [
+        [
+          1.0,
+          5.0,
+          3.0,
+          4.0,
+          2.0,
+          6.0
+        ],
+        2,
+        3,
+        true,
+        "ReduceMax"
+      ],
+      "upstreamFn": "cv2.reduce",
+      "goFn": "cv.Reduce",
+      "mode": "tolerance",
+      "tol": 1e-09,
+      "relTol": 1e-09
+    },
+    {
+      "id": "reduce-row-min",
+      "fn": "reduce",
+      "args": [
+        [
+          1.0,
+          5.0,
+          3.0,
+          4.0,
+          2.0,
+          6.0
+        ],
+        2,
+        3,
+        true,
+        "ReduceMin"
+      ],
+      "upstreamFn": "cv2.reduce",
+      "goFn": "cv.Reduce",
+      "mode": "tolerance",
+      "tol": 1e-09,
+      "relTol": 1e-09
+    },
+    {
+      "id": "reduce-col-sum",
+      "fn": "reduce",
+      "args": [
+        [
+          1.0,
+          5.0,
+          3.0,
+          4.0,
+          2.0,
+          6.0
+        ],
+        2,
+        3,
+        false,
+        "ReduceSum"
+      ],
+      "upstreamFn": "cv2.reduce",
+      "goFn": "cv.Reduce",
+      "mode": "tolerance",
+      "tol": 1e-09,
+      "relTol": 1e-09
+    },
+    {
+      "id": "reduce-col-avg",
+      "fn": "reduce",
+      "args": [
+        [
+          1.0,
+          5.0,
+          3.0,
+          4.0,
+          2.0,
+          6.0
+        ],
+        2,
+        3,
+        false,
+        "ReduceAvg"
+      ],
+      "upstreamFn": "cv2.reduce",
+      "goFn": "cv.Reduce",
+      "mode": "tolerance",
+      "tol": 1e-09,
+      "relTol": 1e-09
+    },
+    {
+      "id": "reduce-col-max",
+      "fn": "reduce",
+      "args": [
+        [
+          1.0,
+          5.0,
+          3.0,
+          4.0,
+          2.0,
+          6.0
+        ],
+        2,
+        3,
+        false,
+        "ReduceMax"
+      ],
+      "upstreamFn": "cv2.reduce",
+      "goFn": "cv.Reduce",
+      "mode": "tolerance",
+      "tol": 1e-09,
+      "relTol": 1e-09
+    },
+    {
+      "id": "reduce-col-min",
+      "fn": "reduce",
+      "args": [
+        [
+          1.0,
+          5.0,
+          3.0,
+          4.0,
+          2.0,
+          6.0
+        ],
+        2,
+        3,
+        false,
+        "ReduceMin"
+      ],
+      "upstreamFn": "cv2.reduce",
+      "goFn": "cv.Reduce",
+      "mode": "tolerance",
+      "tol": 1e-09,
+      "relTol": 1e-09
+    },
+    {
+      "id": "repeat-2x3",
+      "fn": "repeatMat",
+      "args": [
+        [
+          1.0,
+          5.0,
+          3.0,
+          4.0,
+          2.0,
+          6.0
+        ],
+        2,
+        3,
+        2,
+        2
+      ],
+      "upstreamFn": "cv2.repeat",
+      "goFn": "cv.Repeat",
+      "mode": "tolerance",
+      "tol": 1e-12,
+      "relTol": 1e-12
+    },
+    {
+      "id": "sort-row-desc",
+      "fn": "sortMat",
+      "args": [
+        [
+          1.0,
+          5.0,
+          3.0,
+          4.0,
+          2.0,
+          6.0
+        ],
+        2,
+        3,
+        true,
+        true
+      ],
+      "upstreamFn": "cv2.sort",
+      "goFn": "cv.Sort",
+      "mode": "tolerance",
+      "tol": 1e-12,
+      "relTol": 1e-12
+    },
+    {
+      "id": "sort-row-asc",
+      "fn": "sortMat",
+      "args": [
+        [
+          1.0,
+          5.0,
+          3.0,
+          4.0,
+          2.0,
+          6.0
+        ],
+        2,
+        3,
+        true,
+        false
+      ],
+      "upstreamFn": "cv2.sort",
+      "goFn": "cv.Sort",
+      "mode": "tolerance",
+      "tol": 1e-12,
+      "relTol": 1e-12
+    },
+    {
+      "id": "sort-col-desc",
+      "fn": "sortMat",
+      "args": [
+        [
+          1.0,
+          5.0,
+          3.0,
+          4.0,
+          2.0,
+          6.0
+        ],
+        2,
+        3,
+        false,
+        true
+      ],
+      "upstreamFn": "cv2.sort",
+      "goFn": "cv.Sort",
+      "mode": "tolerance",
+      "tol": 1e-12,
+      "relTol": 1e-12
+    },
+    {
+      "id": "sort-col-asc",
+      "fn": "sortMat",
+      "args": [
+        [
+          1.0,
+          5.0,
+          3.0,
+          4.0,
+          2.0,
+          6.0
+        ],
+        2,
+        3,
+        false,
+        false
+      ],
+      "upstreamFn": "cv2.sort",
+      "goFn": "cv.Sort",
+      "mode": "tolerance",
+      "tol": 1e-12,
+      "relTol": 1e-12
+    }
+  ]
+}

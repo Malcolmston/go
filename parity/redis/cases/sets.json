@@ -1,0 +1,389 @@
+{
+  "group": "sets",
+  "upstream": "redis-server@8.2.2",
+  "encoding": "commands are arrays of UTF-8 argument strings; replies map integer->number, bulk string->string, nil->null, simple string->{\"status\":s}, array->array, error->{\"error\":true}",
+  "cases": [
+    {
+      "id": "set-basics",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SADD",
+              "s",
+              "a",
+              "b",
+              "c"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SADD",
+              "s",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SADD",
+              "s",
+              "a",
+              "d"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SCARD",
+              "s"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SISMEMBER",
+              "s",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SISMEMBER",
+              "s",
+              "zz"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SMEMBERS",
+              "s"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SREM",
+              "s",
+              "a",
+              "zz"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SMEMBERS",
+              "s"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SCARD",
+              "nokey"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SMEMBERS",
+              "nokey"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SISMEMBER",
+              "nokey",
+              "a"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "SADD/SREM/SCARD/SISMEMBER/SMEMBERS",
+      "goFn": "Store.Do SADD/SREM/SCARD/SISMEMBER/SMEMBERS",
+      "note": "SMEMBERS sorted on both sides"
+    },
+    {
+      "id": "set-empty-removes-key",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SADD",
+              "s",
+              "a",
+              "b"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SREM",
+              "s",
+              "a",
+              "b"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXISTS",
+              "s"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SCARD",
+              "s"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TYPE",
+              "s"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SREM",
+              "s",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "DBSIZE"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "SREM",
+      "goFn": "Store.Do SREM",
+      "note": ""
+    },
+    {
+      "id": "set-algebra",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SADD",
+              "s1",
+              "a",
+              "b",
+              "c"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SADD",
+              "s2",
+              "b",
+              "c",
+              "d"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SADD",
+              "s3",
+              "c"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SINTER",
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SINTER",
+              "s1",
+              "s2",
+              "s3"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SUNION",
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SDIFF",
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SDIFF",
+              "s2",
+              "s1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SINTER",
+              "s1",
+              "nokey"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SUNION",
+              "s1",
+              "nokey"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SDIFF",
+              "nokey",
+              "s1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SDIFF",
+              "s1",
+              "nokey"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SINTER",
+              "s1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SUNION",
+              "s1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SDIFF",
+              "s1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SINTER",
+              "nokey"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SUNION",
+              "nokey"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "SINTER/SUNION/SDIFF",
+      "goFn": "Store.Do SINTER/SUNION/SDIFF",
+      "note": "an absent key behaves as the empty set; results sorted on both sides"
+    },
+    {
+      "id": "set-arity",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SADD",
+              "s"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SREM",
+              "s"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SADD",
+              "s",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SISMEMBER",
+              "s"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SCARD"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SMEMBERS"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SINTER"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SMEMBERS",
+              "s"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "SADD/SREM/SISMEMBER/SCARD/SMEMBERS/SINTER",
+      "goFn": "Store.Do SADD/SREM/SISMEMBER/SCARD/SMEMBERS/SINTER",
+      "note": ""
+    }
+  ]
+}

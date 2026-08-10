@@ -1,0 +1,264 @@
+{
+  "library": "morgan",
+  "upstream": "morgan@1.10.0",
+  "goModule": "github.com/malcolmston/morgan@v1.2.0",
+  "runners": {
+    "go": "go run ./go",
+    "upstream": "node node/run.js"
+  },
+  "cases": 98,
+  "match": 66,
+  "mismatch": 32,
+  "deviation": 0,
+  "harnessError": 0,
+  "parityPercent": 67.35,
+  "groups": {
+    "behaviour": {
+      "cases": 21,
+      "match": 16,
+      "mismatch": 5
+    },
+    "bugs": {
+      "cases": 11,
+      "match": 0,
+      "mismatch": 11
+    },
+    "formats": {
+      "cases": 18,
+      "match": 11,
+      "mismatch": 7
+    },
+    "tokens": {
+      "cases": 48,
+      "match": 39,
+      "mismatch": 9
+    }
+  },
+  "mismatches": [
+    {
+      "id": "bug-content-length-combined",
+      "group": "bugs",
+      "status": "mismatch",
+      "upstream": "\"127.0.0.1 - - [\\u003cDATE-CLF\\u003e] \\\"GET /size HTTP/1.1\\\" 200 10 \\\"http://example.com/from\\\" \\\"parity-harness/1.0\\\"\"",
+      "go": "\"127.0.0.1 - - [\\u003cDATE-CLF\\u003e] \\\"GET /size HTTP/1.1\\\" 200 - \\\"http://example.com/from\\\" \\\"parity-harness/1.0\\\"\""
+    },
+    {
+      "id": "bug-content-length-common",
+      "group": "bugs",
+      "status": "mismatch",
+      "upstream": "\"127.0.0.1 - - [\\u003cDATE-CLF\\u003e] \\\"GET /size HTTP/1.1\\\" 200 10\"",
+      "go": "\"127.0.0.1 - - [\\u003cDATE-CLF\\u003e] \\\"GET /size HTTP/1.1\\\" 200 -\""
+    },
+    {
+      "id": "bug-content-length-dev",
+      "group": "bugs",
+      "status": "mismatch",
+      "upstream": "\"\\u001b[0mGET /size \\u001b[32m200\\u001b[0m \\u003cT:3\\u003e ms - 10\\u001b[0m\"",
+      "go": "\"GET /size 200 \\u003cT:3\\u003e ms - -\""
+    },
+    {
+      "id": "bug-content-length-short",
+      "group": "bugs",
+      "status": "mismatch",
+      "upstream": "\"127.0.0.1 - GET /size HTTP/1.1 200 10 - \\u003cT:3\\u003e ms\"",
+      "go": "\"127.0.0.1 - GET /size HTTP/1.1 200 - - \\u003cT:3\\u003e ms\""
+    },
+    {
+      "id": "bug-content-length-tiny",
+      "group": "bugs",
+      "status": "mismatch",
+      "upstream": "\"GET /size 200 10 - \\u003cT:3\\u003e ms\"",
+      "go": "\"GET /size 200 - - \\u003cT:3\\u003e ms\""
+    },
+    {
+      "id": "bug-json-format-invalid-json",
+      "group": "bugs",
+      "status": "mismatch",
+      "upstream": "\"json\"",
+      "go": "\"{\\\"date\\\":\\\"\\u003cDATE-ISO\\u003e\\\",\\\"method\\\":\\\"GET\\\",\\\"url\\\":\\\"/json\\\",\\\"status\\\":200,\\\"responseTime\\\":\\u003cT:3\\u003e,\\\"totalTime\\\":\\u003cT:3\\u003e,\\\"remoteAddr\\\":\\\"127.0.0.1\\\",\\\"userAgent\\\":\\\"parity-harness/1.0\\\",\\\"contentLength\\\":-}\""
+    },
+    {
+      "id": "bug-url-percent-decoded",
+      "group": "bugs",
+      "status": "mismatch",
+      "upstream": "\"U=/a%2Fb/caf%C3%A9?q=a%20b\"",
+      "go": "\"U=/a/b/café?q=a%20b\""
+    },
+    {
+      "id": "bug-url-percent-encoded-space",
+      "group": "bugs",
+      "status": "mismatch",
+      "upstream": "\"U=/two%20words\"",
+      "go": "\"U=/two words\""
+    },
+    {
+      "id": "bug-xff-list-renders-nil",
+      "group": "bugs",
+      "status": "mismatch",
+      "upstream": "\"IP=127.0.0.1\"",
+      "go": "\"IP=\\u003cnil\\u003e\""
+    },
+    {
+      "id": "bug-xff-non-ip-value",
+      "group": "bugs",
+      "status": "mismatch",
+      "upstream": "\"IP=127.0.0.1\"",
+      "go": "\"IP=\\u003cnil\\u003e\""
+    },
+    {
+      "id": "bug-xff-trusted-unconditionally",
+      "group": "bugs",
+      "status": "mismatch",
+      "upstream": "\"IP=127.0.0.1\"",
+      "go": "\"IP=203.0.113.9\""
+    },
+    {
+      "id": "fmt-default-deprecated",
+      "group": "formats",
+      "status": "mismatch",
+      "upstream": "\"127.0.0.1 - - [\\u003cDATE-WEB\\u003e] \\\"GET /hello HTTP/1.1\\\" 200 11 \\\"http://example.com/start\\\" \\\"parity-harness/1.0\\\"\"",
+      "go": "\"default\""
+    },
+    {
+      "id": "fmt-dev-2xx",
+      "group": "formats",
+      "status": "mismatch",
+      "upstream": "\"\\u001b[0mGET /hello \\u001b[32m200\\u001b[0m \\u003cT:3\\u003e ms - 11\\u001b[0m\"",
+      "go": "\"GET /hello 200 \\u003cT:3\\u003e ms - 11\""
+    },
+    {
+      "id": "fmt-dev-3xx",
+      "group": "formats",
+      "status": "mismatch",
+      "upstream": "\"\\u001b[0mGET /old \\u001b[36m302\\u001b[0m \\u003cT:3\\u003e ms - 5\\u001b[0m\"",
+      "go": "\"GET /old 302 \\u003cT:3\\u003e ms - 5\""
+    },
+    {
+      "id": "fmt-dev-4xx",
+      "group": "formats",
+      "status": "mismatch",
+      "upstream": "\"\\u001b[0mGET /missing \\u001b[33m404\\u001b[0m \\u003cT:3\\u003e ms - 9\\u001b[0m\"",
+      "go": "\"GET /missing 404 \\u003cT:3\\u003e ms - 9\""
+    },
+    {
+      "id": "fmt-dev-5xx",
+      "group": "formats",
+      "status": "mismatch",
+      "upstream": "\"\\u001b[0mPOST /boom \\u001b[31m500\\u001b[0m \\u003cT:3\\u003e ms - 6\\u001b[0m\"",
+      "go": "\"POST /boom 500 \\u003cT:3\\u003e ms - 6\""
+    },
+    {
+      "id": "fmt-json-port-only",
+      "group": "formats",
+      "status": "mismatch",
+      "upstream": "\"json\"",
+      "go": "\"{\\\"date\\\":\\\"\\u003cDATE-ISO\\u003e\\\",\\\"method\\\":\\\"GET\\\",\\\"url\\\":\\\"/hello\\\",\\\"status\\\":200,\\\"responseTime\\\":\\u003cT:3\\u003e,\\\"totalTime\\\":\\u003cT:3\\u003e,\\\"remoteAddr\\\":\\\"127.0.0.1\\\",\\\"userAgent\\\":\\\"parity-harness/1.0\\\",\\\"contentLength\\\":11}\""
+    },
+    {
+      "id": "fmt-raw-empty-string",
+      "group": "formats",
+      "status": "mismatch",
+      "upstream": "\"127.0.0.1 - - [\\u003cDATE-WEB\\u003e] \\\"GET /empty-format HTTP/1.1\\\" 200 2 \\\"-\\\" \\\"parity-harness/1.0\\\"\"",
+      "go": "\"\""
+    },
+    {
+      "id": "immediate-response-time-unavailable",
+      "group": "behaviour",
+      "status": "mismatch",
+      "upstream": "\"IMM=- ms\"",
+      "go": "\"IMM=\\u003cT:3\\u003e ms\""
+    },
+    {
+      "id": "tok-date-unknown-arg",
+      "group": "tokens",
+      "status": "mismatch",
+      "upstream": "\"D=-\"",
+      "go": "\"D=\\u003cDATE-WEB\\u003e\""
+    },
+    {
+      "id": "tok-host-port-only",
+      "group": "tokens",
+      "status": "mismatch",
+      "upstream": "error: tokens.host is not a function",
+      "go": "\"H=127.0.0.1:\\u003cPORT\\u003e\""
+    },
+    {
+      "id": "tok-incoming-port-only",
+      "group": "tokens",
+      "status": "mismatch",
+      "upstream": "error: tokens.incoming is not a function",
+      "go": "\"IN=5\""
+    },
+    {
+      "id": "tok-path-port-only",
+      "group": "tokens",
+      "status": "mismatch",
+      "upstream": "error: tokens.path is not a function",
+      "go": "\"PATH=/path/here\""
+    },
+    {
+      "id": "tok-pid-port-only",
+      "group": "tokens",
+      "status": "mismatch",
+      "upstream": "error: tokens.pid is not a function",
+      "go": "\"PID=\\u003cPID\\u003e\""
+    },
+    {
+      "id": "tok-protocol-port-only",
+      "group": "tokens",
+      "status": "mismatch",
+      "upstream": "error: tokens.protocol is not a function",
+      "go": "\"PROTO=http\""
+    },
+    {
+      "id": "tok-query-port-only",
+      "group": "tokens",
+      "status": "mismatch",
+      "upstream": "error: tokens.query is not a function",
+      "go": "\"QS=a=1\\u0026b=2\""
+    },
+    {
+      "id": "tok-response-time-digits-invalid",
+      "group": "tokens",
+      "status": "mismatch",
+      "upstream": "\"RT=\\u003cT:0\\u003e ms\"",
+      "go": "\"RT=\\u003cT:3\\u003e ms\""
+    },
+    {
+      "id": "tok-unknown-name",
+      "group": "tokens",
+      "status": "mismatch",
+      "upstream": "error: tokens.nosuchtoken is not a function",
+      "go": "\"X=-\""
+    },
+    {
+      "id": "urlencoded-path-combined",
+      "group": "behaviour",
+      "status": "mismatch",
+      "upstream": "\"127.0.0.1 - - [\\u003cDATE-CLF\\u003e] \\\"GET /a%2Fb/caf%C3%A9?q=a%20b HTTP/1.1\\\" 200 2 \\\"http://example.com/from\\\" \\\"parity-harness/1.0\\\"\"",
+      "go": "\"127.0.0.1 - - [\\u003cDATE-CLF\\u003e] \\\"GET /a/b/café?q=a%20b HTTP/1.1\\\" 200 2 \\\"http://example.com/from\\\" \\\"parity-harness/1.0\\\"\""
+    },
+    {
+      "id": "xff-combined",
+      "group": "behaviour",
+      "status": "mismatch",
+      "upstream": "\"127.0.0.1 - - [\\u003cDATE-CLF\\u003e] \\\"GET /xff HTTP/1.1\\\" 200 2 \\\"http://example.com/from\\\" \\\"parity-harness/1.0\\\"\"",
+      "go": "\"203.0.113.9 - - [\\u003cDATE-CLF\\u003e] \\\"GET /xff HTTP/1.1\\\" 200 2 \\\"http://example.com/from\\\" \\\"parity-harness/1.0\\\"\""
+    },
+    {
+      "id": "xff-multi-entry-remote-addr",
+      "group": "behaviour",
+      "status": "mismatch",
+      "upstream": "\"IP=127.0.0.1\"",
+      "go": "\"IP=\\u003cnil\\u003e\""
+    },
+    {
+      "id": "xff-single-entry-remote-addr",
+      "group": "behaviour",
+      "status": "mismatch",
+      "upstream": "\"IP=127.0.0.1\"",
+      "go": "\"IP=203.0.113.9\""
+    }
+  ],
+  "note": "Regenerated by TestParity. :response-time/:total-time values and :date output are normalised to placeholders on both sides before comparison; see COVERAGE.md."
+}

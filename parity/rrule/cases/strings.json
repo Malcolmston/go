@@ -1,0 +1,412 @@
+{
+  "group": "strings",
+  "upstream": "python-dateutil@2.9.0.post0",
+  "cases": [
+    {
+      "id": "rulestring-daily-count",
+      "fn": "rulestring",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;COUNT=10",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC"
+        }
+      ],
+      "upstreamFn": "str(dateutil.rrule.rrule)",
+      "goFn": "rrule.RRule.String"
+    },
+    {
+      "id": "roundtrip-daily-count",
+      "fn": "roundtrip",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;COUNT=10",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 8
+        }
+      ],
+      "upstreamFn": "str + dateutil.rrule.rrulestr",
+      "goFn": "rrule.RRule.String + rrule.Parse"
+    },
+    {
+      "id": "rulestring-interval-wkst-byday",
+      "fn": "rulestring",
+      "args": [
+        {
+          "rule": "FREQ=MONTHLY;INTERVAL=2;WKST=SU;COUNT=3;BYDAY=-1FR",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC"
+        }
+      ],
+      "upstreamFn": "str(dateutil.rrule.rrule)",
+      "goFn": "rrule.RRule.String"
+    },
+    {
+      "id": "roundtrip-interval-wkst-byday",
+      "fn": "roundtrip",
+      "args": [
+        {
+          "rule": "FREQ=MONTHLY;INTERVAL=2;WKST=SU;COUNT=3;BYDAY=-1FR",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 8
+        }
+      ],
+      "upstreamFn": "str + dateutil.rrule.rrulestr",
+      "goFn": "rrule.RRule.String + rrule.Parse"
+    },
+    {
+      "id": "rulestring-byweekno-byday",
+      "fn": "rulestring",
+      "args": [
+        {
+          "rule": "FREQ=YEARLY;COUNT=3;BYWEEKNO=20;BYDAY=MO",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC"
+        }
+      ],
+      "upstreamFn": "str(dateutil.rrule.rrule)",
+      "goFn": "rrule.RRule.String"
+    },
+    {
+      "id": "roundtrip-byweekno-byday",
+      "fn": "roundtrip",
+      "args": [
+        {
+          "rule": "FREQ=YEARLY;COUNT=3;BYWEEKNO=20;BYDAY=MO",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 8
+        }
+      ],
+      "upstreamFn": "str + dateutil.rrule.rrulestr",
+      "goFn": "rrule.RRule.String + rrule.Parse"
+    },
+    {
+      "id": "rulestring-until-utc",
+      "fn": "rulestring",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;UNTIL=19971224T000000Z",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC"
+        }
+      ],
+      "upstreamFn": "str(dateutil.rrule.rrule)",
+      "goFn": "rrule.RRule.String"
+    },
+    {
+      "id": "roundtrip-until-utc",
+      "fn": "roundtrip",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;UNTIL=19971224T000000Z",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 8
+        }
+      ],
+      "upstreamFn": "str + dateutil.rrule.rrulestr",
+      "goFn": "rrule.RRule.String + rrule.Parse"
+    },
+    {
+      "id": "rulestring-bysetpos",
+      "fn": "rulestring",
+      "args": [
+        {
+          "rule": "FREQ=MONTHLY;COUNT=3;BYDAY=TU,WE,TH;BYSETPOS=3",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC"
+        }
+      ],
+      "upstreamFn": "str(dateutil.rrule.rrule)",
+      "goFn": "rrule.RRule.String"
+    },
+    {
+      "id": "roundtrip-bysetpos",
+      "fn": "roundtrip",
+      "args": [
+        {
+          "rule": "FREQ=MONTHLY;COUNT=3;BYDAY=TU,WE,TH;BYSETPOS=3",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 8
+        }
+      ],
+      "upstreamFn": "str + dateutil.rrule.rrulestr",
+      "goFn": "rrule.RRule.String + rrule.Parse"
+    },
+    {
+      "id": "rulestring-bymonthday-negative",
+      "fn": "rulestring",
+      "args": [
+        {
+          "rule": "FREQ=MONTHLY;COUNT=4;BYMONTHDAY=1,-1",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC"
+        }
+      ],
+      "upstreamFn": "str(dateutil.rrule.rrule)",
+      "goFn": "rrule.RRule.String"
+    },
+    {
+      "id": "roundtrip-bymonthday-negative",
+      "fn": "roundtrip",
+      "args": [
+        {
+          "rule": "FREQ=MONTHLY;COUNT=4;BYMONTHDAY=1,-1",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 8
+        }
+      ],
+      "upstreamFn": "str + dateutil.rrule.rrulestr",
+      "goFn": "rrule.RRule.String + rrule.Parse"
+    },
+    {
+      "id": "rulestring-byyearday",
+      "fn": "rulestring",
+      "args": [
+        {
+          "rule": "FREQ=YEARLY;COUNT=4;BYYEARDAY=1,100,200,-1",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC"
+        }
+      ],
+      "upstreamFn": "str(dateutil.rrule.rrule)",
+      "goFn": "rrule.RRule.String"
+    },
+    {
+      "id": "roundtrip-byyearday",
+      "fn": "roundtrip",
+      "args": [
+        {
+          "rule": "FREQ=YEARLY;COUNT=4;BYYEARDAY=1,100,200,-1",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 8
+        }
+      ],
+      "upstreamFn": "str + dateutil.rrule.rrulestr",
+      "goFn": "rrule.RRule.String + rrule.Parse"
+    },
+    {
+      "id": "rulestring-all-time-parts",
+      "fn": "rulestring",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;COUNT=4;BYHOUR=9,18;BYMINUTE=0,30;BYSECOND=15",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC"
+        }
+      ],
+      "upstreamFn": "str(dateutil.rrule.rrule)",
+      "goFn": "rrule.RRule.String"
+    },
+    {
+      "id": "roundtrip-all-time-parts",
+      "fn": "roundtrip",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;COUNT=4;BYHOUR=9,18;BYMINUTE=0,30;BYSECOND=15",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 8
+        }
+      ],
+      "upstreamFn": "str + dateutil.rrule.rrulestr",
+      "goFn": "rrule.RRule.String + rrule.Parse"
+    },
+    {
+      "id": "rulestring-interval-1-omitted",
+      "fn": "rulestring",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;INTERVAL=1;COUNT=3",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC"
+        }
+      ],
+      "upstreamFn": "str(dateutil.rrule.rrule)",
+      "goFn": "rrule.RRule.String",
+      "note": "INTERVAL=1 is the default and should not be re-emitted"
+    },
+    {
+      "id": "roundtrip-interval-1-omitted",
+      "fn": "roundtrip",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;INTERVAL=1;COUNT=3",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 8
+        }
+      ],
+      "upstreamFn": "str + dateutil.rrule.rrulestr",
+      "goFn": "rrule.RRule.String + rrule.Parse",
+      "note": "INTERVAL=1 is the default and should not be re-emitted"
+    },
+    {
+      "id": "rulestring-wkst-mo-default",
+      "fn": "rulestring",
+      "args": [
+        {
+          "rule": "FREQ=WEEKLY;WKST=MO;COUNT=3",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC"
+        }
+      ],
+      "upstreamFn": "str(dateutil.rrule.rrule)",
+      "goFn": "rrule.RRule.String",
+      "note": "WKST=MO is the default"
+    },
+    {
+      "id": "roundtrip-wkst-mo-default",
+      "fn": "roundtrip",
+      "args": [
+        {
+          "rule": "FREQ=WEEKLY;WKST=MO;COUNT=3",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 8
+        }
+      ],
+      "upstreamFn": "str + dateutil.rrule.rrulestr",
+      "goFn": "rrule.RRule.String + rrule.Parse",
+      "note": "WKST=MO is the default"
+    },
+    {
+      "id": "rulestring-unsorted-byday",
+      "fn": "rulestring",
+      "args": [
+        {
+          "rule": "FREQ=WEEKLY;BYDAY=FR,MO,WE;COUNT=4",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC"
+        }
+      ],
+      "upstreamFn": "str(dateutil.rrule.rrule)",
+      "goFn": "rrule.RRule.String",
+      "note": "does serialisation preserve or normalise BYDAY order"
+    },
+    {
+      "id": "roundtrip-unsorted-byday",
+      "fn": "roundtrip",
+      "args": [
+        {
+          "rule": "FREQ=WEEKLY;BYDAY=FR,MO,WE;COUNT=4",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 8
+        }
+      ],
+      "upstreamFn": "str + dateutil.rrule.rrulestr",
+      "goFn": "rrule.RRule.String + rrule.Parse",
+      "note": "does serialisation preserve or normalise BYDAY order"
+    },
+    {
+      "id": "rulestring-duplicate-bymonthday",
+      "fn": "rulestring",
+      "args": [
+        {
+          "rule": "FREQ=MONTHLY;BYMONTHDAY=15,15;COUNT=3",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC"
+        }
+      ],
+      "upstreamFn": "str(dateutil.rrule.rrule)",
+      "goFn": "rrule.RRule.String",
+      "note": "duplicate values in a BYxxx list"
+    },
+    {
+      "id": "roundtrip-duplicate-bymonthday",
+      "fn": "roundtrip",
+      "args": [
+        {
+          "rule": "FREQ=MONTHLY;BYMONTHDAY=15,15;COUNT=3",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 8
+        }
+      ],
+      "upstreamFn": "str + dateutil.rrule.rrulestr",
+      "goFn": "rrule.RRule.String + rrule.Parse",
+      "note": "duplicate values in a BYxxx list"
+    },
+    {
+      "id": "rulestring-tz-named-zone",
+      "fn": "rulestring",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;COUNT=3",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "America/New_York"
+        }
+      ],
+      "upstreamFn": "str(dateutil.rrule.rrule)",
+      "goFn": "rrule.RRule.String",
+      "note": "upstream serialisation drops the zone; the port keeps TZID"
+    },
+    {
+      "id": "roundtrip-tz-named-zone",
+      "fn": "roundtrip",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;COUNT=3",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "America/New_York",
+          "limit": 8
+        }
+      ],
+      "upstreamFn": "str + dateutil.rrule.rrulestr",
+      "goFn": "rrule.RRule.String + rrule.Parse",
+      "note": "upstream serialisation drops the zone; the port keeps TZID"
+    },
+    {
+      "id": "parse-rrule-prefix",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "RRULE:FREQ=DAILY;COUNT=3",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 5
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse",
+      "note": "the RRULE: property name is accepted by both"
+    },
+    {
+      "id": "parse-trailing-semicolon",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;COUNT=3;",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 5
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse",
+      "note": "trailing separator"
+    },
+    {
+      "id": "parse-whitespace",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": " FREQ=DAILY ; COUNT=3 ",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "UTC",
+          "limit": 5
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse",
+      "note": "whitespace around rule parts"
+    }
+  ]
+}

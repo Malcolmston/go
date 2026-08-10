@@ -1,0 +1,300 @@
+{
+  "group": "integration",
+  "upstream": "sympy@1.14.0",
+  "goModule": "github.com/malcolmston/algebra@v0.8.0",
+  "note": "every case sets upToConstant: antiderivatives are only defined up to an additive constant, so the runners emit F(x_j) - F(x_0)",
+  "cases": [
+    {
+      "id": "int-poly",
+      "fn": "integrate",
+      "args": ["x^4 + 3*x^2 - 2", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upToConstant": true,
+      "upstreamFn": "sympy.integrate",
+      "goFn": "algebra.Integrate"
+    },
+    {
+      "id": "int-negative-power",
+      "fn": "integrate",
+      "args": ["1/x^3", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upToConstant": true,
+      "upstreamFn": "sympy.integrate",
+      "goFn": "algebra.Integrate"
+    },
+    {
+      "id": "int-one-over-x",
+      "fn": "integrate",
+      "args": ["1/x", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upToConstant": true,
+      "upstreamFn": "sympy.integrate",
+      "goFn": "algebra.Integrate"
+    },
+    {
+      "id": "int-exp-linear",
+      "fn": "integrate",
+      "args": ["exp(3*x)", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upToConstant": true,
+      "upstreamFn": "sympy.integrate",
+      "goFn": "algebra.Integrate"
+    },
+    {
+      "id": "int-sin-linear",
+      "fn": "integrate",
+      "args": ["sin(2*x)", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upToConstant": true,
+      "upstreamFn": "sympy.integrate",
+      "goFn": "algebra.Integrate"
+    },
+    {
+      "id": "int-arctan-form",
+      "fn": "integrate",
+      "args": ["1/(x^2+1)", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upToConstant": true,
+      "upstreamFn": "sympy.integrate",
+      "goFn": "algebra.Integrate"
+    },
+    {
+      "id": "int-arctan-form-scaled",
+      "fn": "integrate",
+      "args": ["1/(x^2+4)", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upToConstant": true,
+      "upstreamFn": "sympy.integrate",
+      "goFn": "algebra.Integrate"
+    },
+    {
+      "id": "int-arcsin-form",
+      "fn": "integrate",
+      "args": ["1/sqrt(1-x^2)", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "samples": [{"x": -0.8}, {"x": -0.3}, {"x": 0.1}, {"x": 0.5}, {"x": 0.9}],
+      "upToConstant": true,
+      "upstreamFn": "sympy.integrate",
+      "goFn": "algebra.Integrate"
+    },
+    {
+      "id": "int-byparts-x-exp",
+      "fn": "integrate",
+      "args": ["x*exp(x)", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upToConstant": true,
+      "upstreamFn": "sympy.integrate",
+      "goFn": "algebra.Integrate"
+    },
+    {
+      "id": "int-byparts-x2-exp",
+      "fn": "integrate",
+      "args": ["x^2*exp(x)", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upToConstant": true,
+      "upstreamFn": "sympy.integrate",
+      "goFn": "algebra.Integrate"
+    },
+    {
+      "id": "int-byparts-x-sin",
+      "fn": "integrate",
+      "args": ["x*sin(x)", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upToConstant": true,
+      "upstreamFn": "sympy.integrate",
+      "goFn": "algebra.Integrate"
+    },
+    {
+      "id": "int-byparts-x-cos2x",
+      "fn": "integrate",
+      "args": ["x*cos(2*x)", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upToConstant": true,
+      "upstreamFn": "sympy.integrate",
+      "goFn": "algebra.Integrate"
+    },
+    {
+      "id": "int-byparts-log",
+      "fn": "integrate",
+      "args": ["log(x)", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upToConstant": true,
+      "upstreamFn": "sympy.integrate",
+      "goFn": "algebra.Integrate",
+      "note": "classic by-parts case: x*log(x) - x"
+    },
+    {
+      "id": "int-byparts-x-log",
+      "fn": "integrate",
+      "args": ["x*log(x)", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upToConstant": true,
+      "upstreamFn": "sympy.integrate",
+      "goFn": "algebra.Integrate"
+    },
+    {
+      "id": "int-byparts-exp-cos",
+      "fn": "integrate",
+      "args": ["exp(x)*cos(x)", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upToConstant": true,
+      "upstreamFn": "sympy.integrate",
+      "goFn": "algebra.Integrate",
+      "note": "cyclic by-parts: exp(x)*(sin(x)+cos(x))/2"
+    },
+    {
+      "id": "int-rational-distinct-linear",
+      "fn": "integrate",
+      "args": ["(2*x+3)/((x+1)*(x+2))", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upToConstant": true,
+      "upstreamFn": "sympy.integrate",
+      "goFn": "algebra.Integrate"
+    },
+    {
+      "id": "int-rational-x2-minus-1",
+      "fn": "integrate",
+      "args": ["1/(x^2-1)", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "samples": [{"x": 1.3}, {"x": 1.7}, {"x": 2.3}, {"x": 3.1}, {"x": 4.5}],
+      "upToConstant": true,
+      "upstreamFn": "sympy.integrate",
+      "goFn": "algebra.Integrate"
+    },
+    {
+      "id": "int-rational-repeated-root",
+      "fn": "integrate",
+      "args": ["1/((x-1)^2*(x+1))", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "samples": [{"x": 1.3}, {"x": 1.7}, {"x": 2.3}, {"x": 3.1}, {"x": 4.5}],
+      "upToConstant": true,
+      "upstreamFn": "sympy.integrate",
+      "goFn": "algebra.Integrate",
+      "note": "partial fractions with a repeated linear factor"
+    },
+    {
+      "id": "int-rational-irreducible-quadratic",
+      "fn": "integrate",
+      "args": ["(x^2+1)/(x^3+x)", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upToConstant": true,
+      "upstreamFn": "sympy.integrate",
+      "goFn": "algebra.Integrate",
+      "note": "partial fractions with an irreducible quadratic factor"
+    },
+    {
+      "id": "int-rational-cubic-denominator",
+      "fn": "integrate",
+      "args": ["1/(x^3+1)", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upToConstant": true,
+      "upstreamFn": "sympy.integrate",
+      "goFn": "algebra.Integrate"
+    },
+    {
+      "id": "int-tan",
+      "fn": "integrate",
+      "args": ["tan(x)", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "samples": [{"x": 0.2}, {"x": 0.4}, {"x": 0.6}, {"x": 0.8}, {"x": 1.0}],
+      "upToConstant": true,
+      "upstreamFn": "sympy.integrate",
+      "goFn": "algebra.Integrate"
+    },
+    {
+      "id": "int-sec",
+      "fn": "integrate",
+      "args": ["sec(x)", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "samples": [{"x": 0.2}, {"x": 0.4}, {"x": 0.6}, {"x": 0.8}, {"x": 1.0}],
+      "upToConstant": true,
+      "upstreamFn": "sympy.integrate",
+      "goFn": "algebra.Integrate"
+    },
+    {
+      "id": "int-sinh",
+      "fn": "integrate",
+      "args": ["sinh(x)", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upToConstant": true,
+      "upstreamFn": "sympy.integrate",
+      "goFn": "algebra.Integrate"
+    },
+    {
+      "id": "int-tanh",
+      "fn": "integrate",
+      "args": ["tanh(x)", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upToConstant": true,
+      "upstreamFn": "sympy.integrate",
+      "goFn": "algebra.Integrate"
+    },
+    {
+      "id": "int-gaussian",
+      "fn": "integrate",
+      "args": ["exp(-x^2)", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upToConstant": true,
+      "upstreamFn": "sympy.integrate",
+      "goFn": "algebra.Integrate",
+      "note": "sqrt(pi)/2*erf(x); the port has Erf but may not reach it from the integral"
+    },
+    {
+      "id": "int-sinc",
+      "fn": "integrate",
+      "args": ["sin(x)/x", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upToConstant": true,
+      "upstreamFn": "sympy.integrate",
+      "goFn": "algebra.Integrate",
+      "note": "sympy answers with Si(x); the port has no special-integral table"
+    },
+    {
+      "id": "int-log-log",
+      "fn": "integrate",
+      "args": ["1/(x*log(x))", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "samples": [{"x": 1.3}, {"x": 1.7}, {"x": 2.3}, {"x": 3.1}, {"x": 4.5}],
+      "upToConstant": true,
+      "upstreamFn": "sympy.integrate",
+      "goFn": "algebra.Integrate"
+    },
+    {
+      "id": "int-nonsense-symbolic-var",
+      "fn": "integrate",
+      "args": ["y^2", "y"],
+      "mode": "numeric",
+      "vars": ["y"],
+      "upToConstant": true,
+      "upstreamFn": "sympy.integrate",
+      "goFn": "algebra.Integrate"
+    }
+  ]
+}

@@ -1,0 +1,245 @@
+{
+  "group": "events",
+  "upstream": "phoenix_live_view@1.2.9",
+  "note": "The mount -> event -> diff cycle for the port's own Counter view against a HEEx mirror of it. These cases are where the port's payload typing shows up: a JSON number decodes to float64 in Go and to an integer in Elixir.",
+  "cases": [
+    {
+      "id": "ev-mount-default",
+      "fn": "session_initial",
+      "args": [
+        "counter",
+        {}
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "(*liveview.Session).Mount"
+    },
+    {
+      "id": "ev-mount-label",
+      "fn": "session_initial",
+      "args": [
+        "counter",
+        {
+          "label": "L"
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "(*liveview.Counter).Mount"
+    },
+    {
+      "id": "ev-mount-empty-label",
+      "fn": "session_initial",
+      "args": [
+        "counter",
+        {
+          "label": ""
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "(*liveview.Counter).Mount",
+      "note": "empty label must fall back to \"Counter\""
+    },
+    {
+      "id": "ev-mount-start",
+      "fn": "session_initial",
+      "args": [
+        "counter",
+        {
+          "start": 3
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "(*liveview.Counter).Mount",
+      "note": "params[\"start\"] arrives as a JSON number"
+    },
+    {
+      "id": "ev-inc",
+      "fn": "session_event",
+      "args": [
+        "counter",
+        {},
+        "inc",
+        {}
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "(*liveview.Counter).HandleEvent"
+    },
+    {
+      "id": "ev-dec",
+      "fn": "session_event",
+      "args": [
+        "counter",
+        {},
+        "dec",
+        {}
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "(*liveview.Counter).HandleEvent"
+    },
+    {
+      "id": "ev-inc-no-initial",
+      "fn": "session_event_no_initial",
+      "args": [
+        "counter",
+        {},
+        "inc",
+        {}
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "(*liveview.Session).Event",
+      "note": "control for cmp-parent-change-no-initial: no components, so nothing can be re-sent"
+    },
+    {
+      "id": "ev-set-int",
+      "fn": "session_event",
+      "args": [
+        "counter",
+        {},
+        "set",
+        {
+          "value": 5
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "(*liveview.Counter).HandleEvent",
+      "note": "JSON number: decodes as float64 in Go, so the int type assertion is a silent no-op"
+    },
+    {
+      "id": "ev-set-zero",
+      "fn": "session_event",
+      "args": [
+        "counter",
+        {},
+        "set",
+        {
+          "value": 0
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "(*liveview.Counter).HandleEvent"
+    },
+    {
+      "id": "ev-set-float",
+      "fn": "session_event",
+      "args": [
+        "counter",
+        {},
+        "set",
+        {
+          "value": 5.5
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "(*liveview.Counter).HandleEvent"
+    },
+    {
+      "id": "ev-set-string",
+      "fn": "session_event",
+      "args": [
+        "counter",
+        {},
+        "set",
+        {
+          "value": "5"
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "(*liveview.Counter).HandleEvent"
+    },
+    {
+      "id": "ev-set-missing-value",
+      "fn": "session_event",
+      "args": [
+        "counter",
+        {},
+        "set",
+        {}
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "(*liveview.Counter).HandleEvent",
+      "note": "both sides must no-op"
+    },
+    {
+      "id": "ev-label",
+      "fn": "session_event",
+      "args": [
+        "counter",
+        {},
+        "label",
+        {
+          "text": "Hi"
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "(*liveview.Counter).HandleEvent"
+    },
+    {
+      "id": "ev-label-escaped",
+      "fn": "session_event",
+      "args": [
+        "counter",
+        {},
+        "label",
+        {
+          "text": "<b>&\"'"
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "(*liveview.Counter).HandleEvent"
+    },
+    {
+      "id": "ev-label-same-value",
+      "fn": "session_event",
+      "args": [
+        "counter",
+        {},
+        "label",
+        {
+          "text": "Counter"
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "(*liveview.Counter).HandleEvent",
+      "note": "assigning the same value again"
+    },
+    {
+      "id": "ev-label-nonstring",
+      "fn": "session_event",
+      "args": [
+        "counter",
+        {},
+        "label",
+        {
+          "text": 5
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "(*liveview.Counter).HandleEvent",
+      "note": "both sides must ignore a non-string"
+    },
+    {
+      "id": "ev-label-missing-text",
+      "fn": "session_event",
+      "args": [
+        "counter",
+        {},
+        "label",
+        {}
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "(*liveview.Counter).HandleEvent"
+    },
+    {
+      "id": "ev-unknown-event",
+      "fn": "session_event",
+      "args": [
+        "counter",
+        {},
+        "nope",
+        {}
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.render/4",
+      "goFn": "(*liveview.Counter).HandleEvent",
+      "note": "an unhandled event must produce an empty diff"
+    }
+  ]
+}

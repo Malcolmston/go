@@ -1,0 +1,351 @@
+{
+  "group": "rewriting",
+  "upstream": "sympy@1.14.0",
+  "goModule": "github.com/malcolmston/algebra@v0.8.0",
+  "cases": [
+    {
+      "id": "simplify-pythagorean",
+      "fn": "simplify",
+      "args": ["sin(x)^2+cos(x)^2"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upstreamFn": "sympy.simplify",
+      "goFn": "algebra.Simplify"
+    },
+    {
+      "id": "simplify-double-angle",
+      "fn": "simplify",
+      "args": ["2*sin(x)*cos(x)"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upstreamFn": "sympy.simplify",
+      "goFn": "algebra.Simplify"
+    },
+    {
+      "id": "simplify-log-of-exp",
+      "fn": "simplify",
+      "args": ["log(exp(x))"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upstreamFn": "sympy.simplify",
+      "goFn": "algebra.Simplify"
+    },
+    {
+      "id": "simplify-exp-sum",
+      "fn": "simplify",
+      "args": ["exp(x)*exp(2*x)"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upstreamFn": "sympy.simplify",
+      "goFn": "algebra.Simplify"
+    },
+    {
+      "id": "simplify-cancel-factor",
+      "fn": "simplify",
+      "args": ["(x^2-1)/(x-1)"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upstreamFn": "sympy.simplify",
+      "goFn": "algebra.Simplify"
+    },
+    {
+      "id": "simplify-tan-quotient",
+      "fn": "simplify",
+      "args": ["sin(x)/cos(x)"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "samples": [{"x": 0.2}, {"x": 0.4}, {"x": 0.6}, {"x": 0.8}, {"x": 1.0}],
+      "upstreamFn": "sympy.simplify",
+      "goFn": "algebra.Simplify"
+    },
+    {
+      "id": "simplify-sqrt-of-square",
+      "fn": "simplify",
+      "args": ["sqrt(x^2)"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upstreamFn": "sympy.simplify",
+      "goFn": "algebra.Simplify"
+    },
+    {
+      "id": "simplify-pi-multiple",
+      "fn": "simplify",
+      "args": ["sin(pi/6)"],
+      "mode": "numeric",
+      "upstreamFn": "sympy.simplify",
+      "goFn": "algebra.Simplify"
+    },
+    {
+      "id": "simplify-euler-identity",
+      "fn": "simplify",
+      "args": ["exp(I*pi)"],
+      "mode": "numeric",
+      "upstreamFn": "sympy.simplify",
+      "goFn": "algebra.Simplify"
+    },
+    {
+      "id": "expand-binomial-fourth",
+      "fn": "expand",
+      "args": ["(x+1)^4"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upstreamFn": "sympy.expand",
+      "goFn": "algebra.Expand"
+    },
+    {
+      "id": "expand-triple-product",
+      "fn": "expand",
+      "args": ["(x+2)*(x-3)*(x+5)"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upstreamFn": "sympy.expand",
+      "goFn": "algebra.Expand"
+    },
+    {
+      "id": "expand-two-variable-cube",
+      "fn": "expand",
+      "args": ["(x+y)^3"],
+      "mode": "numeric",
+      "vars": ["x", "y"],
+      "upstreamFn": "sympy.expand",
+      "goFn": "algebra.Expand"
+    },
+    {
+      "id": "collect-linear-in-x",
+      "fn": "collect",
+      "args": ["x*a + x*b + c", "x"],
+      "mode": "numeric",
+      "vars": ["x", "a", "b", "c"],
+      "upstreamFn": "sympy.collect",
+      "goFn": "algebra.Collect"
+    },
+    {
+      "id": "collect-quadratic-in-x",
+      "fn": "collect",
+      "args": ["a*x^2 + b*x^2 + a*x + 7", "x"],
+      "mode": "numeric",
+      "vars": ["x", "a", "b"],
+      "upstreamFn": "sympy.collect",
+      "goFn": "algebra.Collect"
+    },
+    {
+      "id": "apart-distinct-linear",
+      "fn": "apart",
+      "args": ["(2*x+3)/((x+1)*(x+2))", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upstreamFn": "sympy.apart",
+      "goFn": "algebra.ApartExpr"
+    },
+    {
+      "id": "apart-repeated-linear",
+      "fn": "apart",
+      "args": ["(3*x+5)/((x-1)^2)", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "samples": [{"x": 1.3}, {"x": 1.7}, {"x": 2.3}, {"x": 3.1}, {"x": 4.5}],
+      "upstreamFn": "sympy.apart",
+      "goFn": "algebra.ApartExpr"
+    },
+    {
+      "id": "apart-improper-fraction",
+      "fn": "apart",
+      "args": ["(x^3+1)/(x^2-1)", "x"],
+      "mode": "numeric",
+      "vars": ["x"],
+      "samples": [{"x": 1.3}, {"x": 1.7}, {"x": 2.3}, {"x": 3.1}, {"x": 4.5}],
+      "upstreamFn": "sympy.apart",
+      "goFn": "algebra.ApartExpr",
+      "note": "numerator degree exceeds denominator degree"
+    },
+    {
+      "id": "subs-integer",
+      "fn": "subs",
+      "args": ["x^2+1", "x", "3"],
+      "mode": "numeric",
+      "upstreamFn": "sympy.Expr.subs",
+      "goFn": "algebra.Subs"
+    },
+    {
+      "id": "subs-expression",
+      "fn": "subs",
+      "args": ["sin(x)^2", "x", "pi/4"],
+      "mode": "numeric",
+      "upstreamFn": "sympy.Expr.subs",
+      "goFn": "algebra.Subs"
+    },
+    {
+      "id": "evalf-pi",
+      "fn": "evalf",
+      "args": ["pi"],
+      "mode": "numeric",
+      "upstreamFn": "sympy.N",
+      "goFn": "algebra.Evalf"
+    },
+    {
+      "id": "evalf-mixed-constants",
+      "fn": "evalf",
+      "args": ["exp(1)+sqrt(2)"],
+      "mode": "numeric",
+      "upstreamFn": "sympy.N",
+      "goFn": "algebra.Evalf"
+    },
+    {
+      "id": "evalf-gamma-integer",
+      "fn": "evalf",
+      "args": ["gamma(5)"],
+      "mode": "numeric",
+      "upstreamFn": "sympy.gamma",
+      "goFn": "algebra.Gamma"
+    },
+    {
+      "id": "evalf-gamma-half",
+      "fn": "evalf",
+      "args": ["gamma(1/2)"],
+      "mode": "numeric",
+      "upstreamFn": "sympy.gamma",
+      "goFn": "algebra.Gamma"
+    },
+    {
+      "id": "evalf-beta",
+      "fn": "evalf",
+      "args": ["beta(2,3)"],
+      "mode": "numeric",
+      "upstreamFn": "sympy.beta",
+      "goFn": "algebra.Beta"
+    },
+    {
+      "id": "evalf-erf",
+      "fn": "evalf",
+      "args": ["erf(1)"],
+      "mode": "numeric",
+      "upstreamFn": "sympy.erf",
+      "goFn": "algebra.Erf"
+    },
+    {
+      "id": "evalf-erfc",
+      "fn": "evalf",
+      "args": ["erfc(1)"],
+      "mode": "numeric",
+      "upstreamFn": "sympy.erfc",
+      "goFn": "algebra.Erfc"
+    },
+    {
+      "id": "evalf-factorial",
+      "fn": "evalf",
+      "args": ["factorial(10)"],
+      "mode": "numeric",
+      "upstreamFn": "sympy.factorial",
+      "goFn": "algebra.Factorial"
+    },
+    {
+      "id": "evalf-abs-negative",
+      "fn": "evalf",
+      "args": ["abs(-7/2)"],
+      "mode": "numeric",
+      "upstreamFn": "sympy.Abs",
+      "goFn": "algebra.Abs"
+    },
+    {
+      "id": "evalf-floor",
+      "fn": "evalf",
+      "args": ["floor(7/2)"],
+      "mode": "numeric",
+      "upstreamFn": "sympy.floor",
+      "goFn": "algebra.Floor"
+    },
+    {
+      "id": "evalf-ceiling-sympy-name",
+      "fn": "evalf",
+      "args": ["ceiling(7/2)"],
+      "mode": "numeric",
+      "upstreamFn": "sympy.ceiling",
+      "goFn": "algebra.Ceil",
+      "note": "naming divergence: the port's parser does not know ceiling(), it silently reads it as an implicit product with a symbol"
+    },
+    {
+      "id": "evalf-ceil-port-name",
+      "fn": "evalf",
+      "args": ["ceil(7/2)"],
+      "mode": "numeric",
+      "upstreamFn": "sympy.ceiling",
+      "goFn": "algebra.Ceil",
+      "note": "naming divergence in the other direction: sympy has no ceil()"
+    },
+    {
+      "id": "evalf-sign",
+      "fn": "evalf",
+      "args": ["sign(-3)"],
+      "mode": "numeric",
+      "upstreamFn": "sympy.sign",
+      "goFn": "algebra.Sign"
+    },
+    {
+      "id": "evalf-atan2",
+      "fn": "evalf",
+      "args": ["atan2(1,-1)"],
+      "mode": "numeric",
+      "upstreamFn": "sympy.atan2",
+      "goFn": "algebra.Atan2"
+    },
+    {
+      "id": "evalf-complex-modulus",
+      "fn": "evalf",
+      "args": ["abs(3+4*I)"],
+      "mode": "numeric",
+      "upstreamFn": "sympy.Abs",
+      "goFn": "algebra.Abs"
+    },
+    {
+      "id": "evalf-conjugate",
+      "fn": "evalf",
+      "args": ["conjugate(2+3*I)"],
+      "mode": "numeric",
+      "upstreamFn": "sympy.conjugate",
+      "goFn": "algebra.Conjugate"
+    },
+    {
+      "id": "evalf-re-im",
+      "fn": "evalf",
+      "args": ["re(2+3*I)+im(2+3*I)"],
+      "mode": "numeric",
+      "upstreamFn": "sympy.re",
+      "goFn": "algebra.Re"
+    },
+    {
+      "id": "evalf-arg",
+      "fn": "evalf",
+      "args": ["arg(-1+I)"],
+      "mode": "numeric",
+      "upstreamFn": "sympy.arg",
+      "goFn": "algebra.Arg"
+    },
+    {
+      "id": "str-plain-sum",
+      "fn": "str",
+      "args": ["x + 1"],
+      "mode": "exact",
+      "upstreamFn": "sympy.sstr",
+      "goFn": "algebra.Expr.String",
+      "note": "whitespace-insensitive string comparison"
+    },
+    {
+      "id": "str-division",
+      "fn": "str",
+      "args": ["1/x"],
+      "mode": "exact",
+      "upstreamFn": "sympy.sstr",
+      "goFn": "algebra.Expr.String",
+      "note": "known port issue: division is rendered as a negative power, x^(-1)"
+    },
+    {
+      "id": "str-rational-quotient",
+      "fn": "str",
+      "args": ["(x+1)/(x+2)"],
+      "mode": "exact",
+      "upstreamFn": "sympy.sstr",
+      "goFn": "algebra.Expr.String",
+      "note": "known port issue: division is rendered as a negative power"
+    }
+  ]
+}

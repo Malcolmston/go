@@ -1,0 +1,220 @@
+{
+  "group": "text",
+  "upstream": "pdfkit@0.15.1",
+  "cases": [
+    {
+      "id": "text-helvetica-basic",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.text",
+      "goFn": "Page.DrawText",
+      "note": "single line, explicit coordinates, no flow",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "setFont", "args": ["Helvetica", 12]},
+        {"op": "text", "args": [72, 100, "Hello, PDF!"]}
+      ]}]}]
+    },
+    {
+      "id": "text-standard-14",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.font",
+      "goFn": "Page.SetFont",
+      "note": "all fourteen standard fonts, one line each",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "setFont", "args": ["Helvetica", 11]}, {"op": "text", "args": [40, 40, "Helvetica"]},
+        {"op": "setFont", "args": ["Helvetica-Bold", 11]}, {"op": "text", "args": [40, 60, "Helvetica-Bold"]},
+        {"op": "setFont", "args": ["Helvetica-Oblique", 11]}, {"op": "text", "args": [40, 80, "Helvetica-Oblique"]},
+        {"op": "setFont", "args": ["Helvetica-BoldOblique", 11]}, {"op": "text", "args": [40, 100, "Helvetica-BoldOblique"]},
+        {"op": "setFont", "args": ["Times-Roman", 11]}, {"op": "text", "args": [40, 120, "Times-Roman"]},
+        {"op": "setFont", "args": ["Times-Bold", 11]}, {"op": "text", "args": [40, 140, "Times-Bold"]},
+        {"op": "setFont", "args": ["Times-Italic", 11]}, {"op": "text", "args": [40, 160, "Times-Italic"]},
+        {"op": "setFont", "args": ["Times-BoldItalic", 11]}, {"op": "text", "args": [40, 180, "Times-BoldItalic"]},
+        {"op": "setFont", "args": ["Courier", 11]}, {"op": "text", "args": [40, 200, "Courier"]},
+        {"op": "setFont", "args": ["Courier-Bold", 11]}, {"op": "text", "args": [40, 220, "Courier-Bold"]},
+        {"op": "setFont", "args": ["Courier-Oblique", 11]}, {"op": "text", "args": [40, 240, "Courier-Oblique"]},
+        {"op": "setFont", "args": ["Courier-BoldOblique", 11]}, {"op": "text", "args": [40, 260, "Courier-BoldOblique"]},
+        {"op": "setFont", "args": ["Symbol", 11]}, {"op": "text", "args": [40, 280, "abgd"]},
+        {"op": "setFont", "args": ["ZapfDingbats", 11]}, {"op": "text", "args": [40, 300, "3456"]}
+      ]}]}]
+    },
+    {
+      "id": "text-sizes",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.fontSize",
+      "goFn": "Page.SetFont",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "setFont", "args": ["Helvetica", 6]}, {"op": "text", "args": [40, 40, "six"]},
+        {"op": "setFont", "args": ["Helvetica", 12]}, {"op": "text", "args": [40, 70, "twelve"]},
+        {"op": "setFont", "args": ["Helvetica", 36]}, {"op": "text", "args": [40, 120, "thirtysix"]},
+        {"op": "setFont", "args": ["Helvetica", 7.5]}, {"op": "text", "args": [40, 200, "fractional"]}
+      ]}]}]
+    },
+    {
+      "id": "text-fill-colour",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.fillColor",
+      "goFn": "Page.SetFillColor",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "setFont", "args": ["Helvetica", 14]},
+        {"op": "fillColor", "args": [[255, 0, 0]]}, {"op": "text", "args": [40, 40, "red"]},
+        {"op": "fillColor", "args": [[0, 128, 64]]}, {"op": "text", "args": [40, 70, "green-ish"]},
+        {"op": "fillColor", "args": [[17, 17, 17]]}, {"op": "text", "args": [40, 100, "near black"]}
+      ]}]}]
+    },
+    {
+      "id": "text-aligned-in-width",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.text#align",
+      "goFn": "Page.DrawTextAligned",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "setFont", "args": ["Helvetica", 12]},
+        {"op": "textAligned", "args": [40, 40, 300, "left aligned", "left"]},
+        {"op": "textAligned", "args": [40, 70, 300, "centred", "center"]},
+        {"op": "textAligned", "args": [40, 100, 300, "right aligned", "right"]}
+      ]}]}]
+    },
+    {
+      "id": "text-wrapped-box",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.text#width",
+      "goFn": "Page.DrawTextBox",
+      "note": "greedy wrapping to a width; the port has no other flow",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "setFont", "args": ["Helvetica", 12]},
+        {"op": "textBox", "args": [40, 40, 200, 0, "The quick brown fox jumps over the lazy dog and keeps on running well past the margin.", "left"]}
+      ]}]}]
+    },
+    {
+      "id": "text-wrapped-justify",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.text#align=justify",
+      "goFn": "Page.DrawTextBox",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "setFont", "args": ["Helvetica", 12]},
+        {"op": "textBox", "args": [40, 40, 200, 0, "The quick brown fox jumps over the lazy dog and keeps on running well past the margin.", "justify"]}
+      ]}]}]
+    },
+    {
+      "id": "text-wrapped-linegap",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.text#lineGap",
+      "goFn": "TextOptions.LineGap",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "setFont", "args": ["Helvetica", 12]},
+        {"op": "textBox", "args": [40, 40, 200, 6, "The quick brown fox jumps over the lazy dog.", "left"]}
+      ]}]}]
+    },
+    {
+      "id": "text-underline-strike",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.text#underline",
+      "goFn": "TextOptions.Underline",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "setFont", "args": ["Helvetica", 12]},
+        {"op": "textDecorated", "args": [40, 40, 200, "underlined"], "underline": true},
+        {"op": "textDecorated", "args": [40, 80, 200, "struck through"], "strike": true}
+      ]}]}]
+    },
+    {
+      "id": "text-no-font-set",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.text",
+      "goFn": "Page.DrawText",
+      "note": "no setFont first: upstream defaults to Helvetica, the port silently draws nothing",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "text", "args": [40, 40, "no font selected"]}
+      ]}]}]
+    },
+    {
+      "id": "text-unknown-font",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.font",
+      "goFn": "pdfkit.StandardFont",
+      "note": "both sides must reject a font that is not one of the standard 14",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "setFont", "args": ["Comic Sans", 12]},
+        {"op": "text", "args": [40, 40, "nope"]}
+      ]}]}]
+    },
+    {
+      "id": "text-winansi-high-bytes",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.text",
+      "goFn": "Page.DrawText",
+      "note": "Latin-1 range characters, to compare the single-byte encoding",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "setFont", "args": ["Helvetica", 12]},
+        {"op": "text", "args": [40, 40, "café — naïve façade"]}
+      ]}]}]
+    },
+    {
+      "id": "text-parens-escapes",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.text",
+      "goFn": "Page.DrawText",
+      "note": "characters that must be escaped inside a literal string",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "setFont", "args": ["Helvetica", 12]},
+        {"op": "text", "args": [40, 40, "a(b)c\\d"]}
+      ]}]}]
+    },
+    {
+      "id": "text-char-spacing",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.text#characterSpacing",
+      "goFn": "—",
+      "note": "letter spacing: the port never emits Tc",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "setFont", "args": ["Helvetica", 12]},
+        {"op": "textCharSpacing", "args": [40, 40, 1.5, "spaced out"]}
+      ]}]}]
+    },
+    {
+      "id": "text-flow-cursor",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.text",
+      "goFn": "—",
+      "note": "text with no coordinates, using the layout cursor: the port has none",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "setFont", "args": ["Helvetica", 12]},
+        {"op": "textFlow", "args": ["first paragraph"]},
+        {"op": "textFlow", "args": ["second paragraph, placed after the first"]}
+      ]}]}]
+    },
+    {
+      "id": "text-move-down",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.moveDown",
+      "goFn": "—",
+      "note": "cursor movement: the port has no cursor",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "setFont", "args": ["Helvetica", 12]},
+        {"op": "textFlow", "args": ["one"]},
+        {"op": "moveDown", "args": [2]},
+        {"op": "textFlow", "args": ["two"]}
+      ]}]}]
+    },
+    {
+      "id": "text-list",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.list",
+      "goFn": "—",
+      "note": "bulleted list: the port has no list API",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "setFont", "args": ["Helvetica", 12]},
+        {"op": "list", "args": [["alpha", "beta", "gamma"], 40, 40]}
+      ]}]}]
+    },
+    {
+      "id": "text-doc-line-gap",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.lineGap",
+      "goFn": "—",
+      "note": "document-level line gap: the port only has a per-call option",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "setFont", "args": ["Helvetica", 12]},
+        {"op": "lineGap", "args": [4]},
+        {"op": "textBox", "args": [40, 40, 200, 0, "wrapped with a document line gap in effect", "left"]}
+      ]}]}]
+    }
+  ]
+}

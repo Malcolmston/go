@@ -1,0 +1,52 @@
+// Logical models for the prisma parity harness.
+//
+// The Go port has no schema language, no migrations and no code generation, so
+// this file is the upstream half of a pair: the same two logical models are
+// declared here as a Prisma datamodel and in ../go/run.go as tagged Go structs.
+// Field names are deliberately snake_case so that a Prisma field name, the SQL
+// column name and the Go `prisma:"col=..."` tag are all the same string, and the
+// comparison can never be an artefact of a naming convention.
+//
+// The datasource is SQLite so the harness needs nothing external. The database
+// file is passed in through PARITY_DB_URL by parity_test.go.
+//
+// `id` is `Int @id @default(autoincrement())`. Prisma's SQLite connector emits
+// `INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT` for an `Int @id` either way, so
+// the default changes no DDL; what it changes is that the oracle may OMIT an id
+// on create, which the Go port must do because it treats every integer primary
+// key as database-generated and drops it from the INSERT. The seeds still give
+// explicit consecutive ids from 1, which is where both sides meet: see
+// cases/errors.json:create-explicit-id for what happens when a create asks for
+// an id of its own choosing.
+
+datasource db {
+  provider = "sqlite"
+  url      = env("PARITY_DB_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id    Int     @id @default(autoincrement())
+  name  String
+  email String  @unique
+  city  String?
+  age   Int?
+  score Float
+  posts Post[]
+
+  @@map("users")
+}
+
+model Post {
+  id        Int     @id @default(autoincrement())
+  title     String
+  views     Int
+  published Boolean
+  author_id Int
+  author    User    @relation(fields: [author_id], references: [id])
+
+  @@map("posts")
+}

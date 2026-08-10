@@ -1,0 +1,989 @@
+{
+  "group": "control",
+  "upstream": "jq@1.7.1",
+  "encoding": "args = [jq program, input JSON value, optional $variables object]; value = the complete output stream as a JSON array",
+  "cases": [
+    {
+      "id": "if-basic",
+      "fn": "run",
+      "args": [
+        "if .a then \"y\" else \"n\" end",
+        {
+          "a": true
+        }
+      ],
+      "upstreamFn": "if",
+      "goFn": "if"
+    },
+    {
+      "id": "if-elif",
+      "fn": "run",
+      "args": [
+        "[.[] | if . < 0 then \"neg\" elif . == 0 then \"zero\" else \"pos\" end]",
+        [
+          -1,
+          0,
+          1
+        ]
+      ],
+      "upstreamFn": "elif",
+      "goFn": "elif"
+    },
+    {
+      "id": "if-no-else",
+      "fn": "run",
+      "args": [
+        "[.[] | if . > 1 then . else empty end]",
+        [
+          1,
+          2,
+          3
+        ]
+      ],
+      "upstreamFn": "if",
+      "goFn": "if"
+    },
+    {
+      "id": "if-no-else-passthrough",
+      "fn": "run",
+      "args": [
+        "[.[] | if . > 1 then \"big\" end]",
+        [
+          1,
+          2
+        ]
+      ],
+      "upstreamFn": "if",
+      "goFn": "if",
+      "note": "a missing else is identity"
+    },
+    {
+      "id": "if-cond-stream",
+      "fn": "run",
+      "args": [
+        "[if (true,false) then \"t\" else \"f\" end]",
+        null
+      ],
+      "upstreamFn": "if",
+      "goFn": "if"
+    },
+    {
+      "id": "alt-null",
+      "fn": "run",
+      "args": [
+        ".a // \"dflt\"",
+        {}
+      ],
+      "upstreamFn": "//",
+      "goFn": "//"
+    },
+    {
+      "id": "alt-false",
+      "fn": "run",
+      "args": [
+        "false // 3",
+        null
+      ],
+      "upstreamFn": "//",
+      "goFn": "//"
+    },
+    {
+      "id": "alt-error",
+      "fn": "run",
+      "args": [
+        "(error(\"x\")) // 7",
+        null
+      ],
+      "upstreamFn": "//",
+      "goFn": "//",
+      "note": "jq 1.7 no longer swallows a left-hand error"
+    },
+    {
+      "id": "alt-empty",
+      "fn": "run",
+      "args": [
+        "empty // 7",
+        null
+      ],
+      "upstreamFn": "//",
+      "goFn": "//"
+    },
+    {
+      "id": "alt-first-of-many",
+      "fn": "run",
+      "args": [
+        "[(1,2,null,3) // 9]",
+        null
+      ],
+      "upstreamFn": "//",
+      "goFn": "//"
+    },
+    {
+      "id": "try-catch",
+      "fn": "run",
+      "args": [
+        "try error(\"msg\") catch .",
+        null
+      ],
+      "upstreamFn": "try",
+      "goFn": "try"
+    },
+    {
+      "id": "try-catch-obj",
+      "fn": "run",
+      "args": [
+        "try error({code:1}) catch .",
+        null
+      ],
+      "upstreamFn": "try",
+      "goFn": "try"
+    },
+    {
+      "id": "try-no-catch",
+      "fn": "run",
+      "args": [
+        "[try (1,error(\"x\"),3)]",
+        null
+      ],
+      "upstreamFn": "try",
+      "goFn": "try",
+      "note": "try truncates the stream"
+    },
+    {
+      "id": "try-type-error",
+      "fn": "run",
+      "args": [
+        "try (\"a\"+1) catch \"caught\"",
+        null
+      ],
+      "upstreamFn": "try",
+      "goFn": "try"
+    },
+    {
+      "id": "optional-suffix",
+      "fn": "run",
+      "args": [
+        "[.[]|(.a)?]",
+        [
+          1,
+          {
+            "a": 2
+          }
+        ]
+      ],
+      "upstreamFn": "?",
+      "goFn": "?"
+    },
+    {
+      "id": "optional-on-error-func",
+      "fn": "run",
+      "args": [
+        "[(error(\"x\"))?]",
+        null
+      ],
+      "upstreamFn": "?",
+      "goFn": "?"
+    },
+    {
+      "id": "nested-try",
+      "fn": "run",
+      "args": [
+        "try (try error(\"a\") catch error(\"b\")) catch .",
+        null
+      ],
+      "upstreamFn": "try",
+      "goFn": "try"
+    },
+    {
+      "id": "try-catch-break",
+      "fn": "run",
+      "args": [
+        "[label $l | try (break $l) catch \"caught\"]",
+        null
+      ],
+      "upstreamFn": "try",
+      "goFn": "try",
+      "note": "jq's break is an error value that catch can see"
+    },
+    {
+      "id": "catch-does-not-catch-break",
+      "fn": "run",
+      "args": [
+        "[label $out | 1, (try break $out catch \"c\"), 2]",
+        null
+      ],
+      "upstreamFn": "try",
+      "goFn": "try"
+    },
+    {
+      "id": "reduce-sum",
+      "fn": "run",
+      "args": [
+        "reduce .[] as $x (0; . + $x)",
+        [
+          1,
+          2,
+          3,
+          4
+        ]
+      ],
+      "upstreamFn": "reduce",
+      "goFn": "reduce"
+    },
+    {
+      "id": "reduce-empty",
+      "fn": "run",
+      "args": [
+        "reduce .[] as $x (0; .+$x)",
+        []
+      ],
+      "upstreamFn": "reduce",
+      "goFn": "reduce"
+    },
+    {
+      "id": "reduce-obj",
+      "fn": "run",
+      "args": [
+        "reduce .[] as $x ({}; .[$x] = true)",
+        [
+          "a",
+          "b"
+        ]
+      ],
+      "upstreamFn": "reduce",
+      "goFn": "reduce"
+    },
+    {
+      "id": "reduce-multi-update",
+      "fn": "run",
+      "args": [
+        "reduce .[] as $x (0; .+$x, .-$x)",
+        [
+          1,
+          2
+        ]
+      ],
+      "upstreamFn": "reduce",
+      "goFn": "reduce",
+      "note": "a multi-valued update keeps only the last state"
+    },
+    {
+      "id": "reduce-error-propagates",
+      "fn": "run",
+      "args": [
+        "try reduce .[] as $x (0; error(\"e\")) catch \"c\"",
+        [
+          1
+        ]
+      ],
+      "upstreamFn": "reduce",
+      "goFn": "reduce"
+    },
+    {
+      "id": "foreach-running",
+      "fn": "run",
+      "args": [
+        "[foreach .[] as $x (0; . + $x)]",
+        [
+          1,
+          2,
+          3
+        ]
+      ],
+      "upstreamFn": "foreach",
+      "goFn": "foreach"
+    },
+    {
+      "id": "foreach-extract",
+      "fn": "run",
+      "args": [
+        "[foreach .[] as $x (0; .+$x; [$x, .])]",
+        [
+          1,
+          2,
+          3
+        ]
+      ],
+      "upstreamFn": "foreach",
+      "goFn": "foreach"
+    },
+    {
+      "id": "foreach-3-args-empty",
+      "fn": "run",
+      "args": [
+        "[foreach .[] as $x (0; .+$x; empty)]",
+        [
+          1,
+          2
+        ]
+      ],
+      "upstreamFn": "foreach",
+      "goFn": "foreach"
+    },
+    {
+      "id": "as-binding",
+      "fn": "run",
+      "args": [
+        ". as $x | $x + 1",
+        4
+      ],
+      "upstreamFn": "as",
+      "goFn": "as"
+    },
+    {
+      "id": "as-multi-values",
+      "fn": "run",
+      "args": [
+        "[(1,2) as $x | $x * 10]",
+        null
+      ],
+      "upstreamFn": "as",
+      "goFn": "as"
+    },
+    {
+      "id": "destructure-array",
+      "fn": "run",
+      "args": [
+        ". as [$a,$b,$c] | [$c,$b,$a]",
+        [
+          1,
+          2,
+          3
+        ]
+      ],
+      "upstreamFn": "as [$a]",
+      "goFn": "as [$a]"
+    },
+    {
+      "id": "destructure-object",
+      "fn": "run",
+      "args": [
+        ". as {a:$x, b:$y} | [$x,$y]",
+        {
+          "a": 1,
+          "b": 2
+        }
+      ],
+      "upstreamFn": "as {$a}",
+      "goFn": "as {$a}"
+    },
+    {
+      "id": "destructure-shorthand",
+      "fn": "run",
+      "args": [
+        ". as {$a} | $a",
+        {
+          "a": 7
+        }
+      ],
+      "upstreamFn": "as {$a}",
+      "goFn": "as {$a}"
+    },
+    {
+      "id": "destructure-nested",
+      "fn": "run",
+      "args": [
+        ". as {a:[$p,$q]} | [$p,$q]",
+        {
+          "a": [
+            1,
+            2
+          ]
+        }
+      ],
+      "upstreamFn": "as {$a}",
+      "goFn": "as {$a}"
+    },
+    {
+      "id": "destructure-alt",
+      "fn": "run",
+      "args": [
+        ". as [$a] ?// {$a} | $a",
+        {
+          "a": 5
+        }
+      ],
+      "upstreamFn": "?//",
+      "goFn": "?//"
+    },
+    {
+      "id": "question-alt-destructure",
+      "fn": "run",
+      "args": [
+        "[.[] as [$a] ?// $a | $a]",
+        [
+          [
+            1
+          ],
+          2
+        ]
+      ],
+      "upstreamFn": "?//",
+      "goFn": "?//"
+    },
+    {
+      "id": "def-simple",
+      "fn": "run",
+      "args": [
+        "def inc: .+1; [.[]|inc]",
+        [
+          1,
+          2
+        ]
+      ],
+      "upstreamFn": "def",
+      "goFn": "def"
+    },
+    {
+      "id": "def-args",
+      "fn": "run",
+      "args": [
+        "def add2($a;$b): $a+$b; add2(3;4)",
+        null
+      ],
+      "upstreamFn": "def",
+      "goFn": "def"
+    },
+    {
+      "id": "def-filter-arg",
+      "fn": "run",
+      "args": [
+        "def twice(f): f|f; 1|twice(.*3)",
+        null
+      ],
+      "upstreamFn": "def",
+      "goFn": "def"
+    },
+    {
+      "id": "def-recursive",
+      "fn": "run",
+      "args": [
+        "def fact: if . <= 1 then 1 else . * ((.-1)|fact) end; [.[]|fact]",
+        [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      ],
+      "upstreamFn": "def",
+      "goFn": "def"
+    },
+    {
+      "id": "def-closure-scope",
+      "fn": "run",
+      "args": [
+        "def f: 2; def g: f*3; g",
+        null
+      ],
+      "upstreamFn": "def",
+      "goFn": "def"
+    },
+    {
+      "id": "def-inner-shadow",
+      "fn": "run",
+      "args": [
+        "def f: 1; def g: def f: 2; f; [f, g]",
+        null
+      ],
+      "upstreamFn": "def",
+      "goFn": "def"
+    },
+    {
+      "id": "def-multi-arity",
+      "fn": "run",
+      "args": [
+        "def f: 1; def f(a): a+1; [f, f(5)]",
+        null
+      ],
+      "upstreamFn": "def",
+      "goFn": "def"
+    },
+    {
+      "id": "def-arg-generator",
+      "fn": "run",
+      "args": [
+        "def f(g): [g]; f(1,2)",
+        null
+      ],
+      "upstreamFn": "def",
+      "goFn": "def"
+    },
+    {
+      "id": "label-break",
+      "fn": "run",
+      "args": [
+        "label $out | [1,2,3][] | if . == 2 then ., break $out else . end",
+        null
+      ],
+      "upstreamFn": "label",
+      "goFn": "label"
+    },
+    {
+      "id": "label-break-limit",
+      "fn": "run",
+      "args": [
+        "[label $l | range(10) | if . > 3 then break $l else . end]",
+        null
+      ],
+      "upstreamFn": "label",
+      "goFn": "label"
+    },
+    {
+      "id": "nested-label-same-name",
+      "fn": "run",
+      "args": [
+        "[label $l | label $l | (1, break $l, 2)]",
+        null
+      ],
+      "upstreamFn": "label",
+      "goFn": "label"
+    },
+    {
+      "id": "first-of-generator",
+      "fn": "run",
+      "args": [
+        "first(range(5))",
+        null
+      ],
+      "upstreamFn": "first/1",
+      "goFn": "first/1"
+    },
+    {
+      "id": "first-0",
+      "fn": "run",
+      "args": [
+        "first",
+        [
+          7,
+          8
+        ]
+      ],
+      "upstreamFn": "first/0",
+      "goFn": "first/0"
+    },
+    {
+      "id": "first-empty-err",
+      "fn": "run",
+      "args": [
+        "first(empty)",
+        null
+      ],
+      "upstreamFn": "first/1",
+      "goFn": "first/1"
+    },
+    {
+      "id": "last-of-generator",
+      "fn": "run",
+      "args": [
+        "last(range(5))",
+        null
+      ],
+      "upstreamFn": "last/1",
+      "goFn": "last/1"
+    },
+    {
+      "id": "last-0",
+      "fn": "run",
+      "args": [
+        "last",
+        [
+          7,
+          8
+        ]
+      ],
+      "upstreamFn": "last/0",
+      "goFn": "last/0"
+    },
+    {
+      "id": "last-empty",
+      "fn": "run",
+      "args": [
+        "[last(empty)]",
+        null
+      ],
+      "upstreamFn": "last/1",
+      "goFn": "last/1",
+      "note": "jq 1.7 yields null for last(empty); collapsing to an empty stream is a bug"
+    },
+    {
+      "id": "nth-generator",
+      "fn": "run",
+      "args": [
+        "nth(2; range(10))",
+        null
+      ],
+      "upstreamFn": "nth/2",
+      "goFn": "nth/2"
+    },
+    {
+      "id": "nth-1",
+      "fn": "run",
+      "args": [
+        "nth(1)",
+        [
+          7,
+          8,
+          9
+        ]
+      ],
+      "upstreamFn": "nth/1",
+      "goFn": "nth/1"
+    },
+    {
+      "id": "nth-neg-err",
+      "fn": "run",
+      "args": [
+        "nth(-1; range(3))",
+        null
+      ],
+      "upstreamFn": "nth/2",
+      "goFn": "nth/2"
+    },
+    {
+      "id": "nth-of-empty",
+      "fn": "run",
+      "args": [
+        "[nth(0; empty)]",
+        null
+      ],
+      "upstreamFn": "nth/2",
+      "goFn": "nth/2"
+    },
+    {
+      "id": "limit-basic",
+      "fn": "run",
+      "args": [
+        "[limit(3; range(100))]",
+        null
+      ],
+      "upstreamFn": "limit/2",
+      "goFn": "limit/2"
+    },
+    {
+      "id": "limit-zero",
+      "fn": "run",
+      "args": [
+        "[limit(0; range(10))]",
+        null
+      ],
+      "upstreamFn": "limit/2",
+      "goFn": "limit/2"
+    },
+    {
+      "id": "limit-neg",
+      "fn": "run",
+      "args": [
+        "[limit(-1; range(10))]",
+        null
+      ],
+      "upstreamFn": "limit/2",
+      "goFn": "limit/2",
+      "note": "jq 1.7 passes everything through for n < 0"
+    },
+    {
+      "id": "limit-of-empty",
+      "fn": "run",
+      "args": [
+        "[limit(3; empty)]",
+        null
+      ],
+      "upstreamFn": "limit/2",
+      "goFn": "limit/2"
+    },
+    {
+      "id": "until-loop",
+      "fn": "run",
+      "args": [
+        "[.[] | until(. > 10; . * 2)]",
+        [
+          1,
+          3
+        ]
+      ],
+      "upstreamFn": "until/2",
+      "goFn": "until/2"
+    },
+    {
+      "id": "until-immediate",
+      "fn": "run",
+      "args": [
+        "until(. > 0; .+1)",
+        5
+      ],
+      "upstreamFn": "until/2",
+      "goFn": "until/2"
+    },
+    {
+      "id": "while-loop",
+      "fn": "run",
+      "args": [
+        "[while(. < 40; . * 3)]",
+        1
+      ],
+      "upstreamFn": "while/2",
+      "goFn": "while/2"
+    },
+    {
+      "id": "while-none",
+      "fn": "run",
+      "args": [
+        "[while(false; .)]",
+        1
+      ],
+      "upstreamFn": "while/2",
+      "goFn": "while/2"
+    },
+    {
+      "id": "repeat-capped",
+      "fn": "run",
+      "args": [
+        "[limit(4; repeat(.*2))]",
+        1
+      ],
+      "upstreamFn": "repeat/1",
+      "goFn": "repeat/1",
+      "note": "capped with limit; jq re-applies f to the ORIGINAL input each time"
+    },
+    {
+      "id": "repeat-plus",
+      "fn": "run",
+      "args": [
+        "[limit(4; repeat(.+1))]",
+        0
+      ],
+      "upstreamFn": "repeat/1",
+      "goFn": "repeat/1"
+    },
+    {
+      "id": "recurse-all",
+      "fn": "run",
+      "args": [
+        "[recurse]",
+        {
+          "a": [
+            1,
+            2
+          ]
+        }
+      ],
+      "upstreamFn": "recurse/0",
+      "goFn": "recurse/0"
+    },
+    {
+      "id": "recurse-cond",
+      "fn": "run",
+      "args": [
+        "[recurse(if . < 20 then .*3 else empty end)]",
+        1
+      ],
+      "upstreamFn": "recurse/1",
+      "goFn": "recurse/1"
+    },
+    {
+      "id": "recurse-f-cond-capped",
+      "fn": "run",
+      "args": [
+        "[limit(5; recurse(.+1))]",
+        0
+      ],
+      "upstreamFn": "recurse/1",
+      "goFn": "recurse/1",
+      "note": "capped with limit"
+    },
+    {
+      "id": "recurse-2",
+      "fn": "run",
+      "args": [
+        "[recurse(.+1; . < 4)]",
+        1
+      ],
+      "upstreamFn": "recurse/2",
+      "goFn": "recurse/2"
+    },
+    {
+      "id": "isempty",
+      "fn": "run",
+      "args": [
+        "[isempty(empty), isempty(1)]",
+        null
+      ],
+      "upstreamFn": "isempty/1",
+      "goFn": "isempty/1"
+    },
+    {
+      "id": "empty-builtin",
+      "fn": "run",
+      "args": [
+        "[empty]",
+        null
+      ],
+      "upstreamFn": "empty/0",
+      "goFn": "empty/0"
+    },
+    {
+      "id": "range-1",
+      "fn": "run",
+      "args": [
+        "[range(4)]",
+        null
+      ],
+      "upstreamFn": "range/1",
+      "goFn": "range/1"
+    },
+    {
+      "id": "range-2",
+      "fn": "run",
+      "args": [
+        "[range(2;5)]",
+        null
+      ],
+      "upstreamFn": "range/2",
+      "goFn": "range/2"
+    },
+    {
+      "id": "range-3",
+      "fn": "run",
+      "args": [
+        "[range(0;10;3)]",
+        null
+      ],
+      "upstreamFn": "range/3",
+      "goFn": "range/3"
+    },
+    {
+      "id": "range-neg-step",
+      "fn": "run",
+      "args": [
+        "[range(5;0;-2)]",
+        null
+      ],
+      "upstreamFn": "range/3",
+      "goFn": "range/3"
+    },
+    {
+      "id": "range-zero-step",
+      "fn": "run",
+      "args": [
+        "[limit(3; range(0;5;0))]",
+        null
+      ],
+      "upstreamFn": "range/3",
+      "goFn": "range/3",
+      "note": "capped with limit"
+    },
+    {
+      "id": "range-stream-args",
+      "fn": "run",
+      "args": [
+        "[range(1,2; 3,4)]",
+        null
+      ],
+      "upstreamFn": "range/2",
+      "goFn": "range/2"
+    },
+    {
+      "id": "range-nonnumber-err",
+      "fn": "run",
+      "args": [
+        "[range(\"a\")]",
+        null
+      ],
+      "upstreamFn": "range/1",
+      "goFn": "range/1"
+    },
+    {
+      "id": "error-msg",
+      "fn": "run",
+      "args": [
+        "error(\"boom\")",
+        null
+      ],
+      "upstreamFn": "error/1",
+      "goFn": "error/1"
+    },
+    {
+      "id": "error-zero-arity",
+      "fn": "run",
+      "args": [
+        "\"msg\"|error",
+        null
+      ],
+      "upstreamFn": "error/0",
+      "goFn": "error/0"
+    },
+    {
+      "id": "error-null",
+      "fn": "run",
+      "args": [
+        "try error(null) catch \"c\"",
+        null
+      ],
+      "upstreamFn": "error/1",
+      "goFn": "error/1"
+    },
+    {
+      "id": "error-catch-nonstring",
+      "fn": "run",
+      "args": [
+        "try error([1]) catch (.|tostring)",
+        null
+      ],
+      "upstreamFn": "error/1",
+      "goFn": "error/1"
+    },
+    {
+      "id": "error-obj-uncaught",
+      "fn": "run",
+      "args": [
+        "error({a:1})",
+        null
+      ],
+      "upstreamFn": "error/1",
+      "goFn": "error/1"
+    },
+    {
+      "id": "error-in-map",
+      "fn": "run",
+      "args": [
+        "try (map(error(\"x\"))) catch \"caught\"",
+        [
+          1
+        ]
+      ],
+      "upstreamFn": "error/1",
+      "goFn": "error/1"
+    },
+    {
+      "id": "halt-plain",
+      "fn": "run",
+      "args": [
+        "halt",
+        null
+      ],
+      "upstreamFn": "halt/0",
+      "goFn": "halt/0"
+    },
+    {
+      "id": "halt-error",
+      "fn": "run",
+      "args": [
+        "halt_error",
+        "x"
+      ],
+      "upstreamFn": "halt_error/0",
+      "goFn": "halt_error/0"
+    },
+    {
+      "id": "halt-error-code",
+      "fn": "run",
+      "args": [
+        "1|halt_error(2)",
+        null
+      ],
+      "upstreamFn": "halt_error/1",
+      "goFn": "halt_error/1"
+    }
+  ]
+}

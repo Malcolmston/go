@@ -1,0 +1,166 @@
+{
+  "group": "timezone",
+  "upstream": "python-dateutil@2.9.0.post0",
+  "cases": [
+    {
+      "id": "tz-ny-daily",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;COUNT=5",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "America/New_York",
+          "limit": 7
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "tz-ny-spring-forward-0230",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;COUNT=5",
+          "dtstart": "2024-03-08T02:30:00",
+          "tz": "America/New_York",
+          "limit": 7
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator",
+      "note": "RFC 5545: an instance at a non-existent local wall clock is skipped"
+    },
+    {
+      "id": "tz-ny-spring-forward-hourly",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=HOURLY;COUNT=8",
+          "dtstart": "2024-03-10T00:00:00",
+          "tz": "America/New_York",
+          "limit": 10
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator",
+      "note": "hourly across the spring-forward gap"
+    },
+    {
+      "id": "tz-ny-fall-back-0130",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;COUNT=5",
+          "dtstart": "2024-11-01T01:30:00",
+          "tz": "America/New_York",
+          "limit": 7
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator",
+      "note": "01:30 is ambiguous on 2024-11-03"
+    },
+    {
+      "id": "tz-ny-fall-back-hourly",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=HOURLY;COUNT=8",
+          "dtstart": "2024-11-03T00:00:00",
+          "tz": "America/New_York",
+          "limit": 10
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "tz-europe-berlin-daily",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;COUNT=5",
+          "dtstart": "2024-03-30T02:30:00",
+          "tz": "Europe/Berlin",
+          "limit": 7
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator",
+      "note": "EU spring-forward is 02:00->03:00 on 2024-03-31"
+    },
+    {
+      "id": "tz-australia-sydney-daily",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;COUNT=5",
+          "dtstart": "2024-04-06T02:30:00",
+          "tz": "Australia/Sydney",
+          "limit": 7
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "tz-kathmandu-offset",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;COUNT=3",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "Asia/Kathmandu",
+          "limit": 5
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator",
+      "note": "+05:45 offset"
+    },
+    {
+      "id": "tz-utc-vs-naive",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;COUNT=3",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": null,
+          "limit": 5
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "tz-ny-monthly-across-dst",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=MONTHLY;BYMONTHDAY=15;COUNT=14",
+          "dtstart": "2024-01-15T02:30:00",
+          "tz": "America/New_York",
+          "limit": 16
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator"
+    },
+    {
+      "id": "tz-unknown",
+      "fn": "expand",
+      "args": [
+        {
+          "rule": "FREQ=DAILY;COUNT=3",
+          "dtstart": "1997-09-02T09:00:00",
+          "tz": "Mars/Olympus_Mons",
+          "limit": 5
+        }
+      ],
+      "upstreamFn": "dateutil.rrule.rrulestr",
+      "goFn": "rrule.Parse+rrule.New+RRule.Iterator",
+      "note": "unknown zone: both sides must fail"
+    }
+  ]
+}

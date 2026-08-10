@@ -1,0 +1,135 @@
+{
+  "group": "paths",
+  "upstream": "handlebars@4.7.8",
+  "cases": [
+    {
+      "id": "path-deep",
+      "fn": "render",
+      "args": ["{{a.b.c}}", { "a": { "b": { "c": "deep" } } }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "path-array-index",
+      "fn": "render",
+      "args": ["{{items.0}}-{{items.2}}-[{{items.9}}]", { "items": ["a", "b", "c"] }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "path-array-index-bracket",
+      "fn": "render",
+      "args": ["{{items.[1]}}", { "items": ["a", "b"] }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "path-parent-one",
+      "fn": "render",
+      "args": ["{{#with inner}}{{../outer}}{{/with}}", { "outer": "O", "inner": { "x": 1 } }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "path-parent-two",
+      "fn": "render",
+      "args": [
+        "{{#each rows}}{{#each this}}{{../../label}}:{{this}} {{/each}}{{/each}}",
+        { "label": "L", "rows": [["a"], ["b"]] }
+      ],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "path-root",
+      "fn": "render",
+      "args": [
+        "{{#each items}}{{@root.label}}{{this}} {{/each}}",
+        { "label": "L", "items": [1, 2] }
+      ],
+      "upstreamFn": "Handlebars.helpers.each",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "path-root-deep",
+      "fn": "render",
+      "args": [
+        "{{#each a}}{{#each this}}{{@root.top.k}}{{/each}}{{/each}}",
+        { "top": { "k": "T" }, "a": [[1]] }
+      ],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "path-parent-data-index",
+      "fn": "render",
+      "args": [
+        "{{#each outer}}{{#each this}}{{@../index}}.{{@index}} {{/each}}{{/each}}",
+        { "outer": [["a", "b"], ["c"]] }
+      ],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "path-parent-one-nested-each",
+      "fn": "render",
+      "args": [
+        "{{#each rows}}{{#each this}}[{{../label}}]{{/each}}{{/each}}",
+        { "label": "L", "rows": [["a"]] }
+      ],
+      "upstreamFn": "Handlebars.helpers.each",
+      "goFn": "handlebars.Compile",
+      "note": "how many frames a nested #each adds for ../"
+    },
+    {
+      "id": "path-parent-two-nested-with",
+      "fn": "render",
+      "args": ["{{#with a}}{{#with b}}[{{../../x}}]{{/with}}{{/with}}", { "x": "X", "a": { "b": {} } }],
+      "upstreamFn": "Handlebars.helpers.with",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "path-bracketed-with-dot",
+      "fn": "render",
+      "args": ["{{[a.b]}}", { "a.b": "literal-key" }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "path-this-in-each",
+      "fn": "render",
+      "args": ["{{#each items}}[{{this}}]{{/each}}", { "items": ["a", "b"] }],
+      "upstreamFn": "Handlebars.helpers.each",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "path-segment-through-array-of-objects",
+      "fn": "render",
+      "args": ["{{people.1.name}}", { "people": [{ "name": "a" }, { "name": "b" }] }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "path-length-of-array",
+      "fn": "render",
+      "args": ["{{items.length}}", { "items": ["a", "b", "c"] }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile",
+      "note": "JS arrays expose .length; a Go slice may not"
+    },
+    {
+      "id": "path-parent-beyond-root",
+      "fn": "render",
+      "args": ["[{{../x}}]", { "x": "root" }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "path-key-with-dash",
+      "fn": "render",
+      "args": ["{{[data-id]}}", { "data-id": "d" }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "group": "cron-macros",
+  "upstream": "oban@2.23.1",
+  "note": "Named shorthand schedules. Upstream matches the literal lowercase strings in Oban.Cron.Expression.parse/1 clause heads; @reboot is a distinct flag rather than a 5-field expansion.",
+  "cases": [
+    {"id": "macro-hourly-parse", "fn": "cron_parse", "args": ["@hourly"], "upstreamFn": "Oban.Cron.Expression.parse!/1", "goFn": "oban.ParseCronSpec"},
+    {"id": "macro-daily-parse", "fn": "cron_parse", "args": ["@daily"], "upstreamFn": "Oban.Cron.Expression.parse!/1", "goFn": "oban.ParseCronSpec"},
+    {"id": "macro-midnight-parse", "fn": "cron_parse", "args": ["@midnight"], "upstreamFn": "Oban.Cron.Expression.parse!/1", "goFn": "oban.ParseCronSpec"},
+    {"id": "macro-weekly-parse", "fn": "cron_parse", "args": ["@weekly"], "upstreamFn": "Oban.Cron.Expression.parse!/1", "goFn": "oban.ParseCronSpec"},
+    {"id": "macro-monthly-parse", "fn": "cron_parse", "args": ["@monthly"], "upstreamFn": "Oban.Cron.Expression.parse!/1", "goFn": "oban.ParseCronSpec"},
+    {"id": "macro-yearly-parse", "fn": "cron_parse", "args": ["@yearly"], "upstreamFn": "Oban.Cron.Expression.parse!/1", "goFn": "oban.ParseCronSpec"},
+    {"id": "macro-annually-parse", "fn": "cron_parse", "args": ["@annually"], "upstreamFn": "Oban.Cron.Expression.parse!/1", "goFn": "oban.ParseCronSpec"},
+
+    {"id": "macro-hourly-next", "fn": "cron_next", "args": ["@hourly", "2026-03-15T10:30:45Z"], "upstreamFn": "Oban.Cron.Expression.next_at/2", "goFn": "(*oban.Schedule).Next"},
+    {"id": "macro-daily-next", "fn": "cron_next", "args": ["@daily", "2026-03-15T10:30:45Z"], "upstreamFn": "Oban.Cron.Expression.next_at/2", "goFn": "(*oban.Schedule).Next"},
+    {"id": "macro-midnight-next", "fn": "cron_next", "args": ["@midnight", "2026-03-15T10:30:45Z"], "upstreamFn": "Oban.Cron.Expression.next_at/2", "goFn": "(*oban.Schedule).Next"},
+    {"id": "macro-weekly-next", "fn": "cron_next", "args": ["@weekly", "2026-03-15T10:30:45Z"], "upstreamFn": "Oban.Cron.Expression.next_at/2", "goFn": "(*oban.Schedule).Next", "note": "2026-03-15 is a Sunday"},
+    {"id": "macro-monthly-next", "fn": "cron_next", "args": ["@monthly", "2026-03-15T10:30:45Z"], "upstreamFn": "Oban.Cron.Expression.next_at/2", "goFn": "(*oban.Schedule).Next"},
+    {"id": "macro-yearly-next", "fn": "cron_next", "args": ["@yearly", "2026-03-15T10:30:45Z"], "upstreamFn": "Oban.Cron.Expression.next_at/2", "goFn": "(*oban.Schedule).Next"},
+    {"id": "macro-annually-next", "fn": "cron_next", "args": ["@annually", "2026-03-15T10:30:45Z"], "upstreamFn": "Oban.Cron.Expression.next_at/2", "goFn": "(*oban.Schedule).Next"},
+    {"id": "macro-daily-prev", "fn": "cron_prev", "args": ["@daily", "2026-03-15T10:30:45Z"], "upstreamFn": "Oban.Cron.Expression.last_at/2", "goFn": "(*oban.Schedule).Prev"},
+    {"id": "macro-weekly-upcoming", "fn": "cron_upcoming", "args": ["@weekly", "2026-01-01T00:00:00Z", 4], "upstreamFn": "Oban.Cron.Expression.next_at/2", "goFn": "(*oban.Schedule).Upcoming"},
+
+    {"id": "macro-reboot-parse", "fn": "cron_parse", "args": ["@reboot"], "upstreamFn": "Oban.Cron.Expression.parse!/1", "goFn": "oban.ParseCronSpec", "note": "upstream has a reboot? flag; the port has no equivalent"},
+    {"id": "macro-reboot-now", "fn": "cron_now", "args": ["@reboot", "2026-01-01T00:00:00Z"], "upstreamFn": "Oban.Cron.Expression.now?/2", "goFn": "(*oban.Schedule).Matches", "note": "upstream now?/2 is unconditionally true for @reboot"},
+    {"id": "macro-reboot-next", "fn": "cron_next", "args": ["@reboot", "2026-01-01T00:00:00Z"], "upstreamFn": "Oban.Cron.Expression.next_at/2", "goFn": "(*oban.Schedule).Next", "note": "upstream returns :unknown"},
+
+    {"id": "macro-uppercase", "fn": "cron_parse", "args": ["@DAILY"], "upstreamFn": "Oban.Cron.Expression.parse!/1", "goFn": "oban.ParseCronSpec", "note": "upstream macro heads are case-sensitive"},
+    {"id": "macro-unknown", "fn": "cron_parse", "args": ["@nope"], "upstreamFn": "Oban.Cron.Expression.parse!/1", "goFn": "oban.ParseCronSpec", "note": "both sides must fail"},
+    {"id": "macro-bare-at", "fn": "cron_parse", "args": ["@"], "upstreamFn": "Oban.Cron.Expression.parse!/1", "goFn": "oban.ParseCronSpec", "note": "both sides must fail"}
+  ]
+}

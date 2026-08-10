@@ -1,0 +1,275 @@
+{
+  "group": "emitter-bugs",
+  "upstream": "yaml@2.6.1+yaml-test-suite@da267a5c4782e7361e82889e76c0dc7df0e1e870",
+  "cases": [
+    {
+      "id": "emit-flow-seq-tag",
+      "fn": "reemit",
+      "args": [
+        "!lst [1, 2]\n",
+        3
+      ],
+      "upstreamFn": "String(yaml.parseDocument(...))",
+      "goFn": "yaml.Parse + yaml.Marshal(*yaml.Node)",
+      "note": "bug 1: a tag on a flow sequence is emitted twice (!lst !lst [1, 2]) and no longer parses"
+    },
+    {
+      "id": "emit-flow-map-tag",
+      "fn": "reemit",
+      "args": [
+        "!m {a: 1}\n",
+        3
+      ],
+      "upstreamFn": "String(yaml.parseDocument(...))",
+      "goFn": "yaml.Parse + yaml.Marshal(*yaml.Node)",
+      "note": "bug 1: same doubling for a flow mapping"
+    },
+    {
+      "id": "emit-flow-seq-tag-nested",
+      "fn": "reemit",
+      "args": [
+        "a: !lst [1, 2]\n",
+        3
+      ],
+      "upstreamFn": "String(yaml.parseDocument(...))",
+      "goFn": "yaml.Parse + yaml.Marshal(*yaml.Node)",
+      "note": "bug 1: doubled tag on a flow sequence used as a mapping value"
+    },
+    {
+      "id": "emit-block-seq-tag-control",
+      "fn": "reemit",
+      "args": [
+        "!lst\n- 1\n- 2\n",
+        3
+      ],
+      "upstreamFn": "String(yaml.parseDocument(...))",
+      "goFn": "yaml.Parse + yaml.Marshal(*yaml.Node)",
+      "note": "control for bug 1: a tag on a BLOCK collection is expected to survive"
+    },
+    {
+      "id": "emit-verbatim-global-tag",
+      "fn": "reemit",
+      "args": [
+        "!<tag:example.com,2000:app/foo> bar\n",
+        3
+      ],
+      "upstreamFn": "String(yaml.parseDocument(...))",
+      "goFn": "yaml.Parse + yaml.Marshal(*yaml.Node)",
+      "note": "bug 2: a global/URI tag is emitted as a bare URI, so it re-parses as a plain string -- silent data corruption"
+    },
+    {
+      "id": "emit-tag-directive-global",
+      "fn": "reemit",
+      "args": [
+        "%TAG ! tag:example.com,2000:app/\n---\n!foo bar\n",
+        3
+      ],
+      "upstreamFn": "String(yaml.parseDocument(...))",
+      "goFn": "yaml.Parse + yaml.Marshal(*yaml.Node)",
+      "note": "bug 2: %TAG is resolved away and the expanded URI is emitted bare"
+    },
+    {
+      "id": "emit-tag-directive-secondary",
+      "fn": "reemit",
+      "args": [
+        "%TAG !e! tag:example.com,2000:app/\n---\n!e!foo bar\n",
+        3
+      ],
+      "upstreamFn": "String(yaml.parseDocument(...))",
+      "goFn": "yaml.Parse + yaml.Marshal(*yaml.Node)",
+      "note": "bug 2: secondary tag handle, same bare-URI emission"
+    },
+    {
+      "id": "emit-local-tag-control",
+      "fn": "reemit",
+      "args": [
+        "!custom bar\n",
+        3
+      ],
+      "upstreamFn": "String(yaml.parseDocument(...))",
+      "goFn": "yaml.Parse + yaml.Marshal(*yaml.Node)",
+      "note": "control for bug 2: a local tag (!custom) is expected to survive"
+    },
+    {
+      "id": "emit-line-comment",
+      "fn": "comment",
+      "args": [
+        {
+          "a": 1
+        },
+        "line",
+        "why"
+      ],
+      "upstreamFn": "node.comment = text",
+      "goFn": "Node.LineComment = text",
+      "note": "bug 3: LineComment is written without a leading '#', so 'why' is absorbed into the value"
+    },
+    {
+      "id": "emit-line-comment-string",
+      "fn": "comment",
+      "args": [
+        {
+          "a": "x"
+        },
+        "line",
+        "why"
+      ],
+      "upstreamFn": "node.comment = text",
+      "goFn": "Node.LineComment = text",
+      "note": "bug 3: same absorption when the value is a string"
+    },
+    {
+      "id": "emit-head-comment",
+      "fn": "comment",
+      "args": [
+        {
+          "a": 1
+        },
+        "head",
+        "why"
+      ],
+      "upstreamFn": "node.commentBefore = text",
+      "goFn": "Node.HeadComment = text",
+      "note": "HeadComment set on a mapping value node"
+    },
+    {
+      "id": "emit-foot-comment",
+      "fn": "comment",
+      "args": [
+        {
+          "a": 1
+        },
+        "foot",
+        "why"
+      ],
+      "upstreamFn": "doc.comment = text",
+      "goFn": "Node.FootComment = text",
+      "note": "FootComment set on the root mapping"
+    },
+    {
+      "id": "emit-foot-comment-growth",
+      "fn": "reemit",
+      "args": [
+        "a: 1\n# foot\n",
+        3
+      ],
+      "upstreamFn": "String(yaml.parseDocument(...))",
+      "goFn": "yaml.Parse + yaml.Marshal(*yaml.Node)",
+      "note": "bug 4: a foot comment is duplicated on every round trip, so the document grows without bound (grew:true)"
+    },
+    {
+      "id": "emit-foot-comment-growth-seq",
+      "fn": "reemit",
+      "args": [
+        "- 1\n# foot\n",
+        3
+      ],
+      "upstreamFn": "String(yaml.parseDocument(...))",
+      "goFn": "yaml.Parse + yaml.Marshal(*yaml.Node)",
+      "note": "bug 4: same growth under a sequence"
+    },
+    {
+      "id": "emit-head-comment-roundtrip",
+      "fn": "reemit",
+      "args": [
+        "# head\na: 1\n",
+        3
+      ],
+      "upstreamFn": "String(yaml.parseDocument(...))",
+      "goFn": "yaml.Parse + yaml.Marshal(*yaml.Node)",
+      "note": "control for bug 4: a head comment is expected to be stable across round trips"
+    },
+    {
+      "id": "emit-timestamp-tag",
+      "fn": "reemit",
+      "args": [
+        "t: !!timestamp 2001-12-15T02:59:43.1Z\n",
+        3
+      ],
+      "upstreamFn": "String(yaml.parseDocument(...))",
+      "goFn": "yaml.Parse + yaml.Marshal(*yaml.Node)",
+      "note": "bug 5: !!timestamp is dropped on emit, so the value comes back as a plain string"
+    },
+    {
+      "id": "emit-timestamp-tag-spaced",
+      "fn": "reemit",
+      "args": [
+        "t: !!timestamp 2001-12-14 21:59:43.10 -5\n",
+        3
+      ],
+      "upstreamFn": "String(yaml.parseDocument(...))",
+      "goFn": "yaml.Parse + yaml.Marshal(*yaml.Node)",
+      "note": "bug 5: !!timestamp written in the YAML spaced form"
+    },
+    {
+      "id": "parse-timestamp-tag",
+      "fn": "parseJSON",
+      "args": [
+        "t: !!timestamp 2001-12-15T02:59:43.1Z\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "note": "!!timestamp resolution, before any emitting is involved"
+    },
+    {
+      "id": "utf8-illformed-accept",
+      "fn": "parse",
+      "args": [
+        {
+          "hex": "613a20fffe0a"
+        }
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "note": "bug 6: the port accepts ill-formed UTF-8 (0xff 0xfe). A JavaScript string cannot hold ill-formed bytes at all, so this case can only record that the port does not reject them"
+    },
+    {
+      "id": "utf8-illformed-is-illformed",
+      "fn": "wellFormedUTF8",
+      "args": [
+        {
+          "hex": "613a20fffe0a"
+        }
+      ],
+      "upstreamFn": "Buffer round trip",
+      "goFn": "utf8.Valid",
+      "note": "asserts the fixture really is ill-formed UTF-8, on both sides"
+    },
+    {
+      "id": "utf8-illformed-reemit",
+      "fn": "reemit",
+      "args": [
+        {
+          "hex": "613a20fffe0a"
+        },
+        2
+      ],
+      "upstreamFn": "String(yaml.parseDocument(...))",
+      "goFn": "yaml.Parse + yaml.Marshal(*yaml.Node)",
+      "note": "bug 6: the port re-emits the ill-formed bytes as a single-quoted scalar of U+FFFD",
+      "deviation": "a JavaScript string cannot hold ill-formed UTF-8, so the oracle only ever sees latin1-decoded bytes; nothing but acceptance is comparable here"
+    },
+    {
+      "id": "emit-binary-tag",
+      "fn": "reemit",
+      "args": [
+        "b: !!binary aGk=\n",
+        3
+      ],
+      "upstreamFn": "String(yaml.parseDocument(...))",
+      "goFn": "yaml.Parse + yaml.Marshal(*yaml.Node)",
+      "note": "!!binary round trip"
+    },
+    {
+      "id": "parse-binary-tag",
+      "fn": "parseJSON",
+      "args": [
+        "b: !!binary aGk=\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "note": "!!binary resolution: the port yields a decoded string, the oracle yields bytes",
+      "deviation": "API-DEVIATIONS.md, \"!!binary is decoded\""
+    }
+  ]
+}

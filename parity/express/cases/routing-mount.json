@@ -1,0 +1,23 @@
+{
+  "group": "routing-mount",
+  "upstream": "express@4.21.2",
+  "note": "Mounted and nested routers, mergeParams, router-scoped middleware, prefix middleware, and the baseUrl/originalUrl/path a mounted handler observes.",
+  "cases": [
+    { "id": "mount-root", "fn": "route.mount", "args": [{ "method": "GET", "path": "/m" }], "upstreamFn": "app.use(path, router)", "goFn": "Router.Use", "note": "sub-router's \"/\" route under the mount point" },
+    { "id": "mount-root-slash", "fn": "route.mount", "args": [{ "method": "GET", "path": "/m/" }], "upstreamFn": "app.use(path, router)", "goFn": "Router.Use" },
+    { "id": "mount-child", "fn": "route.mount", "args": [{ "method": "GET", "path": "/m/x" }], "upstreamFn": "app.use(path, router)", "goFn": "Router.Use" },
+    { "id": "mount-child-404", "fn": "route.mount", "args": [{ "method": "GET", "path": "/m/nope" }], "upstreamFn": "app.use(path, router)", "goFn": "Router.Use" },
+    { "id": "mount-child-param", "fn": "route.mount", "args": [{ "method": "GET", "path": "/m/p/77" }], "upstreamFn": "express.Router", "goFn": "NewRouter" },
+    { "id": "mount-prefix-not-matched", "fn": "route.mount", "args": [{ "method": "GET", "path": "/mx" }], "upstreamFn": "app.use(path, router)", "goFn": "Router.Use", "note": "a mount at /m must not swallow /mx" },
+    { "id": "merge-params-on", "fn": "route.mount", "args": [{ "method": "GET", "path": "/u/9/who" }], "upstreamFn": "Router({mergeParams:true})", "goFn": "RouterOptions{MergeParams:true}" },
+    { "id": "merge-params-off", "fn": "route.mount", "args": [{ "method": "GET", "path": "/n/9/who" }], "upstreamFn": "Router({mergeParams:false})", "goFn": "RouterOptions{MergeParams:false}", "note": "without mergeParams the parent's :nid must be invisible" },
+    { "id": "nested-two-levels", "fn": "route.mount", "args": [{ "method": "GET", "path": "/out/in/leaf" }], "upstreamFn": "router.use(path, router)", "goFn": "Router.Use" },
+    { "id": "nested-outer-own", "fn": "route.mount", "args": [{ "method": "GET", "path": "/out/own" }], "upstreamFn": "router.get", "goFn": "Router.Get" },
+    { "id": "nested-miss", "fn": "route.mount", "args": [{ "method": "GET", "path": "/out/in/nope" }], "upstreamFn": "router.use(path, router)", "goFn": "Router.Use" },
+    { "id": "router-middleware", "fn": "route.mount", "args": [{ "method": "GET", "path": "/mw/hit" }], "upstreamFn": "router.use(fn)", "goFn": "Router.Use", "note": "router-scoped middleware header must be present" },
+    { "id": "router-middleware-then-404", "fn": "route.mount", "args": [{ "method": "GET", "path": "/mw/nope" }], "upstreamFn": "router.use(fn)", "goFn": "Router.Use", "note": "router middleware runs, then the request falls through to the app 404" },
+    { "id": "prefix-middleware", "fn": "route.mount", "args": [{ "method": "GET", "path": "/pfx/anything/deep" }], "upstreamFn": "app.use(path, fn)", "goFn": "Router.Use", "note": "middleware mounted at a prefix sees the residual url" },
+    { "id": "prefix-middleware-bare", "fn": "route.mount", "args": [{ "method": "GET", "path": "/pfx" }], "upstreamFn": "app.use(path, fn)", "goFn": "Router.Use" },
+    { "id": "mount-locations", "fn": "route.mount", "args": [{ "method": "GET", "path": "/loc/where?q=1" }], "upstreamFn": "req.baseUrl", "goFn": "—", "note": "req.baseUrl has no Go equivalent; the Go runner derives it from OriginalURL" }
+  ]
+}

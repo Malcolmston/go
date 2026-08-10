@@ -1,0 +1,371 @@
+{
+  "group": "matrix",
+  "upstream": "sympy@1.14.0",
+  "goModule": "github.com/malcolmston/algebra@v0.8.0",
+  "note": "exact-mode matrix values are flattened row-major and each entry is rendered as the canonical rational 'p/q'; eigenvalues use set mode; cholesky and the Frobenius norm use numeric mode because they can be irrational",
+  "cases": [
+    {
+      "id": "det-2x2",
+      "fn": "det",
+      "args": [[[1, 2], [3, 4]]],
+      "mode": "exact",
+      "upstreamFn": "sympy.Matrix.det",
+      "goFn": "matrix.Matrix.Det"
+    },
+    {
+      "id": "det-3x3",
+      "fn": "det",
+      "args": [[[6, 1, 1], [4, -2, 5], [2, 8, 7]]],
+      "mode": "exact",
+      "upstreamFn": "sympy.Matrix.det",
+      "goFn": "matrix.Matrix.Det"
+    },
+    {
+      "id": "det-4x4-singular",
+      "fn": "det",
+      "args": [[[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16]]],
+      "mode": "exact",
+      "upstreamFn": "sympy.Matrix.det",
+      "goFn": "matrix.Matrix.Det"
+    },
+    {
+      "id": "det-rational-entries",
+      "fn": "det",
+      "args": [[["1/2", "1/3"], ["1/4", "1/5"]]],
+      "mode": "exact",
+      "upstreamFn": "sympy.Matrix.det",
+      "goFn": "matrix.Matrix.Det"
+    },
+    {
+      "id": "det-nonsquare",
+      "fn": "det",
+      "args": [[[1, 2, 3], [4, 5, 6]]],
+      "mode": "exact",
+      "upstreamFn": "sympy.Matrix.det",
+      "goFn": "matrix.Matrix.Det",
+      "note": "must fail on both"
+    },
+    {
+      "id": "det-symbolic",
+      "fn": "det_numeric",
+      "args": [[["x", "1"], ["1", "x"]]],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upstreamFn": "sympy.Matrix.det",
+      "goFn": "matrix.Matrix.Det"
+    },
+    {
+      "id": "det-symbolic-3x3",
+      "fn": "det_numeric",
+      "args": [[["x", "1", "0"], ["0", "x", "1"], ["1", "0", "x"]]],
+      "mode": "numeric",
+      "vars": ["x"],
+      "upstreamFn": "sympy.Matrix.det",
+      "goFn": "matrix.Matrix.Det"
+    },
+    {
+      "id": "det-via-lu-3x3",
+      "fn": "det_lu",
+      "args": [[[6, 1, 1], [4, -2, 5], [2, 8, 7]]],
+      "mode": "numeric",
+      "upstreamFn": "sympy.Matrix.det(method='lu')",
+      "goFn": "matrix.Matrix.DetLU"
+    },
+    {
+      "id": "det-via-lu-4x4",
+      "fn": "det_lu",
+      "args": [[[2, 0, 1, 3], [1, 4, 0, 2], [0, 1, 5, 1], [3, 2, 1, 0]]],
+      "mode": "numeric",
+      "upstreamFn": "sympy.Matrix.det(method='lu')",
+      "goFn": "matrix.Matrix.DetLU",
+      "note": "compared in numeric mode: the port's DetLU pivots in float64 and returns an inexact Float where sympy's LU determinant stays exact"
+    },
+    {
+      "id": "inverse-2x2",
+      "fn": "inverse",
+      "args": [[[1, 2], [3, 4]]],
+      "mode": "exact",
+      "upstreamFn": "sympy.Matrix.inv",
+      "goFn": "matrix.Matrix.Inverse"
+    },
+    {
+      "id": "inverse-3x3-tridiagonal",
+      "fn": "inverse",
+      "args": [[[2, -1, 0], [-1, 2, -1], [0, -1, 2]]],
+      "mode": "exact",
+      "upstreamFn": "sympy.Matrix.inv",
+      "goFn": "matrix.Matrix.Inverse"
+    },
+    {
+      "id": "inverse-singular",
+      "fn": "inverse",
+      "args": [[[1, 2], [2, 4]]],
+      "mode": "exact",
+      "upstreamFn": "sympy.Matrix.inv",
+      "goFn": "matrix.Matrix.Inverse",
+      "note": "must fail on both"
+    },
+    {
+      "id": "inverse-nonsquare",
+      "fn": "inverse",
+      "args": [[[1, 2, 3], [4, 5, 6]]],
+      "mode": "exact",
+      "upstreamFn": "sympy.Matrix.inv",
+      "goFn": "matrix.Matrix.Inverse",
+      "note": "must fail on both"
+    },
+    {
+      "id": "transpose-2x3",
+      "fn": "transpose",
+      "args": [[[1, 2, 3], [4, 5, 6]]],
+      "mode": "exact",
+      "upstreamFn": "sympy.Matrix.T",
+      "goFn": "matrix.Matrix.Transpose"
+    },
+    {
+      "id": "transpose-symmetric",
+      "fn": "transpose",
+      "args": [[[1, 7], [7, 3]]],
+      "mode": "exact",
+      "upstreamFn": "sympy.Matrix.T",
+      "goFn": "matrix.Matrix.Transpose"
+    },
+    {
+      "id": "rank-full-2x2",
+      "fn": "rank",
+      "args": [[[1, 2], [3, 4]]],
+      "mode": "exact",
+      "upstreamFn": "sympy.Matrix.rank",
+      "goFn": "matrix.Matrix.Rank"
+    },
+    {
+      "id": "rank-deficient-3x3",
+      "fn": "rank",
+      "args": [[[1, 2, 3], [2, 4, 6], [1, 0, 1]]],
+      "mode": "exact",
+      "upstreamFn": "sympy.Matrix.rank",
+      "goFn": "matrix.Matrix.Rank"
+    },
+    {
+      "id": "rank-zero-matrix",
+      "fn": "rank",
+      "args": [[[0, 0], [0, 0]]],
+      "mode": "exact",
+      "upstreamFn": "sympy.Matrix.rank",
+      "goFn": "matrix.Matrix.Rank"
+    },
+    {
+      "id": "rank-wide-2x4",
+      "fn": "rank",
+      "args": [[[1, 2, 3, 4], [2, 4, 6, 8]]],
+      "mode": "exact",
+      "upstreamFn": "sympy.Matrix.rank",
+      "goFn": "matrix.Matrix.Rank"
+    },
+    {
+      "id": "charpoly-2x2",
+      "fn": "charpoly",
+      "args": [[[1, 2], [3, 4]]],
+      "mode": "exact",
+      "upstreamFn": "sympy.Matrix.charpoly",
+      "goFn": "matrix.Matrix.CharPoly"
+    },
+    {
+      "id": "charpoly-3x3",
+      "fn": "charpoly",
+      "args": [[[2, -1, 0], [-1, 2, -1], [0, -1, 2]]],
+      "mode": "exact",
+      "upstreamFn": "sympy.Matrix.charpoly",
+      "goFn": "matrix.Matrix.CharPoly"
+    },
+    {
+      "id": "charpoly-4x4",
+      "fn": "charpoly",
+      "args": [[[2, 0, 1, 3], [1, 4, 0, 2], [0, 1, 5, 1], [3, 2, 1, 0]]],
+      "mode": "exact",
+      "upstreamFn": "sympy.Matrix.charpoly",
+      "goFn": "matrix.Matrix.CharPoly"
+    },
+    {
+      "id": "eigenvalues-diagonal-2x2",
+      "fn": "eigenvalues",
+      "args": [[[2, 0], [0, 3]]],
+      "mode": "set",
+      "upstreamFn": "sympy.Matrix.eigenvals",
+      "goFn": "matrix.Matrix.Eigenvalues"
+    },
+    {
+      "id": "eigenvalues-irrational-2x2",
+      "fn": "eigenvalues",
+      "args": [[[1, 2], [3, 4]]],
+      "mode": "set",
+      "upstreamFn": "sympy.Matrix.eigenvals",
+      "goFn": "matrix.Matrix.Eigenvalues"
+    },
+    {
+      "id": "eigenvalues-complex-2x2",
+      "fn": "eigenvalues",
+      "args": [[[0, -1], [1, 0]]],
+      "mode": "set",
+      "upstreamFn": "sympy.Matrix.eigenvals",
+      "goFn": "matrix.Matrix.Eigenvalues"
+    },
+    {
+      "id": "eigenvalues-symmetric-3x3",
+      "fn": "eigenvalues",
+      "args": [[[2, -1, 0], [-1, 2, -1], [0, -1, 2]]],
+      "mode": "set",
+      "upstreamFn": "sympy.Matrix.eigenvals",
+      "goFn": "matrix.Matrix.Eigenvalues"
+    },
+    {
+      "id": "eigenvalues-4x4-diagonal",
+      "fn": "eigenvalues",
+      "args": [[[2, 0, 0, 0], [0, 3, 0, 0], [0, 0, 4, 0], [0, 0, 0, 5]]],
+      "mode": "set",
+      "upstreamFn": "sympy.Matrix.eigenvals",
+      "goFn": "matrix.Matrix.Eigenvalues",
+      "note": "the port documents 4x4 and larger as unsupported"
+    },
+    {
+      "id": "cholesky-3x3",
+      "fn": "cholesky",
+      "args": [[[4, 12, -16], [12, 37, -43], [-16, -43, 98]]],
+      "mode": "numeric",
+      "upstreamFn": "sympy.Matrix.cholesky",
+      "goFn": "matrix.Matrix.Cholesky"
+    },
+    {
+      "id": "cholesky-2x2-irrational",
+      "fn": "cholesky",
+      "args": [[[2, 1], [1, 2]]],
+      "mode": "numeric",
+      "upstreamFn": "sympy.Matrix.cholesky",
+      "goFn": "matrix.Matrix.Cholesky"
+    },
+    {
+      "id": "cholesky-not-positive-definite",
+      "fn": "cholesky",
+      "args": [[[1, 2], [2, 1]]],
+      "mode": "numeric",
+      "upstreamFn": "sympy.Matrix.cholesky",
+      "goFn": "matrix.Matrix.Cholesky",
+      "note": "must fail on both"
+    },
+    {
+      "id": "matmul-2x2",
+      "fn": "matmul",
+      "args": [[[1, 2], [3, 4]], [[5, 6], [7, 8]]],
+      "mode": "exact",
+      "upstreamFn": "sympy.Matrix.__mul__",
+      "goFn": "matrix.Matrix.Mul"
+    },
+    {
+      "id": "matmul-rectangular",
+      "fn": "matmul",
+      "args": [[[1, 2, 3], [4, 5, 6]], [[1, 0], [0, 1], [2, 3]]],
+      "mode": "exact",
+      "upstreamFn": "sympy.Matrix.__mul__",
+      "goFn": "matrix.Matrix.Mul"
+    },
+    {
+      "id": "matmul-dimension-mismatch",
+      "fn": "matmul",
+      "args": [[[1, 2]], [[1, 2]]],
+      "mode": "exact",
+      "upstreamFn": "sympy.Matrix.__mul__",
+      "goFn": "matrix.Matrix.Mul",
+      "note": "must fail on both"
+    },
+    {
+      "id": "matpow-cube",
+      "fn": "matpow",
+      "args": [[[1, 1], [1, 0]], 10],
+      "mode": "exact",
+      "upstreamFn": "sympy.Matrix.__pow__",
+      "goFn": "matrix.Matrix.Pow",
+      "note": "Fibonacci matrix to the tenth power"
+    },
+    {
+      "id": "matpow-zero",
+      "fn": "matpow",
+      "args": [[[3, 1], [2, 5]], 0],
+      "mode": "exact",
+      "upstreamFn": "sympy.Matrix.__pow__",
+      "goFn": "matrix.Matrix.Pow"
+    },
+    {
+      "id": "kron-2x2",
+      "fn": "kron",
+      "args": [[[1, 2], [3, 4]], [[0, 5], [6, 7]]],
+      "mode": "exact",
+      "upstreamFn": "sympy.physics.quantum.TensorProduct",
+      "goFn": "matrix.Matrix.Kron"
+    },
+    {
+      "id": "mat-solve-2x2",
+      "fn": "mat_solve",
+      "args": [[[2, 1], [1, 3]], [3, 5]],
+      "mode": "exact",
+      "upstreamFn": "sympy.Matrix.solve",
+      "goFn": "matrix.Solve"
+    },
+    {
+      "id": "mat-solve-3x3",
+      "fn": "mat_solve",
+      "args": [[[2, 1, -1], [-3, -1, 2], [-2, 1, 2]], [8, -11, -3]],
+      "mode": "exact",
+      "upstreamFn": "sympy.Matrix.solve",
+      "goFn": "matrix.Solve"
+    },
+    {
+      "id": "mat-solve-singular",
+      "fn": "mat_solve",
+      "args": [[[1, 2], [2, 4]], [1, 3]],
+      "mode": "exact",
+      "upstreamFn": "sympy.Matrix.solve",
+      "goFn": "matrix.Solve",
+      "note": "must fail on both"
+    },
+    {
+      "id": "adjugate-3x3",
+      "fn": "adjugate",
+      "args": [[[1, 2, 3], [4, 5, 6], [7, 8, 10]]],
+      "mode": "exact",
+      "upstreamFn": "sympy.Matrix.adjugate",
+      "goFn": "matrix.Matrix.Adjugate"
+    },
+    {
+      "id": "norm-frobenius-2x2",
+      "fn": "norm_fro",
+      "args": [[[3, 4], [0, 0]]],
+      "mode": "numeric",
+      "upstreamFn": "sympy.Matrix.norm",
+      "goFn": "matrix.Matrix.NormFro"
+    },
+    {
+      "id": "norm-frobenius-3x3",
+      "fn": "norm_fro",
+      "args": [[[1, 2, 3], [4, 5, 6], [7, 8, 9]]],
+      "mode": "numeric",
+      "upstreamFn": "sympy.Matrix.norm",
+      "goFn": "matrix.Matrix.NormFro"
+    },
+    {
+      "id": "rref-3x3",
+      "fn": "rref",
+      "args": [[[1, 2, 3], [4, 5, 6], [7, 8, 10]]],
+      "mode": "exact",
+      "upstreamFn": "sympy.Matrix.rref",
+      "goFn": "matrix.Matrix.RREF"
+    },
+    {
+      "id": "rref-rank-deficient",
+      "fn": "rref",
+      "args": [[[1, 2, 3], [2, 4, 6], [1, 0, 1]]],
+      "mode": "exact",
+      "upstreamFn": "sympy.Matrix.rref",
+      "goFn": "matrix.Matrix.RREF"
+    }
+  ]
+}

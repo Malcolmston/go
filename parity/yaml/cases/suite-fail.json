@@ -1,0 +1,1574 @@
+{
+  "group": "suite-fail",
+  "upstream": "yaml@2.6.1+yaml-test-suite@da267a5c4782e7361e82889e76c0dc7df0e1e870",
+  "cases": [
+    {
+      "id": "fail-236B",
+      "fn": "parse",
+      "args": [
+        "foo:\n  bar\ninvalid\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "236B",
+      "suiteTags": [
+        "error",
+        "mapping"
+      ],
+      "note": "Invalid value after mapping"
+    },
+    {
+      "id": "fail-2CMS",
+      "fn": "parse",
+      "args": [
+        "this\n is\n  invalid: x\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "2CMS",
+      "suiteTags": [
+        "error",
+        "mapping"
+      ],
+      "note": "Invalid mapping in plain multiline"
+    },
+    {
+      "id": "fail-2G84-00",
+      "fn": "parse",
+      "args": [
+        "--- |0\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "2G84-00",
+      "suiteTags": [
+        "literal",
+        "scalar"
+      ],
+      "note": "Literal modifers"
+    },
+    {
+      "id": "fail-2G84-01",
+      "fn": "parse",
+      "args": [
+        "--- |10\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "2G84-01",
+      "suiteTags": [
+        "literal",
+        "scalar"
+      ],
+      "note": "Literal modifers"
+    },
+    {
+      "id": "fail-3HFZ",
+      "fn": "parse",
+      "args": [
+        "---\nkey: value\n... invalid\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "3HFZ",
+      "suiteTags": [
+        "error",
+        "footer"
+      ],
+      "note": "Invalid content after document end marker"
+    },
+    {
+      "id": "fail-4EJS",
+      "fn": "parse",
+      "args": [
+        "---\na:\n\tb:\n\t\tc: value\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "4EJS",
+      "suiteTags": [
+        "error",
+        "mapping",
+        "whitespace"
+      ],
+      "note": "Invalid tabs as indendation in a mapping"
+    },
+    {
+      "id": "fail-4H7K",
+      "fn": "parse",
+      "args": [
+        "---\n[ a, b, c ] ]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "4H7K",
+      "suiteTags": [
+        "error",
+        "flow",
+        "sequence"
+      ],
+      "note": "Flow sequence with invalid extra closing bracket"
+    },
+    {
+      "id": "fail-4HVU",
+      "fn": "parse",
+      "args": [
+        "key:\n   - ok\n   - also ok\n  - wrong\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "4HVU",
+      "suiteTags": [
+        "error",
+        "sequence",
+        "indent"
+      ],
+      "note": "Wrong indendation in Sequence"
+    },
+    {
+      "id": "fail-4JVG",
+      "fn": "parse",
+      "args": [
+        "top1: &node1\n  &k1 key1: val1\ntop2: &node2\n  &v2 val2\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "4JVG",
+      "suiteTags": [
+        "anchor",
+        "error",
+        "mapping"
+      ],
+      "note": "Scalar value with two anchors"
+    },
+    {
+      "id": "fail-55WF",
+      "fn": "parse",
+      "args": [
+        "---\n\"\\.\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "55WF",
+      "suiteTags": [
+        "error",
+        "double"
+      ],
+      "note": "Invalid escape in double quoted string"
+    },
+    {
+      "id": "fail-5LLU",
+      "fn": "parse",
+      "args": [
+        "block scalar: >\n \n  \n   \n invalid\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "5LLU",
+      "suiteTags": [
+        "error",
+        "folded",
+        "whitespace"
+      ],
+      "note": "Block scalar with wrong indented line after spaces only"
+    },
+    {
+      "id": "fail-5TRB",
+      "fn": "parse",
+      "args": [
+        "---\n\"\n---\n\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "5TRB",
+      "suiteTags": [
+        "header",
+        "double",
+        "error"
+      ],
+      "note": "Invalid document-start marker in doublequoted tring"
+    },
+    {
+      "id": "fail-5U3A",
+      "fn": "parse",
+      "args": [
+        "key: - a\n     - b\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "5U3A",
+      "suiteTags": [
+        "error",
+        "sequence",
+        "mapping"
+      ],
+      "note": "Sequence on same Line as Mapping Key"
+    },
+    {
+      "id": "fail-62EZ",
+      "fn": "parse",
+      "args": [
+        "---\nx: { y: z }in: valid\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "62EZ",
+      "suiteTags": [
+        "error",
+        "flow",
+        "mapping"
+      ],
+      "note": "Invalid block mapping key on same line as previous key"
+    },
+    {
+      "id": "fail-6JTT",
+      "fn": "parse",
+      "args": [
+        "---\n[ [ a, b, c ]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "6JTT",
+      "suiteTags": [
+        "error",
+        "flow",
+        "sequence"
+      ],
+      "note": "Flow sequence without closing bracket"
+    },
+    {
+      "id": "fail-6S55",
+      "fn": "parse",
+      "args": [
+        "key:\n - bar\n - baz\n invalid\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "6S55",
+      "suiteTags": [
+        "error",
+        "mapping",
+        "sequence"
+      ],
+      "note": "Invalid scalar at the end of sequence"
+    },
+    {
+      "id": "fail-7LBH",
+      "fn": "parse",
+      "args": [
+        "\"a\\nb\": 1\n\"c\n d\": 1\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "7LBH",
+      "suiteTags": [
+        "error",
+        "double"
+      ],
+      "note": "Multiline double quoted implicit keys"
+    },
+    {
+      "id": "fail-7MNF",
+      "fn": "parse",
+      "args": [
+        "top1:\n  key1: val1\ntop2\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "7MNF",
+      "suiteTags": [
+        "error",
+        "mapping"
+      ],
+      "note": "Missing colon"
+    },
+    {
+      "id": "fail-8XDJ",
+      "fn": "parse",
+      "args": [
+        "key: word1\n#  xxx\n  word2\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "8XDJ",
+      "suiteTags": [
+        "error",
+        "comment",
+        "scalar"
+      ],
+      "note": "Comment in plain multiline value"
+    },
+    {
+      "id": "fail-9C9N",
+      "fn": "parse",
+      "args": [
+        "---\nflow: [a,\nb,\nc]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "9C9N",
+      "suiteTags": [
+        "error",
+        "flow",
+        "indent",
+        "sequence"
+      ],
+      "note": "Wrong indented flow sequence"
+    },
+    {
+      "id": "fail-9CWY",
+      "fn": "parse",
+      "args": [
+        "key:\n - item1\n - item2\ninvalid\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "9CWY",
+      "suiteTags": [
+        "error",
+        "mapping",
+        "sequence"
+      ],
+      "note": "Invalid scalar at the end of mapping"
+    },
+    {
+      "id": "fail-9HCY",
+      "fn": "parse",
+      "args": [
+        "!foo \"bar\"\n%TAG ! tag:example.com,2000:app/\n---\n!foo \"bar\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "9HCY",
+      "suiteTags": [
+        "directive",
+        "error",
+        "footer",
+        "tag",
+        "unknown-tag"
+      ],
+      "note": "Need document footer before directives"
+    },
+    {
+      "id": "fail-9JBA",
+      "fn": "parse",
+      "args": [
+        "---\n[ a, b, c, ]#invalid\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "9JBA",
+      "suiteTags": [
+        "comment",
+        "error",
+        "flow",
+        "sequence"
+      ],
+      "note": "Invalid comment after end of flow sequence"
+    },
+    {
+      "id": "fail-9KBC",
+      "fn": "parse",
+      "args": [
+        "--- key1: value1\n    key2: value2\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "9KBC",
+      "suiteTags": [
+        "error",
+        "header",
+        "mapping"
+      ],
+      "note": "Mapping starting at --- line"
+    },
+    {
+      "id": "fail-9MAG",
+      "fn": "parse",
+      "args": [
+        "---\n[ , a, b, c ]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "9MAG",
+      "suiteTags": [
+        "error",
+        "flow",
+        "sequence"
+      ],
+      "note": "Flow sequence with invalid comma at the beginning"
+    },
+    {
+      "id": "fail-9MMA",
+      "fn": "parse",
+      "args": [
+        "%YAML 1.2\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "9MMA",
+      "suiteTags": [
+        "error",
+        "directive"
+      ],
+      "note": "Directive by itself with no document"
+    },
+    {
+      "id": "fail-9MQT-01",
+      "fn": "parse",
+      "args": [
+        "--- \"a\n... x\nb\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "9MQT-01",
+      "suiteTags": [
+        "double",
+        "scalar"
+      ],
+      "note": "Scalar doc with '...' in content"
+    },
+    {
+      "id": "fail-B63P",
+      "fn": "parse",
+      "args": [
+        "%YAML 1.2\n...\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "B63P",
+      "suiteTags": [
+        "error",
+        "directive",
+        "document"
+      ],
+      "note": "Directive without document"
+    },
+    {
+      "id": "fail-BD7L",
+      "fn": "parse",
+      "args": [
+        "- item1\n- item2\ninvalid: x\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "BD7L",
+      "suiteTags": [
+        "error",
+        "mapping",
+        "sequence"
+      ],
+      "note": "Invalid mapping after sequence"
+    },
+    {
+      "id": "fail-BF9H",
+      "fn": "parse",
+      "args": [
+        "---\nplain: a\n       b # end of scalar\n       c\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "BF9H",
+      "suiteTags": [
+        "comment",
+        "error",
+        "scalar"
+      ],
+      "note": "Trailing comment in multiline plain scalar"
+    },
+    {
+      "id": "fail-BS4K",
+      "fn": "parse",
+      "args": [
+        "word1  # comment\nword2\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "BS4K",
+      "suiteTags": [
+        "error",
+        "scalar"
+      ],
+      "note": "Comment between plain scalar lines"
+    },
+    {
+      "id": "fail-C2SP",
+      "fn": "parse",
+      "args": [
+        "[23\n]: 42\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "C2SP",
+      "suiteTags": [
+        "error",
+        "flow",
+        "mapping"
+      ],
+      "note": "Flow Mapping Key on two lines"
+    },
+    {
+      "id": "fail-CML9",
+      "fn": "parse",
+      "args": [
+        "key: [ word1\n#  xxx\n  word2 ]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "CML9",
+      "suiteTags": [
+        "error",
+        "flow",
+        "comment"
+      ],
+      "note": "Missing comma in flow"
+    },
+    {
+      "id": "fail-CQ3W",
+      "fn": "parse",
+      "args": [
+        "---\nkey: \"missing closing quote\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "CQ3W",
+      "suiteTags": [
+        "error",
+        "double"
+      ],
+      "note": "Double quoted string without closing quote"
+    },
+    {
+      "id": "fail-CTN5",
+      "fn": "parse",
+      "args": [
+        "---\n[ a, b, c, , ]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "CTN5",
+      "suiteTags": [
+        "error",
+        "flow",
+        "sequence"
+      ],
+      "note": "Flow sequence with invalid extra comma"
+    },
+    {
+      "id": "fail-CVW2",
+      "fn": "parse",
+      "args": [
+        "---\n[ a, b, c,#invalid\n]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "CVW2",
+      "suiteTags": [
+        "comment",
+        "error",
+        "flow",
+        "sequence"
+      ],
+      "note": "Invalid comment after comma"
+    },
+    {
+      "id": "fail-CXX2",
+      "fn": "parse",
+      "args": [
+        "--- &anchor a: b\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "CXX2",
+      "suiteTags": [
+        "anchor",
+        "error",
+        "header",
+        "mapping"
+      ],
+      "note": "Mapping with anchor on document start line"
+    },
+    {
+      "id": "fail-D49Q",
+      "fn": "parse",
+      "args": [
+        "'a\\nb': 1\n'c\n d': 1\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "D49Q",
+      "suiteTags": [
+        "error",
+        "single",
+        "mapping"
+      ],
+      "note": "Multiline single quoted implicit keys"
+    },
+    {
+      "id": "fail-DK4H",
+      "fn": "parse",
+      "args": [
+        "---\n[ key\n  : value ]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "DK4H",
+      "suiteTags": [
+        "error",
+        "flow",
+        "mapping",
+        "sequence"
+      ],
+      "note": "Implicit key followed by newline"
+    },
+    {
+      "id": "fail-DK95-01",
+      "fn": "parse",
+      "args": [
+        "foo: \"bar\n\tbaz\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "DK95-01",
+      "suiteTags": [
+        "indent",
+        "whitespace"
+      ],
+      "note": "Tabs that look like indentation"
+    },
+    {
+      "id": "fail-DK95-06",
+      "fn": "parse",
+      "args": [
+        "foo:\n  a: 1\n  \tb: 2\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "DK95-06",
+      "suiteTags": [
+        "indent",
+        "whitespace"
+      ],
+      "note": "Tabs that look like indentation"
+    },
+    {
+      "id": "fail-DMG6",
+      "fn": "parse",
+      "args": [
+        "key:\n  ok: 1\n wrong: 2\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "DMG6",
+      "suiteTags": [
+        "error",
+        "mapping",
+        "indent"
+      ],
+      "note": "Wrong indendation in Map"
+    },
+    {
+      "id": "fail-EB22",
+      "fn": "parse",
+      "args": [
+        "---\nscalar1 # comment\n%YAML 1.2\n---\nscalar2\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "EB22",
+      "suiteTags": [
+        "error",
+        "directive",
+        "footer"
+      ],
+      "note": "Missing document-end marker before directive"
+    },
+    {
+      "id": "fail-EW3V",
+      "fn": "parse",
+      "args": [
+        "k1: v1\n k2: v2\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "EW3V",
+      "suiteTags": [
+        "error",
+        "mapping",
+        "indent"
+      ],
+      "note": "Wrong indendation in mapping"
+    },
+    {
+      "id": "fail-G5U8",
+      "fn": "parse",
+      "args": [
+        "---\n- [-, -]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "G5U8",
+      "suiteTags": [
+        "flow",
+        "sequence"
+      ],
+      "note": "Plain dashes in flow sequence"
+    },
+    {
+      "id": "fail-G7JE",
+      "fn": "parse",
+      "args": [
+        "a\\nb: 1\nc\n d: 1\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "G7JE",
+      "suiteTags": [
+        "error",
+        "mapping"
+      ],
+      "note": "Multiline implicit keys"
+    },
+    {
+      "id": "fail-G9HC",
+      "fn": "parse",
+      "args": [
+        "---\nseq:\n&anchor\n- a\n- b\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "G9HC",
+      "suiteTags": [
+        "anchor",
+        "error",
+        "sequence"
+      ],
+      "note": "Invalid anchor in zero indented sequence"
+    },
+    {
+      "id": "fail-GDY7",
+      "fn": "parse",
+      "args": [
+        "key: value\nthis is #not a: key\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "GDY7",
+      "suiteTags": [
+        "comment",
+        "error",
+        "mapping"
+      ],
+      "note": "Comment that looks like a mapping key"
+    },
+    {
+      "id": "fail-GT5M",
+      "fn": "parse",
+      "args": [
+        "- item1\n&node\n- item2\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "GT5M",
+      "suiteTags": [
+        "anchor",
+        "error",
+        "sequence"
+      ],
+      "note": "Node anchor in sequence"
+    },
+    {
+      "id": "fail-H7J7",
+      "fn": "parse",
+      "args": [
+        "key: &x\n!!map\n  a: b\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "H7J7",
+      "suiteTags": [
+        "anchor",
+        "error",
+        "indent",
+        "tag"
+      ],
+      "note": "Node anchor not indented"
+    },
+    {
+      "id": "fail-H7TQ",
+      "fn": "parse",
+      "args": [
+        "%YAML 1.2 foo\n---\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "H7TQ",
+      "suiteTags": [
+        "directive"
+      ],
+      "note": "Extra words on %YAML directive"
+    },
+    {
+      "id": "fail-HRE5",
+      "fn": "parse",
+      "args": [
+        "---\ndouble: \"quoted \\' scalar\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "HRE5",
+      "suiteTags": [
+        "double",
+        "error",
+        "single"
+      ],
+      "note": "Double quoted scalar with escaped single quote"
+    },
+    {
+      "id": "fail-HU3P",
+      "fn": "parse",
+      "args": [
+        "key:\n  word1 word2\n  no: key\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "HU3P",
+      "suiteTags": [
+        "error",
+        "mapping",
+        "scalar"
+      ],
+      "note": "Invalid Mapping in plain scalar"
+    },
+    {
+      "id": "fail-JKF3",
+      "fn": "parse",
+      "args": [
+        "- - \"bar\nbar\": x\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "JKF3",
+      "suiteTags": [
+        "indent"
+      ],
+      "note": "Multiline unidented double quoted block key"
+    },
+    {
+      "id": "fail-JY7Z",
+      "fn": "parse",
+      "args": [
+        "key1: \"quoted1\"\nkey2: \"quoted2\" no key: nor value\nkey3: \"quoted3\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "JY7Z",
+      "suiteTags": [
+        "error",
+        "mapping",
+        "double"
+      ],
+      "note": "Trailing content that looks like a mapping"
+    },
+    {
+      "id": "fail-KS4U",
+      "fn": "parse",
+      "args": [
+        "---\n[\nsequence item\n]\ninvalid item\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "KS4U",
+      "suiteTags": [
+        "error",
+        "flow",
+        "sequence"
+      ],
+      "note": "Invalid item after end of flow sequence"
+    },
+    {
+      "id": "fail-LHL4",
+      "fn": "parse",
+      "args": [
+        "---\n!invalid{}tag scalar\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "LHL4",
+      "suiteTags": [
+        "error",
+        "tag"
+      ],
+      "note": "Invalid tag"
+    },
+    {
+      "id": "fail-MUS6-00",
+      "fn": "parse",
+      "args": [
+        "%YAML 1.1#...\n---\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "MUS6-00",
+      "suiteTags": [
+        "directive"
+      ],
+      "note": "Directive variants"
+    },
+    {
+      "id": "fail-MUS6-01",
+      "fn": "parse",
+      "args": [
+        "%YAML 1.2\n---\n%YAML 1.2\n---\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "MUS6-01",
+      "suiteTags": [
+        "directive"
+      ],
+      "note": "Directive variants"
+    },
+    {
+      "id": "fail-N4JP",
+      "fn": "parse",
+      "args": [
+        "map:\n  key1: \"quoted1\"\n key2: \"bad indentation\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "N4JP",
+      "suiteTags": [
+        "error",
+        "mapping",
+        "indent",
+        "double"
+      ],
+      "note": "Bad indentation in mapping"
+    },
+    {
+      "id": "fail-N782",
+      "fn": "parse",
+      "args": [
+        "[\n--- ,\n...\n]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "N782",
+      "suiteTags": [
+        "flow",
+        "edge",
+        "header",
+        "footer",
+        "error"
+      ],
+      "note": "Invalid document markers in flow style"
+    },
+    {
+      "id": "fail-P2EQ",
+      "fn": "parse",
+      "args": [
+        "---\n- { y: z }- invalid\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "P2EQ",
+      "suiteTags": [
+        "error",
+        "flow",
+        "mapping",
+        "sequence"
+      ],
+      "note": "Invalid sequene item on same line as previous item"
+    },
+    {
+      "id": "fail-Q4CL",
+      "fn": "parse",
+      "args": [
+        "key1: \"quoted1\"\nkey2: \"quoted2\" trailing content\nkey3: \"quoted3\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "Q4CL",
+      "suiteTags": [
+        "error",
+        "mapping",
+        "double"
+      ],
+      "note": "Trailing content after quoted value"
+    },
+    {
+      "id": "fail-QB6E",
+      "fn": "parse",
+      "args": [
+        "---\nquoted: \"a\nb\nc\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "QB6E",
+      "suiteTags": [
+        "double",
+        "error",
+        "indent"
+      ],
+      "note": "Wrong indented multiline quoted scalar"
+    },
+    {
+      "id": "fail-QLJ7",
+      "fn": "parse",
+      "args": [
+        "%TAG !prefix! tag:example.com,2011:\n--- !prefix!A\na: b\n--- !prefix!B\nc: d\n--- !prefix!C\ne: f\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "QLJ7",
+      "suiteTags": [
+        "error",
+        "directive",
+        "tag"
+      ],
+      "note": "Tag shorthand used in documents but only defined in the first"
+    },
+    {
+      "id": "fail-RHX7",
+      "fn": "parse",
+      "args": [
+        "---\nkey: value\n%YAML 1.2\n---\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "RHX7",
+      "suiteTags": [
+        "directive",
+        "error"
+      ],
+      "note": "YAML directive without document end marker"
+    },
+    {
+      "id": "fail-RXY3",
+      "fn": "parse",
+      "args": [
+        "---\n'\n...\n'\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "RXY3",
+      "suiteTags": [
+        "footer",
+        "single",
+        "error"
+      ],
+      "note": "Invalid document-end marker in single quoted string"
+    },
+    {
+      "id": "fail-S4GJ",
+      "fn": "parse",
+      "args": [
+        "---\nfolded: > first line\n  second line\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "S4GJ",
+      "suiteTags": [
+        "error",
+        "folded"
+      ],
+      "note": "Invalid text after block scalar indicator"
+    },
+    {
+      "id": "fail-S98Z",
+      "fn": "parse",
+      "args": [
+        "empty block scalar: >\n \n  \n   \n # comment\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "S98Z",
+      "suiteTags": [
+        "error",
+        "folded",
+        "comment",
+        "scalar",
+        "whitespace"
+      ],
+      "note": "Block scalar with more spaces than first content line"
+    },
+    {
+      "id": "fail-SF5V",
+      "fn": "parse",
+      "args": [
+        "%YAML 1.2\n%YAML 1.2\n---\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "SF5V",
+      "suiteTags": [
+        "directive",
+        "error"
+      ],
+      "note": "Duplicate YAML directive"
+    },
+    {
+      "id": "fail-SR86",
+      "fn": "parse",
+      "args": [
+        "key1: &a value\nkey2: &b *a\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "SR86",
+      "suiteTags": [
+        "alias",
+        "error"
+      ],
+      "note": "Anchor plus Alias"
+    },
+    {
+      "id": "fail-SU5Z",
+      "fn": "parse",
+      "args": [
+        "key: \"value\"# invalid comment\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "SU5Z",
+      "suiteTags": [
+        "comment",
+        "error",
+        "double",
+        "whitespace"
+      ],
+      "note": "Comment without whitespace after doublequoted scalar"
+    },
+    {
+      "id": "fail-SU74",
+      "fn": "parse",
+      "args": [
+        "key1: &alias value1\n&b *alias : value2\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "SU74",
+      "suiteTags": [
+        "error",
+        "anchor",
+        "alias",
+        "mapping"
+      ],
+      "note": "Anchor and alias as mapping key"
+    },
+    {
+      "id": "fail-SY6V",
+      "fn": "parse",
+      "args": [
+        "&anchor - sequence entry\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "SY6V",
+      "suiteTags": [
+        "anchor",
+        "error",
+        "sequence"
+      ],
+      "note": "Anchor before sequence entry on same line"
+    },
+    {
+      "id": "fail-T833",
+      "fn": "parse",
+      "args": [
+        "---\n{\n foo: 1\n bar: 2 }\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "T833",
+      "suiteTags": [
+        "error",
+        "flow",
+        "mapping"
+      ],
+      "note": "Flow mapping missing a separating comma"
+    },
+    {
+      "id": "fail-TD5N",
+      "fn": "parse",
+      "args": [
+        "- item1\n- item2\ninvalid\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "TD5N",
+      "suiteTags": [
+        "error",
+        "sequence",
+        "scalar"
+      ],
+      "note": "Invalid scalar after sequence"
+    },
+    {
+      "id": "fail-U44R",
+      "fn": "parse",
+      "args": [
+        "map:\n  key1: \"quoted1\"\n   key2: \"bad indentation\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "U44R",
+      "suiteTags": [
+        "error",
+        "mapping",
+        "indent",
+        "double"
+      ],
+      "note": "Bad indentation in mapping (2)"
+    },
+    {
+      "id": "fail-U99R",
+      "fn": "parse",
+      "args": [
+        "- !!str, xxx\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "U99R",
+      "suiteTags": [
+        "error",
+        "tag"
+      ],
+      "note": "Invalid comma in tag"
+    },
+    {
+      "id": "fail-VJP3-00",
+      "fn": "parse",
+      "args": [
+        "k: {\nk\n:\nv\n}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "VJP3-00",
+      "suiteTags": [
+        "flow",
+        "indent"
+      ],
+      "note": "Flow collections over many lines"
+    },
+    {
+      "id": "fail-W9L4",
+      "fn": "parse",
+      "args": [
+        "---\nblock scalar: |\n     \n  more spaces at the beginning\n  are invalid\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "W9L4",
+      "suiteTags": [
+        "error",
+        "literal",
+        "whitespace"
+      ],
+      "note": "Literal block scalar with more spaces in first line"
+    },
+    {
+      "id": "fail-X4QW",
+      "fn": "parse",
+      "args": [
+        "block: ># comment\n  scalar\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "X4QW",
+      "suiteTags": [
+        "folded",
+        "comment",
+        "error",
+        "whitespace"
+      ],
+      "note": "Comment without whitespace after block scalar indicator"
+    },
+    {
+      "id": "fail-Y79Y-00",
+      "fn": "parse",
+      "args": [
+        "foo: |\n\t\nbar: 1\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "Y79Y-00",
+      "suiteTags": [
+        "whitespace"
+      ],
+      "note": "Tabs in various contexts"
+    },
+    {
+      "id": "fail-Y79Y-03",
+      "fn": "parse",
+      "args": [
+        "- [\n\tfoo,\n foo\n ]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "Y79Y-03",
+      "suiteTags": [
+        "whitespace"
+      ],
+      "note": "Tabs in various contexts"
+    },
+    {
+      "id": "fail-Y79Y-04",
+      "fn": "parse",
+      "args": [
+        "-\t-\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "Y79Y-04",
+      "suiteTags": [
+        "whitespace"
+      ],
+      "note": "Tabs in various contexts"
+    },
+    {
+      "id": "fail-Y79Y-05",
+      "fn": "parse",
+      "args": [
+        "- \t-\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "Y79Y-05",
+      "suiteTags": [
+        "whitespace"
+      ],
+      "note": "Tabs in various contexts"
+    },
+    {
+      "id": "fail-Y79Y-06",
+      "fn": "parse",
+      "args": [
+        "?\t-\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "Y79Y-06",
+      "suiteTags": [
+        "whitespace"
+      ],
+      "note": "Tabs in various contexts"
+    },
+    {
+      "id": "fail-Y79Y-07",
+      "fn": "parse",
+      "args": [
+        "? -\n:\t-\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "Y79Y-07",
+      "suiteTags": [
+        "whitespace"
+      ],
+      "note": "Tabs in various contexts"
+    },
+    {
+      "id": "fail-Y79Y-08",
+      "fn": "parse",
+      "args": [
+        "?\tkey:\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "Y79Y-08",
+      "suiteTags": [
+        "whitespace"
+      ],
+      "note": "Tabs in various contexts"
+    },
+    {
+      "id": "fail-Y79Y-09",
+      "fn": "parse",
+      "args": [
+        "? key:\n:\tkey:\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "Y79Y-09",
+      "suiteTags": [
+        "whitespace"
+      ],
+      "note": "Tabs in various contexts"
+    },
+    {
+      "id": "fail-YJV2",
+      "fn": "parse",
+      "args": [
+        "[-]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "YJV2",
+      "suiteTags": [
+        "flow",
+        "sequence"
+      ],
+      "note": "Dash in flow sequence"
+    },
+    {
+      "id": "fail-ZCZ6",
+      "fn": "parse",
+      "args": [
+        "a: b: c: d\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "ZCZ6",
+      "suiteTags": [
+        "error",
+        "mapping",
+        "scalar"
+      ],
+      "note": "Invalid mapping in plain single line value"
+    },
+    {
+      "id": "fail-ZL4Z",
+      "fn": "parse",
+      "args": [
+        "---\na: 'b': c\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "ZL4Z",
+      "suiteTags": [
+        "error",
+        "mapping"
+      ],
+      "note": "Invalid nested mapping"
+    },
+    {
+      "id": "fail-ZVH3",
+      "fn": "parse",
+      "args": [
+        "- key: value\n - item1\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "ZVH3",
+      "suiteTags": [
+        "error",
+        "sequence",
+        "indent"
+      ],
+      "note": "Wrong indented sequence item"
+    },
+    {
+      "id": "fail-ZXT5",
+      "fn": "parse",
+      "args": [
+        "[ \"key\"\n  :value ]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "fail",
+      "suite": "ZXT5",
+      "suiteTags": [
+        "error",
+        "flow",
+        "mapping",
+        "sequence"
+      ],
+      "note": "Implicit key followed by newline and adjacent value"
+    }
+  ]
+}

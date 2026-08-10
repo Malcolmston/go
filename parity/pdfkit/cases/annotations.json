@@ -1,0 +1,124 @@
+{
+  "group": "annotations",
+  "upstream": "pdfkit@0.15.1",
+  "cases": [
+    {
+      "id": "annot-link-uri",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.link",
+      "goFn": "Page.AddLinkURI",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "linkURI", "args": [40, 40, 120, 20, "https://example.com/a?b=c&d=e"]}
+      ]}]}]
+    },
+    {
+      "id": "annot-link-two",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.link",
+      "goFn": "Page.AddLinkURI",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "linkURI", "args": [40, 40, 120, 20, "https://example.com/one"]},
+        {"op": "linkURI", "args": [40, 80, 120, 20, "mailto:someone@example.com"]}
+      ]}]}]
+    },
+    {
+      "id": "annot-named-dest-and-link",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.addNamedDestination + goTo",
+      "goFn": "Document.AddNamedDest + Page.AddLinkToDest",
+      "args": [{"pages": [
+        {"size": "A4", "ops": [
+          {"op": "linkToDest", "args": [40, 40, 120, 20, "chapter2"]}
+        ]},
+        {"size": "A4", "ops": [
+          {"op": "namedDest", "args": ["chapter2", 0, 50]}
+        ]}
+      ]}]
+    },
+    {
+      "id": "annot-link-to-page",
+      "fn": "buildPDF",
+      "upstreamFn": "—",
+      "goFn": "Page.AddLinkTo",
+      "note": "a direct link to another page object: upstream only has named destinations",
+      "args": [{"pages": [
+        {"size": "A4", "ops": [{"op": "linkToPage", "args": [40, 40, 120, 20, 1, 50]}]},
+        {"size": "A4", "ops": []}
+      ]}]
+    },
+    {
+      "id": "annot-sticky-note",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.note",
+      "goFn": "Page.AddTextAnnotation",
+      "note": "upstream's note() takes a rectangle; the port's takes a point",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "stickyNoteAnnotation", "args": [40, 40, 20, 20, "a sticky note"]}
+      ]}]}]
+    },
+    {
+      "id": "annot-free-text",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.textAnnotation",
+      "goFn": "—",
+      "note": "a /FreeText annotation: the port has none",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "freeTextAnnotation", "args": [40, 40, 120, 40, "free text"]}
+      ]}]}]
+    },
+    {
+      "id": "annot-highlight",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.highlight",
+      "goFn": "—",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "highlightAnnotation", "args": [40, 40, 120, 14]}
+      ]}]}]
+    },
+    {
+      "id": "annot-underline",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.underline",
+      "goFn": "—",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "underlineAnnotation", "args": [40, 40, 120, 14]}
+      ]}]}]
+    },
+    {
+      "id": "annot-strike",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.strike",
+      "goFn": "—",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "strikeAnnotation", "args": [40, 40, 120, 14]}
+      ]}]}]
+    },
+    {
+      "id": "annot-line",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.lineAnnotation",
+      "goFn": "—",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "lineAnnotation", "args": [40, 40, 160, 100]}
+      ]}]}]
+    },
+    {
+      "id": "annot-rect",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.rectAnnotation",
+      "goFn": "—",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "rectAnnotation", "args": [40, 40, 120, 60]}
+      ]}]}]
+    },
+    {
+      "id": "annot-ellipse",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.ellipseAnnotation",
+      "goFn": "—",
+      "args": [{"pages": [{"size": "A4", "ops": [
+        {"op": "ellipseAnnotation", "args": [40, 40, 120, 60]}
+      ]}]}]
+    }
+  ]
+}

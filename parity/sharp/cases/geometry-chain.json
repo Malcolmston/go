@@ -1,0 +1,251 @@
+{
+  "group": "geometry-chain",
+  "upstream": "sharp@0.33.5",
+  "cases": [
+    {
+      "id": "chain-rotate-resize",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "rotate",
+            {
+              "angle": 90,
+              "background": {
+                "r": 10,
+                "g": 20,
+                "b": 30,
+                "alpha": 1
+              }
+            }
+          ],
+          [
+            "resize",
+            {
+              "width": 20,
+              "height": 30,
+              "fit": "fill",
+              "kernel": "lanczos3"
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#resize",
+      "goFn": "Pipeline.Resize"
+    },
+    {
+      "id": "chain-resize-extract",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "resize",
+            {
+              "width": 32,
+              "height": 24,
+              "fit": "fill",
+              "kernel": "lanczos3"
+            }
+          ],
+          [
+            "extract",
+            {
+              "left": 2,
+              "top": 2,
+              "width": 10,
+              "height": 10
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#resize",
+      "goFn": "Pipeline.Resize"
+    },
+    {
+      "id": "chain-resize-extend",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "resize",
+            {
+              "width": 32,
+              "height": 24,
+              "fit": "fill",
+              "kernel": "lanczos3"
+            }
+          ],
+          [
+            "extend",
+            {
+              "top": 3,
+              "left": 3,
+              "background": {
+                "r": 10,
+                "g": 20,
+                "b": 30,
+                "alpha": 1
+              }
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#resize",
+      "goFn": "Pipeline.Resize"
+    },
+    {
+      "id": "chain-extract-resize",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "extract",
+            {
+              "left": 8,
+              "top": 8,
+              "width": 32,
+              "height": 16
+            }
+          ],
+          [
+            "resize",
+            {
+              "width": 8,
+              "height": 8,
+              "fit": "inside",
+              "kernel": "lanczos3"
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#resize",
+      "goFn": "Pipeline.Resize"
+    },
+    {
+      "id": "chain-resize-twice",
+      "fn": "geometry",
+      "args": [
+        "gradient.png",
+        [
+          [
+            "resize",
+            {
+              "width": 32,
+              "height": 24,
+              "fit": "fill",
+              "kernel": "lanczos3"
+            }
+          ],
+          [
+            "resize",
+            {
+              "width": 16,
+              "height": 40,
+              "fit": "fill",
+              "kernel": "lanczos3"
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#resize",
+      "goFn": "Pipeline.Resize",
+      "note": "two resizes: sharp keeps only the last, the port applies both"
+    },
+    {
+      "id": "chain-rotate-extend",
+      "fn": "geometry",
+      "args": [
+        "odd.png",
+        [
+          [
+            "rotate",
+            {
+              "angle": 180,
+              "background": {
+                "r": 10,
+                "g": 20,
+                "b": 30,
+                "alpha": 1
+              }
+            }
+          ],
+          [
+            "extend",
+            {
+              "right": 5,
+              "bottom": 5,
+              "background": {
+                "r": 10,
+                "g": 20,
+                "b": 30,
+                "alpha": 1
+              }
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#resize",
+      "goFn": "Pipeline.Resize"
+    },
+    {
+      "id": "chain-flip-resize",
+      "fn": "geometry",
+      "args": [
+        "wide.png",
+        [
+          [
+            "flip"
+          ],
+          [
+            "resize",
+            {
+              "width": 30,
+              "height": 30,
+              "fit": "inside",
+              "kernel": "lanczos3"
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#resize",
+      "goFn": "Pipeline.Resize"
+    },
+    {
+      "id": "chain-extract-extend",
+      "fn": "geometry",
+      "args": [
+        "tall.png",
+        [
+          [
+            "extract",
+            {
+              "left": 1,
+              "top": 1,
+              "width": 8,
+              "height": 80
+            }
+          ],
+          [
+            "extend",
+            {
+              "top": 2,
+              "bottom": 2,
+              "background": {
+                "r": 10,
+                "g": 20,
+                "b": 30,
+                "alpha": 1
+              }
+            }
+          ]
+        ]
+      ],
+      "upstreamFn": "Sharp#resize",
+      "goFn": "Pipeline.Resize"
+    }
+  ]
+}

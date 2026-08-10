@@ -1,0 +1,119 @@
+{
+  "group": "bearer",
+  "upstream": "passport@0.7.0+passport-local@1.0.0+passport-http@0.3.0+passport-http-bearer@1.0.1",
+  "note": "HTTP Bearer tokens (RFC 6750). Fixed token table: tok-alice -> alice, tok-bob -> bob. Realm fixed to \"Parity\".",
+  "cases": [
+    {
+      "id": "bearer-valid-token",
+      "fn": "request",
+      "args": [{ "path": "/bearer", "headers": { "authorization": "Bearer tok-alice" } }],
+      "upstreamFn": "passport-http-bearer.Strategy",
+      "goFn": "bearer.New"
+    },
+    {
+      "id": "bearer-valid-token-bob",
+      "fn": "request",
+      "args": [{ "path": "/bearer", "headers": { "authorization": "Bearer tok-bob" } }],
+      "upstreamFn": "passport-http-bearer.Strategy",
+      "goFn": "bearer.New"
+    },
+    {
+      "id": "bearer-invalid-token",
+      "fn": "request",
+      "args": [{ "path": "/bearer", "headers": { "authorization": "Bearer tok-nope" } }],
+      "upstreamFn": "passport-http-bearer.Strategy._challenge",
+      "goFn": "bearer.Strategy.Authenticate",
+      "note": "SECURITY: unknown token -> 401 + error=\"invalid_token\""
+    },
+    {
+      "id": "bearer-empty-token",
+      "fn": "request",
+      "args": [{ "path": "/bearer", "headers": { "authorization": "Bearer " } }],
+      "upstreamFn": "passport-http-bearer.Strategy",
+      "goFn": "bearer.extractToken",
+      "note": "SECURITY: \"Bearer \" — both HTTP stacks strip the trailing space, so the server sees a bare scheme with no token"
+    },
+    {
+      "id": "bearer-missing-scheme",
+      "fn": "request",
+      "args": [{ "path": "/bearer", "headers": { "authorization": "tok-alice" } }],
+      "upstreamFn": "passport-http-bearer.Strategy",
+      "goFn": "bearer.extractToken",
+      "note": "SECURITY: bare token with no scheme"
+    },
+    {
+      "id": "bearer-wrong-scheme",
+      "fn": "request",
+      "args": [{ "path": "/bearer", "headers": { "authorization": "Token tok-alice" } }],
+      "upstreamFn": "passport-http-bearer.Strategy",
+      "goFn": "bearer.extractToken",
+      "note": "SECURITY: wrong scheme must not authenticate"
+    },
+    {
+      "id": "bearer-basic-scheme",
+      "fn": "request",
+      "args": [{ "path": "/bearer", "headers": { "authorization": "Basic dG9rLWFsaWNl" } }],
+      "upstreamFn": "passport-http-bearer.Strategy",
+      "goFn": "bearer.extractToken",
+      "note": "SECURITY: Basic credentials presented to the Bearer strategy"
+    },
+    {
+      "id": "bearer-scheme-case-insensitive",
+      "fn": "request",
+      "args": [{ "path": "/bearer", "headers": { "authorization": "bEaReR tok-alice" } }],
+      "upstreamFn": "passport-http-bearer.Strategy",
+      "goFn": "bearer.extractToken"
+    },
+    {
+      "id": "bearer-no-credentials",
+      "fn": "request",
+      "args": [{ "path": "/bearer" }],
+      "upstreamFn": "passport-http-bearer.Strategy._challenge",
+      "goFn": "bearer.Strategy.Authenticate",
+      "note": "SECURITY: no token at all -> 401 + Bearer realm=\"Parity\""
+    },
+    {
+      "id": "bearer-query-access-token",
+      "fn": "request",
+      "args": [{ "path": "/bearer?access_token=tok-alice" }],
+      "upstreamFn": "passport-http-bearer.Strategy (req.query.access_token)",
+      "goFn": "bearer.extractToken"
+    },
+    {
+      "id": "bearer-query-access-token-invalid",
+      "fn": "request",
+      "args": [{ "path": "/bearer?access_token=tok-nope" }],
+      "upstreamFn": "passport-http-bearer.Strategy (req.query.access_token)",
+      "goFn": "bearer.extractToken",
+      "note": "SECURITY: unknown token in the query string"
+    },
+    {
+      "id": "bearer-form-access-token",
+      "fn": "request",
+      "args": [{ "method": "POST", "path": "/bearer", "form": { "access_token": "tok-alice" } }],
+      "upstreamFn": "passport-http-bearer.Strategy (req.body.access_token)",
+      "goFn": "bearer.extractToken"
+    },
+    {
+      "id": "bearer-two-token-locations",
+      "fn": "request",
+      "args": [
+        {
+          "path": "/bearer?access_token=tok-alice",
+          "headers": { "authorization": "Bearer tok-alice" }
+        }
+      ],
+      "upstreamFn": "passport-http-bearer.Strategy (multi-location guard)",
+      "goFn": "bearer.extractToken",
+      "note": "SECURITY: RFC 6750 forbids more than one token location. Upstream rejects with 400; the port silently prefers the header."
+    },
+    {
+      "id": "bearer-three-part-header",
+      "fn": "request",
+      "args": [{ "path": "/bearer", "headers": { "authorization": "Bearer tok-alice extra" } }],
+      "upstreamFn": "passport-http-bearer.Strategy",
+      "goFn": "bearer.extractToken",
+      "note": "SECURITY: header with a trailing junk part"
+    }
+  ]
+}

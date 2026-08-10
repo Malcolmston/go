@@ -1,0 +1,1287 @@
+{
+  "group": "mat",
+  "upstream": "opencv-python@4.11.0",
+  "cases": [
+    {
+      "id": "mat-info-1ch",
+      "fn": "matInfo",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        }
+      ],
+      "upstreamFn": "numpy.ndarray.shape",
+      "goFn": "cv.Mat.Size/Total/Empty",
+      "mode": "exact"
+    },
+    {
+      "id": "mat-info-3ch",
+      "fn": "matInfo",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3
+        }
+      ],
+      "upstreamFn": "numpy.ndarray.shape",
+      "goFn": "cv.Mat.Size/Total/Empty",
+      "mode": "exact"
+    },
+    {
+      "id": "mat-new-zeros",
+      "fn": "newMat",
+      "args": [
+        4,
+        5,
+        1
+      ],
+      "upstreamFn": "numpy.zeros",
+      "goFn": "cv.NewMat",
+      "mode": "exact"
+    },
+    {
+      "id": "mat-new-zeros-3ch",
+      "fn": "newMat",
+      "args": [
+        4,
+        5,
+        3
+      ],
+      "upstreamFn": "numpy.zeros",
+      "goFn": "cv.NewMat",
+      "mode": "exact"
+    },
+    {
+      "id": "mat-new-zero-dim",
+      "fn": "newMat",
+      "args": [
+        0,
+        5,
+        1
+      ],
+      "upstreamFn": "numpy.zeros",
+      "goFn": "cv.NewMat",
+      "mode": "exact",
+      "note": "a zero dimension must fail on both sides"
+    },
+    {
+      "id": "mat-new-negative-dim",
+      "fn": "newMat",
+      "args": [
+        -1,
+        5,
+        1
+      ],
+      "upstreamFn": "numpy.zeros",
+      "goFn": "cv.NewMat",
+      "mode": "exact"
+    },
+    {
+      "id": "mat-at",
+      "fn": "matAt",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3
+        },
+        5,
+        7,
+        2
+      ],
+      "upstreamFn": "numpy.ndarray.__getitem__",
+      "goFn": "cv.Mat.At",
+      "mode": "exact"
+    },
+    {
+      "id": "mat-at-oob-row",
+      "fn": "matAt",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3
+        },
+        99,
+        7,
+        0
+      ],
+      "upstreamFn": "numpy.ndarray.__getitem__",
+      "goFn": "cv.Mat.At",
+      "mode": "exact"
+    },
+    {
+      "id": "mat-at-oob-channel",
+      "fn": "matAt",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        5,
+        7,
+        1
+      ],
+      "upstreamFn": "numpy.ndarray.__getitem__",
+      "goFn": "cv.Mat.At",
+      "mode": "exact"
+    },
+    {
+      "id": "mat-set",
+      "fn": "matSet",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        3,
+        4,
+        0,
+        200
+      ],
+      "upstreamFn": "numpy.ndarray.__setitem__",
+      "goFn": "cv.Mat.Set",
+      "mode": "exact"
+    },
+    {
+      "id": "mat-set-oob",
+      "fn": "matSet",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        300,
+        4,
+        0,
+        200
+      ],
+      "upstreamFn": "numpy.ndarray.__setitem__",
+      "goFn": "cv.Mat.Set",
+      "mode": "exact"
+    },
+    {
+      "id": "mat-set-pixel",
+      "fn": "matSetPixel",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3
+        },
+        2,
+        2,
+        [
+          9,
+          8,
+          7
+        ]
+      ],
+      "upstreamFn": "numpy.ndarray.__setitem__",
+      "goFn": "cv.Mat.SetPixel",
+      "mode": "exact"
+    },
+    {
+      "id": "mat-set-pixel-wrong-arity",
+      "fn": "matSetPixel",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3
+        },
+        2,
+        2,
+        [
+          9,
+          8
+        ]
+      ],
+      "upstreamFn": "numpy.ndarray.__setitem__",
+      "goFn": "cv.Mat.SetPixel",
+      "mode": "exact"
+    },
+    {
+      "id": "mat-pixel",
+      "fn": "matPixel",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3
+        },
+        6,
+        9
+      ],
+      "upstreamFn": "numpy.ndarray.__getitem__",
+      "goFn": "cv.Mat.AtPixel",
+      "mode": "exact"
+    },
+    {
+      "id": "mat-region",
+      "fn": "matRegion",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3
+        },
+        4,
+        5,
+        8,
+        9
+      ],
+      "upstreamFn": "numpy slicing",
+      "goFn": "cv.Mat.Region",
+      "mode": "exact"
+    },
+    {
+      "id": "mat-region-full",
+      "fn": "matRegion",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        0,
+        0,
+        24,
+        32
+      ],
+      "upstreamFn": "numpy slicing",
+      "goFn": "cv.Mat.Region",
+      "mode": "exact"
+    },
+    {
+      "id": "mat-region-oob",
+      "fn": "matRegion",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        20,
+        30,
+        8,
+        8
+      ],
+      "upstreamFn": "numpy slicing",
+      "goFn": "cv.Mat.Region",
+      "mode": "exact"
+    },
+    {
+      "id": "mat-region-empty",
+      "fn": "matRegion",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        2,
+        2,
+        0,
+        4
+      ],
+      "upstreamFn": "numpy slicing",
+      "goFn": "cv.Mat.Region",
+      "mode": "exact"
+    },
+    {
+      "id": "mat-region-writes-through",
+      "fn": "matRegionWrites",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        4,
+        5,
+        6,
+        7,
+        250
+      ],
+      "upstreamFn": "numpy slicing (a view)",
+      "goFn": "cv.Mat.Region",
+      "mode": "exact",
+      "deviation": "documented: cv.Mat.Region deep-copies where an OpenCV/numpy ROI aliases the parent"
+    },
+    {
+      "id": "mat-clone",
+      "fn": "matClone",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3
+        }
+      ],
+      "upstreamFn": "numpy.ndarray.copy",
+      "goFn": "cv.Mat.Clone",
+      "mode": "exact"
+    },
+    {
+      "id": "mat-clone-isolated",
+      "fn": "matCloneIsolated",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        }
+      ],
+      "upstreamFn": "numpy.ndarray.copy",
+      "goFn": "cv.Mat.Clone",
+      "mode": "exact"
+    },
+    {
+      "id": "mat-copy-to",
+      "fn": "matCopyTo",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 12,
+          "cols": 16,
+          "ch": 1
+        },
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        4,
+        6
+      ],
+      "upstreamFn": "numpy slice assign",
+      "goFn": "cv.Mat.CopyTo",
+      "mode": "exact"
+    },
+    {
+      "id": "mat-copy-to-oob",
+      "fn": "matCopyTo",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 12,
+          "cols": 16,
+          "ch": 1
+        },
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        20,
+        30
+      ],
+      "upstreamFn": "numpy slice assign",
+      "goFn": "cv.Mat.CopyTo",
+      "mode": "exact"
+    },
+    {
+      "id": "mat-set-to",
+      "fn": "matSetTo",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3
+        },
+        42
+      ],
+      "upstreamFn": "numpy.ndarray.fill",
+      "goFn": "cv.Mat.SetTo",
+      "mode": "exact"
+    },
+    {
+      "id": "mat-split",
+      "fn": "matSplit",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3
+        }
+      ],
+      "upstreamFn": "cv2.split",
+      "goFn": "cv.Mat.Split",
+      "mode": "exact"
+    },
+    {
+      "id": "mat-split-1ch",
+      "fn": "matSplit",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        }
+      ],
+      "upstreamFn": "cv2.split",
+      "goFn": "cv.Mat.Split",
+      "mode": "exact"
+    },
+    {
+      "id": "mat-split-merge",
+      "fn": "matSplitMerge",
+      "args": [
+        {
+          "gen": "checker",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3,
+          "block": 5
+        }
+      ],
+      "upstreamFn": "cv2.merge",
+      "goFn": "cv.Merge",
+      "mode": "exact"
+    },
+    {
+      "id": "mat-merge-reversed",
+      "fn": "mergeReversed",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3
+        }
+      ],
+      "upstreamFn": "cv2.merge",
+      "goFn": "cv.Merge",
+      "mode": "exact"
+    },
+    {
+      "id": "extract-channel-1",
+      "fn": "extractChannel",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3
+        },
+        1
+      ],
+      "upstreamFn": "numpy slicing",
+      "goFn": "cv.ExtractChannel",
+      "mode": "exact"
+    },
+    {
+      "id": "extract-channel-oob",
+      "fn": "extractChannel",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3
+        },
+        5
+      ],
+      "upstreamFn": "numpy slicing",
+      "goFn": "cv.ExtractChannel",
+      "mode": "exact"
+    },
+    {
+      "id": "extract-channel-1ch",
+      "fn": "extractChannel",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        0
+      ],
+      "upstreamFn": "numpy slicing",
+      "goFn": "cv.ExtractChannel",
+      "mode": "exact"
+    },
+    {
+      "id": "insert-channel-0",
+      "fn": "insertChannel",
+      "args": [
+        {
+          "gen": "noise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 20260810
+        },
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3
+        },
+        0
+      ],
+      "upstreamFn": "numpy slice assign",
+      "goFn": "cv.InsertChannel",
+      "mode": "exact"
+    },
+    {
+      "id": "insert-channel-2",
+      "fn": "insertChannel",
+      "args": [
+        {
+          "gen": "noise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 20260810
+        },
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3
+        },
+        2
+      ],
+      "upstreamFn": "numpy slice assign",
+      "goFn": "cv.InsertChannel",
+      "mode": "exact"
+    },
+    {
+      "id": "mix-channels-reverse",
+      "fn": "mixChannels",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3
+        },
+        {
+          "gen": "checker",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3,
+          "block": 5
+        },
+        [
+          [
+            0,
+            2
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            0
+          ]
+        ]
+      ],
+      "upstreamFn": "cv2.mixChannels",
+      "goFn": "cv.MixChannels",
+      "mode": "exact"
+    },
+    {
+      "id": "mix-channels-partial",
+      "fn": "mixChannels",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3
+        },
+        {
+          "gen": "checker",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3,
+          "block": 5
+        },
+        [
+          [
+            0,
+            0
+          ]
+        ]
+      ],
+      "upstreamFn": "cv2.mixChannels",
+      "goFn": "cv.MixChannels",
+      "mode": "exact"
+    },
+    {
+      "id": "transpose-1ch",
+      "fn": "transpose",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        }
+      ],
+      "upstreamFn": "cv2.transpose",
+      "goFn": "cv.Transpose",
+      "mode": "exact"
+    },
+    {
+      "id": "transpose-3ch",
+      "fn": "transpose",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3
+        }
+      ],
+      "upstreamFn": "cv2.transpose",
+      "goFn": "cv.Transpose",
+      "mode": "exact"
+    },
+    {
+      "id": "flip-flipvertical",
+      "fn": "flip",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3
+        },
+        "FlipVertical"
+      ],
+      "upstreamFn": "cv2.flip",
+      "goFn": "cv.Flip",
+      "mode": "exact"
+    },
+    {
+      "id": "flip-fliphorizontal",
+      "fn": "flip",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3
+        },
+        "FlipHorizontal"
+      ],
+      "upstreamFn": "cv2.flip",
+      "goFn": "cv.Flip",
+      "mode": "exact"
+    },
+    {
+      "id": "flip-flipboth",
+      "fn": "flip",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3
+        },
+        "FlipBoth"
+      ],
+      "upstreamFn": "cv2.flip",
+      "goFn": "cv.Flip",
+      "mode": "exact"
+    },
+    {
+      "id": "rotate-rotate90cw",
+      "fn": "rotate",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3
+        },
+        "Rotate90CW"
+      ],
+      "upstreamFn": "cv2.rotate",
+      "goFn": "cv.Rotate",
+      "mode": "exact"
+    },
+    {
+      "id": "rotate-rotate180",
+      "fn": "rotate",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3
+        },
+        "Rotate180"
+      ],
+      "upstreamFn": "cv2.rotate",
+      "goFn": "cv.Rotate",
+      "mode": "exact"
+    },
+    {
+      "id": "rotate-rotate90ccw",
+      "fn": "rotate",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3
+        },
+        "Rotate90CCW"
+      ],
+      "upstreamFn": "cv2.rotate",
+      "goFn": "cv.Rotate",
+      "mode": "exact"
+    },
+    {
+      "id": "border-constant",
+      "fn": "copyMakeBorder",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        3,
+        2,
+        4,
+        1,
+        "BorderConstant",
+        [
+          7,
+          0,
+          0,
+          0
+        ]
+      ],
+      "upstreamFn": "cv2.copyMakeBorder",
+      "goFn": "cv.CopyMakeBorder",
+      "mode": "exact"
+    },
+    {
+      "id": "border-replicate",
+      "fn": "copyMakeBorder",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        3,
+        2,
+        4,
+        1,
+        "BorderReplicate",
+        [
+          7,
+          0,
+          0,
+          0
+        ]
+      ],
+      "upstreamFn": "cv2.copyMakeBorder",
+      "goFn": "cv.CopyMakeBorder",
+      "mode": "exact"
+    },
+    {
+      "id": "border-reflect",
+      "fn": "copyMakeBorder",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        3,
+        2,
+        4,
+        1,
+        "BorderReflect",
+        [
+          7,
+          0,
+          0,
+          0
+        ]
+      ],
+      "upstreamFn": "cv2.copyMakeBorder",
+      "goFn": "cv.CopyMakeBorder",
+      "mode": "exact"
+    },
+    {
+      "id": "border-wrap",
+      "fn": "copyMakeBorder",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        3,
+        2,
+        4,
+        1,
+        "BorderWrap",
+        [
+          7,
+          0,
+          0,
+          0
+        ]
+      ],
+      "upstreamFn": "cv2.copyMakeBorder",
+      "goFn": "cv.CopyMakeBorder",
+      "mode": "exact"
+    },
+    {
+      "id": "border-reflect101",
+      "fn": "copyMakeBorder",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        3,
+        2,
+        4,
+        1,
+        "BorderReflect101",
+        [
+          7,
+          0,
+          0,
+          0
+        ]
+      ],
+      "upstreamFn": "cv2.copyMakeBorder",
+      "goFn": "cv.CopyMakeBorder",
+      "mode": "exact"
+    },
+    {
+      "id": "border-3ch-constant",
+      "fn": "copyMakeBorder",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3
+        },
+        2,
+        2,
+        2,
+        2,
+        "BorderConstant",
+        [
+          1,
+          2,
+          3,
+          0
+        ]
+      ],
+      "upstreamFn": "cv2.copyMakeBorder",
+      "goFn": "cv.CopyMakeBorder",
+      "mode": "exact"
+    },
+    {
+      "id": "borderinterp-constant--3",
+      "fn": "borderInterpolate",
+      "args": [
+        -3,
+        10,
+        "BorderConstant"
+      ],
+      "upstreamFn": "cv2.borderInterpolate",
+      "goFn": "cv.BorderInterpolate",
+      "mode": "exact"
+    },
+    {
+      "id": "borderinterp-constant--1",
+      "fn": "borderInterpolate",
+      "args": [
+        -1,
+        10,
+        "BorderConstant"
+      ],
+      "upstreamFn": "cv2.borderInterpolate",
+      "goFn": "cv.BorderInterpolate",
+      "mode": "exact"
+    },
+    {
+      "id": "borderinterp-constant-0",
+      "fn": "borderInterpolate",
+      "args": [
+        0,
+        10,
+        "BorderConstant"
+      ],
+      "upstreamFn": "cv2.borderInterpolate",
+      "goFn": "cv.BorderInterpolate",
+      "mode": "exact"
+    },
+    {
+      "id": "borderinterp-constant-5",
+      "fn": "borderInterpolate",
+      "args": [
+        5,
+        10,
+        "BorderConstant"
+      ],
+      "upstreamFn": "cv2.borderInterpolate",
+      "goFn": "cv.BorderInterpolate",
+      "mode": "exact"
+    },
+    {
+      "id": "borderinterp-constant-10",
+      "fn": "borderInterpolate",
+      "args": [
+        10,
+        10,
+        "BorderConstant"
+      ],
+      "upstreamFn": "cv2.borderInterpolate",
+      "goFn": "cv.BorderInterpolate",
+      "mode": "exact"
+    },
+    {
+      "id": "borderinterp-constant-12",
+      "fn": "borderInterpolate",
+      "args": [
+        12,
+        10,
+        "BorderConstant"
+      ],
+      "upstreamFn": "cv2.borderInterpolate",
+      "goFn": "cv.BorderInterpolate",
+      "mode": "exact"
+    },
+    {
+      "id": "borderinterp-replicate--3",
+      "fn": "borderInterpolate",
+      "args": [
+        -3,
+        10,
+        "BorderReplicate"
+      ],
+      "upstreamFn": "cv2.borderInterpolate",
+      "goFn": "cv.BorderInterpolate",
+      "mode": "exact"
+    },
+    {
+      "id": "borderinterp-replicate--1",
+      "fn": "borderInterpolate",
+      "args": [
+        -1,
+        10,
+        "BorderReplicate"
+      ],
+      "upstreamFn": "cv2.borderInterpolate",
+      "goFn": "cv.BorderInterpolate",
+      "mode": "exact"
+    },
+    {
+      "id": "borderinterp-replicate-0",
+      "fn": "borderInterpolate",
+      "args": [
+        0,
+        10,
+        "BorderReplicate"
+      ],
+      "upstreamFn": "cv2.borderInterpolate",
+      "goFn": "cv.BorderInterpolate",
+      "mode": "exact"
+    },
+    {
+      "id": "borderinterp-replicate-5",
+      "fn": "borderInterpolate",
+      "args": [
+        5,
+        10,
+        "BorderReplicate"
+      ],
+      "upstreamFn": "cv2.borderInterpolate",
+      "goFn": "cv.BorderInterpolate",
+      "mode": "exact"
+    },
+    {
+      "id": "borderinterp-replicate-10",
+      "fn": "borderInterpolate",
+      "args": [
+        10,
+        10,
+        "BorderReplicate"
+      ],
+      "upstreamFn": "cv2.borderInterpolate",
+      "goFn": "cv.BorderInterpolate",
+      "mode": "exact"
+    },
+    {
+      "id": "borderinterp-replicate-12",
+      "fn": "borderInterpolate",
+      "args": [
+        12,
+        10,
+        "BorderReplicate"
+      ],
+      "upstreamFn": "cv2.borderInterpolate",
+      "goFn": "cv.BorderInterpolate",
+      "mode": "exact"
+    },
+    {
+      "id": "borderinterp-reflect--3",
+      "fn": "borderInterpolate",
+      "args": [
+        -3,
+        10,
+        "BorderReflect"
+      ],
+      "upstreamFn": "cv2.borderInterpolate",
+      "goFn": "cv.BorderInterpolate",
+      "mode": "exact"
+    },
+    {
+      "id": "borderinterp-reflect--1",
+      "fn": "borderInterpolate",
+      "args": [
+        -1,
+        10,
+        "BorderReflect"
+      ],
+      "upstreamFn": "cv2.borderInterpolate",
+      "goFn": "cv.BorderInterpolate",
+      "mode": "exact"
+    },
+    {
+      "id": "borderinterp-reflect-0",
+      "fn": "borderInterpolate",
+      "args": [
+        0,
+        10,
+        "BorderReflect"
+      ],
+      "upstreamFn": "cv2.borderInterpolate",
+      "goFn": "cv.BorderInterpolate",
+      "mode": "exact"
+    },
+    {
+      "id": "borderinterp-reflect-5",
+      "fn": "borderInterpolate",
+      "args": [
+        5,
+        10,
+        "BorderReflect"
+      ],
+      "upstreamFn": "cv2.borderInterpolate",
+      "goFn": "cv.BorderInterpolate",
+      "mode": "exact"
+    },
+    {
+      "id": "borderinterp-reflect-10",
+      "fn": "borderInterpolate",
+      "args": [
+        10,
+        10,
+        "BorderReflect"
+      ],
+      "upstreamFn": "cv2.borderInterpolate",
+      "goFn": "cv.BorderInterpolate",
+      "mode": "exact"
+    },
+    {
+      "id": "borderinterp-reflect-12",
+      "fn": "borderInterpolate",
+      "args": [
+        12,
+        10,
+        "BorderReflect"
+      ],
+      "upstreamFn": "cv2.borderInterpolate",
+      "goFn": "cv.BorderInterpolate",
+      "mode": "exact"
+    },
+    {
+      "id": "borderinterp-wrap--3",
+      "fn": "borderInterpolate",
+      "args": [
+        -3,
+        10,
+        "BorderWrap"
+      ],
+      "upstreamFn": "cv2.borderInterpolate",
+      "goFn": "cv.BorderInterpolate",
+      "mode": "exact"
+    },
+    {
+      "id": "borderinterp-wrap--1",
+      "fn": "borderInterpolate",
+      "args": [
+        -1,
+        10,
+        "BorderWrap"
+      ],
+      "upstreamFn": "cv2.borderInterpolate",
+      "goFn": "cv.BorderInterpolate",
+      "mode": "exact"
+    },
+    {
+      "id": "borderinterp-wrap-0",
+      "fn": "borderInterpolate",
+      "args": [
+        0,
+        10,
+        "BorderWrap"
+      ],
+      "upstreamFn": "cv2.borderInterpolate",
+      "goFn": "cv.BorderInterpolate",
+      "mode": "exact"
+    },
+    {
+      "id": "borderinterp-wrap-5",
+      "fn": "borderInterpolate",
+      "args": [
+        5,
+        10,
+        "BorderWrap"
+      ],
+      "upstreamFn": "cv2.borderInterpolate",
+      "goFn": "cv.BorderInterpolate",
+      "mode": "exact"
+    },
+    {
+      "id": "borderinterp-wrap-10",
+      "fn": "borderInterpolate",
+      "args": [
+        10,
+        10,
+        "BorderWrap"
+      ],
+      "upstreamFn": "cv2.borderInterpolate",
+      "goFn": "cv.BorderInterpolate",
+      "mode": "exact"
+    },
+    {
+      "id": "borderinterp-wrap-12",
+      "fn": "borderInterpolate",
+      "args": [
+        12,
+        10,
+        "BorderWrap"
+      ],
+      "upstreamFn": "cv2.borderInterpolate",
+      "goFn": "cv.BorderInterpolate",
+      "mode": "exact"
+    },
+    {
+      "id": "borderinterp-reflect101--3",
+      "fn": "borderInterpolate",
+      "args": [
+        -3,
+        10,
+        "BorderReflect101"
+      ],
+      "upstreamFn": "cv2.borderInterpolate",
+      "goFn": "cv.BorderInterpolate",
+      "mode": "exact"
+    },
+    {
+      "id": "borderinterp-reflect101--1",
+      "fn": "borderInterpolate",
+      "args": [
+        -1,
+        10,
+        "BorderReflect101"
+      ],
+      "upstreamFn": "cv2.borderInterpolate",
+      "goFn": "cv.BorderInterpolate",
+      "mode": "exact"
+    },
+    {
+      "id": "borderinterp-reflect101-0",
+      "fn": "borderInterpolate",
+      "args": [
+        0,
+        10,
+        "BorderReflect101"
+      ],
+      "upstreamFn": "cv2.borderInterpolate",
+      "goFn": "cv.BorderInterpolate",
+      "mode": "exact"
+    },
+    {
+      "id": "borderinterp-reflect101-5",
+      "fn": "borderInterpolate",
+      "args": [
+        5,
+        10,
+        "BorderReflect101"
+      ],
+      "upstreamFn": "cv2.borderInterpolate",
+      "goFn": "cv.BorderInterpolate",
+      "mode": "exact"
+    },
+    {
+      "id": "borderinterp-reflect101-10",
+      "fn": "borderInterpolate",
+      "args": [
+        10,
+        10,
+        "BorderReflect101"
+      ],
+      "upstreamFn": "cv2.borderInterpolate",
+      "goFn": "cv.BorderInterpolate",
+      "mode": "exact"
+    },
+    {
+      "id": "borderinterp-reflect101-12",
+      "fn": "borderInterpolate",
+      "args": [
+        12,
+        10,
+        "BorderReflect101"
+      ],
+      "upstreamFn": "cv2.borderInterpolate",
+      "goFn": "cv.BorderInterpolate",
+      "mode": "exact"
+    }
+  ]
+}

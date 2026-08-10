@@ -1,0 +1,245 @@
+{
+  "group": "null-logic",
+  "upstream": "sqlite3@3.45.3",
+  "cases": [
+    {
+      "id": "null-eq-null",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT NULL = NULL AS v"
+        }
+      ],
+      "upstreamFn": "NULL = NULL -> NULL",
+      "goFn": "sqlite: NULL = NULL -> NULL"
+    },
+    {
+      "id": "null-ne-null",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT NULL <> NULL AS v"
+        }
+      ],
+      "upstreamFn": "NULL <> NULL -> NULL",
+      "goFn": "sqlite: NULL <> NULL -> NULL"
+    },
+    {
+      "id": "null-and-false",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT NULL AND 0 AS v"
+        }
+      ],
+      "upstreamFn": "NULL AND false -> false",
+      "goFn": "sqlite: NULL AND false -> false"
+    },
+    {
+      "id": "null-and-true",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT NULL AND 1 AS v"
+        }
+      ],
+      "upstreamFn": "NULL AND true -> NULL",
+      "goFn": "sqlite: NULL AND true -> NULL"
+    },
+    {
+      "id": "null-or-true",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT NULL OR 1 AS v"
+        }
+      ],
+      "upstreamFn": "NULL OR true -> true",
+      "goFn": "sqlite: NULL OR true -> true"
+    },
+    {
+      "id": "null-or-false",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT NULL OR 0 AS v"
+        }
+      ],
+      "upstreamFn": "NULL OR false -> NULL",
+      "goFn": "sqlite: NULL OR false -> NULL"
+    },
+    {
+      "id": "not-null",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT NOT NULL AS v"
+        }
+      ],
+      "upstreamFn": "NOT NULL -> NULL",
+      "goFn": "sqlite: NOT NULL -> NULL"
+    },
+    {
+      "id": "null-plus",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT NULL + 1 AS v"
+        }
+      ],
+      "upstreamFn": "NULL arithmetic",
+      "goFn": "sqlite: NULL arithmetic"
+    },
+    {
+      "id": "null-in",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT NULL IN (1,2) AS v"
+        }
+      ],
+      "upstreamFn": "NULL IN (...)",
+      "goFn": "sqlite: NULL IN (...)"
+    },
+    {
+      "id": "null-in-null",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT 1 IN (NULL, 2) AS v"
+        }
+      ],
+      "upstreamFn": "value IN list containing NULL",
+      "goFn": "sqlite: value IN list containing NULL"
+    },
+    {
+      "id": "null-like",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT NULL LIKE 'a' AS v"
+        }
+      ],
+      "upstreamFn": "NULL LIKE",
+      "goFn": "sqlite: NULL LIKE"
+    },
+    {
+      "id": "null-isnull",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT NULL IS NULL AS v"
+        }
+      ],
+      "upstreamFn": "NULL IS NULL -> 1",
+      "goFn": "sqlite: NULL IS NULL -> 1"
+    },
+    {
+      "id": "null-isnotnull",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT NULL IS NOT NULL AS v"
+        }
+      ],
+      "upstreamFn": "NULL IS NOT NULL -> 0",
+      "goFn": "sqlite: NULL IS NOT NULL -> 0"
+    },
+    {
+      "id": "coalesce-first",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT coalesce(NULL, 2, 3) AS v"
+        }
+      ],
+      "upstreamFn": "coalesce()",
+      "goFn": "sqlite: coalesce()"
+    },
+    {
+      "id": "coalesce-all-null",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT coalesce(NULL, NULL) AS v"
+        }
+      ],
+      "upstreamFn": "coalesce() all NULL",
+      "goFn": "sqlite: coalesce() all NULL"
+    },
+    {
+      "id": "ifnull-null",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT ifnull(NULL, 'd') AS v"
+        }
+      ],
+      "upstreamFn": "ifnull()",
+      "goFn": "sqlite: ifnull()"
+    },
+    {
+      "id": "ifnull-set",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT ifnull('x', 'd') AS v"
+        }
+      ],
+      "upstreamFn": "ifnull() non-NULL",
+      "goFn": "sqlite: ifnull() non-NULL"
+    },
+    {
+      "id": "nullif-equal",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT nullif(1, 1) AS v"
+        }
+      ],
+      "upstreamFn": "nullif() equal",
+      "goFn": "sqlite: nullif() equal"
+    },
+    {
+      "id": "nullif-diff",
+      "fn": "script",
+      "args": [
+        {
+          "query": "SELECT nullif(1, 2) AS v"
+        }
+      ],
+      "upstreamFn": "nullif() different",
+      "goFn": "sqlite: nullif() different"
+    },
+    {
+      "id": "where-null-filtered",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT id AS id FROM t WHERE qty <> 7 ORDER BY id"
+        }
+      ],
+      "upstreamFn": "WHERE drops NULL rows",
+      "goFn": "sqlite: WHERE drops NULL rows"
+    },
+    {
+      "id": "where-null-not-in",
+      "fn": "script",
+      "args": [
+        {
+          "setup": [
+            "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, price REAL)",
+            "INSERT INTO t (id, name, qty, price) VALUES (1,'apple',3,1.5),(2,'banana',7,0.25),(3,'cherry',NULL,2.0),(4,'date',7,1.5)"
+          ],
+          "query": "SELECT id AS id FROM t WHERE qty NOT IN (3) ORDER BY id"
+        }
+      ],
+      "upstreamFn": "NOT IN drops NULL rows",
+      "goFn": "sqlite: NOT IN drops NULL rows"
+    }
+  ]
+}

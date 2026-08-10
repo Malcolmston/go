@@ -1,0 +1,147 @@
+{
+  "group": "verbs",
+  "upstream": "axios@1.7.9",
+  "cases": [
+    {
+      "id": "verb-get",
+      "fn": "request",
+      "upstreamFn": "axios#get",
+      "goFn": "Client.Get",
+      "note": "plain GET; asserts the method/path/body the server observed",
+      "args": [{ "client": { "baseURL": "$BASE" }, "request": { "method": "get", "url": "/echo" } }]
+    },
+    {
+      "id": "verb-post-json",
+      "fn": "request",
+      "upstreamFn": "axios#post",
+      "goFn": "Client.Post",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE" },
+          "request": { "method": "post", "url": "/echo", "data": { "json": { "a": 1, "b": "two" } } }
+        }
+      ]
+    },
+    {
+      "id": "verb-put-json",
+      "fn": "request",
+      "upstreamFn": "axios#put",
+      "goFn": "Client.Put",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE" },
+          "request": { "method": "put", "url": "/echo", "data": { "json": { "a": 1 } } }
+        }
+      ]
+    },
+    {
+      "id": "verb-patch-json",
+      "fn": "request",
+      "upstreamFn": "axios#patch",
+      "goFn": "Client.Patch",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE" },
+          "request": { "method": "patch", "url": "/echo", "data": { "json": { "a": 1 } } }
+        }
+      ]
+    },
+    {
+      "id": "verb-delete",
+      "fn": "request",
+      "upstreamFn": "axios#delete",
+      "goFn": "Client.Delete",
+      "args": [{ "client": { "baseURL": "$BASE" }, "request": { "method": "delete", "url": "/echo" } }]
+    },
+    {
+      "id": "verb-delete-with-body",
+      "fn": "request",
+      "upstreamFn": "axios#delete",
+      "goFn": "Client.Delete",
+      "note": "axios#delete has no data argument; the port's Delete has none either",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE" },
+          "request": { "method": "delete", "url": "/echo", "data": { "json": { "a": 1 } } }
+        }
+      ]
+    },
+    {
+      "id": "verb-head",
+      "fn": "request",
+      "upstreamFn": "axios#head",
+      "goFn": "Client.Head",
+      "expose": "text",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE" },
+          "request": { "method": "head", "url": "/echo" },
+          "expose": "text"
+        }
+      ]
+    },
+    {
+      "id": "verb-options",
+      "fn": "request",
+      "upstreamFn": "axios#options",
+      "goFn": "Client.Options",
+      "args": [{ "client": { "baseURL": "$BASE" }, "request": { "method": "options", "url": "/echo" } }]
+    },
+    {
+      "id": "verb-method-uppercase",
+      "fn": "request",
+      "upstreamFn": "axios#request",
+      "goFn": "Client.Request",
+      "note": "method given in upper case must reach the wire unchanged",
+      "args": [{ "client": { "baseURL": "$BASE" }, "request": { "method": "GET", "url": "/echo" } }]
+    },
+    {
+      "id": "verb-default-method",
+      "fn": "request",
+      "upstreamFn": "axios#request",
+      "goFn": "Client.Request",
+      "note": "no method configured => GET",
+      "args": [{ "client": { "baseURL": "$BASE" }, "request": { "url": "/echo" } }]
+    },
+    {
+      "id": "verb-absolute-url-overrides-baseurl",
+      "fn": "request",
+      "upstreamFn": "axios#request",
+      "goFn": "Client.Request",
+      "args": [
+        {
+          "client": { "baseURL": "http://127.0.0.1:1/nope" },
+          "request": { "method": "get", "url": "$BASE/echo" }
+        }
+      ]
+    },
+    {
+      "id": "verb-baseurl-with-path",
+      "fn": "request",
+      "upstreamFn": "axios#request",
+      "goFn": "Client.Request",
+      "note": "baseURL carrying a path segment must be preserved",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE/echo" },
+          "request": { "method": "get", "url": "/sub" }
+        }
+      ]
+    },
+    {
+      "id": "verb-all-parallel",
+      "fn": "all",
+      "upstreamFn": "axios.all",
+      "goFn": "axios.All",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE" },
+          "requests": [
+            { "method": "get", "url": "/status/200" },
+            { "method": "get", "url": "/status/201" }
+          ]
+        }
+      ]
+    }
+  ]
+}

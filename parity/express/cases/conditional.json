@@ -1,0 +1,16 @@
+{
+  "group": "conditional",
+  "upstream": "express@4.21.2",
+  "note": "ETag generation and 304 handling. Cases with \"revalidate\" are replayed twice: the runner takes the validator from the first response and re-issues the request with If-None-Match / If-Modified-Since, so the comparison does not depend on the ETag algorithm.",
+  "cases": [
+    { "id": "etag-first-response", "fn": "etag", "args": [{ "method": "GET", "path": "/body" }], "upstreamFn": "app.set('etag')", "goFn": "—", "note": "express generates a weak ETag for res.send by default" },
+    { "id": "etag-json-first", "fn": "etag", "args": [{ "method": "GET", "path": "/json" }], "upstreamFn": "app.set('etag')", "goFn": "—" },
+    { "id": "etag-revalidate-304", "fn": "etag", "args": [{ "method": "GET", "path": "/body", "revalidate": "etag" }], "upstreamFn": "req.fresh", "goFn": "Request.Fresh", "note": "replay with If-None-Match from the previous response -> 304" },
+    { "id": "etag-revalidate-json-304", "fn": "etag", "args": [{ "method": "GET", "path": "/json", "revalidate": "etag" }], "upstreamFn": "req.fresh", "goFn": "Request.Fresh" },
+    { "id": "etag-stale-validator", "fn": "etag", "args": [{ "method": "GET", "path": "/body", "headers": { "If-None-Match": "\"not-the-tag\"" } }], "upstreamFn": "req.fresh", "goFn": "Request.Fresh", "note": "a non-matching validator must yield the full 200" },
+    { "id": "etag-star-validator", "fn": "etag", "args": [{ "method": "GET", "path": "/body", "headers": { "If-None-Match": "*" } }], "upstreamFn": "req.fresh", "goFn": "Request.Fresh" },
+    { "id": "etag-manual-miss", "fn": "etag", "args": [{ "method": "GET", "path": "/manual" }], "upstreamFn": "res.set('ETag')", "goFn": "Response.ETag" },
+    { "id": "etag-manual-hit", "fn": "etag", "args": [{ "method": "GET", "path": "/manual", "headers": { "If-None-Match": "\"fixed-tag\"" } }], "upstreamFn": "res.status(304)", "goFn": "Response.NotModified", "note": "hand-rolled 304, independent of framework etag support" },
+    { "id": "etag-head", "fn": "etag", "args": [{ "method": "HEAD", "path": "/body" }], "upstreamFn": "app.set('etag')", "goFn": "—" }
+  ]
+}

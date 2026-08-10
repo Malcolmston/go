@@ -1,0 +1,388 @@
+{
+  "group": "trees",
+  "upstream": "sled@0.34.7",
+  "encoding": "all keys, values and tree names are lowercase hex",
+  "cases": [
+    {
+      "id": "multiple-trees-isolation",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "open_tree",
+            "name": "alpha"
+          },
+          {
+            "op": "open_tree",
+            "name": "beta"
+          },
+          {
+            "op": "insert",
+            "key": "6b",
+            "value": "64656661756c74"
+          },
+          {
+            "op": "insert",
+            "key": "6b",
+            "value": "616c706861",
+            "tree": "alpha"
+          },
+          {
+            "op": "insert",
+            "key": "6b",
+            "value": "62657461",
+            "tree": "beta"
+          },
+          {
+            "op": "get",
+            "key": "6b"
+          },
+          {
+            "op": "get",
+            "key": "6b",
+            "tree": "alpha"
+          },
+          {
+            "op": "get",
+            "key": "6b",
+            "tree": "beta"
+          },
+          {
+            "op": "len"
+          },
+          {
+            "op": "len",
+            "tree": "alpha"
+          },
+          {
+            "op": "tree_names"
+          }
+        ]
+      ],
+      "upstreamFn": "Db::open_tree",
+      "goFn": "DB.OpenTree"
+    },
+    {
+      "id": "tree-name-and-default",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "tree_name"
+          },
+          {
+            "op": "open_tree",
+            "name": "__sled__default"
+          },
+          {
+            "op": "tree_names"
+          },
+          {
+            "op": "insert",
+            "key": "6b",
+            "value": "76",
+            "tree": "__sled__default"
+          },
+          {
+            "op": "get",
+            "key": "6b"
+          }
+        ]
+      ],
+      "upstreamFn": "Tree::name",
+      "goFn": "Tree.Name",
+      "note": "opening the default tree by name yields the same keyspace as the Db's own methods"
+    },
+    {
+      "id": "drop-tree",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "open_tree",
+            "name": "t1"
+          },
+          {
+            "op": "insert",
+            "key": "61",
+            "value": "31",
+            "tree": "t1"
+          },
+          {
+            "op": "insert",
+            "key": "6b656570",
+            "value": "31"
+          },
+          {
+            "op": "tree_names"
+          },
+          {
+            "op": "drop_tree",
+            "name": "t1"
+          },
+          {
+            "op": "tree_names"
+          },
+          {
+            "op": "len",
+            "tree": "t1"
+          },
+          {
+            "op": "iter"
+          }
+        ]
+      ],
+      "upstreamFn": "Db::drop_tree",
+      "goFn": "DB.DropTree"
+    },
+    {
+      "id": "drop-missing-tree",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "drop_tree",
+            "name": "nope"
+          },
+          {
+            "op": "tree_names"
+          }
+        ]
+      ],
+      "upstreamFn": "Db::drop_tree",
+      "goFn": "DB.DropTree",
+      "note": "dropping a tree that does not exist reports false, not an error"
+    },
+    {
+      "id": "drop-default-tree",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "drop_tree",
+            "name": "__sled__default"
+          },
+          {
+            "op": "tree_names"
+          }
+        ]
+      ],
+      "upstreamFn": "Db::drop_tree",
+      "goFn": "DB.DropTree",
+      "note": "must fail on both sides: the default tree cannot be dropped"
+    },
+    {
+      "id": "open-tree-empty-name",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "open_tree",
+            "name": ""
+          },
+          {
+            "op": "tree_names"
+          }
+        ]
+      ],
+      "upstreamFn": "Db::open_tree",
+      "goFn": "DB.OpenTree",
+      "note": "must fail on both sides"
+    },
+    {
+      "id": "drop-tree-then-reopen",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "open_tree",
+            "name": "t1"
+          },
+          {
+            "op": "insert",
+            "key": "61",
+            "value": "31",
+            "tree": "t1"
+          },
+          {
+            "op": "drop_tree",
+            "name": "t1"
+          },
+          {
+            "op": "flush"
+          },
+          {
+            "op": "reopen"
+          },
+          {
+            "op": "tree_names"
+          }
+        ]
+      ],
+      "upstreamFn": "Db::drop_tree",
+      "goFn": "DB.DropTree"
+    },
+    {
+      "id": "tree-names-sorted",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "open_tree",
+            "name": "zzz"
+          },
+          {
+            "op": "open_tree",
+            "name": "aaa"
+          },
+          {
+            "op": "open_tree",
+            "name": "mmm"
+          },
+          {
+            "op": "insert",
+            "key": "6b",
+            "value": "76",
+            "tree": "zzz"
+          },
+          {
+            "op": "insert",
+            "key": "6b",
+            "value": "76",
+            "tree": "aaa"
+          },
+          {
+            "op": "insert",
+            "key": "6b",
+            "value": "76",
+            "tree": "mmm"
+          },
+          {
+            "op": "tree_names"
+          }
+        ]
+      ],
+      "upstreamFn": "Db::tree_names",
+      "goFn": "DB.TreeNames"
+    },
+    {
+      "id": "opened-but-unwritten-tree-survives-reopen",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "open_tree",
+            "name": "ghost"
+          },
+          {
+            "op": "tree_names"
+          },
+          {
+            "op": "flush"
+          },
+          {
+            "op": "reopen"
+          },
+          {
+            "op": "tree_names"
+          }
+        ]
+      ],
+      "upstreamFn": "Db::open_tree",
+      "goFn": "DB.OpenTree",
+      "note": "sled persists a tree as soon as open_tree returns; the Go port drops a tree that never received a write",
+      "deviation": "Go port documents that an opened-but-never-written tree does not survive a restart"
+    },
+    {
+      "id": "emptied-tree-survives-reopen",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "open_tree",
+            "name": "t1"
+          },
+          {
+            "op": "insert",
+            "key": "61",
+            "value": "31",
+            "tree": "t1"
+          },
+          {
+            "op": "remove",
+            "key": "61",
+            "tree": "t1"
+          },
+          {
+            "op": "flush"
+          },
+          {
+            "op": "reopen"
+          },
+          {
+            "op": "tree_names"
+          },
+          {
+            "op": "len",
+            "tree": "t1"
+          }
+        ]
+      ],
+      "upstreamFn": "Db::open_tree",
+      "goFn": "DB.OpenTree",
+      "note": "a tree that received a write and was then emptied still exists after a plain reopen"
+    },
+    {
+      "id": "cross-tree-batch-and-prefix",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "open_tree",
+            "name": "t1"
+          },
+          {
+            "op": "batch",
+            "tree": "t1",
+            "ops": [
+              {
+                "op": "insert",
+                "key": "703a31",
+                "value": "31"
+              },
+              {
+                "op": "insert",
+                "key": "703a32",
+                "value": "32"
+              },
+              {
+                "op": "insert",
+                "key": "713a31",
+                "value": "33"
+              }
+            ]
+          },
+          {
+            "op": "scan_prefix",
+            "tree": "t1",
+            "prefix": "703a"
+          },
+          {
+            "op": "scan_prefix",
+            "prefix": "703a"
+          },
+          {
+            "op": "first",
+            "tree": "t1"
+          },
+          {
+            "op": "last",
+            "tree": "t1"
+          }
+        ]
+      ],
+      "upstreamFn": "Db::open_tree",
+      "goFn": "DB.OpenTree"
+    }
+  ]
+}

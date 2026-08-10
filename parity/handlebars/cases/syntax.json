@@ -1,0 +1,245 @@
+{
+  "group": "syntax",
+  "upstream": "handlebars@4.7.8",
+  "cases": [
+    {
+      "id": "subexpr-basic",
+      "fn": "render",
+      "args": ["{{shout (shout a)}}", { "a": "x" }, { "helpers": ["shout"] }],
+      "upstreamFn": "SubExpression",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "subexpr-in-if",
+      "fn": "render",
+      "args": [
+        "{{#if (join a b)}}Y{{else}}N{{/if}}",
+        { "a": "x", "b": "y" },
+        { "helpers": ["join"] }
+      ],
+      "upstreamFn": "SubExpression",
+      "goFn": "handlebars.Compile",
+      "note": "inline helper used as the condition of a block helper"
+    },
+    {
+      "id": "subexpr-lookup",
+      "fn": "render",
+      "args": ["{{#if (lookup o \"k\")}}yes{{else}}no{{/if}}", { "o": { "k": true } }],
+      "upstreamFn": "Handlebars.helpers.lookup",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "subexpr-nested-args",
+      "fn": "render",
+      "args": [
+        "{{join (shout a) (shout b) sep=\"|\"}}",
+        { "a": "x", "b": "y" },
+        { "helpers": ["shout", "join"] }
+      ],
+      "upstreamFn": "SubExpression",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "subexpr-as-partial-context",
+      "fn": "render",
+      "args": [
+        "{{> p (lookup o \"k\")}}",
+        { "o": { "k": { "n": "N" } } },
+        { "partials": { "p": "[{{n}}]" } }
+      ],
+      "upstreamFn": "SubExpression",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "literal-args-string",
+      "fn": "render",
+      "args": ["{{shout \"literal\"}}", {}, { "helpers": ["shout"] }],
+      "upstreamFn": "StringLiteral",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "literal-args-single-quotes",
+      "fn": "render",
+      "args": ["{{shout 'literal'}}", {}, { "helpers": ["shout"] }],
+      "upstreamFn": "StringLiteral",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "literal-args-number",
+      "fn": "render",
+      "args": ["{{sum 1 2}}", {}, { "helpers": ["sum"] }],
+      "upstreamFn": "NumberLiteral",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "literal-args-negative-number",
+      "fn": "render",
+      "args": ["{{sum 5 -2}}", {}, { "helpers": ["sum"] }],
+      "upstreamFn": "NumberLiteral",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "literal-args-float",
+      "fn": "render",
+      "args": ["{{sum 1.5 2.25}}", {}, { "helpers": ["sum"] }],
+      "upstreamFn": "NumberLiteral",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "literal-args-booleans",
+      "fn": "render",
+      "args": ["{{#if true}}T{{/if}}{{#if false}}F{{/if}}", {}],
+      "upstreamFn": "BooleanLiteral",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "literal-args-undefined-null",
+      "fn": "render",
+      "args": ["{{#if undefined}}U{{else}}u{{/if}}{{#if null}}N{{else}}n{{/if}}", {}],
+      "upstreamFn": "UndefinedLiteral",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "ws-trim-left",
+      "fn": "render",
+      "args": ["a   {{~v}}b", { "v": "V" }],
+      "upstreamFn": "whitespace control",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "ws-trim-right",
+      "fn": "render",
+      "args": ["a{{v~}}   b", { "v": "V" }],
+      "upstreamFn": "whitespace control",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "ws-trim-both",
+      "fn": "render",
+      "args": ["a  {{~v~}}  b", { "v": "V" }],
+      "upstreamFn": "whitespace control",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "ws-trim-newlines",
+      "fn": "render",
+      "args": ["a\n\n{{~v~}}\n\nb", { "v": "V" }],
+      "upstreamFn": "whitespace control",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "ws-block-standalone",
+      "fn": "render",
+      "args": ["A\n{{#if t}}\nB\n{{/if}}\nC", { "t": true }],
+      "upstreamFn": "standalone whitespace rule",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "ws-each-standalone",
+      "fn": "render",
+      "args": ["start\n{{#each items}}\n- {{this}}\n{{/each}}\nend", { "items": ["a", "b"] }],
+      "upstreamFn": "standalone whitespace rule",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "ws-block-tilde",
+      "fn": "render",
+      "args": ["A\n  {{~#if t~}}  B  {{~/if~}}  \nC", { "t": true }],
+      "upstreamFn": "whitespace control",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "ws-else-standalone",
+      "fn": "render",
+      "args": ["{{#if t}}\nA\n{{else}}\nB\n{{/if}}\n", { "t": false }],
+      "upstreamFn": "standalone whitespace rule",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "ws-inline-not-standalone",
+      "fn": "render",
+      "args": ["x {{#if t}}A{{/if}} y", { "t": true }],
+      "upstreamFn": "standalone whitespace rule",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "raw-block",
+      "fn": "render",
+      "args": ["{{{{raw}}}}{{escaped}}{{{{/raw}}}}", { "escaped": "E" }],
+      "upstreamFn": "OPEN_RAW_BLOCK",
+      "goFn": "handlebars.Compile",
+      "note": "raw block emits its body literally"
+    },
+    {
+      "id": "malformed-lone-open",
+      "fn": "render",
+      "args": ["{{", {}],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile",
+      "note": "both sides must fail"
+    },
+    {
+      "id": "malformed-unbalanced-close",
+      "fn": "render",
+      "args": ["{{a}", {}],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile",
+      "note": "both sides must fail"
+    },
+    {
+      "id": "malformed-empty-mustache",
+      "fn": "render",
+      "args": ["{{}}", {}],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile",
+      "note": "both sides must fail"
+    },
+    {
+      "id": "malformed-unclosed-subexpr",
+      "fn": "render",
+      "args": ["{{shout (shout a}}", { "a": "x" }, { "helpers": ["shout"] }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile",
+      "note": "both sides must fail"
+    },
+    {
+      "id": "malformed-stray-close-block",
+      "fn": "render",
+      "args": ["{{/if}}", {}],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile",
+      "note": "both sides must fail"
+    },
+    {
+      "id": "malformed-unclosed-comment",
+      "fn": "render",
+      "args": ["{{!-- never closed", {}],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile",
+      "note": "both sides must fail"
+    },
+    {
+      "id": "malformed-bad-hash",
+      "fn": "render",
+      "args": ["{{shout k=}}", {}, { "helpers": ["shout"] }],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile",
+      "note": "both sides must fail"
+    },
+    {
+      "id": "compile-only-valid",
+      "fn": "compile",
+      "args": ["{{#each a}}{{this}}{{/each}}"],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile"
+    },
+    {
+      "id": "compile-only-invalid",
+      "fn": "compile",
+      "args": ["{{#each a}}"],
+      "upstreamFn": "Handlebars.compile",
+      "goFn": "handlebars.Compile",
+      "note": "both sides must fail"
+    }
+  ]
+}

@@ -1,0 +1,309 @@
+{
+  "group": "mechanics",
+  "upstream": "rails/rails activerecord@8.0.2 (sqlite3 gem 2.7.4, SQLite backend)",
+  "encoding": "each step reports {op, ok, version, applied, tables}; the case also reports the final canonical schema",
+  "note": "migrations whose spec omits \"down\" get no down direction at all (ActiveRecord raises IrreversibleMigration, the port returns ErrMissingMigration); an explicitly empty \"down\": [] is a no-op rollback",
+  "cases": [
+    {
+      "id": "up-all-then-version",
+      "fn": "migrate",
+      "upstreamFn": "MigrationContext#migrate",
+      "goFn": "Migrator.Migrate",
+      "args": [{
+        "migrations": [
+          {"version": 20240101000001, "name": "create_users",
+           "up": [{"op": "create_table", "table": "users", "columns": [{"type": "text", "name": "email"}]}],
+           "down": [{"op": "drop_table", "table": "users"}]},
+          {"version": 20240101000002, "name": "add_posts",
+           "up": [{"op": "create_table", "table": "posts", "columns": [{"type": "integer", "name": "n"}]}],
+           "down": [{"op": "drop_table", "table": "posts"}]}
+        ],
+        "script": [{"op": "version"}, {"op": "up"}, {"op": "version"}]
+      }]
+    },
+    {
+      "id": "up-idempotent",
+      "fn": "migrate",
+      "note": "running up twice must apply nothing the second time",
+      "upstreamFn": "MigrationContext#migrate (twice)",
+      "goFn": "Migrator.Migrate (twice)",
+      "args": [{
+        "migrations": [
+          {"version": 20240101000001, "name": "create_users",
+           "up": [{"op": "create_table", "table": "users", "columns": [{"type": "text", "name": "email"}]}],
+           "down": [{"op": "drop_table", "table": "users"}]}
+        ],
+        "script": [{"op": "up"}, {"op": "up"}]
+      }]
+    },
+    {
+      "id": "up-one-step-at-a-time",
+      "fn": "migrate",
+      "upstreamFn": "MigrationContext#forward(1)",
+      "goFn": "Migrator.Up(ctx, 1)",
+      "args": [{
+        "migrations": [
+          {"version": 20240101000001, "name": "create_users",
+           "up": [{"op": "create_table", "table": "users", "columns": [{"type": "text", "name": "email"}]}],
+           "down": [{"op": "drop_table", "table": "users"}]},
+          {"version": 20240101000002, "name": "create_posts",
+           "up": [{"op": "create_table", "table": "posts", "columns": [{"type": "integer", "name": "n"}]}],
+           "down": [{"op": "drop_table", "table": "posts"}]},
+          {"version": 20240101000003, "name": "create_tags",
+           "up": [{"op": "create_table", "table": "tags", "columns": [{"type": "text", "name": "label"}]}],
+           "down": [{"op": "drop_table", "table": "tags"}]}
+        ],
+        "script": [{"op": "up_n", "n": 1}, {"op": "up_n", "n": 1}, {"op": "up_n", "n": 1}, {"op": "up_n", "n": 1}]
+      }]
+    },
+    {
+      "id": "rollback-one",
+      "fn": "migrate",
+      "upstreamFn": "MigrationContext#rollback(1)",
+      "goFn": "Migrator.Rollback(ctx, 1)",
+      "args": [{
+        "migrations": [
+          {"version": 20240101000001, "name": "create_users",
+           "up": [{"op": "create_table", "table": "users", "columns": [{"type": "text", "name": "email"}]}],
+           "down": [{"op": "drop_table", "table": "users"}]},
+          {"version": 20240101000002, "name": "create_posts",
+           "up": [{"op": "create_table", "table": "posts", "columns": [{"type": "integer", "name": "n"}]}],
+           "down": [{"op": "drop_table", "table": "posts"}]}
+        ],
+        "script": [{"op": "up"}, {"op": "rollback", "n": 1}]
+      }]
+    },
+    {
+      "id": "rollback-then-reapply",
+      "fn": "migrate",
+      "upstreamFn": "MigrationContext#rollback + forward",
+      "goFn": "Migrator.Redo",
+      "args": [{
+        "migrations": [
+          {"version": 20240101000001, "name": "create_users",
+           "up": [{"op": "create_table", "table": "users", "columns": [{"type": "text", "name": "email"}]}],
+           "down": [{"op": "drop_table", "table": "users"}]},
+          {"version": 20240101000002, "name": "add_bio",
+           "up": [{"op": "add_column", "table": "users", "name": "bio", "type": "text"}],
+           "down": [{"op": "remove_column", "table": "users", "name": "bio"}]}
+        ],
+        "script": [{"op": "up"}, {"op": "redo"}]
+      }]
+    },
+    {
+      "id": "rollback-all",
+      "fn": "migrate",
+      "upstreamFn": "MigrationContext#migrate(0)",
+      "goFn": "Migrator.MigrateTo(ctx, 0)",
+      "args": [{
+        "migrations": [
+          {"version": 20240101000001, "name": "create_users",
+           "up": [{"op": "create_table", "table": "users", "columns": [{"type": "text", "name": "email"}]}],
+           "down": [{"op": "drop_table", "table": "users"}]},
+          {"version": 20240101000002, "name": "create_posts",
+           "up": [{"op": "create_table", "table": "posts", "columns": [{"type": "integer", "name": "n"}]}],
+           "down": [{"op": "drop_table", "table": "posts"}]}
+        ],
+        "script": [{"op": "up"}, {"op": "down_all"}]
+      }]
+    },
+    {
+      "id": "migrate-to-middle-then-forward",
+      "fn": "migrate",
+      "upstreamFn": "MigrationContext#migrate(target)",
+      "goFn": "Migrator.MigrateTo",
+      "args": [{
+        "migrations": [
+          {"version": 20240101000001, "name": "create_users",
+           "up": [{"op": "create_table", "table": "users", "columns": [{"type": "text", "name": "email"}]}],
+           "down": [{"op": "drop_table", "table": "users"}]},
+          {"version": 20240101000002, "name": "create_posts",
+           "up": [{"op": "create_table", "table": "posts", "columns": [{"type": "integer", "name": "n"}]}],
+           "down": [{"op": "drop_table", "table": "posts"}]},
+          {"version": 20240101000003, "name": "create_tags",
+           "up": [{"op": "create_table", "table": "tags", "columns": [{"type": "text", "name": "label"}]}],
+           "down": [{"op": "drop_table", "table": "tags"}]}
+        ],
+        "script": [
+          {"op": "migrate_to", "version": 20240101000002},
+          {"op": "migrate_to", "version": 20240101000003},
+          {"op": "migrate_to", "version": 20240101000001}
+        ]
+      }]
+    },
+    {
+      "id": "rollback-irreversible-no-down",
+      "fn": "migrate",
+      "note": "no down direction at all: both sides must refuse",
+      "upstreamFn": "IrreversibleMigration",
+      "goFn": "ErrMissingMigration",
+      "args": [{
+        "migrations": [
+          {"version": 20240101000001, "name": "create_users",
+           "up": [{"op": "create_table", "table": "users", "columns": [{"type": "text", "name": "email"}]}]}
+        ],
+        "script": [{"op": "up"}, {"op": "rollback", "n": 1}]
+      }]
+    },
+    {
+      "id": "rollback-empty-down",
+      "fn": "migrate",
+      "note": "an explicitly empty down is a legitimate no-op rollback that should still un-record the version",
+      "upstreamFn": "def down; end",
+      "goFn": "Migration.Down (empty)",
+      "args": [{
+        "migrations": [
+          {"version": 20240101000001, "name": "create_users",
+           "up": [{"op": "create_table", "table": "users", "columns": [{"type": "text", "name": "email"}]}],
+           "down": []}
+        ],
+        "script": [{"op": "up"}, {"op": "rollback", "n": 1}]
+      }]
+    },
+    {
+      "id": "fail-midway-second-op",
+      "fn": "migrate",
+      "note": "the second op of the second migration references a missing table; check the schema and the version table are left consistent",
+      "upstreamFn": "Migrator#migrate (transactional DDL)",
+      "goFn": "Migrator.Migrate (per-migration transaction)",
+      "args": [{
+        "migrations": [
+          {"version": 20240101000001, "name": "create_users",
+           "up": [{"op": "create_table", "table": "users", "columns": [{"type": "text", "name": "email"}]}],
+           "down": [{"op": "drop_table", "table": "users"}]},
+          {"version": 20240101000002, "name": "half_broken",
+           "up": [
+             {"op": "create_table", "table": "posts", "columns": [{"type": "integer", "name": "n"}]},
+             {"op": "add_index", "table": "nonexistent", "columns": ["nope"]}
+           ],
+           "down": [{"op": "drop_table", "table": "posts"}]},
+          {"version": 20240101000003, "name": "create_tags",
+           "up": [{"op": "create_table", "table": "tags", "columns": [{"type": "text", "name": "label"}]}],
+           "down": [{"op": "drop_table", "table": "tags"}]}
+        ],
+        "script": [{"op": "up"}, {"op": "version"}, {"op": "up"}, {"op": "rollback", "n": 1}]
+      }]
+    },
+    {
+      "id": "fail-midway-then-rollback-and-retry",
+      "fn": "migrate",
+      "note": "after a failed migration, roll back what did apply and try again: is any dirty state left behind?",
+      "upstreamFn": "Migrator#migrate then rollback",
+      "goFn": "Migrator.Migrate then Rollback",
+      "args": [{
+        "migrations": [
+          {"version": 20240101000001, "name": "create_users",
+           "up": [{"op": "create_table", "table": "users", "columns": [{"type": "text", "name": "email"}]}],
+           "down": [{"op": "drop_table", "table": "users"}]},
+          {"version": 20240101000002, "name": "broken",
+           "up": [{"op": "execute", "sql": "THIS IS NOT SQL"}],
+           "down": []}
+        ],
+        "script": [{"op": "up"}, {"op": "rollback", "n": 1}, {"op": "up"}, {"op": "version"}]
+      }]
+    },
+    {
+      "id": "raw-sql-two-statements",
+      "fn": "migrate",
+      "note": "the raw-SQL migration facility fed a two-statement script",
+      "upstreamFn": "execute (multi-statement)",
+      "goFn": "Migration.UpSQL (splitStatements)",
+      "args": [{
+        "migrations": [
+          {"version": 20240101000001, "name": "raw_pair",
+           "up": [{"op": "raw_sql", "sql": "CREATE TABLE a (id INTEGER PRIMARY KEY);\nCREATE TABLE b (id INTEGER PRIMARY KEY)"}],
+           "down": [{"op": "raw_sql", "sql": "DROP TABLE b;\nDROP TABLE a"}]}
+        ],
+        "script": [{"op": "up"}, {"op": "rollback", "n": 1}]
+      }]
+    },
+    {
+      "id": "raw-sql-semicolon-in-string-literal",
+      "fn": "migrate",
+      "note": "the port splits raw SQL on ';' with no string-literal awareness",
+      "upstreamFn": "execute (semicolon inside a literal)",
+      "goFn": "Migration.UpSQL (splitStatements)",
+      "args": [{
+        "migrations": [
+          {"version": 20240101000001, "name": "make_table",
+           "up": [{"op": "raw_sql", "sql": "CREATE TABLE notes (id INTEGER PRIMARY KEY, body TEXT)"}],
+           "down": [{"op": "raw_sql", "sql": "DROP TABLE notes"}]},
+          {"version": 20240101000002, "name": "seed_literal",
+           "up": [{"op": "raw_sql", "sql": "INSERT INTO notes (body) VALUES ('first; second')"}],
+           "down": [{"op": "raw_sql", "sql": "DELETE FROM notes"}]}
+        ],
+        "script": [{"op": "up"}, {"op": "version"}]
+      }]
+    },
+    {
+      "id": "raw-sql-trigger-body",
+      "fn": "migrate",
+      "note": "the port splits a trigger body on its internal semicolons",
+      "upstreamFn": "execute (CREATE TRIGGER ... BEGIN ...; END)",
+      "goFn": "Migration.UpSQL (splitStatements)",
+      "args": [{
+        "migrations": [
+          {"version": 20240101000001, "name": "make_table",
+           "up": [{"op": "raw_sql", "sql": "CREATE TABLE notes (id INTEGER PRIMARY KEY, body TEXT, touched INTEGER DEFAULT 0)"}],
+           "down": [{"op": "raw_sql", "sql": "DROP TABLE notes"}]},
+          {"version": 20240101000002, "name": "add_trigger",
+           "up": [{"op": "raw_sql", "sql": "CREATE TRIGGER notes_touch AFTER UPDATE ON notes BEGIN UPDATE notes SET touched = touched + 1 WHERE id = NEW.id; END"}],
+           "down": [{"op": "raw_sql", "sql": "DROP TRIGGER notes_touch"}]}
+        ],
+        "script": [{"op": "up"}, {"op": "version"}]
+      }]
+    },
+    {
+      "id": "raw-sql-failing-second-statement",
+      "fn": "migrate",
+      "note": "the second statement of a raw script fails: is the first rolled back and the version left unrecorded?",
+      "upstreamFn": "execute (second statement invalid)",
+      "goFn": "Migration.UpSQL (second statement invalid)",
+      "args": [{
+        "migrations": [
+          {"version": 20240101000001, "name": "half_raw",
+           "up": [{"op": "raw_sql", "sql": "CREATE TABLE a (id INTEGER PRIMARY KEY);\nCREATE TABLE a (id INTEGER PRIMARY KEY)"}],
+           "down": [{"op": "raw_sql", "sql": "DROP TABLE a"}]}
+        ],
+        "script": [{"op": "up"}, {"op": "version"}]
+      }]
+    },
+    {
+      "id": "status-across-a-partial-migration",
+      "fn": "migrate",
+      "note": "the status projection {version, applied} after a partial run; neither side reports a failed/dirty state",
+      "upstreamFn": "MigrationContext#migrations_status",
+      "goFn": "Migrator.Status",
+      "args": [{
+        "migrations": [
+          {"version": 20240101000001, "name": "create_users",
+           "up": [{"op": "create_table", "table": "users", "columns": [{"type": "text", "name": "email"}]}],
+           "down": [{"op": "drop_table", "table": "users"}]},
+          {"version": 20240101000002, "name": "broken",
+           "up": [{"op": "execute", "sql": "NOT VALID SQL AT ALL"}],
+           "down": []},
+          {"version": 20240101000003, "name": "create_tags",
+           "up": [{"op": "create_table", "table": "tags", "columns": [{"type": "text", "name": "label"}]}],
+           "down": [{"op": "drop_table", "table": "tags"}]}
+        ],
+        "script": [{"op": "status"}, {"op": "up"}, {"op": "status"}, {"op": "rollback", "n": 1}, {"op": "status"}]
+      }]
+    },
+    {
+      "id": "bookkeeping-table-shape",
+      "fn": "migrate",
+      "note": "the only case that compares the bookkeeping table itself: ActiveRecord tracks (version) as a string key, the port tracks (version BIGINT, applied_at TIMESTAMP) and has no dirty/failed column on either side",
+      "upstreamFn": "SchemaMigration (schema_migrations)",
+      "goFn": "Migrator.EnsureSchemaTable (schema_migrations)",
+      "args": [{
+        "report_bookkeeping": true,
+        "migrations": [
+          {"version": 20240101000001, "name": "create_users",
+           "up": [{"op": "create_table", "table": "users", "columns": [{"type": "text", "name": "email"}]}],
+           "down": [{"op": "drop_table", "table": "users"}]}
+        ],
+        "script": [{"op": "up"}]
+      }]
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "group": "forms",
+  "upstream": "streamlit==1.61.1",
+  "cases": [
+    {
+      "id": "form-atomic-commit",
+      "fn": "form-atomic",
+      "args": [[
+        {"op": "stage", "key": "f_name", "value": "ada"},
+        {"op": "stage", "key": "f_age", "value": 30},
+        {"op": "run"},
+        {"op": "submit", "form": "signup"},
+        {"op": "run"}
+      ]],
+      "upstreamFn": "st.form + st.form_submit_button",
+      "goFn": "st.Container.Form + FormSubmitButton",
+      "note": "staged values stay invisible until submit, then commit together; the submit button reads true for exactly one run"
+    },
+    {
+      "id": "form-submit-without-changes",
+      "fn": "form-atomic",
+      "args": [[{"op": "submit", "form": "signup"}, {"op": "run"}]],
+      "upstreamFn": "st.form_submit_button", "goFn": "st.Container.FormSubmitButton"
+    }
+  ]
+}

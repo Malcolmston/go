@@ -1,0 +1,304 @@
+{
+  "group": "emit-values",
+  "upstream": "yaml@2.6.1+yaml-test-suite@da267a5c4782e7361e82889e76c0dc7df0e1e870",
+  "cases": [
+    {
+      "id": "marshal-scalars",
+      "fn": "marshal",
+      "args": [
+        {
+          "i": 1,
+          "f": 1.5,
+          "b": true,
+          "n": null,
+          "s": "x"
+        }
+      ],
+      "upstreamFn": "String(new yaml.Document(v))",
+      "goFn": "yaml.Marshal(v)",
+      "note": "plain scalars"
+    },
+    {
+      "id": "marshal-string-yes",
+      "fn": "marshal",
+      "args": [
+        {
+          "a": "yes",
+          "b": "no",
+          "c": "on",
+          "d": "off",
+          "e": "y"
+        }
+      ],
+      "upstreamFn": "String(new yaml.Document(v))",
+      "goFn": "yaml.Marshal(v)",
+      "note": "strings a YAML 1.1 reader would take for booleans"
+    },
+    {
+      "id": "marshal-string-null",
+      "fn": "marshal",
+      "args": [
+        {
+          "a": "null",
+          "b": "~",
+          "c": "",
+          "d": "NULL"
+        }
+      ],
+      "upstreamFn": "String(new yaml.Document(v))",
+      "goFn": "yaml.Marshal(v)",
+      "note": "strings that would be read back as null"
+    },
+    {
+      "id": "marshal-string-numeric",
+      "fn": "marshal",
+      "args": [
+        {
+          "a": "1",
+          "b": "1.5",
+          "c": "017",
+          "d": "0x1",
+          "e": "1e3",
+          "f": "-1"
+        }
+      ],
+      "upstreamFn": "String(new yaml.Document(v))",
+      "goFn": "yaml.Marshal(v)",
+      "note": "strings that would be read back as numbers"
+    },
+    {
+      "id": "marshal-string-indicators",
+      "fn": "marshal",
+      "args": [
+        {
+          "a": "#c",
+          "b": "a: b",
+          "c": "- x",
+          "d": "[x]",
+          "e": "{x}",
+          "f": "*a",
+          "g": "&a",
+          "h": "!t",
+          "i": "%d",
+          "j": "@x",
+          "k": "`x",
+          "l": "? x",
+          "m": "x #c"
+        }
+      ],
+      "upstreamFn": "String(new yaml.Document(v))",
+      "goFn": "yaml.Marshal(v)",
+      "note": "strings starting with, or containing, YAML indicators"
+    },
+    {
+      "id": "marshal-string-whitespace",
+      "fn": "marshal",
+      "args": [
+        {
+          "a": " lead",
+          "b": "trail ",
+          "c": "a\tb",
+          "d": "a  b"
+        }
+      ],
+      "upstreamFn": "String(new yaml.Document(v))",
+      "goFn": "yaml.Marshal(v)",
+      "note": "significant whitespace"
+    },
+    {
+      "id": "marshal-multiline",
+      "fn": "marshal",
+      "args": [
+        {
+          "a": "one\ntwo\n",
+          "b": "one\ntwo",
+          "c": "\n",
+          "d": "a\n\nb\n",
+          "e": "a\n b\n"
+        }
+      ],
+      "upstreamFn": "String(new yaml.Document(v))",
+      "goFn": "yaml.Marshal(v)",
+      "note": "multi-line strings: a literal block scalar must round-trip exactly"
+    },
+    {
+      "id": "marshal-unicode",
+      "fn": "marshal",
+      "args": [
+        {
+          "a": "héllo",
+          "b": "日本語",
+          "b2": " ",
+          "c": "😀"
+        }
+      ],
+      "upstreamFn": "String(new yaml.Document(v))",
+      "goFn": "yaml.Marshal(v)",
+      "note": "non-ASCII"
+    },
+    {
+      "id": "marshal-control-chars",
+      "fn": "marshal",
+      "args": [
+        {
+          "a": "\u0001",
+          "b": "",
+          "c": "\u001b[0m",
+          "d": "",
+          "e": " "
+        }
+      ],
+      "upstreamFn": "String(new yaml.Document(v))",
+      "goFn": "yaml.Marshal(v)",
+      "note": "control characters have to be escaped"
+    },
+    {
+      "id": "marshal-nested",
+      "fn": "marshal",
+      "args": [
+        {
+          "a": {
+            "b": {
+              "c": [
+                1,
+                [
+                  2,
+                  3
+                ],
+                {
+                  "d": null
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "upstreamFn": "String(new yaml.Document(v))",
+      "goFn": "yaml.Marshal(v)",
+      "note": "nesting"
+    },
+    {
+      "id": "marshal-empty-collections",
+      "fn": "marshal",
+      "args": [
+        {
+          "a": [],
+          "b": {}
+        }
+      ],
+      "upstreamFn": "String(new yaml.Document(v))",
+      "goFn": "yaml.Marshal(v)",
+      "note": "empty sequence and mapping"
+    },
+    {
+      "id": "marshal-seq-root",
+      "fn": "marshal",
+      "args": [
+        [
+          1,
+          "two",
+          null,
+          [
+            3
+          ]
+        ]
+      ],
+      "upstreamFn": "String(new yaml.Document(v))",
+      "goFn": "yaml.Marshal(v)",
+      "note": "a sequence at the document root"
+    },
+    {
+      "id": "marshal-scalar-root",
+      "fn": "marshal",
+      "args": [
+        "just a string"
+      ],
+      "upstreamFn": "String(new yaml.Document(v))",
+      "goFn": "yaml.Marshal(v)",
+      "note": "a scalar at the document root"
+    },
+    {
+      "id": "marshal-null-root",
+      "fn": "marshal",
+      "args": [
+        null
+      ],
+      "upstreamFn": "String(new yaml.Document(v))",
+      "goFn": "yaml.Marshal(v)",
+      "note": "null at the document root"
+    },
+    {
+      "id": "marshal-long",
+      "fn": "marshal",
+      "args": [
+        {
+          "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk": "v",
+          "k": "v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v "
+        }
+      ],
+      "upstreamFn": "String(new yaml.Document(v))",
+      "goFn": "yaml.Marshal(v)",
+      "note": "long keys and values -- line folding must not change the value"
+    },
+    {
+      "id": "marshal-numbers-edge",
+      "fn": "marshal",
+      "args": [
+        {
+          "zero": 0,
+          "big": 1e+300,
+          "small": 1e-300,
+          "int53": 9007199254740991,
+          "negf": -1.5
+        }
+      ],
+      "upstreamFn": "String(new yaml.Document(v))",
+      "goFn": "yaml.Marshal(v)",
+      "note": "numeric edges"
+    },
+    {
+      "id": "marshal-deep",
+      "fn": "marshal",
+      "args": [
+        [
+          [
+            [
+              [
+                [
+                  [
+                    [
+                      [
+                        [
+                          "deep"
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ]
+          ]
+        ]
+      ],
+      "upstreamFn": "String(new yaml.Document(v))",
+      "goFn": "yaml.Marshal(v)",
+      "note": "deep nesting"
+    },
+    {
+      "id": "marshal-key-lookalikes",
+      "fn": "marshal",
+      "args": [
+        {
+          "yes": 1,
+          "017": 2,
+          "~": 3,
+          "": 4,
+          "a b": 5
+        }
+      ],
+      "upstreamFn": "String(new yaml.Document(v))",
+      "goFn": "yaml.Marshal(v)",
+      "note": "keys that need quoting"
+    }
+  ]
+}

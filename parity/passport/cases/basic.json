@@ -1,0 +1,143 @@
+{
+  "group": "basic",
+  "upstream": "passport@0.7.0+passport-local@1.0.0+passport-http@0.3.0+passport-http-bearer@1.0.1",
+  "note": "HTTP Basic (RFC 7617). Realm is fixed to \"Parity\" on /basic and \"Admin\" on /basic-admin so the WWW-Authenticate challenge is directly comparable.",
+  "cases": [
+    {
+      "id": "basic-valid",
+      "fn": "request",
+      "args": [{ "path": "/basic", "headers": { "authorization": "Basic YWxpY2U6czNjcjN0LWFsaWNl" } }],
+      "upstreamFn": "passport-http.BasicStrategy",
+      "goFn": "basic.New",
+      "note": "alice:s3cr3t-alice"
+    },
+    {
+      "id": "basic-valid-bob",
+      "fn": "request",
+      "args": [{ "path": "/basic", "headers": { "authorization": "Basic Ym9iOmh1bnRlcjI=" } }],
+      "upstreamFn": "passport-http.BasicStrategy",
+      "goFn": "basic.New",
+      "note": "bob:hunter2"
+    },
+    {
+      "id": "basic-wrong-password",
+      "fn": "request",
+      "args": [{ "path": "/basic", "headers": { "authorization": "Basic YWxpY2U6d3Jvbmc=" } }],
+      "upstreamFn": "passport-http.BasicStrategy",
+      "goFn": "basic.New",
+      "note": "SECURITY: alice:wrong must be rejected"
+    },
+    {
+      "id": "basic-unknown-user",
+      "fn": "request",
+      "args": [{ "path": "/basic", "headers": { "authorization": "Basic Y2Fyb2w6d2hhdGV2ZXI=" } }],
+      "upstreamFn": "passport-http.BasicStrategy",
+      "goFn": "basic.New",
+      "note": "SECURITY: carol:whatever must be rejected"
+    },
+    {
+      "id": "basic-no-credentials",
+      "fn": "request",
+      "args": [{ "path": "/basic" }],
+      "upstreamFn": "passport-http.BasicStrategy._challenge",
+      "goFn": "basic.Strategy.Authenticate",
+      "note": "SECURITY: no Authorization header at all -> 401 + Basic realm=\"Parity\""
+    },
+    {
+      "id": "basic-empty-password",
+      "fn": "request",
+      "args": [{ "path": "/basic", "headers": { "authorization": "Basic YWxpY2U6" } }],
+      "upstreamFn": "passport-http.BasicStrategy",
+      "goFn": "basic.New",
+      "note": "SECURITY: alice: (empty password) must be rejected"
+    },
+    {
+      "id": "basic-empty-username",
+      "fn": "request",
+      "args": [{ "path": "/basic", "headers": { "authorization": "Basic OnMzY3IzdC1hbGljZQ==" } }],
+      "upstreamFn": "passport-http.BasicStrategy",
+      "goFn": "basic.New",
+      "note": "SECURITY: :s3cr3t-alice (empty username) must be rejected"
+    },
+    {
+      "id": "basic-missing-colon",
+      "fn": "request",
+      "args": [{ "path": "/basic", "headers": { "authorization": "Basic YWxpY2Vub3Bhc3M=" } }],
+      "upstreamFn": "passport-http.BasicStrategy",
+      "goFn": "basic.parseBasicAuth",
+      "note": "SECURITY: base64(\"alicenopass\") has no colon separator"
+    },
+    {
+      "id": "basic-extra-colons",
+      "fn": "request",
+      "args": [{ "path": "/basic", "headers": { "authorization": "Basic OjphbGljZQ==" } }],
+      "upstreamFn": "passport-http.BasicStrategy",
+      "goFn": "basic.parseBasicAuth",
+      "note": "base64(\"::alice\") -> empty username, password \":alice\""
+    },
+    {
+      "id": "basic-not-base64",
+      "fn": "request",
+      "args": [{ "path": "/basic", "headers": { "authorization": "Basic !!!not-base64!!!" } }],
+      "upstreamFn": "passport-http.BasicStrategy",
+      "goFn": "basic.parseBasicAuth",
+      "note": "SECURITY: wrong base64 payload"
+    },
+    {
+      "id": "basic-malformed-scheme-only",
+      "fn": "request",
+      "args": [{ "path": "/basic", "headers": { "authorization": "Basic" } }],
+      "upstreamFn": "passport-http.BasicStrategy",
+      "goFn": "basic.parseBasicAuth",
+      "note": "SECURITY: malformed header, scheme with no credentials"
+    },
+    {
+      "id": "basic-malformed-no-scheme",
+      "fn": "request",
+      "args": [{ "path": "/basic", "headers": { "authorization": "YWxpY2U6czNjcjN0LWFsaWNl" } }],
+      "upstreamFn": "passport-http.BasicStrategy",
+      "goFn": "basic.parseBasicAuth",
+      "note": "SECURITY: credentials with no scheme"
+    },
+    {
+      "id": "basic-wrong-scheme",
+      "fn": "request",
+      "args": [{ "path": "/basic", "headers": { "authorization": "Bearer YWxpY2U6czNjcjN0LWFsaWNl" } }],
+      "upstreamFn": "passport-http.BasicStrategy",
+      "goFn": "basic.parseBasicAuth",
+      "note": "SECURITY: Bearer scheme presented to the Basic strategy"
+    },
+    {
+      "id": "basic-scheme-case-insensitive",
+      "fn": "request",
+      "args": [{ "path": "/basic", "headers": { "authorization": "bAsIc YWxpY2U6czNjcjN0LWFsaWNl" } }],
+      "upstreamFn": "passport-http.BasicStrategy",
+      "goFn": "basic.parseBasicAuth",
+      "note": "RFC 7235 makes the scheme token case-insensitive"
+    },
+    {
+      "id": "basic-realm-challenge-admin",
+      "fn": "request",
+      "args": [{ "path": "/basic-admin" }],
+      "upstreamFn": "BasicStrategy options.realm",
+      "goFn": "basic.Strategy.Realm",
+      "note": "the challenge must carry the strategy's own realm, not a default"
+    },
+    {
+      "id": "basic-wrong-realm-route",
+      "fn": "request",
+      "args": [{ "path": "/basic-admin", "headers": { "authorization": "Basic YWxpY2U6czNjcjN0LWFsaWNl" } }],
+      "upstreamFn": "BasicStrategy options.realm",
+      "goFn": "basic.Strategy.Realm",
+      "note": "credentials minted for realm \"Parity\" replayed at realm \"Admin\": Basic carries no realm binding, so both sides are expected to accept; the case exists to prove the two agree."
+    },
+    {
+      "id": "basic-no-credentials-protected-route",
+      "fn": "request",
+      "args": [{ "path": "/protected" }],
+      "upstreamFn": "req.isAuthenticated",
+      "goFn": "passport.Passport.RequireLogin",
+      "note": "SECURITY: a protected route with NO credentials must be rejected by both"
+    }
+  ]
+}

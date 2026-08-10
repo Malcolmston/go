@@ -1,0 +1,503 @@
+{
+  "group": "colour",
+  "upstream": "opencv-python@4.11.0",
+  "cases": [
+    {
+      "id": "cvt-rgb-to-gray",
+      "fn": "cvtColor",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3
+        },
+        "ColorRGB2Gray"
+      ],
+      "upstreamFn": "cv2.cvtColor/ColorRGB2Gray",
+      "goFn": "cv.CvtColor",
+      "mode": "tolerance",
+      "tol": 1,
+      "meanTol": 1.0,
+      "note": "8-bit colour conversions round independently; budget 1 LSB per sample and 1 LSB of systematic per-channel bias"
+    },
+    {
+      "id": "cvt-bgr-to-gray",
+      "fn": "cvtColor",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3
+        },
+        "ColorBGR2Gray"
+      ],
+      "upstreamFn": "cv2.cvtColor/ColorBGR2Gray",
+      "goFn": "cv.CvtColor",
+      "mode": "tolerance",
+      "tol": 1,
+      "meanTol": 1.0,
+      "note": "8-bit colour conversions round independently; budget 1 LSB per sample and 1 LSB of systematic per-channel bias"
+    },
+    {
+      "id": "cvt-rgb-to-bgr",
+      "fn": "cvtColor",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3
+        },
+        "ColorRGB2BGR"
+      ],
+      "upstreamFn": "cv2.cvtColor/ColorRGB2BGR",
+      "goFn": "cv.CvtColor",
+      "mode": "tolerance",
+      "tol": 1,
+      "meanTol": 1.0,
+      "note": "8-bit colour conversions round independently; budget 1 LSB per sample and 1 LSB of systematic per-channel bias"
+    },
+    {
+      "id": "cvt-bgr-to-rgb",
+      "fn": "cvtColor",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3
+        },
+        "ColorBGR2RGB"
+      ],
+      "upstreamFn": "cv2.cvtColor/ColorBGR2RGB",
+      "goFn": "cv.CvtColor",
+      "mode": "tolerance",
+      "tol": 1,
+      "meanTol": 1.0,
+      "note": "8-bit colour conversions round independently; budget 1 LSB per sample and 1 LSB of systematic per-channel bias"
+    },
+    {
+      "id": "cvt-rgb-to-hsv",
+      "fn": "cvtColor",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3
+        },
+        "ColorRGB2HSV"
+      ],
+      "upstreamFn": "cv2.cvtColor/ColorRGB2HSV",
+      "goFn": "cv.CvtColor",
+      "mode": "tolerance",
+      "tol": 1,
+      "meanTol": 1.0,
+      "note": "8-bit colour conversions round independently; budget 1 LSB per sample and 1 LSB of systematic per-channel bias"
+    },
+    {
+      "id": "cvt-rgb-to-lab",
+      "fn": "cvtColor",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3
+        },
+        "ColorRGB2Lab"
+      ],
+      "upstreamFn": "cv2.cvtColor/ColorRGB2Lab",
+      "goFn": "cv.CvtColor",
+      "mode": "tolerance",
+      "tol": 1,
+      "meanTol": 1.0,
+      "note": "8-bit colour conversions round independently; budget 1 LSB per sample and 1 LSB of systematic per-channel bias"
+    },
+    {
+      "id": "cvt-rgb-to-ycrcb",
+      "fn": "cvtColor",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3
+        },
+        "ColorRGB2YCrCb"
+      ],
+      "upstreamFn": "cv2.cvtColor/ColorRGB2YCrCb",
+      "goFn": "cv.CvtColor",
+      "mode": "tolerance",
+      "tol": 1,
+      "meanTol": 1.0,
+      "note": "8-bit colour conversions round independently; budget 1 LSB per sample and 1 LSB of systematic per-channel bias"
+    },
+    {
+      "id": "cvt-rgb-to-hls",
+      "fn": "cvtColor",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3
+        },
+        "ColorRGB2HLS"
+      ],
+      "upstreamFn": "cv2.cvtColor/ColorRGB2HLS",
+      "goFn": "cv.CvtColor",
+      "mode": "tolerance",
+      "tol": 1,
+      "meanTol": 1.0,
+      "note": "8-bit colour conversions round independently; budget 1 LSB per sample and 1 LSB of systematic per-channel bias"
+    },
+    {
+      "id": "cvt-hsv-to-rgb",
+      "fn": "cvtColor",
+      "args": [
+        {
+          "gen": "noise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3,
+          "seed": 777
+        },
+        "ColorHSV2RGB"
+      ],
+      "upstreamFn": "cv2.cvtColor/ColorHSV2RGB",
+      "goFn": "cv.CvtColor",
+      "mode": "tolerance",
+      "tol": 2,
+      "meanTol": 1.5,
+      "note": "inverse conversions accumulate two roundings; budget 2 LSB"
+    },
+    {
+      "id": "cvt-lab-to-rgb",
+      "fn": "cvtColor",
+      "args": [
+        {
+          "gen": "noise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3,
+          "seed": 777
+        },
+        "ColorLab2RGB"
+      ],
+      "upstreamFn": "cv2.cvtColor/ColorLab2RGB",
+      "goFn": "cv.CvtColor",
+      "mode": "tolerance",
+      "tol": 2,
+      "meanTol": 1.5,
+      "note": "inverse conversions accumulate two roundings; budget 2 LSB"
+    },
+    {
+      "id": "cvt-ycrcb-to-rgb",
+      "fn": "cvtColor",
+      "args": [
+        {
+          "gen": "noise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3,
+          "seed": 777
+        },
+        "ColorYCrCb2RGB"
+      ],
+      "upstreamFn": "cv2.cvtColor/ColorYCrCb2RGB",
+      "goFn": "cv.CvtColor",
+      "mode": "tolerance",
+      "tol": 2,
+      "meanTol": 1.5,
+      "note": "inverse conversions accumulate two roundings; budget 2 LSB"
+    },
+    {
+      "id": "cvt-hls-to-rgb",
+      "fn": "cvtColor",
+      "args": [
+        {
+          "gen": "noise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3,
+          "seed": 777
+        },
+        "ColorHLS2RGB"
+      ],
+      "upstreamFn": "cv2.cvtColor/ColorHLS2RGB",
+      "goFn": "cv.CvtColor",
+      "mode": "tolerance",
+      "tol": 2,
+      "meanTol": 1.5,
+      "note": "inverse conversions accumulate two roundings; budget 2 LSB"
+    },
+    {
+      "id": "cvt-gray-to-rgb",
+      "fn": "cvtColor",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        "ColorGray2RGB"
+      ],
+      "upstreamFn": "cv2.cvtColor/COLOR_GRAY2RGB",
+      "goFn": "cv.CvtColor",
+      "mode": "exact"
+    },
+    {
+      "id": "cvt-checker-rgb-to-hsv",
+      "fn": "cvtColor",
+      "args": [
+        {
+          "gen": "checker",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3,
+          "block": 5
+        },
+        "ColorRGB2HSV"
+      ],
+      "upstreamFn": "cv2.cvtColor",
+      "goFn": "cv.CvtColor",
+      "mode": "tolerance",
+      "tol": 1,
+      "meanTol": 1.0
+    },
+    {
+      "id": "cvt-noise-rgb-to-lab",
+      "fn": "cvtColor",
+      "args": [
+        {
+          "gen": "noise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3,
+          "seed": 777
+        },
+        "ColorRGB2Lab"
+      ],
+      "upstreamFn": "cv2.cvtColor",
+      "goFn": "cv.CvtColor",
+      "mode": "tolerance",
+      "tol": 2,
+      "meanTol": 1.5
+    },
+    {
+      "id": "cvt-gray-input-to-hsv",
+      "fn": "cvtColor",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        "ColorRGB2HSV"
+      ],
+      "upstreamFn": "cv2.cvtColor",
+      "goFn": "cv.CvtColor",
+      "mode": "exact",
+      "note": "single-channel input to a 3-channel conversion must fail on both sides"
+    },
+    {
+      "id": "rgb-to-xyz",
+      "fn": "rgbToXYZ",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3
+        }
+      ],
+      "upstreamFn": "cv2.cvtColor/COLOR_RGB2XYZ",
+      "goFn": "cv.RGBToXYZ",
+      "mode": "tolerance",
+      "tol": 2,
+      "meanTol": 1.5
+    },
+    {
+      "id": "xyz-to-rgb",
+      "fn": "xyzToRGB",
+      "args": [
+        {
+          "gen": "noise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3,
+          "seed": 777
+        }
+      ],
+      "upstreamFn": "cv2.cvtColor/COLOR_XYZ2RGB",
+      "goFn": "cv.XYZToRGB",
+      "mode": "tolerance",
+      "tol": 2,
+      "meanTol": 1.5
+    },
+    {
+      "id": "rgb-to-yuv",
+      "fn": "rgbToYUV",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3
+        }
+      ],
+      "upstreamFn": "cv2.cvtColor/COLOR_RGB2YUV",
+      "goFn": "cv.RGBToYUV",
+      "mode": "tolerance",
+      "tol": 1,
+      "meanTol": 1.0
+    },
+    {
+      "id": "yuv-to-rgb",
+      "fn": "yuvToRGB",
+      "args": [
+        {
+          "gen": "noise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3,
+          "seed": 777
+        }
+      ],
+      "upstreamFn": "cv2.cvtColor/COLOR_YUV2RGB",
+      "goFn": "cv.YUVToRGB",
+      "mode": "tolerance",
+      "tol": 2,
+      "meanTol": 1.5
+    },
+    {
+      "id": "rgb-to-hsv-full",
+      "fn": "rgbToHSVFull",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3
+        }
+      ],
+      "upstreamFn": "cv2.cvtColor/COLOR_RGB2HSV_FULL",
+      "goFn": "cv.RGBToHSVFull",
+      "mode": "tolerance",
+      "tol": 1,
+      "meanTol": 1.0
+    },
+    {
+      "id": "hsv-full-to-rgb",
+      "fn": "hsvFullToRGB",
+      "args": [
+        {
+          "gen": "noise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3,
+          "seed": 777
+        }
+      ],
+      "upstreamFn": "cv2.cvtColor/COLOR_HSV2RGB_FULL",
+      "goFn": "cv.HSVFullToRGB",
+      "mode": "tolerance",
+      "tol": 2,
+      "meanTol": 1.5
+    },
+    {
+      "id": "rgb-to-gray-601",
+      "fn": "rgbToGray601",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3
+        }
+      ],
+      "upstreamFn": "cv2.cvtColor/COLOR_RGB2GRAY",
+      "goFn": "cv.RGBToGray601",
+      "mode": "tolerance",
+      "tol": 1,
+      "meanTol": 1.0
+    },
+    {
+      "id": "demosaic-bayerrg",
+      "fn": "demosaic",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        "BayerRG"
+      ],
+      "upstreamFn": "cv2.cvtColor/COLOR_RG2RGB",
+      "goFn": "cv.Demosaic",
+      "mode": "tolerance",
+      "tol": 2,
+      "meanTol": 1.5
+    },
+    {
+      "id": "demosaic-bayergr",
+      "fn": "demosaic",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        "BayerGR"
+      ],
+      "upstreamFn": "cv2.cvtColor/COLOR_GR2RGB",
+      "goFn": "cv.Demosaic",
+      "mode": "tolerance",
+      "tol": 2,
+      "meanTol": 1.5
+    },
+    {
+      "id": "demosaic-bayerbg",
+      "fn": "demosaic",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        "BayerBG"
+      ],
+      "upstreamFn": "cv2.cvtColor/COLOR_BG2RGB",
+      "goFn": "cv.Demosaic",
+      "mode": "tolerance",
+      "tol": 2,
+      "meanTol": 1.5
+    },
+    {
+      "id": "demosaic-bayergb",
+      "fn": "demosaic",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        "BayerGB"
+      ],
+      "upstreamFn": "cv2.cvtColor/COLOR_GB2RGB",
+      "goFn": "cv.Demosaic",
+      "mode": "tolerance",
+      "tol": 2,
+      "meanTol": 1.5
+    }
+  ]
+}

@@ -1,0 +1,203 @@
+{
+  "group": "encoding",
+  "upstream": "nodemailer@6.9.16",
+  "cases": [
+    {
+      "id": "enc-7bit-short-ascii",
+      "fn": "buildMessage",
+      "upstreamFn": "MimeNode._getContentTransferEncoding (7bit)",
+      "goFn": "nodemailer mime encoder",
+      "args": [{ "from": "ada@example.com", "to": ["b@example.com"], "text": "pure ascii body" }],
+      "note": "upstream picks 7bit for clean short ASCII"
+    },
+    {
+      "id": "enc-8bit-latin1",
+      "fn": "buildMessage",
+      "upstreamFn": "MimeNode._getContentTransferEncoding (quoted-printable)",
+      "goFn": "nodemailer.QPEncode",
+      "args": [{ "from": "ada@example.com", "to": ["b@example.com"], "text": "héllo wörld ßüß" }],
+      "note": "a handful of 8-bit bytes: upstream picks quoted-printable"
+    },
+    {
+      "id": "enc-mostly-non-ascii",
+      "fn": "buildMessage",
+      "upstreamFn": "MimeNode._getContentTransferEncoding (base64)",
+      "goFn": "nodemailer mime encoder",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "日本語のテキストが本文のほとんどを占めている場合の転送エンコーディングの選択について"
+        }
+      ],
+      "note": "when non-ASCII dominates, upstream switches to base64"
+    },
+    {
+      "id": "enc-forced-quoted-printable",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.textEncoding = quoted-printable",
+      "goFn": "nodemailer mime encoder (always quoted-printable)",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "pure ascii body",
+          "textEncoding": "quoted-printable"
+        }
+      ],
+      "note": "with textEncoding pinned, both sides should agree on quoted-printable"
+    },
+    {
+      "id": "enc-forced-base64",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.textEncoding = base64",
+      "goFn": "—",
+      "args": [
+        { "from": "ada@example.com", "to": ["b@example.com"], "text": "pure ascii body", "textEncoding": "base64" }
+      ],
+      "note": "the Go port has no textEncoding option"
+    },
+    {
+      "id": "enc-long-lines",
+      "fn": "buildMessage",
+      "upstreamFn": "MimeNode soft line breaks",
+      "goFn": "nodemailer.QPWrap",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "aaaaaaaaaabbbbbbbbbbccccccccccddddddddddeeeeeeeeeeffffffffffgggggggggghhhhhhhhhhiiiiiiiiiijjjjjjjjjjkkkkkkkkkkllllllllll",
+          "textEncoding": "quoted-printable"
+        }
+      ],
+      "note": "a single line longer than 76 characters must be soft-wrapped"
+    },
+    {
+      "id": "enc-trailing-space",
+      "fn": "buildMessage",
+      "upstreamFn": "MimeNode quoted-printable escaping",
+      "goFn": "nodemailer.QPEncode",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "trailing space here \r\nand a trailing tab\t\r\nend",
+          "textEncoding": "quoted-printable"
+        }
+      ],
+      "note": "trailing whitespace before a line break must be escaped as =20 / =09"
+    },
+    {
+      "id": "enc-equals-sign",
+      "fn": "buildMessage",
+      "upstreamFn": "MimeNode quoted-printable escaping",
+      "goFn": "nodemailer.QPEncode",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "a = b and 1=1",
+          "textEncoding": "quoted-printable"
+        }
+      ]
+    },
+    {
+      "id": "enc-boundary-lookalike-body",
+      "fn": "buildMessage",
+      "upstreamFn": "MimeNode body escaping",
+      "goFn": "nodemailer mime encoder",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "--LOOKS-LIKE-A-BOUNDARY--\r\nbut is only body text",
+          "html": "<p>rich</p>",
+          "textEncoding": "quoted-printable"
+        }
+      ],
+      "note": "body text that looks like the multipart boundary must not break the tree"
+    },
+    {
+      "id": "enc-binary-attachment",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.attachments[] base64 transfer encoding",
+      "goFn": "nodemailer.Base64Wrap",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "see attached",
+          "attachments": [{ "mode": "path", "path": "fixtures/blob.bin", "contentType": "application/octet-stream" }]
+        }
+      ],
+      "note": "attachments are always base64 on both sides"
+    },
+    {
+      "id": "enc-attachment-explicit-cte-binary",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.attachments[].contentTransferEncoding",
+      "goFn": "—",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "see attached",
+          "attachments": [
+            {
+              "filename": "raw.bin",
+              "mode": "string",
+              "content": "raw bytes here",
+              "contentType": "application/octet-stream",
+              "contentTransferEncoding": "binary"
+            }
+          ]
+        }
+      ],
+      "note": "the Go port has no per-attachment contentTransferEncoding override"
+    },
+    {
+      "id": "enc-attachment-explicit-cte-7bit",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.attachments[].contentTransferEncoding",
+      "goFn": "—",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "see attached",
+          "attachments": [
+            {
+              "filename": "plain.txt",
+              "mode": "string",
+              "content": "seven bit safe",
+              "contentType": "text/plain",
+              "contentTransferEncoding": "7bit"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "enc-long-base64-wrap",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.attachments[] base64 line wrapping",
+      "goFn": "nodemailer.Base64Wrap",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "see attached",
+          "attachments": [
+            {
+              "filename": "long.bin",
+              "mode": "buffer",
+              "contentType": "application/octet-stream",
+              "content": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8gISIjJCUmJygpKissLS4vMDEyMzQ1Njc4OTo7PD0+P0BBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWltcXV5fYGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6e3x9fn+AgYKDhIWGh4iJiouMjY6PkJGSk5SVlpeYmZqbnJ2en6ChoqOkpaanqKmqq6ytrq+wsbKztLW2t7i5uru8vb6/wMHCw8TFxsfIycrLzM3Oz9DR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/w=="
+            }
+          ]
+        }
+      ],
+      "note": "256 bytes: base64 must wrap at 76 columns on both sides"
+    }
+  ]
+}

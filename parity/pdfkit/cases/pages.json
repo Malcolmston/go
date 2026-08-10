@@ -1,0 +1,101 @@
+{
+  "group": "pages",
+  "upstream": "pdfkit@0.15.1",
+  "cases": [
+    {
+      "id": "page-single-a4",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.addPage",
+      "goFn": "Document.AddPage",
+      "note": "one empty A4 page: header, page tree and MediaBox only",
+      "args": [{"pages": [{"size": "A4", "ops": []}]}]
+    },
+    {
+      "id": "page-letter",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.addPage",
+      "goFn": "Document.AddPage",
+      "args": [{"pages": [{"size": "LETTER", "ops": []}]}]
+    },
+    {
+      "id": "page-sizes-all",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.addPage",
+      "goFn": "Document.AddPage",
+      "note": "every named size the port ships",
+      "args": [{"pages": [
+        {"size": "A3", "ops": []},
+        {"size": "A4", "ops": []},
+        {"size": "A5", "ops": []},
+        {"size": "LETTER", "ops": []},
+        {"size": "LEGAL", "ops": []},
+        {"size": "TABLOID", "ops": []}
+      ]}]
+    },
+    {
+      "id": "page-custom-size",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.addPage",
+      "goFn": "pdfkit.Custom",
+      "args": [{"pages": [{"size": [200, 400.5], "ops": []}]}]
+    },
+    {
+      "id": "page-landscape",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.addPage#layout",
+      "goFn": "PageSize.Landscape",
+      "args": [{"pages": [{"size": "A4", "layout": "landscape", "ops": []}]}]
+    },
+    {
+      "id": "page-margin-uniform",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.addPage#margin",
+      "goFn": "—",
+      "note": "the port has no margin option at all",
+      "args": [{"pages": [{"size": "A4", "margin": 20, "ops": []}]}]
+    },
+    {
+      "id": "page-margins-per-side",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.addPage#margins",
+      "goFn": "—",
+      "note": "the port has no per-side margins",
+      "args": [{"pages": [{"size": "A4", "margins": {"top": 10, "bottom": 20, "left": 30, "right": 40}, "ops": []}]}]
+    },
+    {
+      "id": "page-rotate-90",
+      "fn": "buildPDF",
+      "upstreamFn": "—",
+      "goFn": "—",
+      "note": "neither side exposes the page /Rotate attribute",
+      "args": [{"pages": [{"size": "A4", "rotate": 90, "ops": []}]}]
+    },
+    {
+      "id": "page-none",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.addPage",
+      "goFn": "Document.AddPage",
+      "note": "both sides must reject a document with no pages",
+      "args": [{"pages": []}]
+    },
+    {
+      "id": "page-unknown-size",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.addPage",
+      "goFn": "Document.AddPage",
+      "note": "both sides must reject an unknown named size",
+      "args": [{"pages": [{"size": "NOT-A-SIZE", "ops": []}]}]
+    },
+    {
+      "id": "page-many",
+      "fn": "buildPDF",
+      "upstreamFn": "PDFDocument.addPage",
+      "goFn": "Document.AddPage",
+      "args": [{"pages": [
+        {"size": "A4", "ops": [{"op": "rect", "args": [10, 10, 20, 20]}, {"op": "fill"}]},
+        {"size": "A5", "ops": [{"op": "rect", "args": [10, 10, 30, 30]}, {"op": "stroke"}]},
+        {"size": "A4", "layout": "landscape", "ops": []}
+      ]}]
+    }
+  ]
+}

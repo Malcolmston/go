@@ -1,0 +1,147 @@
+{
+  "group": "security",
+  "upstream": "commonmark@0.31.2",
+  "source": "hand-written: hostile inputs, not part of spec.json (the specification says nothing about sanitising)",
+  "note": "Two halves. `render` asks what each side does with its DEFAULT settings, where parity is expected and both are unsafe. `render_safe` asks whether a sanitising mode exists at all: commonmark.js has HtmlRenderer({safe:true}), the Go port v0.1.0 has nothing, so every render_safe case is a real mismatch, not a deviation.",
+  "cases": [
+    {
+      "id": "sec-js-scheme-link",
+      "fn": "render",
+      "args": ["[x](javascript:alert(1))\n"],
+      "upstreamFn": "new HtmlRenderer().render(...)",
+      "goFn": "markdown.Render",
+      "note": "default: both emit a live javascript: href"
+    },
+    {
+      "id": "sec-js-scheme-link-mixed-case",
+      "fn": "render",
+      "args": ["[x](JaVaScRiPt:alert(1))\n"],
+      "upstreamFn": "new HtmlRenderer().render(...)",
+      "goFn": "markdown.Render"
+    },
+    {
+      "id": "sec-js-scheme-entity-obfuscated",
+      "fn": "render",
+      "args": ["[x](java&#115;cript:alert(1))\n"],
+      "upstreamFn": "new HtmlRenderer().render(...)",
+      "goFn": "markdown.Render",
+      "note": "character reference decoded before the href is written"
+    },
+    {
+      "id": "sec-js-scheme-tab-obfuscated",
+      "fn": "render",
+      "args": ["[x](\tjavascript:alert(1))\n"],
+      "upstreamFn": "new HtmlRenderer().render(...)",
+      "goFn": "markdown.Render"
+    },
+    {
+      "id": "sec-vbscript-scheme-link",
+      "fn": "render",
+      "args": ["[x](vbscript:msgbox(1))\n"],
+      "upstreamFn": "new HtmlRenderer().render(...)",
+      "goFn": "markdown.Render"
+    },
+    {
+      "id": "sec-data-scheme-link",
+      "fn": "render",
+      "args": ["[x](data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==)\n"],
+      "upstreamFn": "new HtmlRenderer().render(...)",
+      "goFn": "markdown.Render"
+    },
+    {
+      "id": "sec-js-scheme-image",
+      "fn": "render",
+      "args": ["![i](javascript:alert(1))\n"],
+      "upstreamFn": "new HtmlRenderer().render(...)",
+      "goFn": "markdown.Render"
+    },
+    {
+      "id": "sec-js-scheme-reference-def",
+      "fn": "render",
+      "args": ["[ref]\n\n[ref]: javascript:alert(1)\n"],
+      "upstreamFn": "new HtmlRenderer().render(...)",
+      "goFn": "markdown.Render"
+    },
+    {
+      "id": "sec-raw-script-block",
+      "fn": "render",
+      "args": ["<script>alert(1)</script>\n"],
+      "upstreamFn": "new HtmlRenderer().render(...)",
+      "goFn": "markdown.Render",
+      "note": "default HTML:true passes raw HTML straight through"
+    },
+    {
+      "id": "sec-raw-img-onerror",
+      "fn": "render",
+      "args": ["<img src=x onerror=alert(1)>\n"],
+      "upstreamFn": "new HtmlRenderer().render(...)",
+      "goFn": "markdown.Render"
+    },
+    {
+      "id": "sec-raw-iframe-js-src",
+      "fn": "render",
+      "args": ["<iframe src=\"javascript:alert(1)\"></iframe>\n"],
+      "upstreamFn": "new HtmlRenderer().render(...)",
+      "goFn": "markdown.Render"
+    },
+    {
+      "id": "sec-raw-inline-event-handler",
+      "fn": "render",
+      "args": ["a <b onclick=\"alert(1)\">c</b>\n"],
+      "upstreamFn": "new HtmlRenderer().render(...)",
+      "goFn": "markdown.Render"
+    },
+    {
+      "id": "sec-safe-js-scheme-link",
+      "fn": "render_safe",
+      "args": ["[x](javascript:alert(1))\n"],
+      "upstreamFn": "new HtmlRenderer({safe: true}).render(...)",
+      "goFn": "—",
+      "note": "upstream drops the href; the port has no equivalent option"
+    },
+    {
+      "id": "sec-safe-vbscript-scheme-link",
+      "fn": "render_safe",
+      "args": ["[x](vbscript:msgbox(1))\n"],
+      "upstreamFn": "new HtmlRenderer({safe: true}).render(...)",
+      "goFn": "—"
+    },
+    {
+      "id": "sec-safe-data-scheme-link",
+      "fn": "render_safe",
+      "args": ["[x](data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==)\n"],
+      "upstreamFn": "new HtmlRenderer({safe: true}).render(...)",
+      "goFn": "—"
+    },
+    {
+      "id": "sec-safe-js-scheme-image",
+      "fn": "render_safe",
+      "args": ["![i](javascript:alert(1))\n"],
+      "upstreamFn": "new HtmlRenderer({safe: true}).render(...)",
+      "goFn": "—"
+    },
+    {
+      "id": "sec-safe-raw-script-block",
+      "fn": "render_safe",
+      "args": ["<script>alert(1)</script>\n"],
+      "upstreamFn": "new HtmlRenderer({safe: true}).render(...)",
+      "goFn": "—",
+      "note": "upstream replaces the block with <!-- raw HTML omitted -->"
+    },
+    {
+      "id": "sec-safe-raw-inline-event-handler",
+      "fn": "render_safe",
+      "args": ["a <b onclick=\"alert(1)\">c</b>\n"],
+      "upstreamFn": "new HtmlRenderer({safe: true}).render(...)",
+      "goFn": "—"
+    },
+    {
+      "id": "sec-safe-http-link-untouched",
+      "fn": "render_safe",
+      "args": ["[x](https://example.com/a?b=1&c=2)\n"],
+      "upstreamFn": "new HtmlRenderer({safe: true}).render(...)",
+      "goFn": "—",
+      "note": "safe mode leaves benign links alone, so it is a usable default"
+    }
+  ]
+}

@@ -1,0 +1,5216 @@
+{
+  "group": "suite-accept",
+  "upstream": "yaml@2.6.1+yaml-test-suite@da267a5c4782e7361e82889e76c0dc7df0e1e870",
+  "cases": [
+    {
+      "id": "accept-229Q",
+      "fn": "parse",
+      "args": [
+        "-\n  name: Mark McGwire\n  hr:   65\n  avg:  0.278\n-\n  name: Sammy Sosa\n  hr:   63\n  avg:  0.288\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "229Q",
+      "suiteTags": [
+        "sequence",
+        "mapping",
+        "spec"
+      ],
+      "note": "Spec Example 2.4. Sequence of Mappings"
+    },
+    {
+      "id": "accept-26DV",
+      "fn": "parse",
+      "args": [
+        "\"top1\" : \n  \"key1\" : &alias1 scalar1\n'top2' : \n  'key2' : &alias2 scalar2\ntop3: &node3 \n  *alias1 : scalar3\ntop4: \n  *alias2 : scalar4\ntop5   :    \n  scalar5\ntop6: \n  &anchor6 'key6' : scalar6\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "26DV",
+      "suiteTags": [
+        "alias",
+        "mapping",
+        "whitespace"
+      ],
+      "note": "Whitespace around colon in mappings"
+    },
+    {
+      "id": "accept-27NA",
+      "fn": "parse",
+      "args": [
+        "%YAML 1.2\n--- text\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "27NA",
+      "suiteTags": [
+        "spec",
+        "directive",
+        "1.3-err"
+      ],
+      "note": "Spec Example 5.9. Directive Indicator"
+    },
+    {
+      "id": "accept-2AUY",
+      "fn": "parse",
+      "args": [
+        " - !!str a\n - b\n - !!int 42\n - d\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "2AUY",
+      "suiteTags": [
+        "tag",
+        "sequence"
+      ],
+      "note": "Tags in Block Sequence"
+    },
+    {
+      "id": "accept-2EBW",
+      "fn": "parse",
+      "args": [
+        "a!\"#$%&'()*+,-./09:;<=>?@AZ[\\]^_`az{|}~: safe\n?foo: safe question mark\n:foo: safe colon\n-foo: safe dash\nthis is#not: a comment\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "2EBW",
+      "suiteTags": [
+        "mapping",
+        "scalar"
+      ],
+      "note": "Allowed characters in keys"
+    },
+    {
+      "id": "accept-2G84-02",
+      "fn": "parse",
+      "args": [
+        "--- |1-"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "2G84-02",
+      "suiteTags": [
+        "literal",
+        "scalar"
+      ],
+      "note": "Literal modifers"
+    },
+    {
+      "id": "accept-2G84-03",
+      "fn": "parse",
+      "args": [
+        "--- |1+"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "2G84-03",
+      "suiteTags": [
+        "literal",
+        "scalar"
+      ],
+      "note": "Literal modifers"
+    },
+    {
+      "id": "accept-2JQS",
+      "fn": "parse",
+      "args": [
+        ": a\n: b\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "2JQS",
+      "suiteTags": [
+        "duplicate-key",
+        "mapping",
+        "empty-key"
+      ],
+      "note": "Block Mapping with Missing Keys"
+    },
+    {
+      "id": "accept-2LFX",
+      "fn": "parse",
+      "args": [
+        "%FOO  bar baz # Should be ignored\n              # with a warning.\n---\n\"foo\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "2LFX",
+      "suiteTags": [
+        "spec",
+        "directive",
+        "header",
+        "double",
+        "1.3-mod"
+      ],
+      "note": "Spec Example 6.13. Reserved Directives [1.3]"
+    },
+    {
+      "id": "accept-2SXE",
+      "fn": "parse",
+      "args": [
+        "&a: key: &a value\nfoo:\n  *a:\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "2SXE",
+      "suiteTags": [
+        "alias",
+        "edge",
+        "mapping",
+        "1.3-err"
+      ],
+      "note": "Anchors With Colon in Name"
+    },
+    {
+      "id": "accept-2XXW",
+      "fn": "parse",
+      "args": [
+        "# Sets are represented as a\n# Mapping where each key is\n# associated with a null value\n--- !!set\n? Mark McGwire\n? Sammy Sosa\n? Ken Griff\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "2XXW",
+      "suiteTags": [
+        "spec",
+        "mapping",
+        "unknown-tag",
+        "explicit-key"
+      ],
+      "note": "Spec Example 2.25. Unordered Sets"
+    },
+    {
+      "id": "accept-33X3",
+      "fn": "parse",
+      "args": [
+        "---\n- !!int 1\n- !!int -2\n- !!int 33\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "33X3",
+      "suiteTags": [
+        "sequence",
+        "tag"
+      ],
+      "note": "Three explicit integers in a block sequence"
+    },
+    {
+      "id": "accept-35KP",
+      "fn": "parse",
+      "args": [
+        "--- !!map\n? a\n: b\n--- !!seq\n- !!str c\n--- !!str\nd\ne\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "35KP",
+      "suiteTags": [
+        "explicit-key",
+        "header",
+        "mapping",
+        "tag"
+      ],
+      "note": "Tags for Root Objects"
+    },
+    {
+      "id": "accept-36F6",
+      "fn": "parse",
+      "args": [
+        "---\nplain: a\n b\n\n c\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "36F6",
+      "suiteTags": [
+        "mapping",
+        "scalar"
+      ],
+      "note": "Multiline plain scalar with empty line"
+    },
+    {
+      "id": "accept-3ALJ",
+      "fn": "parse",
+      "args": [
+        "- - s1_i1\n  - s1_i2\n- s2\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "3ALJ",
+      "suiteTags": [
+        "sequence"
+      ],
+      "note": "Block Sequence in Block Sequence"
+    },
+    {
+      "id": "accept-3GZX",
+      "fn": "parse",
+      "args": [
+        "First occurrence: &anchor Foo\nSecond occurrence: *anchor\nOverride anchor: &anchor Bar\nReuse anchor: *anchor\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "3GZX",
+      "suiteTags": [
+        "mapping",
+        "spec",
+        "alias"
+      ],
+      "note": "Spec Example 7.1. Alias Nodes"
+    },
+    {
+      "id": "accept-3MYT",
+      "fn": "parse",
+      "args": [
+        "---\nk:#foo\n &a !t s\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "3MYT",
+      "suiteTags": [
+        "scalar"
+      ],
+      "note": "Plain Scalar looking like key, comment, anchor and tag"
+    },
+    {
+      "id": "accept-3R3P",
+      "fn": "parse",
+      "args": [
+        "&sequence\n- a\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "3R3P",
+      "suiteTags": [
+        "anchor",
+        "sequence"
+      ],
+      "note": "Single block sequence with anchor"
+    },
+    {
+      "id": "accept-3RLN-00",
+      "fn": "parse",
+      "args": [
+        "\"1 leading\n    \\ttab\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "3RLN-00",
+      "suiteTags": [
+        "double",
+        "whitespace"
+      ],
+      "note": "Leading tabs in double quoted"
+    },
+    {
+      "id": "accept-3RLN-01",
+      "fn": "parse",
+      "args": [
+        "\"2 leading\n    \\\ttab\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "3RLN-01",
+      "suiteTags": [
+        "double",
+        "whitespace"
+      ],
+      "note": "Leading tabs in double quoted"
+    },
+    {
+      "id": "accept-3RLN-02",
+      "fn": "parse",
+      "args": [
+        "\"3 leading\n    \ttab\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "3RLN-02",
+      "suiteTags": [
+        "double",
+        "whitespace"
+      ],
+      "note": "Leading tabs in double quoted"
+    },
+    {
+      "id": "accept-3RLN-03",
+      "fn": "parse",
+      "args": [
+        "\"4 leading\n    \\t  tab\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "3RLN-03",
+      "suiteTags": [
+        "double",
+        "whitespace"
+      ],
+      "note": "Leading tabs in double quoted"
+    },
+    {
+      "id": "accept-3RLN-04",
+      "fn": "parse",
+      "args": [
+        "\"5 leading\n    \\\t  tab\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "3RLN-04",
+      "suiteTags": [
+        "double",
+        "whitespace"
+      ],
+      "note": "Leading tabs in double quoted"
+    },
+    {
+      "id": "accept-3RLN-05",
+      "fn": "parse",
+      "args": [
+        "\"6 leading\n    \t  tab\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "3RLN-05",
+      "suiteTags": [
+        "double",
+        "whitespace"
+      ],
+      "note": "Leading tabs in double quoted"
+    },
+    {
+      "id": "accept-3UYS",
+      "fn": "parse",
+      "args": [
+        "escaped slash: \"a\\/b\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "3UYS",
+      "suiteTags": [
+        "double"
+      ],
+      "note": "Escaped slash in double quotes"
+    },
+    {
+      "id": "accept-4ABK",
+      "fn": "parse",
+      "args": [
+        "{\nunquoted : \"separate\",\nhttp://foo.com,\nomitted value:,\n}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "4ABK",
+      "suiteTags": [
+        "flow",
+        "mapping"
+      ],
+      "note": "Flow Mapping Separate Values"
+    },
+    {
+      "id": "accept-4CQQ",
+      "fn": "parse",
+      "args": [
+        "plain:\n  This unquoted scalar\n  spans many lines.\n\nquoted: \"So does this\n  quoted scalar.\\n\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "4CQQ",
+      "suiteTags": [
+        "spec",
+        "scalar"
+      ],
+      "note": "Spec Example 2.18. Multi-line Flow Scalars"
+    },
+    {
+      "id": "accept-4FJ6",
+      "fn": "parse",
+      "args": [
+        "---\n[\n  [ a, [ [[b,c]]: d, e]]: 23\n]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "4FJ6",
+      "suiteTags": [
+        "complex-key",
+        "flow",
+        "mapping",
+        "sequence"
+      ],
+      "note": "Nested implicit complex keys"
+    },
+    {
+      "id": "accept-4GC6",
+      "fn": "parse",
+      "args": [
+        "'here''s to \"quotes\"'\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "4GC6",
+      "suiteTags": [
+        "spec",
+        "scalar",
+        "1.3-err"
+      ],
+      "note": "Spec Example 7.7. Single Quoted Characters"
+    },
+    {
+      "id": "accept-4MUZ-00",
+      "fn": "parse",
+      "args": [
+        "{\"foo\"\n: \"bar\"}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "4MUZ-00",
+      "suiteTags": [
+        "flow",
+        "mapping"
+      ],
+      "note": "Flow mapping colon on line after key"
+    },
+    {
+      "id": "accept-4MUZ-01",
+      "fn": "parse",
+      "args": [
+        "{\"foo\"\n: bar}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "4MUZ-01",
+      "suiteTags": [
+        "flow",
+        "mapping"
+      ],
+      "note": "Flow mapping colon on line after key"
+    },
+    {
+      "id": "accept-4MUZ-02",
+      "fn": "parse",
+      "args": [
+        "{foo\n: bar}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "4MUZ-02",
+      "suiteTags": [
+        "flow",
+        "mapping"
+      ],
+      "note": "Flow mapping colon on line after key"
+    },
+    {
+      "id": "accept-4Q9F",
+      "fn": "parse",
+      "args": [
+        "--- >\n ab\n cd\n \n ef\n\n\n gh\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "4Q9F",
+      "suiteTags": [
+        "folded",
+        "scalar",
+        "1.3-mod",
+        "whitespace"
+      ],
+      "note": "Folded Block Scalar [1.3]"
+    },
+    {
+      "id": "accept-4QFQ",
+      "fn": "parse",
+      "args": [
+        "- |\n detected\n- >\n \n  \n  # detected\n- |1\n  explicit\n- >\n detected\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "4QFQ",
+      "suiteTags": [
+        "spec",
+        "literal",
+        "folded",
+        "scalar",
+        "libyaml-err",
+        "1.3-mod",
+        "whitespace"
+      ],
+      "note": "Spec Example 8.2. Block Indentation Indicator [1.3]"
+    },
+    {
+      "id": "accept-4RWC",
+      "fn": "parse",
+      "args": [
+        "  [1, 2, 3]  \n  "
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "4RWC",
+      "suiteTags": [
+        "flow",
+        "whitespace"
+      ],
+      "note": "Trailing spaces after flow collection"
+    },
+    {
+      "id": "accept-4UYU",
+      "fn": "parse",
+      "args": [
+        "\"foo: bar\\\": baz\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "4UYU",
+      "suiteTags": [
+        "mapping",
+        "scalar",
+        "1.3-err"
+      ],
+      "note": "Colon in Double Quoted String"
+    },
+    {
+      "id": "accept-4V8U",
+      "fn": "parse",
+      "args": [
+        "---\nplain\\value\\with\\backslashes\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "4V8U",
+      "suiteTags": [
+        "scalar"
+      ],
+      "note": "Plain scalar with backslashes"
+    },
+    {
+      "id": "accept-4WA9",
+      "fn": "parse",
+      "args": [
+        "- aaa: |2\n    xxx\n  bbb: |\n    xxx\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "4WA9",
+      "suiteTags": [
+        "indent",
+        "literal"
+      ],
+      "note": "Literal scalars"
+    },
+    {
+      "id": "accept-4ZYM",
+      "fn": "parse",
+      "args": [
+        "plain: text\n  lines\nquoted: \"text\n  \tlines\"\nblock: |\n  text\n   \tlines\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "4ZYM",
+      "suiteTags": [
+        "spec",
+        "scalar",
+        "literal",
+        "double",
+        "upto-1.2",
+        "whitespace"
+      ],
+      "note": "Spec Example 6.4. Line Prefixes"
+    },
+    {
+      "id": "accept-52DL",
+      "fn": "parse",
+      "args": [
+        "---\n! a\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "52DL",
+      "suiteTags": [
+        "tag",
+        "1.3-mod"
+      ],
+      "note": "Explicit Non-Specific Tag [1.3]"
+    },
+    {
+      "id": "accept-54T7",
+      "fn": "parse",
+      "args": [
+        "{foo: you, bar: far}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "54T7",
+      "suiteTags": [
+        "flow",
+        "mapping"
+      ],
+      "note": "Flow Mapping"
+    },
+    {
+      "id": "accept-565N",
+      "fn": "parse",
+      "args": [
+        "canonical: !!binary \"\\\n R0lGODlhDAAMAIQAAP//9/X17unp5WZmZgAAAOfn515eXvPz7Y6OjuDg4J+fn5\\\n OTk6enp56enmlpaWNjY6Ojo4SEhP/++f/++f/++f/++f/++f/++f/++f/++f/+\\\n +f/++f/++f/++f/++f/++SH+Dk1hZGUgd2l0aCBHSU1QACwAAAAADAAMAAAFLC\\\n AgjoEwnuNAFOhpEMTRiggcz4BNJHrv/zCFcLiwMWYNG84BwwEeECcgggoBADs=\"\ngeneric: !!binary |\n R0lGODlhDAAMAIQAAP//9/X17unp5WZmZgAAAOfn515eXvPz7Y6OjuDg4J+fn5\n OTk6enp56enmlpaWNjY6Ojo4SEhP/++f/++f/++f/++f/++f/++f/++f/++f/+\n +f/++f/++f/++f/++f/++SH+Dk1hZGUgd2l0aCBHSU1QACwAAAAADAAMAAAFLC\n AgjoEwnuNAFOhpEMTRiggcz4BNJHrv/zCFcLiwMWYNG84BwwEeECcgggoBADs=\ndescription:\n The binary value above is a tiny arrow encoded as a gif image.\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "565N",
+      "suiteTags": [
+        "tag",
+        "unknown-tag"
+      ],
+      "note": "Construct Binary"
+    },
+    {
+      "id": "accept-57H4",
+      "fn": "parse",
+      "args": [
+        "sequence: !!seq\n- entry\n- !!seq\n - nested\nmapping: !!map\n foo: bar\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "57H4",
+      "suiteTags": [
+        "sequence",
+        "mapping",
+        "tag"
+      ],
+      "note": "Spec Example 8.22. Block Collection Nodes"
+    },
+    {
+      "id": "accept-58MP",
+      "fn": "parse",
+      "args": [
+        "{x: :x}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "58MP",
+      "suiteTags": [
+        "edge",
+        "flow",
+        "mapping"
+      ],
+      "note": "Flow mapping edge cases"
+    },
+    {
+      "id": "accept-5BVJ",
+      "fn": "parse",
+      "args": [
+        "literal: |\n  some\n  text\nfolded: >\n  some\n  text\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "5BVJ",
+      "suiteTags": [
+        "spec",
+        "literal",
+        "folded",
+        "scalar"
+      ],
+      "note": "Spec Example 5.7. Block Scalar Indicators"
+    },
+    {
+      "id": "accept-5C5M",
+      "fn": "parse",
+      "args": [
+        "- { one : two , three: four , }\n- {five: six,seven : eight}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "5C5M",
+      "suiteTags": [
+        "spec",
+        "flow",
+        "mapping"
+      ],
+      "note": "Spec Example 7.15. Flow Mappings"
+    },
+    {
+      "id": "accept-5GBF",
+      "fn": "parse",
+      "args": [
+        "Folding:\n  \"Empty line\n   \t\n  as a line feed\"\nChomping: |\n  Clipped empty lines\n \n\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "5GBF",
+      "suiteTags": [
+        "double",
+        "literal",
+        "spec",
+        "scalar",
+        "upto-1.2",
+        "whitespace"
+      ],
+      "note": "Spec Example 6.5. Empty Lines"
+    },
+    {
+      "id": "accept-5KJE",
+      "fn": "parse",
+      "args": [
+        "- [ one, two, ]\n- [three ,four]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "5KJE",
+      "suiteTags": [
+        "spec",
+        "flow",
+        "sequence"
+      ],
+      "note": "Spec Example 7.13. Flow Sequence"
+    },
+    {
+      "id": "accept-5MUD",
+      "fn": "parse",
+      "args": [
+        "---\n{ \"foo\"\n  :bar }\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "5MUD",
+      "suiteTags": [
+        "double",
+        "flow",
+        "mapping"
+      ],
+      "note": "Colon and adjacent value on next line"
+    },
+    {
+      "id": "accept-5NYZ",
+      "fn": "parse",
+      "args": [
+        "key:    # Comment\n  value\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "5NYZ",
+      "suiteTags": [
+        "mapping",
+        "spec",
+        "comment"
+      ],
+      "note": "Spec Example 6.9. Separated Comment"
+    },
+    {
+      "id": "accept-5T43",
+      "fn": "parse",
+      "args": [
+        "- { \"key\":value }\n- { \"key\"::value }\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "5T43",
+      "suiteTags": [
+        "flow",
+        "mapping",
+        "scalar"
+      ],
+      "note": "Colon at the beginning of adjacent flow scalar"
+    },
+    {
+      "id": "accept-5TYM",
+      "fn": "parse",
+      "args": [
+        "%TAG !m! !my-\n--- # Bulb here\n!m!light fluorescent\n...\n%TAG !m! !my-\n--- # Color here\n!m!light green\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "5TYM",
+      "suiteTags": [
+        "local-tag",
+        "spec",
+        "directive",
+        "tag"
+      ],
+      "note": "Spec Example 6.21. Local Tag Prefix"
+    },
+    {
+      "id": "accept-5WE3",
+      "fn": "parse",
+      "args": [
+        "? explicit key # Empty value\n? |\n  block key\n: - one # Explicit compact\n  - two # block value\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "5WE3",
+      "suiteTags": [
+        "explicit-key",
+        "spec",
+        "mapping",
+        "comment",
+        "literal",
+        "sequence"
+      ],
+      "note": "Spec Example 8.17. Explicit Block Mapping Entries"
+    },
+    {
+      "id": "accept-652Z",
+      "fn": "parse",
+      "args": [
+        "{ ?foo: bar,\nbar: 42\n}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "652Z",
+      "suiteTags": [
+        "flow"
+      ],
+      "note": "Question mark at start of flow key"
+    },
+    {
+      "id": "accept-65WH",
+      "fn": "parse",
+      "args": [
+        "- foo\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "65WH",
+      "suiteTags": [
+        "sequence"
+      ],
+      "note": "Single Entry Block Sequence"
+    },
+    {
+      "id": "accept-6BCT",
+      "fn": "parse",
+      "args": [
+        "- foo:\t bar\n- - baz\n  -\tbaz\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "6BCT",
+      "suiteTags": [
+        "spec",
+        "libyaml-err",
+        "sequence",
+        "whitespace",
+        "upto-1.2"
+      ],
+      "note": "Spec Example 6.3. Separation Spaces"
+    },
+    {
+      "id": "accept-6BFJ",
+      "fn": "parse",
+      "args": [
+        "---\n&mapping\n&key [ &item a, b, c ]: value\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "6BFJ",
+      "suiteTags": [
+        "anchor",
+        "complex-key",
+        "flow",
+        "mapping",
+        "sequence"
+      ],
+      "note": "Mapping, key and flow sequence item anchors"
+    },
+    {
+      "id": "accept-6CA3",
+      "fn": "parse",
+      "args": [
+        "\t[\n\t]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "6CA3",
+      "suiteTags": [
+        "indent",
+        "whitespace"
+      ],
+      "note": "Tab indented top flow"
+    },
+    {
+      "id": "accept-6CK3",
+      "fn": "parse",
+      "args": [
+        "%TAG !e! tag:example.com,2000:app/\n---\n- !local foo\n- !!str bar\n- !e!tag%21 baz\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "6CK3",
+      "suiteTags": [
+        "spec",
+        "tag",
+        "local-tag"
+      ],
+      "note": "Spec Example 6.26. Tag Shorthands"
+    },
+    {
+      "id": "accept-6FWR",
+      "fn": "parse",
+      "args": [
+        "--- |+\n ab\n \n  \n...\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "6FWR",
+      "suiteTags": [
+        "literal",
+        "scalar",
+        "whitespace"
+      ],
+      "note": "Block Scalar Keep"
+    },
+    {
+      "id": "accept-6H3V",
+      "fn": "parse",
+      "args": [
+        "'foo: bar\\': baz'\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "6H3V",
+      "suiteTags": [
+        "scalar",
+        "single"
+      ],
+      "note": "Backslashes in singlequotes"
+    },
+    {
+      "id": "accept-6HB6",
+      "fn": "parse",
+      "args": [
+        "  # Leading comment line spaces are\n   # neither content nor indentation.\n    \nNot indented:\n By one space: |\n    By four\n      spaces\n Flow style: [    # Leading spaces\n   By two,        # in flow style\n  Also by two,    # are neither\n  \tStill by two   # content nor\n    ]             # indentation.\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "6HB6",
+      "suiteTags": [
+        "comment",
+        "flow",
+        "spec",
+        "indent",
+        "upto-1.2",
+        "whitespace"
+      ],
+      "note": "Spec Example 6.1. Indentation Spaces"
+    },
+    {
+      "id": "accept-6JQW",
+      "fn": "parse",
+      "args": [
+        "# ASCII Art\n--- |\n  \\//||\\/||\n  // ||  ||__\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "6JQW",
+      "suiteTags": [
+        "spec",
+        "scalar",
+        "literal",
+        "comment"
+      ],
+      "note": "Spec Example 2.13. In literals, newlines are preserved"
+    },
+    {
+      "id": "accept-6JWB",
+      "fn": "parse",
+      "args": [
+        "foo: !!seq\n  - !!str a\n  - !!map\n    key: !!str value\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "6JWB",
+      "suiteTags": [
+        "mapping",
+        "sequence",
+        "tag"
+      ],
+      "note": "Tags for Block Objects"
+    },
+    {
+      "id": "accept-6KGN",
+      "fn": "parse",
+      "args": [
+        "---\na: &anchor\nb: *anchor\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "6KGN",
+      "suiteTags": [
+        "alias",
+        "anchor"
+      ],
+      "note": "Anchor for empty node"
+    },
+    {
+      "id": "accept-6LVF",
+      "fn": "parse",
+      "args": [
+        "%FOO  bar baz # Should be ignored\n              # with a warning.\n--- \"foo\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "6LVF",
+      "suiteTags": [
+        "spec",
+        "directive",
+        "header",
+        "double",
+        "1.3-err"
+      ],
+      "note": "Spec Example 6.13. Reserved Directives"
+    },
+    {
+      "id": "accept-6M2F",
+      "fn": "parse",
+      "args": [
+        "? &a a\n: &b b\n: *a\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "6M2F",
+      "suiteTags": [
+        "alias",
+        "explicit-key",
+        "empty-key"
+      ],
+      "note": "Aliases in Explicit Block Mapping"
+    },
+    {
+      "id": "accept-6PBE",
+      "fn": "parse",
+      "args": [
+        "---\n?\n- a\n- b\n:\n- c\n- d\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "6PBE",
+      "suiteTags": [
+        "explicit-key",
+        "mapping",
+        "sequence"
+      ],
+      "note": "Zero-indented sequences in explicit mapping keys"
+    },
+    {
+      "id": "accept-6SLA",
+      "fn": "parse",
+      "args": [
+        "\"foo\\nbar:baz\\tx \\\\$%^&*()x\": 23\n'x\\ny:z\\tx $%^&*()x': 24\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "6SLA",
+      "suiteTags": [
+        "mapping",
+        "single",
+        "double"
+      ],
+      "note": "Allowed characters in quoted mapping key"
+    },
+    {
+      "id": "accept-6VJK",
+      "fn": "parse",
+      "args": [
+        ">\n Sammy Sosa completed another\n fine season with great stats.\n\n   63 Home Runs\n   0.288 Batting Average\n\n What a year!\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "6VJK",
+      "suiteTags": [
+        "spec",
+        "folded",
+        "scalar",
+        "1.3-err"
+      ],
+      "note": "Spec Example 2.15. Folded newlines are preserved for \"more indented\" and blank lines"
+    },
+    {
+      "id": "accept-6WLZ",
+      "fn": "parse",
+      "args": [
+        "# Private\n---\n!foo \"bar\"\n...\n# Global\n%TAG ! tag:example.com,2000:app/\n---\n!foo \"bar\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "6WLZ",
+      "suiteTags": [
+        "local-tag",
+        "spec",
+        "directive",
+        "tag",
+        "1.3-mod"
+      ],
+      "note": "Spec Example 6.18. Primary Tag Handle [1.3]"
+    },
+    {
+      "id": "accept-6WPF",
+      "fn": "parse",
+      "args": [
+        "---\n\"\n  foo \n \n    bar\n\n  baz\n\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "6WPF",
+      "suiteTags": [
+        "double",
+        "spec",
+        "whitespace",
+        "scalar",
+        "1.3-mod"
+      ],
+      "note": "Spec Example 6.8. Flow Folding [1.3]"
+    },
+    {
+      "id": "accept-6XDY",
+      "fn": "parse",
+      "args": [
+        "---\n---\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "6XDY",
+      "suiteTags": [
+        "header"
+      ],
+      "note": "Two document start markers"
+    },
+    {
+      "id": "accept-6ZKB",
+      "fn": "parse",
+      "args": [
+        "Document\n---\n# Empty\n...\n%YAML 1.2\n---\nmatches %: 20\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "6ZKB",
+      "suiteTags": [
+        "spec",
+        "header",
+        "1.3-err"
+      ],
+      "note": "Spec Example 9.6. Stream"
+    },
+    {
+      "id": "accept-735Y",
+      "fn": "parse",
+      "args": [
+        "-\n  \"flow in block\"\n- >\n Block scalar\n- !!map # Block collection\n  foo : bar\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "735Y",
+      "suiteTags": [
+        "comment",
+        "double",
+        "spec",
+        "folded",
+        "tag"
+      ],
+      "note": "Spec Example 8.20. Block Node Types"
+    },
+    {
+      "id": "accept-74H7",
+      "fn": "parse",
+      "args": [
+        "!!str a: b\nc: !!int 42\ne: !!str f\ng: h\n!!str 23: !!bool false\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "74H7",
+      "suiteTags": [
+        "tag",
+        "mapping"
+      ],
+      "note": "Tags in Implicit Mapping"
+    },
+    {
+      "id": "accept-753E",
+      "fn": "parse",
+      "args": [
+        "--- |-\n ab\n \n \n...\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "753E",
+      "suiteTags": [
+        "literal",
+        "scalar",
+        "1.3-mod",
+        "whitespace"
+      ],
+      "note": "Block Scalar Strip [1.3]"
+    },
+    {
+      "id": "accept-7A4E",
+      "fn": "parse",
+      "args": [
+        "\" 1st non-empty\n\n 2nd non-empty \n\t3rd non-empty \"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "7A4E",
+      "suiteTags": [
+        "spec",
+        "scalar",
+        "upto-1.2",
+        "whitespace"
+      ],
+      "note": "Spec Example 7.6. Double Quoted Lines"
+    },
+    {
+      "id": "accept-7BMT",
+      "fn": "parse",
+      "args": [
+        "---\ntop1: &node1\n  &k1 key1: one\ntop2: &node2 # comment\n  key2: two\ntop3:\n  &k3 key3: three\ntop4: &node4\n  &k4 key4: four\ntop5: &node5\n  key5: five\ntop6: &val6\n  six\ntop7:\n  &val7 seven\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "7BMT",
+      "suiteTags": [
+        "anchor",
+        "comment",
+        "mapping",
+        "1.3-mod"
+      ],
+      "note": "Node and Mapping Key Anchors [1.3]"
+    },
+    {
+      "id": "accept-7BUB",
+      "fn": "parse",
+      "args": [
+        "---\nhr:\n  - Mark McGwire\n  # Following node labeled SS\n  - &SS Sammy Sosa\nrbi:\n  - *SS # Subsequent occurrence\n  - Ken Griffey\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "7BUB",
+      "suiteTags": [
+        "mapping",
+        "sequence",
+        "spec",
+        "alias"
+      ],
+      "note": "Spec Example 2.10. Node for “Sammy Sosa” appears twice in this document"
+    },
+    {
+      "id": "accept-7FWL",
+      "fn": "parse",
+      "args": [
+        "!<tag:yaml.org,2002:str> foo :\n  !<!bar> baz\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "7FWL",
+      "suiteTags": [
+        "mapping",
+        "spec",
+        "tag",
+        "unknown-tag"
+      ],
+      "note": "Spec Example 6.24. Verbatim Tags"
+    },
+    {
+      "id": "accept-7T8X",
+      "fn": "parse",
+      "args": [
+        ">\n\n folded\n line\n\n next\n line\n   * bullet\n\n   * list\n   * lines\n\n last\n line\n\n# Comment\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "7T8X",
+      "suiteTags": [
+        "spec",
+        "folded",
+        "scalar",
+        "comment",
+        "1.3-err"
+      ],
+      "note": "Spec Example 8.10. Folded Lines - 8.13. Final Empty Lines"
+    },
+    {
+      "id": "accept-7TMG",
+      "fn": "parse",
+      "args": [
+        "---\n[ word1\n# comment\n, word2]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "7TMG",
+      "suiteTags": [
+        "comment",
+        "flow",
+        "sequence"
+      ],
+      "note": "Comment in flow sequence before comma"
+    },
+    {
+      "id": "accept-7W2P",
+      "fn": "parse",
+      "args": [
+        "? a\n? b\nc:\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "7W2P",
+      "suiteTags": [
+        "explicit-key",
+        "mapping"
+      ],
+      "note": "Block Mapping with Missing Values"
+    },
+    {
+      "id": "accept-7Z25",
+      "fn": "parse",
+      "args": [
+        "---\nscalar1\n...\nkey: value\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "7Z25",
+      "suiteTags": [
+        "footer"
+      ],
+      "note": "Bare document after document end marker"
+    },
+    {
+      "id": "accept-7ZZ5",
+      "fn": "parse",
+      "args": [
+        "---\nnested sequences:\n- - - []\n- - - {}\nkey1: []\nkey2: {}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "7ZZ5",
+      "suiteTags": [
+        "flow",
+        "mapping",
+        "sequence"
+      ],
+      "note": "Empty flow collections"
+    },
+    {
+      "id": "accept-82AN",
+      "fn": "parse",
+      "args": [
+        "---word1\nword2\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "82AN",
+      "suiteTags": [
+        "scalar",
+        "1.3-err"
+      ],
+      "note": "Three dashes and content without space"
+    },
+    {
+      "id": "accept-87E4",
+      "fn": "parse",
+      "args": [
+        "'implicit block key' : [\n  'implicit flow key' : value,\n ]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "87E4",
+      "suiteTags": [
+        "spec",
+        "flow",
+        "sequence",
+        "mapping"
+      ],
+      "note": "Spec Example 7.8. Single Quoted Implicit Keys"
+    },
+    {
+      "id": "accept-8CWC",
+      "fn": "parse",
+      "args": [
+        "---\nkey ends with two colons::: value\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "8CWC",
+      "suiteTags": [
+        "mapping",
+        "scalar"
+      ],
+      "note": "Plain mapping key ending with colon"
+    },
+    {
+      "id": "accept-8G76",
+      "fn": "parse",
+      "args": [
+        "  # Comment\n   \n\n\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "8G76",
+      "suiteTags": [
+        "spec",
+        "comment",
+        "empty",
+        "scalar",
+        "whitespace"
+      ],
+      "note": "Spec Example 6.10. Comment Lines"
+    },
+    {
+      "id": "accept-8KB6",
+      "fn": "parse",
+      "args": [
+        "---\n- { single line, a: b}\n- { multi\n  line, a: b}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "8KB6",
+      "suiteTags": [
+        "flow",
+        "mapping"
+      ],
+      "note": "Multiline plain flow mapping key without value"
+    },
+    {
+      "id": "accept-8MK2",
+      "fn": "parse",
+      "args": [
+        "! a\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "8MK2",
+      "suiteTags": [
+        "tag",
+        "1.3-err"
+      ],
+      "note": "Explicit Non-Specific Tag"
+    },
+    {
+      "id": "accept-8QBE",
+      "fn": "parse",
+      "args": [
+        "key:\n - item1\n - item2\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "8QBE",
+      "suiteTags": [
+        "mapping",
+        "sequence"
+      ],
+      "note": "Block Sequence in Block Mapping"
+    },
+    {
+      "id": "accept-8UDB",
+      "fn": "parse",
+      "args": [
+        "[\n\"double\n quoted\", 'single\n           quoted',\nplain\n text, [ nested ],\nsingle: pair,\n]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "8UDB",
+      "suiteTags": [
+        "spec",
+        "flow",
+        "sequence"
+      ],
+      "note": "Spec Example 7.14. Flow Sequence Entries"
+    },
+    {
+      "id": "accept-8XYN",
+      "fn": "parse",
+      "args": [
+        "---\n- &😁 unicode anchor\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "8XYN",
+      "suiteTags": [
+        "anchor"
+      ],
+      "note": "Anchor with unicode character"
+    },
+    {
+      "id": "accept-93JH",
+      "fn": "parse",
+      "args": [
+        " - key: value\n   key2: value2\n -\n   key3: value3\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "93JH",
+      "suiteTags": [
+        "mapping",
+        "sequence"
+      ],
+      "note": "Block Mappings in Block Sequence"
+    },
+    {
+      "id": "accept-93WF",
+      "fn": "parse",
+      "args": [
+        "--- >-\n  trimmed\n  \n \n\n  as\n  space\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "93WF",
+      "suiteTags": [
+        "folded",
+        "spec",
+        "whitespace",
+        "scalar",
+        "1.3-mod"
+      ],
+      "note": "Spec Example 6.6. Line Folding [1.3]"
+    },
+    {
+      "id": "accept-96L6",
+      "fn": "parse",
+      "args": [
+        "--- >\n  Mark McGwire's\n  year was crippled\n  by a knee injury.\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "96L6",
+      "suiteTags": [
+        "spec",
+        "folded",
+        "scalar"
+      ],
+      "note": "Spec Example 2.14. In the folded scalars, newlines become spaces"
+    },
+    {
+      "id": "accept-96NN-00",
+      "fn": "parse",
+      "args": [
+        "foo: |-\n \tbar\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "96NN-00",
+      "suiteTags": [
+        "indent",
+        "literal",
+        "whitespace"
+      ],
+      "note": "Leading tab content in literals"
+    },
+    {
+      "id": "accept-96NN-01",
+      "fn": "parse",
+      "args": [
+        "foo: |-\n \tbar"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "96NN-01",
+      "suiteTags": [
+        "indent",
+        "literal",
+        "whitespace"
+      ],
+      "note": "Leading tab content in literals"
+    },
+    {
+      "id": "accept-98YD",
+      "fn": "parse",
+      "args": [
+        "# Comment only.\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "98YD",
+      "suiteTags": [
+        "spec",
+        "comment",
+        "empty"
+      ],
+      "note": "Spec Example 5.5. Comment Indicator"
+    },
+    {
+      "id": "accept-9BXH",
+      "fn": "parse",
+      "args": [
+        "---\n- { \"single line\", a: b}\n- { \"multi\n  line\", a: b}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "9BXH",
+      "suiteTags": [
+        "double",
+        "flow",
+        "mapping"
+      ],
+      "note": "Multiline doublequoted flow mapping key without value"
+    },
+    {
+      "id": "accept-9DXL",
+      "fn": "parse",
+      "args": [
+        "Mapping: Document\n---\n# Empty\n...\n%YAML 1.2\n---\nmatches %: 20\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "9DXL",
+      "suiteTags": [
+        "spec",
+        "header",
+        "1.3-mod"
+      ],
+      "note": "Spec Example 9.6. Stream [1.3]"
+    },
+    {
+      "id": "accept-9FMG",
+      "fn": "parse",
+      "args": [
+        "a:\n  b:\n    c: d\n  e:\n    f: g\nh: i\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "9FMG",
+      "suiteTags": [
+        "mapping",
+        "indent"
+      ],
+      "note": "Multi-level Mapping Indent"
+    },
+    {
+      "id": "accept-9J7A",
+      "fn": "parse",
+      "args": [
+        "foo:\n  bar: baz\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "9J7A",
+      "suiteTags": [
+        "simple",
+        "mapping",
+        "indent"
+      ],
+      "note": "Simple Mapping Indent"
+    },
+    {
+      "id": "accept-9KAX",
+      "fn": "parse",
+      "args": [
+        "---\n&a1\n!!str\nscalar1\n---\n!!str\n&a2\nscalar2\n---\n&a3\n!!str scalar3\n---\n&a4 !!map\n&a5 !!str key5: value4\n---\na6: 1\n&anchor6 b6: 2\n---\n!!map\n&a8 !!str key8: value7\n---\n!!map\n!!str &a10 key10: value9\n---\n!!str &a11\nvalue11\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "9KAX",
+      "suiteTags": [
+        "anchor",
+        "mapping",
+        "1.3-err",
+        "tag"
+      ],
+      "note": "Various combinations of tags and anchors"
+    },
+    {
+      "id": "accept-9MMW",
+      "fn": "parse",
+      "args": [
+        "- [ YAML : separate ]\n- [ \"JSON like\":adjacent ]\n- [ {JSON: like}:adjacent ]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "9MMW",
+      "suiteTags": [
+        "flow",
+        "mapping",
+        "sequence"
+      ],
+      "note": "Single Pair Implicit Entries"
+    },
+    {
+      "id": "accept-9MQT-00",
+      "fn": "parse",
+      "args": [
+        "--- \"a\n...x\nb\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "9MQT-00",
+      "suiteTags": [
+        "double",
+        "scalar"
+      ],
+      "note": "Scalar doc with '...' in content"
+    },
+    {
+      "id": "accept-9SA2",
+      "fn": "parse",
+      "args": [
+        "---\n- { \"single line\": value}\n- { \"multi\n  line\": value}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "9SA2",
+      "suiteTags": [
+        "double",
+        "flow",
+        "mapping"
+      ],
+      "note": "Multiline double quoted flow mapping key"
+    },
+    {
+      "id": "accept-9SHH",
+      "fn": "parse",
+      "args": [
+        "single: 'text'\ndouble: \"text\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "9SHH",
+      "suiteTags": [
+        "spec",
+        "scalar"
+      ],
+      "note": "Spec Example 5.8. Quoted Scalar Indicators"
+    },
+    {
+      "id": "accept-9TFX",
+      "fn": "parse",
+      "args": [
+        "---\n\" 1st non-empty\n\n 2nd non-empty \n 3rd non-empty \"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "9TFX",
+      "suiteTags": [
+        "double",
+        "spec",
+        "scalar",
+        "whitespace",
+        "1.3-mod"
+      ],
+      "note": "Spec Example 7.6. Double Quoted Lines [1.3]"
+    },
+    {
+      "id": "accept-9U5K",
+      "fn": "parse",
+      "args": [
+        "---\n# Products purchased\n- item    : Super Hoop\n  quantity: 1\n- item    : Basketball\n  quantity: 4\n- item    : Big Shoes\n  quantity: 1\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "9U5K",
+      "suiteTags": [
+        "spec",
+        "mapping",
+        "sequence"
+      ],
+      "note": "Spec Example 2.12. Compact Nested Mapping"
+    },
+    {
+      "id": "accept-9WXW",
+      "fn": "parse",
+      "args": [
+        "# Private\n!foo \"bar\"\n...\n# Global\n%TAG ! tag:example.com,2000:app/\n---\n!foo \"bar\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "9WXW",
+      "suiteTags": [
+        "local-tag",
+        "spec",
+        "directive",
+        "tag",
+        "unknown-tag",
+        "1.3-err"
+      ],
+      "note": "Spec Example 6.18. Primary Tag Handle"
+    },
+    {
+      "id": "accept-9YRD",
+      "fn": "parse",
+      "args": [
+        "a\nb  \n  c\nd\n\ne\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "9YRD",
+      "suiteTags": [
+        "scalar",
+        "whitespace",
+        "1.3-err"
+      ],
+      "note": "Multiline Scalar at Top Level"
+    },
+    {
+      "id": "accept-A2M4",
+      "fn": "parse",
+      "args": [
+        "? a\n: -\tb\n  -  -\tc\n     - d\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "A2M4",
+      "suiteTags": [
+        "explicit-key",
+        "spec",
+        "libyaml-err",
+        "indent",
+        "whitespace",
+        "sequence",
+        "upto-1.2"
+      ],
+      "note": "Spec Example 6.2. Indentation Indicators"
+    },
+    {
+      "id": "accept-A6F9",
+      "fn": "parse",
+      "args": [
+        "strip: |-\n  text\nclip: |\n  text\nkeep: |+\n  text\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "A6F9",
+      "suiteTags": [
+        "spec",
+        "literal",
+        "scalar"
+      ],
+      "note": "Spec Example 8.4. Chomping Final Line Break"
+    },
+    {
+      "id": "accept-A984",
+      "fn": "parse",
+      "args": [
+        "a: b\n c\nd:\n e\n  f\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "A984",
+      "suiteTags": [
+        "scalar"
+      ],
+      "note": "Multiline Scalar in Mapping"
+    },
+    {
+      "id": "accept-AB8U",
+      "fn": "parse",
+      "args": [
+        "- single multiline\n - sequence entry\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "AB8U",
+      "suiteTags": [
+        "scalar",
+        "sequence"
+      ],
+      "note": "Sequence entry that looks like two with wrong indentation"
+    },
+    {
+      "id": "accept-AVM7",
+      "fn": "parse",
+      "args": [
+        ""
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "AVM7",
+      "suiteTags": [
+        "edge"
+      ],
+      "note": "Empty Stream"
+    },
+    {
+      "id": "accept-AZ63",
+      "fn": "parse",
+      "args": [
+        "one:\n- 2\n- 3\nfour: 5\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "AZ63",
+      "suiteTags": [
+        "indent",
+        "mapping",
+        "sequence"
+      ],
+      "note": "Sequence With Same Indentation as Parent Mapping"
+    },
+    {
+      "id": "accept-AZW3",
+      "fn": "parse",
+      "args": [
+        "- bla\"keks: foo\n- bla]keks: foo\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "AZW3",
+      "suiteTags": [
+        "mapping",
+        "edge"
+      ],
+      "note": "Lookahead test cases"
+    },
+    {
+      "id": "accept-B3HG",
+      "fn": "parse",
+      "args": [
+        "--- >\n folded\n text\n\n\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "B3HG",
+      "suiteTags": [
+        "spec",
+        "folded",
+        "scalar",
+        "1.3-mod"
+      ],
+      "note": "Spec Example 8.9. Folded Scalar [1.3]"
+    },
+    {
+      "id": "accept-BEC7",
+      "fn": "parse",
+      "args": [
+        "%YAML 1.3 # Attempt parsing\n          # with a warning\n---\n\"foo\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "BEC7",
+      "suiteTags": [
+        "spec",
+        "directive"
+      ],
+      "note": "Spec Example 6.14. “YAML” directive"
+    },
+    {
+      "id": "accept-BU8L",
+      "fn": "parse",
+      "args": [
+        "key: &anchor\n !!map\n  a: b\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "BU8L",
+      "suiteTags": [
+        "anchor",
+        "indent",
+        "1.3-err",
+        "tag"
+      ],
+      "note": "Node Anchor and Tag on Seperate Lines"
+    },
+    {
+      "id": "accept-C2DT",
+      "fn": "parse",
+      "args": [
+        "{\n\"adjacent\":value,\n\"readable\": value,\n\"empty\":\n}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "C2DT",
+      "suiteTags": [
+        "spec",
+        "flow",
+        "mapping"
+      ],
+      "note": "Spec Example 7.18. Flow Mapping Adjacent Values"
+    },
+    {
+      "id": "accept-C4HZ",
+      "fn": "parse",
+      "args": [
+        "%TAG ! tag:clarkevans.com,2002:\n--- !shape\n  # Use the ! handle for presenting\n  # tag:clarkevans.com,2002:circle\n- !circle\n  center: &ORIGIN {x: 73, y: 129}\n  radius: 7\n- !line\n  start: *ORIGIN\n  finish: { x: 89, y: 102 }\n- !label\n  start: *ORIGIN\n  color: 0xFFEEBB\n  text: Pretty vector drawing.\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "C4HZ",
+      "suiteTags": [
+        "spec",
+        "tag",
+        "alias",
+        "directive",
+        "local-tag"
+      ],
+      "note": "Spec Example 2.24. Global Tags"
+    },
+    {
+      "id": "accept-CC74",
+      "fn": "parse",
+      "args": [
+        "%TAG !e! tag:example.com,2000:app/\n---\n!e!foo \"bar\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "CC74",
+      "suiteTags": [
+        "spec",
+        "directive",
+        "tag",
+        "unknown-tag"
+      ],
+      "note": "Spec Example 6.20. Tag Handles"
+    },
+    {
+      "id": "accept-CFD4",
+      "fn": "parse",
+      "args": [
+        "- [ : empty key ]\n- [: another empty key]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "CFD4",
+      "suiteTags": [
+        "empty-key",
+        "flow",
+        "sequence"
+      ],
+      "note": "Empty implicit key in single pair flow sequences"
+    },
+    {
+      "id": "accept-CN3R",
+      "fn": "parse",
+      "args": [
+        "&flowseq [\n a: b,\n &c c: d,\n { &e e: f },\n &g { g: h }\n]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "CN3R",
+      "suiteTags": [
+        "anchor",
+        "flow",
+        "mapping",
+        "sequence"
+      ],
+      "note": "Various location of anchors in flow sequence"
+    },
+    {
+      "id": "accept-CPZ3",
+      "fn": "parse",
+      "args": [
+        "---\ntab: \"\\tstring\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "CPZ3",
+      "suiteTags": [
+        "double",
+        "scalar"
+      ],
+      "note": "Doublequoted scalar starting with a tab"
+    },
+    {
+      "id": "accept-CT4Q",
+      "fn": "parse",
+      "args": [
+        "[\n? foo\n bar : baz\n]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "CT4Q",
+      "suiteTags": [
+        "explicit-key",
+        "spec",
+        "flow",
+        "mapping"
+      ],
+      "note": "Spec Example 7.20. Single Pair Explicit Entry"
+    },
+    {
+      "id": "accept-CUP7",
+      "fn": "parse",
+      "args": [
+        "anchored: !local &anchor value\nalias: *anchor\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "CUP7",
+      "suiteTags": [
+        "local-tag",
+        "spec",
+        "tag",
+        "alias"
+      ],
+      "note": "Spec Example 5.6. Node Property Indicators"
+    },
+    {
+      "id": "accept-D83L",
+      "fn": "parse",
+      "args": [
+        "- |2-\n  explicit indent and chomp\n- |-2\n  chomp and explicit indent\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "D83L",
+      "suiteTags": [
+        "indent",
+        "literal"
+      ],
+      "note": "Block scalar indicator order"
+    },
+    {
+      "id": "accept-D88J",
+      "fn": "parse",
+      "args": [
+        "a: [b, c]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "D88J",
+      "suiteTags": [
+        "flow",
+        "sequence",
+        "mapping"
+      ],
+      "note": "Flow Sequence in Block Mapping"
+    },
+    {
+      "id": "accept-D9TU",
+      "fn": "parse",
+      "args": [
+        "foo: bar\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "D9TU",
+      "suiteTags": [
+        "simple",
+        "mapping"
+      ],
+      "note": "Single Pair Block Mapping"
+    },
+    {
+      "id": "accept-DBG4",
+      "fn": "parse",
+      "args": [
+        "# Outside flow collection:\n- ::vector\n- \": - ()\"\n- Up, up, and away!\n- -123\n- http://example.com/foo#bar\n# Inside flow collection:\n- [ ::vector,\n  \": - ()\",\n  \"Up, up and away!\",\n  -123,\n  http://example.com/foo#bar ]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "DBG4",
+      "suiteTags": [
+        "spec",
+        "flow",
+        "sequence",
+        "scalar"
+      ],
+      "note": "Spec Example 7.10. Plain Characters"
+    },
+    {
+      "id": "accept-DC7X",
+      "fn": "parse",
+      "args": [
+        "a: b\t\nseq:\t\n - a\t\nc: d\t#X\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "DC7X",
+      "suiteTags": [
+        "comment",
+        "whitespace"
+      ],
+      "note": "Various trailing tabs"
+    },
+    {
+      "id": "accept-DE56-00",
+      "fn": "parse",
+      "args": [
+        "\"1 trailing\\t\n    tab\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "DE56-00",
+      "suiteTags": [
+        "double",
+        "whitespace"
+      ],
+      "note": "Trailing tabs in double quoted"
+    },
+    {
+      "id": "accept-DE56-01",
+      "fn": "parse",
+      "args": [
+        "\"2 trailing\\t  \n    tab\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "DE56-01",
+      "suiteTags": [
+        "double",
+        "whitespace"
+      ],
+      "note": "Trailing tabs in double quoted"
+    },
+    {
+      "id": "accept-DE56-02",
+      "fn": "parse",
+      "args": [
+        "\"3 trailing\\\t\n    tab\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "DE56-02",
+      "suiteTags": [
+        "double",
+        "whitespace"
+      ],
+      "note": "Trailing tabs in double quoted"
+    },
+    {
+      "id": "accept-DE56-03",
+      "fn": "parse",
+      "args": [
+        "\"4 trailing\\\t  \n    tab\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "DE56-03",
+      "suiteTags": [
+        "double",
+        "whitespace"
+      ],
+      "note": "Trailing tabs in double quoted"
+    },
+    {
+      "id": "accept-DE56-04",
+      "fn": "parse",
+      "args": [
+        "\"5 trailing\t\n    tab\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "DE56-04",
+      "suiteTags": [
+        "double",
+        "whitespace"
+      ],
+      "note": "Trailing tabs in double quoted"
+    },
+    {
+      "id": "accept-DE56-05",
+      "fn": "parse",
+      "args": [
+        "\"6 trailing\t  \n    tab\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "DE56-05",
+      "suiteTags": [
+        "double",
+        "whitespace"
+      ],
+      "note": "Trailing tabs in double quoted"
+    },
+    {
+      "id": "accept-DFF7",
+      "fn": "parse",
+      "args": [
+        "{\n? explicit: entry,\nimplicit: entry,\n?\n}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "DFF7",
+      "suiteTags": [
+        "explicit-key",
+        "spec",
+        "flow",
+        "mapping"
+      ],
+      "note": "Spec Example 7.16. Flow Mapping Entries"
+    },
+    {
+      "id": "accept-DHP8",
+      "fn": "parse",
+      "args": [
+        "[foo, bar, 42]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "DHP8",
+      "suiteTags": [
+        "flow",
+        "sequence"
+      ],
+      "note": "Flow Sequence"
+    },
+    {
+      "id": "accept-DK3J",
+      "fn": "parse",
+      "args": [
+        "--- >\nline1\n# no comment\nline3\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "DK3J",
+      "suiteTags": [
+        "comment",
+        "folded",
+        "scalar"
+      ],
+      "note": "Zero indented block scalar with line that looks like a comment"
+    },
+    {
+      "id": "accept-DK95-00",
+      "fn": "parse",
+      "args": [
+        "foo:\n \tbar\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "DK95-00",
+      "suiteTags": [
+        "indent",
+        "whitespace"
+      ],
+      "note": "Tabs that look like indentation"
+    },
+    {
+      "id": "accept-DK95-02",
+      "fn": "parse",
+      "args": [
+        "foo: \"bar\n  \tbaz\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "DK95-02",
+      "suiteTags": [
+        "indent",
+        "whitespace"
+      ],
+      "note": "Tabs that look like indentation"
+    },
+    {
+      "id": "accept-DK95-03",
+      "fn": "parse",
+      "args": [
+        " \t\nfoo: 1\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "DK95-03",
+      "suiteTags": [
+        "indent",
+        "whitespace"
+      ],
+      "note": "Tabs that look like indentation"
+    },
+    {
+      "id": "accept-DK95-04",
+      "fn": "parse",
+      "args": [
+        "foo: 1\n\t\nbar: 2\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "DK95-04",
+      "suiteTags": [
+        "indent",
+        "whitespace"
+      ],
+      "note": "Tabs that look like indentation"
+    },
+    {
+      "id": "accept-DK95-05",
+      "fn": "parse",
+      "args": [
+        "foo: 1\n \t\nbar: 2\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "DK95-05",
+      "suiteTags": [
+        "indent",
+        "whitespace"
+      ],
+      "note": "Tabs that look like indentation"
+    },
+    {
+      "id": "accept-DK95-07",
+      "fn": "parse",
+      "args": [
+        "%YAML 1.2\n\t\n---\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "DK95-07",
+      "suiteTags": [
+        "indent",
+        "whitespace"
+      ],
+      "note": "Tabs that look like indentation"
+    },
+    {
+      "id": "accept-DK95-08",
+      "fn": "parse",
+      "args": [
+        "foo: \"bar\n \t \t baz \t \t \"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "DK95-08",
+      "suiteTags": [
+        "indent",
+        "whitespace"
+      ],
+      "note": "Tabs that look like indentation"
+    },
+    {
+      "id": "accept-DWX9",
+      "fn": "parse",
+      "args": [
+        "|\n \n  \n  literal\n   \n  \n  text\n\n # Comment\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "DWX9",
+      "suiteTags": [
+        "spec",
+        "literal",
+        "scalar",
+        "comment",
+        "whitespace",
+        "1.3-err"
+      ],
+      "note": "Spec Example 8.8. Literal Content"
+    },
+    {
+      "id": "accept-E76Z",
+      "fn": "parse",
+      "args": [
+        "&a a: &b b\n*b : *a\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "E76Z",
+      "suiteTags": [
+        "mapping",
+        "alias"
+      ],
+      "note": "Aliases in Implicit Block Mapping"
+    },
+    {
+      "id": "accept-EHF6",
+      "fn": "parse",
+      "args": [
+        "!!map {\n  k: !!seq\n  [ a, !!str b]\n}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "EHF6",
+      "suiteTags": [
+        "tag",
+        "flow",
+        "mapping",
+        "sequence"
+      ],
+      "note": "Tags for Flow Objects"
+    },
+    {
+      "id": "accept-EX5H",
+      "fn": "parse",
+      "args": [
+        "---\na\nb  \n  c\nd\n\ne\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "EX5H",
+      "suiteTags": [
+        "scalar",
+        "whitespace",
+        "1.3-mod"
+      ],
+      "note": "Multiline Scalar at Top Level [1.3]"
+    },
+    {
+      "id": "accept-EXG3",
+      "fn": "parse",
+      "args": [
+        "---\n---word1\nword2\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "EXG3",
+      "suiteTags": [
+        "scalar",
+        "1.3-mod"
+      ],
+      "note": "Three dashes and content without space [1.3]"
+    },
+    {
+      "id": "accept-F2C7",
+      "fn": "parse",
+      "args": [
+        " - &a !!str a\n - !!int 2\n - !!int &c 4\n - &d d\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "F2C7",
+      "suiteTags": [
+        "anchor",
+        "tag"
+      ],
+      "note": "Anchors and Tags"
+    },
+    {
+      "id": "accept-F3CP",
+      "fn": "parse",
+      "args": [
+        "---\n{ a: [b, c, { d: [e, f] } ] }\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "F3CP",
+      "suiteTags": [
+        "flow",
+        "mapping",
+        "sequence"
+      ],
+      "note": "Nested flow collections on one line"
+    },
+    {
+      "id": "accept-F6MC",
+      "fn": "parse",
+      "args": [
+        "---\na: >2\n   more indented\n  regular\nb: >2\n\n\n   more indented\n  regular\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "F6MC",
+      "suiteTags": [
+        "folded",
+        "indent"
+      ],
+      "note": "More indented lines at the beginning of folded block scalars"
+    },
+    {
+      "id": "accept-F8F9",
+      "fn": "parse",
+      "args": [
+        " # Strip\n  # Comments:\nstrip: |-\n  # text\n  \n # Clip\n  # comments:\n\nclip: |\n  # text\n \n # Keep\n  # comments:\n\nkeep: |+\n  # text\n\n # Trail\n  # comments.\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "F8F9",
+      "suiteTags": [
+        "spec",
+        "literal",
+        "scalar",
+        "comment"
+      ],
+      "note": "Spec Example 8.5. Chomping Trailing Lines"
+    },
+    {
+      "id": "accept-FBC9",
+      "fn": "parse",
+      "args": [
+        "safe: a!\"#$%&'()*+,-./09:;<=>?@AZ[\\]^_`az{|}~\n     !\"#$%&'()*+,-./09:;<=>?@AZ[\\]^_`az{|}~\nsafe question mark: ?foo\nsafe colon: :foo\nsafe dash: -foo\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "FBC9",
+      "suiteTags": [
+        "scalar"
+      ],
+      "note": "Allowed characters in plain scalars"
+    },
+    {
+      "id": "accept-FH7J",
+      "fn": "parse",
+      "args": [
+        "- !!str\n-\n  !!null : a\n  b: !!str\n- !!str : !!null\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "FH7J",
+      "suiteTags": [
+        "tag",
+        "scalar"
+      ],
+      "note": "Tags on Empty Scalars"
+    },
+    {
+      "id": "accept-FP8R",
+      "fn": "parse",
+      "args": [
+        "--- >\nline1\nline2\nline3\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "FP8R",
+      "suiteTags": [
+        "folded",
+        "indent",
+        "scalar"
+      ],
+      "note": "Zero indented block scalar"
+    },
+    {
+      "id": "accept-FQ7F",
+      "fn": "parse",
+      "args": [
+        "- Mark McGwire\n- Sammy Sosa\n- Ken Griffey\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "FQ7F",
+      "suiteTags": [
+        "spec",
+        "sequence"
+      ],
+      "note": "Spec Example 2.1. Sequence of Scalars"
+    },
+    {
+      "id": "accept-FRK4",
+      "fn": "parse",
+      "args": [
+        "{\n  ? foo :,\n  : bar,\n}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "FRK4",
+      "suiteTags": [
+        "empty-key",
+        "explicit-key",
+        "spec",
+        "flow",
+        "mapping"
+      ],
+      "note": "Spec Example 7.3. Completely Empty Flow Nodes"
+    },
+    {
+      "id": "accept-FTA2",
+      "fn": "parse",
+      "args": [
+        "--- &sequence\n- a\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "FTA2",
+      "suiteTags": [
+        "anchor",
+        "header",
+        "sequence"
+      ],
+      "note": "Single block sequence with anchor and explicit document start"
+    },
+    {
+      "id": "accept-FUP4",
+      "fn": "parse",
+      "args": [
+        "[a, [b, c]]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "FUP4",
+      "suiteTags": [
+        "sequence",
+        "flow"
+      ],
+      "note": "Flow Sequence in Flow Sequence"
+    },
+    {
+      "id": "accept-G4RS",
+      "fn": "parse",
+      "args": [
+        "unicode: \"Sosa did fine.\\u263A\"\ncontrol: \"\\b1998\\t1999\\t2000\\n\"\nhex esc: \"\\x0d\\x0a is \\r\\n\"\n\nsingle: '\"Howdy!\" he cried.'\nquoted: ' # Not a ''comment''.'\ntie-fighter: '|\\-*-/|'\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "G4RS",
+      "suiteTags": [
+        "spec",
+        "scalar"
+      ],
+      "note": "Spec Example 2.17. Quoted Scalars"
+    },
+    {
+      "id": "accept-G992",
+      "fn": "parse",
+      "args": [
+        ">\n folded\n text\n\n\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "G992",
+      "suiteTags": [
+        "spec",
+        "folded",
+        "scalar",
+        "1.3-err"
+      ],
+      "note": "Spec Example 8.9. Folded Scalar"
+    },
+    {
+      "id": "accept-GH63",
+      "fn": "parse",
+      "args": [
+        "? a\n: 1.3\nfifteen: d\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "GH63",
+      "suiteTags": [
+        "explicit-key",
+        "mapping"
+      ],
+      "note": "Mixed Block Mapping (explicit to implicit)"
+    },
+    {
+      "id": "accept-H2RW",
+      "fn": "parse",
+      "args": [
+        "foo: 1\n\nbar: 2\n    \ntext: |\n  a\n    \n  b\n\n  c\n \n  d\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "H2RW",
+      "suiteTags": [
+        "comment",
+        "literal",
+        "scalar",
+        "whitespace"
+      ],
+      "note": "Blank lines"
+    },
+    {
+      "id": "accept-H3Z8",
+      "fn": "parse",
+      "args": [
+        "---\nwanted: love ♥ and peace ☮\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "H3Z8",
+      "suiteTags": [
+        "scalar"
+      ],
+      "note": "Literal unicode"
+    },
+    {
+      "id": "accept-HM87-00",
+      "fn": "parse",
+      "args": [
+        "[:x]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "HM87-00",
+      "suiteTags": [
+        "flow",
+        "scalar"
+      ],
+      "note": "Scalars in flow start with syntax char"
+    },
+    {
+      "id": "accept-HM87-01",
+      "fn": "parse",
+      "args": [
+        "[?x]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "HM87-01",
+      "suiteTags": [
+        "flow",
+        "scalar"
+      ],
+      "note": "Scalars in flow start with syntax char"
+    },
+    {
+      "id": "accept-HMK4",
+      "fn": "parse",
+      "args": [
+        "name: Mark McGwire\naccomplishment: >\n  Mark set a major league\n  home run record in 1998.\nstats: |\n  65 Home Runs\n  0.278 Batting Average\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "HMK4",
+      "suiteTags": [
+        "spec",
+        "folded",
+        "literal"
+      ],
+      "note": "Spec Example 2.16. Indentation determines scope"
+    },
+    {
+      "id": "accept-HMQ5",
+      "fn": "parse",
+      "args": [
+        "!!str &a1 \"foo\":\n  !!str bar\n&a2 baz : *a1\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "HMQ5",
+      "suiteTags": [
+        "spec",
+        "tag",
+        "alias"
+      ],
+      "note": "Spec Example 6.23. Node Properties"
+    },
+    {
+      "id": "accept-HS5T",
+      "fn": "parse",
+      "args": [
+        "1st non-empty\n\n 2nd non-empty \n\t3rd non-empty\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "HS5T",
+      "suiteTags": [
+        "spec",
+        "scalar",
+        "whitespace",
+        "upto-1.2"
+      ],
+      "note": "Spec Example 7.12. Plain Lines"
+    },
+    {
+      "id": "accept-HWV9",
+      "fn": "parse",
+      "args": [
+        "...\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "HWV9",
+      "suiteTags": [
+        "footer"
+      ],
+      "note": "Document-end marker"
+    },
+    {
+      "id": "accept-J3BT",
+      "fn": "parse",
+      "args": [
+        "# Tabs and spaces\nquoted: \"Quoted \t\"\nblock:\t|\n  void main() {\n  \tprintf(\"Hello, world!\\n\");\n  }\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "J3BT",
+      "suiteTags": [
+        "spec",
+        "whitespace",
+        "upto-1.2"
+      ],
+      "note": "Spec Example 5.12. Tabs and Spaces"
+    },
+    {
+      "id": "accept-J5UC",
+      "fn": "parse",
+      "args": [
+        "foo: blue\nbar: arrr\nbaz: jazz\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "J5UC",
+      "suiteTags": [
+        "mapping"
+      ],
+      "note": "Multiple Pair Block Mapping"
+    },
+    {
+      "id": "accept-J7PZ",
+      "fn": "parse",
+      "args": [
+        "# The !!omap tag is one of the optional types\n# introduced for YAML 1.1. In 1.2, it is not\n# part of the standard tags and should not be\n# enabled by default.\n# Ordered maps are represented as\n# A sequence of mappings, with\n# each mapping having one key\n--- !!omap\n- Mark McGwire: 65\n- Sammy Sosa: 63\n- Ken Griffy: 58\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "J7PZ",
+      "suiteTags": [
+        "spec",
+        "mapping",
+        "tag",
+        "unknown-tag"
+      ],
+      "note": "Spec Example 2.26. Ordered Mappings"
+    },
+    {
+      "id": "accept-J7VC",
+      "fn": "parse",
+      "args": [
+        "one: 2\n\n\nthree: 4\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "J7VC",
+      "suiteTags": [
+        "whitespace",
+        "mapping"
+      ],
+      "note": "Empty Lines Between Mapping Elements"
+    },
+    {
+      "id": "accept-J9HZ",
+      "fn": "parse",
+      "args": [
+        "---\nhr: # 1998 hr ranking\n  - Mark McGwire\n  - Sammy Sosa\nrbi:\n  # 1998 rbi ranking\n  - Sammy Sosa\n  - Ken Griffey\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "J9HZ",
+      "suiteTags": [
+        "mapping",
+        "sequence",
+        "spec",
+        "comment"
+      ],
+      "note": "Spec Example 2.9. Single Document with Two Comments"
+    },
+    {
+      "id": "accept-JEF9-00",
+      "fn": "parse",
+      "args": [
+        "- |+\n\n\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "JEF9-00",
+      "suiteTags": [
+        "literal"
+      ],
+      "note": "Trailing whitespace in streams"
+    },
+    {
+      "id": "accept-JEF9-01",
+      "fn": "parse",
+      "args": [
+        "- |+\n   \n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "JEF9-01",
+      "suiteTags": [
+        "literal"
+      ],
+      "note": "Trailing whitespace in streams"
+    },
+    {
+      "id": "accept-JEF9-02",
+      "fn": "parse",
+      "args": [
+        "- |+\n   "
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "JEF9-02",
+      "suiteTags": [
+        "literal"
+      ],
+      "note": "Trailing whitespace in streams"
+    },
+    {
+      "id": "accept-JHB9",
+      "fn": "parse",
+      "args": [
+        "# Ranking of 1998 home runs\n---\n- Mark McGwire\n- Sammy Sosa\n- Ken Griffey\n\n# Team ranking\n---\n- Chicago Cubs\n- St Louis Cardinals\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "JHB9",
+      "suiteTags": [
+        "spec",
+        "header"
+      ],
+      "note": "Spec Example 2.7. Two Documents in a Stream"
+    },
+    {
+      "id": "accept-JQ4R",
+      "fn": "parse",
+      "args": [
+        "block sequence:\n  - one\n  - two : three\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "JQ4R",
+      "suiteTags": [
+        "mapping",
+        "spec",
+        "sequence"
+      ],
+      "note": "Spec Example 8.14. Block Sequence"
+    },
+    {
+      "id": "accept-JR7V",
+      "fn": "parse",
+      "args": [
+        "- a?string\n- another ? string\n- key: value?\n- [a?string]\n- [another ? string]\n- {key: value? }\n- {key: value?}\n- {key?: value }\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "JR7V",
+      "suiteTags": [
+        "flow",
+        "scalar"
+      ],
+      "note": "Question marks in scalars"
+    },
+    {
+      "id": "accept-JS2J",
+      "fn": "parse",
+      "args": [
+        "First occurrence: &anchor Value\nSecond occurrence: *anchor\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "JS2J",
+      "suiteTags": [
+        "spec",
+        "alias"
+      ],
+      "note": "Spec Example 6.29. Node Anchors"
+    },
+    {
+      "id": "accept-JTV5",
+      "fn": "parse",
+      "args": [
+        "? a\n  true\n: null\n  d\n? e\n  42\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "JTV5",
+      "suiteTags": [
+        "explicit-key",
+        "mapping",
+        "scalar"
+      ],
+      "note": "Block Mapping with Multiline Scalars"
+    },
+    {
+      "id": "accept-K3WX",
+      "fn": "parse",
+      "args": [
+        "---\n{ \"foo\" # comment\n  :bar }\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "K3WX",
+      "suiteTags": [
+        "comment",
+        "flow",
+        "mapping"
+      ],
+      "note": "Colon and adjacent value after comment on next line"
+    },
+    {
+      "id": "accept-K4SU",
+      "fn": "parse",
+      "args": [
+        "- foo\n- bar\n- 42\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "K4SU",
+      "suiteTags": [
+        "sequence"
+      ],
+      "note": "Multiple Entry Block Sequence"
+    },
+    {
+      "id": "accept-K527",
+      "fn": "parse",
+      "args": [
+        ">-\n  trimmed\n  \n \n\n  as\n  space\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "K527",
+      "suiteTags": [
+        "folded",
+        "spec",
+        "whitespace",
+        "scalar",
+        "1.3-err"
+      ],
+      "note": "Spec Example 6.6. Line Folding"
+    },
+    {
+      "id": "accept-K54U",
+      "fn": "parse",
+      "args": [
+        "---\tscalar\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "K54U",
+      "suiteTags": [
+        "header",
+        "whitespace"
+      ],
+      "note": "Tab after document header"
+    },
+    {
+      "id": "accept-K858",
+      "fn": "parse",
+      "args": [
+        "strip: >-\n\nclip: >\n\nkeep: |+\n\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "K858",
+      "suiteTags": [
+        "spec",
+        "folded",
+        "literal",
+        "whitespace"
+      ],
+      "note": "Spec Example 8.6. Empty Scalar Chomping"
+    },
+    {
+      "id": "accept-KH5V-00",
+      "fn": "parse",
+      "args": [
+        "\"1 inline\\ttab\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "KH5V-00",
+      "suiteTags": [
+        "double",
+        "whitespace"
+      ],
+      "note": "Inline tabs in double quoted"
+    },
+    {
+      "id": "accept-KH5V-01",
+      "fn": "parse",
+      "args": [
+        "\"2 inline\\\ttab\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "KH5V-01",
+      "suiteTags": [
+        "double",
+        "whitespace"
+      ],
+      "note": "Inline tabs in double quoted"
+    },
+    {
+      "id": "accept-KH5V-02",
+      "fn": "parse",
+      "args": [
+        "\"3 inline\ttab\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "KH5V-02",
+      "suiteTags": [
+        "double",
+        "whitespace"
+      ],
+      "note": "Inline tabs in double quoted"
+    },
+    {
+      "id": "accept-KK5P",
+      "fn": "parse",
+      "args": [
+        "complex1:\n  ? - a\ncomplex2:\n  ? - a\n  : b\ncomplex3:\n  ? - a\n  : >\n    b\ncomplex4:\n  ? >\n    a\n  :\ncomplex5:\n  ? - a\n  : - b\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "KK5P",
+      "suiteTags": [
+        "explicit-key",
+        "mapping",
+        "sequence"
+      ],
+      "note": "Various combinations of explicit block mappings"
+    },
+    {
+      "id": "accept-KMK3",
+      "fn": "parse",
+      "args": [
+        "foo:\n  bar: 1\nbaz: 2\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "KMK3",
+      "suiteTags": [
+        "mapping"
+      ],
+      "note": "Block Submapping"
+    },
+    {
+      "id": "accept-KSS4",
+      "fn": "parse",
+      "args": [
+        "--- \"quoted\nstring\"\n--- &node foo\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "KSS4",
+      "suiteTags": [
+        "anchor",
+        "header",
+        "scalar",
+        "1.3-err"
+      ],
+      "note": "Scalars on --- line"
+    },
+    {
+      "id": "accept-L24T-00",
+      "fn": "parse",
+      "args": [
+        "foo: |\n  x\n   \n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "L24T-00",
+      "suiteTags": [
+        "whitespace"
+      ],
+      "note": "Trailing line of spaces"
+    },
+    {
+      "id": "accept-L24T-01",
+      "fn": "parse",
+      "args": [
+        "foo: |\n  x\n   "
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "L24T-01",
+      "suiteTags": [
+        "whitespace"
+      ],
+      "note": "Trailing line of spaces"
+    },
+    {
+      "id": "accept-L383",
+      "fn": "parse",
+      "args": [
+        "--- foo  # comment\n--- foo  # comment\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "L383",
+      "suiteTags": [
+        "comment"
+      ],
+      "note": "Two scalar docs with trailing comments"
+    },
+    {
+      "id": "accept-L94M",
+      "fn": "parse",
+      "args": [
+        "? !!str a\n: !!int 47\n? c\n: !!str d\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "L94M",
+      "suiteTags": [
+        "explicit-key",
+        "tag",
+        "mapping"
+      ],
+      "note": "Tags in Explicit Mapping"
+    },
+    {
+      "id": "accept-L9U5",
+      "fn": "parse",
+      "args": [
+        "implicit block key : [\n  implicit flow key : value,\n ]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "L9U5",
+      "suiteTags": [
+        "spec",
+        "flow",
+        "mapping"
+      ],
+      "note": "Spec Example 7.11. Plain Implicit Keys"
+    },
+    {
+      "id": "accept-LE5A",
+      "fn": "parse",
+      "args": [
+        "- !!str \"a\"\n- 'b'\n- &anchor \"c\"\n- *anchor\n- !!str\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "LE5A",
+      "suiteTags": [
+        "spec",
+        "tag",
+        "alias"
+      ],
+      "note": "Spec Example 7.24. Flow Nodes"
+    },
+    {
+      "id": "accept-LP6E",
+      "fn": "parse",
+      "args": [
+        "- [a, b , c ]\n- { \"a\"  : b\n   , c : 'd' ,\n   e   : \"f\"\n  }\n- [      ]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "LP6E",
+      "suiteTags": [
+        "flow",
+        "scalar",
+        "whitespace"
+      ],
+      "note": "Whitespace After Scalars in Flow"
+    },
+    {
+      "id": "accept-LQZ7",
+      "fn": "parse",
+      "args": [
+        "\"implicit block key\" : [\n  \"implicit flow key\" : value,\n ]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "LQZ7",
+      "suiteTags": [
+        "spec",
+        "scalar",
+        "flow"
+      ],
+      "note": "Spec Example 7.4. Double Quoted Implicit Keys"
+    },
+    {
+      "id": "accept-LX3P",
+      "fn": "parse",
+      "args": [
+        "[flow]: block\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "LX3P",
+      "suiteTags": [
+        "complex-key",
+        "mapping",
+        "flow",
+        "sequence",
+        "1.3-err"
+      ],
+      "note": "Implicit Flow Mapping Key on one line"
+    },
+    {
+      "id": "accept-M29M",
+      "fn": "parse",
+      "args": [
+        "a: |\n ab\n \n cd\n ef\n \n\n...\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "M29M",
+      "suiteTags": [
+        "literal",
+        "scalar",
+        "whitespace"
+      ],
+      "note": "Literal Block Scalar"
+    },
+    {
+      "id": "accept-M2N8-00",
+      "fn": "parse",
+      "args": [
+        "- ? : x\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "M2N8-00",
+      "suiteTags": [
+        "edge",
+        "empty-key"
+      ],
+      "note": "Question mark edge cases"
+    },
+    {
+      "id": "accept-M2N8-01",
+      "fn": "parse",
+      "args": [
+        "? []: x\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "M2N8-01",
+      "suiteTags": [
+        "edge",
+        "empty-key"
+      ],
+      "note": "Question mark edge cases"
+    },
+    {
+      "id": "accept-M5C3",
+      "fn": "parse",
+      "args": [
+        "literal: |2\n  value\nfolded:\n   !foo\n  >1\n value\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "M5C3",
+      "suiteTags": [
+        "indent",
+        "spec",
+        "literal",
+        "folded",
+        "tag",
+        "local-tag",
+        "1.3-err"
+      ],
+      "note": "Spec Example 8.21. Block Scalar Nodes"
+    },
+    {
+      "id": "accept-M5DY",
+      "fn": "parse",
+      "args": [
+        "? - Detroit Tigers\n  - Chicago cubs\n:\n  - 2001-07-23\n\n? [ New York Yankees,\n    Atlanta Braves ]\n: [ 2001-07-02, 2001-08-12,\n    2001-08-14 ]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "M5DY",
+      "suiteTags": [
+        "complex-key",
+        "explicit-key",
+        "spec",
+        "mapping",
+        "sequence"
+      ],
+      "note": "Spec Example 2.11. Mapping between Sequences"
+    },
+    {
+      "id": "accept-M6YH",
+      "fn": "parse",
+      "args": [
+        "- |\n x\n-\n foo: bar\n-\n - 42\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "M6YH",
+      "suiteTags": [
+        "indent"
+      ],
+      "note": "Block sequence indentation"
+    },
+    {
+      "id": "accept-M7A3",
+      "fn": "parse",
+      "args": [
+        "Bare\ndocument\n...\n# No document\n...\n|\n%!PS-Adobe-2.0 # Not the first line\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "M7A3",
+      "suiteTags": [
+        "spec",
+        "footer",
+        "1.3-err"
+      ],
+      "note": "Spec Example 9.3. Bare Documents"
+    },
+    {
+      "id": "accept-M7NX",
+      "fn": "parse",
+      "args": [
+        "---\n{\n a: [\n  b, c, {\n   d: [e, f]\n  }\n ]\n}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "M7NX",
+      "suiteTags": [
+        "flow",
+        "mapping",
+        "sequence"
+      ],
+      "note": "Nested flow collections"
+    },
+    {
+      "id": "accept-M9B4",
+      "fn": "parse",
+      "args": [
+        "|\n literal\n \ttext\n\n\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "M9B4",
+      "suiteTags": [
+        "spec",
+        "literal",
+        "scalar",
+        "whitespace",
+        "1.3-err"
+      ],
+      "note": "Spec Example 8.7. Literal Scalar"
+    },
+    {
+      "id": "accept-MJS9",
+      "fn": "parse",
+      "args": [
+        ">\n  foo \n \n  \t bar\n\n  baz\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "MJS9",
+      "suiteTags": [
+        "folded",
+        "spec",
+        "scalar",
+        "whitespace",
+        "1.3-err"
+      ],
+      "note": "Spec Example 6.7. Block Folding"
+    },
+    {
+      "id": "accept-MUS6-02",
+      "fn": "parse",
+      "args": [
+        "%YAML  1.1\n---\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "MUS6-02",
+      "suiteTags": [
+        "directive"
+      ],
+      "note": "Directive variants"
+    },
+    {
+      "id": "accept-MUS6-03",
+      "fn": "parse",
+      "args": [
+        "%YAML \t 1.1\n---\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "MUS6-03",
+      "suiteTags": [
+        "directive"
+      ],
+      "note": "Directive variants"
+    },
+    {
+      "id": "accept-MUS6-04",
+      "fn": "parse",
+      "args": [
+        "%YAML 1.1  # comment\n---\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "MUS6-04",
+      "suiteTags": [
+        "directive"
+      ],
+      "note": "Directive variants"
+    },
+    {
+      "id": "accept-MUS6-05",
+      "fn": "parse",
+      "args": [
+        "%YAM 1.1\n---\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "MUS6-05",
+      "suiteTags": [
+        "directive"
+      ],
+      "note": "Directive variants"
+    },
+    {
+      "id": "accept-MUS6-06",
+      "fn": "parse",
+      "args": [
+        "%YAMLL 1.1\n---\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "MUS6-06",
+      "suiteTags": [
+        "directive"
+      ],
+      "note": "Directive variants"
+    },
+    {
+      "id": "accept-MXS3",
+      "fn": "parse",
+      "args": [
+        "- {a: b}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "MXS3",
+      "suiteTags": [
+        "mapping",
+        "sequence",
+        "flow"
+      ],
+      "note": "Flow Mapping in Block Sequence"
+    },
+    {
+      "id": "accept-MYW6",
+      "fn": "parse",
+      "args": [
+        "|-\n ab\n \n \n...\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "MYW6",
+      "suiteTags": [
+        "literal",
+        "scalar",
+        "whitespace",
+        "1.3-err"
+      ],
+      "note": "Block Scalar Strip"
+    },
+    {
+      "id": "accept-MZX3",
+      "fn": "parse",
+      "args": [
+        "- plain\n- \"double quoted\"\n- 'single quoted'\n- >\n  block\n- plain again\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "MZX3",
+      "suiteTags": [
+        "folded",
+        "scalar"
+      ],
+      "note": "Non-Specific Tags on Scalars"
+    },
+    {
+      "id": "accept-NAT4",
+      "fn": "parse",
+      "args": [
+        "---\na: '\n  '\nb: '  \n  '\nc: \"\n  \"\nd: \"  \n  \"\ne: '\n\n  '\nf: \"\n\n  \"\ng: '\n\n\n  '\nh: \"\n\n\n  \"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "NAT4",
+      "suiteTags": [
+        "double",
+        "scalar",
+        "single",
+        "whitespace"
+      ],
+      "note": "Various empty or newline only quoted strings"
+    },
+    {
+      "id": "accept-NB6Z",
+      "fn": "parse",
+      "args": [
+        "key:\n  value\n  with\n  \t\n  tabs\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "NB6Z",
+      "suiteTags": [
+        "scalar",
+        "whitespace"
+      ],
+      "note": "Multiline plain value with tabs on empty lines"
+    },
+    {
+      "id": "accept-NHX8",
+      "fn": "parse",
+      "args": [
+        ":\n\n\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "NHX8",
+      "suiteTags": [
+        "empty-key",
+        "whitespace"
+      ],
+      "note": "Empty Lines at End of Document"
+    },
+    {
+      "id": "accept-NJ66",
+      "fn": "parse",
+      "args": [
+        "---\n- { single line: value}\n- { multi\n  line: value}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "NJ66",
+      "suiteTags": [
+        "flow",
+        "mapping"
+      ],
+      "note": "Multiline plain flow mapping key"
+    },
+    {
+      "id": "accept-NKF9",
+      "fn": "parse",
+      "args": [
+        "---\nkey: value\n: empty key\n---\n{\n key: value, : empty key\n}\n---\n# empty key and value\n:\n---\n# empty key and value\n{ : }\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "NKF9",
+      "suiteTags": [
+        "empty-key",
+        "mapping"
+      ],
+      "note": "Empty keys in block and flow mapping"
+    },
+    {
+      "id": "accept-NP9H",
+      "fn": "parse",
+      "args": [
+        "\"folded \nto a space,\t\n \nto a line feed, or \t\\\n \\ \tnon-content\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "NP9H",
+      "suiteTags": [
+        "double",
+        "spec",
+        "scalar",
+        "whitespace",
+        "upto-1.2"
+      ],
+      "note": "Spec Example 7.5. Double Quoted Line Breaks"
+    },
+    {
+      "id": "accept-P2AD",
+      "fn": "parse",
+      "args": [
+        "- | # Empty header↓\n literal\n- >1 # Indentation indicator↓\n  folded\n- |+ # Chomping indicator↓\n keep\n\n- >1- # Both indicators↓\n  strip\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "P2AD",
+      "suiteTags": [
+        "spec",
+        "literal",
+        "folded",
+        "comment",
+        "scalar"
+      ],
+      "note": "Spec Example 8.1. Block Scalar Header"
+    },
+    {
+      "id": "accept-P76L",
+      "fn": "parse",
+      "args": [
+        "%TAG !! tag:example.com,2000:app/\n---\n!!int 1 - 3 # Interval, not integer\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "P76L",
+      "suiteTags": [
+        "spec",
+        "header",
+        "tag",
+        "unknown-tag"
+      ],
+      "note": "Spec Example 6.19. Secondary Tag Handle"
+    },
+    {
+      "id": "accept-P94K",
+      "fn": "parse",
+      "args": [
+        "key:    # Comment\n        # lines\n  value\n\n\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "P94K",
+      "suiteTags": [
+        "spec",
+        "comment"
+      ],
+      "note": "Spec Example 6.11. Multi-Line Comments"
+    },
+    {
+      "id": "accept-PBJ2",
+      "fn": "parse",
+      "args": [
+        "american:\n  - Boston Red Sox\n  - Detroit Tigers\n  - New York Yankees\nnational:\n  - New York Mets\n  - Chicago Cubs\n  - Atlanta Braves\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "PBJ2",
+      "suiteTags": [
+        "spec",
+        "mapping",
+        "sequence"
+      ],
+      "note": "Spec Example 2.3. Mapping Scalars to Sequences"
+    },
+    {
+      "id": "accept-PRH3",
+      "fn": "parse",
+      "args": [
+        "' 1st non-empty\n\n 2nd non-empty \n\t3rd non-empty '\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "PRH3",
+      "suiteTags": [
+        "single",
+        "spec",
+        "scalar",
+        "whitespace",
+        "upto-1.2"
+      ],
+      "note": "Spec Example 7.9. Single Quoted Lines"
+    },
+    {
+      "id": "accept-PUW8",
+      "fn": "parse",
+      "args": [
+        "---\na: b\n---\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "PUW8",
+      "suiteTags": [
+        "header"
+      ],
+      "note": "Document start on last line"
+    },
+    {
+      "id": "accept-PW8X",
+      "fn": "parse",
+      "args": [
+        "- &a\n- a\n-\n  &a : a\n  b: &b\n-\n  &c : &a\n-\n  ? &d\n-\n  ? &e\n  : &a\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "PW8X",
+      "suiteTags": [
+        "anchor",
+        "explicit-key"
+      ],
+      "note": "Anchors on Empty Scalars"
+    },
+    {
+      "id": "accept-Q5MG",
+      "fn": "parse",
+      "args": [
+        "\t{}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "Q5MG",
+      "suiteTags": [
+        "flow",
+        "whitespace"
+      ],
+      "note": "Tab at beginning of line followed by a flow mapping"
+    },
+    {
+      "id": "accept-Q88A",
+      "fn": "parse",
+      "args": [
+        "- [ a, b ]\n- { a: b }\n- \"a\"\n- 'b'\n- c\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "Q88A",
+      "suiteTags": [
+        "spec",
+        "flow",
+        "sequence",
+        "mapping"
+      ],
+      "note": "Spec Example 7.23. Flow Content"
+    },
+    {
+      "id": "accept-Q8AD",
+      "fn": "parse",
+      "args": [
+        "---\n\"folded \nto a space,\n \nto a line feed, or \t\\\n \\ \tnon-content\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "Q8AD",
+      "suiteTags": [
+        "double",
+        "spec",
+        "scalar",
+        "whitespace",
+        "1.3-mod"
+      ],
+      "note": "Spec Example 7.5. Double Quoted Line Breaks [1.3]"
+    },
+    {
+      "id": "accept-Q9WF",
+      "fn": "parse",
+      "args": [
+        "{ first: Sammy, last: Sosa }:\n# Statistics:\n  hr:  # Home runs\n     65\n  avg: # Average\n   0.278\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "Q9WF",
+      "suiteTags": [
+        "complex-key",
+        "flow",
+        "spec",
+        "comment",
+        "whitespace",
+        "1.3-err"
+      ],
+      "note": "Spec Example 6.12. Separation Spaces"
+    },
+    {
+      "id": "accept-QF4Y",
+      "fn": "parse",
+      "args": [
+        "[\nfoo: bar\n]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "QF4Y",
+      "suiteTags": [
+        "spec",
+        "flow",
+        "mapping"
+      ],
+      "note": "Spec Example 7.19. Single Pair Flow Mappings"
+    },
+    {
+      "id": "accept-QT73",
+      "fn": "parse",
+      "args": [
+        "# comment\n...\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "QT73",
+      "suiteTags": [
+        "comment",
+        "footer"
+      ],
+      "note": "Comment and document-end marker"
+    },
+    {
+      "id": "accept-R4YG",
+      "fn": "parse",
+      "args": [
+        "- |\n detected\n- >\n \n  \n  # detected\n- |1\n  explicit\n- >\n \t\n detected\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "R4YG",
+      "suiteTags": [
+        "spec",
+        "literal",
+        "folded",
+        "scalar",
+        "whitespace",
+        "libyaml-err",
+        "upto-1.2"
+      ],
+      "note": "Spec Example 8.2. Block Indentation Indicator"
+    },
+    {
+      "id": "accept-R52L",
+      "fn": "parse",
+      "args": [
+        "---\n{ top1: [item1, {key2: value2}, item3], top2: value2 }\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "R52L",
+      "suiteTags": [
+        "flow",
+        "mapping",
+        "sequence"
+      ],
+      "note": "Nested flow mapping sequence and mappings"
+    },
+    {
+      "id": "accept-RLU9",
+      "fn": "parse",
+      "args": [
+        "foo:\n- 42\nbar:\n  - 44\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "RLU9",
+      "suiteTags": [
+        "sequence",
+        "indent"
+      ],
+      "note": "Sequence Indent"
+    },
+    {
+      "id": "accept-RR7F",
+      "fn": "parse",
+      "args": [
+        "a: 4.2\n? d\n: 23\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "RR7F",
+      "suiteTags": [
+        "explicit-key",
+        "mapping"
+      ],
+      "note": "Mixed Block Mapping (implicit to explicit)"
+    },
+    {
+      "id": "accept-RTP8",
+      "fn": "parse",
+      "args": [
+        "%YAML 1.2\n---\nDocument\n... # Suffix\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "RTP8",
+      "suiteTags": [
+        "spec",
+        "header",
+        "footer"
+      ],
+      "note": "Spec Example 9.2. Document Markers"
+    },
+    {
+      "id": "accept-RZP5",
+      "fn": "parse",
+      "args": [
+        "a: \"double\n  quotes\" # lala\nb: plain\n value  # lala\nc  : #lala\n  d\n? # lala\n - seq1\n: # lala\n - #lala\n  seq2\ne: &node # lala\n - x: y\nblock: > # lala\n  abcde\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "RZP5",
+      "suiteTags": [
+        "anchor",
+        "comment",
+        "folded",
+        "mapping",
+        "1.3-mod"
+      ],
+      "note": "Various Trailing Comments [1.3]"
+    },
+    {
+      "id": "accept-RZT7",
+      "fn": "parse",
+      "args": [
+        "---\nTime: 2001-11-23 15:01:42 -5\nUser: ed\nWarning:\n  This is an error message\n  for the log file\n---\nTime: 2001-11-23 15:02:31 -5\nUser: ed\nWarning:\n  A slightly different error\n  message.\n---\nDate: 2001-11-23 15:03:17 -5\nUser: ed\nFatal:\n  Unknown variable \"bar\"\nStack:\n  - file: TopClass.py\n    line: 23\n    code: |\n      x = MoreObject(\"345\\n\")\n  - file: MoreClass.py\n    line: 58\n    code: |-\n      foo = bar\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "RZT7",
+      "suiteTags": [
+        "spec",
+        "header",
+        "literal",
+        "mapping",
+        "sequence"
+      ],
+      "note": "Spec Example 2.28. Log File"
+    },
+    {
+      "id": "accept-S3PD",
+      "fn": "parse",
+      "args": [
+        "plain key: in-line value\n: # Both empty\n\"quoted key\":\n- entry\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "S3PD",
+      "suiteTags": [
+        "empty-key",
+        "spec",
+        "mapping"
+      ],
+      "note": "Spec Example 8.18. Implicit Block Mapping Entries"
+    },
+    {
+      "id": "accept-S4JQ",
+      "fn": "parse",
+      "args": [
+        "# Assuming conventional resolution:\n- \"12\"\n- 12\n- ! 12\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "S4JQ",
+      "suiteTags": [
+        "spec",
+        "tag"
+      ],
+      "note": "Spec Example 6.28. Non-Specific Tags"
+    },
+    {
+      "id": "accept-S4T7",
+      "fn": "parse",
+      "args": [
+        "aaa: bbb\n...\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "S4T7",
+      "suiteTags": [
+        "mapping",
+        "footer"
+      ],
+      "note": "Document with footer"
+    },
+    {
+      "id": "accept-S7BG",
+      "fn": "parse",
+      "args": [
+        "---\n- :,\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "S7BG",
+      "suiteTags": [
+        "scalar"
+      ],
+      "note": "Colon followed by comma"
+    },
+    {
+      "id": "accept-S9E8",
+      "fn": "parse",
+      "args": [
+        "sequence:\n- one\n- two\nmapping:\n  ? sky\n  : blue\n  sea : green\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "S9E8",
+      "suiteTags": [
+        "explicit-key",
+        "spec",
+        "mapping",
+        "sequence"
+      ],
+      "note": "Spec Example 5.3. Block Structure Indicators"
+    },
+    {
+      "id": "accept-SBG9",
+      "fn": "parse",
+      "args": [
+        "{a: [b, c], [d, e]: f}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "SBG9",
+      "suiteTags": [
+        "complex-key",
+        "sequence",
+        "mapping",
+        "flow"
+      ],
+      "note": "Flow Sequence in Flow Mapping"
+    },
+    {
+      "id": "accept-SKE5",
+      "fn": "parse",
+      "args": [
+        "---\nseq:\n &anchor\n- a\n- b\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "SKE5",
+      "suiteTags": [
+        "anchor",
+        "indent",
+        "sequence"
+      ],
+      "note": "Anchor before zero indented sequence"
+    },
+    {
+      "id": "accept-SM9W-00",
+      "fn": "parse",
+      "args": [
+        "-"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "SM9W-00",
+      "suiteTags": [
+        "sequence"
+      ],
+      "note": "Single character streams"
+    },
+    {
+      "id": "accept-SM9W-01",
+      "fn": "parse",
+      "args": [
+        ":"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "SM9W-01",
+      "suiteTags": [
+        "mapping"
+      ],
+      "note": "Single character streams"
+    },
+    {
+      "id": "accept-SSW6",
+      "fn": "parse",
+      "args": [
+        "---\n'here''s to \"quotes\"'\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "SSW6",
+      "suiteTags": [
+        "spec",
+        "scalar",
+        "single",
+        "1.3-mod"
+      ],
+      "note": "Spec Example 7.7. Single Quoted Characters [1.3]"
+    },
+    {
+      "id": "accept-SYW4",
+      "fn": "parse",
+      "args": [
+        "hr:  65    # Home runs\navg: 0.278 # Batting average\nrbi: 147   # Runs Batted In\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "SYW4",
+      "suiteTags": [
+        "spec",
+        "scalar",
+        "comment"
+      ],
+      "note": "Spec Example 2.2. Mapping Scalars to Scalars"
+    },
+    {
+      "id": "accept-T26H",
+      "fn": "parse",
+      "args": [
+        "--- |\n \n  \n  literal\n   \n  \n  text\n\n # Comment\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "T26H",
+      "suiteTags": [
+        "spec",
+        "literal",
+        "scalar",
+        "comment",
+        "whitespace",
+        "1.3-mod"
+      ],
+      "note": "Spec Example 8.8. Literal Content [1.3]"
+    },
+    {
+      "id": "accept-T4YY",
+      "fn": "parse",
+      "args": [
+        "---\n' 1st non-empty\n\n 2nd non-empty \n 3rd non-empty '\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "T4YY",
+      "suiteTags": [
+        "single",
+        "spec",
+        "scalar",
+        "whitespace",
+        "1.3-mod"
+      ],
+      "note": "Spec Example 7.9. Single Quoted Lines [1.3]"
+    },
+    {
+      "id": "accept-T5N4",
+      "fn": "parse",
+      "args": [
+        "--- |\n literal\n \ttext\n\n\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "T5N4",
+      "suiteTags": [
+        "spec",
+        "literal",
+        "scalar",
+        "whitespace",
+        "1.3-mod"
+      ],
+      "note": "Spec Example 8.7. Literal Scalar [1.3]"
+    },
+    {
+      "id": "accept-TE2A",
+      "fn": "parse",
+      "args": [
+        "block mapping:\n key: value\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "TE2A",
+      "suiteTags": [
+        "spec",
+        "mapping"
+      ],
+      "note": "Spec Example 8.16. Block Mappings"
+    },
+    {
+      "id": "accept-TL85",
+      "fn": "parse",
+      "args": [
+        "\"\n  foo \n \n  \t bar\n\n  baz\n\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "TL85",
+      "suiteTags": [
+        "double",
+        "spec",
+        "whitespace",
+        "scalar",
+        "upto-1.2"
+      ],
+      "note": "Spec Example 6.8. Flow Folding"
+    },
+    {
+      "id": "accept-TS54",
+      "fn": "parse",
+      "args": [
+        ">\n ab\n cd\n \n ef\n\n\n gh\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "TS54",
+      "suiteTags": [
+        "folded",
+        "scalar",
+        "1.3-err"
+      ],
+      "note": "Folded Block Scalar"
+    },
+    {
+      "id": "accept-U3C3",
+      "fn": "parse",
+      "args": [
+        "%TAG !yaml! tag:yaml.org,2002:\n---\n!yaml!str \"foo\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "U3C3",
+      "suiteTags": [
+        "spec",
+        "header",
+        "tag"
+      ],
+      "note": "Spec Example 6.16. “TAG” directive"
+    },
+    {
+      "id": "accept-U3XV",
+      "fn": "parse",
+      "args": [
+        "---\ntop1: &node1\n  &k1 key1: one\ntop2: &node2 # comment\n  key2: two\ntop3:\n  &k3 key3: three\ntop4:\n  &node4\n  &k4 key4: four\ntop5:\n  &node5\n  key5: five\ntop6: &val6\n  six\ntop7:\n  &val7 seven\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "U3XV",
+      "suiteTags": [
+        "anchor",
+        "comment",
+        "1.3-err"
+      ],
+      "note": "Node and Mapping Key Anchors"
+    },
+    {
+      "id": "accept-U9NS",
+      "fn": "parse",
+      "args": [
+        "---\ntime: 20:03:20\nplayer: Sammy Sosa\naction: strike (miss)\n...\n---\ntime: 20:03:47\nplayer: Sammy Sosa\naction: grand slam\n...\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "U9NS",
+      "suiteTags": [
+        "spec",
+        "header"
+      ],
+      "note": "Spec Example 2.8. Play by Play Feed from a Game"
+    },
+    {
+      "id": "accept-UDM2",
+      "fn": "parse",
+      "args": [
+        "- { url: http://example.org }\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "UDM2",
+      "suiteTags": [
+        "flow",
+        "scalar"
+      ],
+      "note": "Plain URL in flow mapping"
+    },
+    {
+      "id": "accept-UDR7",
+      "fn": "parse",
+      "args": [
+        "sequence: [ one, two, ]\nmapping: { sky: blue, sea: green }\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "UDR7",
+      "suiteTags": [
+        "spec",
+        "flow",
+        "sequence",
+        "mapping"
+      ],
+      "note": "Spec Example 5.4. Flow Collection Indicators"
+    },
+    {
+      "id": "accept-UGM3",
+      "fn": "parse",
+      "args": [
+        "--- !<tag:clarkevans.com,2002:invoice>\ninvoice: 34843\ndate   : 2001-01-23\nbill-to: &id001\n    given  : Chris\n    family : Dumars\n    address:\n        lines: |\n            458 Walkman Dr.\n            Suite #292\n        city    : Royal Oak\n        state   : MI\n        postal  : 48046\nship-to: *id001\nproduct:\n    - sku         : BL394D\n      quantity    : 4\n      description : Basketball\n      price       : 450.00\n    - sku         : BL4438H\n      quantity    : 1\n      description : Super Hoop\n      price       : 2392.00\ntax  : 251.42\ntotal: 4443.52\ncomments:\n    Late afternoon is best.\n    Backup contact is Nancy\n    Billsmer @ 338-4338.\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "UGM3",
+      "suiteTags": [
+        "spec",
+        "tag",
+        "literal",
+        "mapping",
+        "sequence",
+        "alias",
+        "unknown-tag"
+      ],
+      "note": "Spec Example 2.27. Invoice"
+    },
+    {
+      "id": "accept-UKK6-00",
+      "fn": "parse",
+      "args": [
+        "- :\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "UKK6-00",
+      "suiteTags": [
+        "edge",
+        "empty-key"
+      ],
+      "note": "Syntax character edge cases"
+    },
+    {
+      "id": "accept-UKK6-01",
+      "fn": "parse",
+      "args": [
+        "::\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "UKK6-01",
+      "suiteTags": [
+        "edge",
+        "empty-key"
+      ],
+      "note": "Syntax character edge cases"
+    },
+    {
+      "id": "accept-UKK6-02",
+      "fn": "parse",
+      "args": [
+        "!\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "UKK6-02",
+      "suiteTags": [
+        "edge",
+        "empty-key"
+      ],
+      "note": "Syntax character edge cases"
+    },
+    {
+      "id": "accept-UT92",
+      "fn": "parse",
+      "args": [
+        "---\n{ matches\n% : 20 }\n...\n---\n# Empty\n...\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "UT92",
+      "suiteTags": [
+        "flow",
+        "spec",
+        "header",
+        "footer",
+        "comment"
+      ],
+      "note": "Spec Example 9.4. Explicit Documents"
+    },
+    {
+      "id": "accept-UV7Q",
+      "fn": "parse",
+      "args": [
+        "x:\n - x\n  \tx\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "UV7Q",
+      "suiteTags": [
+        "indent",
+        "whitespace"
+      ],
+      "note": "Legal tab after indentation"
+    },
+    {
+      "id": "accept-V55R",
+      "fn": "parse",
+      "args": [
+        "- &a a\n- &b b\n- *a\n- *b\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "V55R",
+      "suiteTags": [
+        "alias",
+        "sequence"
+      ],
+      "note": "Aliases in Block Sequence"
+    },
+    {
+      "id": "accept-V9D5",
+      "fn": "parse",
+      "args": [
+        "- sun: yellow\n- ? earth: blue\n  : moon: white\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "V9D5",
+      "suiteTags": [
+        "complex-key",
+        "explicit-key",
+        "spec",
+        "mapping"
+      ],
+      "note": "Spec Example 8.19. Compact Block Mappings"
+    },
+    {
+      "id": "accept-VJP3-01",
+      "fn": "parse",
+      "args": [
+        "k: {\n k\n :\n v\n }\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "VJP3-01",
+      "suiteTags": [
+        "flow",
+        "indent"
+      ],
+      "note": "Flow collections over many lines"
+    },
+    {
+      "id": "accept-W42U",
+      "fn": "parse",
+      "args": [
+        "- # Empty\n- |\n block node\n- - one # Compact\n  - two # sequence\n- one: two # Compact mapping\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "W42U",
+      "suiteTags": [
+        "comment",
+        "spec",
+        "literal",
+        "sequence"
+      ],
+      "note": "Spec Example 8.15. Block Sequence Entry Types"
+    },
+    {
+      "id": "accept-W4TN",
+      "fn": "parse",
+      "args": [
+        "%YAML 1.2\n--- |\n%!PS-Adobe-2.0\n...\n%YAML 1.2\n---\n# Empty\n...\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "W4TN",
+      "suiteTags": [
+        "spec",
+        "header",
+        "footer",
+        "1.3-err"
+      ],
+      "note": "Spec Example 9.5. Directives Documents"
+    },
+    {
+      "id": "accept-W5VH",
+      "fn": "parse",
+      "args": [
+        "a: &:@*!$\"<foo>: scalar a\nb: *:@*!$\"<foo>:\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "W5VH",
+      "suiteTags": [
+        "alias",
+        "1.3-err"
+      ],
+      "note": "Allowed characters in alias"
+    },
+    {
+      "id": "accept-WZ62",
+      "fn": "parse",
+      "args": [
+        "{\n  foo : !!str,\n  !!str : bar,\n}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "WZ62",
+      "suiteTags": [
+        "spec",
+        "flow",
+        "scalar",
+        "tag"
+      ],
+      "note": "Spec Example 7.2. Empty Content"
+    },
+    {
+      "id": "accept-X38W",
+      "fn": "parse",
+      "args": [
+        "{ &a [a, &b b]: *b, *a : [c, *b, d]}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "X38W",
+      "suiteTags": [
+        "alias",
+        "complex-key",
+        "flow"
+      ],
+      "note": "Aliases in Flow Objects"
+    },
+    {
+      "id": "accept-X8DW",
+      "fn": "parse",
+      "args": [
+        "---\n? key\n# comment\n: value\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "X8DW",
+      "suiteTags": [
+        "comment",
+        "explicit-key",
+        "mapping"
+      ],
+      "note": "Explicit key and value seperated by comment"
+    },
+    {
+      "id": "accept-XLQ9",
+      "fn": "parse",
+      "args": [
+        "---\nscalar\n%YAML 1.2\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "XLQ9",
+      "suiteTags": [
+        "directive",
+        "scalar"
+      ],
+      "note": "Multiline scalar that looks like a YAML directive"
+    },
+    {
+      "id": "accept-XV9V",
+      "fn": "parse",
+      "args": [
+        "Folding:\n  \"Empty line\n\n  as a line feed\"\nChomping: |\n  Clipped empty lines\n \n\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "XV9V",
+      "suiteTags": [
+        "literal",
+        "spec",
+        "scalar",
+        "1.3-mod"
+      ],
+      "note": "Spec Example 6.5. Empty Lines [1.3]"
+    },
+    {
+      "id": "accept-XW4D",
+      "fn": "parse",
+      "args": [
+        "a: \"double\n  quotes\" # lala\nb: plain\n value  # lala\nc  : #lala\n  d\n? # lala\n - seq1\n: # lala\n - #lala\n  seq2\ne:\n &node # lala\n - x: y\nblock: > # lala\n  abcde\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "XW4D",
+      "suiteTags": [
+        "comment",
+        "explicit-key",
+        "folded",
+        "1.3-err"
+      ],
+      "note": "Various Trailing Comments"
+    },
+    {
+      "id": "accept-Y2GN",
+      "fn": "parse",
+      "args": [
+        "---\nkey: &an:chor value\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "Y2GN",
+      "suiteTags": [
+        "anchor"
+      ],
+      "note": "Anchor with colon in the middle"
+    },
+    {
+      "id": "accept-Y79Y-01",
+      "fn": "parse",
+      "args": [
+        "foo: |\n \t\nbar: 1\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "Y79Y-01",
+      "suiteTags": [
+        "whitespace"
+      ],
+      "note": "Tabs in various contexts"
+    },
+    {
+      "id": "accept-Y79Y-02",
+      "fn": "parse",
+      "args": [
+        "- [\n\t\n foo\n ]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "Y79Y-02",
+      "suiteTags": [
+        "whitespace"
+      ],
+      "note": "Tabs in various contexts"
+    },
+    {
+      "id": "accept-Y79Y-10",
+      "fn": "parse",
+      "args": [
+        "-\t-1\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "Y79Y-10",
+      "suiteTags": [
+        "whitespace"
+      ],
+      "note": "Tabs in various contexts"
+    },
+    {
+      "id": "accept-YD5X",
+      "fn": "parse",
+      "args": [
+        "- [name        , hr, avg  ]\n- [Mark McGwire, 65, 0.278]\n- [Sammy Sosa  , 63, 0.288]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "YD5X",
+      "suiteTags": [
+        "spec",
+        "sequence"
+      ],
+      "note": "Spec Example 2.5. Sequence of Sequences"
+    },
+    {
+      "id": "accept-Z67P",
+      "fn": "parse",
+      "args": [
+        "literal: |2\n  value\nfolded: !foo >1\n value\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "Z67P",
+      "suiteTags": [
+        "indent",
+        "spec",
+        "literal",
+        "folded",
+        "tag",
+        "local-tag",
+        "1.3-mod"
+      ],
+      "note": "Spec Example 8.21. Block Scalar Nodes [1.3]"
+    },
+    {
+      "id": "accept-Z9M4",
+      "fn": "parse",
+      "args": [
+        "%TAG !e! tag:example.com,2000:app/\n---\n- !e!foo \"bar\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "Z9M4",
+      "suiteTags": [
+        "spec",
+        "header",
+        "tag",
+        "unknown-tag"
+      ],
+      "note": "Spec Example 6.22. Global Tag Prefix"
+    },
+    {
+      "id": "accept-ZF4X",
+      "fn": "parse",
+      "args": [
+        "Mark McGwire: {hr: 65, avg: 0.278}\nSammy Sosa: {\n    hr: 63,\n    avg: 0.288\n  }\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "ZF4X",
+      "suiteTags": [
+        "flow",
+        "spec",
+        "mapping"
+      ],
+      "note": "Spec Example 2.6. Mapping of Mappings"
+    },
+    {
+      "id": "accept-ZH7C",
+      "fn": "parse",
+      "args": [
+        "&a a: b\nc: &d d\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "ZH7C",
+      "suiteTags": [
+        "anchor",
+        "mapping"
+      ],
+      "note": "Anchors in Mapping"
+    },
+    {
+      "id": "accept-ZK9H",
+      "fn": "parse",
+      "args": [
+        "{ key: [[[\n  value\n ]]]\n}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "ZK9H",
+      "suiteTags": [
+        "flow",
+        "indent",
+        "mapping",
+        "sequence"
+      ],
+      "note": "Nested top level flow mapping"
+    },
+    {
+      "id": "accept-ZWK4",
+      "fn": "parse",
+      "args": [
+        "---\na: 1\n? b\n&anchor c: 3\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.Parse",
+      "expect": "accept",
+      "suite": "ZWK4",
+      "suiteTags": [
+        "anchor",
+        "explicit-key",
+        "mapping"
+      ],
+      "note": "Key with anchor after missing explicit mapping value"
+    }
+  ]
+}

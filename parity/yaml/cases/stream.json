@@ -1,0 +1,232 @@
+{
+  "group": "stream",
+  "upstream": "yaml@2.6.1+yaml-test-suite@da267a5c4782e7361e82889e76c0dc7df0e1e870",
+  "cases": [
+    {
+      "id": "unmarshal-map",
+      "fn": "unmarshal",
+      "args": [
+        "a: 1\nb: [x, y]\n"
+      ],
+      "upstreamFn": "yaml.parse",
+      "goFn": "yaml.Unmarshal",
+      "note": "single-document decode"
+    },
+    {
+      "id": "unmarshal-scalar",
+      "fn": "unmarshal",
+      "args": [
+        "just text\n"
+      ],
+      "upstreamFn": "yaml.parse",
+      "goFn": "yaml.Unmarshal",
+      "note": "a scalar document"
+    },
+    {
+      "id": "unmarshal-empty",
+      "fn": "unmarshal",
+      "args": [
+        ""
+      ],
+      "upstreamFn": "yaml.parse",
+      "goFn": "yaml.Unmarshal",
+      "note": "an empty stream"
+    },
+    {
+      "id": "unmarshal-nested",
+      "fn": "unmarshal",
+      "args": [
+        "a:\n  b:\n    - 1\n    - c: d\n"
+      ],
+      "upstreamFn": "yaml.parse",
+      "goFn": "yaml.Unmarshal",
+      "note": "nesting"
+    },
+    {
+      "id": "unmarshal-anchors",
+      "fn": "unmarshal",
+      "args": [
+        "a: &x [1, 2]\nb: *x\n"
+      ],
+      "upstreamFn": "yaml.parse",
+      "goFn": "yaml.Unmarshal",
+      "note": "anchor and alias"
+    },
+    {
+      "id": "unmarshal-invalid",
+      "fn": "unmarshal",
+      "args": [
+        "a: [1\n"
+      ],
+      "upstreamFn": "yaml.parse",
+      "goFn": "yaml.Unmarshal",
+      "note": "a malformed document must fail on both sides"
+    },
+    {
+      "id": "decode-stream-three",
+      "fn": "decodeStream",
+      "args": [
+        "--- a\n--- b\n--- c\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.NewDecoder + Decoder.Decode",
+      "note": "three documents"
+    },
+    {
+      "id": "decode-stream-one",
+      "fn": "decodeStream",
+      "args": [
+        "a: 1\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.NewDecoder + Decoder.Decode",
+      "note": "one document, no markers"
+    },
+    {
+      "id": "decode-stream-empty",
+      "fn": "decodeStream",
+      "args": [
+        ""
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.NewDecoder + Decoder.Decode",
+      "note": "an empty stream"
+    },
+    {
+      "id": "decode-stream-mixed",
+      "fn": "decodeStream",
+      "args": [
+        "---\n- 1\n---\nk: v\n---\nplain\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.NewDecoder + Decoder.Decode",
+      "note": "documents of different shapes"
+    },
+    {
+      "id": "decode-stream-invalid",
+      "fn": "decodeStream",
+      "args": [
+        "--- a\n--- [b\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments",
+      "goFn": "yaml.NewDecoder + Decoder.Decode",
+      "note": "a stream whose second document is malformed"
+    },
+    {
+      "id": "encode-stream-one-2",
+      "fn": "encodeStream",
+      "args": [
+        [
+          {
+            "a": 1,
+            "b": [
+              1,
+              2
+            ]
+          }
+        ],
+        2
+      ],
+      "upstreamFn": "yaml.stringify(v, {indent})",
+      "goFn": "yaml.NewEncoder + SetIndent + Encode + Close",
+      "note": "one document at indent 2"
+    },
+    {
+      "id": "encode-stream-one-4",
+      "fn": "encodeStream",
+      "args": [
+        [
+          {
+            "a": 1,
+            "b": [
+              1,
+              2
+            ]
+          }
+        ],
+        4
+      ],
+      "upstreamFn": "yaml.stringify(v, {indent})",
+      "goFn": "yaml.NewEncoder + SetIndent + Encode + Close",
+      "note": "one document at indent 4"
+    },
+    {
+      "id": "encode-stream-three",
+      "fn": "encodeStream",
+      "args": [
+        [
+          {
+            "a": 1
+          },
+          [
+            1,
+            2
+          ],
+          "plain"
+        ],
+        2
+      ],
+      "upstreamFn": "yaml.stringify(v, {indent})",
+      "goFn": "yaml.NewEncoder + SetIndent + Encode + Close",
+      "note": "three documents"
+    },
+    {
+      "id": "encode-stream-nulls",
+      "fn": "encodeStream",
+      "args": [
+        [
+          null,
+          {
+            "a": null
+          }
+        ],
+        2
+      ],
+      "upstreamFn": "yaml.stringify(v, {indent})",
+      "goFn": "yaml.NewEncoder + SetIndent + Encode + Close",
+      "note": "nulls at document and value level"
+    },
+    {
+      "id": "encode-stream-nested",
+      "fn": "encodeStream",
+      "args": [
+        [
+          {
+            "a": {
+              "b": {
+                "c": [
+                  1,
+                  {
+                    "d": 2
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        2
+      ],
+      "upstreamFn": "yaml.stringify(v, {indent})",
+      "goFn": "yaml.NewEncoder + SetIndent + Encode + Close",
+      "note": "nesting at indent 2"
+    },
+    {
+      "id": "encode-stream-quoting",
+      "fn": "encodeStream",
+      "args": [
+        [
+          {
+            "a": "yes",
+            "b": "1",
+            "c": "",
+            "d": "x\ny\n"
+          }
+        ],
+        2
+      ],
+      "upstreamFn": "yaml.stringify(v, {indent})",
+      "goFn": "yaml.NewEncoder + SetIndent + Encode + Close",
+      "note": "values that must be quoted to survive"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "group": "caching",
+  "upstream": "streamlit==1.61.1",
+  "cases": [
+    {
+      "id": "cache-hit-then-miss",
+      "fn": "cache-hits",
+      "args": [[{"op": "run"}, {"op": "set", "key": "w_number_input", "value": 3}, {"op": "run"}]],
+      "upstreamFn": "st.cache_data", "goFn": "st.Session.Cache",
+      "note": "recomputes only when the key/arguments change"
+    },
+    {
+      "id": "cache-invalidate",
+      "fn": "cache-invalidate",
+      "args": [[{"op": "run"}, {"op": "click", "key": "w_button"}, {"op": "run"}]],
+      "upstreamFn": "st.cache_data.clear", "goFn": "st.CacheClear",
+      "note": "explicit invalidation forces exactly one recomputation"
+    }
+  ]
+}

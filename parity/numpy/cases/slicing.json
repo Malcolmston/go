@@ -1,0 +1,656 @@
+{
+  "group": "slicing",
+  "upstream": "numpy@2.2.6",
+  "cases": [
+    {
+      "id": "slice-2d-block",
+      "fn": "slice",
+      "args": [
+        {
+          "arr": [
+            [
+              0.0,
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0,
+              7.0
+            ],
+            [
+              8.0,
+              9.0,
+              10.0,
+              11.0
+            ]
+          ]
+        },
+        [
+          [
+            0,
+            2
+          ],
+          [
+            1,
+            3
+          ]
+        ]
+      ],
+      "upstreamFn": "numpy.ndarray.__getitem__",
+      "goFn": "numpy.NDArray.Slice"
+    },
+    {
+      "id": "slice-full-axis",
+      "fn": "slice",
+      "args": [
+        {
+          "arr": [
+            [
+              0.0,
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0,
+              7.0
+            ],
+            [
+              8.0,
+              9.0,
+              10.0,
+              11.0
+            ]
+          ]
+        },
+        [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            3
+          ]
+        ]
+      ],
+      "upstreamFn": "numpy.ndarray.__getitem__",
+      "goFn": "numpy.NDArray.Slice",
+      "note": "[0,0] means the whole axis on both sides"
+    },
+    {
+      "id": "slice-1d",
+      "fn": "slice",
+      "args": [
+        {
+          "arr": [
+            5.0,
+            3.0,
+            8.0,
+            1.0,
+            9.0,
+            2.0
+          ]
+        },
+        [
+          [
+            1,
+            4
+          ]
+        ]
+      ],
+      "upstreamFn": "numpy.ndarray.__getitem__",
+      "goFn": "numpy.NDArray.Slice"
+    },
+    {
+      "id": "slice-neg-start",
+      "fn": "slice",
+      "args": [
+        {
+          "arr": [
+            5.0,
+            3.0,
+            8.0,
+            1.0,
+            9.0,
+            2.0
+          ]
+        },
+        [
+          [
+            -3,
+            6
+          ]
+        ]
+      ],
+      "upstreamFn": "numpy.ndarray.__getitem__",
+      "goFn": "numpy.NDArray.Slice"
+    },
+    {
+      "id": "slice-neg-stop",
+      "fn": "slice",
+      "args": [
+        {
+          "arr": [
+            5.0,
+            3.0,
+            8.0,
+            1.0,
+            9.0,
+            2.0
+          ]
+        },
+        [
+          [
+            1,
+            -1
+          ]
+        ]
+      ],
+      "upstreamFn": "numpy.ndarray.__getitem__",
+      "goFn": "numpy.NDArray.Slice"
+    },
+    {
+      "id": "slice-neg-both",
+      "fn": "slice",
+      "args": [
+        {
+          "arr": [
+            5.0,
+            3.0,
+            8.0,
+            1.0,
+            9.0,
+            2.0
+          ]
+        },
+        [
+          [
+            -4,
+            -1
+          ]
+        ]
+      ],
+      "upstreamFn": "numpy.ndarray.__getitem__",
+      "goFn": "numpy.NDArray.Slice"
+    },
+    {
+      "id": "slice-empty",
+      "fn": "slice",
+      "args": [
+        {
+          "arr": [
+            5.0,
+            3.0,
+            8.0,
+            1.0,
+            9.0,
+            2.0
+          ]
+        },
+        [
+          [
+            3,
+            3
+          ]
+        ]
+      ],
+      "upstreamFn": "numpy.ndarray.__getitem__",
+      "goFn": "numpy.NDArray.Slice",
+      "note": "start == stop, empty selection"
+    },
+    {
+      "id": "slice-inverted",
+      "fn": "slice",
+      "args": [
+        {
+          "arr": [
+            5.0,
+            3.0,
+            8.0,
+            1.0,
+            9.0,
+            2.0
+          ]
+        },
+        [
+          [
+            4,
+            2
+          ]
+        ]
+      ],
+      "upstreamFn": "numpy.ndarray.__getitem__",
+      "goFn": "numpy.NDArray.Slice",
+      "note": "stop < start"
+    },
+    {
+      "id": "slice-3d",
+      "fn": "slice",
+      "args": [
+        {
+          "arr": [
+            [
+              [
+                0.0,
+                1.0,
+                2.0,
+                3.0
+              ],
+              [
+                4.0,
+                5.0,
+                6.0,
+                7.0
+              ],
+              [
+                8.0,
+                9.0,
+                10.0,
+                11.0
+              ]
+            ],
+            [
+              [
+                12.0,
+                13.0,
+                14.0,
+                15.0
+              ],
+              [
+                16.0,
+                17.0,
+                18.0,
+                19.0
+              ],
+              [
+                20.0,
+                21.0,
+                22.0,
+                23.0
+              ]
+            ]
+          ]
+        },
+        [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            3
+          ],
+          [
+            0,
+            2
+          ]
+        ]
+      ],
+      "upstreamFn": "numpy.ndarray.__getitem__",
+      "goFn": "numpy.NDArray.Slice"
+    },
+    {
+      "id": "slice-3d-full-mid",
+      "fn": "slice",
+      "args": [
+        {
+          "arr": [
+            [
+              [
+                0.0,
+                1.0,
+                2.0,
+                3.0
+              ],
+              [
+                4.0,
+                5.0,
+                6.0,
+                7.0
+              ],
+              [
+                8.0,
+                9.0,
+                10.0,
+                11.0
+              ]
+            ],
+            [
+              [
+                12.0,
+                13.0,
+                14.0,
+                15.0
+              ],
+              [
+                16.0,
+                17.0,
+                18.0,
+                19.0
+              ],
+              [
+                20.0,
+                21.0,
+                22.0,
+                23.0
+              ]
+            ]
+          ]
+        },
+        [
+          [
+            1,
+            2
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            2,
+            4
+          ]
+        ]
+      ],
+      "upstreamFn": "numpy.ndarray.__getitem__",
+      "goFn": "numpy.NDArray.Slice"
+    },
+    {
+      "id": "slice-out-of-range",
+      "fn": "slice",
+      "args": [
+        {
+          "arr": [
+            5.0,
+            3.0,
+            8.0,
+            1.0,
+            9.0,
+            2.0
+          ]
+        },
+        [
+          [
+            0,
+            99
+          ]
+        ]
+      ],
+      "upstreamFn": "numpy.ndarray.__getitem__",
+      "goFn": "numpy.NDArray.Slice",
+      "note": "numpy clamps; behaviour of the port is the question"
+    },
+    {
+      "id": "slice-too-few-ranges",
+      "fn": "slice",
+      "args": [
+        {
+          "arr": [
+            [
+              0.0,
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0,
+              7.0
+            ],
+            [
+              8.0,
+              9.0,
+              10.0,
+              11.0
+            ]
+          ]
+        },
+        [
+          [
+            0,
+            2
+          ]
+        ]
+      ],
+      "upstreamFn": "numpy.ndarray.__getitem__",
+      "goFn": "numpy.NDArray.Slice",
+      "note": "must FAIL on both sides (runner enforces one range per axis)"
+    },
+    {
+      "id": "at-2d",
+      "fn": "at",
+      "args": [
+        {
+          "arr": [
+            [
+              0.0,
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0,
+              7.0
+            ],
+            [
+              8.0,
+              9.0,
+              10.0,
+              11.0
+            ]
+          ]
+        },
+        [
+          1,
+          2
+        ]
+      ],
+      "upstreamFn": "numpy.ndarray.__getitem__",
+      "goFn": "numpy.NDArray.At"
+    },
+    {
+      "id": "at-neg",
+      "fn": "at",
+      "args": [
+        {
+          "arr": [
+            [
+              0.0,
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0,
+              7.0
+            ],
+            [
+              8.0,
+              9.0,
+              10.0,
+              11.0
+            ]
+          ]
+        },
+        [
+          -1,
+          -1
+        ]
+      ],
+      "upstreamFn": "numpy.ndarray.__getitem__",
+      "goFn": "numpy.NDArray.At"
+    },
+    {
+      "id": "at-neg-mixed",
+      "fn": "at",
+      "args": [
+        {
+          "arr": [
+            [
+              0.0,
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0,
+              7.0
+            ],
+            [
+              8.0,
+              9.0,
+              10.0,
+              11.0
+            ]
+          ]
+        },
+        [
+          -2,
+          1
+        ]
+      ],
+      "upstreamFn": "numpy.ndarray.__getitem__",
+      "goFn": "numpy.NDArray.At"
+    },
+    {
+      "id": "at-3d",
+      "fn": "at",
+      "args": [
+        {
+          "arr": [
+            [
+              [
+                0.0,
+                1.0,
+                2.0,
+                3.0
+              ],
+              [
+                4.0,
+                5.0,
+                6.0,
+                7.0
+              ],
+              [
+                8.0,
+                9.0,
+                10.0,
+                11.0
+              ]
+            ],
+            [
+              [
+                12.0,
+                13.0,
+                14.0,
+                15.0
+              ],
+              [
+                16.0,
+                17.0,
+                18.0,
+                19.0
+              ],
+              [
+                20.0,
+                21.0,
+                22.0,
+                23.0
+              ]
+            ]
+          ]
+        },
+        [
+          1,
+          2,
+          3
+        ]
+      ],
+      "upstreamFn": "numpy.ndarray.__getitem__",
+      "goFn": "numpy.NDArray.At"
+    },
+    {
+      "id": "at-out-of-range",
+      "fn": "at",
+      "args": [
+        {
+          "arr": [
+            [
+              0.0,
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0,
+              7.0
+            ],
+            [
+              8.0,
+              9.0,
+              10.0,
+              11.0
+            ]
+          ]
+        },
+        [
+          5,
+          0
+        ]
+      ],
+      "upstreamFn": "numpy.ndarray.__getitem__",
+      "goFn": "numpy.NDArray.At",
+      "note": "must FAIL on both sides"
+    },
+    {
+      "id": "at-neg-out-of-range",
+      "fn": "at",
+      "args": [
+        {
+          "arr": [
+            [
+              0.0,
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0,
+              7.0
+            ],
+            [
+              8.0,
+              9.0,
+              10.0,
+              11.0
+            ]
+          ]
+        },
+        [
+          0,
+          -9
+        ]
+      ],
+      "upstreamFn": "numpy.ndarray.__getitem__",
+      "goFn": "numpy.NDArray.At",
+      "note": "must FAIL on both sides"
+    }
+  ]
+}

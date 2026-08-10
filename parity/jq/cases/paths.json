@@ -1,0 +1,632 @@
+{
+  "group": "paths",
+  "upstream": "jq@1.7.1",
+  "encoding": "args = [jq program, input JSON value, optional $variables object]; value = the complete output stream as a JSON array",
+  "cases": [
+    {
+      "id": "path-simple",
+      "fn": "run",
+      "args": [
+        "[path(.a.b)]",
+        null
+      ],
+      "upstreamFn": "path/1",
+      "goFn": "path/1"
+    },
+    {
+      "id": "path-iterate",
+      "fn": "run",
+      "args": [
+        "[path(.[])]",
+        [
+          1,
+          2
+        ]
+      ],
+      "upstreamFn": "path/1",
+      "goFn": "path/1"
+    },
+    {
+      "id": "path-obj-iterate",
+      "fn": "run",
+      "args": [
+        "[path(.[])]",
+        {
+          "b": 1,
+          "a": 2
+        }
+      ],
+      "upstreamFn": "path/1",
+      "goFn": "path/1",
+      "note": "jq walks keys in insertion order",
+      "deviation": "object key order is not preserved (map[string]any); keys_unsorted == keys"
+    },
+    {
+      "id": "path-slice",
+      "fn": "run",
+      "args": [
+        "[path(.[1:2])]",
+        [
+          1,
+          2,
+          3
+        ]
+      ],
+      "upstreamFn": "path/1",
+      "goFn": "path/1"
+    },
+    {
+      "id": "path-of-value-err",
+      "fn": "run",
+      "args": [
+        "path(1)",
+        null
+      ],
+      "upstreamFn": "path/1",
+      "goFn": "path/1"
+    },
+    {
+      "id": "path-with-optional",
+      "fn": "run",
+      "args": [
+        "[path(.a?)]",
+        {
+          "a": 1
+        }
+      ],
+      "upstreamFn": "path/1",
+      "goFn": "path/1"
+    },
+    {
+      "id": "path-alternative-err",
+      "fn": "run",
+      "args": [
+        "[path(.a // .b)]",
+        {
+          "b": 1
+        }
+      ],
+      "upstreamFn": "path/1",
+      "goFn": "path/1"
+    },
+    {
+      "id": "path-getpath",
+      "fn": "run",
+      "args": [
+        "[path(getpath([\"a\",\"b\"]))]",
+        null
+      ],
+      "upstreamFn": "path/1",
+      "goFn": "path/1"
+    },
+    {
+      "id": "paths-all",
+      "fn": "run",
+      "args": [
+        "[paths]",
+        {
+          "a": [
+            1,
+            {
+              "b": 2
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "paths/0",
+      "goFn": "paths/0"
+    },
+    {
+      "id": "paths-filtered",
+      "fn": "run",
+      "args": [
+        "[paths(type == \"number\")]",
+        {
+          "a": [
+            1,
+            {
+              "b": 2
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "paths/1",
+      "goFn": "paths/1"
+    },
+    {
+      "id": "paths-empty",
+      "fn": "run",
+      "args": [
+        "[paths]",
+        1
+      ],
+      "upstreamFn": "paths/0",
+      "goFn": "paths/0"
+    },
+    {
+      "id": "leaf-paths",
+      "fn": "run",
+      "args": [
+        "[leaf_paths]",
+        {
+          "a": [
+            1,
+            {
+              "b": 2
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "leaf_paths/0",
+      "goFn": "leaf_paths/0",
+      "note": "leaf_paths was removed in jq 1.7; the port still has it"
+    },
+    {
+      "id": "getpath",
+      "fn": "run",
+      "args": [
+        "getpath([\"a\",1])",
+        {
+          "a": [
+            9,
+            8
+          ]
+        }
+      ],
+      "upstreamFn": "getpath/1",
+      "goFn": "getpath/1"
+    },
+    {
+      "id": "getpath-missing",
+      "fn": "run",
+      "args": [
+        "getpath([\"x\",\"y\"])",
+        {}
+      ],
+      "upstreamFn": "getpath/1",
+      "goFn": "getpath/1"
+    },
+    {
+      "id": "getpath-through-num-err",
+      "fn": "run",
+      "args": [
+        "getpath([\"a\",\"b\"])",
+        {
+          "a": 5
+        }
+      ],
+      "upstreamFn": "getpath/1",
+      "goFn": "getpath/1"
+    },
+    {
+      "id": "getpath-nonpath-err",
+      "fn": "run",
+      "args": [
+        "getpath(\"a\")",
+        {}
+      ],
+      "upstreamFn": "getpath/1",
+      "goFn": "getpath/1"
+    },
+    {
+      "id": "getpath-num-key-on-obj-err",
+      "fn": "run",
+      "args": [
+        "getpath([1])",
+        {
+          "a": 1
+        }
+      ],
+      "upstreamFn": "getpath/1",
+      "goFn": "getpath/1"
+    },
+    {
+      "id": "setpath",
+      "fn": "run",
+      "args": [
+        "setpath([\"a\",1]; 99)",
+        {
+          "a": [
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      "upstreamFn": "setpath/2",
+      "goFn": "setpath/2"
+    },
+    {
+      "id": "setpath-create",
+      "fn": "run",
+      "args": [
+        "setpath([\"x\",\"y\"]; 1)",
+        {}
+      ],
+      "upstreamFn": "setpath/2",
+      "goFn": "setpath/2"
+    },
+    {
+      "id": "setpath-array-grow",
+      "fn": "run",
+      "args": [
+        "setpath([2]; 7)",
+        []
+      ],
+      "upstreamFn": "setpath/2",
+      "goFn": "setpath/2"
+    },
+    {
+      "id": "setpath-empty-path",
+      "fn": "run",
+      "args": [
+        "setpath([]; 5)",
+        {
+          "a": 1
+        }
+      ],
+      "upstreamFn": "setpath/2",
+      "goFn": "setpath/2"
+    },
+    {
+      "id": "setpath-bad-key-err",
+      "fn": "run",
+      "args": [
+        "setpath([[1]]; 2)",
+        {}
+      ],
+      "upstreamFn": "setpath/2",
+      "goFn": "setpath/2"
+    },
+    {
+      "id": "delpaths",
+      "fn": "run",
+      "args": [
+        "delpaths([[\"a\"],[\"b\",0]])",
+        {
+          "a": 1,
+          "b": [
+            1,
+            2
+          ],
+          "c": 3
+        }
+      ],
+      "upstreamFn": "delpaths/1",
+      "goFn": "delpaths/1"
+    },
+    {
+      "id": "delpaths-order",
+      "fn": "run",
+      "args": [
+        "delpaths([[0],[2]])",
+        [
+          1,
+          2,
+          3,
+          4
+        ]
+      ],
+      "upstreamFn": "delpaths/1",
+      "goFn": "delpaths/1",
+      "note": "delpaths must delete deepest/last first"
+    },
+    {
+      "id": "delpaths-empty-path",
+      "fn": "run",
+      "args": [
+        "delpaths([[]])",
+        {
+          "a": 1
+        }
+      ],
+      "upstreamFn": "delpaths/1",
+      "goFn": "delpaths/1"
+    },
+    {
+      "id": "del-field",
+      "fn": "run",
+      "args": [
+        "del(.a)",
+        {
+          "a": 1,
+          "b": 2
+        }
+      ],
+      "upstreamFn": "del/1",
+      "goFn": "del/1"
+    },
+    {
+      "id": "del-iterate-sel",
+      "fn": "run",
+      "args": [
+        "del(.[] | select(. == 2))",
+        [
+          1,
+          2,
+          3,
+          2
+        ]
+      ],
+      "upstreamFn": "del/1",
+      "goFn": "del/1"
+    },
+    {
+      "id": "del-index",
+      "fn": "run",
+      "args": [
+        "del(.[1])",
+        [
+          1,
+          2,
+          3
+        ]
+      ],
+      "upstreamFn": "del/1",
+      "goFn": "del/1"
+    },
+    {
+      "id": "del-slice",
+      "fn": "run",
+      "args": [
+        "del(.[1:3])",
+        [
+          1,
+          2,
+          3,
+          4
+        ]
+      ],
+      "upstreamFn": "del/1",
+      "goFn": "del/1"
+    },
+    {
+      "id": "del-nonexistent",
+      "fn": "run",
+      "args": [
+        "del(.x)",
+        {
+          "a": 1
+        }
+      ],
+      "upstreamFn": "del/1",
+      "goFn": "del/1"
+    },
+    {
+      "id": "del-multiple-nested",
+      "fn": "run",
+      "args": [
+        "del(.a[0], .b)",
+        {
+          "a": [
+            1,
+            2
+          ],
+          "b": 3
+        }
+      ],
+      "upstreamFn": "del/1",
+      "goFn": "del/1"
+    },
+    {
+      "id": "assign-eq",
+      "fn": "run",
+      "args": [
+        ".a = 5",
+        {
+          "a": 1
+        }
+      ],
+      "upstreamFn": "=",
+      "goFn": "="
+    },
+    {
+      "id": "assign-update",
+      "fn": "run",
+      "args": [
+        ".a |= .+1",
+        {
+          "a": 1
+        }
+      ],
+      "upstreamFn": "|=",
+      "goFn": "|="
+    },
+    {
+      "id": "assign-plus",
+      "fn": "run",
+      "args": [
+        ".a += 2",
+        {
+          "a": 1
+        }
+      ],
+      "upstreamFn": "+=",
+      "goFn": "+="
+    },
+    {
+      "id": "assign-arith-family",
+      "fn": "run",
+      "args": [
+        "[(.a -= 1), (.a *= 3), (.a /= 2), (.a %= 2)]",
+        {
+          "a": 6
+        }
+      ],
+      "upstreamFn": "-=",
+      "goFn": "-="
+    },
+    {
+      "id": "assign-alt-update",
+      "fn": "run",
+      "args": [
+        ".a //= 5",
+        {
+          "a": null
+        }
+      ],
+      "upstreamFn": "//=",
+      "goFn": "//="
+    },
+    {
+      "id": "assign-multi-path",
+      "fn": "run",
+      "args": [
+        "(.a,.b) = 9",
+        {
+          "a": 1,
+          "b": 2
+        }
+      ],
+      "upstreamFn": "=",
+      "goFn": "="
+    },
+    {
+      "id": "assign-iterate",
+      "fn": "run",
+      "args": [
+        ".[] |= .+1",
+        [
+          1,
+          2,
+          3
+        ]
+      ],
+      "upstreamFn": "|=",
+      "goFn": "|="
+    },
+    {
+      "id": "assign-rhs-many",
+      "fn": "run",
+      "args": [
+        "[.a = (1,2)]",
+        {}
+      ],
+      "upstreamFn": "=",
+      "goFn": "="
+    },
+    {
+      "id": "assign-update-empty",
+      "fn": "run",
+      "args": [
+        ".a |= empty",
+        {
+          "a": 1,
+          "b": 2
+        }
+      ],
+      "upstreamFn": "|=",
+      "goFn": "|="
+    },
+    {
+      "id": "pick-paths",
+      "fn": "run",
+      "args": [
+        "pick(.a, .b.c)",
+        {
+          "a": 1,
+          "b": {
+            "c": 2,
+            "d": 3
+          },
+          "e": 4
+        }
+      ],
+      "upstreamFn": "pick/1",
+      "goFn": "pick/1"
+    },
+    {
+      "id": "tostream",
+      "fn": "run",
+      "args": [
+        "[tostream]",
+        {
+          "a": [
+            1,
+            2
+          ]
+        }
+      ],
+      "upstreamFn": "tostream/0",
+      "goFn": "tostream/0"
+    },
+    {
+      "id": "tostream-scalar",
+      "fn": "run",
+      "args": [
+        "[tostream]",
+        1
+      ],
+      "upstreamFn": "tostream/0",
+      "goFn": "tostream/0"
+    },
+    {
+      "id": "tostream-empty-obj",
+      "fn": "run",
+      "args": [
+        "[tostream]",
+        {}
+      ],
+      "upstreamFn": "tostream/0",
+      "goFn": "tostream/0"
+    },
+    {
+      "id": "tostream-nested",
+      "fn": "run",
+      "args": [
+        "[tostream]",
+        {
+          "a": {
+            "b": [
+              1
+            ]
+          }
+        }
+      ],
+      "upstreamFn": "tostream/0",
+      "goFn": "tostream/0"
+    },
+    {
+      "id": "tostream-limit",
+      "fn": "run",
+      "args": [
+        "[limit(3; tostream)]",
+        {
+          "a": {
+            "b": 1
+          },
+          "c": 2
+        }
+      ],
+      "upstreamFn": "tostream/0",
+      "goFn": "tostream/0"
+    },
+    {
+      "id": "fromstream",
+      "fn": "run",
+      "args": [
+        "fromstream(tostream)",
+        {
+          "a": [
+            1,
+            2
+          ]
+        }
+      ],
+      "upstreamFn": "fromstream/1",
+      "goFn": "\u2014",
+      "deviation": "fromstream/truncate_stream are documented as not implemented"
+    },
+    {
+      "id": "truncate-stream",
+      "fn": "run",
+      "args": [
+        "[1|truncate_stream([[0],1])]",
+        null
+      ],
+      "upstreamFn": "truncate_stream/1",
+      "goFn": "\u2014",
+      "deviation": "fromstream/truncate_stream are documented as not implemented"
+    }
+  ]
+}

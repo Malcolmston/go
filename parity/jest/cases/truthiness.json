@@ -1,0 +1,56 @@
+{
+  "group": "truthiness",
+  "upstream": "expect@29.7.0",
+  "note": "toBeTruthy / toBeFalsy / toBeNull / toBeUndefined / toBeDefined / toBeNaN",
+  "cases": [
+    {"id": "truthy-one", "fn": "toBeTruthy", "actual": 1, "upstreamFn": "expect().toBeTruthy", "goFn": "jest.Matcher.ToBeTruthy"},
+    {"id": "truthy-zero", "fn": "toBeTruthy", "actual": 0, "upstreamFn": "expect().toBeTruthy", "goFn": "jest.Matcher.ToBeTruthy"},
+    {"id": "truthy-negzero", "fn": "toBeTruthy", "actual": {"$": "negzero"}, "upstreamFn": "expect().toBeTruthy", "goFn": "jest.Matcher.ToBeTruthy"},
+    {"id": "truthy-empty-str", "fn": "toBeTruthy", "actual": "", "upstreamFn": "expect().toBeTruthy", "goFn": "jest.Matcher.ToBeTruthy"},
+    {"id": "truthy-str", "fn": "toBeTruthy", "actual": "x", "upstreamFn": "expect().toBeTruthy", "goFn": "jest.Matcher.ToBeTruthy"},
+    {"id": "truthy-str-zero", "fn": "toBeTruthy", "actual": "0", "note": "the string \"0\" is truthy in JS", "upstreamFn": "expect().toBeTruthy", "goFn": "jest.Matcher.ToBeTruthy"},
+    {"id": "truthy-true", "fn": "toBeTruthy", "actual": true, "upstreamFn": "expect().toBeTruthy", "goFn": "jest.Matcher.ToBeTruthy"},
+    {"id": "truthy-false", "fn": "toBeTruthy", "actual": false, "upstreamFn": "expect().toBeTruthy", "goFn": "jest.Matcher.ToBeTruthy"},
+    {"id": "truthy-nan", "fn": "toBeTruthy", "actual": {"$": "nan"}, "upstreamFn": "expect().toBeTruthy", "goFn": "jest.Matcher.ToBeTruthy"},
+    {"id": "truthy-null", "fn": "toBeTruthy", "actual": null, "upstreamFn": "expect().toBeTruthy", "goFn": "jest.Matcher.ToBeTruthy"},
+    {"id": "truthy-undefined", "fn": "toBeTruthy", "actual": {"$": "undefined"}, "upstreamFn": "expect().toBeTruthy", "goFn": "jest.Matcher.ToBeTruthy"},
+    {"id": "truthy-empty-arr", "fn": "toBeTruthy", "actual": [], "note": "an empty array is truthy in JS", "upstreamFn": "expect().toBeTruthy", "goFn": "jest.Matcher.ToBeTruthy"},
+    {"id": "truthy-empty-obj", "fn": "toBeTruthy", "actual": {}, "upstreamFn": "expect().toBeTruthy", "goFn": "jest.Matcher.ToBeTruthy"},
+    {"id": "truthy-not-zero", "fn": "toBeTruthy", "not": true, "actual": 0, "upstreamFn": "expect().not.toBeTruthy", "goFn": "jest.Matcher.Not().ToBeTruthy"},
+
+    {"id": "falsy-zero", "fn": "toBeFalsy", "actual": 0, "upstreamFn": "expect().toBeFalsy", "goFn": "jest.Matcher.ToBeFalsy"},
+    {"id": "falsy-one", "fn": "toBeFalsy", "actual": 1, "upstreamFn": "expect().toBeFalsy", "goFn": "jest.Matcher.ToBeFalsy"},
+    {"id": "falsy-empty-str", "fn": "toBeFalsy", "actual": "", "upstreamFn": "expect().toBeFalsy", "goFn": "jest.Matcher.ToBeFalsy"},
+    {"id": "falsy-nan", "fn": "toBeFalsy", "actual": {"$": "nan"}, "upstreamFn": "expect().toBeFalsy", "goFn": "jest.Matcher.ToBeFalsy"},
+    {"id": "falsy-null", "fn": "toBeFalsy", "actual": null, "upstreamFn": "expect().toBeFalsy", "goFn": "jest.Matcher.ToBeFalsy"},
+    {"id": "falsy-undefined", "fn": "toBeFalsy", "actual": {"$": "undefined"}, "upstreamFn": "expect().toBeFalsy", "goFn": "jest.Matcher.ToBeFalsy"},
+    {"id": "falsy-false", "fn": "toBeFalsy", "actual": false, "upstreamFn": "expect().toBeFalsy", "goFn": "jest.Matcher.ToBeFalsy"},
+    {"id": "falsy-empty-arr", "fn": "toBeFalsy", "actual": [], "upstreamFn": "expect().toBeFalsy", "goFn": "jest.Matcher.ToBeFalsy"},
+    {"id": "falsy-empty-obj", "fn": "toBeFalsy", "actual": {}, "upstreamFn": "expect().toBeFalsy", "goFn": "jest.Matcher.ToBeFalsy"},
+    {"id": "falsy-not-one", "fn": "toBeFalsy", "not": true, "actual": 1, "upstreamFn": "expect().not.toBeFalsy", "goFn": "jest.Matcher.Not().ToBeFalsy"},
+
+    {"id": "null-null", "fn": "toBeNull", "actual": null, "upstreamFn": "expect().toBeNull", "goFn": "jest.Matcher.ToBeNull"},
+    {"id": "null-undefined", "fn": "toBeNull", "actual": {"$": "undefined"}, "deviation": "Go has a single nil, so null and undefined cannot be told apart", "upstreamFn": "expect().toBeNull", "goFn": "jest.Matcher.ToBeNull"},
+    {"id": "null-zero", "fn": "toBeNull", "actual": 0, "upstreamFn": "expect().toBeNull", "goFn": "jest.Matcher.ToBeNull"},
+    {"id": "null-false", "fn": "toBeNull", "actual": false, "upstreamFn": "expect().toBeNull", "goFn": "jest.Matcher.ToBeNull"},
+    {"id": "null-empty-str", "fn": "toBeNull", "actual": "", "upstreamFn": "expect().toBeNull", "goFn": "jest.Matcher.ToBeNull"},
+    {"id": "null-not-zero", "fn": "toBeNull", "not": true, "actual": 0, "upstreamFn": "expect().not.toBeNull", "goFn": "jest.Matcher.Not().ToBeNull"},
+
+    {"id": "undefined-undefined", "fn": "toBeUndefined", "actual": {"$": "undefined"}, "upstreamFn": "expect().toBeUndefined", "goFn": "jest.Matcher.ToBeUndefined"},
+    {"id": "undefined-null", "fn": "toBeUndefined", "actual": null, "deviation": "Go has a single nil", "upstreamFn": "expect().toBeUndefined", "goFn": "jest.Matcher.ToBeUndefined"},
+    {"id": "undefined-zero", "fn": "toBeUndefined", "actual": 0, "upstreamFn": "expect().toBeUndefined", "goFn": "jest.Matcher.ToBeUndefined"},
+    {"id": "undefined-empty-str", "fn": "toBeUndefined", "actual": "", "upstreamFn": "expect().toBeUndefined", "goFn": "jest.Matcher.ToBeUndefined"},
+
+    {"id": "defined-zero", "fn": "toBeDefined", "actual": 0, "upstreamFn": "expect().toBeDefined", "goFn": "jest.Matcher.ToBeDefined"},
+    {"id": "defined-null", "fn": "toBeDefined", "actual": null, "deviation": "in JS null IS defined; in Go nil is the only absence marker", "upstreamFn": "expect().toBeDefined", "goFn": "jest.Matcher.ToBeDefined"},
+    {"id": "defined-undefined", "fn": "toBeDefined", "actual": {"$": "undefined"}, "upstreamFn": "expect().toBeDefined", "goFn": "jest.Matcher.ToBeDefined"},
+    {"id": "defined-empty-str", "fn": "toBeDefined", "actual": "", "upstreamFn": "expect().toBeDefined", "goFn": "jest.Matcher.ToBeDefined"},
+    {"id": "defined-nan", "fn": "toBeDefined", "actual": {"$": "nan"}, "upstreamFn": "expect().toBeDefined", "goFn": "jest.Matcher.ToBeDefined"},
+    {"id": "defined-not-undefined", "fn": "toBeDefined", "not": true, "actual": {"$": "undefined"}, "upstreamFn": "expect().not.toBeDefined", "goFn": "jest.Matcher.Not().ToBeDefined"},
+
+    {"id": "nan-nan", "fn": "toBeNaN", "actual": {"$": "nan"}, "upstreamFn": "expect().toBeNaN", "goFn": "jest.Matcher.ToBeNaN"},
+    {"id": "nan-zero", "fn": "toBeNaN", "actual": 0, "upstreamFn": "expect().toBeNaN", "goFn": "jest.Matcher.ToBeNaN"},
+    {"id": "nan-inf", "fn": "toBeNaN", "actual": {"$": "inf"}, "upstreamFn": "expect().toBeNaN", "goFn": "jest.Matcher.ToBeNaN"},
+    {"id": "nan-not-one", "fn": "toBeNaN", "not": true, "actual": 1, "upstreamFn": "expect().not.toBeNaN", "goFn": "jest.Matcher.Not().ToBeNaN"}
+  ]
+}

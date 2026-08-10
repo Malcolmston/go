@@ -1,0 +1,1738 @@
+{
+  "group": "gaps",
+  "upstream": "redis-server@8.2.2",
+  "encoding": "commands are arrays of UTF-8 argument strings; replies map integer->number, bulk string->string, nil->null, simple string->{\"status\":s}, array->array, error->{\"error\":true}",
+  "cases": [
+    {
+      "id": "gap-mset-mget",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "MSET",
+              "a",
+              "1",
+              "b",
+              "2"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "MGET",
+              "a",
+              "b",
+              "nokey"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "MSETNX",
+              "c",
+              "3"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "KEYS",
+              "*"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "MSET/MGET/MSETNX",
+      "goFn": "\u2014",
+      "note": "not in the RESP dispatch table"
+    },
+    {
+      "id": "gap-setex-setnx",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SETEX",
+              "k",
+              "100",
+              "v"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TTL",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SETNX",
+              "k2",
+              "v"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SETNX",
+              "k2",
+              "w"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "k2"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PSETEX",
+              "k3",
+              "100000",
+              "v"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TTL",
+              "k3"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "SETEX/PSETEX/SETNX",
+      "goFn": "\u2014",
+      "note": "not in the RESP dispatch table"
+    },
+    {
+      "id": "gap-getdel-getex",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "k",
+              "v"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GETDEL",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXISTS",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "k2",
+              "v"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GETEX",
+              "k2",
+              "EX",
+              "100"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TTL",
+              "k2"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GETEX",
+              "k2",
+              "PERSIST"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TTL",
+              "k2"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "GETDEL/GETEX",
+      "goFn": "\u2014",
+      "note": "not in the RESP dispatch table"
+    },
+    {
+      "id": "gap-setrange-getrange",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "k",
+              "Hello World"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GETRANGE",
+              "k",
+              "0",
+              "4"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GETRANGE",
+              "k",
+              "-5",
+              "-1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SETRANGE",
+              "k",
+              "6",
+              "Redis"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "STRLEN",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SETRANGE",
+              "new",
+              "2",
+              "xy"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "STRLEN",
+              "new"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "GETRANGE/SETRANGE",
+      "goFn": "\u2014",
+      "note": "not in the RESP dispatch table"
+    },
+    {
+      "id": "gap-incrbyfloat",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "k",
+              "10.5"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "INCRBYFLOAT",
+              "k",
+              "0.1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "INCRBYFLOAT",
+              "k",
+              "-5"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "s",
+              "abc"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "INCRBYFLOAT",
+              "s",
+              "1"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "INCRBYFLOAT",
+      "goFn": "\u2014",
+      "note": "not in the RESP dispatch table"
+    },
+    {
+      "id": "gap-list-mutators",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "RPUSH",
+              "l",
+              "a",
+              "b",
+              "c"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LSET",
+              "l",
+              "1",
+              "B"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LRANGE",
+              "l",
+              "0",
+              "-1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LINSERT",
+              "l",
+              "BEFORE",
+              "a",
+              "Z"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LRANGE",
+              "l",
+              "0",
+              "-1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LTRIM",
+              "l",
+              "0",
+              "2"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LRANGE",
+              "l",
+              "0",
+              "-1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LREM",
+              "l",
+              "1",
+              "Z"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LRANGE",
+              "l",
+              "0",
+              "-1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LPOS",
+              "l",
+              "B"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "LSET/LINSERT/LTRIM/LREM/LPOS",
+      "goFn": "\u2014",
+      "note": "not in the RESP dispatch table"
+    },
+    {
+      "id": "gap-lmove-lmpop",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "RPUSH",
+              "src",
+              "a",
+              "b",
+              "c"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LMOVE",
+              "src",
+              "dst",
+              "LEFT",
+              "RIGHT"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LRANGE",
+              "src",
+              "0",
+              "-1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LRANGE",
+              "dst",
+              "0",
+              "-1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LMPOP",
+              "2",
+              "src",
+              "dst",
+              "LEFT"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "RPOPLPUSH",
+              "src",
+              "dst"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "LRANGE",
+              "dst",
+              "0",
+              "-1"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "LMOVE/LMPOP/RPOPLPUSH",
+      "goFn": "\u2014",
+      "note": "not in the RESP dispatch table"
+    },
+    {
+      "id": "gap-hash-extras",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "HSET",
+              "h",
+              "n",
+              "1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HINCRBY",
+              "h",
+              "n",
+              "5"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HGET",
+              "h",
+              "n"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HINCRBYFLOAT",
+              "h",
+              "f",
+              "1.5"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HMGET",
+              "h",
+              "n",
+              "f",
+              "nope"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HMSET",
+              "h",
+              "x",
+              "1",
+              "y",
+              "2"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HSETNX",
+              "h",
+              "x",
+              "9"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HSTRLEN",
+              "h",
+              "x"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HRANDFIELD",
+              "h",
+              "0"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "HINCRBY/HINCRBYFLOAT/HMGET/HMSET/HSETNX/HSTRLEN/HRANDFIELD",
+      "goFn": "\u2014",
+      "note": "not in the RESP dispatch table"
+    },
+    {
+      "id": "gap-set-extras",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SADD",
+              "s",
+              "only"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SMOVE",
+              "s",
+              "d",
+              "only"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SMEMBERS",
+              "d"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SPOP",
+              "d"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXISTS",
+              "d"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SADD",
+              "s2",
+              "x"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SRANDMEMBER",
+              "s2"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SMISMEMBER",
+              "s2",
+              "x",
+              "y"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "SMOVE/SPOP/SRANDMEMBER/SMISMEMBER",
+      "goFn": "\u2014",
+      "note": "single-member sets keep SPOP/SRANDMEMBER deterministic"
+    },
+    {
+      "id": "gap-set-store",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SADD",
+              "s1",
+              "a",
+              "b"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SADD",
+              "s2",
+              "b",
+              "c"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SINTERSTORE",
+              "d1",
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SMEMBERS",
+              "d1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SUNIONSTORE",
+              "d2",
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SMEMBERS",
+              "d2"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SDIFFSTORE",
+              "d3",
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SMEMBERS",
+              "d3"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SINTERCARD",
+              "2",
+              "s1",
+              "s2"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "SINTERSTORE/SUNIONSTORE/SDIFFSTORE/SINTERCARD",
+      "goFn": "\u2014",
+      "note": "not in the RESP dispatch table"
+    },
+    {
+      "id": "gap-zset-extras",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "ZADD",
+              "z",
+              "1",
+              "a",
+              "2",
+              "b"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZINCRBY",
+              "z",
+              "5",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZSCORE",
+              "z",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZCOUNT",
+              "z",
+              "0",
+              "10"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZCOUNT",
+              "z",
+              "(2",
+              "+inf"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZPOPMIN",
+              "z"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZPOPMAX",
+              "z"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZCARD",
+              "z"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZADD",
+              "z2",
+              "1",
+              "a",
+              "2",
+              "b",
+              "3",
+              "c"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZREMRANGEBYSCORE",
+              "z2",
+              "0",
+              "1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANGE",
+              "z2",
+              "0",
+              "-1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZREMRANGEBYRANK",
+              "z2",
+              "0",
+              "0"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANGE",
+              "z2",
+              "0",
+              "-1"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "ZINCRBY/ZCOUNT/ZPOPMIN/ZPOPMAX/ZREMRANGEBY*",
+      "goFn": "\u2014",
+      "note": "not in the RESP dispatch table"
+    },
+    {
+      "id": "gap-zset-lex",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "ZADD",
+              "z",
+              "0",
+              "a",
+              "0",
+              "b",
+              "0",
+              "c"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANGEBYLEX",
+              "z",
+              "-",
+              "+"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANGEBYLEX",
+              "z",
+              "[a",
+              "(c"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANGEBYLEX",
+              "z",
+              "(a",
+              "+"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZREVRANGEBYLEX",
+              "z",
+              "+",
+              "-"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZLEXCOUNT",
+              "z",
+              "-",
+              "+"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZREVRANGEBYSCORE",
+              "z",
+              "+inf",
+              "-inf"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANGESTORE",
+              "d",
+              "z",
+              "0",
+              "-1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZRANGE",
+              "z",
+              "(a",
+              "+",
+              "BYLEX"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "ZRANGEBYLEX/ZLEXCOUNT/ZREVRANGEBYSCORE/ZRANGESTORE/ZRANGE BYLEX",
+      "goFn": "\u2014",
+      "note": "not in the RESP dispatch table"
+    },
+    {
+      "id": "gap-scan",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "a",
+              "1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "b",
+              "2"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SCAN",
+              "0",
+              "COUNT",
+              "1000"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SCAN",
+              "0",
+              "MATCH",
+              "a*",
+              "COUNT",
+              "1000"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HSET",
+              "h",
+              "f",
+              "v"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "HSCAN",
+              "h",
+              "0"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SADD",
+              "s",
+              "m"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SSCAN",
+              "s",
+              "0"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZADD",
+              "z",
+              "1",
+              "m"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZSCAN",
+              "z",
+              "0"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "SCAN/HSCAN/SSCAN/ZSCAN",
+      "goFn": "\u2014",
+      "note": "not in the RESP dispatch table"
+    },
+    {
+      "id": "gap-rename-copy",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "a",
+              "1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "RENAME",
+              "a",
+              "b"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "b"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXISTS",
+              "a"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "COPY",
+              "b",
+              "c"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "c"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "RENAMENX",
+              "b",
+              "c"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "RENAME",
+              "nokey",
+              "x"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "KEYS",
+              "*"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "RENAME/RENAMENX/COPY",
+      "goFn": "\u2014",
+      "note": "not in the RESP dispatch table"
+    },
+    {
+      "id": "gap-transactions",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "MULTI"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "k",
+              "v"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "INCR",
+              "ctr"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXEC"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "ctr"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "MULTI/EXEC",
+      "goFn": "\u2014",
+      "note": "MULTI/EXEC are not reachable over RESP in the port"
+    },
+    {
+      "id": "gap-transaction-discard",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "k",
+              "before"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "MULTI"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "k",
+              "after"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "DISCARD"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXEC"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "MULTI/DISCARD",
+      "goFn": "\u2014",
+      "note": "DISCARD rolls the queue back; EXEC outside MULTI is an error"
+    },
+    {
+      "id": "gap-transaction-watch",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "k",
+              "1"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "WATCH",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "MULTI"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "INCR",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXEC"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "UNWATCH"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "WATCH/UNWATCH",
+      "goFn": "\u2014",
+      "note": "not reachable over RESP in the port"
+    },
+    {
+      "id": "gap-transaction-queue-error",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "MULTI"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "NOSUCHCOMMAND"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "k",
+              "v"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXEC"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GET",
+              "k"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "MULTI (queue error aborts EXEC)",
+      "goFn": "\u2014",
+      "note": ""
+    },
+    {
+      "id": "gap-connection-commands",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "PING"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PING",
+              "hello"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ECHO",
+              "hi"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SELECT",
+              "0"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "DBSIZE"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "PING/ECHO/SELECT",
+      "goFn": "\u2014",
+      "note": "no connection-level commands in the port"
+    },
+    {
+      "id": "gap-keyspace-extras",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "only",
+              "v"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "RANDOMKEY"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TOUCH",
+              "only",
+              "nope"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "OBJECT",
+              "ENCODING",
+              "only"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "UNLINK",
+              "only"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXISTS",
+              "only"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "RPUSH",
+              "l",
+              "3",
+              "1",
+              "2"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SORT",
+              "l"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SORT",
+              "l",
+              "DESC"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "SORT",
+              "l",
+              "LIMIT",
+              "0",
+              "2"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "RANDOMKEY/TOUCH/OBJECT/UNLINK/SORT",
+      "goFn": "\u2014",
+      "note": "not in the RESP dispatch table"
+    },
+    {
+      "id": "gap-expire-variants",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "k",
+              "v"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXPIRE",
+              "k",
+              "100",
+              "NX"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TTL",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXPIRE",
+              "k",
+              "50",
+              "XX"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TTL",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXPIRE",
+              "k",
+              "200",
+              "GT"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TTL",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXPIRE",
+              "k",
+              "10",
+              "GT"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TTL",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXPIREAT",
+              "k",
+              "4000000000"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "EXPIRETIME",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PEXPIRETIME",
+              "k"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "EXPIRE NX|XX|GT|LT, EXPIREAT, EXPIRETIME",
+      "goFn": "\u2014",
+      "note": "the port's EXPIRE takes exactly two arguments"
+    },
+    {
+      "id": "gap-geo",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "GEOADD",
+              "g",
+              "13.361389",
+              "38.115556",
+              "Palermo"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GEOADD",
+              "g",
+              "15.087269",
+              "37.502669",
+              "Catania"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GEODIST",
+              "g",
+              "Palermo",
+              "Catania"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GEOPOS",
+              "g",
+              "Palermo"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "GEOHASH",
+              "g",
+              "Palermo"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TYPE",
+              "g"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "ZCARD",
+              "g"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "GEOADD/GEODIST/GEOPOS/GEOHASH",
+      "goFn": "\u2014",
+      "note": "not in the RESP dispatch table"
+    },
+    {
+      "id": "gap-dump-restore",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "cmd",
+            "args": [
+              "SET",
+              "k",
+              "v"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "DUMP",
+              "nokey"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "PERSIST",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "TYPE",
+              "k"
+            ]
+          },
+          {
+            "op": "cmd",
+            "args": [
+              "OBJECT",
+              "REFCOUNT",
+              "k"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "DUMP/OBJECT REFCOUNT",
+      "goFn": "\u2014",
+      "note": "DUMP of a real key embeds an RDB version, so only the nil case is scripted"
+    }
+  ]
+}

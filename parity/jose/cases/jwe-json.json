@@ -1,0 +1,402 @@
+{
+  "group": "jwe-json",
+  "upstream": "jose@5.9.6",
+  "cases": [
+    {
+      "id": "jwe-flat-a256kw",
+      "kind": "cross",
+      "fn": "encrypt.flattened",
+      "args": [
+        "Live long and prosper.",
+        "oct-32",
+        {
+          "alg": "A256KW",
+          "enc": "A256GCM"
+        }
+      ],
+      "consumeFn": "decrypt.flattened",
+      "consumeArgs": [
+        "$OUT",
+        "oct-32",
+        {
+          "alg": "A256KW"
+        }
+      ],
+      "expect": {
+        "payload": "Live long and prosper."
+      },
+      "directions": [
+        "n2g"
+      ],
+      "upstreamFn": "jose.FlattenedEncrypt",
+      "goFn": "jose.DecryptJSON",
+      "note": "RFC 7516 section 7.2.2; the port has no flattened producer, so only node -> Go runs"
+    },
+    {
+      "id": "jwe-flat-a256kw-aad",
+      "kind": "cross",
+      "fn": "encrypt.flattened",
+      "args": [
+        "Live long and prosper.",
+        "oct-32",
+        {
+          "alg": "A256KW",
+          "enc": "A256GCM",
+          "aad": "additional authenticated data"
+        }
+      ],
+      "consumeFn": "decrypt.flattened",
+      "consumeArgs": [
+        "$OUT",
+        "oct-32",
+        {
+          "alg": "A256KW"
+        }
+      ],
+      "expect": {
+        "payload": "Live long and prosper."
+      },
+      "directions": [
+        "n2g"
+      ],
+      "upstreamFn": "jose.FlattenedEncrypt",
+      "goFn": "jose.DecryptJSON",
+      "note": "RFC 7520 section 5.10, the aad member"
+    },
+    {
+      "id": "jwe-flat-shared-unprotected",
+      "kind": "cross",
+      "fn": "encrypt.flattened",
+      "args": [
+        "Live long and prosper.",
+        "oct-32",
+        {
+          "alg": "A256KW",
+          "enc": "A256GCM",
+          "unprotected": {
+            "cty": "text/plain"
+          }
+        }
+      ],
+      "consumeFn": "decrypt.flattened",
+      "consumeArgs": [
+        "$OUT",
+        "oct-32",
+        {
+          "alg": "A256KW"
+        }
+      ],
+      "expect": {
+        "payload": "Live long and prosper.",
+        "header": {
+          "alg": "A256KW",
+          "enc": "A256GCM",
+          "cty": "text/plain"
+        }
+      },
+      "directions": [
+        "n2g"
+      ],
+      "upstreamFn": "jose.FlattenedEncrypt",
+      "goFn": "jose.DecryptJSON",
+      "note": "RFC 7520 section 5.11, parameters outside the authentication tag"
+    },
+    {
+      "id": "jwe-flat-rsa-oaep-256",
+      "kind": "cross",
+      "fn": "encrypt.flattened",
+      "args": [
+        "Live long and prosper.",
+        "rsa2048-pub",
+        {
+          "alg": "RSA-OAEP-256",
+          "enc": "A128CBC-HS256"
+        }
+      ],
+      "consumeFn": "decrypt.flattened",
+      "consumeArgs": [
+        "$OUT",
+        "rsa2048-priv",
+        {
+          "alg": "RSA-OAEP-256"
+        }
+      ],
+      "expect": {
+        "payload": "Live long and prosper."
+      },
+      "directions": [
+        "n2g"
+      ],
+      "upstreamFn": "jose.flattenedDecrypt",
+      "goFn": "jose.DecryptJSON"
+    },
+    {
+      "id": "jwe-gen-single-a256kw",
+      "kind": "cross",
+      "fn": "encrypt.general",
+      "args": [
+        "Live long and prosper.",
+        [
+          {
+            "key": "oct-32",
+            "alg": "A256KW"
+          }
+        ],
+        {
+          "enc": "A256GCM"
+        }
+      ],
+      "consumeFn": "decrypt.general",
+      "consumeArgs": [
+        "$OUT",
+        "oct-32",
+        {
+          "alg": "A256KW"
+        }
+      ],
+      "expect": {
+        "payload": "Live long and prosper."
+      },
+      "upstreamFn": "jose.GeneralEncrypt",
+      "goFn": "jose.EncryptJSONMulti"
+    },
+    {
+      "id": "jwe-gen-single-aad",
+      "kind": "cross",
+      "fn": "encrypt.general",
+      "args": [
+        "Live long and prosper.",
+        [
+          {
+            "key": "oct-32",
+            "alg": "A256KW"
+          }
+        ],
+        {
+          "enc": "A256GCM",
+          "aad": "additional authenticated data"
+        }
+      ],
+      "consumeFn": "decrypt.general",
+      "consumeArgs": [
+        "$OUT",
+        "oct-32",
+        {
+          "alg": "A256KW"
+        }
+      ],
+      "expect": {
+        "payload": "Live long and prosper."
+      },
+      "upstreamFn": "jose.GeneralEncrypt",
+      "goFn": "jose.EncryptJSONMulti"
+    },
+    {
+      "id": "jwe-gen-single-shared-unprotected",
+      "kind": "cross",
+      "fn": "encrypt.general",
+      "args": [
+        "Live long and prosper.",
+        [
+          {
+            "key": "oct-32",
+            "alg": "A256KW"
+          }
+        ],
+        {
+          "enc": "A256GCM",
+          "unprotected": {
+            "cty": "text/plain"
+          }
+        }
+      ],
+      "consumeFn": "decrypt.general",
+      "consumeArgs": [
+        "$OUT",
+        "oct-32",
+        {
+          "alg": "A256KW"
+        }
+      ],
+      "expect": {
+        "payload": "Live long and prosper.",
+        "header": {
+          "alg": "A256KW",
+          "enc": "A256GCM",
+          "cty": "text/plain"
+        }
+      },
+      "upstreamFn": "jose.GeneralEncrypt",
+      "goFn": "jose.EncryptJSONMulti"
+    },
+    {
+      "id": "jwe-gen-multi-a256kw-rsa",
+      "kind": "cross",
+      "fn": "encrypt.general",
+      "args": [
+        "Live long and prosper.",
+        [
+          {
+            "key": "oct-32",
+            "alg": "A256KW",
+            "kid": "shared-secret"
+          },
+          {
+            "key": "rsa2048-pub",
+            "alg": "RSA-OAEP-256",
+            "kid": "rsa-1"
+          }
+        ],
+        {
+          "enc": "A256GCM"
+        }
+      ],
+      "consumeFn": "decrypt.general",
+      "consumeArgs": [
+        "$OUT",
+        "rsa2048-priv",
+        {
+          "alg": "RSA-OAEP-256"
+        }
+      ],
+      "expect": {
+        "payload": "Live long and prosper.",
+        "header": {
+          "alg": "RSA-OAEP-256",
+          "enc": "A256GCM",
+          "kid": "rsa-1"
+        }
+      },
+      "upstreamFn": "jose.GeneralEncrypt",
+      "goFn": "jose.EncryptJSONMulti",
+      "note": "RFC 7520 section 5.13, one content encryption delivered to several recipients"
+    },
+    {
+      "id": "jwe-gen-multi-first-recipient",
+      "kind": "cross",
+      "fn": "encrypt.general",
+      "args": [
+        "Live long and prosper.",
+        [
+          {
+            "key": "oct-32",
+            "alg": "A256KW",
+            "kid": "shared-secret"
+          },
+          {
+            "key": "rsa2048-pub",
+            "alg": "RSA-OAEP-256",
+            "kid": "rsa-1"
+          }
+        ],
+        {
+          "enc": "A256GCM"
+        }
+      ],
+      "consumeFn": "decrypt.general",
+      "consumeArgs": [
+        "$OUT",
+        "oct-32",
+        {
+          "alg": "A256KW"
+        }
+      ],
+      "expect": {
+        "payload": "Live long and prosper.",
+        "header": {
+          "alg": "A256KW",
+          "enc": "A256GCM",
+          "kid": "shared-secret"
+        }
+      },
+      "upstreamFn": "jose.generalDecrypt",
+      "goFn": "jose.DecryptJSON"
+    },
+    {
+      "id": "jwe-gen-multi-three-recipients",
+      "kind": "cross",
+      "fn": "encrypt.general",
+      "args": [
+        "Live long and prosper.",
+        [
+          {
+            "key": "oct-16",
+            "alg": "A128KW",
+            "kid": "k128"
+          },
+          {
+            "key": "oct-32",
+            "alg": "A256GCMKW",
+            "kid": "k256gcmkw"
+          },
+          {
+            "key": "password",
+            "alg": "PBES2-HS256+A128KW",
+            "kid": "pw",
+            "header": {
+              "p2c": 2048
+            }
+          }
+        ],
+        {
+          "enc": "A256GCM"
+        }
+      ],
+      "consumeFn": "decrypt.general",
+      "consumeArgs": [
+        "$OUT",
+        "oct-32",
+        {
+          "alg": "A256GCMKW",
+          "keyManagement": [
+            "A128KW",
+            "A256GCMKW",
+            "PBES2-HS256+A128KW"
+          ]
+        }
+      ],
+      "expect": {
+        "payload": "Live long and prosper.",
+        "header": {
+          "alg": "A256GCMKW",
+          "enc": "A256GCM",
+          "kid": "k256gcmkw"
+        }
+      },
+      "upstreamFn": "jose.GeneralEncrypt",
+      "goFn": "jose.EncryptJSONMulti",
+      "note": "three key-management families over one CEK"
+    },
+    {
+      "id": "jwe-gen-single-ecdh-es-a256kw",
+      "kind": "cross",
+      "fn": "encrypt.general",
+      "args": [
+        "Live long and prosper.",
+        [
+          {
+            "key": "ec-p256-pub",
+            "alg": "ECDH-ES+A256KW",
+            "kid": "ec-1"
+          }
+        ],
+        {
+          "enc": "A256GCM"
+        }
+      ],
+      "consumeFn": "decrypt.general",
+      "consumeArgs": [
+        "$OUT",
+        "ec-p256-priv",
+        {
+          "alg": "ECDH-ES+A256KW"
+        }
+      ],
+      "expect": {
+        "payload": "Live long and prosper."
+      },
+      "upstreamFn": "jose.GeneralEncrypt",
+      "goFn": "jose.EncryptJSONMulti"
+    }
+  ]
+}

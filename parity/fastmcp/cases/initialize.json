@@ -1,0 +1,119 @@
+{
+  "group": "initialize",
+  "upstream": "fastmcp@3.4.6",
+  "cases": [
+    {
+      "id": "init-full",
+      "fn": "initialize",
+      "args": ["2025-11-25"],
+      "upstreamFn": "mcp.server.lowlevel.Server.create_initialization_options",
+      "goFn": "fastmcp.Server.handleInitialize",
+      "note": "the whole InitializeResult"
+    },
+    {
+      "id": "init-capabilities",
+      "fn": "initialize",
+      "args": ["2025-11-25", "capabilities"],
+      "upstreamFn": "mcp.server.lowlevel.Server.get_capabilities",
+      "goFn": "fastmcp.Server.handleInitialize",
+      "note": "the advertised capabilities object only"
+    },
+    {
+      "id": "init-cap-tools",
+      "fn": "initialize",
+      "args": ["2025-11-25", "capabilities/tools"],
+      "upstreamFn": "mcp.types.ServerCapabilities.tools",
+      "goFn": "fastmcp.Server.handleInitialize"
+    },
+    {
+      "id": "init-cap-prompts",
+      "fn": "initialize",
+      "args": ["2025-11-25", "capabilities/prompts"],
+      "upstreamFn": "mcp.types.ServerCapabilities.prompts",
+      "goFn": "fastmcp.Server.handleInitialize"
+    },
+    {
+      "id": "init-cap-resources",
+      "fn": "initialize",
+      "args": ["2025-11-25", "capabilities/resources"],
+      "upstreamFn": "mcp.types.ServerCapabilities.resources",
+      "goFn": "fastmcp.Server.handleInitialize",
+      "note": "upstream advertises subscribe:false because it registers no subscribe handler"
+    },
+    {
+      "id": "init-cap-logging",
+      "fn": "initialize",
+      "args": ["2025-11-25", "capabilities/logging"],
+      "upstreamFn": "mcp.types.ServerCapabilities.logging",
+      "goFn": "fastmcp.Server.handleInitialize",
+      "note": "both advertise it; see cap-logging-setlevel for whether it works"
+    },
+    {
+      "id": "init-cap-completions",
+      "fn": "initialize",
+      "args": ["2025-11-25", "capabilities/completions"],
+      "upstreamFn": "mcp.types.ServerCapabilities.completions",
+      "goFn": "fastmcp.Server.handleInitialize",
+      "note": "Go advertises completions; upstream 3.4.6 does not"
+    },
+    {
+      "id": "init-cap-experimental",
+      "fn": "initialize",
+      "args": ["2025-11-25", "capabilities/experimental"],
+      "upstreamFn": "mcp.types.ServerCapabilities.experimental",
+      "goFn": "—"
+    },
+    {
+      "id": "init-serverinfo",
+      "fn": "initialize",
+      "args": ["2025-11-25", "serverInfo"],
+      "upstreamFn": "mcp.types.Implementation",
+      "goFn": "fastmcp.Server.Name/Version"
+    },
+    {
+      "id": "init-instructions",
+      "fn": "initialize",
+      "args": ["2025-11-25", "instructions"],
+      "upstreamFn": "fastmcp.FastMCP(instructions=...)",
+      "goFn": "fastmcp.WithInstructions"
+    },
+    {
+      "id": "init-protocol-latest",
+      "fn": "initialize",
+      "args": ["2025-11-25", "protocolVersion"],
+      "upstreamFn": "mcp.types.LATEST_PROTOCOL_VERSION",
+      "goFn": "fastmcp.ProtocolVersion",
+      "note": "client asks for the current spec revision"
+    },
+    {
+      "id": "init-protocol-2025-06-18",
+      "fn": "initialize",
+      "args": ["2025-06-18", "protocolVersion"],
+      "upstreamFn": "mcp.shared.session negotiation",
+      "goFn": "fastmcp.Server.handleInitialize"
+    },
+    {
+      "id": "init-protocol-2024-11-05",
+      "fn": "initialize",
+      "args": ["2024-11-05", "protocolVersion"],
+      "upstreamFn": "mcp.shared.session negotiation",
+      "goFn": "fastmcp.Server.handleInitialize",
+      "note": "the version the Go port pins as its own default"
+    },
+    {
+      "id": "init-protocol-unsupported",
+      "fn": "initialize",
+      "args": ["1999-01-01", "protocolVersion"],
+      "upstreamFn": "mcp.shared.session negotiation",
+      "goFn": "fastmcp.Server.handleInitialize",
+      "note": "upstream negotiates down to a version it supports; the port echoes anything"
+    },
+    {
+      "id": "init-protocol-garbage",
+      "fn": "initialize",
+      "args": ["not-a-version", "protocolVersion"],
+      "upstreamFn": "mcp.shared.session negotiation",
+      "goFn": "fastmcp.Server.handleInitialize"
+    }
+  ]
+}

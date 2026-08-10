@@ -1,0 +1,226 @@
+{
+  "group": "errors",
+  "upstream": "jq@1.7.1",
+  "encoding": "args = [jq program, input JSON value, optional $variables object]; value = the complete output stream as a JSON array",
+  "cases": [
+    {
+      "id": "undefined-func",
+      "fn": "run",
+      "args": [
+        "no_such_function",
+        null
+      ],
+      "upstreamFn": "undefined function",
+      "goFn": "undefined function"
+    },
+    {
+      "id": "undefined-var",
+      "fn": "run",
+      "args": [
+        "$nope",
+        null
+      ],
+      "upstreamFn": "undefined variable",
+      "goFn": "undefined variable"
+    },
+    {
+      "id": "undefined-var-scoped",
+      "fn": "run",
+      "args": [
+        "1 as $x | $y",
+        null
+      ],
+      "upstreamFn": "undefined variable",
+      "goFn": "undefined variable"
+    },
+    {
+      "id": "arity-mismatch-def",
+      "fn": "run",
+      "args": [
+        "def f(a): a; f",
+        null
+      ],
+      "upstreamFn": "undefined function",
+      "goFn": "undefined function",
+      "note": "wrong arity is an undefined name in jq"
+    },
+    {
+      "id": "syntax-error-trailing-pipe",
+      "fn": "run",
+      "args": [
+        ".a |",
+        null
+      ],
+      "upstreamFn": "syntax error",
+      "goFn": "syntax error"
+    },
+    {
+      "id": "syntax-error-open-brace",
+      "fn": "run",
+      "args": [
+        "{",
+        null
+      ],
+      "upstreamFn": "syntax error",
+      "goFn": "syntax error"
+    },
+    {
+      "id": "syntax-error-unbalanced",
+      "fn": "run",
+      "args": [
+        "[1,2",
+        null
+      ],
+      "upstreamFn": "syntax error",
+      "goFn": "syntax error"
+    },
+    {
+      "id": "syntax-error-empty",
+      "fn": "run",
+      "args": [
+        "",
+        null
+      ],
+      "upstreamFn": "syntax error",
+      "goFn": "syntax error"
+    },
+    {
+      "id": "syntax-error-juxtaposed",
+      "fn": "run",
+      "args": [
+        ".a .b",
+        null
+      ],
+      "upstreamFn": "syntax error",
+      "goFn": "syntax error"
+    },
+    {
+      "id": "comment-is-not-an-error",
+      "fn": "run",
+      "args": [
+        ".a # trailing comment",
+        {
+          "a": 1
+        }
+      ],
+      "upstreamFn": "#",
+      "goFn": "#"
+    },
+    {
+      "id": "break-outside-label",
+      "fn": "run",
+      "args": [
+        "break $x",
+        null
+      ],
+      "upstreamFn": "label",
+      "goFn": "label",
+      "note": "jq reports the mangled internal label symbol $*label-x; so does the port"
+    },
+    {
+      "id": "break-outside-nested",
+      "fn": "run",
+      "args": [
+        "label $a | . as $b | break $b",
+        null
+      ],
+      "upstreamFn": "label",
+      "goFn": "label"
+    },
+    {
+      "id": "runaway-recursion",
+      "fn": "run",
+      "args": [
+        "def f: f; f",
+        null
+      ],
+      "upstreamFn": "def",
+      "goFn": "def",
+      "note": "jq overflows/exits, the port stops with ErrStepLimit: both fail"
+    },
+    {
+      "id": "not-arity-err",
+      "fn": "run",
+      "args": [
+        "not(1)",
+        null
+      ],
+      "upstreamFn": "not/0",
+      "goFn": "not/0"
+    },
+    {
+      "id": "length-arity-err",
+      "fn": "run",
+      "args": [
+        "length(1)",
+        null
+      ],
+      "upstreamFn": "length/0",
+      "goFn": "length/0"
+    },
+    {
+      "id": "field-on-bool-err",
+      "fn": "run",
+      "args": [
+        ".a",
+        true
+      ],
+      "upstreamFn": ".foo",
+      "goFn": ".foo"
+    },
+    {
+      "id": "iterate-string-err",
+      "fn": "run",
+      "args": [
+        ".[]",
+        "abc"
+      ],
+      "upstreamFn": ".[]",
+      "goFn": ".[]"
+    },
+    {
+      "id": "sort-string-err",
+      "fn": "run",
+      "args": [
+        "sort",
+        "ab"
+      ],
+      "upstreamFn": "sort/0",
+      "goFn": "sort/0"
+    },
+    {
+      "id": "with-entries-array-err",
+      "fn": "run",
+      "args": [
+        "with_entries(.value)",
+        [
+          1
+        ]
+      ],
+      "upstreamFn": "with_entries/1",
+      "goFn": "with_entries/1",
+      "note": "jq rejects an array input; the port turns the index into a key"
+    },
+    {
+      "id": "add-bool-err",
+      "fn": "run",
+      "args": [
+        "true + 1",
+        null
+      ],
+      "upstreamFn": "+",
+      "goFn": "+"
+    },
+    {
+      "id": "cmp-error-free",
+      "fn": "run",
+      "args": [
+        "[({} > []), (null < 0)]",
+        null
+      ],
+      "upstreamFn": "<",
+      "goFn": "<",
+      "note": "comparison never type-errors in jq"
+    }
+  ]
+}

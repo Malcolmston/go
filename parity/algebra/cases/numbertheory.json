@@ -1,0 +1,518 @@
+{
+  "group": "numbertheory",
+  "upstream": "sympy@1.14.0",
+  "goModule": "github.com/malcolmston/algebra@v0.8.0",
+  "note": "all integer results are compared in exact mode as plain decimal strings; Bernoulli numbers as canonical 'p/q'",
+  "cases": [
+    {
+      "id": "gcd-basic",
+      "fn": "gcd",
+      "args": [462, 1071],
+      "mode": "exact",
+      "upstreamFn": "sympy.igcd",
+      "goFn": "ntheory.GCD"
+    },
+    {
+      "id": "gcd-with-zero",
+      "fn": "gcd",
+      "args": [0, 5],
+      "mode": "exact",
+      "upstreamFn": "sympy.igcd",
+      "goFn": "ntheory.GCD"
+    },
+    {
+      "id": "gcd-negative",
+      "fn": "gcd",
+      "args": [-12, 18],
+      "mode": "exact",
+      "upstreamFn": "sympy.igcd",
+      "goFn": "ntheory.GCD"
+    },
+    {
+      "id": "lcm-basic",
+      "fn": "lcm",
+      "args": [4, 6],
+      "mode": "exact",
+      "upstreamFn": "sympy.ilcm",
+      "goFn": "ntheory.LCM"
+    },
+    {
+      "id": "lcm-large",
+      "fn": "lcm",
+      "args": [123456, 789012],
+      "mode": "exact",
+      "upstreamFn": "sympy.ilcm",
+      "goFn": "ntheory.LCM"
+    },
+    {
+      "id": "extended-gcd-240-46",
+      "fn": "extended_gcd",
+      "args": [240, 46],
+      "mode": "exact",
+      "upstreamFn": "sympy.core.intfunc.igcdex",
+      "goFn": "ntheory.ExtendedGCD",
+      "note": "Bezout coefficients are only unique up to a multiple of the cofactors; the two libraries must agree on the canonical reduced pair"
+    },
+    {
+      "id": "extended-gcd-99-78",
+      "fn": "extended_gcd",
+      "args": [99, 78],
+      "mode": "exact",
+      "upstreamFn": "sympy.core.intfunc.igcdex",
+      "goFn": "ntheory.ExtendedGCD"
+    },
+    {
+      "id": "totient-360",
+      "fn": "totient",
+      "args": [360],
+      "mode": "exact",
+      "upstreamFn": "sympy.totient",
+      "goFn": "ntheory.EulerPhi"
+    },
+    {
+      "id": "totient-prime",
+      "fn": "totient",
+      "args": [97],
+      "mode": "exact",
+      "upstreamFn": "sympy.totient",
+      "goFn": "ntheory.EulerPhi"
+    },
+    {
+      "id": "totient-one",
+      "fn": "totient",
+      "args": [1],
+      "mode": "exact",
+      "upstreamFn": "sympy.totient",
+      "goFn": "ntheory.EulerPhi"
+    },
+    {
+      "id": "mobius-squarefree",
+      "fn": "mobius",
+      "args": [30],
+      "mode": "exact",
+      "upstreamFn": "sympy.mobius",
+      "goFn": "ntheory.MobiusMu"
+    },
+    {
+      "id": "mobius-square-factor",
+      "fn": "mobius",
+      "args": [12],
+      "mode": "exact",
+      "upstreamFn": "sympy.mobius",
+      "goFn": "ntheory.MobiusMu"
+    },
+    {
+      "id": "mobius-one",
+      "fn": "mobius",
+      "args": [1],
+      "mode": "exact",
+      "upstreamFn": "sympy.mobius",
+      "goFn": "ntheory.MobiusMu"
+    },
+    {
+      "id": "factorint-5040",
+      "fn": "factorint",
+      "args": [5040],
+      "mode": "exact",
+      "upstreamFn": "sympy.factorint",
+      "goFn": "ntheory.FactorList"
+    },
+    {
+      "id": "factorint-prime",
+      "fn": "factorint",
+      "args": [104729],
+      "mode": "exact",
+      "upstreamFn": "sympy.factorint",
+      "goFn": "ntheory.FactorList"
+    },
+    {
+      "id": "factorint-semiprime-large",
+      "fn": "factorint",
+      "args": [600851475143],
+      "mode": "exact",
+      "upstreamFn": "sympy.factorint",
+      "goFn": "ntheory.FactorList"
+    },
+    {
+      "id": "factorint-prime-power",
+      "fn": "factorint",
+      "args": [1048576],
+      "mode": "exact",
+      "upstreamFn": "sympy.factorint",
+      "goFn": "ntheory.FactorList"
+    },
+    {
+      "id": "isprime-carmichael-561",
+      "fn": "isprime",
+      "args": [561],
+      "mode": "exact",
+      "upstreamFn": "sympy.isprime",
+      "goFn": "ntheory.IsPrime",
+      "note": "Carmichael number: fools naive Fermat tests"
+    },
+    {
+      "id": "isprime-large-prime",
+      "fn": "isprime",
+      "args": [1000003],
+      "mode": "exact",
+      "upstreamFn": "sympy.isprime",
+      "goFn": "ntheory.IsPrime"
+    },
+    {
+      "id": "isprime-one",
+      "fn": "isprime",
+      "args": [1],
+      "mode": "exact",
+      "upstreamFn": "sympy.isprime",
+      "goFn": "ntheory.IsPrime"
+    },
+    {
+      "id": "isprime-negative",
+      "fn": "isprime",
+      "args": [-7],
+      "mode": "exact",
+      "upstreamFn": "sympy.isprime",
+      "goFn": "ntheory.IsPrime"
+    },
+    {
+      "id": "isprime-strong-pseudoprime",
+      "fn": "isprime",
+      "args": [3215031751],
+      "mode": "exact",
+      "upstreamFn": "sympy.isprime",
+      "goFn": "ntheory.IsPrime",
+      "note": "strong pseudoprime to bases 2,3,5,7"
+    },
+    {
+      "id": "nextprime-100",
+      "fn": "nextprime",
+      "args": [100],
+      "mode": "exact",
+      "upstreamFn": "sympy.nextprime",
+      "goFn": "ntheory.NextPrime"
+    },
+    {
+      "id": "nextprime-prime-input",
+      "fn": "nextprime",
+      "args": [97],
+      "mode": "exact",
+      "upstreamFn": "sympy.nextprime",
+      "goFn": "ntheory.NextPrime",
+      "note": "strictly-greater convention check"
+    },
+    {
+      "id": "primepi-1000",
+      "fn": "primepi",
+      "args": [1000],
+      "mode": "exact",
+      "upstreamFn": "sympy.primepi",
+      "goFn": "ntheory.PrimePi"
+    },
+    {
+      "id": "primepi-100000",
+      "fn": "primepi",
+      "args": [100000],
+      "mode": "exact",
+      "upstreamFn": "sympy.primepi",
+      "goFn": "ntheory.PrimePi"
+    },
+    {
+      "id": "divisors-60",
+      "fn": "divisors",
+      "args": [60],
+      "mode": "exact",
+      "upstreamFn": "sympy.divisors",
+      "goFn": "ntheory.Divisors"
+    },
+    {
+      "id": "divisors-prime",
+      "fn": "divisors",
+      "args": [13],
+      "mode": "exact",
+      "upstreamFn": "sympy.divisors",
+      "goFn": "ntheory.Divisors"
+    },
+    {
+      "id": "divisor-sigma-1-of-12",
+      "fn": "divisor_sigma",
+      "args": [12, 1],
+      "mode": "exact",
+      "upstreamFn": "sympy.divisor_sigma",
+      "goFn": "ntheory.DivisorSigma"
+    },
+    {
+      "id": "divisor-sigma-2-of-12",
+      "fn": "divisor_sigma",
+      "args": [12, 2],
+      "mode": "exact",
+      "upstreamFn": "sympy.divisor_sigma",
+      "goFn": "ntheory.DivisorSigma"
+    },
+    {
+      "id": "divisor-count-360",
+      "fn": "divisor_count",
+      "args": [360],
+      "mode": "exact",
+      "upstreamFn": "sympy.divisor_count",
+      "goFn": "ntheory.CountDivisors"
+    },
+    {
+      "id": "radical-360",
+      "fn": "radical",
+      "args": [360],
+      "mode": "exact",
+      "upstreamFn": "sympy.primefactors",
+      "goFn": "ntheory.Radical",
+      "note": "sympy has no radical(); the upstream answer is the product of primefactors()"
+    },
+    {
+      "id": "modpow-fermat",
+      "fn": "modpow",
+      "args": [7, 128, 13],
+      "mode": "exact",
+      "upstreamFn": "builtins.pow",
+      "goFn": "ntheory.ModPow",
+      "note": "sympy has no modular-exponentiation entry point; compared against Python's three-argument pow"
+    },
+    {
+      "id": "modpow-large-exponent",
+      "fn": "modpow",
+      "args": [2, 1000000, 1000000007],
+      "mode": "exact",
+      "upstreamFn": "builtins.pow",
+      "goFn": "ntheory.ModPow"
+    },
+    {
+      "id": "modinverse-coprime",
+      "fn": "modinverse",
+      "args": [3, 11],
+      "mode": "exact",
+      "upstreamFn": "sympy.mod_inverse",
+      "goFn": "ntheory.ModInverse"
+    },
+    {
+      "id": "modinverse-noncoprime",
+      "fn": "modinverse",
+      "args": [6, 9],
+      "mode": "exact",
+      "upstreamFn": "sympy.mod_inverse",
+      "goFn": "ntheory.ModInverse",
+      "note": "must fail on both"
+    },
+    {
+      "id": "crt-classic",
+      "fn": "crt",
+      "args": [[2, 3, 2], [3, 5, 7]],
+      "mode": "exact",
+      "upstreamFn": "sympy.ntheory.modular.crt",
+      "goFn": "ntheory.CRT"
+    },
+    {
+      "id": "crt-noncoprime-moduli",
+      "fn": "crt",
+      "args": [[1, 2], [4, 6]],
+      "mode": "exact",
+      "upstreamFn": "sympy.ntheory.modular.crt",
+      "goFn": "ntheory.CRT",
+      "note": "must fail on both: incompatible residues modulo gcd(4,6)=2"
+    },
+    {
+      "id": "jacobi-1001-9907",
+      "fn": "jacobi",
+      "args": [1001, 9907],
+      "mode": "exact",
+      "upstreamFn": "sympy.jacobi_symbol",
+      "goFn": "ntheory.JacobiSymbol"
+    },
+    {
+      "id": "jacobi-composite-modulus",
+      "fn": "jacobi",
+      "args": [5, 21],
+      "mode": "exact",
+      "upstreamFn": "sympy.jacobi_symbol",
+      "goFn": "ntheory.JacobiSymbol"
+    },
+    {
+      "id": "legendre-10-13",
+      "fn": "legendre",
+      "args": [10, 13],
+      "mode": "exact",
+      "upstreamFn": "sympy.legendre_symbol",
+      "goFn": "ntheory.LegendreSymbol"
+    },
+    {
+      "id": "legendre-nonprime-modulus",
+      "fn": "legendre",
+      "args": [3, 4],
+      "mode": "exact",
+      "upstreamFn": "sympy.legendre_symbol",
+      "goFn": "ntheory.LegendreSymbol",
+      "note": "the Legendre symbol is undefined for a composite modulus; sympy rejects it"
+    },
+    {
+      "id": "discrete-log-mod-17",
+      "fn": "discrete_log",
+      "args": [3, 13, 17],
+      "mode": "exact",
+      "upstreamFn": "sympy.discrete_log",
+      "goFn": "ntheory.DiscreteLog"
+    },
+    {
+      "id": "discrete-log-mod-1009",
+      "fn": "discrete_log",
+      "args": [11, 3, 1009],
+      "mode": "exact",
+      "upstreamFn": "sympy.discrete_log",
+      "goFn": "ntheory.DiscreteLog"
+    },
+    {
+      "id": "is-square-144",
+      "fn": "is_square",
+      "args": [144],
+      "mode": "exact",
+      "upstreamFn": "sympy.ntheory.primetest.is_square",
+      "goFn": "ntheory.IsSquare"
+    },
+    {
+      "id": "is-square-145",
+      "fn": "is_square",
+      "args": [145],
+      "mode": "exact",
+      "upstreamFn": "sympy.ntheory.primetest.is_square",
+      "goFn": "ntheory.IsSquare"
+    },
+    {
+      "id": "sqrt-mod-13",
+      "fn": "sqrt_mod",
+      "args": [10, 13],
+      "mode": "exact",
+      "upstreamFn": "sympy.sqrt_mod",
+      "goFn": "ntheory.SqrtMod",
+      "note": "both roots are valid, so each runner reports min(r, p-r)"
+    },
+    {
+      "id": "sqrt-mod-nonresidue",
+      "fn": "sqrt_mod",
+      "args": [5, 7],
+      "mode": "exact",
+      "upstreamFn": "sympy.sqrt_mod",
+      "goFn": "ntheory.SqrtMod",
+      "note": "must fail on both: 5 is not a quadratic residue mod 7"
+    },
+    {
+      "id": "multiplicative-order-3-mod-7",
+      "fn": "multiplicative_order",
+      "args": [3, 7],
+      "mode": "exact",
+      "upstreamFn": "sympy.n_order",
+      "goFn": "ntheory.Order"
+    },
+    {
+      "id": "multiplicative-order-noncoprime",
+      "fn": "multiplicative_order",
+      "args": [4, 8],
+      "mode": "exact",
+      "upstreamFn": "sympy.n_order",
+      "goFn": "ntheory.Order",
+      "note": "must fail on both: 4 is not a unit mod 8"
+    },
+    {
+      "id": "fibonacci-10",
+      "fn": "fibonacci",
+      "args": [10],
+      "mode": "exact",
+      "upstreamFn": "sympy.fibonacci",
+      "goFn": "ntheory.Fibonacci"
+    },
+    {
+      "id": "fibonacci-200",
+      "fn": "fibonacci",
+      "args": [200],
+      "mode": "exact",
+      "upstreamFn": "sympy.fibonacci",
+      "goFn": "ntheory.Fibonacci",
+      "note": "arbitrary-precision result"
+    },
+    {
+      "id": "fibonacci-zero",
+      "fn": "fibonacci",
+      "args": [0],
+      "mode": "exact",
+      "upstreamFn": "sympy.fibonacci",
+      "goFn": "ntheory.Fibonacci"
+    },
+    {
+      "id": "lucas-50",
+      "fn": "lucas",
+      "args": [50],
+      "mode": "exact",
+      "upstreamFn": "sympy.lucas",
+      "goFn": "ntheory.Lucas"
+    },
+    {
+      "id": "tribonacci-20",
+      "fn": "tribonacci",
+      "args": [20],
+      "mode": "exact",
+      "upstreamFn": "sympy.tribonacci",
+      "goFn": "ntheory.Tribonacci"
+    },
+    {
+      "id": "partition-5",
+      "fn": "partition",
+      "args": [5],
+      "mode": "exact",
+      "upstreamFn": "sympy.npartitions",
+      "goFn": "ntheory.Partition"
+    },
+    {
+      "id": "partition-100",
+      "fn": "partition",
+      "args": [100],
+      "mode": "exact",
+      "upstreamFn": "sympy.npartitions",
+      "goFn": "ntheory.Partition"
+    },
+    {
+      "id": "partition-zero",
+      "fn": "partition",
+      "args": [0],
+      "mode": "exact",
+      "upstreamFn": "sympy.npartitions",
+      "goFn": "ntheory.Partition"
+    },
+    {
+      "id": "bernoulli-10",
+      "fn": "bernoulli",
+      "args": [10],
+      "mode": "exact",
+      "upstreamFn": "sympy.bernoulli",
+      "goFn": "ntheory.Bernoulli"
+    },
+    {
+      "id": "bernoulli-zero",
+      "fn": "bernoulli",
+      "args": [0],
+      "mode": "exact",
+      "upstreamFn": "sympy.bernoulli",
+      "goFn": "ntheory.Bernoulli"
+    },
+    {
+      "id": "bernoulli-one",
+      "fn": "bernoulli",
+      "args": [1],
+      "mode": "exact",
+      "upstreamFn": "sympy.bernoulli",
+      "goFn": "ntheory.Bernoulli",
+      "note": "sign-convention probe: sympy switched B1 to +1/2 in 1.12"
+    },
+    {
+      "id": "bernoulli-odd",
+      "fn": "bernoulli",
+      "args": [7],
+      "mode": "exact",
+      "upstreamFn": "sympy.bernoulli",
+      "goFn": "ntheory.Bernoulli"
+    }
+  ]
+}

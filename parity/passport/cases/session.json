@@ -1,0 +1,183 @@
+{
+  "group": "session",
+  "upstream": "passport@0.7.0+passport-local@1.0.0+passport-http@0.3.0+passport-http-bearer@1.0.1",
+  "note": "serializeUser/deserializeUser, session restoration and route protection. A `session` field of \"carry\" replays the cookie jar collected earlier in the sequence, \"tamper\" replays it with the final character of the session cookie flipped, and absent/\"none\" sends no cookie. Session ids are never emitted, only setCookiePresent.",
+  "cases": [
+    {
+      "id": "session-login-then-whoami",
+      "fn": "sequence",
+      "args": [
+        [
+          { "method": "POST", "path": "/login/local", "form": { "username": "alice", "password": "s3cr3t-alice" } },
+          { "path": "/whoami", "session": "carry" }
+        ]
+      ],
+      "upstreamFn": "passport.session / deserializeUser",
+      "goFn": "passport.Passport.Session / DeserializeUser",
+      "note": "login, then a follow-up request carrying the session cookie must still be alice"
+    },
+    {
+      "id": "session-login-then-protected",
+      "fn": "sequence",
+      "args": [
+        [
+          { "method": "POST", "path": "/login/local", "form": { "username": "alice", "password": "s3cr3t-alice" } },
+          { "path": "/protected", "session": "carry" }
+        ]
+      ],
+      "upstreamFn": "req.isAuthenticated",
+      "goFn": "passport.Passport.RequireLogin",
+      "note": "route protection must let a logged-in session through"
+    },
+    {
+      "id": "session-protected-without-cookie",
+      "fn": "sequence",
+      "args": [
+        [
+          { "method": "POST", "path": "/login/local", "form": { "username": "alice", "password": "s3cr3t-alice" } },
+          { "path": "/protected", "session": "none" }
+        ]
+      ],
+      "upstreamFn": "req.isAuthenticated",
+      "goFn": "passport.Passport.RequireLogin",
+      "note": "SECURITY: dropping the cookie must revoke access"
+    },
+    {
+      "id": "session-tampered-cookie-whoami",
+      "fn": "sequence",
+      "args": [
+        [
+          { "method": "POST", "path": "/login/local", "form": { "username": "alice", "password": "s3cr3t-alice" } },
+          { "path": "/whoami", "session": "tamper" }
+        ]
+      ],
+      "upstreamFn": "express-session cookie signature",
+      "goFn": "passport.sessionManager.load",
+      "note": "SECURITY: a tampered session cookie must not restore the user"
+    },
+    {
+      "id": "session-tampered-cookie-protected",
+      "fn": "sequence",
+      "args": [
+        [
+          { "method": "POST", "path": "/login/local", "form": { "username": "alice", "password": "s3cr3t-alice" } },
+          { "path": "/protected", "session": "tamper" }
+        ]
+      ],
+      "upstreamFn": "req.isAuthenticated",
+      "goFn": "passport.Passport.RequireLogin",
+      "note": "SECURITY: a tampered session cookie must not pass route protection"
+    },
+    {
+      "id": "session-forged-cookie",
+      "fn": "sequence",
+      "args": [
+        [
+          {
+            "path": "/protected",
+            "headers": {
+              "cookie": "connect.sid=s%3Aforged-session-id.deadbeef; passport.sid=forged-session-id"
+            }
+          }
+        ]
+      ],
+      "upstreamFn": "req.isAuthenticated",
+      "goFn": "passport.Passport.RequireLogin",
+      "note": "SECURITY: an entirely invented session id (both cookie names sent) must be rejected"
+    },
+    {
+      "id": "session-failed-login-no-session",
+      "fn": "sequence",
+      "args": [
+        [
+          { "method": "POST", "path": "/login/local", "form": { "username": "alice", "password": "wrong" } },
+          { "path": "/protected", "session": "carry" }
+        ]
+      ],
+      "upstreamFn": "req.logIn",
+      "goFn": "passport.Passport.LogIn",
+      "note": "SECURITY: a failed login must not leave an authenticated session behind"
+    },
+    {
+      "id": "session-nosession-login-then-whoami",
+      "fn": "sequence",
+      "args": [
+        [
+          { "method": "POST", "path": "/login/local-nosession", "form": { "username": "alice", "password": "s3cr3t-alice" } },
+          { "path": "/whoami", "session": "carry" }
+        ]
+      ],
+      "upstreamFn": "authenticate options.session=false",
+      "goFn": "passport.Options.Session=false",
+      "note": "stateless login must not survive into the next request"
+    },
+    {
+      "id": "session-logout-revokes",
+      "fn": "sequence",
+      "args": [
+        [
+          { "method": "POST", "path": "/login/local", "form": { "username": "alice", "password": "s3cr3t-alice" } },
+          { "path": "/protected", "session": "carry" },
+          { "method": "POST", "path": "/logout", "session": "carry" },
+          { "path": "/protected", "session": "carry" }
+        ]
+      ],
+      "upstreamFn": "req.logout",
+      "goFn": "passport.Passport.LogOut",
+      "note": "SECURITY: after logout the old cookie must no longer authenticate"
+    },
+    {
+      "id": "session-fixation-id-rotates",
+      "fn": "sequence",
+      "args": [
+        [
+          { "path": "/whoami" },
+          { "method": "POST", "path": "/login/local", "form": { "username": "alice", "password": "s3cr3t-alice" }, "session": "carry" },
+          { "path": "/whoami", "session": "carry" }
+        ]
+      ],
+      "upstreamFn": "SessionManager.logIn (req.session.regenerate)",
+      "goFn": "passport.session.regenerate",
+      "note": "login must issue a fresh session cookie (session fixation defence); compared via setCookiePresent on the login response"
+    },
+    {
+      "id": "session-basic-leaves-no-session",
+      "fn": "sequence",
+      "args": [
+        [
+          { "path": "/basic", "headers": { "authorization": "Basic YWxpY2U6czNjcjN0LWFsaWNl" } },
+          { "path": "/protected", "session": "carry" }
+        ]
+      ],
+      "upstreamFn": "authenticate options.session=false",
+      "goFn": "passport.Options.Session=false",
+      "note": "SECURITY: stateless Basic auth must not mint a session usable elsewhere"
+    },
+    {
+      "id": "session-bearer-leaves-no-session",
+      "fn": "sequence",
+      "args": [
+        [
+          { "path": "/bearer", "headers": { "authorization": "Bearer tok-alice" } },
+          { "path": "/protected", "session": "carry" }
+        ]
+      ],
+      "upstreamFn": "authenticate options.session=false",
+      "goFn": "passport.Options.Session=false",
+      "note": "SECURITY: stateless Bearer auth must not mint a session usable elsewhere"
+    },
+    {
+      "id": "session-default-options-followup",
+      "fn": "sequence",
+      "args": [
+        [
+          { "method": "POST", "path": "/login/local-defaults", "form": { "username": "alice", "password": "s3cr3t-alice" } },
+          { "path": "/whoami", "session": "carry" }
+        ]
+      ],
+      "upstreamFn": "authenticate options.session (defaults to true)",
+      "goFn": "passport.Options.Session (zero value)",
+      "note": "KNOWN PORT BUG, observable end to end: with Options{SuccessRedirect} and no explicit Session, upstream still logs the user in for subsequent requests while the port silently produces no session."
+    }
+  ]
+}

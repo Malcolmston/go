@@ -1,0 +1,131 @@
+{
+  "group": "local",
+  "upstream": "passport@0.7.0+passport-local@1.0.0+passport-http@0.3.0+passport-http-bearer@1.0.1",
+  "note": "Username/password authentication. Fixed store: alice/s3cr3t-alice, bob/hunter2. Emitted value is {status, authenticated, user, wwwAuthenticate, setCookiePresent, location}.",
+  "cases": [
+    {
+      "id": "local-correct-password",
+      "fn": "request",
+      "args": [{ "method": "POST", "path": "/login/local", "form": { "username": "alice", "password": "s3cr3t-alice" } }],
+      "upstreamFn": "passport-local.Strategy",
+      "goFn": "local.New",
+      "note": "correct password: both must authenticate alice and set a session cookie"
+    },
+    {
+      "id": "local-correct-password-bob",
+      "fn": "request",
+      "args": [{ "method": "POST", "path": "/login/local", "form": { "username": "bob", "password": "hunter2" } }],
+      "upstreamFn": "passport-local.Strategy",
+      "goFn": "local.New"
+    },
+    {
+      "id": "local-wrong-password",
+      "fn": "request",
+      "args": [{ "method": "POST", "path": "/login/local", "form": { "username": "alice", "password": "wrong" } }],
+      "upstreamFn": "passport-local.Strategy",
+      "goFn": "local.New",
+      "note": "SECURITY: must be rejected by both"
+    },
+    {
+      "id": "local-wrong-password-cross-user",
+      "fn": "request",
+      "args": [{ "method": "POST", "path": "/login/local", "form": { "username": "alice", "password": "hunter2" } }],
+      "upstreamFn": "passport-local.Strategy",
+      "goFn": "local.New",
+      "note": "SECURITY: bob's password must not authenticate alice"
+    },
+    {
+      "id": "local-unknown-user",
+      "fn": "request",
+      "args": [{ "method": "POST", "path": "/login/local", "form": { "username": "carol", "password": "s3cr3t-alice" } }],
+      "upstreamFn": "passport-local.Strategy",
+      "goFn": "local.New",
+      "note": "SECURITY: unknown user must be rejected"
+    },
+    {
+      "id": "local-empty-password",
+      "fn": "request",
+      "args": [{ "method": "POST", "path": "/login/local", "form": { "username": "alice", "password": "" } }],
+      "upstreamFn": "passport-local.Strategy",
+      "goFn": "local.New",
+      "note": "SECURITY: empty password must be rejected (missing credentials)"
+    },
+    {
+      "id": "local-empty-username",
+      "fn": "request",
+      "args": [{ "method": "POST", "path": "/login/local", "form": { "username": "", "password": "s3cr3t-alice" } }],
+      "upstreamFn": "passport-local.Strategy",
+      "goFn": "local.New",
+      "note": "SECURITY: empty username must be rejected (missing credentials)"
+    },
+    {
+      "id": "local-both-empty",
+      "fn": "request",
+      "args": [{ "method": "POST", "path": "/login/local", "form": { "username": "", "password": "" } }],
+      "upstreamFn": "passport-local.Strategy",
+      "goFn": "local.New"
+    },
+    {
+      "id": "local-no-body-at-all",
+      "fn": "request",
+      "args": [{ "method": "POST", "path": "/login/local" }],
+      "upstreamFn": "passport-local.Strategy",
+      "goFn": "local.New",
+      "note": "SECURITY: no credentials whatsoever"
+    },
+    {
+      "id": "local-json-body",
+      "fn": "request",
+      "args": [{ "method": "POST", "path": "/login/local", "json": { "username": "alice", "password": "s3cr3t-alice" } }],
+      "upstreamFn": "passport-local.Strategy",
+      "goFn": "local.Strategy.credentials",
+      "note": "JSON body credential extraction"
+    },
+    {
+      "id": "local-json-body-wrong",
+      "fn": "request",
+      "args": [{ "method": "POST", "path": "/login/local", "json": { "username": "alice", "password": "nope" } }],
+      "upstreamFn": "passport-local.Strategy",
+      "goFn": "local.Strategy.credentials"
+    },
+    {
+      "id": "local-json-nonstring-password",
+      "fn": "request",
+      "args": [{ "method": "POST", "path": "/login/local", "json": { "username": "alice", "password": 12345 } }],
+      "upstreamFn": "passport-local.Strategy",
+      "goFn": "local.Strategy.credentials",
+      "note": "SECURITY: a non-string password must not be coerced into a match"
+    },
+    {
+      "id": "local-query-credentials",
+      "fn": "request",
+      "args": [{ "method": "GET", "path": "/login/local?username=alice&password=s3cr3t-alice" }],
+      "upstreamFn": "passport-local.Strategy",
+      "goFn": "local.Strategy.credentials",
+      "note": "query-string credentials (upstream reads req.query, the port reads r.Form)"
+    },
+    {
+      "id": "local-nosession-success",
+      "fn": "request",
+      "args": [{ "method": "POST", "path": "/login/local-nosession", "form": { "username": "alice", "password": "s3cr3t-alice" } }],
+      "upstreamFn": "authenticate options.session=false",
+      "goFn": "passport.Options.Session=false",
+      "note": "stateless success: authenticated but NO session cookie"
+    },
+    {
+      "id": "local-failure-redirect",
+      "fn": "request",
+      "args": [{ "method": "POST", "path": "/login/local-failredirect", "form": { "username": "alice", "password": "wrong" } }],
+      "upstreamFn": "authenticate options.failureRedirect",
+      "goFn": "passport.Options.FailureRedirect"
+    },
+    {
+      "id": "local-success-redirect-session-default",
+      "fn": "request",
+      "args": [{ "method": "POST", "path": "/login/local-defaults", "form": { "username": "alice", "password": "s3cr3t-alice" } }],
+      "upstreamFn": "authenticate options.session (defaults to true)",
+      "goFn": "passport.Options.Session (zero value)",
+      "note": "KNOWN PORT BUG: Authenticate replaces the defaults wholesale with the caller's literal, so Options{SuccessRedirect} silently means Session:false and no session cookie is set, whereas upstream defaults session:true. Compared via setCookiePresent."
+    }
+  ]
+}

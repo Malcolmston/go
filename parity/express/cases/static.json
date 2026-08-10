@@ -1,0 +1,22 @@
+{
+  "group": "static",
+  "upstream": "express@4.21.2",
+  "note": "express.static vs express.Static, mounted at the root and under an /assets prefix, over ../fixtures/pub.",
+  "cases": [
+    { "id": "static-text", "fn": "static", "args": [{ "method": "GET", "path": "/hello.txt" }], "upstreamFn": "express.static", "goFn": "express.Static" },
+    { "id": "static-json", "fn": "static", "args": [{ "method": "GET", "path": "/data.json" }], "upstreamFn": "express.static", "goFn": "express.Static" },
+    { "id": "static-html", "fn": "static", "args": [{ "method": "GET", "path": "/index.html" }], "upstreamFn": "express.static", "goFn": "express.Static" },
+    { "id": "static-index-for-dir", "fn": "static", "args": [{ "method": "GET", "path": "/" }], "upstreamFn": "express.static", "goFn": "express.Static", "note": "directory request should serve index.html" },
+    { "id": "static-nested", "fn": "static", "args": [{ "method": "GET", "path": "/sub/deep.txt" }], "upstreamFn": "express.static", "goFn": "express.Static" },
+    { "id": "static-missing", "fn": "static", "args": [{ "method": "GET", "path": "/nothing.txt" }], "upstreamFn": "express.static", "goFn": "express.Static", "note": "must fall through to the next handler" },
+    { "id": "static-traversal", "fn": "static", "args": [{ "method": "GET", "path": "/../package.json" }], "upstreamFn": "express.static", "goFn": "express.Static", "note": "path traversal must not escape the root" },
+    { "id": "static-head", "fn": "static", "args": [{ "method": "HEAD", "path": "/hello.txt" }], "upstreamFn": "express.static", "goFn": "express.Static" },
+    { "id": "static-post", "fn": "static", "args": [{ "method": "POST", "path": "/hello.txt" }], "upstreamFn": "express.static", "goFn": "express.Static", "note": "non-GET/HEAD falls through" },
+    { "id": "static-range", "fn": "static", "args": [{ "method": "GET", "path": "/hello.txt", "headers": { "Range": "bytes=0-4" } }], "upstreamFn": "express.static", "goFn": "express.Static" },
+    { "id": "static-revalidate", "fn": "static", "args": [{ "method": "GET", "path": "/hello.txt", "revalidate": "lastModified" }], "upstreamFn": "express.static", "goFn": "express.Static" },
+    { "id": "static-mount-text", "fn": "static", "args": [{ "method": "GET", "path": "/assets/hello.txt" }], "upstreamFn": "app.use('/assets', express.static)", "goFn": "Router.Use + express.Static", "note": "static under a mount prefix" },
+    { "id": "static-mount-nested", "fn": "static", "args": [{ "method": "GET", "path": "/assets/sub/deep.txt" }], "upstreamFn": "app.use('/assets', express.static)", "goFn": "Router.Use + express.Static" },
+    { "id": "static-mount-index", "fn": "static", "args": [{ "method": "GET", "path": "/assets/" }], "upstreamFn": "app.use('/assets', express.static)", "goFn": "Router.Use + express.Static" },
+    { "id": "static-mount-missing", "fn": "static", "args": [{ "method": "GET", "path": "/assets/nothing.txt" }], "upstreamFn": "app.use('/assets', express.static)", "goFn": "Router.Use + express.Static" }
+  ]
+}

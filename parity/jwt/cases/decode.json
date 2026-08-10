@@ -1,0 +1,100 @@
+{
+  "group": "decode",
+  "upstream": "jsonwebtoken@9.0.2",
+  "note": "Signature-free inspection: jwt.decode vs jwt.ParseUnverified.",
+  "cases": [
+    {
+      "id": "dec-payload",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhdWQtYSIsImlhdCI6MTcwMDAwMDAwMCwiaXNzIjoiaXNzLWEiLCJqdGkiOiJqdGktYSIsInN1YiI6InN1Yi1hIn0.sLIOqytadZTNnQIqtEritKxeA2hL3OLVE-XnEb_VUew",
+        {}
+      ],
+      "upstreamFn": "jwt.decode",
+      "goFn": "jwt.ParseUnverified"
+    },
+    {
+      "id": "dec-complete",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhdWQtYSIsImlhdCI6MTcwMDAwMDAwMCwiaXNzIjoiaXNzLWEiLCJqdGkiOiJqdGktYSIsInN1YiI6InN1Yi1hIn0.sLIOqytadZTNnQIqtEritKxeA2hL3OLVE-XnEb_VUew",
+        {
+          "complete": true
+        }
+      ],
+      "upstreamFn": "jwt.decode options.complete",
+      "goFn": "jwt.ParseUnverified"
+    },
+    {
+      "id": "dec-unverified-bad-signature",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhdWQtYSIsImlhdCI6MTcwMDAwMDAwMCwiaXNzIjoiaXNzLWEiLCJqdGkiOiJqdGktYSIsInN1YiI6InN1Yi1hIn0.AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        {
+          "complete": true
+        }
+      ],
+      "upstreamFn": "jwt.decode",
+      "goFn": "jwt.ParseUnverified",
+      "note": "decode never checks the signature on either side"
+    },
+    {
+      "id": "dec-no-signature",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhdWQtYSIsImlhdCI6MTcwMDAwMDAwMCwiaXNzIjoiaXNzLWEiLCJqdGkiOiJqdGktYSIsInN1YiI6InN1Yi1hIn0.",
+        {
+          "complete": true
+        }
+      ],
+      "upstreamFn": "jwt.decode",
+      "goFn": "jwt.ParseUnverified"
+    },
+    {
+      "id": "dec-alg-none",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJpYXQiOjE3MDAwMDAwMDB9.",
+        {
+          "complete": true
+        }
+      ],
+      "upstreamFn": "jwt.decode",
+      "goFn": "jwt.ParseUnverified"
+    },
+    {
+      "id": "dec-garbage",
+      "fn": "decode",
+      "args": [
+        "not.a.token",
+        {
+          "complete": true
+        }
+      ],
+      "upstreamFn": "jwt.decode",
+      "goFn": "jwt.ParseUnverified",
+      "note": "upstream returns null; the port returns an error"
+    },
+    {
+      "id": "dec-two-parts",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhdWQtYSIsImlhdCI6MTcwMDAwMDAwMCwiaXNzIjoiaXNzLWEiLCJqdGkiOiJqdGktYSIsInN1YiI6InN1Yi1hIn0",
+        {}
+      ],
+      "upstreamFn": "jwt.decode",
+      "goFn": "jwt.ParseUnverified",
+      "note": "structurally invalid compact serialization"
+    },
+    {
+      "id": "dec-empty",
+      "fn": "decode",
+      "args": [
+        "",
+        {}
+      ],
+      "upstreamFn": "jwt.decode",
+      "goFn": "jwt.ParseUnverified"
+    }
+  ]
+}

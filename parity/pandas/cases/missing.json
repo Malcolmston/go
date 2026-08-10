@@ -1,0 +1,21 @@
+{
+  "group": "missing",
+  "upstream": "pandas==2.3.3",
+  "cases": [
+    {"id": "dropna-sales", "fn": "dropna", "args": {"table": "sales"}, "upstreamFn": "pandas.DataFrame.dropna", "goFn": "pandas.DataFrame.DropNA"},
+    {"id": "dropna-gaps", "fn": "dropna", "args": {"table": "gaps"}, "upstreamFn": "pandas.DataFrame.dropna", "goFn": "pandas.DataFrame.DropNA"},
+    {"id": "dropna-nothing-missing", "fn": "dropna", "args": {"table": "whole"}, "upstreamFn": "pandas.DataFrame.dropna", "goFn": "pandas.DataFrame.DropNA"},
+
+    {"id": "fillna-one-column-int", "fn": "fillna", "args": {"table": "sales", "column": "units", "value": 0}, "upstreamFn": "pandas.DataFrame.fillna", "goFn": "pandas.DataFrame.FillNA"},
+    {"id": "fillna-one-column-float", "fn": "fillna", "args": {"table": "sales", "column": "price", "value": -1.5}, "upstreamFn": "pandas.DataFrame.fillna", "goFn": "pandas.DataFrame.FillNA"},
+    {"id": "fillna-bool-column", "fn": "fillna", "args": {"table": "sales", "column": "active", "value": false}, "upstreamFn": "pandas.DataFrame.fillna", "goFn": "pandas.DataFrame.FillNA"},
+    {"id": "fillna-all-columns-zero", "fn": "fillna", "args": {"table": "gaps", "column": "", "value": 0}, "upstreamFn": "pandas.DataFrame.fillna", "goFn": "pandas.DataFrame.FillNA", "note": "empty column name fills every column"},
+    {"id": "fillna-float-into-int-column", "fn": "fillna", "args": {"table": "gaps", "column": "y", "value": 1.5}, "upstreamFn": "pandas.DataFrame.fillna", "goFn": "pandas.DataFrame.FillNA", "note": "pandas promotes the column to float; the port coerces the fill value to int64"},
+    {"id": "fillna-unknown-column", "fn": "fillna", "args": {"table": "sales", "column": "nope", "value": 0}, "upstreamFn": "pandas.DataFrame.fillna", "goFn": "pandas.DataFrame.FillNA", "note": "pandas raises; the port silently no-ops"},
+
+    {"id": "isna-mask", "fn": "series_mask", "args": {"table": "sales", "column": "units", "op": "isna"}, "upstreamFn": "pandas.Series.isna", "goFn": "pandas.Series.IsNA"},
+    {"id": "series-dropna", "fn": "series_op", "args": {"name": "v", "dtype": "float64", "values": [1.0, null, 3.0, null], "op": "dropna"}, "upstreamFn": "pandas.Series.dropna", "goFn": "pandas.Series.DropNA"},
+    {"id": "series-fillna", "fn": "series_op", "args": {"name": "v", "dtype": "float64", "values": [1.0, null, 3.0], "op": "fillna", "arg": 0.0}, "upstreamFn": "pandas.Series.fillna", "goFn": "pandas.Series.FillNA"},
+    {"id": "series-fillna-string", "fn": "series_op", "args": {"name": "s", "dtype": "string", "values": ["a", null], "op": "fillna", "arg": "?"}, "upstreamFn": "pandas.Series.fillna", "goFn": "pandas.Series.FillNA"}
+  ]
+}

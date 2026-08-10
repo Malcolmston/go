@@ -1,0 +1,118 @@
+{
+  "group": "options",
+  "upstream": "commonmark@0.31.2",
+  "source": "hand-written: the port's Options struct mapped onto the nearest commonmark.js option",
+  "note": "Typographer maps to Parser({smart:true}) and LineBreaks to HtmlRenderer({softbreak:'<br />'}). HTML:false and LinkTarget have no upstream counterpart at all, so those cases have no oracle and are scored as mismatches (extra API surface, not bugs).",
+  "cases": [
+    {
+      "id": "opt-smart-quotes",
+      "fn": "render_smart",
+      "args": ["\"double\" and 'single' quotes\n"],
+      "upstreamFn": "new Parser({smart: true})",
+      "goFn": "markdown.New(Options{HTML: true, Typographer: true})"
+    },
+    {
+      "id": "opt-smart-dashes-ellipsis",
+      "fn": "render_smart",
+      "args": ["en -- dash, em --- dash, and ... an ellipsis\n"],
+      "upstreamFn": "new Parser({smart: true})",
+      "goFn": "markdown.New(Options{HTML: true, Typographer: true})"
+    },
+    {
+      "id": "opt-smart-apostrophe",
+      "fn": "render_smart",
+      "args": ["it's a dog's life\n"],
+      "upstreamFn": "new Parser({smart: true})",
+      "goFn": "markdown.New(Options{HTML: true, Typographer: true})"
+    },
+    {
+      "id": "opt-smart-nested-quotes",
+      "fn": "render_smart",
+      "args": ["he said \"she said 'hi'\" loudly\n"],
+      "upstreamFn": "new Parser({smart: true})",
+      "goFn": "markdown.New(Options{HTML: true, Typographer: true})"
+    },
+    {
+      "id": "opt-smart-in-code-span",
+      "fn": "render_smart",
+      "args": ["`\"not smart\" -- here`\n"],
+      "upstreamFn": "new Parser({smart: true})",
+      "goFn": "markdown.New(Options{HTML: true, Typographer: true})",
+      "note": "code spans must be left alone"
+    },
+    {
+      "id": "opt-softbreak-br",
+      "fn": "render_softbreak",
+      "args": ["a\nb\n"],
+      "upstreamFn": "new HtmlRenderer({softbreak: '<br />'})",
+      "goFn": "markdown.New(Options{HTML: true, LineBreaks: true})"
+    },
+    {
+      "id": "opt-softbreak-multi-line",
+      "fn": "render_softbreak",
+      "args": ["a\nb\nc\n\nd\ne\n"],
+      "upstreamFn": "new HtmlRenderer({softbreak: '<br />'})",
+      "goFn": "markdown.New(Options{HTML: true, LineBreaks: true})"
+    },
+    {
+      "id": "opt-softbreak-hardbreak-still-br",
+      "fn": "render_softbreak",
+      "args": ["a\\\nb\n"],
+      "upstreamFn": "new HtmlRenderer({softbreak: '<br />'})",
+      "goFn": "markdown.New(Options{HTML: true, LineBreaks: true})"
+    },
+    {
+      "id": "opt-softbreak-in-heading",
+      "fn": "render_softbreak",
+      "args": ["a\nb\n===\n"],
+      "upstreamFn": "new HtmlRenderer({softbreak: '<br />'})",
+      "goFn": "markdown.New(Options{HTML: true, LineBreaks: true})"
+    },
+    {
+      "id": "opt-nohtml-block",
+      "fn": "render_nohtml",
+      "args": ["<div>hi</div>\n"],
+      "upstreamFn": "—",
+      "goFn": "markdown.New(Options{HTML: false})",
+      "note": "no upstream counterpart: commonmark.js only has safe:true, which also rewrites links"
+    },
+    {
+      "id": "opt-nohtml-inline",
+      "fn": "render_nohtml",
+      "args": ["a <b>c</b>\n"],
+      "upstreamFn": "—",
+      "goFn": "markdown.New(Options{HTML: false})"
+    },
+    {
+      "id": "opt-nohtml-does-not-touch-links",
+      "fn": "render_nohtml",
+      "args": ["[x](javascript:alert(1))\n"],
+      "upstreamFn": "—",
+      "goFn": "markdown.New(Options{HTML: false})",
+      "note": "records that HTML:false is NOT a sanitiser: the javascript: href survives"
+    },
+    {
+      "id": "opt-linktarget-blank",
+      "fn": "render_linktarget",
+      "args": ["[x](https://example.com)\n"],
+      "upstreamFn": "—",
+      "goFn": "markdown.New(Options{HTML: true, LinkTarget: \"_blank\"})",
+      "note": "no upstream counterpart"
+    },
+    {
+      "id": "opt-linktarget-autolink",
+      "fn": "render_linktarget",
+      "args": ["<https://example.com>\n"],
+      "upstreamFn": "—",
+      "goFn": "markdown.New(Options{HTML: true, LinkTarget: \"_blank\"})"
+    },
+    {
+      "id": "opt-default-options",
+      "fn": "default_options",
+      "args": [],
+      "upstreamFn": "—",
+      "goFn": "markdown.DefaultOptions",
+      "note": "records the shipped default: {HTML:true, Typographer:false, LineBreaks:false, LinkTarget:\"\"}"
+    }
+  ]
+}

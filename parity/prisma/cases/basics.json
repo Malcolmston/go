@@ -1,0 +1,336 @@
+{
+  "group": "basics",
+  "upstream": "prisma@5.22.0",
+  "cases": [
+    {
+      "id": "seed-dump",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "dump",
+            "model": "user"
+          },
+          {
+            "op": "dump",
+            "model": "post"
+          }
+        ]
+      ],
+      "upstreamFn": "prisma.user.createMany / prisma.post.createMany",
+      "goFn": "Query[User].CreateMany / Query[Post].CreateMany",
+      "note": "the fixed dataset, read straight back: guards every later case against a seed divergence"
+    },
+    {
+      "id": "create-user",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "create",
+            "model": "user",
+            "data": {
+              "name": "Zed",
+              "email": "zed@x.io",
+              "city": "Rome",
+              "age": 50,
+              "score": 90
+            }
+          },
+          {
+            "op": "dump",
+            "model": "user"
+          }
+        ]
+      ],
+      "upstreamFn": "prisma.user.create",
+      "goFn": "Query[User].Create",
+      "note": "id omitted on both sides so the database assigns it"
+    },
+    {
+      "id": "create-null-optionals",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "create",
+            "model": "user",
+            "data": {
+              "name": "Zed",
+              "email": "zed@x.io",
+              "city": null,
+              "age": null,
+              "score": 1
+            }
+          },
+          {
+            "op": "dump",
+            "model": "user"
+          }
+        ]
+      ],
+      "upstreamFn": "prisma.user.create",
+      "goFn": "Query[User].Create",
+      "note": "explicit nulls into the two nullable columns"
+    },
+    {
+      "id": "create-post-with-fk",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "create",
+            "model": "post",
+            "data": {
+              "title": "New",
+              "views": 7,
+              "published": true,
+              "author_id": 3
+            }
+          },
+          {
+            "op": "dump",
+            "model": "post"
+          }
+        ]
+      ],
+      "upstreamFn": "prisma.post.create",
+      "goFn": "Query[Post].Create"
+    },
+    {
+      "id": "create-many",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "createMany",
+            "model": "user",
+            "rows": [
+              {
+                "name": "P",
+                "email": "p@x.io",
+                "score": 1
+              },
+              {
+                "name": "Q",
+                "email": "q@x.io",
+                "score": 2
+              }
+            ]
+          },
+          {
+            "op": "dump",
+            "model": "user"
+          }
+        ]
+      ],
+      "upstreamFn": "prisma.user.createMany",
+      "goFn": "Query[User].CreateMany",
+      "note": "both report the number of rows written"
+    },
+    {
+      "id": "nested-create",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "nestedCreate",
+            "model": "user",
+            "data": {
+              "name": "Zed",
+              "email": "zed@x.io",
+              "score": 5,
+              "posts": {
+                "create": [
+                  {
+                    "title": "N1",
+                    "views": 1,
+                    "published": true
+                  },
+                  {
+                    "title": "N2",
+                    "views": 2,
+                    "published": false
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "op": "dump",
+            "model": "user"
+          },
+          {
+            "op": "dump",
+            "model": "post"
+          }
+        ]
+      ],
+      "upstreamFn": "prisma.user.create({ data: { posts: { create: [...] } } })",
+      "goFn": "Query[User].NestedCreate(...).Create(\"Posts\", ...).Exec",
+      "note": "the parent id must reach both children as author_id"
+    },
+    {
+      "id": "select-projection",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "select": [
+              "email",
+              "score"
+            ],
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ],
+            "take": 2
+          }
+        ]
+      ],
+      "upstreamFn": "prisma.user.findMany({ select })",
+      "goFn": "Query[User].Select",
+      "note": "the port returns a full struct with zeroed unselected fields, so the runner re-applies the projection before emitting"
+    },
+    {
+      "id": "select-unknown-column",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "select": [
+              "emial"
+            ],
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "prisma.user.findMany({ select })",
+      "goFn": "Query[User].Select",
+      "note": "both must fail: Prisma at validation, the port in buildSelect"
+    },
+    {
+      "id": "find-unique-by-unique-column",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findUnique",
+            "model": "user",
+            "where": {
+              "email": "alan@x.io"
+            }
+          }
+        ]
+      ],
+      "upstreamFn": "prisma.user.findUnique",
+      "goFn": "Query[User].FindUnique"
+    },
+    {
+      "id": "find-first-ordered",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findFirst",
+            "model": "post",
+            "where": {
+              "published": true
+            },
+            "orderBy": [
+              {
+                "views": "desc"
+              }
+            ],
+            "select": [
+              "id",
+              "views"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "prisma.post.findFirst",
+      "goFn": "Query[Post].FindFirst"
+    }
+  ],
+  "note": "Seeding, the create family and field projection. Every other group's scripts begin with the same reset+seed, so seed-dump is the case that proves the two runners' hard-coded datasets agree."
+}

@@ -1,0 +1,157 @@
+{
+  "group": "escaping",
+  "upstream": "phoenix_live_view@1.2.9",
+  "note": "HTML escaping of interpolated values, and raw/safe passthrough. Both sides must emit the same five entities (in particular &quot; and not &#34;).",
+  "cases": [
+    {
+      "id": "esc-all-five",
+      "fn": "render_full",
+      "args": [
+        "noraw",
+        {
+          "html": "<a href=\"x\">&'"
+        }
+      ],
+      "upstreamFn": "MACRO-Phoenix.LiveView.Engine.to_safe/2",
+      "goFn": "(*liveview.Template).Render",
+      "note": "all five HTML metacharacters at once"
+    },
+    {
+      "id": "esc-none",
+      "fn": "render_full",
+      "args": [
+        "noraw",
+        {
+          "html": "plain text"
+        }
+      ],
+      "upstreamFn": "MACRO-Phoenix.LiveView.Engine.to_safe/2",
+      "goFn": "(*liveview.Template).Render"
+    },
+    {
+      "id": "esc-double-quote",
+      "fn": "render_full",
+      "args": [
+        "noraw",
+        {
+          "html": "\""
+        }
+      ],
+      "upstreamFn": "MACRO-Phoenix.LiveView.Engine.to_safe/2",
+      "goFn": "(*liveview.Template).Render",
+      "note": "pins &quot; against Go's html.EscapeString &#34;"
+    },
+    {
+      "id": "esc-apostrophe",
+      "fn": "render_full",
+      "args": [
+        "noraw",
+        {
+          "html": "it's"
+        }
+      ],
+      "upstreamFn": "MACRO-Phoenix.LiveView.Engine.to_safe/2",
+      "goFn": "(*liveview.Template).Render"
+    },
+    {
+      "id": "esc-existing-entity",
+      "fn": "render_full",
+      "args": [
+        "noraw",
+        {
+          "html": "&amp;"
+        }
+      ],
+      "upstreamFn": "MACRO-Phoenix.LiveView.Engine.to_safe/2",
+      "goFn": "(*liveview.Template).Render",
+      "note": "an already-escaped entity must be escaped again"
+    },
+    {
+      "id": "esc-whitespace",
+      "fn": "render_full",
+      "args": [
+        "noraw",
+        {
+          "html": "a\nb\tc"
+        }
+      ],
+      "upstreamFn": "MACRO-Phoenix.LiveView.Engine.to_safe/2",
+      "goFn": "(*liveview.Template).Render",
+      "note": "newlines and tabs must pass through untouched"
+    },
+    {
+      "id": "esc-unicode",
+      "fn": "render_full",
+      "args": [
+        "noraw",
+        {
+          "html": "héllo ☃"
+        }
+      ],
+      "upstreamFn": "MACRO-Phoenix.LiveView.Engine.to_safe/2",
+      "goFn": "(*liveview.Template).Render",
+      "note": "non-ASCII must not be entity-encoded"
+    },
+    {
+      "id": "esc-script-tag",
+      "fn": "render_full",
+      "args": [
+        "noraw",
+        {
+          "html": "<script>alert(1)</script>"
+        }
+      ],
+      "upstreamFn": "MACRO-Phoenix.LiveView.Engine.to_safe/2",
+      "goFn": "(*liveview.Template).Render"
+    },
+    {
+      "id": "esc-html-string",
+      "fn": "render_html",
+      "args": [
+        "noraw",
+        {
+          "html": "<a href=\"x\">&'"
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.to_iodata/1",
+      "goFn": "(*liveview.Rendered).HTML"
+    },
+    {
+      "id": "esc-raw-passthrough",
+      "fn": "render_full",
+      "args": [
+        "raw",
+        {
+          "html": "<b>hi</b>"
+        }
+      ],
+      "upstreamFn": "Phoenix.HTML.raw/1",
+      "goFn": "liveview.Safe",
+      "note": "raw/safe values must not be escaped"
+    },
+    {
+      "id": "esc-raw-quotes",
+      "fn": "render_full",
+      "args": [
+        "raw",
+        {
+          "html": "<a href=\"x\">&'"
+        }
+      ],
+      "upstreamFn": "Phoenix.HTML.raw/1",
+      "goFn": "liveview.Safe"
+    },
+    {
+      "id": "esc-raw-html",
+      "fn": "render_html",
+      "args": [
+        "raw",
+        {
+          "html": "<b>hi</b>"
+        }
+      ],
+      "upstreamFn": "Phoenix.LiveView.Diff.to_iodata/1",
+      "goFn": "(*liveview.Rendered).HTML"
+    }
+  ]
+}

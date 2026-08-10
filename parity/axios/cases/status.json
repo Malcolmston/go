@@ -1,0 +1,181 @@
+{
+  "group": "status",
+  "upstream": "axios@1.7.9",
+  "cases": [
+    {
+      "id": "status-200-default-validate",
+      "fn": "request",
+      "upstreamFn": "defaults.validateStatus",
+      "goFn": "default 2xx predicate",
+      "args": [{ "client": { "baseURL": "$BASE" }, "request": { "method": "get", "url": "/status/200" } }]
+    },
+    {
+      "id": "status-201-default-validate",
+      "fn": "request",
+      "upstreamFn": "defaults.validateStatus",
+      "goFn": "default 2xx predicate",
+      "args": [{ "client": { "baseURL": "$BASE" }, "request": { "method": "get", "url": "/status/201" } }]
+    },
+    {
+      "id": "status-299-default-validate",
+      "fn": "request",
+      "upstreamFn": "defaults.validateStatus",
+      "goFn": "default 2xx predicate",
+      "args": [{ "client": { "baseURL": "$BASE" }, "request": { "method": "get", "url": "/status/299" } }]
+    },
+    {
+      "id": "status-400-rejects",
+      "fn": "request",
+      "upstreamFn": "defaults.validateStatus (400)",
+      "goFn": "default predicate",
+      "note": "compares the error shape: code, status, hasResponse, isAxiosError",
+      "args": [{ "client": { "baseURL": "$BASE" }, "request": { "method": "get", "url": "/status/400" } }]
+    },
+    {
+      "id": "status-404-rejects",
+      "fn": "request",
+      "upstreamFn": "defaults.validateStatus (404)",
+      "goFn": "default predicate",
+      "note": "axios uses ERR_BAD_REQUEST for 4xx",
+      "args": [{ "client": { "baseURL": "$BASE" }, "request": { "method": "get", "url": "/status/404" } }]
+    },
+    {
+      "id": "status-418-rejects",
+      "fn": "request",
+      "upstreamFn": "defaults.validateStatus (418)",
+      "goFn": "default predicate",
+      "args": [{ "client": { "baseURL": "$BASE" }, "request": { "method": "get", "url": "/status/418" } }]
+    },
+    {
+      "id": "status-500-rejects",
+      "fn": "request",
+      "upstreamFn": "defaults.validateStatus (500)",
+      "goFn": "default predicate",
+      "note": "axios uses ERR_BAD_RESPONSE for 5xx",
+      "args": [{ "client": { "baseURL": "$BASE" }, "request": { "method": "get", "url": "/status/500" } }]
+    },
+    {
+      "id": "status-503-rejects",
+      "fn": "request",
+      "upstreamFn": "defaults.validateStatus (503)",
+      "goFn": "default predicate",
+      "args": [{ "client": { "baseURL": "$BASE" }, "request": { "method": "get", "url": "/status/503" } }]
+    },
+    {
+      "id": "status-validate-all-accepts-500",
+      "fn": "request",
+      "upstreamFn": "config.validateStatus = () => true",
+      "goFn": "Config.ValidateStatus",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE", "validateStatus": "all" },
+          "request": { "method": "get", "url": "/status/500" }
+        }
+      ]
+    },
+    {
+      "id": "status-validate-null-accepts-500",
+      "fn": "request",
+      "upstreamFn": "config.validateStatus = null",
+      "goFn": "no equivalent (nil means default 2xx); mapped to accept-all",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE", "validateStatus": "none" },
+          "request": { "method": "get", "url": "/status/500" }
+        }
+      ]
+    },
+    {
+      "id": "status-validate-lt500-accepts-404",
+      "fn": "request",
+      "upstreamFn": "config.validateStatus",
+      "goFn": "Config.ValidateStatus",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE", "validateStatus": "lt500" },
+          "request": { "method": "get", "url": "/status/404" }
+        }
+      ]
+    },
+    {
+      "id": "status-validate-lt500-rejects-500",
+      "fn": "request",
+      "upstreamFn": "config.validateStatus",
+      "goFn": "Config.ValidateStatus",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE", "validateStatus": "lt500" },
+          "request": { "method": "get", "url": "/status/500" }
+        }
+      ]
+    },
+    {
+      "id": "status-validate-only418-rejects-200",
+      "fn": "request",
+      "upstreamFn": "config.validateStatus",
+      "goFn": "Config.ValidateStatus",
+      "note": "a success status rejected by a custom predicate",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE", "validateStatus": "only418" },
+          "request": { "method": "get", "url": "/status/200" }
+        }
+      ]
+    },
+    {
+      "id": "status-validate-only418-accepts-418",
+      "fn": "request",
+      "upstreamFn": "config.validateStatus",
+      "goFn": "Config.ValidateStatus",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE", "validateStatus": "only418" },
+          "request": { "method": "get", "url": "/status/418" }
+        }
+      ]
+    },
+    {
+      "id": "status-validate-per-request-overrides-client",
+      "fn": "request",
+      "upstreamFn": "mergeConfig validateStatus",
+      "goFn": "RequestConfig.ValidateStatus",
+      "args": [
+        {
+          "client": { "baseURL": "$BASE", "validateStatus": "lt400" },
+          "request": { "method": "get", "url": "/status/404", "validateStatus": "all" }
+        }
+      ]
+    },
+    {
+      "id": "error-connection-refused",
+      "fn": "request",
+      "upstreamFn": "ERR_NETWORK / ECONNREFUSED",
+      "goFn": "ErrCodeNetwork",
+      "note": "port 1 on loopback is closed; asserts the transport error shape",
+      "args": [
+        {
+          "client": { "baseURL": "http://127.0.0.1:1" },
+          "request": { "method": "get", "url": "/echo" }
+        }
+      ]
+    },
+    {
+      "id": "error-invalid-url",
+      "fn": "request",
+      "upstreamFn": "ERR_INVALID_URL / ERR_BAD_REQUEST",
+      "goFn": "ErrCodeInvalidURL",
+      "args": [
+        { "client": {}, "request": { "method": "get", "url": "ht!tp://%%%" } }
+      ]
+    },
+    {
+      "id": "error-unsupported-scheme",
+      "fn": "request",
+      "upstreamFn": "ERR_BAD_REQUEST (unsupported protocol)",
+      "goFn": "transport error",
+      "args": [
+        { "client": {}, "request": { "method": "get", "url": "ftp://127.0.0.1/x" } }
+      ]
+    }
+  ]
+}

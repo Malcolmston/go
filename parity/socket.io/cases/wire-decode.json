@@ -1,0 +1,64 @@
+{
+  "group": "wire-decode",
+  "upstream": "socket.io-parser@4.2.7",
+  "note": "A corpus of literal wire strings decoded on both sides. args[0].frames lists the transport frames in arrival order — a JSON string is a text frame, {\"$bin\":\"<hex>\"} is a binary attachment frame. The compared value is {packets:[{type,nsp,id,data}], pending} where `data` re-encodes reassembled buffers as {\"$bin\":\"<hex>\"} and `pending` reports whether the decoder is still waiting for attachments. Upstream symbol: socket.io-parser Decoder.add; Go: socketio.Decoder.Add (which delegates to DecodePacket).",
+  "cases": [
+    { "id": "dec-connect", "fn": "wire.decode", "args": [{ "frames": ["0"] }], "upstreamFn": "Decoder.add", "goFn": "Decoder.Add" },
+    { "id": "dec-connect-auth", "fn": "wire.decode", "args": [{ "frames": ["0{\"sid\":\"x\",\"n\":1}"] }], "upstreamFn": "Decoder.add", "goFn": "Decoder.Add" },
+    { "id": "dec-connect-nsp", "fn": "wire.decode", "args": [{ "frames": ["0/admin,"] }], "upstreamFn": "Decoder.add", "goFn": "Decoder.Add" },
+    { "id": "dec-connect-nsp-auth", "fn": "wire.decode", "args": [{ "frames": ["0/admin,{\"a\":1}"] }], "upstreamFn": "Decoder.add", "goFn": "Decoder.Add" },
+    { "id": "dec-connect-string-payload", "fn": "wire.decode", "args": [{ "frames": ["0\"nope\""] }], "upstreamFn": "Decoder.isPayloadValid", "goFn": "DecodePacket", "note": "a CONNECT payload must be an object" },
+    { "id": "dec-connect-array-payload", "fn": "wire.decode", "args": [{ "frames": ["0[1]"] }], "upstreamFn": "Decoder.isPayloadValid", "goFn": "DecodePacket", "note": "upstream uses isObject(), which rejects arrays" },
+
+    { "id": "dec-disconnect", "fn": "wire.decode", "args": [{ "frames": ["1"] }], "upstreamFn": "Decoder.add", "goFn": "Decoder.Add" },
+    { "id": "dec-disconnect-nsp", "fn": "wire.decode", "args": [{ "frames": ["1/admin,"] }], "upstreamFn": "Decoder.add", "goFn": "Decoder.Add" },
+    { "id": "dec-disconnect-payload", "fn": "wire.decode", "args": [{ "frames": ["1[1]"] }], "upstreamFn": "Decoder.isPayloadValid", "goFn": "DecodePacket", "note": "a DISCONNECT must not carry a payload" },
+
+    { "id": "dec-event", "fn": "wire.decode", "args": [{ "frames": ["2[\"hi\",1,null,true]"] }], "upstreamFn": "Decoder.add", "goFn": "Decoder.Add" },
+    { "id": "dec-event-no-payload", "fn": "wire.decode", "args": [{ "frames": ["2"] }], "upstreamFn": "Decoder.add", "goFn": "Decoder.Add", "note": "an absent payload is accepted even for EVENT" },
+    { "id": "dec-event-empty-array", "fn": "wire.decode", "args": [{ "frames": ["2[]"] }], "upstreamFn": "Decoder.isPayloadValid", "goFn": "DecodePacket", "note": "an EVENT payload must be a NON-EMPTY array" },
+    { "id": "dec-event-object-payload", "fn": "wire.decode", "args": [{ "frames": ["2{\"a\":1}"] }], "upstreamFn": "Decoder.isPayloadValid", "goFn": "DecodePacket" },
+    { "id": "dec-event-nsp", "fn": "wire.decode", "args": [{ "frames": ["2/admin,[\"hi\"]"] }], "upstreamFn": "Decoder.add", "goFn": "Decoder.Add" },
+    { "id": "dec-event-nsp-no-comma", "fn": "wire.decode", "args": [{ "frames": ["2/admin"] }], "upstreamFn": "Decoder.add", "goFn": "Decoder.Add", "note": "an unterminated namespace swallows the rest of the packet" },
+    { "id": "dec-event-nsp-ack", "fn": "wire.decode", "args": [{ "frames": ["2/admin,17[\"hi\"]"] }], "upstreamFn": "Decoder.add", "goFn": "Decoder.Add" },
+    { "id": "dec-event-ack-zero", "fn": "wire.decode", "args": [{ "frames": ["20[\"hi\"]"] }], "upstreamFn": "Decoder.add", "goFn": "Decoder.Add", "note": "ack id 0 must not be confused with 'no ack'" },
+    { "id": "dec-event-ack-leading-zeros", "fn": "wire.decode", "args": [{ "frames": ["2007[\"hi\"]"] }], "upstreamFn": "Decoder.add", "goFn": "Decoder.Add" },
+    { "id": "dec-event-ack-huge", "fn": "wire.decode", "args": [{ "frames": ["218446744073709551615[\"hi\"]"] }], "upstreamFn": "Decoder.add", "goFn": "Decoder.Add", "note": "ack id beyond 2^53" },
+    { "id": "dec-event-numeric-nsp", "fn": "wire.decode", "args": [{ "frames": ["2/1,5[\"a\"]"] }], "upstreamFn": "Decoder.add", "goFn": "Decoder.Add" },
+    { "id": "dec-event-unicode", "fn": "wire.decode", "args": [{ "frames": ["2[\"ev\",\"héllo 😀\"]"] }], "upstreamFn": "Decoder.add", "goFn": "Decoder.Add" },
+    { "id": "dec-event-escapes", "fn": "wire.decode", "args": [{ "frames": ["2[\"ev\",\"a\\u003cb\\u003e\\u0026c\\nd\"]"] }], "upstreamFn": "Decoder.add", "goFn": "Decoder.Add" },
+    { "id": "dec-event-trailing-garbage", "fn": "wire.decode", "args": [{ "frames": ["2[\"hi\"]x"] }], "upstreamFn": "Decoder.add", "goFn": "Decoder.Add", "note": "malformed JSON payload" },
+    { "id": "dec-event-truncated-json", "fn": "wire.decode", "args": [{ "frames": ["2[\"hi\""] }], "upstreamFn": "Decoder.add", "goFn": "Decoder.Add" },
+    { "id": "dec-event-two-packets", "fn": "wire.decode", "args": [{ "frames": ["2[\"a\"]", "2[\"b\"]"] }], "upstreamFn": "Decoder.add", "goFn": "Decoder.Add", "note": "the decoder is reusable across packets" },
+
+    { "id": "dec-ack", "fn": "wire.decode", "args": [{ "frames": ["31[\"ok\",2]"] }], "upstreamFn": "Decoder.add", "goFn": "Decoder.Add" },
+    { "id": "dec-ack-empty-array", "fn": "wire.decode", "args": [{ "frames": ["31[]"] }], "upstreamFn": "Decoder.isPayloadValid", "goFn": "DecodePacket", "note": "unlike EVENT, an ACK may carry an empty array" },
+    { "id": "dec-ack-no-id", "fn": "wire.decode", "args": [{ "frames": ["3[\"ok\"]"] }], "upstreamFn": "Decoder.add", "goFn": "Decoder.Add" },
+    { "id": "dec-ack-nsp", "fn": "wire.decode", "args": [{ "frames": ["3/admin,7[\"ok\"]"] }], "upstreamFn": "Decoder.add", "goFn": "Decoder.Add" },
+
+    { "id": "dec-connect-error-object", "fn": "wire.decode", "args": [{ "frames": ["4{\"message\":\"Invalid namespace\"}"] }], "upstreamFn": "Decoder.add", "goFn": "Decoder.Add" },
+    { "id": "dec-connect-error-string", "fn": "wire.decode", "args": [{ "frames": ["4\"boom\""] }], "upstreamFn": "Decoder.isPayloadValid", "goFn": "DecodePacket", "note": "CONNECT_ERROR accepts a bare string" },
+    { "id": "dec-connect-error-array", "fn": "wire.decode", "args": [{ "frames": ["4[1]"] }], "upstreamFn": "Decoder.isPayloadValid", "goFn": "DecodePacket", "note": "upstream uses isObject(), which rejects arrays" },
+    { "id": "dec-connect-null-payload", "fn": "wire.decode", "args": [{ "frames": ["0null"] }], "upstreamFn": "Decoder.isPayloadValid", "goFn": "DecodePacket", "note": "upstream uses isObject(), which rejects null" },
+    { "id": "dec-connect-error-number", "fn": "wire.decode", "args": [{ "frames": ["41"] }], "upstreamFn": "Decoder.isPayloadValid", "goFn": "DecodePacket", "note": "a number is neither string nor object; also collides with ack-id parsing" },
+
+    { "id": "dec-binary-event-complete", "fn": "wire.decode", "args": [{ "frames": ["51-[\"b\",{\"_placeholder\":true,\"num\":0}]", { "$bin": "0001ff" }] }], "upstreamFn": "BinaryReconstructor.takeBinaryData", "goFn": "Decoder.Add", "note": "the reassembled packet's type, and the buffer put back in place" },
+    { "id": "dec-binary-event-two", "fn": "wire.decode", "args": [{ "frames": ["52-[\"b\",{\"_placeholder\":true,\"num\":0},\"mid\",{\"_placeholder\":true,\"num\":1}]", { "$bin": "00" }, { "$bin": "ff" }] }], "upstreamFn": "BinaryReconstructor.takeBinaryData", "goFn": "Decoder.Add" },
+    { "id": "dec-binary-event-nsp-ack", "fn": "wire.decode", "args": [{ "frames": ["51-/admin,9[\"b\",{\"_placeholder\":true,\"num\":0}]", { "$bin": "0102" }] }], "upstreamFn": "BinaryReconstructor.takeBinaryData", "goFn": "Decoder.Add" },
+    { "id": "dec-binary-ack-complete", "fn": "wire.decode", "args": [{ "frames": ["61-4[{\"_placeholder\":true,\"num\":0}]", { "$bin": "cafe" }] }], "upstreamFn": "BinaryReconstructor.takeBinaryData", "goFn": "Decoder.Add" },
+    { "id": "dec-binary-header-only", "fn": "wire.decode", "args": [{ "frames": ["51-[\"b\",{\"_placeholder\":true,\"num\":0}]"] }], "upstreamFn": "Decoder.add", "goFn": "Decoder.Add", "note": "no packet yet; the decoder must report itself pending" },
+    { "id": "dec-binary-zero-attachments", "fn": "wire.decode", "args": [{ "frames": ["50-[\"b\"]"] }], "upstreamFn": "Decoder.add", "goFn": "Decoder.Add", "note": "a BINARY_EVENT declaring 0 attachments" },
+    { "id": "dec-binary-no-prefix", "fn": "wire.decode", "args": [{ "frames": ["5[\"b\"]"] }], "upstreamFn": "Decoder.add", "goFn": "Decoder.Add", "note": "illegal attachments header" },
+    { "id": "dec-binary-nondigit-prefix", "fn": "wire.decode", "args": [{ "frames": ["5x-[\"b\"]"] }], "upstreamFn": "Decoder.add", "goFn": "Decoder.Add" },
+    { "id": "dec-binary-orphan-buffer", "fn": "wire.decode", "args": [{ "frames": [{ "$bin": "00" }] }], "upstreamFn": "Decoder.add", "goFn": "Decoder.Add", "note": "binary data with no header pending" },
+    { "id": "dec-binary-text-while-pending", "fn": "wire.decode", "args": [{ "frames": ["51-[\"b\",{\"_placeholder\":true,\"num\":0}]", "2[\"a\"]"] }], "upstreamFn": "Decoder.add", "goFn": "Decoder.Add", "note": "plaintext arriving mid-reconstruction" },
+    { "id": "dec-binary-extra-buffer", "fn": "wire.decode", "args": [{ "frames": ["51-[\"b\",{\"_placeholder\":true,\"num\":0}]", { "$bin": "00" }, { "$bin": "11" }] }], "upstreamFn": "Decoder.add", "goFn": "Decoder.Add", "note": "one attachment too many" },
+    { "id": "dec-binary-placeholder-out-of-range", "fn": "wire.decode", "args": [{ "frames": ["51-[\"b\",{\"_placeholder\":true,\"num\":3}]", { "$bin": "00" }] }], "upstreamFn": "BinaryReconstructor.takeBinaryData", "goFn": "Decoder.Add", "note": "placeholder index past the end of the buffer list" },
+
+    { "id": "dec-empty-frame", "fn": "wire.decode", "args": [{ "frames": [""] }], "upstreamFn": "Decoder.add", "goFn": "Decoder.Add" },
+    { "id": "dec-type-out-of-range", "fn": "wire.decode", "args": [{ "frames": ["7[\"a\"]"] }], "upstreamFn": "Decoder.add", "goFn": "Decoder.Add" },
+    { "id": "dec-type-nonnumeric", "fn": "wire.decode", "args": [{ "frames": ["x[\"a\"]"] }], "upstreamFn": "Decoder.add", "goFn": "Decoder.Add" },
+
+    { "id": "dec-attachments-cleared", "fn": "wire.decodeAttachments", "args": [{ "frames": ["51-[\"b\",{\"_placeholder\":true,\"num\":0}]", { "$bin": "00ff" }] }], "upstreamFn": "Packet.attachments", "goFn": "Packet.Attachments", "note": "the attachment count on a fully reassembled packet" }
+  ]
+}

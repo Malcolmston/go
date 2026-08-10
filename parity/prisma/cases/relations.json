@@ -1,0 +1,468 @@
+{
+  "group": "relations",
+  "upstream": "prisma@5.22.0",
+  "cases": [
+    {
+      "id": "some-with-filter",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "where": {
+              "posts": {
+                "some": {
+                  "views": {
+                    "gt": 80
+                  }
+                }
+              }
+            },
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ],
+            "select": [
+              "id"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "where: { posts: { some } }",
+      "goFn": "prisma.Some(\"Posts\", ...)"
+    },
+    {
+      "id": "some-nested-and",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "where": {
+              "posts": {
+                "some": {
+                  "AND": [
+                    {
+                      "published": true
+                    },
+                    {
+                      "views": {
+                        "gte": 80
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ],
+            "select": [
+              "id"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "where: { posts: { some: { AND } } }",
+      "goFn": "prisma.Some(\"Posts\", prisma.And(...))"
+    },
+    {
+      "id": "some-any",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "where": {
+              "posts": {
+                "some": {}
+              }
+            },
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ],
+            "select": [
+              "id"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "where: { posts: { some: {} } }",
+      "goFn": "prisma.Some(\"Posts\")",
+      "note": "users that have any post at all"
+    },
+    {
+      "id": "every-with-filter",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "where": {
+              "posts": {
+                "every": {
+                  "published": true
+                }
+              }
+            },
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ],
+            "select": [
+              "id"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "where: { posts: { every } }",
+      "goFn": "prisma.Every(\"Posts\", ...)",
+      "note": "vacuously true for users with no posts"
+    },
+    {
+      "id": "every-any",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "where": {
+              "posts": {
+                "every": {}
+              }
+            },
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ],
+            "select": [
+              "id"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "where: { posts: { every: {} } }",
+      "goFn": "prisma.Every(\"Posts\")"
+    },
+    {
+      "id": "none-with-filter",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "where": {
+              "posts": {
+                "none": {
+                  "published": true
+                }
+              }
+            },
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ],
+            "select": [
+              "id"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "where: { posts: { none } }",
+      "goFn": "prisma.None(\"Posts\", ...)"
+    },
+    {
+      "id": "none-any",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "where": {
+              "posts": {
+                "none": {}
+              }
+            },
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ],
+            "select": [
+              "id"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "where: { posts: { none: {} } }",
+      "goFn": "prisma.None(\"Posts\")",
+      "note": "users with no posts at all"
+    },
+    {
+      "id": "is-to-one",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "post",
+            "where": {
+              "author": {
+                "is": {
+                  "city": "Berlin"
+                }
+              }
+            },
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ],
+            "select": [
+              "id"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "where: { author: { is } }",
+      "goFn": "prisma.Is(\"Author\", ...)"
+    },
+    {
+      "id": "is-to-one-nested-range",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "post",
+            "where": {
+              "author": {
+                "is": {
+                  "score": {
+                    "gte": 60
+                  }
+                }
+              }
+            },
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ],
+            "select": [
+              "id",
+              "author_id"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "where: { author: { is: { score: { gte } } } }",
+      "goFn": "prisma.Is(\"Author\", prisma.Gte(...))"
+    },
+    {
+      "id": "include-to-one",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "post",
+            "where": {
+              "title": "Alpha"
+            },
+            "include": [
+              "author"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "include: { author: true }",
+      "goFn": "Query.Include(\"Author\")",
+      "note": "the to-one LEFT JOIN, filtered on a column that exists in only one table"
+    },
+    {
+      "id": "include-to-one-ambiguous-filter",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "post",
+            "where": {
+              "id": {
+                "in": [
+                  1,
+                  3
+                ]
+              }
+            },
+            "include": [
+              "author"
+            ],
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "include: { author: true } with where: { id }",
+      "goFn": "Query.Include(\"Author\") with prisma.In(\"id\", ...)",
+      "note": "the port never qualifies Where/OrderBy columns with the base table, so any filter on a column both tables have becomes ambiguous SQL"
+    },
+    {
+      "id": "include-to-many",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "where": {
+              "id": 1
+            },
+            "include": [
+              "posts"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "include: { posts: true }",
+      "goFn": "Query.Include(\"Posts\")",
+      "note": "a to-many include: the port joins on base.<fk> = target.<references>, which for a to-many relation names a column the base table does not have"
+    },
+    {
+      "id": "include-to-many-all",
+      "fn": "script",
+      "args": [
+        [
+          {
+            "op": "reset"
+          },
+          {
+            "op": "seed",
+            "dataset": "base"
+          },
+          {
+            "op": "findMany",
+            "model": "user",
+            "where": {
+              "city": "Berlin"
+            },
+            "include": [
+              "posts"
+            ],
+            "orderBy": [
+              {
+                "id": "asc"
+              }
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "include: { posts: true }",
+      "goFn": "Query.Include(\"Posts\")"
+    }
+  ],
+  "note": "Relation filters (some/every/none/is) and relation loading via include."
+}

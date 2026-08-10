@@ -1,0 +1,268 @@
+{
+  "group": "attachments",
+  "upstream": "nodemailer@6.9.16",
+  "cases": [
+    {
+      "id": "att-string-explicit-type",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.attachments[].content (string)",
+      "goFn": "nodemailer.Message.AttachBytes",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "see attached",
+          "attachments": [
+            { "filename": "notes.txt", "contentType": "text/plain", "mode": "string", "content": "attachment body" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "att-string-inferred-type",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.attachments[] (contentType inferred from filename)",
+      "goFn": "nodemailer.Message.AttachBytes",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "see attached",
+          "attachments": [{ "filename": "report.pdf", "mode": "string", "content": "%PDF-1.4 fake" }]
+        }
+      ]
+    },
+    {
+      "id": "att-inferred-unknown-extension",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.attachments[] (unknown extension)",
+      "goFn": "nodemailer.Message.AttachBytes",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "see attached",
+          "attachments": [{ "filename": "thing.zzz", "mode": "string", "content": "opaque" }]
+        }
+      ],
+      "note": "expects application/octet-stream on both sides"
+    },
+    {
+      "id": "att-no-filename",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.attachments[] (no filename)",
+      "goFn": "nodemailer.Message.AttachBytes",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "see attached",
+          "attachments": [{ "mode": "string", "content": "nameless", "contentType": "text/plain" }]
+        }
+      ]
+    },
+    {
+      "id": "att-buffer",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.attachments[].content (Buffer)",
+      "goFn": "nodemailer.Message.AttachBytes",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "see attached",
+          "attachments": [
+            { "filename": "blob.bin", "mode": "buffer", "content": "AAEC/f7/Cg0A", "contentType": "application/octet-stream" }
+          ]
+        }
+      ],
+      "note": "content is base64 in the case file and fed as raw bytes to both runners"
+    },
+    {
+      "id": "att-base64-encoding-option",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.attachments[].encoding = base64",
+      "goFn": "nodemailer.Message.AttachBytes",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "see attached",
+          "attachments": [
+            { "filename": "blob.bin", "mode": "base64", "content": "AAEC/f7/Cg0A", "contentType": "application/octet-stream" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "att-from-path",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.attachments[].path",
+      "goFn": "nodemailer.Message.AttachFile",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "see attached",
+          "attachments": [{ "mode": "path", "path": "fixtures/hello.txt" }]
+        }
+      ],
+      "note": "filename and content type both derived from the path"
+    },
+    {
+      "id": "att-from-path-binary",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.attachments[].path",
+      "goFn": "nodemailer.Message.AttachFile",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "see attached",
+          "attachments": [{ "mode": "path", "path": "fixtures/tiny.png" }]
+        }
+      ]
+    },
+    {
+      "id": "att-from-stream",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.attachments[].content (Readable stream)",
+      "goFn": "nodemailer.Message.AttachReader",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "see attached",
+          "attachments": [{ "filename": "hello.txt", "mode": "stream", "path": "fixtures/hello.txt", "contentType": "text/plain" }]
+        }
+      ]
+    },
+    {
+      "id": "att-two-attachments",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.attachments[]",
+      "goFn": "nodemailer.Message.Attach",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "see attached",
+          "attachments": [
+            { "filename": "one.txt", "mode": "string", "content": "first" },
+            { "filename": "two.txt", "mode": "string", "content": "second" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "att-non-ascii-filename",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.attachments[].filename (RFC 2231)",
+      "goFn": "nodemailer.Message.AttachBytes",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "see attached",
+          "attachments": [{ "filename": "rapport-année-ü.txt", "mode": "string", "content": "contenu" }]
+        }
+      ],
+      "note": "KNOWN DEFECT in the port: it emits a bare RFC 2047 encoded word as an unquoted Content-Type/Content-Disposition parameter value. '?' and '=' are tspecials, so the parameter is not a valid MIME token and the part is malformed. Upstream uses RFC 2231 filename*0*= continuations."
+    },
+    {
+      "id": "att-non-ascii-filename-cjk",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.attachments[].filename (RFC 2231)",
+      "goFn": "nodemailer.Message.AttachBytes",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "see attached",
+          "attachments": [{ "filename": "報告書.txt", "mode": "string", "content": "contents" }]
+        }
+      ],
+      "note": "same defect as att-non-ascii-filename, with a filename that is entirely non-ASCII"
+    },
+    {
+      "id": "att-long-ascii-filename",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.attachments[].filename (long, folded)",
+      "goFn": "nodemailer.Message.AttachBytes",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "see attached",
+          "attachments": [
+            {
+              "filename": "a-really-quite-long-attachment-filename-that-forces-the-content-disposition-header-to-fold.txt",
+              "mode": "string",
+              "content": "x"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "att-filename-with-quote",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.attachments[].filename (quoting)",
+      "goFn": "nodemailer.Message.AttachBytes",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "see attached",
+          "attachments": [{ "filename": "quote\"and space.txt", "mode": "string", "content": "x" }]
+        }
+      ]
+    },
+    {
+      "id": "att-explicit-disposition-inline",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.attachments[].contentDisposition",
+      "goFn": "nodemailer.Attachment.Inline",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "see attached",
+          "attachments": [
+            { "filename": "inline.txt", "mode": "string", "content": "x", "contentDisposition": "inline", "contentType": "text/plain" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "att-only-no-body",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.attachments[] with no body",
+      "goFn": "nodemailer.Message.AttachBytes",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "subject": "attachment only",
+          "attachments": [{ "filename": "solo.txt", "mode": "string", "content": "solo" }]
+        }
+      ],
+      "note": "upstream collapses a single attachment with no alternatives into a top-level part"
+    },
+    {
+      "id": "att-missing-path",
+      "fn": "buildMessage",
+      "upstreamFn": "mail.attachments[].path (missing file)",
+      "goFn": "nodemailer.Message.AttachFile",
+      "args": [
+        {
+          "from": "ada@example.com",
+          "to": ["b@example.com"],
+          "text": "see attached",
+          "attachments": [{ "mode": "path", "path": "fixtures/does-not-exist.txt" }]
+        }
+      ],
+      "note": "error case: both sides should fail"
+    }
+  ]
+}

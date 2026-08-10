@@ -1,0 +1,1493 @@
+{
+  "group": "histogram",
+  "upstream": "opencv-python@4.11.0",
+  "cases": [
+    {
+      "id": "calchist-gradient",
+      "fn": "calcHist",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        0
+      ],
+      "upstreamFn": "cv2.calcHist",
+      "goFn": "cv.CalcHist",
+      "mode": "exact"
+    },
+    {
+      "id": "calchist-noise",
+      "fn": "calcHist",
+      "args": [
+        {
+          "gen": "noise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 20260810
+        },
+        0
+      ],
+      "upstreamFn": "cv2.calcHist",
+      "goFn": "cv.CalcHist",
+      "mode": "exact"
+    },
+    {
+      "id": "calchist-shapes",
+      "fn": "calcHist",
+      "args": [
+        {
+          "gen": "shapes",
+          "rows": 48,
+          "cols": 48,
+          "ch": 1
+        },
+        0
+      ],
+      "upstreamFn": "cv2.calcHist",
+      "goFn": "cv.CalcHist",
+      "mode": "exact"
+    },
+    {
+      "id": "calchist-checker",
+      "fn": "calcHist",
+      "args": [
+        {
+          "gen": "checker",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "block": 5
+        },
+        0
+      ],
+      "upstreamFn": "cv2.calcHist",
+      "goFn": "cv.CalcHist",
+      "mode": "exact"
+    },
+    {
+      "id": "calchist-3ch-ch2",
+      "fn": "calcHist",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3
+        },
+        2
+      ],
+      "upstreamFn": "cv2.calcHist",
+      "goFn": "cv.CalcHist",
+      "mode": "exact"
+    },
+    {
+      "id": "calchist-bad-channel",
+      "fn": "calcHist",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        3
+      ],
+      "upstreamFn": "cv2.calcHist",
+      "goFn": "cv.CalcHist",
+      "mode": "exact"
+    },
+    {
+      "id": "comparehist-correl",
+      "fn": "compareHist",
+      "args": [
+        [
+          4,
+          0,
+          9,
+          1,
+          7,
+          3,
+          0,
+          2
+        ],
+        [
+          3,
+          1,
+          8,
+          0,
+          9,
+          2,
+          1,
+          2
+        ],
+        "HistCmpCorrel"
+      ],
+      "upstreamFn": "cv2.compareHist",
+      "goFn": "cv.CompareHist",
+      "mode": "tolerance",
+      "tol": 1e-06,
+      "relTol": 1e-06
+    },
+    {
+      "id": "comparehist-self-correl",
+      "fn": "compareHist",
+      "args": [
+        [
+          4,
+          0,
+          9,
+          1,
+          7,
+          3,
+          0,
+          2
+        ],
+        [
+          4,
+          0,
+          9,
+          1,
+          7,
+          3,
+          0,
+          2
+        ],
+        "HistCmpCorrel"
+      ],
+      "upstreamFn": "cv2.compareHist",
+      "goFn": "cv.CompareHist",
+      "mode": "tolerance",
+      "tol": 1e-06,
+      "relTol": 1e-06
+    },
+    {
+      "id": "comparehist-zero-correl",
+      "fn": "compareHist",
+      "args": [
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          4,
+          0,
+          9,
+          1,
+          7,
+          3,
+          0,
+          2
+        ],
+        "HistCmpCorrel"
+      ],
+      "upstreamFn": "cv2.compareHist",
+      "goFn": "cv.CompareHist",
+      "mode": "tolerance",
+      "tol": 1e-06,
+      "relTol": 1e-06
+    },
+    {
+      "id": "comparehist-images-correl",
+      "fn": "compareHistOfImages",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        {
+          "gen": "noise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 20260810
+        },
+        "HistCmpCorrel"
+      ],
+      "upstreamFn": "cv2.compareHist",
+      "goFn": "cv.CompareHist",
+      "mode": "tolerance",
+      "tol": 1e-06,
+      "relTol": 1e-06
+    },
+    {
+      "id": "comparehist-chisqr",
+      "fn": "compareHist",
+      "args": [
+        [
+          4,
+          0,
+          9,
+          1,
+          7,
+          3,
+          0,
+          2
+        ],
+        [
+          3,
+          1,
+          8,
+          0,
+          9,
+          2,
+          1,
+          2
+        ],
+        "HistCmpChiSqr"
+      ],
+      "upstreamFn": "cv2.compareHist",
+      "goFn": "cv.CompareHist",
+      "mode": "tolerance",
+      "tol": 1e-06,
+      "relTol": 1e-06
+    },
+    {
+      "id": "comparehist-self-chisqr",
+      "fn": "compareHist",
+      "args": [
+        [
+          4,
+          0,
+          9,
+          1,
+          7,
+          3,
+          0,
+          2
+        ],
+        [
+          4,
+          0,
+          9,
+          1,
+          7,
+          3,
+          0,
+          2
+        ],
+        "HistCmpChiSqr"
+      ],
+      "upstreamFn": "cv2.compareHist",
+      "goFn": "cv.CompareHist",
+      "mode": "tolerance",
+      "tol": 1e-06,
+      "relTol": 1e-06
+    },
+    {
+      "id": "comparehist-zero-chisqr",
+      "fn": "compareHist",
+      "args": [
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          4,
+          0,
+          9,
+          1,
+          7,
+          3,
+          0,
+          2
+        ],
+        "HistCmpChiSqr"
+      ],
+      "upstreamFn": "cv2.compareHist",
+      "goFn": "cv.CompareHist",
+      "mode": "tolerance",
+      "tol": 1e-06,
+      "relTol": 1e-06
+    },
+    {
+      "id": "comparehist-images-chisqr",
+      "fn": "compareHistOfImages",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        {
+          "gen": "noise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 20260810
+        },
+        "HistCmpChiSqr"
+      ],
+      "upstreamFn": "cv2.compareHist",
+      "goFn": "cv.CompareHist",
+      "mode": "tolerance",
+      "tol": 1e-06,
+      "relTol": 1e-06
+    },
+    {
+      "id": "comparehist-intersect",
+      "fn": "compareHist",
+      "args": [
+        [
+          4,
+          0,
+          9,
+          1,
+          7,
+          3,
+          0,
+          2
+        ],
+        [
+          3,
+          1,
+          8,
+          0,
+          9,
+          2,
+          1,
+          2
+        ],
+        "HistCmpIntersect"
+      ],
+      "upstreamFn": "cv2.compareHist",
+      "goFn": "cv.CompareHist",
+      "mode": "tolerance",
+      "tol": 1e-06,
+      "relTol": 1e-06
+    },
+    {
+      "id": "comparehist-self-intersect",
+      "fn": "compareHist",
+      "args": [
+        [
+          4,
+          0,
+          9,
+          1,
+          7,
+          3,
+          0,
+          2
+        ],
+        [
+          4,
+          0,
+          9,
+          1,
+          7,
+          3,
+          0,
+          2
+        ],
+        "HistCmpIntersect"
+      ],
+      "upstreamFn": "cv2.compareHist",
+      "goFn": "cv.CompareHist",
+      "mode": "tolerance",
+      "tol": 1e-06,
+      "relTol": 1e-06
+    },
+    {
+      "id": "comparehist-zero-intersect",
+      "fn": "compareHist",
+      "args": [
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          4,
+          0,
+          9,
+          1,
+          7,
+          3,
+          0,
+          2
+        ],
+        "HistCmpIntersect"
+      ],
+      "upstreamFn": "cv2.compareHist",
+      "goFn": "cv.CompareHist",
+      "mode": "tolerance",
+      "tol": 1e-06,
+      "relTol": 1e-06
+    },
+    {
+      "id": "comparehist-images-intersect",
+      "fn": "compareHistOfImages",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        {
+          "gen": "noise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 20260810
+        },
+        "HistCmpIntersect"
+      ],
+      "upstreamFn": "cv2.compareHist",
+      "goFn": "cv.CompareHist",
+      "mode": "tolerance",
+      "tol": 1e-06,
+      "relTol": 1e-06
+    },
+    {
+      "id": "comparehist-bhattacharyya",
+      "fn": "compareHist",
+      "args": [
+        [
+          4,
+          0,
+          9,
+          1,
+          7,
+          3,
+          0,
+          2
+        ],
+        [
+          3,
+          1,
+          8,
+          0,
+          9,
+          2,
+          1,
+          2
+        ],
+        "HistCmpBhattacharyya"
+      ],
+      "upstreamFn": "cv2.compareHist",
+      "goFn": "cv.CompareHist",
+      "mode": "tolerance",
+      "tol": 1e-06,
+      "relTol": 1e-06
+    },
+    {
+      "id": "comparehist-self-bhattacharyya",
+      "fn": "compareHist",
+      "args": [
+        [
+          4,
+          0,
+          9,
+          1,
+          7,
+          3,
+          0,
+          2
+        ],
+        [
+          4,
+          0,
+          9,
+          1,
+          7,
+          3,
+          0,
+          2
+        ],
+        "HistCmpBhattacharyya"
+      ],
+      "upstreamFn": "cv2.compareHist",
+      "goFn": "cv.CompareHist",
+      "mode": "tolerance",
+      "tol": 1e-06,
+      "relTol": 1e-06
+    },
+    {
+      "id": "comparehist-zero-bhattacharyya",
+      "fn": "compareHist",
+      "args": [
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          4,
+          0,
+          9,
+          1,
+          7,
+          3,
+          0,
+          2
+        ],
+        "HistCmpBhattacharyya"
+      ],
+      "upstreamFn": "cv2.compareHist",
+      "goFn": "cv.CompareHist",
+      "mode": "tolerance",
+      "tol": 1e-06,
+      "relTol": 1e-06
+    },
+    {
+      "id": "comparehist-images-bhattacharyya",
+      "fn": "compareHistOfImages",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        {
+          "gen": "noise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 20260810
+        },
+        "HistCmpBhattacharyya"
+      ],
+      "upstreamFn": "cv2.compareHist",
+      "goFn": "cv.CompareHist",
+      "mode": "tolerance",
+      "tol": 1e-06,
+      "relTol": 1e-06
+    },
+    {
+      "id": "comparehist-length-mismatch",
+      "fn": "compareHist",
+      "args": [
+        [
+          4,
+          0,
+          9,
+          1,
+          7,
+          3,
+          0,
+          2
+        ],
+        [
+          4,
+          0,
+          9,
+          1
+        ],
+        "HistCmpCorrel"
+      ],
+      "upstreamFn": "cv2.compareHist",
+      "goFn": "cv.CompareHist",
+      "mode": "exact"
+    },
+    {
+      "id": "equalizehist-gradient",
+      "fn": "equalizeHist",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        }
+      ],
+      "upstreamFn": "cv2.equalizeHist",
+      "goFn": "cv.EqualizeHist",
+      "mode": "exact"
+    },
+    {
+      "id": "equalizehist-noise",
+      "fn": "equalizeHist",
+      "args": [
+        {
+          "gen": "noise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 20260810
+        }
+      ],
+      "upstreamFn": "cv2.equalizeHist",
+      "goFn": "cv.EqualizeHist",
+      "mode": "exact"
+    },
+    {
+      "id": "equalizehist-shapes",
+      "fn": "equalizeHist",
+      "args": [
+        {
+          "gen": "shapes",
+          "rows": 48,
+          "cols": 48,
+          "ch": 1
+        }
+      ],
+      "upstreamFn": "cv2.equalizeHist",
+      "goFn": "cv.EqualizeHist",
+      "mode": "exact"
+    },
+    {
+      "id": "equalizehist-gradnoise",
+      "fn": "equalizeHist",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 4242,
+          "amp": 60
+        }
+      ],
+      "upstreamFn": "cv2.equalizeHist",
+      "goFn": "cv.EqualizeHist",
+      "mode": "exact"
+    },
+    {
+      "id": "equalizehist-const",
+      "fn": "equalizeHist",
+      "args": [
+        {
+          "gen": "const",
+          "rows": 8,
+          "cols": 8,
+          "ch": 1,
+          "value": 100
+        }
+      ],
+      "upstreamFn": "cv2.equalizeHist",
+      "goFn": "cv.EqualizeHist",
+      "mode": "exact"
+    },
+    {
+      "id": "clahe-2-4",
+      "fn": "clahe",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 4242,
+          "amp": 60
+        },
+        2.0,
+        4
+      ],
+      "upstreamFn": "cv2.createCLAHE",
+      "goFn": "cv.CLAHE",
+      "mode": "tolerance",
+      "tol": 8,
+      "meanTol": 3.0,
+      "histTol": 0.08,
+      "note": "CLAHE mixes clip redistribution with bilinear tile interpolation; budget 8 LSB"
+    },
+    {
+      "id": "clahe-4-8",
+      "fn": "clahe",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 4242,
+          "amp": 60
+        },
+        4.0,
+        8
+      ],
+      "upstreamFn": "cv2.createCLAHE",
+      "goFn": "cv.CLAHE",
+      "mode": "tolerance",
+      "tol": 8,
+      "meanTol": 3.0,
+      "histTol": 0.08,
+      "note": "CLAHE mixes clip redistribution with bilinear tile interpolation; budget 8 LSB"
+    },
+    {
+      "id": "clahe-1-2",
+      "fn": "clahe",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 4242,
+          "amp": 60
+        },
+        1.0,
+        2
+      ],
+      "upstreamFn": "cv2.createCLAHE",
+      "goFn": "cv.CLAHE",
+      "mode": "tolerance",
+      "tol": 8,
+      "meanTol": 3.0,
+      "histTol": 0.08,
+      "note": "CLAHE mixes clip redistribution with bilinear tile interpolation; budget 8 LSB"
+    },
+    {
+      "id": "clahe-40-4",
+      "fn": "clahe",
+      "args": [
+        {
+          "gen": "gradnoise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 4242,
+          "amp": 60
+        },
+        40.0,
+        4
+      ],
+      "upstreamFn": "cv2.createCLAHE",
+      "goFn": "cv.CLAHE",
+      "mode": "tolerance",
+      "tol": 8,
+      "meanTol": 3.0,
+      "histTol": 0.08,
+      "note": "CLAHE mixes clip redistribution with bilinear tile interpolation; budget 8 LSB"
+    },
+    {
+      "id": "clahe-shapes",
+      "fn": "clahe",
+      "args": [
+        {
+          "gen": "shapes",
+          "rows": 48,
+          "cols": 48,
+          "ch": 1
+        },
+        2.0,
+        4
+      ],
+      "upstreamFn": "cv2.createCLAHE",
+      "goFn": "cv.CLAHE",
+      "mode": "tolerance",
+      "tol": 8,
+      "meanTol": 3.0,
+      "histTol": 0.08
+    },
+    {
+      "id": "backproject-gradient",
+      "fn": "calcBackProject",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        },
+        0,
+        [
+          0,
+          7,
+          14,
+          21,
+          28,
+          35,
+          42,
+          49,
+          56,
+          63,
+          70,
+          77,
+          84,
+          91,
+          98,
+          105,
+          112,
+          119,
+          126,
+          133,
+          140,
+          147,
+          154,
+          161,
+          168,
+          175,
+          182,
+          189,
+          196,
+          203,
+          210,
+          217,
+          224,
+          231,
+          238,
+          245,
+          1,
+          8,
+          15,
+          22,
+          29,
+          36,
+          43,
+          50,
+          57,
+          64,
+          71,
+          78,
+          85,
+          92,
+          99,
+          106,
+          113,
+          120,
+          127,
+          134,
+          141,
+          148,
+          155,
+          162,
+          169,
+          176,
+          183,
+          190,
+          197,
+          204,
+          211,
+          218,
+          225,
+          232,
+          239,
+          246,
+          2,
+          9,
+          16,
+          23,
+          30,
+          37,
+          44,
+          51,
+          58,
+          65,
+          72,
+          79,
+          86,
+          93,
+          100,
+          107,
+          114,
+          121,
+          128,
+          135,
+          142,
+          149,
+          156,
+          163,
+          170,
+          177,
+          184,
+          191,
+          198,
+          205,
+          212,
+          219,
+          226,
+          233,
+          240,
+          247,
+          3,
+          10,
+          17,
+          24,
+          31,
+          38,
+          45,
+          52,
+          59,
+          66,
+          73,
+          80,
+          87,
+          94,
+          101,
+          108,
+          115,
+          122,
+          129,
+          136,
+          143,
+          150,
+          157,
+          164,
+          171,
+          178,
+          185,
+          192,
+          199,
+          206,
+          213,
+          220,
+          227,
+          234,
+          241,
+          248,
+          4,
+          11,
+          18,
+          25,
+          32,
+          39,
+          46,
+          53,
+          60,
+          67,
+          74,
+          81,
+          88,
+          95,
+          102,
+          109,
+          116,
+          123,
+          130,
+          137,
+          144,
+          151,
+          158,
+          165,
+          172,
+          179,
+          186,
+          193,
+          200,
+          207,
+          214,
+          221,
+          228,
+          235,
+          242,
+          249,
+          5,
+          12,
+          19,
+          26,
+          33,
+          40,
+          47,
+          54,
+          61,
+          68,
+          75,
+          82,
+          89,
+          96,
+          103,
+          110,
+          117,
+          124,
+          131,
+          138,
+          145,
+          152,
+          159,
+          166,
+          173,
+          180,
+          187,
+          194,
+          201,
+          208,
+          215,
+          222,
+          229,
+          236,
+          243,
+          250,
+          6,
+          13,
+          20,
+          27,
+          34,
+          41,
+          48,
+          55,
+          62,
+          69,
+          76,
+          83,
+          90,
+          97,
+          104,
+          111,
+          118,
+          125,
+          132,
+          139,
+          146,
+          153,
+          160,
+          167,
+          174,
+          181,
+          188,
+          195,
+          202,
+          209,
+          216,
+          223,
+          230,
+          237,
+          244,
+          0,
+          7,
+          14,
+          21,
+          28
+        ]
+      ],
+      "upstreamFn": "cv2.calcBackProject",
+      "goFn": "cv.CalcBackProject",
+      "mode": "exact"
+    },
+    {
+      "id": "backproject-3ch-ch1",
+      "fn": "calcBackProject",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 3
+        },
+        1,
+        [
+          0,
+          7,
+          14,
+          21,
+          28,
+          35,
+          42,
+          49,
+          56,
+          63,
+          70,
+          77,
+          84,
+          91,
+          98,
+          105,
+          112,
+          119,
+          126,
+          133,
+          140,
+          147,
+          154,
+          161,
+          168,
+          175,
+          182,
+          189,
+          196,
+          203,
+          210,
+          217,
+          224,
+          231,
+          238,
+          245,
+          1,
+          8,
+          15,
+          22,
+          29,
+          36,
+          43,
+          50,
+          57,
+          64,
+          71,
+          78,
+          85,
+          92,
+          99,
+          106,
+          113,
+          120,
+          127,
+          134,
+          141,
+          148,
+          155,
+          162,
+          169,
+          176,
+          183,
+          190,
+          197,
+          204,
+          211,
+          218,
+          225,
+          232,
+          239,
+          246,
+          2,
+          9,
+          16,
+          23,
+          30,
+          37,
+          44,
+          51,
+          58,
+          65,
+          72,
+          79,
+          86,
+          93,
+          100,
+          107,
+          114,
+          121,
+          128,
+          135,
+          142,
+          149,
+          156,
+          163,
+          170,
+          177,
+          184,
+          191,
+          198,
+          205,
+          212,
+          219,
+          226,
+          233,
+          240,
+          247,
+          3,
+          10,
+          17,
+          24,
+          31,
+          38,
+          45,
+          52,
+          59,
+          66,
+          73,
+          80,
+          87,
+          94,
+          101,
+          108,
+          115,
+          122,
+          129,
+          136,
+          143,
+          150,
+          157,
+          164,
+          171,
+          178,
+          185,
+          192,
+          199,
+          206,
+          213,
+          220,
+          227,
+          234,
+          241,
+          248,
+          4,
+          11,
+          18,
+          25,
+          32,
+          39,
+          46,
+          53,
+          60,
+          67,
+          74,
+          81,
+          88,
+          95,
+          102,
+          109,
+          116,
+          123,
+          130,
+          137,
+          144,
+          151,
+          158,
+          165,
+          172,
+          179,
+          186,
+          193,
+          200,
+          207,
+          214,
+          221,
+          228,
+          235,
+          242,
+          249,
+          5,
+          12,
+          19,
+          26,
+          33,
+          40,
+          47,
+          54,
+          61,
+          68,
+          75,
+          82,
+          89,
+          96,
+          103,
+          110,
+          117,
+          124,
+          131,
+          138,
+          145,
+          152,
+          159,
+          166,
+          173,
+          180,
+          187,
+          194,
+          201,
+          208,
+          215,
+          222,
+          229,
+          236,
+          243,
+          250,
+          6,
+          13,
+          20,
+          27,
+          34,
+          41,
+          48,
+          55,
+          62,
+          69,
+          76,
+          83,
+          90,
+          97,
+          104,
+          111,
+          118,
+          125,
+          132,
+          139,
+          146,
+          153,
+          160,
+          167,
+          174,
+          181,
+          188,
+          195,
+          202,
+          209,
+          216,
+          223,
+          230,
+          237,
+          244,
+          0,
+          7,
+          14,
+          21,
+          28
+        ]
+      ],
+      "upstreamFn": "cv2.calcBackProject",
+      "goFn": "cv.CalcBackProject",
+      "mode": "exact"
+    },
+    {
+      "id": "entropy-gradient",
+      "fn": "entropy",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        }
+      ],
+      "upstreamFn": "Shannon entropy of the 256-bin histogram",
+      "goFn": "cv.Entropy",
+      "mode": "tolerance",
+      "tol": 1e-09,
+      "relTol": 1e-09
+    },
+    {
+      "id": "median-value-gradient",
+      "fn": "medianValue",
+      "args": [
+        {
+          "gen": "gradient",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1
+        }
+      ],
+      "upstreamFn": "numpy.median",
+      "goFn": "cv.Median",
+      "mode": "tolerance",
+      "tol": 1e-09,
+      "relTol": 1e-09
+    },
+    {
+      "id": "entropy-noise",
+      "fn": "entropy",
+      "args": [
+        {
+          "gen": "noise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 20260810
+        }
+      ],
+      "upstreamFn": "Shannon entropy of the 256-bin histogram",
+      "goFn": "cv.Entropy",
+      "mode": "tolerance",
+      "tol": 1e-09,
+      "relTol": 1e-09
+    },
+    {
+      "id": "median-value-noise",
+      "fn": "medianValue",
+      "args": [
+        {
+          "gen": "noise",
+          "rows": 24,
+          "cols": 32,
+          "ch": 1,
+          "seed": 20260810
+        }
+      ],
+      "upstreamFn": "numpy.median",
+      "goFn": "cv.Median",
+      "mode": "tolerance",
+      "tol": 1e-09,
+      "relTol": 1e-09
+    },
+    {
+      "id": "entropy-const",
+      "fn": "entropy",
+      "args": [
+        {
+          "gen": "const",
+          "rows": 8,
+          "cols": 8,
+          "ch": 1,
+          "value": 100
+        }
+      ],
+      "upstreamFn": "Shannon entropy of the 256-bin histogram",
+      "goFn": "cv.Entropy",
+      "mode": "tolerance",
+      "tol": 1e-09,
+      "relTol": 1e-09
+    },
+    {
+      "id": "median-value-const",
+      "fn": "medianValue",
+      "args": [
+        {
+          "gen": "const",
+          "rows": 8,
+          "cols": 8,
+          "ch": 1,
+          "value": 100
+        }
+      ],
+      "upstreamFn": "numpy.median",
+      "goFn": "cv.Median",
+      "mode": "tolerance",
+      "tol": 1e-09,
+      "relTol": 1e-09
+    },
+    {
+      "id": "entropy-shapes",
+      "fn": "entropy",
+      "args": [
+        {
+          "gen": "shapes",
+          "rows": 48,
+          "cols": 48,
+          "ch": 1
+        }
+      ],
+      "upstreamFn": "Shannon entropy of the 256-bin histogram",
+      "goFn": "cv.Entropy",
+      "mode": "tolerance",
+      "tol": 1e-09,
+      "relTol": 1e-09
+    },
+    {
+      "id": "median-value-shapes",
+      "fn": "medianValue",
+      "args": [
+        {
+          "gen": "shapes",
+          "rows": 48,
+          "cols": 48,
+          "ch": 1
+        }
+      ],
+      "upstreamFn": "numpy.median",
+      "goFn": "cv.Median",
+      "mode": "tolerance",
+      "tol": 1e-09,
+      "relTol": 1e-09
+    }
+  ]
+}

@@ -1,0 +1,4996 @@
+{
+  "group": "suite-json",
+  "upstream": "yaml@2.6.1+yaml-test-suite@da267a5c4782e7361e82889e76c0dc7df0e1e870",
+  "cases": [
+    {
+      "id": "json-229Q",
+      "fn": "parseJSON",
+      "args": [
+        "-\n  name: Mark McGwire\n  hr:   65\n  avg:  0.278\n-\n  name: Sammy Sosa\n  hr:   63\n  avg:  0.288\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "229Q",
+      "suiteTags": [
+        "sequence",
+        "mapping",
+        "spec"
+      ],
+      "suiteJSON": "[\n  {\n    \"name\": \"Mark McGwire\",\n    \"hr\": 65,\n    \"avg\": 0.278\n  },\n  {\n    \"name\": \"Sammy Sosa\",\n    \"hr\": 63,\n    \"avg\": 0.288\n  }\n]\n",
+      "note": "Spec Example 2.4. Sequence of Mappings"
+    },
+    {
+      "id": "json-26DV",
+      "fn": "parseJSON",
+      "args": [
+        "\"top1\" : \n  \"key1\" : &alias1 scalar1\n'top2' : \n  'key2' : &alias2 scalar2\ntop3: &node3 \n  *alias1 : scalar3\ntop4: \n  *alias2 : scalar4\ntop5   :    \n  scalar5\ntop6: \n  &anchor6 'key6' : scalar6\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "26DV",
+      "suiteTags": [
+        "alias",
+        "mapping",
+        "whitespace"
+      ],
+      "suiteJSON": "{\n  \"top1\": {\n    \"key1\": \"scalar1\"\n  },\n  \"top2\": {\n    \"key2\": \"scalar2\"\n  },\n  \"top3\": {\n    \"scalar1\": \"scalar3\"\n  },\n  \"top4\": {\n    \"scalar2\": \"scalar4\"\n  },\n  \"top5\": \"scalar5\",\n  \"top6\": {\n    \"key6\": \"scalar6\"\n  }\n}\n",
+      "note": "Whitespace around colon in mappings"
+    },
+    {
+      "id": "json-27NA",
+      "fn": "parseJSON",
+      "args": [
+        "%YAML 1.2\n--- text\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "27NA",
+      "suiteTags": [
+        "spec",
+        "directive",
+        "1.3-err"
+      ],
+      "suiteJSON": "\"text\"\n",
+      "note": "Spec Example 5.9. Directive Indicator"
+    },
+    {
+      "id": "json-2AUY",
+      "fn": "parseJSON",
+      "args": [
+        " - !!str a\n - b\n - !!int 42\n - d\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "2AUY",
+      "suiteTags": [
+        "tag",
+        "sequence"
+      ],
+      "suiteJSON": "[\n  \"a\",\n  \"b\",\n  42,\n  \"d\"\n]\n",
+      "note": "Tags in Block Sequence"
+    },
+    {
+      "id": "json-2EBW",
+      "fn": "parseJSON",
+      "args": [
+        "a!\"#$%&'()*+,-./09:;<=>?@AZ[\\]^_`az{|}~: safe\n?foo: safe question mark\n:foo: safe colon\n-foo: safe dash\nthis is#not: a comment\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "2EBW",
+      "suiteTags": [
+        "mapping",
+        "scalar"
+      ],
+      "suiteJSON": "{\n  \"a!\\\"#$%&'()*+,-./09:;<=>?@AZ[\\\\]^_`az{|}~\": \"safe\",\n  \"?foo\": \"safe question mark\",\n  \":foo\": \"safe colon\",\n  \"-foo\": \"safe dash\",\n  \"this is#not\": \"a comment\"\n}\n",
+      "note": "Allowed characters in keys"
+    },
+    {
+      "id": "json-2G84-02",
+      "fn": "parseJSON",
+      "args": [
+        "--- |1-"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "2G84-02",
+      "suiteTags": [
+        "literal",
+        "scalar"
+      ],
+      "suiteJSON": "\"\"\n",
+      "note": "Literal modifers"
+    },
+    {
+      "id": "json-2G84-03",
+      "fn": "parseJSON",
+      "args": [
+        "--- |1+"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "2G84-03",
+      "suiteTags": [
+        "literal",
+        "scalar"
+      ],
+      "suiteJSON": "\"\"\n",
+      "note": "Literal modifers"
+    },
+    {
+      "id": "json-2LFX",
+      "fn": "parseJSON",
+      "args": [
+        "%FOO  bar baz # Should be ignored\n              # with a warning.\n---\n\"foo\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "2LFX",
+      "suiteTags": [
+        "spec",
+        "directive",
+        "header",
+        "double",
+        "1.3-mod"
+      ],
+      "suiteJSON": "\"foo\"\n",
+      "note": "Spec Example 6.13. Reserved Directives [1.3]"
+    },
+    {
+      "id": "json-2SXE",
+      "fn": "parseJSON",
+      "args": [
+        "&a: key: &a value\nfoo:\n  *a:\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "2SXE",
+      "suiteTags": [
+        "alias",
+        "edge",
+        "mapping",
+        "1.3-err"
+      ],
+      "suiteJSON": "{\n  \"key\": \"value\",\n  \"foo\": \"key\"\n}\n",
+      "note": "Anchors With Colon in Name"
+    },
+    {
+      "id": "json-2XXW",
+      "fn": "parseJSON",
+      "args": [
+        "# Sets are represented as a\n# Mapping where each key is\n# associated with a null value\n--- !!set\n? Mark McGwire\n? Sammy Sosa\n? Ken Griff\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "2XXW",
+      "suiteTags": [
+        "spec",
+        "mapping",
+        "unknown-tag",
+        "explicit-key"
+      ],
+      "suiteJSON": "{\n  \"Mark McGwire\": null,\n  \"Sammy Sosa\": null,\n  \"Ken Griff\": null\n}\n",
+      "note": "Spec Example 2.25. Unordered Sets"
+    },
+    {
+      "id": "json-33X3",
+      "fn": "parseJSON",
+      "args": [
+        "---\n- !!int 1\n- !!int -2\n- !!int 33\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "33X3",
+      "suiteTags": [
+        "sequence",
+        "tag"
+      ],
+      "suiteJSON": "[\n  1,\n  -2,\n  33\n]\n",
+      "note": "Three explicit integers in a block sequence"
+    },
+    {
+      "id": "json-35KP",
+      "fn": "parseJSON",
+      "args": [
+        "--- !!map\n? a\n: b\n--- !!seq\n- !!str c\n--- !!str\nd\ne\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "35KP",
+      "suiteTags": [
+        "explicit-key",
+        "header",
+        "mapping",
+        "tag"
+      ],
+      "suiteJSON": "{\n  \"a\": \"b\"\n}\n[\n  \"c\"\n]\n\"d e\"\n",
+      "note": "Tags for Root Objects"
+    },
+    {
+      "id": "json-36F6",
+      "fn": "parseJSON",
+      "args": [
+        "---\nplain: a\n b\n\n c\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "36F6",
+      "suiteTags": [
+        "mapping",
+        "scalar"
+      ],
+      "suiteJSON": "{\n  \"plain\": \"a b\\nc\"\n}\n",
+      "note": "Multiline plain scalar with empty line"
+    },
+    {
+      "id": "json-3ALJ",
+      "fn": "parseJSON",
+      "args": [
+        "- - s1_i1\n  - s1_i2\n- s2\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "3ALJ",
+      "suiteTags": [
+        "sequence"
+      ],
+      "suiteJSON": "[\n  [\n    \"s1_i1\",\n    \"s1_i2\"\n  ],\n  \"s2\"\n]\n",
+      "note": "Block Sequence in Block Sequence"
+    },
+    {
+      "id": "json-3GZX",
+      "fn": "parseJSON",
+      "args": [
+        "First occurrence: &anchor Foo\nSecond occurrence: *anchor\nOverride anchor: &anchor Bar\nReuse anchor: *anchor\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "3GZX",
+      "suiteTags": [
+        "mapping",
+        "spec",
+        "alias"
+      ],
+      "suiteJSON": "{\n  \"First occurrence\": \"Foo\",\n  \"Second occurrence\": \"Foo\",\n  \"Override anchor\": \"Bar\",\n  \"Reuse anchor\": \"Bar\"\n}\n",
+      "note": "Spec Example 7.1. Alias Nodes"
+    },
+    {
+      "id": "json-3MYT",
+      "fn": "parseJSON",
+      "args": [
+        "---\nk:#foo\n &a !t s\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "3MYT",
+      "suiteTags": [
+        "scalar"
+      ],
+      "suiteJSON": "\"k:#foo &a !t s\"\n",
+      "note": "Plain Scalar looking like key, comment, anchor and tag"
+    },
+    {
+      "id": "json-3R3P",
+      "fn": "parseJSON",
+      "args": [
+        "&sequence\n- a\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "3R3P",
+      "suiteTags": [
+        "anchor",
+        "sequence"
+      ],
+      "suiteJSON": "[\n  \"a\"\n]\n",
+      "note": "Single block sequence with anchor"
+    },
+    {
+      "id": "json-3RLN-00",
+      "fn": "parseJSON",
+      "args": [
+        "\"1 leading\n    \\ttab\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "3RLN-00",
+      "suiteTags": [
+        "double",
+        "whitespace"
+      ],
+      "suiteJSON": "\"1 leading \\ttab\"\n",
+      "note": "Leading tabs in double quoted"
+    },
+    {
+      "id": "json-3RLN-01",
+      "fn": "parseJSON",
+      "args": [
+        "\"2 leading\n    \\\ttab\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "3RLN-01",
+      "suiteTags": [
+        "double",
+        "whitespace"
+      ],
+      "suiteJSON": "\"2 leading \\ttab\"\n",
+      "note": "Leading tabs in double quoted"
+    },
+    {
+      "id": "json-3RLN-02",
+      "fn": "parseJSON",
+      "args": [
+        "\"3 leading\n    \ttab\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "3RLN-02",
+      "suiteTags": [
+        "double",
+        "whitespace"
+      ],
+      "suiteJSON": "\"3 leading tab\"\n",
+      "note": "Leading tabs in double quoted"
+    },
+    {
+      "id": "json-3RLN-03",
+      "fn": "parseJSON",
+      "args": [
+        "\"4 leading\n    \\t  tab\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "3RLN-03",
+      "suiteTags": [
+        "double",
+        "whitespace"
+      ],
+      "suiteJSON": "\"4 leading \\t  tab\"\n",
+      "note": "Leading tabs in double quoted"
+    },
+    {
+      "id": "json-3RLN-04",
+      "fn": "parseJSON",
+      "args": [
+        "\"5 leading\n    \\\t  tab\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "3RLN-04",
+      "suiteTags": [
+        "double",
+        "whitespace"
+      ],
+      "suiteJSON": "\"5 leading \\t  tab\"\n",
+      "note": "Leading tabs in double quoted"
+    },
+    {
+      "id": "json-3RLN-05",
+      "fn": "parseJSON",
+      "args": [
+        "\"6 leading\n    \t  tab\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "3RLN-05",
+      "suiteTags": [
+        "double",
+        "whitespace"
+      ],
+      "suiteJSON": "\"6 leading tab\"\n",
+      "note": "Leading tabs in double quoted"
+    },
+    {
+      "id": "json-3UYS",
+      "fn": "parseJSON",
+      "args": [
+        "escaped slash: \"a\\/b\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "3UYS",
+      "suiteTags": [
+        "double"
+      ],
+      "suiteJSON": "{\n  \"escaped slash\": \"a/b\"\n}\n",
+      "note": "Escaped slash in double quotes"
+    },
+    {
+      "id": "json-4CQQ",
+      "fn": "parseJSON",
+      "args": [
+        "plain:\n  This unquoted scalar\n  spans many lines.\n\nquoted: \"So does this\n  quoted scalar.\\n\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "4CQQ",
+      "suiteTags": [
+        "spec",
+        "scalar"
+      ],
+      "suiteJSON": "{\n  \"plain\": \"This unquoted scalar spans many lines.\",\n  \"quoted\": \"So does this quoted scalar.\\n\"\n}\n",
+      "note": "Spec Example 2.18. Multi-line Flow Scalars"
+    },
+    {
+      "id": "json-4GC6",
+      "fn": "parseJSON",
+      "args": [
+        "'here''s to \"quotes\"'\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "4GC6",
+      "suiteTags": [
+        "spec",
+        "scalar",
+        "1.3-err"
+      ],
+      "suiteJSON": "\"here's to \\\"quotes\\\"\"\n",
+      "note": "Spec Example 7.7. Single Quoted Characters"
+    },
+    {
+      "id": "json-4MUZ-00",
+      "fn": "parseJSON",
+      "args": [
+        "{\"foo\"\n: \"bar\"}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "4MUZ-00",
+      "suiteTags": [
+        "flow",
+        "mapping"
+      ],
+      "suiteJSON": "{\n  \"foo\": \"bar\"\n}\n",
+      "note": "Flow mapping colon on line after key"
+    },
+    {
+      "id": "json-4MUZ-01",
+      "fn": "parseJSON",
+      "args": [
+        "{\"foo\"\n: bar}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "4MUZ-01",
+      "suiteTags": [
+        "flow",
+        "mapping"
+      ],
+      "suiteJSON": "{\n  \"foo\": \"bar\"\n}\n",
+      "note": "Flow mapping colon on line after key"
+    },
+    {
+      "id": "json-4MUZ-02",
+      "fn": "parseJSON",
+      "args": [
+        "{foo\n: bar}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "4MUZ-02",
+      "suiteTags": [
+        "flow",
+        "mapping"
+      ],
+      "suiteJSON": "{\n  \"foo\": \"bar\"\n}\n",
+      "note": "Flow mapping colon on line after key"
+    },
+    {
+      "id": "json-4Q9F",
+      "fn": "parseJSON",
+      "args": [
+        "--- >\n ab\n cd\n \n ef\n\n\n gh\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "4Q9F",
+      "suiteTags": [
+        "folded",
+        "scalar",
+        "1.3-mod",
+        "whitespace"
+      ],
+      "suiteJSON": "\"ab cd\\nef\\n\\ngh\\n\"\n",
+      "note": "Folded Block Scalar [1.3]"
+    },
+    {
+      "id": "json-4QFQ",
+      "fn": "parseJSON",
+      "args": [
+        "- |\n detected\n- >\n \n  \n  # detected\n- |1\n  explicit\n- >\n detected\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "4QFQ",
+      "suiteTags": [
+        "spec",
+        "literal",
+        "folded",
+        "scalar",
+        "libyaml-err",
+        "1.3-mod",
+        "whitespace"
+      ],
+      "suiteJSON": "[\n  \"detected\\n\",\n  \"\\n\\n# detected\\n\",\n  \" explicit\\n\",\n  \"detected\\n\"\n]\n",
+      "note": "Spec Example 8.2. Block Indentation Indicator [1.3]"
+    },
+    {
+      "id": "json-4RWC",
+      "fn": "parseJSON",
+      "args": [
+        "  [1, 2, 3]  \n  "
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "4RWC",
+      "suiteTags": [
+        "flow",
+        "whitespace"
+      ],
+      "suiteJSON": "[\n  1,\n  2,\n  3\n]\n",
+      "note": "Trailing spaces after flow collection"
+    },
+    {
+      "id": "json-4UYU",
+      "fn": "parseJSON",
+      "args": [
+        "\"foo: bar\\\": baz\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "4UYU",
+      "suiteTags": [
+        "mapping",
+        "scalar",
+        "1.3-err"
+      ],
+      "suiteJSON": "\"foo: bar\\\": baz\"\n",
+      "note": "Colon in Double Quoted String"
+    },
+    {
+      "id": "json-4V8U",
+      "fn": "parseJSON",
+      "args": [
+        "---\nplain\\value\\with\\backslashes\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "4V8U",
+      "suiteTags": [
+        "scalar"
+      ],
+      "suiteJSON": "\"plain\\\\value\\\\with\\\\backslashes\"\n",
+      "note": "Plain scalar with backslashes"
+    },
+    {
+      "id": "json-4WA9",
+      "fn": "parseJSON",
+      "args": [
+        "- aaa: |2\n    xxx\n  bbb: |\n    xxx\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "4WA9",
+      "suiteTags": [
+        "indent",
+        "literal"
+      ],
+      "suiteJSON": "[\n  {\n    \"aaa\" : \"xxx\\n\",\n    \"bbb\" : \"xxx\\n\"\n  }\n]\n",
+      "note": "Literal scalars"
+    },
+    {
+      "id": "json-4ZYM",
+      "fn": "parseJSON",
+      "args": [
+        "plain: text\n  lines\nquoted: \"text\n  \tlines\"\nblock: |\n  text\n   \tlines\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "4ZYM",
+      "suiteTags": [
+        "spec",
+        "scalar",
+        "literal",
+        "double",
+        "upto-1.2",
+        "whitespace"
+      ],
+      "suiteJSON": "{\n  \"plain\": \"text lines\",\n  \"quoted\": \"text lines\",\n  \"block\": \"text\\n \\tlines\\n\"\n}\n",
+      "note": "Spec Example 6.4. Line Prefixes"
+    },
+    {
+      "id": "json-52DL",
+      "fn": "parseJSON",
+      "args": [
+        "---\n! a\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "52DL",
+      "suiteTags": [
+        "tag",
+        "1.3-mod"
+      ],
+      "suiteJSON": "\"a\"\n",
+      "note": "Explicit Non-Specific Tag [1.3]"
+    },
+    {
+      "id": "json-54T7",
+      "fn": "parseJSON",
+      "args": [
+        "{foo: you, bar: far}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "54T7",
+      "suiteTags": [
+        "flow",
+        "mapping"
+      ],
+      "suiteJSON": "{\n  \"foo\": \"you\",\n  \"bar\": \"far\"\n}\n",
+      "note": "Flow Mapping"
+    },
+    {
+      "id": "json-565N",
+      "fn": "parseJSON",
+      "args": [
+        "canonical: !!binary \"\\\n R0lGODlhDAAMAIQAAP//9/X17unp5WZmZgAAAOfn515eXvPz7Y6OjuDg4J+fn5\\\n OTk6enp56enmlpaWNjY6Ojo4SEhP/++f/++f/++f/++f/++f/++f/++f/++f/+\\\n +f/++f/++f/++f/++f/++SH+Dk1hZGUgd2l0aCBHSU1QACwAAAAADAAMAAAFLC\\\n AgjoEwnuNAFOhpEMTRiggcz4BNJHrv/zCFcLiwMWYNG84BwwEeECcgggoBADs=\"\ngeneric: !!binary |\n R0lGODlhDAAMAIQAAP//9/X17unp5WZmZgAAAOfn515eXvPz7Y6OjuDg4J+fn5\n OTk6enp56enmlpaWNjY6Ojo4SEhP/++f/++f/++f/++f/++f/++f/++f/++f/+\n +f/++f/++f/++f/++f/++SH+Dk1hZGUgd2l0aCBHSU1QACwAAAAADAAMAAAFLC\n AgjoEwnuNAFOhpEMTRiggcz4BNJHrv/zCFcLiwMWYNG84BwwEeECcgggoBADs=\ndescription:\n The binary value above is a tiny arrow encoded as a gif image.\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "565N",
+      "suiteTags": [
+        "tag",
+        "unknown-tag"
+      ],
+      "suiteJSON": "{\n  \"canonical\": \"R0lGODlhDAAMAIQAAP//9/X17unp5WZmZgAAAOfn515eXvPz7Y6OjuDg4J+fn5OTk6enp56enmlpaWNjY6Ojo4SEhP/++f/++f/++f/++f/++f/++f/++f/++f/++f/++f/++f/++f/++f/++SH+Dk1hZGUgd2l0aCBHSU1QACwAAAAADAAMAAAFLCAgjoEwnuNAFOhpEMTRiggcz4BNJHrv/zCFcLiwMWYNG84BwwEeECcgggoBADs=\",\n  \"generic\": \"R0lGODlhDAAMAIQAAP//9/X17unp5WZmZgAAAOfn515eXvPz7Y6OjuDg4J+fn5\\nOTk6enp56enmlpaWNjY6Ojo4SEhP/++f/++f/++f/++f/++f/++f/++f/++f/+\\n+f/++f/++f/++f/++f/++SH+Dk1hZGUgd2l0aCBHSU1QACwAAAAADAAMAAAFLC\\nAgjoEwnuNAFOhpEMTRiggcz4BNJHrv/zCFcLiwMWYNG84BwwEeECcgggoBADs=\\n\",\n  \"description\": \"The binary value above is a tiny arrow encoded as a gif image.\"\n}\n",
+      "note": "Construct Binary",
+      "deviation": "the port base64-decodes !!binary, so it does not reproduce the suite's undecoded JSON (API-DEVIATIONS.md, \"!!binary is decoded\")"
+    },
+    {
+      "id": "json-57H4",
+      "fn": "parseJSON",
+      "args": [
+        "sequence: !!seq\n- entry\n- !!seq\n - nested\nmapping: !!map\n foo: bar\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "57H4",
+      "suiteTags": [
+        "sequence",
+        "mapping",
+        "tag"
+      ],
+      "suiteJSON": "{\n  \"sequence\": [\n    \"entry\",\n    [\n      \"nested\"\n    ]\n  ],\n  \"mapping\": {\n    \"foo\": \"bar\"\n  }\n}\n",
+      "note": "Spec Example 8.22. Block Collection Nodes"
+    },
+    {
+      "id": "json-58MP",
+      "fn": "parseJSON",
+      "args": [
+        "{x: :x}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "58MP",
+      "suiteTags": [
+        "edge",
+        "flow",
+        "mapping"
+      ],
+      "suiteJSON": "{\n  \"x\": \":x\"\n}\n",
+      "note": "Flow mapping edge cases"
+    },
+    {
+      "id": "json-5BVJ",
+      "fn": "parseJSON",
+      "args": [
+        "literal: |\n  some\n  text\nfolded: >\n  some\n  text\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "5BVJ",
+      "suiteTags": [
+        "spec",
+        "literal",
+        "folded",
+        "scalar"
+      ],
+      "suiteJSON": "{\n  \"literal\": \"some\\ntext\\n\",\n  \"folded\": \"some text\\n\"\n}\n",
+      "note": "Spec Example 5.7. Block Scalar Indicators"
+    },
+    {
+      "id": "json-5C5M",
+      "fn": "parseJSON",
+      "args": [
+        "- { one : two , three: four , }\n- {five: six,seven : eight}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "5C5M",
+      "suiteTags": [
+        "spec",
+        "flow",
+        "mapping"
+      ],
+      "suiteJSON": "[\n  {\n    \"one\": \"two\",\n    \"three\": \"four\"\n  },\n  {\n    \"five\": \"six\",\n    \"seven\": \"eight\"\n  }\n]\n",
+      "note": "Spec Example 7.15. Flow Mappings"
+    },
+    {
+      "id": "json-5GBF",
+      "fn": "parseJSON",
+      "args": [
+        "Folding:\n  \"Empty line\n   \t\n  as a line feed\"\nChomping: |\n  Clipped empty lines\n \n\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "5GBF",
+      "suiteTags": [
+        "double",
+        "literal",
+        "spec",
+        "scalar",
+        "upto-1.2",
+        "whitespace"
+      ],
+      "suiteJSON": "{\n  \"Folding\": \"Empty line\\nas a line feed\",\n  \"Chomping\": \"Clipped empty lines\\n\"\n}\n",
+      "note": "Spec Example 6.5. Empty Lines"
+    },
+    {
+      "id": "json-5KJE",
+      "fn": "parseJSON",
+      "args": [
+        "- [ one, two, ]\n- [three ,four]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "5KJE",
+      "suiteTags": [
+        "spec",
+        "flow",
+        "sequence"
+      ],
+      "suiteJSON": "[\n  [\n    \"one\",\n    \"two\"\n  ],\n  [\n    \"three\",\n    \"four\"\n  ]\n]\n",
+      "note": "Spec Example 7.13. Flow Sequence"
+    },
+    {
+      "id": "json-5MUD",
+      "fn": "parseJSON",
+      "args": [
+        "---\n{ \"foo\"\n  :bar }\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "5MUD",
+      "suiteTags": [
+        "double",
+        "flow",
+        "mapping"
+      ],
+      "suiteJSON": "{\n  \"foo\": \"bar\"\n}\n",
+      "note": "Colon and adjacent value on next line"
+    },
+    {
+      "id": "json-5NYZ",
+      "fn": "parseJSON",
+      "args": [
+        "key:    # Comment\n  value\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "5NYZ",
+      "suiteTags": [
+        "mapping",
+        "spec",
+        "comment"
+      ],
+      "suiteJSON": "{\n  \"key\": \"value\"\n}\n",
+      "note": "Spec Example 6.9. Separated Comment"
+    },
+    {
+      "id": "json-5T43",
+      "fn": "parseJSON",
+      "args": [
+        "- { \"key\":value }\n- { \"key\"::value }\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "5T43",
+      "suiteTags": [
+        "flow",
+        "mapping",
+        "scalar"
+      ],
+      "suiteJSON": "[\n  {\n    \"key\": \"value\"\n  },\n  {\n    \"key\": \":value\"\n  }\n]\n",
+      "note": "Colon at the beginning of adjacent flow scalar"
+    },
+    {
+      "id": "json-5TYM",
+      "fn": "parseJSON",
+      "args": [
+        "%TAG !m! !my-\n--- # Bulb here\n!m!light fluorescent\n...\n%TAG !m! !my-\n--- # Color here\n!m!light green\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "5TYM",
+      "suiteTags": [
+        "local-tag",
+        "spec",
+        "directive",
+        "tag"
+      ],
+      "suiteJSON": "\"fluorescent\"\n\"green\"\n",
+      "note": "Spec Example 6.21. Local Tag Prefix"
+    },
+    {
+      "id": "json-5WE3",
+      "fn": "parseJSON",
+      "args": [
+        "? explicit key # Empty value\n? |\n  block key\n: - one # Explicit compact\n  - two # block value\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "5WE3",
+      "suiteTags": [
+        "explicit-key",
+        "spec",
+        "mapping",
+        "comment",
+        "literal",
+        "sequence"
+      ],
+      "suiteJSON": "{\n  \"explicit key\": null,\n  \"block key\\n\": [\n    \"one\",\n    \"two\"\n  ]\n}\n",
+      "note": "Spec Example 8.17. Explicit Block Mapping Entries"
+    },
+    {
+      "id": "json-652Z",
+      "fn": "parseJSON",
+      "args": [
+        "{ ?foo: bar,\nbar: 42\n}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "652Z",
+      "suiteTags": [
+        "flow"
+      ],
+      "suiteJSON": "{\n  \"?foo\" : \"bar\",\n  \"bar\" : 42\n}\n",
+      "note": "Question mark at start of flow key"
+    },
+    {
+      "id": "json-65WH",
+      "fn": "parseJSON",
+      "args": [
+        "- foo\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "65WH",
+      "suiteTags": [
+        "sequence"
+      ],
+      "suiteJSON": "[\n  \"foo\"\n]\n",
+      "note": "Single Entry Block Sequence"
+    },
+    {
+      "id": "json-6BCT",
+      "fn": "parseJSON",
+      "args": [
+        "- foo:\t bar\n- - baz\n  -\tbaz\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "6BCT",
+      "suiteTags": [
+        "spec",
+        "libyaml-err",
+        "sequence",
+        "whitespace",
+        "upto-1.2"
+      ],
+      "suiteJSON": "[\n  {\n    \"foo\": \"bar\"\n  },\n  [\n    \"baz\",\n    \"baz\"\n  ]\n]\n",
+      "note": "Spec Example 6.3. Separation Spaces"
+    },
+    {
+      "id": "json-6CA3",
+      "fn": "parseJSON",
+      "args": [
+        "\t[\n\t]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "6CA3",
+      "suiteTags": [
+        "indent",
+        "whitespace"
+      ],
+      "suiteJSON": "[]\n",
+      "note": "Tab indented top flow"
+    },
+    {
+      "id": "json-6CK3",
+      "fn": "parseJSON",
+      "args": [
+        "%TAG !e! tag:example.com,2000:app/\n---\n- !local foo\n- !!str bar\n- !e!tag%21 baz\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "6CK3",
+      "suiteTags": [
+        "spec",
+        "tag",
+        "local-tag"
+      ],
+      "suiteJSON": "[\n  \"foo\",\n  \"bar\",\n  \"baz\"\n]\n",
+      "note": "Spec Example 6.26. Tag Shorthands"
+    },
+    {
+      "id": "json-6FWR",
+      "fn": "parseJSON",
+      "args": [
+        "--- |+\n ab\n \n  \n...\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "6FWR",
+      "suiteTags": [
+        "literal",
+        "scalar",
+        "whitespace"
+      ],
+      "suiteJSON": "\"ab\\n\\n \\n\"\n",
+      "note": "Block Scalar Keep"
+    },
+    {
+      "id": "json-6H3V",
+      "fn": "parseJSON",
+      "args": [
+        "'foo: bar\\': baz'\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "6H3V",
+      "suiteTags": [
+        "scalar",
+        "single"
+      ],
+      "suiteJSON": "{\n  \"foo: bar\\\\\": \"baz'\"\n}\n",
+      "note": "Backslashes in singlequotes"
+    },
+    {
+      "id": "json-6HB6",
+      "fn": "parseJSON",
+      "args": [
+        "  # Leading comment line spaces are\n   # neither content nor indentation.\n    \nNot indented:\n By one space: |\n    By four\n      spaces\n Flow style: [    # Leading spaces\n   By two,        # in flow style\n  Also by two,    # are neither\n  \tStill by two   # content nor\n    ]             # indentation.\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "6HB6",
+      "suiteTags": [
+        "comment",
+        "flow",
+        "spec",
+        "indent",
+        "upto-1.2",
+        "whitespace"
+      ],
+      "suiteJSON": "{\n  \"Not indented\": {\n    \"By one space\": \"By four\\n  spaces\\n\",\n    \"Flow style\": [\n      \"By two\",\n      \"Also by two\",\n      \"Still by two\"\n    ]\n  }\n}\n",
+      "note": "Spec Example 6.1. Indentation Spaces"
+    },
+    {
+      "id": "json-6JQW",
+      "fn": "parseJSON",
+      "args": [
+        "# ASCII Art\n--- |\n  \\//||\\/||\n  // ||  ||__\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "6JQW",
+      "suiteTags": [
+        "spec",
+        "scalar",
+        "literal",
+        "comment"
+      ],
+      "suiteJSON": "\"\\\\//||\\\\/||\\n// ||  ||__\\n\"\n",
+      "note": "Spec Example 2.13. In literals, newlines are preserved"
+    },
+    {
+      "id": "json-6JWB",
+      "fn": "parseJSON",
+      "args": [
+        "foo: !!seq\n  - !!str a\n  - !!map\n    key: !!str value\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "6JWB",
+      "suiteTags": [
+        "mapping",
+        "sequence",
+        "tag"
+      ],
+      "suiteJSON": "{\n  \"foo\": [\n    \"a\",\n    {\n      \"key\": \"value\"\n    }\n  ]\n}\n",
+      "note": "Tags for Block Objects"
+    },
+    {
+      "id": "json-6KGN",
+      "fn": "parseJSON",
+      "args": [
+        "---\na: &anchor\nb: *anchor\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "6KGN",
+      "suiteTags": [
+        "alias",
+        "anchor"
+      ],
+      "suiteJSON": "{\n  \"a\": null,\n  \"b\": null\n}\n",
+      "note": "Anchor for empty node"
+    },
+    {
+      "id": "json-6LVF",
+      "fn": "parseJSON",
+      "args": [
+        "%FOO  bar baz # Should be ignored\n              # with a warning.\n--- \"foo\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "6LVF",
+      "suiteTags": [
+        "spec",
+        "directive",
+        "header",
+        "double",
+        "1.3-err"
+      ],
+      "suiteJSON": "\"foo\"\n",
+      "note": "Spec Example 6.13. Reserved Directives"
+    },
+    {
+      "id": "json-6SLA",
+      "fn": "parseJSON",
+      "args": [
+        "\"foo\\nbar:baz\\tx \\\\$%^&*()x\": 23\n'x\\ny:z\\tx $%^&*()x': 24\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "6SLA",
+      "suiteTags": [
+        "mapping",
+        "single",
+        "double"
+      ],
+      "suiteJSON": "{\n  \"foo\\nbar:baz\\tx \\\\$%^&*()x\": 23,\n  \"x\\\\ny:z\\\\tx $%^&*()x\": 24\n}\n",
+      "note": "Allowed characters in quoted mapping key"
+    },
+    {
+      "id": "json-6VJK",
+      "fn": "parseJSON",
+      "args": [
+        ">\n Sammy Sosa completed another\n fine season with great stats.\n\n   63 Home Runs\n   0.288 Batting Average\n\n What a year!\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "6VJK",
+      "suiteTags": [
+        "spec",
+        "folded",
+        "scalar",
+        "1.3-err"
+      ],
+      "suiteJSON": "\"Sammy Sosa completed another fine season with great stats.\\n\\n  63 Home Runs\\n  0.288 Batting Average\\n\\nWhat a year!\\n\"\n",
+      "note": "Spec Example 2.15. Folded newlines are preserved for \"more indented\" and blank lines"
+    },
+    {
+      "id": "json-6WLZ",
+      "fn": "parseJSON",
+      "args": [
+        "# Private\n---\n!foo \"bar\"\n...\n# Global\n%TAG ! tag:example.com,2000:app/\n---\n!foo \"bar\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "6WLZ",
+      "suiteTags": [
+        "local-tag",
+        "spec",
+        "directive",
+        "tag",
+        "1.3-mod"
+      ],
+      "suiteJSON": "\"bar\"\n\"bar\"\n",
+      "note": "Spec Example 6.18. Primary Tag Handle [1.3]"
+    },
+    {
+      "id": "json-6WPF",
+      "fn": "parseJSON",
+      "args": [
+        "---\n\"\n  foo \n \n    bar\n\n  baz\n\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "6WPF",
+      "suiteTags": [
+        "double",
+        "spec",
+        "whitespace",
+        "scalar",
+        "1.3-mod"
+      ],
+      "suiteJSON": "\" foo\\nbar\\nbaz \"\n",
+      "note": "Spec Example 6.8. Flow Folding [1.3]"
+    },
+    {
+      "id": "json-6XDY",
+      "fn": "parseJSON",
+      "args": [
+        "---\n---\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "6XDY",
+      "suiteTags": [
+        "header"
+      ],
+      "suiteJSON": "null\nnull\n",
+      "note": "Two document start markers"
+    },
+    {
+      "id": "json-6ZKB",
+      "fn": "parseJSON",
+      "args": [
+        "Document\n---\n# Empty\n...\n%YAML 1.2\n---\nmatches %: 20\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "6ZKB",
+      "suiteTags": [
+        "spec",
+        "header",
+        "1.3-err"
+      ],
+      "suiteJSON": "\"Document\"\nnull\n{\n  \"matches %\": 20\n}\n",
+      "note": "Spec Example 9.6. Stream"
+    },
+    {
+      "id": "json-735Y",
+      "fn": "parseJSON",
+      "args": [
+        "-\n  \"flow in block\"\n- >\n Block scalar\n- !!map # Block collection\n  foo : bar\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "735Y",
+      "suiteTags": [
+        "comment",
+        "double",
+        "spec",
+        "folded",
+        "tag"
+      ],
+      "suiteJSON": "[\n  \"flow in block\",\n  \"Block scalar\\n\",\n  {\n    \"foo\": \"bar\"\n  }\n]\n",
+      "note": "Spec Example 8.20. Block Node Types"
+    },
+    {
+      "id": "json-74H7",
+      "fn": "parseJSON",
+      "args": [
+        "!!str a: b\nc: !!int 42\ne: !!str f\ng: h\n!!str 23: !!bool false\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "74H7",
+      "suiteTags": [
+        "tag",
+        "mapping"
+      ],
+      "suiteJSON": "{\n  \"a\": \"b\",\n  \"c\": 42,\n  \"e\": \"f\",\n  \"g\": \"h\",\n  \"23\": false\n}\n",
+      "note": "Tags in Implicit Mapping"
+    },
+    {
+      "id": "json-753E",
+      "fn": "parseJSON",
+      "args": [
+        "--- |-\n ab\n \n \n...\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "753E",
+      "suiteTags": [
+        "literal",
+        "scalar",
+        "1.3-mod",
+        "whitespace"
+      ],
+      "suiteJSON": "\"ab\"\n",
+      "note": "Block Scalar Strip [1.3]"
+    },
+    {
+      "id": "json-7A4E",
+      "fn": "parseJSON",
+      "args": [
+        "\" 1st non-empty\n\n 2nd non-empty \n\t3rd non-empty \"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "7A4E",
+      "suiteTags": [
+        "spec",
+        "scalar",
+        "upto-1.2",
+        "whitespace"
+      ],
+      "suiteJSON": "\" 1st non-empty\\n2nd non-empty 3rd non-empty \"\n",
+      "note": "Spec Example 7.6. Double Quoted Lines"
+    },
+    {
+      "id": "json-7BMT",
+      "fn": "parseJSON",
+      "args": [
+        "---\ntop1: &node1\n  &k1 key1: one\ntop2: &node2 # comment\n  key2: two\ntop3:\n  &k3 key3: three\ntop4: &node4\n  &k4 key4: four\ntop5: &node5\n  key5: five\ntop6: &val6\n  six\ntop7:\n  &val7 seven\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "7BMT",
+      "suiteTags": [
+        "anchor",
+        "comment",
+        "mapping",
+        "1.3-mod"
+      ],
+      "suiteJSON": "{\n  \"top1\": {\n    \"key1\": \"one\"\n  },\n  \"top2\": {\n    \"key2\": \"two\"\n  },\n  \"top3\": {\n    \"key3\": \"three\"\n  },\n  \"top4\": {\n    \"key4\": \"four\"\n  },\n  \"top5\": {\n    \"key5\": \"five\"\n  },\n  \"top6\": \"six\",\n  \"top7\": \"seven\"\n}\n",
+      "note": "Node and Mapping Key Anchors [1.3]"
+    },
+    {
+      "id": "json-7BUB",
+      "fn": "parseJSON",
+      "args": [
+        "---\nhr:\n  - Mark McGwire\n  # Following node labeled SS\n  - &SS Sammy Sosa\nrbi:\n  - *SS # Subsequent occurrence\n  - Ken Griffey\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "7BUB",
+      "suiteTags": [
+        "mapping",
+        "sequence",
+        "spec",
+        "alias"
+      ],
+      "suiteJSON": "{\n  \"hr\": [\n    \"Mark McGwire\",\n    \"Sammy Sosa\"\n  ],\n  \"rbi\": [\n    \"Sammy Sosa\",\n    \"Ken Griffey\"\n  ]\n}\n",
+      "note": "Spec Example 2.10. Node for “Sammy Sosa” appears twice in this document"
+    },
+    {
+      "id": "json-7FWL",
+      "fn": "parseJSON",
+      "args": [
+        "!<tag:yaml.org,2002:str> foo :\n  !<!bar> baz\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "7FWL",
+      "suiteTags": [
+        "mapping",
+        "spec",
+        "tag",
+        "unknown-tag"
+      ],
+      "suiteJSON": "{\n  \"foo\": \"baz\"\n}\n",
+      "note": "Spec Example 6.24. Verbatim Tags"
+    },
+    {
+      "id": "json-7T8X",
+      "fn": "parseJSON",
+      "args": [
+        ">\n\n folded\n line\n\n next\n line\n   * bullet\n\n   * list\n   * lines\n\n last\n line\n\n# Comment\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "7T8X",
+      "suiteTags": [
+        "spec",
+        "folded",
+        "scalar",
+        "comment",
+        "1.3-err"
+      ],
+      "suiteJSON": "\"\\nfolded line\\nnext line\\n  * bullet\\n\\n  * list\\n  * lines\\n\\nlast line\\n\"\n",
+      "note": "Spec Example 8.10. Folded Lines - 8.13. Final Empty Lines"
+    },
+    {
+      "id": "json-7TMG",
+      "fn": "parseJSON",
+      "args": [
+        "---\n[ word1\n# comment\n, word2]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "7TMG",
+      "suiteTags": [
+        "comment",
+        "flow",
+        "sequence"
+      ],
+      "suiteJSON": "[\n  \"word1\",\n  \"word2\"\n]\n",
+      "note": "Comment in flow sequence before comma"
+    },
+    {
+      "id": "json-7W2P",
+      "fn": "parseJSON",
+      "args": [
+        "? a\n? b\nc:\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "7W2P",
+      "suiteTags": [
+        "explicit-key",
+        "mapping"
+      ],
+      "suiteJSON": "{\n  \"a\": null,\n  \"b\": null,\n  \"c\": null\n}\n",
+      "note": "Block Mapping with Missing Values"
+    },
+    {
+      "id": "json-7Z25",
+      "fn": "parseJSON",
+      "args": [
+        "---\nscalar1\n...\nkey: value\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "7Z25",
+      "suiteTags": [
+        "footer"
+      ],
+      "suiteJSON": "\"scalar1\"\n{\n  \"key\": \"value\"\n}\n",
+      "note": "Bare document after document end marker"
+    },
+    {
+      "id": "json-7ZZ5",
+      "fn": "parseJSON",
+      "args": [
+        "---\nnested sequences:\n- - - []\n- - - {}\nkey1: []\nkey2: {}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "7ZZ5",
+      "suiteTags": [
+        "flow",
+        "mapping",
+        "sequence"
+      ],
+      "suiteJSON": "{\n  \"nested sequences\": [\n    [\n      [\n        []\n      ]\n    ],\n    [\n      [\n        {}\n      ]\n    ]\n  ],\n  \"key1\": [],\n  \"key2\": {}\n}\n",
+      "note": "Empty flow collections"
+    },
+    {
+      "id": "json-82AN",
+      "fn": "parseJSON",
+      "args": [
+        "---word1\nword2\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "82AN",
+      "suiteTags": [
+        "scalar",
+        "1.3-err"
+      ],
+      "suiteJSON": "\"---word1 word2\"\n",
+      "note": "Three dashes and content without space"
+    },
+    {
+      "id": "json-87E4",
+      "fn": "parseJSON",
+      "args": [
+        "'implicit block key' : [\n  'implicit flow key' : value,\n ]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "87E4",
+      "suiteTags": [
+        "spec",
+        "flow",
+        "sequence",
+        "mapping"
+      ],
+      "suiteJSON": "{\n  \"implicit block key\": [\n    {\n      \"implicit flow key\": \"value\"\n    }\n  ]\n}\n",
+      "note": "Spec Example 7.8. Single Quoted Implicit Keys"
+    },
+    {
+      "id": "json-8CWC",
+      "fn": "parseJSON",
+      "args": [
+        "---\nkey ends with two colons::: value\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "8CWC",
+      "suiteTags": [
+        "mapping",
+        "scalar"
+      ],
+      "suiteJSON": "{\n  \"key ends with two colons::\": \"value\"\n}\n",
+      "note": "Plain mapping key ending with colon"
+    },
+    {
+      "id": "json-8G76",
+      "fn": "parseJSON",
+      "args": [
+        "  # Comment\n   \n\n\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "8G76",
+      "suiteTags": [
+        "spec",
+        "comment",
+        "empty",
+        "scalar",
+        "whitespace"
+      ],
+      "suiteJSON": "",
+      "note": "Spec Example 6.10. Comment Lines"
+    },
+    {
+      "id": "json-8KB6",
+      "fn": "parseJSON",
+      "args": [
+        "---\n- { single line, a: b}\n- { multi\n  line, a: b}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "8KB6",
+      "suiteTags": [
+        "flow",
+        "mapping"
+      ],
+      "suiteJSON": "[\n  {\n    \"single line\": null,\n    \"a\": \"b\"\n  },\n  {\n    \"multi line\": null,\n    \"a\": \"b\"\n  }\n]\n",
+      "note": "Multiline plain flow mapping key without value"
+    },
+    {
+      "id": "json-8MK2",
+      "fn": "parseJSON",
+      "args": [
+        "! a\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "8MK2",
+      "suiteTags": [
+        "tag",
+        "1.3-err"
+      ],
+      "suiteJSON": "\"a\"\n",
+      "note": "Explicit Non-Specific Tag"
+    },
+    {
+      "id": "json-8QBE",
+      "fn": "parseJSON",
+      "args": [
+        "key:\n - item1\n - item2\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "8QBE",
+      "suiteTags": [
+        "mapping",
+        "sequence"
+      ],
+      "suiteJSON": "{\n  \"key\": [\n    \"item1\",\n    \"item2\"\n  ]\n}\n",
+      "note": "Block Sequence in Block Mapping"
+    },
+    {
+      "id": "json-8UDB",
+      "fn": "parseJSON",
+      "args": [
+        "[\n\"double\n quoted\", 'single\n           quoted',\nplain\n text, [ nested ],\nsingle: pair,\n]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "8UDB",
+      "suiteTags": [
+        "spec",
+        "flow",
+        "sequence"
+      ],
+      "suiteJSON": "[\n  \"double quoted\",\n  \"single quoted\",\n  \"plain text\",\n  [\n    \"nested\"\n  ],\n  {\n    \"single\": \"pair\"\n  }\n]\n",
+      "note": "Spec Example 7.14. Flow Sequence Entries"
+    },
+    {
+      "id": "json-8XYN",
+      "fn": "parseJSON",
+      "args": [
+        "---\n- &😁 unicode anchor\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "8XYN",
+      "suiteTags": [
+        "anchor"
+      ],
+      "suiteJSON": "[\n  \"unicode anchor\"\n]\n",
+      "note": "Anchor with unicode character"
+    },
+    {
+      "id": "json-93JH",
+      "fn": "parseJSON",
+      "args": [
+        " - key: value\n   key2: value2\n -\n   key3: value3\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "93JH",
+      "suiteTags": [
+        "mapping",
+        "sequence"
+      ],
+      "suiteJSON": "[\n  {\n    \"key\": \"value\",\n    \"key2\": \"value2\"\n  },\n  {\n    \"key3\": \"value3\"\n  }\n]\n",
+      "note": "Block Mappings in Block Sequence"
+    },
+    {
+      "id": "json-93WF",
+      "fn": "parseJSON",
+      "args": [
+        "--- >-\n  trimmed\n  \n \n\n  as\n  space\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "93WF",
+      "suiteTags": [
+        "folded",
+        "spec",
+        "whitespace",
+        "scalar",
+        "1.3-mod"
+      ],
+      "suiteJSON": "\"trimmed\\n\\n\\nas space\"\n",
+      "note": "Spec Example 6.6. Line Folding [1.3]"
+    },
+    {
+      "id": "json-96L6",
+      "fn": "parseJSON",
+      "args": [
+        "--- >\n  Mark McGwire's\n  year was crippled\n  by a knee injury.\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "96L6",
+      "suiteTags": [
+        "spec",
+        "folded",
+        "scalar"
+      ],
+      "suiteJSON": "\"Mark McGwire's year was crippled by a knee injury.\\n\"\n",
+      "note": "Spec Example 2.14. In the folded scalars, newlines become spaces"
+    },
+    {
+      "id": "json-96NN-00",
+      "fn": "parseJSON",
+      "args": [
+        "foo: |-\n \tbar\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "96NN-00",
+      "suiteTags": [
+        "indent",
+        "literal",
+        "whitespace"
+      ],
+      "suiteJSON": "{\"foo\":\"\\tbar\"}\n",
+      "note": "Leading tab content in literals"
+    },
+    {
+      "id": "json-96NN-01",
+      "fn": "parseJSON",
+      "args": [
+        "foo: |-\n \tbar"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "96NN-01",
+      "suiteTags": [
+        "indent",
+        "literal",
+        "whitespace"
+      ],
+      "suiteJSON": "{\"foo\":\"\\tbar\"}\n",
+      "note": "Leading tab content in literals"
+    },
+    {
+      "id": "json-98YD",
+      "fn": "parseJSON",
+      "args": [
+        "# Comment only.\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "98YD",
+      "suiteTags": [
+        "spec",
+        "comment",
+        "empty"
+      ],
+      "suiteJSON": "",
+      "note": "Spec Example 5.5. Comment Indicator"
+    },
+    {
+      "id": "json-9BXH",
+      "fn": "parseJSON",
+      "args": [
+        "---\n- { \"single line\", a: b}\n- { \"multi\n  line\", a: b}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "9BXH",
+      "suiteTags": [
+        "double",
+        "flow",
+        "mapping"
+      ],
+      "suiteJSON": "[\n  {\n    \"single line\": null,\n    \"a\": \"b\"\n  },\n  {\n    \"multi line\": null,\n    \"a\": \"b\"\n  }\n]\n",
+      "note": "Multiline doublequoted flow mapping key without value"
+    },
+    {
+      "id": "json-9DXL",
+      "fn": "parseJSON",
+      "args": [
+        "Mapping: Document\n---\n# Empty\n...\n%YAML 1.2\n---\nmatches %: 20\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "9DXL",
+      "suiteTags": [
+        "spec",
+        "header",
+        "1.3-mod"
+      ],
+      "suiteJSON": "{\n  \"Mapping\": \"Document\"\n}\nnull\n{\n  \"matches %\": 20\n}\n",
+      "note": "Spec Example 9.6. Stream [1.3]"
+    },
+    {
+      "id": "json-9FMG",
+      "fn": "parseJSON",
+      "args": [
+        "a:\n  b:\n    c: d\n  e:\n    f: g\nh: i\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "9FMG",
+      "suiteTags": [
+        "mapping",
+        "indent"
+      ],
+      "suiteJSON": "{\n  \"a\": {\n    \"b\": {\n      \"c\": \"d\"\n    },\n    \"e\": {\n      \"f\": \"g\"\n    }\n  },\n  \"h\": \"i\"\n}\n",
+      "note": "Multi-level Mapping Indent"
+    },
+    {
+      "id": "json-9J7A",
+      "fn": "parseJSON",
+      "args": [
+        "foo:\n  bar: baz\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "9J7A",
+      "suiteTags": [
+        "simple",
+        "mapping",
+        "indent"
+      ],
+      "suiteJSON": "{\n  \"foo\": {\n    \"bar\": \"baz\"\n  }\n}\n",
+      "note": "Simple Mapping Indent"
+    },
+    {
+      "id": "json-9KAX",
+      "fn": "parseJSON",
+      "args": [
+        "---\n&a1\n!!str\nscalar1\n---\n!!str\n&a2\nscalar2\n---\n&a3\n!!str scalar3\n---\n&a4 !!map\n&a5 !!str key5: value4\n---\na6: 1\n&anchor6 b6: 2\n---\n!!map\n&a8 !!str key8: value7\n---\n!!map\n!!str &a10 key10: value9\n---\n!!str &a11\nvalue11\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "9KAX",
+      "suiteTags": [
+        "anchor",
+        "mapping",
+        "1.3-err",
+        "tag"
+      ],
+      "suiteJSON": "\"scalar1\"\n\"scalar2\"\n\"scalar3\"\n{\n  \"key5\": \"value4\"\n}\n{\n  \"a6\": 1,\n  \"b6\": 2\n}\n{\n  \"key8\": \"value7\"\n}\n{\n  \"key10\": \"value9\"\n}\n\"value11\"\n",
+      "note": "Various combinations of tags and anchors"
+    },
+    {
+      "id": "json-9MQT-00",
+      "fn": "parseJSON",
+      "args": [
+        "--- \"a\n...x\nb\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "9MQT-00",
+      "suiteTags": [
+        "double",
+        "scalar"
+      ],
+      "suiteJSON": "\"a ...x b\"\n",
+      "note": "Scalar doc with '...' in content"
+    },
+    {
+      "id": "json-9SA2",
+      "fn": "parseJSON",
+      "args": [
+        "---\n- { \"single line\": value}\n- { \"multi\n  line\": value}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "9SA2",
+      "suiteTags": [
+        "double",
+        "flow",
+        "mapping"
+      ],
+      "suiteJSON": "[\n  {\n    \"single line\": \"value\"\n  },\n  {\n    \"multi line\": \"value\"\n  }\n]\n",
+      "note": "Multiline double quoted flow mapping key"
+    },
+    {
+      "id": "json-9SHH",
+      "fn": "parseJSON",
+      "args": [
+        "single: 'text'\ndouble: \"text\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "9SHH",
+      "suiteTags": [
+        "spec",
+        "scalar"
+      ],
+      "suiteJSON": "{\n  \"single\": \"text\",\n  \"double\": \"text\"\n}\n",
+      "note": "Spec Example 5.8. Quoted Scalar Indicators"
+    },
+    {
+      "id": "json-9TFX",
+      "fn": "parseJSON",
+      "args": [
+        "---\n\" 1st non-empty\n\n 2nd non-empty \n 3rd non-empty \"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "9TFX",
+      "suiteTags": [
+        "double",
+        "spec",
+        "scalar",
+        "whitespace",
+        "1.3-mod"
+      ],
+      "suiteJSON": "\" 1st non-empty\\n2nd non-empty 3rd non-empty \"\n",
+      "note": "Spec Example 7.6. Double Quoted Lines [1.3]"
+    },
+    {
+      "id": "json-9U5K",
+      "fn": "parseJSON",
+      "args": [
+        "---\n# Products purchased\n- item    : Super Hoop\n  quantity: 1\n- item    : Basketball\n  quantity: 4\n- item    : Big Shoes\n  quantity: 1\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "9U5K",
+      "suiteTags": [
+        "spec",
+        "mapping",
+        "sequence"
+      ],
+      "suiteJSON": "[\n  {\n    \"item\": \"Super Hoop\",\n    \"quantity\": 1\n  },\n  {\n    \"item\": \"Basketball\",\n    \"quantity\": 4\n  },\n  {\n    \"item\": \"Big Shoes\",\n    \"quantity\": 1\n  }\n]\n",
+      "note": "Spec Example 2.12. Compact Nested Mapping"
+    },
+    {
+      "id": "json-9WXW",
+      "fn": "parseJSON",
+      "args": [
+        "# Private\n!foo \"bar\"\n...\n# Global\n%TAG ! tag:example.com,2000:app/\n---\n!foo \"bar\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "9WXW",
+      "suiteTags": [
+        "local-tag",
+        "spec",
+        "directive",
+        "tag",
+        "unknown-tag",
+        "1.3-err"
+      ],
+      "suiteJSON": "\"bar\"\n\"bar\"\n",
+      "note": "Spec Example 6.18. Primary Tag Handle"
+    },
+    {
+      "id": "json-9YRD",
+      "fn": "parseJSON",
+      "args": [
+        "a\nb  \n  c\nd\n\ne\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "9YRD",
+      "suiteTags": [
+        "scalar",
+        "whitespace",
+        "1.3-err"
+      ],
+      "suiteJSON": "\"a b c d\\ne\"\n",
+      "note": "Multiline Scalar at Top Level"
+    },
+    {
+      "id": "json-A2M4",
+      "fn": "parseJSON",
+      "args": [
+        "? a\n: -\tb\n  -  -\tc\n     - d\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "A2M4",
+      "suiteTags": [
+        "explicit-key",
+        "spec",
+        "libyaml-err",
+        "indent",
+        "whitespace",
+        "sequence",
+        "upto-1.2"
+      ],
+      "suiteJSON": "{\n  \"a\": [\n    \"b\",\n    [\n      \"c\",\n      \"d\"\n    ]\n  ]\n}\n",
+      "note": "Spec Example 6.2. Indentation Indicators"
+    },
+    {
+      "id": "json-A6F9",
+      "fn": "parseJSON",
+      "args": [
+        "strip: |-\n  text\nclip: |\n  text\nkeep: |+\n  text\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "A6F9",
+      "suiteTags": [
+        "spec",
+        "literal",
+        "scalar"
+      ],
+      "suiteJSON": "{\n  \"strip\": \"text\",\n  \"clip\": \"text\\n\",\n  \"keep\": \"text\\n\"\n}\n",
+      "note": "Spec Example 8.4. Chomping Final Line Break"
+    },
+    {
+      "id": "json-A984",
+      "fn": "parseJSON",
+      "args": [
+        "a: b\n c\nd:\n e\n  f\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "A984",
+      "suiteTags": [
+        "scalar"
+      ],
+      "suiteJSON": "{\n  \"a\": \"b c\",\n  \"d\": \"e f\"\n}\n",
+      "note": "Multiline Scalar in Mapping"
+    },
+    {
+      "id": "json-AB8U",
+      "fn": "parseJSON",
+      "args": [
+        "- single multiline\n - sequence entry\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "AB8U",
+      "suiteTags": [
+        "scalar",
+        "sequence"
+      ],
+      "suiteJSON": "[\n  \"single multiline - sequence entry\"\n]\n",
+      "note": "Sequence entry that looks like two with wrong indentation"
+    },
+    {
+      "id": "json-AVM7",
+      "fn": "parseJSON",
+      "args": [
+        ""
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "AVM7",
+      "suiteTags": [
+        "edge"
+      ],
+      "suiteJSON": "",
+      "note": "Empty Stream"
+    },
+    {
+      "id": "json-AZ63",
+      "fn": "parseJSON",
+      "args": [
+        "one:\n- 2\n- 3\nfour: 5\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "AZ63",
+      "suiteTags": [
+        "indent",
+        "mapping",
+        "sequence"
+      ],
+      "suiteJSON": "{\n  \"one\": [\n    2,\n    3\n  ],\n  \"four\": 5\n}\n",
+      "note": "Sequence With Same Indentation as Parent Mapping"
+    },
+    {
+      "id": "json-AZW3",
+      "fn": "parseJSON",
+      "args": [
+        "- bla\"keks: foo\n- bla]keks: foo\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "AZW3",
+      "suiteTags": [
+        "mapping",
+        "edge"
+      ],
+      "suiteJSON": "[\n  {\n    \"bla\\\"keks\": \"foo\"\n  },\n  {\n    \"bla]keks\": \"foo\"\n  }\n]\n",
+      "note": "Lookahead test cases"
+    },
+    {
+      "id": "json-B3HG",
+      "fn": "parseJSON",
+      "args": [
+        "--- >\n folded\n text\n\n\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "B3HG",
+      "suiteTags": [
+        "spec",
+        "folded",
+        "scalar",
+        "1.3-mod"
+      ],
+      "suiteJSON": "\"folded text\\n\"\n",
+      "note": "Spec Example 8.9. Folded Scalar [1.3]"
+    },
+    {
+      "id": "json-BEC7",
+      "fn": "parseJSON",
+      "args": [
+        "%YAML 1.3 # Attempt parsing\n          # with a warning\n---\n\"foo\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "BEC7",
+      "suiteTags": [
+        "spec",
+        "directive"
+      ],
+      "suiteJSON": "\"foo\"\n",
+      "note": "Spec Example 6.14. “YAML” directive"
+    },
+    {
+      "id": "json-BU8L",
+      "fn": "parseJSON",
+      "args": [
+        "key: &anchor\n !!map\n  a: b\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "BU8L",
+      "suiteTags": [
+        "anchor",
+        "indent",
+        "1.3-err",
+        "tag"
+      ],
+      "suiteJSON": "{\n  \"key\": {\n    \"a\": \"b\"\n  }\n}\n",
+      "note": "Node Anchor and Tag on Seperate Lines"
+    },
+    {
+      "id": "json-C2DT",
+      "fn": "parseJSON",
+      "args": [
+        "{\n\"adjacent\":value,\n\"readable\": value,\n\"empty\":\n}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "C2DT",
+      "suiteTags": [
+        "spec",
+        "flow",
+        "mapping"
+      ],
+      "suiteJSON": "{\n  \"adjacent\": \"value\",\n  \"readable\": \"value\",\n  \"empty\": null\n}\n",
+      "note": "Spec Example 7.18. Flow Mapping Adjacent Values"
+    },
+    {
+      "id": "json-C4HZ",
+      "fn": "parseJSON",
+      "args": [
+        "%TAG ! tag:clarkevans.com,2002:\n--- !shape\n  # Use the ! handle for presenting\n  # tag:clarkevans.com,2002:circle\n- !circle\n  center: &ORIGIN {x: 73, y: 129}\n  radius: 7\n- !line\n  start: *ORIGIN\n  finish: { x: 89, y: 102 }\n- !label\n  start: *ORIGIN\n  color: 0xFFEEBB\n  text: Pretty vector drawing.\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "C4HZ",
+      "suiteTags": [
+        "spec",
+        "tag",
+        "alias",
+        "directive",
+        "local-tag"
+      ],
+      "suiteJSON": "[\n  {\n    \"center\": {\n      \"x\": 73,\n      \"y\": 129\n    },\n    \"radius\": 7\n  },\n  {\n    \"start\": {\n      \"x\": 73,\n      \"y\": 129\n    },\n    \"finish\": {\n      \"x\": 89,\n      \"y\": 102\n    }\n  },\n  {\n    \"start\": {\n      \"x\": 73,\n      \"y\": 129\n    },\n    \"color\": 16772795,\n    \"text\": \"Pretty vector drawing.\"\n  }\n]\n",
+      "note": "Spec Example 2.24. Global Tags"
+    },
+    {
+      "id": "json-CC74",
+      "fn": "parseJSON",
+      "args": [
+        "%TAG !e! tag:example.com,2000:app/\n---\n!e!foo \"bar\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "CC74",
+      "suiteTags": [
+        "spec",
+        "directive",
+        "tag",
+        "unknown-tag"
+      ],
+      "suiteJSON": "\"bar\"\n",
+      "note": "Spec Example 6.20. Tag Handles"
+    },
+    {
+      "id": "json-CN3R",
+      "fn": "parseJSON",
+      "args": [
+        "&flowseq [\n a: b,\n &c c: d,\n { &e e: f },\n &g { g: h }\n]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "CN3R",
+      "suiteTags": [
+        "anchor",
+        "flow",
+        "mapping",
+        "sequence"
+      ],
+      "suiteJSON": "[\n  {\n    \"a\": \"b\"\n  },\n  {\n    \"c\": \"d\"\n  },\n  {\n    \"e\": \"f\"\n  },\n  {\n    \"g\": \"h\"\n  }\n]\n",
+      "note": "Various location of anchors in flow sequence"
+    },
+    {
+      "id": "json-CPZ3",
+      "fn": "parseJSON",
+      "args": [
+        "---\ntab: \"\\tstring\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "CPZ3",
+      "suiteTags": [
+        "double",
+        "scalar"
+      ],
+      "suiteJSON": "{\n  \"tab\": \"\\tstring\"\n}\n",
+      "note": "Doublequoted scalar starting with a tab"
+    },
+    {
+      "id": "json-CT4Q",
+      "fn": "parseJSON",
+      "args": [
+        "[\n? foo\n bar : baz\n]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "CT4Q",
+      "suiteTags": [
+        "explicit-key",
+        "spec",
+        "flow",
+        "mapping"
+      ],
+      "suiteJSON": "[\n  {\n    \"foo bar\": \"baz\"\n  }\n]\n",
+      "note": "Spec Example 7.20. Single Pair Explicit Entry"
+    },
+    {
+      "id": "json-CUP7",
+      "fn": "parseJSON",
+      "args": [
+        "anchored: !local &anchor value\nalias: *anchor\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "CUP7",
+      "suiteTags": [
+        "local-tag",
+        "spec",
+        "tag",
+        "alias"
+      ],
+      "suiteJSON": "{\n  \"anchored\": \"value\",\n  \"alias\": \"value\"\n}\n",
+      "note": "Spec Example 5.6. Node Property Indicators"
+    },
+    {
+      "id": "json-D83L",
+      "fn": "parseJSON",
+      "args": [
+        "- |2-\n  explicit indent and chomp\n- |-2\n  chomp and explicit indent\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "D83L",
+      "suiteTags": [
+        "indent",
+        "literal"
+      ],
+      "suiteJSON": "[\n  \"explicit indent and chomp\",\n  \"chomp and explicit indent\"\n]\n",
+      "note": "Block scalar indicator order"
+    },
+    {
+      "id": "json-D88J",
+      "fn": "parseJSON",
+      "args": [
+        "a: [b, c]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "D88J",
+      "suiteTags": [
+        "flow",
+        "sequence",
+        "mapping"
+      ],
+      "suiteJSON": "{\n  \"a\": [\n    \"b\",\n    \"c\"\n  ]\n}\n",
+      "note": "Flow Sequence in Block Mapping"
+    },
+    {
+      "id": "json-D9TU",
+      "fn": "parseJSON",
+      "args": [
+        "foo: bar\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "D9TU",
+      "suiteTags": [
+        "simple",
+        "mapping"
+      ],
+      "suiteJSON": "{\n  \"foo\": \"bar\"\n}\n",
+      "note": "Single Pair Block Mapping"
+    },
+    {
+      "id": "json-DBG4",
+      "fn": "parseJSON",
+      "args": [
+        "# Outside flow collection:\n- ::vector\n- \": - ()\"\n- Up, up, and away!\n- -123\n- http://example.com/foo#bar\n# Inside flow collection:\n- [ ::vector,\n  \": - ()\",\n  \"Up, up and away!\",\n  -123,\n  http://example.com/foo#bar ]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "DBG4",
+      "suiteTags": [
+        "spec",
+        "flow",
+        "sequence",
+        "scalar"
+      ],
+      "suiteJSON": "[\n  \"::vector\",\n  \": - ()\",\n  \"Up, up, and away!\",\n  -123,\n  \"http://example.com/foo#bar\",\n  [\n    \"::vector\",\n    \": - ()\",\n    \"Up, up and away!\",\n    -123,\n    \"http://example.com/foo#bar\"\n  ]\n]\n",
+      "note": "Spec Example 7.10. Plain Characters"
+    },
+    {
+      "id": "json-DC7X",
+      "fn": "parseJSON",
+      "args": [
+        "a: b\t\nseq:\t\n - a\t\nc: d\t#X\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "DC7X",
+      "suiteTags": [
+        "comment",
+        "whitespace"
+      ],
+      "suiteJSON": "{\n  \"a\": \"b\",\n  \"seq\": [\n    \"a\"\n  ],\n  \"c\": \"d\"\n}\n",
+      "note": "Various trailing tabs"
+    },
+    {
+      "id": "json-DE56-00",
+      "fn": "parseJSON",
+      "args": [
+        "\"1 trailing\\t\n    tab\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "DE56-00",
+      "suiteTags": [
+        "double",
+        "whitespace"
+      ],
+      "suiteJSON": "\"1 trailing\\t tab\"\n",
+      "note": "Trailing tabs in double quoted"
+    },
+    {
+      "id": "json-DE56-01",
+      "fn": "parseJSON",
+      "args": [
+        "\"2 trailing\\t  \n    tab\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "DE56-01",
+      "suiteTags": [
+        "double",
+        "whitespace"
+      ],
+      "suiteJSON": "\"2 trailing\\t tab\"\n",
+      "note": "Trailing tabs in double quoted"
+    },
+    {
+      "id": "json-DE56-02",
+      "fn": "parseJSON",
+      "args": [
+        "\"3 trailing\\\t\n    tab\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "DE56-02",
+      "suiteTags": [
+        "double",
+        "whitespace"
+      ],
+      "suiteJSON": "\"3 trailing\\t tab\"\n",
+      "note": "Trailing tabs in double quoted"
+    },
+    {
+      "id": "json-DE56-03",
+      "fn": "parseJSON",
+      "args": [
+        "\"4 trailing\\\t  \n    tab\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "DE56-03",
+      "suiteTags": [
+        "double",
+        "whitespace"
+      ],
+      "suiteJSON": "\"4 trailing\\t tab\"\n",
+      "note": "Trailing tabs in double quoted"
+    },
+    {
+      "id": "json-DE56-04",
+      "fn": "parseJSON",
+      "args": [
+        "\"5 trailing\t\n    tab\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "DE56-04",
+      "suiteTags": [
+        "double",
+        "whitespace"
+      ],
+      "suiteJSON": "\"5 trailing tab\"\n",
+      "note": "Trailing tabs in double quoted"
+    },
+    {
+      "id": "json-DE56-05",
+      "fn": "parseJSON",
+      "args": [
+        "\"6 trailing\t  \n    tab\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "DE56-05",
+      "suiteTags": [
+        "double",
+        "whitespace"
+      ],
+      "suiteJSON": "\"6 trailing tab\"\n",
+      "note": "Trailing tabs in double quoted"
+    },
+    {
+      "id": "json-DHP8",
+      "fn": "parseJSON",
+      "args": [
+        "[foo, bar, 42]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "DHP8",
+      "suiteTags": [
+        "flow",
+        "sequence"
+      ],
+      "suiteJSON": "[\n  \"foo\",\n  \"bar\",\n  42\n]\n",
+      "note": "Flow Sequence"
+    },
+    {
+      "id": "json-DK3J",
+      "fn": "parseJSON",
+      "args": [
+        "--- >\nline1\n# no comment\nline3\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "DK3J",
+      "suiteTags": [
+        "comment",
+        "folded",
+        "scalar"
+      ],
+      "suiteJSON": "\"line1 # no comment line3\\n\"\n",
+      "note": "Zero indented block scalar with line that looks like a comment"
+    },
+    {
+      "id": "json-DK95-00",
+      "fn": "parseJSON",
+      "args": [
+        "foo:\n \tbar\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "DK95-00",
+      "suiteTags": [
+        "indent",
+        "whitespace"
+      ],
+      "suiteJSON": "{\n  \"foo\" : \"bar\"\n}\n",
+      "note": "Tabs that look like indentation"
+    },
+    {
+      "id": "json-DK95-02",
+      "fn": "parseJSON",
+      "args": [
+        "foo: \"bar\n  \tbaz\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "DK95-02",
+      "suiteTags": [
+        "indent",
+        "whitespace"
+      ],
+      "suiteJSON": "{\n  \"foo\" : \"bar baz\"\n}\n",
+      "note": "Tabs that look like indentation"
+    },
+    {
+      "id": "json-DK95-03",
+      "fn": "parseJSON",
+      "args": [
+        " \t\nfoo: 1\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "DK95-03",
+      "suiteTags": [
+        "indent",
+        "whitespace"
+      ],
+      "suiteJSON": "{\n  \"foo\" : 1\n}\n",
+      "note": "Tabs that look like indentation"
+    },
+    {
+      "id": "json-DK95-04",
+      "fn": "parseJSON",
+      "args": [
+        "foo: 1\n\t\nbar: 2\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "DK95-04",
+      "suiteTags": [
+        "indent",
+        "whitespace"
+      ],
+      "suiteJSON": "{\n  \"foo\" : 1,\n  \"bar\" : 2\n}\n",
+      "note": "Tabs that look like indentation"
+    },
+    {
+      "id": "json-DK95-05",
+      "fn": "parseJSON",
+      "args": [
+        "foo: 1\n \t\nbar: 2\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "DK95-05",
+      "suiteTags": [
+        "indent",
+        "whitespace"
+      ],
+      "suiteJSON": "{\n  \"foo\" : 1,\n  \"bar\" : 2\n}\n",
+      "note": "Tabs that look like indentation"
+    },
+    {
+      "id": "json-DK95-07",
+      "fn": "parseJSON",
+      "args": [
+        "%YAML 1.2\n\t\n---\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "DK95-07",
+      "suiteTags": [
+        "indent",
+        "whitespace"
+      ],
+      "suiteJSON": "null\n",
+      "note": "Tabs that look like indentation"
+    },
+    {
+      "id": "json-DK95-08",
+      "fn": "parseJSON",
+      "args": [
+        "foo: \"bar\n \t \t baz \t \t \"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "DK95-08",
+      "suiteTags": [
+        "indent",
+        "whitespace"
+      ],
+      "suiteJSON": "{\n  \"foo\" : \"bar baz \\t \\t \"\n}\n",
+      "note": "Tabs that look like indentation"
+    },
+    {
+      "id": "json-DWX9",
+      "fn": "parseJSON",
+      "args": [
+        "|\n \n  \n  literal\n   \n  \n  text\n\n # Comment\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "DWX9",
+      "suiteTags": [
+        "spec",
+        "literal",
+        "scalar",
+        "comment",
+        "whitespace",
+        "1.3-err"
+      ],
+      "suiteJSON": "\"\\n\\nliteral\\n \\n\\ntext\\n\"\n",
+      "note": "Spec Example 8.8. Literal Content"
+    },
+    {
+      "id": "json-E76Z",
+      "fn": "parseJSON",
+      "args": [
+        "&a a: &b b\n*b : *a\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "E76Z",
+      "suiteTags": [
+        "mapping",
+        "alias"
+      ],
+      "suiteJSON": "{\n  \"a\": \"b\",\n  \"b\": \"a\"\n}\n",
+      "note": "Aliases in Implicit Block Mapping"
+    },
+    {
+      "id": "json-EHF6",
+      "fn": "parseJSON",
+      "args": [
+        "!!map {\n  k: !!seq\n  [ a, !!str b]\n}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "EHF6",
+      "suiteTags": [
+        "tag",
+        "flow",
+        "mapping",
+        "sequence"
+      ],
+      "suiteJSON": "{\n  \"k\": [\n    \"a\",\n    \"b\"\n  ]\n}\n",
+      "note": "Tags for Flow Objects"
+    },
+    {
+      "id": "json-EX5H",
+      "fn": "parseJSON",
+      "args": [
+        "---\na\nb  \n  c\nd\n\ne\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "EX5H",
+      "suiteTags": [
+        "scalar",
+        "whitespace",
+        "1.3-mod"
+      ],
+      "suiteJSON": "\"a b c d\\ne\"\n",
+      "note": "Multiline Scalar at Top Level [1.3]"
+    },
+    {
+      "id": "json-EXG3",
+      "fn": "parseJSON",
+      "args": [
+        "---\n---word1\nword2\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "EXG3",
+      "suiteTags": [
+        "scalar",
+        "1.3-mod"
+      ],
+      "suiteJSON": "\"---word1 word2\"\n",
+      "note": "Three dashes and content without space [1.3]"
+    },
+    {
+      "id": "json-F2C7",
+      "fn": "parseJSON",
+      "args": [
+        " - &a !!str a\n - !!int 2\n - !!int &c 4\n - &d d\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "F2C7",
+      "suiteTags": [
+        "anchor",
+        "tag"
+      ],
+      "suiteJSON": "[\n  \"a\",\n  2,\n  4,\n  \"d\"\n]\n",
+      "note": "Anchors and Tags"
+    },
+    {
+      "id": "json-F3CP",
+      "fn": "parseJSON",
+      "args": [
+        "---\n{ a: [b, c, { d: [e, f] } ] }\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "F3CP",
+      "suiteTags": [
+        "flow",
+        "mapping",
+        "sequence"
+      ],
+      "suiteJSON": "{\n  \"a\": [\n    \"b\",\n    \"c\",\n    {\n      \"d\": [\n        \"e\",\n        \"f\"\n      ]\n    }\n  ]\n}\n",
+      "note": "Nested flow collections on one line"
+    },
+    {
+      "id": "json-F6MC",
+      "fn": "parseJSON",
+      "args": [
+        "---\na: >2\n   more indented\n  regular\nb: >2\n\n\n   more indented\n  regular\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "F6MC",
+      "suiteTags": [
+        "folded",
+        "indent"
+      ],
+      "suiteJSON": "{\n  \"a\": \" more indented\\nregular\\n\",\n  \"b\": \"\\n\\n more indented\\nregular\\n\"\n}\n",
+      "note": "More indented lines at the beginning of folded block scalars"
+    },
+    {
+      "id": "json-F8F9",
+      "fn": "parseJSON",
+      "args": [
+        " # Strip\n  # Comments:\nstrip: |-\n  # text\n  \n # Clip\n  # comments:\n\nclip: |\n  # text\n \n # Keep\n  # comments:\n\nkeep: |+\n  # text\n\n # Trail\n  # comments.\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "F8F9",
+      "suiteTags": [
+        "spec",
+        "literal",
+        "scalar",
+        "comment"
+      ],
+      "suiteJSON": "{\n  \"strip\": \"# text\",\n  \"clip\": \"# text\\n\",\n  \"keep\": \"# text\\n\\n\"\n}\n",
+      "note": "Spec Example 8.5. Chomping Trailing Lines"
+    },
+    {
+      "id": "json-FBC9",
+      "fn": "parseJSON",
+      "args": [
+        "safe: a!\"#$%&'()*+,-./09:;<=>?@AZ[\\]^_`az{|}~\n     !\"#$%&'()*+,-./09:;<=>?@AZ[\\]^_`az{|}~\nsafe question mark: ?foo\nsafe colon: :foo\nsafe dash: -foo\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "FBC9",
+      "suiteTags": [
+        "scalar"
+      ],
+      "suiteJSON": "{\n  \"safe\": \"a!\\\"#$%&'()*+,-./09:;<=>?@AZ[\\\\]^_`az{|}~ !\\\"#$%&'()*+,-./09:;<=>?@AZ[\\\\]^_`az{|}~\",\n  \"safe question mark\": \"?foo\",\n  \"safe colon\": \":foo\",\n  \"safe dash\": \"-foo\"\n}\n",
+      "note": "Allowed characters in plain scalars"
+    },
+    {
+      "id": "json-FP8R",
+      "fn": "parseJSON",
+      "args": [
+        "--- >\nline1\nline2\nline3\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "FP8R",
+      "suiteTags": [
+        "folded",
+        "indent",
+        "scalar"
+      ],
+      "suiteJSON": "\"line1 line2 line3\\n\"\n",
+      "note": "Zero indented block scalar"
+    },
+    {
+      "id": "json-FQ7F",
+      "fn": "parseJSON",
+      "args": [
+        "- Mark McGwire\n- Sammy Sosa\n- Ken Griffey\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "FQ7F",
+      "suiteTags": [
+        "spec",
+        "sequence"
+      ],
+      "suiteJSON": "[\n  \"Mark McGwire\",\n  \"Sammy Sosa\",\n  \"Ken Griffey\"\n]\n",
+      "note": "Spec Example 2.1. Sequence of Scalars"
+    },
+    {
+      "id": "json-FTA2",
+      "fn": "parseJSON",
+      "args": [
+        "--- &sequence\n- a\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "FTA2",
+      "suiteTags": [
+        "anchor",
+        "header",
+        "sequence"
+      ],
+      "suiteJSON": "[\n  \"a\"\n]\n",
+      "note": "Single block sequence with anchor and explicit document start"
+    },
+    {
+      "id": "json-FUP4",
+      "fn": "parseJSON",
+      "args": [
+        "[a, [b, c]]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "FUP4",
+      "suiteTags": [
+        "sequence",
+        "flow"
+      ],
+      "suiteJSON": "[\n  \"a\",\n  [\n    \"b\",\n    \"c\"\n  ]\n]\n",
+      "note": "Flow Sequence in Flow Sequence"
+    },
+    {
+      "id": "json-G4RS",
+      "fn": "parseJSON",
+      "args": [
+        "unicode: \"Sosa did fine.\\u263A\"\ncontrol: \"\\b1998\\t1999\\t2000\\n\"\nhex esc: \"\\x0d\\x0a is \\r\\n\"\n\nsingle: '\"Howdy!\" he cried.'\nquoted: ' # Not a ''comment''.'\ntie-fighter: '|\\-*-/|'\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "G4RS",
+      "suiteTags": [
+        "spec",
+        "scalar"
+      ],
+      "suiteJSON": "{\n  \"unicode\": \"Sosa did fine.☺\",\n  \"control\": \"\\b1998\\t1999\\t2000\\n\",\n  \"hex esc\": \"\\r\\n is \\r\\n\",\n  \"single\": \"\\\"Howdy!\\\" he cried.\",\n  \"quoted\": \" # Not a 'comment'.\",\n  \"tie-fighter\": \"|\\\\-*-/|\"\n}\n",
+      "note": "Spec Example 2.17. Quoted Scalars"
+    },
+    {
+      "id": "json-G992",
+      "fn": "parseJSON",
+      "args": [
+        ">\n folded\n text\n\n\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "G992",
+      "suiteTags": [
+        "spec",
+        "folded",
+        "scalar",
+        "1.3-err"
+      ],
+      "suiteJSON": "\"folded text\\n\"\n",
+      "note": "Spec Example 8.9. Folded Scalar"
+    },
+    {
+      "id": "json-GH63",
+      "fn": "parseJSON",
+      "args": [
+        "? a\n: 1.3\nfifteen: d\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "GH63",
+      "suiteTags": [
+        "explicit-key",
+        "mapping"
+      ],
+      "suiteJSON": "{\n  \"a\": 1.3,\n  \"fifteen\": \"d\"\n}\n",
+      "note": "Mixed Block Mapping (explicit to implicit)"
+    },
+    {
+      "id": "json-H2RW",
+      "fn": "parseJSON",
+      "args": [
+        "foo: 1\n\nbar: 2\n    \ntext: |\n  a\n    \n  b\n\n  c\n \n  d\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "H2RW",
+      "suiteTags": [
+        "comment",
+        "literal",
+        "scalar",
+        "whitespace"
+      ],
+      "suiteJSON": "{\n  \"foo\": 1,\n  \"bar\": 2,\n  \"text\": \"a\\n  \\nb\\n\\nc\\n\\nd\\n\"\n}\n",
+      "note": "Blank lines"
+    },
+    {
+      "id": "json-H3Z8",
+      "fn": "parseJSON",
+      "args": [
+        "---\nwanted: love ♥ and peace ☮\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "H3Z8",
+      "suiteTags": [
+        "scalar"
+      ],
+      "suiteJSON": "{\n  \"wanted\": \"love ♥ and peace ☮\"\n}\n",
+      "note": "Literal unicode"
+    },
+    {
+      "id": "json-HM87-00",
+      "fn": "parseJSON",
+      "args": [
+        "[:x]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "HM87-00",
+      "suiteTags": [
+        "flow",
+        "scalar"
+      ],
+      "suiteJSON": "[\n  \":x\"\n]\n",
+      "note": "Scalars in flow start with syntax char"
+    },
+    {
+      "id": "json-HM87-01",
+      "fn": "parseJSON",
+      "args": [
+        "[?x]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "HM87-01",
+      "suiteTags": [
+        "flow",
+        "scalar"
+      ],
+      "suiteJSON": "[\n  \"?x\"\n]\n",
+      "note": "Scalars in flow start with syntax char"
+    },
+    {
+      "id": "json-HMK4",
+      "fn": "parseJSON",
+      "args": [
+        "name: Mark McGwire\naccomplishment: >\n  Mark set a major league\n  home run record in 1998.\nstats: |\n  65 Home Runs\n  0.278 Batting Average\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "HMK4",
+      "suiteTags": [
+        "spec",
+        "folded",
+        "literal"
+      ],
+      "suiteJSON": "{\n  \"name\": \"Mark McGwire\",\n  \"accomplishment\": \"Mark set a major league home run record in 1998.\\n\",\n  \"stats\": \"65 Home Runs\\n0.278 Batting Average\\n\"\n}\n",
+      "note": "Spec Example 2.16. Indentation determines scope"
+    },
+    {
+      "id": "json-HMQ5",
+      "fn": "parseJSON",
+      "args": [
+        "!!str &a1 \"foo\":\n  !!str bar\n&a2 baz : *a1\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "HMQ5",
+      "suiteTags": [
+        "spec",
+        "tag",
+        "alias"
+      ],
+      "suiteJSON": "{\n  \"foo\": \"bar\",\n  \"baz\": \"foo\"\n}\n",
+      "note": "Spec Example 6.23. Node Properties"
+    },
+    {
+      "id": "json-HS5T",
+      "fn": "parseJSON",
+      "args": [
+        "1st non-empty\n\n 2nd non-empty \n\t3rd non-empty\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "HS5T",
+      "suiteTags": [
+        "spec",
+        "scalar",
+        "whitespace",
+        "upto-1.2"
+      ],
+      "suiteJSON": "\"1st non-empty\\n2nd non-empty 3rd non-empty\"\n",
+      "note": "Spec Example 7.12. Plain Lines"
+    },
+    {
+      "id": "json-HWV9",
+      "fn": "parseJSON",
+      "args": [
+        "...\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "HWV9",
+      "suiteTags": [
+        "footer"
+      ],
+      "suiteJSON": "",
+      "note": "Document-end marker"
+    },
+    {
+      "id": "json-J3BT",
+      "fn": "parseJSON",
+      "args": [
+        "# Tabs and spaces\nquoted: \"Quoted \t\"\nblock:\t|\n  void main() {\n  \tprintf(\"Hello, world!\\n\");\n  }\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "J3BT",
+      "suiteTags": [
+        "spec",
+        "whitespace",
+        "upto-1.2"
+      ],
+      "suiteJSON": "{\n  \"quoted\": \"Quoted \\t\",\n  \"block\": \"void main() {\\n\\tprintf(\\\"Hello, world!\\\\n\\\");\\n}\\n\"\n}\n",
+      "note": "Spec Example 5.12. Tabs and Spaces"
+    },
+    {
+      "id": "json-J5UC",
+      "fn": "parseJSON",
+      "args": [
+        "foo: blue\nbar: arrr\nbaz: jazz\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "J5UC",
+      "suiteTags": [
+        "mapping"
+      ],
+      "suiteJSON": "{\n  \"foo\": \"blue\",\n  \"bar\": \"arrr\",\n  \"baz\": \"jazz\"\n}\n",
+      "note": "Multiple Pair Block Mapping"
+    },
+    {
+      "id": "json-J7PZ",
+      "fn": "parseJSON",
+      "args": [
+        "# The !!omap tag is one of the optional types\n# introduced for YAML 1.1. In 1.2, it is not\n# part of the standard tags and should not be\n# enabled by default.\n# Ordered maps are represented as\n# A sequence of mappings, with\n# each mapping having one key\n--- !!omap\n- Mark McGwire: 65\n- Sammy Sosa: 63\n- Ken Griffy: 58\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "J7PZ",
+      "suiteTags": [
+        "spec",
+        "mapping",
+        "tag",
+        "unknown-tag"
+      ],
+      "suiteJSON": "[\n  {\n    \"Mark McGwire\": 65\n  },\n  {\n    \"Sammy Sosa\": 63\n  },\n  {\n    \"Ken Griffy\": 58\n  }\n]\n",
+      "note": "Spec Example 2.26. Ordered Mappings"
+    },
+    {
+      "id": "json-J7VC",
+      "fn": "parseJSON",
+      "args": [
+        "one: 2\n\n\nthree: 4\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "J7VC",
+      "suiteTags": [
+        "whitespace",
+        "mapping"
+      ],
+      "suiteJSON": "{\n  \"one\": 2,\n  \"three\": 4\n}\n",
+      "note": "Empty Lines Between Mapping Elements"
+    },
+    {
+      "id": "json-J9HZ",
+      "fn": "parseJSON",
+      "args": [
+        "---\nhr: # 1998 hr ranking\n  - Mark McGwire\n  - Sammy Sosa\nrbi:\n  # 1998 rbi ranking\n  - Sammy Sosa\n  - Ken Griffey\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "J9HZ",
+      "suiteTags": [
+        "mapping",
+        "sequence",
+        "spec",
+        "comment"
+      ],
+      "suiteJSON": "{\n  \"hr\": [\n    \"Mark McGwire\",\n    \"Sammy Sosa\"\n  ],\n  \"rbi\": [\n    \"Sammy Sosa\",\n    \"Ken Griffey\"\n  ]\n}\n",
+      "note": "Spec Example 2.9. Single Document with Two Comments"
+    },
+    {
+      "id": "json-JEF9-00",
+      "fn": "parseJSON",
+      "args": [
+        "- |+\n\n\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "JEF9-00",
+      "suiteTags": [
+        "literal"
+      ],
+      "suiteJSON": "[\n  \"\\n\\n\"\n]\n",
+      "note": "Trailing whitespace in streams"
+    },
+    {
+      "id": "json-JEF9-01",
+      "fn": "parseJSON",
+      "args": [
+        "- |+\n   \n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "JEF9-01",
+      "suiteTags": [
+        "literal"
+      ],
+      "suiteJSON": "[\n  \"\\n\"\n]\n",
+      "note": "Trailing whitespace in streams"
+    },
+    {
+      "id": "json-JEF9-02",
+      "fn": "parseJSON",
+      "args": [
+        "- |+\n   "
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "JEF9-02",
+      "suiteTags": [
+        "literal"
+      ],
+      "suiteJSON": "[\n  \"\\n\"\n]\n",
+      "note": "Trailing whitespace in streams"
+    },
+    {
+      "id": "json-JHB9",
+      "fn": "parseJSON",
+      "args": [
+        "# Ranking of 1998 home runs\n---\n- Mark McGwire\n- Sammy Sosa\n- Ken Griffey\n\n# Team ranking\n---\n- Chicago Cubs\n- St Louis Cardinals\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "JHB9",
+      "suiteTags": [
+        "spec",
+        "header"
+      ],
+      "suiteJSON": "[\n  \"Mark McGwire\",\n  \"Sammy Sosa\",\n  \"Ken Griffey\"\n]\n[\n  \"Chicago Cubs\",\n  \"St Louis Cardinals\"\n]\n",
+      "note": "Spec Example 2.7. Two Documents in a Stream"
+    },
+    {
+      "id": "json-JQ4R",
+      "fn": "parseJSON",
+      "args": [
+        "block sequence:\n  - one\n  - two : three\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "JQ4R",
+      "suiteTags": [
+        "mapping",
+        "spec",
+        "sequence"
+      ],
+      "suiteJSON": "{\n  \"block sequence\": [\n    \"one\",\n    {\n      \"two\": \"three\"\n    }\n  ]\n}\n",
+      "note": "Spec Example 8.14. Block Sequence"
+    },
+    {
+      "id": "json-JR7V",
+      "fn": "parseJSON",
+      "args": [
+        "- a?string\n- another ? string\n- key: value?\n- [a?string]\n- [another ? string]\n- {key: value? }\n- {key: value?}\n- {key?: value }\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "JR7V",
+      "suiteTags": [
+        "flow",
+        "scalar"
+      ],
+      "suiteJSON": "[\n  \"a?string\",\n  \"another ? string\",\n  {\n    \"key\": \"value?\"\n  },\n  [\n    \"a?string\"\n  ],\n  [\n    \"another ? string\"\n  ],\n  {\n    \"key\": \"value?\"\n  },\n  {\n    \"key\": \"value?\"\n  },\n  {\n    \"key?\": \"value\"\n  }\n]\n",
+      "note": "Question marks in scalars"
+    },
+    {
+      "id": "json-JS2J",
+      "fn": "parseJSON",
+      "args": [
+        "First occurrence: &anchor Value\nSecond occurrence: *anchor\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "JS2J",
+      "suiteTags": [
+        "spec",
+        "alias"
+      ],
+      "suiteJSON": "{\n  \"First occurrence\": \"Value\",\n  \"Second occurrence\": \"Value\"\n}\n",
+      "note": "Spec Example 6.29. Node Anchors"
+    },
+    {
+      "id": "json-JTV5",
+      "fn": "parseJSON",
+      "args": [
+        "? a\n  true\n: null\n  d\n? e\n  42\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "JTV5",
+      "suiteTags": [
+        "explicit-key",
+        "mapping",
+        "scalar"
+      ],
+      "suiteJSON": "{\n  \"a true\": \"null d\",\n  \"e 42\": null\n}\n",
+      "note": "Block Mapping with Multiline Scalars"
+    },
+    {
+      "id": "json-K3WX",
+      "fn": "parseJSON",
+      "args": [
+        "---\n{ \"foo\" # comment\n  :bar }\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "K3WX",
+      "suiteTags": [
+        "comment",
+        "flow",
+        "mapping"
+      ],
+      "suiteJSON": "{\n  \"foo\": \"bar\"\n}\n",
+      "note": "Colon and adjacent value after comment on next line"
+    },
+    {
+      "id": "json-K4SU",
+      "fn": "parseJSON",
+      "args": [
+        "- foo\n- bar\n- 42\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "K4SU",
+      "suiteTags": [
+        "sequence"
+      ],
+      "suiteJSON": "[\n  \"foo\",\n  \"bar\",\n  42\n]\n",
+      "note": "Multiple Entry Block Sequence"
+    },
+    {
+      "id": "json-K527",
+      "fn": "parseJSON",
+      "args": [
+        ">-\n  trimmed\n  \n \n\n  as\n  space\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "K527",
+      "suiteTags": [
+        "folded",
+        "spec",
+        "whitespace",
+        "scalar",
+        "1.3-err"
+      ],
+      "suiteJSON": "\"trimmed\\n\\n\\nas space\"\n",
+      "note": "Spec Example 6.6. Line Folding"
+    },
+    {
+      "id": "json-K54U",
+      "fn": "parseJSON",
+      "args": [
+        "---\tscalar\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "K54U",
+      "suiteTags": [
+        "header",
+        "whitespace"
+      ],
+      "suiteJSON": "\"scalar\"\n",
+      "note": "Tab after document header"
+    },
+    {
+      "id": "json-K858",
+      "fn": "parseJSON",
+      "args": [
+        "strip: >-\n\nclip: >\n\nkeep: |+\n\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "K858",
+      "suiteTags": [
+        "spec",
+        "folded",
+        "literal",
+        "whitespace"
+      ],
+      "suiteJSON": "{\n  \"strip\": \"\",\n  \"clip\": \"\",\n  \"keep\": \"\\n\"\n}\n",
+      "note": "Spec Example 8.6. Empty Scalar Chomping"
+    },
+    {
+      "id": "json-KH5V-00",
+      "fn": "parseJSON",
+      "args": [
+        "\"1 inline\\ttab\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "KH5V-00",
+      "suiteTags": [
+        "double",
+        "whitespace"
+      ],
+      "suiteJSON": "\"1 inline\\ttab\"\n",
+      "note": "Inline tabs in double quoted"
+    },
+    {
+      "id": "json-KH5V-01",
+      "fn": "parseJSON",
+      "args": [
+        "\"2 inline\\\ttab\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "KH5V-01",
+      "suiteTags": [
+        "double",
+        "whitespace"
+      ],
+      "suiteJSON": "\"2 inline\\ttab\"\n",
+      "note": "Inline tabs in double quoted"
+    },
+    {
+      "id": "json-KH5V-02",
+      "fn": "parseJSON",
+      "args": [
+        "\"3 inline\ttab\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "KH5V-02",
+      "suiteTags": [
+        "double",
+        "whitespace"
+      ],
+      "suiteJSON": "\"3 inline\\ttab\"\n",
+      "note": "Inline tabs in double quoted"
+    },
+    {
+      "id": "json-KMK3",
+      "fn": "parseJSON",
+      "args": [
+        "foo:\n  bar: 1\nbaz: 2\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "KMK3",
+      "suiteTags": [
+        "mapping"
+      ],
+      "suiteJSON": "{\n  \"foo\": {\n    \"bar\": 1\n  },\n  \"baz\": 2\n}\n",
+      "note": "Block Submapping"
+    },
+    {
+      "id": "json-KSS4",
+      "fn": "parseJSON",
+      "args": [
+        "--- \"quoted\nstring\"\n--- &node foo\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "KSS4",
+      "suiteTags": [
+        "anchor",
+        "header",
+        "scalar",
+        "1.3-err"
+      ],
+      "suiteJSON": "\"quoted string\"\n\"foo\"\n",
+      "note": "Scalars on --- line"
+    },
+    {
+      "id": "json-L24T-00",
+      "fn": "parseJSON",
+      "args": [
+        "foo: |\n  x\n   \n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "L24T-00",
+      "suiteTags": [
+        "whitespace"
+      ],
+      "suiteJSON": "{\n  \"foo\" : \"x\\n \\n\"\n}\n",
+      "note": "Trailing line of spaces"
+    },
+    {
+      "id": "json-L24T-01",
+      "fn": "parseJSON",
+      "args": [
+        "foo: |\n  x\n   "
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "L24T-01",
+      "suiteTags": [
+        "whitespace"
+      ],
+      "suiteJSON": "{\n  \"foo\" : \"x\\n \\n\"\n}\n",
+      "note": "Trailing line of spaces"
+    },
+    {
+      "id": "json-L383",
+      "fn": "parseJSON",
+      "args": [
+        "--- foo  # comment\n--- foo  # comment\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "L383",
+      "suiteTags": [
+        "comment"
+      ],
+      "suiteJSON": "\"foo\"\n\"foo\"\n",
+      "note": "Two scalar docs with trailing comments"
+    },
+    {
+      "id": "json-L94M",
+      "fn": "parseJSON",
+      "args": [
+        "? !!str a\n: !!int 47\n? c\n: !!str d\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "L94M",
+      "suiteTags": [
+        "explicit-key",
+        "tag",
+        "mapping"
+      ],
+      "suiteJSON": "{\n  \"a\": 47,\n  \"c\": \"d\"\n}\n",
+      "note": "Tags in Explicit Mapping"
+    },
+    {
+      "id": "json-L9U5",
+      "fn": "parseJSON",
+      "args": [
+        "implicit block key : [\n  implicit flow key : value,\n ]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "L9U5",
+      "suiteTags": [
+        "spec",
+        "flow",
+        "mapping"
+      ],
+      "suiteJSON": "{\n  \"implicit block key\": [\n    {\n      \"implicit flow key\": \"value\"\n    }\n  ]\n}\n",
+      "note": "Spec Example 7.11. Plain Implicit Keys"
+    },
+    {
+      "id": "json-LE5A",
+      "fn": "parseJSON",
+      "args": [
+        "- !!str \"a\"\n- 'b'\n- &anchor \"c\"\n- *anchor\n- !!str\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "LE5A",
+      "suiteTags": [
+        "spec",
+        "tag",
+        "alias"
+      ],
+      "suiteJSON": "[\n  \"a\",\n  \"b\",\n  \"c\",\n  \"c\",\n  \"\"\n]\n",
+      "note": "Spec Example 7.24. Flow Nodes"
+    },
+    {
+      "id": "json-LP6E",
+      "fn": "parseJSON",
+      "args": [
+        "- [a, b , c ]\n- { \"a\"  : b\n   , c : 'd' ,\n   e   : \"f\"\n  }\n- [      ]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "LP6E",
+      "suiteTags": [
+        "flow",
+        "scalar",
+        "whitespace"
+      ],
+      "suiteJSON": "[\n  [\n    \"a\",\n    \"b\",\n    \"c\"\n  ],\n  {\n    \"a\": \"b\",\n    \"c\": \"d\",\n    \"e\": \"f\"\n  },\n  []\n]\n",
+      "note": "Whitespace After Scalars in Flow"
+    },
+    {
+      "id": "json-LQZ7",
+      "fn": "parseJSON",
+      "args": [
+        "\"implicit block key\" : [\n  \"implicit flow key\" : value,\n ]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "LQZ7",
+      "suiteTags": [
+        "spec",
+        "scalar",
+        "flow"
+      ],
+      "suiteJSON": "{\n  \"implicit block key\": [\n    {\n      \"implicit flow key\": \"value\"\n    }\n  ]\n}\n",
+      "note": "Spec Example 7.4. Double Quoted Implicit Keys"
+    },
+    {
+      "id": "json-M29M",
+      "fn": "parseJSON",
+      "args": [
+        "a: |\n ab\n \n cd\n ef\n \n\n...\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "M29M",
+      "suiteTags": [
+        "literal",
+        "scalar",
+        "whitespace"
+      ],
+      "suiteJSON": "{\n  \"a\": \"ab\\n\\ncd\\nef\\n\"\n}\n",
+      "note": "Literal Block Scalar"
+    },
+    {
+      "id": "json-M5C3",
+      "fn": "parseJSON",
+      "args": [
+        "literal: |2\n  value\nfolded:\n   !foo\n  >1\n value\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "M5C3",
+      "suiteTags": [
+        "indent",
+        "spec",
+        "literal",
+        "folded",
+        "tag",
+        "local-tag",
+        "1.3-err"
+      ],
+      "suiteJSON": "{\n  \"literal\": \"value\\n\",\n  \"folded\": \"value\\n\"\n}\n",
+      "note": "Spec Example 8.21. Block Scalar Nodes"
+    },
+    {
+      "id": "json-M6YH",
+      "fn": "parseJSON",
+      "args": [
+        "- |\n x\n-\n foo: bar\n-\n - 42\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "M6YH",
+      "suiteTags": [
+        "indent"
+      ],
+      "suiteJSON": "[\n  \"x\\n\",\n  {\n    \"foo\" : \"bar\"\n  },\n  [\n    42\n  ]\n]\n",
+      "note": "Block sequence indentation"
+    },
+    {
+      "id": "json-M7A3",
+      "fn": "parseJSON",
+      "args": [
+        "Bare\ndocument\n...\n# No document\n...\n|\n%!PS-Adobe-2.0 # Not the first line\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "M7A3",
+      "suiteTags": [
+        "spec",
+        "footer",
+        "1.3-err"
+      ],
+      "suiteJSON": "\"Bare document\"\n\"%!PS-Adobe-2.0 # Not the first line\\n\"\n",
+      "note": "Spec Example 9.3. Bare Documents"
+    },
+    {
+      "id": "json-M7NX",
+      "fn": "parseJSON",
+      "args": [
+        "---\n{\n a: [\n  b, c, {\n   d: [e, f]\n  }\n ]\n}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "M7NX",
+      "suiteTags": [
+        "flow",
+        "mapping",
+        "sequence"
+      ],
+      "suiteJSON": "{\n  \"a\": [\n    \"b\",\n    \"c\",\n    {\n      \"d\": [\n        \"e\",\n        \"f\"\n      ]\n    }\n  ]\n}\n",
+      "note": "Nested flow collections"
+    },
+    {
+      "id": "json-M9B4",
+      "fn": "parseJSON",
+      "args": [
+        "|\n literal\n \ttext\n\n\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "M9B4",
+      "suiteTags": [
+        "spec",
+        "literal",
+        "scalar",
+        "whitespace",
+        "1.3-err"
+      ],
+      "suiteJSON": "\"literal\\n\\ttext\\n\"\n",
+      "note": "Spec Example 8.7. Literal Scalar"
+    },
+    {
+      "id": "json-MJS9",
+      "fn": "parseJSON",
+      "args": [
+        ">\n  foo \n \n  \t bar\n\n  baz\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "MJS9",
+      "suiteTags": [
+        "folded",
+        "spec",
+        "scalar",
+        "whitespace",
+        "1.3-err"
+      ],
+      "suiteJSON": "\"foo \\n\\n\\t bar\\n\\nbaz\\n\"\n",
+      "note": "Spec Example 6.7. Block Folding"
+    },
+    {
+      "id": "json-MUS6-02",
+      "fn": "parseJSON",
+      "args": [
+        "%YAML  1.1\n---\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "MUS6-02",
+      "suiteTags": [
+        "directive"
+      ],
+      "suiteJSON": "null\n",
+      "note": "Directive variants"
+    },
+    {
+      "id": "json-MUS6-03",
+      "fn": "parseJSON",
+      "args": [
+        "%YAML \t 1.1\n---\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "MUS6-03",
+      "suiteTags": [
+        "directive"
+      ],
+      "suiteJSON": "null\n",
+      "note": "Directive variants"
+    },
+    {
+      "id": "json-MUS6-04",
+      "fn": "parseJSON",
+      "args": [
+        "%YAML 1.1  # comment\n---\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "MUS6-04",
+      "suiteTags": [
+        "directive"
+      ],
+      "suiteJSON": "null\n",
+      "note": "Directive variants"
+    },
+    {
+      "id": "json-MUS6-05",
+      "fn": "parseJSON",
+      "args": [
+        "%YAM 1.1\n---\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "MUS6-05",
+      "suiteTags": [
+        "directive"
+      ],
+      "suiteJSON": "null\n",
+      "note": "Directive variants"
+    },
+    {
+      "id": "json-MUS6-06",
+      "fn": "parseJSON",
+      "args": [
+        "%YAMLL 1.1\n---\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "MUS6-06",
+      "suiteTags": [
+        "directive"
+      ],
+      "suiteJSON": "null\n",
+      "note": "Directive variants"
+    },
+    {
+      "id": "json-MXS3",
+      "fn": "parseJSON",
+      "args": [
+        "- {a: b}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "MXS3",
+      "suiteTags": [
+        "mapping",
+        "sequence",
+        "flow"
+      ],
+      "suiteJSON": "[\n  {\n    \"a\": \"b\"\n  }\n]\n",
+      "note": "Flow Mapping in Block Sequence"
+    },
+    {
+      "id": "json-MYW6",
+      "fn": "parseJSON",
+      "args": [
+        "|-\n ab\n \n \n...\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "MYW6",
+      "suiteTags": [
+        "literal",
+        "scalar",
+        "whitespace",
+        "1.3-err"
+      ],
+      "suiteJSON": "\"ab\"\n",
+      "note": "Block Scalar Strip"
+    },
+    {
+      "id": "json-MZX3",
+      "fn": "parseJSON",
+      "args": [
+        "- plain\n- \"double quoted\"\n- 'single quoted'\n- >\n  block\n- plain again\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "MZX3",
+      "suiteTags": [
+        "folded",
+        "scalar"
+      ],
+      "suiteJSON": "[\n  \"plain\",\n  \"double quoted\",\n  \"single quoted\",\n  \"block\\n\",\n  \"plain again\"\n]\n",
+      "note": "Non-Specific Tags on Scalars"
+    },
+    {
+      "id": "json-NAT4",
+      "fn": "parseJSON",
+      "args": [
+        "---\na: '\n  '\nb: '  \n  '\nc: \"\n  \"\nd: \"  \n  \"\ne: '\n\n  '\nf: \"\n\n  \"\ng: '\n\n\n  '\nh: \"\n\n\n  \"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "NAT4",
+      "suiteTags": [
+        "double",
+        "scalar",
+        "single",
+        "whitespace"
+      ],
+      "suiteJSON": "{\n  \"a\": \" \",\n  \"b\": \" \",\n  \"c\": \" \",\n  \"d\": \" \",\n  \"e\": \"\\n\",\n  \"f\": \"\\n\",\n  \"g\": \"\\n\\n\",\n  \"h\": \"\\n\\n\"\n}\n",
+      "note": "Various empty or newline only quoted strings"
+    },
+    {
+      "id": "json-NB6Z",
+      "fn": "parseJSON",
+      "args": [
+        "key:\n  value\n  with\n  \t\n  tabs\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "NB6Z",
+      "suiteTags": [
+        "scalar",
+        "whitespace"
+      ],
+      "suiteJSON": "{\n  \"key\": \"value with\\ntabs\"\n}\n",
+      "note": "Multiline plain value with tabs on empty lines"
+    },
+    {
+      "id": "json-NJ66",
+      "fn": "parseJSON",
+      "args": [
+        "---\n- { single line: value}\n- { multi\n  line: value}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "NJ66",
+      "suiteTags": [
+        "flow",
+        "mapping"
+      ],
+      "suiteJSON": "[\n  {\n    \"single line\": \"value\"\n  },\n  {\n    \"multi line\": \"value\"\n  }\n]\n",
+      "note": "Multiline plain flow mapping key"
+    },
+    {
+      "id": "json-NP9H",
+      "fn": "parseJSON",
+      "args": [
+        "\"folded \nto a space,\t\n \nto a line feed, or \t\\\n \\ \tnon-content\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "NP9H",
+      "suiteTags": [
+        "double",
+        "spec",
+        "scalar",
+        "whitespace",
+        "upto-1.2"
+      ],
+      "suiteJSON": "\"folded to a space,\\nto a line feed, or \\t \\tnon-content\"\n",
+      "note": "Spec Example 7.5. Double Quoted Line Breaks"
+    },
+    {
+      "id": "json-P2AD",
+      "fn": "parseJSON",
+      "args": [
+        "- | # Empty header↓\n literal\n- >1 # Indentation indicator↓\n  folded\n- |+ # Chomping indicator↓\n keep\n\n- >1- # Both indicators↓\n  strip\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "P2AD",
+      "suiteTags": [
+        "spec",
+        "literal",
+        "folded",
+        "comment",
+        "scalar"
+      ],
+      "suiteJSON": "[\n  \"literal\\n\",\n  \" folded\\n\",\n  \"keep\\n\\n\",\n  \" strip\"\n]\n",
+      "note": "Spec Example 8.1. Block Scalar Header"
+    },
+    {
+      "id": "json-P76L",
+      "fn": "parseJSON",
+      "args": [
+        "%TAG !! tag:example.com,2000:app/\n---\n!!int 1 - 3 # Interval, not integer\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "P76L",
+      "suiteTags": [
+        "spec",
+        "header",
+        "tag",
+        "unknown-tag"
+      ],
+      "suiteJSON": "\"1 - 3\"\n",
+      "note": "Spec Example 6.19. Secondary Tag Handle"
+    },
+    {
+      "id": "json-P94K",
+      "fn": "parseJSON",
+      "args": [
+        "key:    # Comment\n        # lines\n  value\n\n\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "P94K",
+      "suiteTags": [
+        "spec",
+        "comment"
+      ],
+      "suiteJSON": "{\n  \"key\": \"value\"\n}\n",
+      "note": "Spec Example 6.11. Multi-Line Comments"
+    },
+    {
+      "id": "json-PBJ2",
+      "fn": "parseJSON",
+      "args": [
+        "american:\n  - Boston Red Sox\n  - Detroit Tigers\n  - New York Yankees\nnational:\n  - New York Mets\n  - Chicago Cubs\n  - Atlanta Braves\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "PBJ2",
+      "suiteTags": [
+        "spec",
+        "mapping",
+        "sequence"
+      ],
+      "suiteJSON": "{\n  \"american\": [\n    \"Boston Red Sox\",\n    \"Detroit Tigers\",\n    \"New York Yankees\"\n  ],\n  \"national\": [\n    \"New York Mets\",\n    \"Chicago Cubs\",\n    \"Atlanta Braves\"\n  ]\n}\n",
+      "note": "Spec Example 2.3. Mapping Scalars to Sequences"
+    },
+    {
+      "id": "json-PRH3",
+      "fn": "parseJSON",
+      "args": [
+        "' 1st non-empty\n\n 2nd non-empty \n\t3rd non-empty '\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "PRH3",
+      "suiteTags": [
+        "single",
+        "spec",
+        "scalar",
+        "whitespace",
+        "upto-1.2"
+      ],
+      "suiteJSON": "\" 1st non-empty\\n2nd non-empty 3rd non-empty \"\n",
+      "note": "Spec Example 7.9. Single Quoted Lines"
+    },
+    {
+      "id": "json-PUW8",
+      "fn": "parseJSON",
+      "args": [
+        "---\na: b\n---\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "PUW8",
+      "suiteTags": [
+        "header"
+      ],
+      "suiteJSON": "{\n  \"a\": \"b\"\n}\nnull\n",
+      "note": "Document start on last line"
+    },
+    {
+      "id": "json-Q5MG",
+      "fn": "parseJSON",
+      "args": [
+        "\t{}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "Q5MG",
+      "suiteTags": [
+        "flow",
+        "whitespace"
+      ],
+      "suiteJSON": "{}\n",
+      "note": "Tab at beginning of line followed by a flow mapping"
+    },
+    {
+      "id": "json-Q88A",
+      "fn": "parseJSON",
+      "args": [
+        "- [ a, b ]\n- { a: b }\n- \"a\"\n- 'b'\n- c\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "Q88A",
+      "suiteTags": [
+        "spec",
+        "flow",
+        "sequence",
+        "mapping"
+      ],
+      "suiteJSON": "[\n  [\n    \"a\",\n    \"b\"\n  ],\n  {\n    \"a\": \"b\"\n  },\n  \"a\",\n  \"b\",\n  \"c\"\n]\n",
+      "note": "Spec Example 7.23. Flow Content"
+    },
+    {
+      "id": "json-Q8AD",
+      "fn": "parseJSON",
+      "args": [
+        "---\n\"folded \nto a space,\n \nto a line feed, or \t\\\n \\ \tnon-content\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "Q8AD",
+      "suiteTags": [
+        "double",
+        "spec",
+        "scalar",
+        "whitespace",
+        "1.3-mod"
+      ],
+      "suiteJSON": "\"folded to a space,\\nto a line feed, or \\t \\tnon-content\"\n",
+      "note": "Spec Example 7.5. Double Quoted Line Breaks [1.3]"
+    },
+    {
+      "id": "json-QF4Y",
+      "fn": "parseJSON",
+      "args": [
+        "[\nfoo: bar\n]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "QF4Y",
+      "suiteTags": [
+        "spec",
+        "flow",
+        "mapping"
+      ],
+      "suiteJSON": "[\n  {\n    \"foo\": \"bar\"\n  }\n]\n",
+      "note": "Spec Example 7.19. Single Pair Flow Mappings"
+    },
+    {
+      "id": "json-QT73",
+      "fn": "parseJSON",
+      "args": [
+        "# comment\n...\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "QT73",
+      "suiteTags": [
+        "comment",
+        "footer"
+      ],
+      "suiteJSON": "",
+      "note": "Comment and document-end marker"
+    },
+    {
+      "id": "json-R4YG",
+      "fn": "parseJSON",
+      "args": [
+        "- |\n detected\n- >\n \n  \n  # detected\n- |1\n  explicit\n- >\n \t\n detected\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "R4YG",
+      "suiteTags": [
+        "spec",
+        "literal",
+        "folded",
+        "scalar",
+        "whitespace",
+        "libyaml-err",
+        "upto-1.2"
+      ],
+      "suiteJSON": "[\n  \"detected\\n\",\n  \"\\n\\n# detected\\n\",\n  \" explicit\\n\",\n  \"\\t\\ndetected\\n\"\n]\n",
+      "note": "Spec Example 8.2. Block Indentation Indicator"
+    },
+    {
+      "id": "json-R52L",
+      "fn": "parseJSON",
+      "args": [
+        "---\n{ top1: [item1, {key2: value2}, item3], top2: value2 }\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "R52L",
+      "suiteTags": [
+        "flow",
+        "mapping",
+        "sequence"
+      ],
+      "suiteJSON": "{\n  \"top1\": [\n    \"item1\",\n    {\n      \"key2\": \"value2\"\n    },\n    \"item3\"\n  ],\n  \"top2\": \"value2\"\n}\n",
+      "note": "Nested flow mapping sequence and mappings"
+    },
+    {
+      "id": "json-RLU9",
+      "fn": "parseJSON",
+      "args": [
+        "foo:\n- 42\nbar:\n  - 44\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "RLU9",
+      "suiteTags": [
+        "sequence",
+        "indent"
+      ],
+      "suiteJSON": "{\n  \"foo\": [\n    42\n  ],\n  \"bar\": [\n    44\n  ]\n}\n",
+      "note": "Sequence Indent"
+    },
+    {
+      "id": "json-RR7F",
+      "fn": "parseJSON",
+      "args": [
+        "a: 4.2\n? d\n: 23\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "RR7F",
+      "suiteTags": [
+        "explicit-key",
+        "mapping"
+      ],
+      "suiteJSON": "{\n  \"d\": 23,\n  \"a\": 4.2\n}\n",
+      "note": "Mixed Block Mapping (implicit to explicit)"
+    },
+    {
+      "id": "json-RTP8",
+      "fn": "parseJSON",
+      "args": [
+        "%YAML 1.2\n---\nDocument\n... # Suffix\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "RTP8",
+      "suiteTags": [
+        "spec",
+        "header",
+        "footer"
+      ],
+      "suiteJSON": "\"Document\"\n",
+      "note": "Spec Example 9.2. Document Markers"
+    },
+    {
+      "id": "json-RZT7",
+      "fn": "parseJSON",
+      "args": [
+        "---\nTime: 2001-11-23 15:01:42 -5\nUser: ed\nWarning:\n  This is an error message\n  for the log file\n---\nTime: 2001-11-23 15:02:31 -5\nUser: ed\nWarning:\n  A slightly different error\n  message.\n---\nDate: 2001-11-23 15:03:17 -5\nUser: ed\nFatal:\n  Unknown variable \"bar\"\nStack:\n  - file: TopClass.py\n    line: 23\n    code: |\n      x = MoreObject(\"345\\n\")\n  - file: MoreClass.py\n    line: 58\n    code: |-\n      foo = bar\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "RZT7",
+      "suiteTags": [
+        "spec",
+        "header",
+        "literal",
+        "mapping",
+        "sequence"
+      ],
+      "suiteJSON": "{\n  \"Time\": \"2001-11-23 15:01:42 -5\",\n  \"User\": \"ed\",\n  \"Warning\": \"This is an error message for the log file\"\n}\n{\n  \"Time\": \"2001-11-23 15:02:31 -5\",\n  \"User\": \"ed\",\n  \"Warning\": \"A slightly different error message.\"\n}\n{\n  \"Date\": \"2001-11-23 15:03:17 -5\",\n  \"User\": \"ed\",\n  \"Fatal\": \"Unknown variable \\\"bar\\\"\",\n  \"Stack\": [\n    {\n      \"file\": \"TopClass.py\",\n      \"line\": 23,\n      \"code\": \"x = MoreObject(\\\"345\\\\n\\\")\\n\"\n    },\n    {\n      \"file\": \"MoreClass.py\",\n      \"line\": 58,\n      \"code\": \"foo = bar\"\n    }\n  ]\n}\n",
+      "note": "Spec Example 2.28. Log File"
+    },
+    {
+      "id": "json-S4JQ",
+      "fn": "parseJSON",
+      "args": [
+        "# Assuming conventional resolution:\n- \"12\"\n- 12\n- ! 12\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "S4JQ",
+      "suiteTags": [
+        "spec",
+        "tag"
+      ],
+      "suiteJSON": "[\n  \"12\",\n  12,\n  \"12\"\n]\n",
+      "note": "Spec Example 6.28. Non-Specific Tags"
+    },
+    {
+      "id": "json-S4T7",
+      "fn": "parseJSON",
+      "args": [
+        "aaa: bbb\n...\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "S4T7",
+      "suiteTags": [
+        "mapping",
+        "footer"
+      ],
+      "suiteJSON": "{\n  \"aaa\": \"bbb\"\n}\n",
+      "note": "Document with footer"
+    },
+    {
+      "id": "json-S7BG",
+      "fn": "parseJSON",
+      "args": [
+        "---\n- :,\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "S7BG",
+      "suiteTags": [
+        "scalar"
+      ],
+      "suiteJSON": "[\n  \":,\"\n]\n",
+      "note": "Colon followed by comma"
+    },
+    {
+      "id": "json-S9E8",
+      "fn": "parseJSON",
+      "args": [
+        "sequence:\n- one\n- two\nmapping:\n  ? sky\n  : blue\n  sea : green\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "S9E8",
+      "suiteTags": [
+        "explicit-key",
+        "spec",
+        "mapping",
+        "sequence"
+      ],
+      "suiteJSON": "{\n  \"sequence\": [\n    \"one\",\n    \"two\"\n  ],\n  \"mapping\": {\n    \"sky\": \"blue\",\n    \"sea\": \"green\"\n  }\n}\n",
+      "note": "Spec Example 5.3. Block Structure Indicators"
+    },
+    {
+      "id": "json-SKE5",
+      "fn": "parseJSON",
+      "args": [
+        "---\nseq:\n &anchor\n- a\n- b\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "SKE5",
+      "suiteTags": [
+        "anchor",
+        "indent",
+        "sequence"
+      ],
+      "suiteJSON": "{\n  \"seq\": [\n    \"a\",\n    \"b\"\n  ]\n}\n",
+      "note": "Anchor before zero indented sequence"
+    },
+    {
+      "id": "json-SM9W-00",
+      "fn": "parseJSON",
+      "args": [
+        "-"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "SM9W-00",
+      "suiteTags": [
+        "sequence"
+      ],
+      "suiteJSON": "[null]\n",
+      "note": "Single character streams"
+    },
+    {
+      "id": "json-SSW6",
+      "fn": "parseJSON",
+      "args": [
+        "---\n'here''s to \"quotes\"'\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "SSW6",
+      "suiteTags": [
+        "spec",
+        "scalar",
+        "single",
+        "1.3-mod"
+      ],
+      "suiteJSON": "\"here's to \\\"quotes\\\"\"\n",
+      "note": "Spec Example 7.7. Single Quoted Characters [1.3]"
+    },
+    {
+      "id": "json-SYW4",
+      "fn": "parseJSON",
+      "args": [
+        "hr:  65    # Home runs\navg: 0.278 # Batting average\nrbi: 147   # Runs Batted In\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "SYW4",
+      "suiteTags": [
+        "spec",
+        "scalar",
+        "comment"
+      ],
+      "suiteJSON": "{\n  \"hr\": 65,\n  \"avg\": 0.278,\n  \"rbi\": 147\n}\n",
+      "note": "Spec Example 2.2. Mapping Scalars to Scalars"
+    },
+    {
+      "id": "json-T26H",
+      "fn": "parseJSON",
+      "args": [
+        "--- |\n \n  \n  literal\n   \n  \n  text\n\n # Comment\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "T26H",
+      "suiteTags": [
+        "spec",
+        "literal",
+        "scalar",
+        "comment",
+        "whitespace",
+        "1.3-mod"
+      ],
+      "suiteJSON": "\"\\n\\nliteral\\n \\n\\ntext\\n\"\n",
+      "note": "Spec Example 8.8. Literal Content [1.3]"
+    },
+    {
+      "id": "json-T4YY",
+      "fn": "parseJSON",
+      "args": [
+        "---\n' 1st non-empty\n\n 2nd non-empty \n 3rd non-empty '\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "T4YY",
+      "suiteTags": [
+        "single",
+        "spec",
+        "scalar",
+        "whitespace",
+        "1.3-mod"
+      ],
+      "suiteJSON": "\" 1st non-empty\\n2nd non-empty 3rd non-empty \"\n",
+      "note": "Spec Example 7.9. Single Quoted Lines [1.3]"
+    },
+    {
+      "id": "json-T5N4",
+      "fn": "parseJSON",
+      "args": [
+        "--- |\n literal\n \ttext\n\n\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "T5N4",
+      "suiteTags": [
+        "spec",
+        "literal",
+        "scalar",
+        "whitespace",
+        "1.3-mod"
+      ],
+      "suiteJSON": "\"literal\\n\\ttext\\n\"\n",
+      "note": "Spec Example 8.7. Literal Scalar [1.3]"
+    },
+    {
+      "id": "json-TE2A",
+      "fn": "parseJSON",
+      "args": [
+        "block mapping:\n key: value\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "TE2A",
+      "suiteTags": [
+        "spec",
+        "mapping"
+      ],
+      "suiteJSON": "{\n  \"block mapping\": {\n    \"key\": \"value\"\n  }\n}\n",
+      "note": "Spec Example 8.16. Block Mappings"
+    },
+    {
+      "id": "json-TL85",
+      "fn": "parseJSON",
+      "args": [
+        "\"\n  foo \n \n  \t bar\n\n  baz\n\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "TL85",
+      "suiteTags": [
+        "double",
+        "spec",
+        "whitespace",
+        "scalar",
+        "upto-1.2"
+      ],
+      "suiteJSON": "\" foo\\nbar\\nbaz \"\n",
+      "note": "Spec Example 6.8. Flow Folding"
+    },
+    {
+      "id": "json-TS54",
+      "fn": "parseJSON",
+      "args": [
+        ">\n ab\n cd\n \n ef\n\n\n gh\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "TS54",
+      "suiteTags": [
+        "folded",
+        "scalar",
+        "1.3-err"
+      ],
+      "suiteJSON": "\"ab cd\\nef\\n\\ngh\\n\"\n",
+      "note": "Folded Block Scalar"
+    },
+    {
+      "id": "json-U3C3",
+      "fn": "parseJSON",
+      "args": [
+        "%TAG !yaml! tag:yaml.org,2002:\n---\n!yaml!str \"foo\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "U3C3",
+      "suiteTags": [
+        "spec",
+        "header",
+        "tag"
+      ],
+      "suiteJSON": "\"foo\"\n",
+      "note": "Spec Example 6.16. “TAG” directive"
+    },
+    {
+      "id": "json-U3XV",
+      "fn": "parseJSON",
+      "args": [
+        "---\ntop1: &node1\n  &k1 key1: one\ntop2: &node2 # comment\n  key2: two\ntop3:\n  &k3 key3: three\ntop4:\n  &node4\n  &k4 key4: four\ntop5:\n  &node5\n  key5: five\ntop6: &val6\n  six\ntop7:\n  &val7 seven\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "U3XV",
+      "suiteTags": [
+        "anchor",
+        "comment",
+        "1.3-err"
+      ],
+      "suiteJSON": "{\n  \"top1\": {\n    \"key1\": \"one\"\n  },\n  \"top2\": {\n    \"key2\": \"two\"\n  },\n  \"top3\": {\n    \"key3\": \"three\"\n  },\n  \"top4\": {\n    \"key4\": \"four\"\n  },\n  \"top5\": {\n    \"key5\": \"five\"\n  },\n  \"top6\": \"six\",\n  \"top7\": \"seven\"\n}\n",
+      "note": "Node and Mapping Key Anchors"
+    },
+    {
+      "id": "json-U9NS",
+      "fn": "parseJSON",
+      "args": [
+        "---\ntime: 20:03:20\nplayer: Sammy Sosa\naction: strike (miss)\n...\n---\ntime: 20:03:47\nplayer: Sammy Sosa\naction: grand slam\n...\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "U9NS",
+      "suiteTags": [
+        "spec",
+        "header"
+      ],
+      "suiteJSON": "{\n  \"time\": \"20:03:20\",\n  \"player\": \"Sammy Sosa\",\n  \"action\": \"strike (miss)\"\n}\n{\n  \"time\": \"20:03:47\",\n  \"player\": \"Sammy Sosa\",\n  \"action\": \"grand slam\"\n}\n",
+      "note": "Spec Example 2.8. Play by Play Feed from a Game"
+    },
+    {
+      "id": "json-UDM2",
+      "fn": "parseJSON",
+      "args": [
+        "- { url: http://example.org }\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "UDM2",
+      "suiteTags": [
+        "flow",
+        "scalar"
+      ],
+      "suiteJSON": "[\n  {\n    \"url\": \"http://example.org\"\n  }\n]\n",
+      "note": "Plain URL in flow mapping"
+    },
+    {
+      "id": "json-UDR7",
+      "fn": "parseJSON",
+      "args": [
+        "sequence: [ one, two, ]\nmapping: { sky: blue, sea: green }\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "UDR7",
+      "suiteTags": [
+        "spec",
+        "flow",
+        "sequence",
+        "mapping"
+      ],
+      "suiteJSON": "{\n  \"sequence\": [\n    \"one\",\n    \"two\"\n  ],\n  \"mapping\": {\n    \"sky\": \"blue\",\n    \"sea\": \"green\"\n  }\n}\n",
+      "note": "Spec Example 5.4. Flow Collection Indicators"
+    },
+    {
+      "id": "json-UGM3",
+      "fn": "parseJSON",
+      "args": [
+        "--- !<tag:clarkevans.com,2002:invoice>\ninvoice: 34843\ndate   : 2001-01-23\nbill-to: &id001\n    given  : Chris\n    family : Dumars\n    address:\n        lines: |\n            458 Walkman Dr.\n            Suite #292\n        city    : Royal Oak\n        state   : MI\n        postal  : 48046\nship-to: *id001\nproduct:\n    - sku         : BL394D\n      quantity    : 4\n      description : Basketball\n      price       : 450.00\n    - sku         : BL4438H\n      quantity    : 1\n      description : Super Hoop\n      price       : 2392.00\ntax  : 251.42\ntotal: 4443.52\ncomments:\n    Late afternoon is best.\n    Backup contact is Nancy\n    Billsmer @ 338-4338.\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "UGM3",
+      "suiteTags": [
+        "spec",
+        "tag",
+        "literal",
+        "mapping",
+        "sequence",
+        "alias",
+        "unknown-tag"
+      ],
+      "suiteJSON": "{\n  \"invoice\": 34843,\n  \"date\": \"2001-01-23\",\n  \"bill-to\": {\n    \"given\": \"Chris\",\n    \"family\": \"Dumars\",\n    \"address\": {\n      \"lines\": \"458 Walkman Dr.\\nSuite #292\\n\",\n      \"city\": \"Royal Oak\",\n      \"state\": \"MI\",\n      \"postal\": 48046\n    }\n  },\n  \"ship-to\": {\n    \"given\": \"Chris\",\n    \"family\": \"Dumars\",\n    \"address\": {\n      \"lines\": \"458 Walkman Dr.\\nSuite #292\\n\",\n      \"city\": \"Royal Oak\",\n      \"state\": \"MI\",\n      \"postal\": 48046\n    }\n  },\n  \"product\": [\n    {\n      \"sku\": \"BL394D\",\n      \"quantity\": 4,\n      \"description\": \"Basketball\",\n      \"price\": 450\n    },\n    {\n      \"sku\": \"BL4438H\",\n      \"quantity\": 1,\n      \"description\": \"Super Hoop\",\n      \"price\": 2392\n    }\n  ],\n  \"tax\": 251.42,\n  \"total\": 4443.52,\n  \"comments\": \"Late afternoon is best. Backup contact is Nancy Billsmer @ 338-4338.\"\n}\n",
+      "note": "Spec Example 2.27. Invoice"
+    },
+    {
+      "id": "json-UKK6-01",
+      "fn": "parseJSON",
+      "args": [
+        "::\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "UKK6-01",
+      "suiteTags": [
+        "edge",
+        "empty-key"
+      ],
+      "suiteJSON": "{\n  \":\": null\n}\n",
+      "note": "Syntax character edge cases"
+    },
+    {
+      "id": "json-UT92",
+      "fn": "parseJSON",
+      "args": [
+        "---\n{ matches\n% : 20 }\n...\n---\n# Empty\n...\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "UT92",
+      "suiteTags": [
+        "flow",
+        "spec",
+        "header",
+        "footer",
+        "comment"
+      ],
+      "suiteJSON": "{\n  \"matches %\": 20\n}\nnull\n",
+      "note": "Spec Example 9.4. Explicit Documents"
+    },
+    {
+      "id": "json-UV7Q",
+      "fn": "parseJSON",
+      "args": [
+        "x:\n - x\n  \tx\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "UV7Q",
+      "suiteTags": [
+        "indent",
+        "whitespace"
+      ],
+      "suiteJSON": "{\n  \"x\": [\n    \"x x\"\n  ]\n}\n",
+      "note": "Legal tab after indentation"
+    },
+    {
+      "id": "json-V55R",
+      "fn": "parseJSON",
+      "args": [
+        "- &a a\n- &b b\n- *a\n- *b\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "V55R",
+      "suiteTags": [
+        "alias",
+        "sequence"
+      ],
+      "suiteJSON": "[\n  \"a\",\n  \"b\",\n  \"a\",\n  \"b\"\n]\n",
+      "note": "Aliases in Block Sequence"
+    },
+    {
+      "id": "json-VJP3-01",
+      "fn": "parseJSON",
+      "args": [
+        "k: {\n k\n :\n v\n }\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "VJP3-01",
+      "suiteTags": [
+        "flow",
+        "indent"
+      ],
+      "suiteJSON": "{\n  \"k\" : {\n    \"k\" : \"v\"\n  }\n}\n",
+      "note": "Flow collections over many lines"
+    },
+    {
+      "id": "json-W42U",
+      "fn": "parseJSON",
+      "args": [
+        "- # Empty\n- |\n block node\n- - one # Compact\n  - two # sequence\n- one: two # Compact mapping\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "W42U",
+      "suiteTags": [
+        "comment",
+        "spec",
+        "literal",
+        "sequence"
+      ],
+      "suiteJSON": "[\n  null,\n  \"block node\\n\",\n  [\n    \"one\",\n    \"two\"\n  ],\n  {\n    \"one\": \"two\"\n  }\n]\n",
+      "note": "Spec Example 8.15. Block Sequence Entry Types"
+    },
+    {
+      "id": "json-W4TN",
+      "fn": "parseJSON",
+      "args": [
+        "%YAML 1.2\n--- |\n%!PS-Adobe-2.0\n...\n%YAML 1.2\n---\n# Empty\n...\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "W4TN",
+      "suiteTags": [
+        "spec",
+        "header",
+        "footer",
+        "1.3-err"
+      ],
+      "suiteJSON": "\"%!PS-Adobe-2.0\\n\"\nnull\n",
+      "note": "Spec Example 9.5. Directives Documents"
+    },
+    {
+      "id": "json-W5VH",
+      "fn": "parseJSON",
+      "args": [
+        "a: &:@*!$\"<foo>: scalar a\nb: *:@*!$\"<foo>:\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "W5VH",
+      "suiteTags": [
+        "alias",
+        "1.3-err"
+      ],
+      "suiteJSON": "{\n  \"a\": \"scalar a\",\n  \"b\": \"scalar a\"\n}\n",
+      "note": "Allowed characters in alias"
+    },
+    {
+      "id": "json-WZ62",
+      "fn": "parseJSON",
+      "args": [
+        "{\n  foo : !!str,\n  !!str : bar,\n}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "WZ62",
+      "suiteTags": [
+        "spec",
+        "flow",
+        "scalar",
+        "tag"
+      ],
+      "suiteJSON": "{\n  \"foo\": \"\",\n  \"\": \"bar\"\n}\n",
+      "note": "Spec Example 7.2. Empty Content"
+    },
+    {
+      "id": "json-X8DW",
+      "fn": "parseJSON",
+      "args": [
+        "---\n? key\n# comment\n: value\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "X8DW",
+      "suiteTags": [
+        "comment",
+        "explicit-key",
+        "mapping"
+      ],
+      "suiteJSON": "{\n  \"key\": \"value\"\n}\n",
+      "note": "Explicit key and value seperated by comment"
+    },
+    {
+      "id": "json-XLQ9",
+      "fn": "parseJSON",
+      "args": [
+        "---\nscalar\n%YAML 1.2\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "XLQ9",
+      "suiteTags": [
+        "directive",
+        "scalar"
+      ],
+      "suiteJSON": "\"scalar %YAML 1.2\"\n",
+      "note": "Multiline scalar that looks like a YAML directive"
+    },
+    {
+      "id": "json-XV9V",
+      "fn": "parseJSON",
+      "args": [
+        "Folding:\n  \"Empty line\n\n  as a line feed\"\nChomping: |\n  Clipped empty lines\n \n\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "XV9V",
+      "suiteTags": [
+        "literal",
+        "spec",
+        "scalar",
+        "1.3-mod"
+      ],
+      "suiteJSON": "{\n  \"Folding\": \"Empty line\\nas a line feed\",\n  \"Chomping\": \"Clipped empty lines\\n\"\n}\n",
+      "note": "Spec Example 6.5. Empty Lines [1.3]"
+    },
+    {
+      "id": "json-Y2GN",
+      "fn": "parseJSON",
+      "args": [
+        "---\nkey: &an:chor value\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "Y2GN",
+      "suiteTags": [
+        "anchor"
+      ],
+      "suiteJSON": "{\n  \"key\": \"value\"\n}\n",
+      "note": "Anchor with colon in the middle"
+    },
+    {
+      "id": "json-Y79Y-01",
+      "fn": "parseJSON",
+      "args": [
+        "foo: |\n \t\nbar: 1\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "Y79Y-01",
+      "suiteTags": [
+        "whitespace"
+      ],
+      "suiteJSON": "{\n  \"foo\": \"\\t\\n\",\n  \"bar\": 1\n}\n",
+      "note": "Tabs in various contexts"
+    },
+    {
+      "id": "json-Y79Y-02",
+      "fn": "parseJSON",
+      "args": [
+        "- [\n\t\n foo\n ]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "Y79Y-02",
+      "suiteTags": [
+        "whitespace"
+      ],
+      "suiteJSON": "[\n  [\n    \"foo\"\n  ]\n]\n",
+      "note": "Tabs in various contexts"
+    },
+    {
+      "id": "json-Y79Y-10",
+      "fn": "parseJSON",
+      "args": [
+        "-\t-1\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "Y79Y-10",
+      "suiteTags": [
+        "whitespace"
+      ],
+      "suiteJSON": "[\n  -1\n]\n",
+      "note": "Tabs in various contexts"
+    },
+    {
+      "id": "json-YD5X",
+      "fn": "parseJSON",
+      "args": [
+        "- [name        , hr, avg  ]\n- [Mark McGwire, 65, 0.278]\n- [Sammy Sosa  , 63, 0.288]\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "YD5X",
+      "suiteTags": [
+        "spec",
+        "sequence"
+      ],
+      "suiteJSON": "[\n  [\n    \"name\",\n    \"hr\",\n    \"avg\"\n  ],\n  [\n    \"Mark McGwire\",\n    65,\n    0.278\n  ],\n  [\n    \"Sammy Sosa\",\n    63,\n    0.288\n  ]\n]\n",
+      "note": "Spec Example 2.5. Sequence of Sequences"
+    },
+    {
+      "id": "json-Z67P",
+      "fn": "parseJSON",
+      "args": [
+        "literal: |2\n  value\nfolded: !foo >1\n value\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "Z67P",
+      "suiteTags": [
+        "indent",
+        "spec",
+        "literal",
+        "folded",
+        "tag",
+        "local-tag",
+        "1.3-mod"
+      ],
+      "suiteJSON": "{\n  \"literal\": \"value\\n\",\n  \"folded\": \"value\\n\"\n}\n",
+      "note": "Spec Example 8.21. Block Scalar Nodes [1.3]"
+    },
+    {
+      "id": "json-Z9M4",
+      "fn": "parseJSON",
+      "args": [
+        "%TAG !e! tag:example.com,2000:app/\n---\n- !e!foo \"bar\"\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "Z9M4",
+      "suiteTags": [
+        "spec",
+        "header",
+        "tag",
+        "unknown-tag"
+      ],
+      "suiteJSON": "[\n  \"bar\"\n]\n",
+      "note": "Spec Example 6.22. Global Tag Prefix"
+    },
+    {
+      "id": "json-ZF4X",
+      "fn": "parseJSON",
+      "args": [
+        "Mark McGwire: {hr: 65, avg: 0.278}\nSammy Sosa: {\n    hr: 63,\n    avg: 0.288\n  }\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "ZF4X",
+      "suiteTags": [
+        "flow",
+        "spec",
+        "mapping"
+      ],
+      "suiteJSON": "{\n  \"Mark McGwire\": {\n    \"hr\": 65,\n    \"avg\": 0.278\n  },\n  \"Sammy Sosa\": {\n    \"hr\": 63,\n    \"avg\": 0.288\n  }\n}\n",
+      "note": "Spec Example 2.6. Mapping of Mappings"
+    },
+    {
+      "id": "json-ZH7C",
+      "fn": "parseJSON",
+      "args": [
+        "&a a: b\nc: &d d\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "ZH7C",
+      "suiteTags": [
+        "anchor",
+        "mapping"
+      ],
+      "suiteJSON": "{\n  \"a\": \"b\",\n  \"c\": \"d\"\n}\n",
+      "note": "Anchors in Mapping"
+    },
+    {
+      "id": "json-ZK9H",
+      "fn": "parseJSON",
+      "args": [
+        "{ key: [[[\n  value\n ]]]\n}\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "ZK9H",
+      "suiteTags": [
+        "flow",
+        "indent",
+        "mapping",
+        "sequence"
+      ],
+      "suiteJSON": "{\n  \"key\": [\n    [\n      [\n        \"value\"\n      ]\n    ]\n  ]\n}\n",
+      "note": "Nested top level flow mapping"
+    },
+    {
+      "id": "json-ZWK4",
+      "fn": "parseJSON",
+      "args": [
+        "---\na: 1\n? b\n&anchor c: 3\n"
+      ],
+      "upstreamFn": "yaml.parseAllDocuments().map(d => d.toJS())",
+      "goFn": "yaml.Parse + (*Node).Decode",
+      "expect": "accept",
+      "suite": "ZWK4",
+      "suiteTags": [
+        "anchor",
+        "explicit-key",
+        "mapping"
+      ],
+      "suiteJSON": "{\n  \"a\": 1,\n  \"b\": null,\n  \"c\": 3\n}\n",
+      "note": "Key with anchor after missing explicit mapping value"
+    }
+  ]
+}

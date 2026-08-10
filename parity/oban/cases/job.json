@@ -1,0 +1,23 @@
+{
+  "group": "job",
+  "upstream": "oban@2.23.1",
+  "note": "Job construction and option normalisation, which needs no repo: upstream builds an Ecto changeset and the runner applies it with Ecto.Changeset.apply_action!/2 (raising, i.e. ok:false, when validation fails). Compared fields are queue, worker, max_attempts, priority, state and the args map; args are emitted as sorted [key, value] pairs so map ordering cannot differ. Upstream leaves priority nil in the changeset and relies on the oban_jobs.priority column default, so the runner reports nil as 0. Timestamps are never compared because upstream resolves :schedule_in against DateTime.utc_now/0.",
+  "cases": [
+    {"id": "job-defaults", "fn": "job_new", "args": ["MyApp.Worker", {"id": 1}, {}], "upstreamFn": "Oban.Job.new/2", "goFn": "oban.NewJob"},
+    {"id": "job-empty-args", "fn": "job_new", "args": ["MyApp.Worker", {}, {}], "upstreamFn": "Oban.Job.new/2", "goFn": "oban.NewJob"},
+    {"id": "job-queue", "fn": "job_new", "args": ["MyApp.Worker", {"id": 1}, {"queue": "mailers"}], "upstreamFn": "Oban.Job.new/2", "goFn": "oban.WithQueue"},
+    {"id": "job-max-attempts", "fn": "job_new", "args": ["MyApp.Worker", {"id": 1}, {"max_attempts": 5}], "upstreamFn": "Oban.Job.new/2", "goFn": "oban.WithMaxAttempts"},
+    {"id": "job-max-attempts-zero", "fn": "job_new", "args": ["MyApp.Worker", {"id": 1}, {"max_attempts": 0}], "upstreamFn": "Oban.Job.new/2", "goFn": "oban.WithMaxAttempts", "note": "upstream validates max_attempts > 0"},
+    {"id": "job-max-attempts-negative", "fn": "job_new", "args": ["MyApp.Worker", {"id": 1}, {"max_attempts": -1}], "upstreamFn": "Oban.Job.new/2", "goFn": "oban.WithMaxAttempts", "note": "upstream validates max_attempts > 0"},
+    {"id": "job-priority", "fn": "job_new", "args": ["MyApp.Worker", {"id": 1}, {"priority": 3}], "upstreamFn": "Oban.Job.new/2", "goFn": "oban.WithPriority"},
+    {"id": "job-priority-9", "fn": "job_new", "args": ["MyApp.Worker", {"id": 1}, {"priority": 9}], "upstreamFn": "Oban.Job.new/2", "goFn": "oban.WithPriority"},
+    {"id": "job-priority-10", "fn": "job_new", "args": ["MyApp.Worker", {"id": 1}, {"priority": 10}], "upstreamFn": "Oban.Job.new/2", "goFn": "oban.WithPriority", "note": "upstream restricts priority to 0..9; oban.NewJob does not (oban.ValidatePriority is a separate call)"},
+    {"id": "job-priority-negative", "fn": "job_new", "args": ["MyApp.Worker", {"id": 1}, {"priority": -1}], "upstreamFn": "Oban.Job.new/2", "goFn": "oban.WithPriority", "note": "upstream restricts priority to 0..9"},
+    {"id": "job-schedule-in", "fn": "job_new", "args": ["MyApp.Worker", {"id": 1}, {"schedule_in": 60}], "upstreamFn": "Oban.Job.new/2", "goFn": "oban.WithScheduleIn", "note": "a future schedule must normalise the state to scheduled"},
+    {"id": "job-args-nested", "fn": "job_new", "args": ["MyApp.Worker", {"b": 2, "a": {"z": 1, "y": [3, 2]}}, {}], "upstreamFn": "Oban.Job.new/2", "goFn": "oban.NewJob", "note": "args round-trip and key ordering"},
+    {"id": "job-args-types", "fn": "job_new", "args": ["MyApp.Worker", {"s": "x", "n": 1.5, "b": true, "nil": null}, {}], "upstreamFn": "Oban.Job.new/2", "goFn": "oban.NewJob"},
+    {"id": "job-empty-worker", "fn": "job_new", "args": ["", {"id": 1}, {}], "upstreamFn": "Oban.Job.new/2", "goFn": "oban.NewJob", "note": "both sides must fail"},
+    {"id": "job-unknown-opt", "fn": "job_new", "args": ["MyApp.Worker", {"id": 1}, {"nope": 1}], "upstreamFn": "Oban.Job.new/2", "goFn": "oban.NewJob", "note": "both sides must fail: upstream validate_keys, port has no such option"},
+    {"id": "job-explicit-state", "fn": "job_new", "args": ["MyApp.Worker", {"id": 1}, {"state": "scheduled"}], "upstreamFn": "Oban.Job.new/2", "goFn": "—", "note": "upstream permits an explicit :state param; the port has no NewJob option for it"}
+  ]
+}
