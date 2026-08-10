@@ -1,0 +1,68 @@
+name: Parity → draft advisories
+
+# Turns declared parity security findings (parity/<lib>/security.json) into DRAFT
+# GitHub Security Advisories on each library's own repo. It NEVER publishes: a
+# draft is private, and a human decides whether it becomes public. Auto-disclosing
+# a vulnerability is a coordinated-disclosure decision no CI job should make on its
+# own.
+#
+# Two deliberate safety choices:
+#   * It does not run on push. Only a manual dispatch or the weekly schedule, so a
+#     red parity run during ordinary development never spawns advisories.
+#   * It reads only the explicit opt-in manifests, never heuristics over parity.json,
+#     so a failing case cannot become a spurious draft. A finding is disclosed
+#     because a human wrote it into security.json, not because a test went red.
+#
+# The default GITHUB_TOKEN generally cannot create advisories, so this uses a
+# separate ADVISORY_TOKEN secret (a PAT with security-advisory write on the target
+# repos). Without it the job runs in dry-run and reports what it *would* create.
+
+on:
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: "Actually create drafts (false = dry run)"
+        type: boolean
+        default: false
+      lib:
+        description: "Limit to one library (blank = all)"
+        type: string
+        default: ""
+  schedule:
+    # Mondays 07:00 UTC — a weekly dry-run digest of undisclosed findings.
+    - cron: "0 7 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: parity-advisories
+  cancel-in-progress: false
+
+jobs:
+  drafts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Create draft advisories from manifests
+        env:
+          # Absent on the scheduled run unless configured — then it is a dry run,
+          # which is exactly the desired weekly "what is still undisclosed" report.
+          ADVISORY_TOKEN: ${{ secrets.ADVISORY_TOKEN }}
+        run: |
+          set -euo pipefail
+          args=()
+          # A scheduled run is ALWAYS a dry run; only an explicit dispatch with
+          # apply=true creates anything.
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.apply }}" = "true" ]; then
+            args+=(--apply)
+          fi
+          if [ -n "${{ inputs.lib }}" ]; then
+            args+=(--lib "${{ inputs.lib }}")
+          fi
+          node scripts/parity-security-advisories.mjs "${args[@]}" | tee "$GITHUB_STEP_SUMMARY"

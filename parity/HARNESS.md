@@ -127,3 +127,38 @@ installed package — and say in `COVERAGE.md` exactly which command produced it
 Every symbol gets one of: `match`, `differs`, `missing`, `extra`, `untested`.
 Finish with counts and a parity percentage over the symbols actually compared,
 plus the case total. A symbol with no case is `untested`, never `match`.
+
+## Disclosing a security finding
+
+A parity case can reveal that the port is less safe than the library it ports —
+it accepts a token upstream rejects, admits an unauthenticated socket, injects a
+header. Do **not** hand-file those as public GitHub issues: a public issue with a
+working repro discloses an exploitable vulnerability, in a shipped library, before
+a fix exists. That is a coordinated-disclosure decision, and it belongs to the
+repo owner.
+
+Instead, write the finding into `parity/<lib>/security.json`:
+
+```jsonc
+{
+  "repo": "socketio",                       // GitHub repo under malcolmston/ (optional; defaults to the dir name)
+  "module": "github.com/malcolmston/socketio",
+  "findings": [
+    {
+      "id": "namespace-middleware-silent",  // stable key
+      "summary": "Namespace middleware that never calls next() admits the socket, bypassing authentication",
+      "severity": "critical",               // critical | high | medium | low
+      "cases": ["namespace-middleware-silent"],
+      "affectedVersions": "<= 0.4.0",
+      "description": "Full markdown: upstream vs port, impact in attacker terms, the parity case id, and a repro."
+    }
+  ]
+}
+```
+
+The `Parity → draft advisories` workflow reads these manifests and creates a
+**draft** (private) GitHub Security Advisory per finding, idempotently — it never
+publishes, never runs on push (only a manual dispatch or a weekly dry run), and
+dedupes by summary so re-runs do nothing. Publishing a draft is always a human
+decision, made once a fix is ready. A finding is disclosed because someone wrote
+it into a manifest, never because a test went red.
