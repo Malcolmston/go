@@ -42,20 +42,108 @@ Each is an independent Go module (`github.com/malcolmston/<name>`), vendored
 here as a git submodule and tied to the others through the committed
 [`go.work`](go.work) workspace.
 
-The **Parity** column is copied from that library's own `parity.json`, the
-artifact its parity pipeline publishes (see [Upstream
-parity](#upstream-parity--pipeline)). **Cases** is how many upstream cases that
-score was computed over — a percentage without a case count is not worth much.
-`—` means the port has no `parity.json` yet, i.e. it has never been measured.
+The **Parity** column comes from [`parity/<lib>/parity.json`](parity/), written by
+`go test ./parity/<lib>/` — which installs the real upstream library, feeds it and
+the Go port the same cases, and compares the answers. **Cases** is how many were
+compared; a percentage without a case count is not worth much. **Upstream** is the
+exact pinned version the score is against, because a parity figure is meaningless
+without saying what it is parity *with*.
+
+> **These numbers replaced an earlier, much rosier set, and they are lower on
+> purpose.** The old scores came from hand-written expectations — a record of what
+> someone believed upstream did on the day they wrote them. express, passport,
+> socket.io and morgan were all listed at **100%** over 20–54 cases. Measured
+> against the real libraries over 74–184 cases they are **66.8%, 66.2%, 81.8% and
+> 67.3%**. Nothing regressed; the measurement got honest. See
+> [`parity/HARNESS.md`](parity/HARNESS.md) for why running upstream is the only
+> score that cannot quietly go stale.
+
+Read the column with three caveats:
+
+- **A high score is not a small surface, and a low one is not a bad port.**
+  `markdown` is at **100% CommonMark conformance** (652/652 spec examples,
+  byte-exact) while `puppeteer` is at 71.6% of what it implements — but only
+  **2.9%** of puppeteer's actual API, because it has no CDP, no browser and no JS
+  engine. `pdfkit` scores 6.7% strict and 43.7% structural, almost entirely
+  because it lacks upstream's flow-based text model. The score measures agreement
+  where the two overlap, not how much of upstream exists.
+- **Some ports beat their upstream.** `yaml`'s parser is 308/308 on accept cases
+  and 94/94 on must-fail against the official test suite, where the reference JS
+  implementation is 307/308 and 92/94. All of yaml's defects are in its *emitter*.
+- **The number is a floor where upstream has moved on.** `fastmcp`, `liveview` and
+  `oban` are compared against upstreams considerably newer than the ports target,
+  so part of the gap is upstream drift rather than port defect. Each
+  `COVERAGE.md` says which is which.
+
+Alongside each score, `parity/<lib>/COVERAGE.md` enumerates **every** upstream
+symbol — derived mechanically by reflection, `javap`, `jq -n builtins`,
+`COMMAND LIST` or `dir()`, with the command recorded — and marks it `match`,
+`differs`, `missing`, `extra` or `untested`. A symbol with no case is `untested`,
+never `match`.
+
+### Measured parity, all 38 libraries
+
+Sorted by score. Regenerate any row with `go test ./parity/<lib>/`; the harness
+rewrites `parity/<lib>/parity.json`, which is what this table is built from.
+Where a library declares deliberate deviations, they are excluded from the
+denominator and counted separately, so **Cases** can exceed match + mismatch.
+
+| Library | Parity | Cases | Measured against |
+| ------- | -----: | ----: | ---------------- |
+| [sled](sled) | 98.5% | 70 | `sled@0.34.7` |
+| [markdown](markdown) | 97.4% | 701 | `commonmark@0.31.2` |
+| [lodash](lodash) | 97.3% | 624 | `lodash@4.17.21` |
+| [gltf](gltf) | 97.0% | 101 | `@gltf-transform/core@4.2.1+gl…` |
+| [numpy](numpy) | 96.3% | 301 | `numpy@2.2.6` |
+| [moment](moment) | 93.9% | 1731 | `moment@2.30.1` |
+| [yaml](yaml) | 93.0% | 1071 | `yaml@2.6.1+yaml-test-suite@da…` |
+| [jwt](jwt) | 92.8% | 155 | `jsonwebtoken@9.0.2` |
+| [jose](jose) | 91.7% | 157 | `jose@5.9.6` |
+| [jest](jest) | 90.9% | 369 | `` |
+| [algebra](algebra) | 90.8% | 292 | `sympy@1.14.0` |
+| [jq](jq) | 89.7% | 574 | `jq@1.7.1` |
+| [handlebars](handlebars) | 87.7% | 236 | `handlebars@4.7.8` |
+| [cheerio](cheerio) | 87.1% | 317 | `cheerio@1.0.0` |
+| [rrule](rrule) | 85.8% | 261 | `python-dateutil@2.9.0.post0` |
+| [chalk](chalk) | 85.8% | 680 | `chalk@5.3.0` |
+| [oban](oban) | 82.4% | 165 | `sorentwo/oban` |
+| [socket.io](socket.io) | 81.8% | 165 | `engine.io-parser@5.2.3; socke…` |
+| [pandas](pandas) | 80.6% | 217 | `pandas==2.3.3` |
+| [opencv](opencv) | 77.6% | 751 | `opencv-python@4.11.0` |
+| [lucene](lucene) | 75.5% | 237 | `lucene@9.11.1` |
+| [liveview](liveview) | 73.4% | 94 | `phoenixframework/phoenix_live…` |
+| [prisma](prisma) | 72.3% | 112 | `prisma@5.22.0` |
+| [puppeteer](puppeteer) | 71.6% | 197 | `cheerio@1.0.0 + tough-cookie@…` |
+| [quartz](quartz) | 70.2% | 225 | `quartz-scheduler/quartz` |
+| [sqlite](sqlite) | 69.2% | 428 | `sqlite3@3.45.3` |
+| [streamlit](streamlit) | 69.1% | 55 | `streamlit==1.61.1` |
+| [morgan](morgan) | 67.3% | 98 | `morgan@1.10.0` |
+| [axios](axios) | 66.9% | 151 | `axios@1.7.9` |
+| [express](express) | 66.8% | 184 | `express@4.21.2` |
+| [redis](redis) | 66.7% | 93 | `redis-server@8.2.2` |
+| [passport](passport) | 66.2% | 74 | `passport@0.7.0+passport-local…` |
+| [sharp](sharp) | 65.1% | 327 | `sharp@0.33.5` |
+| [matplotlib](matplotlib) | 59.2% | 103 | `matplotlib@3.10.0` |
+| [migrate](migrate) | 51.2% | 86 | `rails/rails activerecord@8.0.…` |
+| [fastmcp](fastmcp) | 50.0% | 110 | `fastmcp@3.4.6` |
+| [pdfkit](pdfkit) | 6.7% | 119 | `pdfkit@0.15.1` |
+| [nodemailer](nodemailer) | 1.2% | 86 | `nodemailer@6.9.16` |
+
+`nodemailer` and `pdfkit` are the two scores that most need their footnote: both
+are dominated by a single systematic difference — nodemailer always uses
+quoted-printable and always emits an empty `Subject`, pdfkit emits no AFM pair
+kerning — so their *structural* parity, with those masked, is 64.7% and 43.7%.
+The strict number is the honest headline; the structural one is what is left to
+fix after the systematic difference is addressed.
 
 ### Web & real-time
 
 | Library | Ports | Parity | Cases | Docs |
 | ------- | ----- | :----: | ----: | ---- |
-| [express](express) | expressjs/express (+ npm util ports) | 100% | 33 | [pages](https://go-malcolms-projects-18e573c3.vercel.app/lib/express) |
-| [passport](passport) | jaredhanson/passport (+ strategies) | 100% | 34 | [pages](https://go-malcolms-projects-18e573c3.vercel.app/lib/passport) |
-| [socket.io](socket.io) | socketio/socket.io | 100% | 20 | [pages](https://go-malcolms-projects-18e573c3.vercel.app/lib/socket.io) |
-| [morgan](morgan) | expressjs/morgan | 100% | 54 | [pages](https://go-malcolms-projects-18e573c3.vercel.app/lib/morgan) |
+| [express](express) | expressjs/express (+ npm util ports) | 66.8% | 184 | [pages](https://go-malcolms-projects-18e573c3.vercel.app/lib/express) |
+| [passport](passport) | jaredhanson/passport (+ strategies) | 66.2% | 74 | [pages](https://go-malcolms-projects-18e573c3.vercel.app/lib/passport) |
+| [socket.io](socket.io) | socketio/socket.io | 81.8% | 165 | [pages](https://go-malcolms-projects-18e573c3.vercel.app/lib/socket.io) |
+| [morgan](morgan) | expressjs/morgan | 67.3% | 98 | [pages](https://go-malcolms-projects-18e573c3.vercel.app/lib/morgan) |
 | [react](react) | facebook/react (React 19) | — | — | [readme](react/README.md) |
 | [d3](d3) | d3/d3 (the computational modules) | — | — | [readme](d3/README.md) |
 
@@ -83,26 +171,26 @@ that the library itself stays dependency-free.
 
 | Library | Ports | Parity | Cases | Docs |
 | ------- | ----- | :----: | ----: | ---- |
-| [chalk](chalk) | chalk/chalk (+ figlet, prompts) | 100% | 30 | [pages](https://go-malcolms-projects-18e573c3.vercel.app/lib/chalk) |
-| [jose](jose) | panva/jose (RFC 7515/16/17/18) | 100% | 55 | [pages](https://go-malcolms-projects-18e573c3.vercel.app/lib/jose) |
-| [markdown](markdown) | commonmark/commonmark-spec | 100% | 652 | [pages](https://go-malcolms-projects-18e573c3.vercel.app/lib/markdown) |
-| [yaml](yaml) | yaml/yaml-test-suite | 99.7% | 373 | [pages](https://go-malcolms-projects-18e573c3.vercel.app/lib/yaml) |
+| [chalk](chalk) | chalk/chalk (+ figlet, prompts) | 85.8% | 680 | [pages](https://go-malcolms-projects-18e573c3.vercel.app/lib/chalk) |
+| [jose](jose) | panva/jose (RFC 7515/16/17/18) | 91.7% | 157 | [pages](https://go-malcolms-projects-18e573c3.vercel.app/lib/jose) |
+| [markdown](markdown) | commonmark/commonmark-spec | 97.4% | 701 | [pages](https://go-malcolms-projects-18e573c3.vercel.app/lib/markdown) |
+| [yaml](yaml) | yaml/yaml-test-suite | 93.0% | 1071 | [pages](https://go-malcolms-projects-18e573c3.vercel.app/lib/yaml) |
 
 ### Data, math & ML (Python-inspired)
 
 | Library | Ports | Parity | Cases | Docs |
 | ------- | ----- | :----: | ----: | ---- |
-| [algebra](algebra) | sympy/sympy | 100% | 56 | [pages](https://go-malcolms-projects-18e573c3.vercel.app/lib/algebra) |
-| [opencv](opencv) | opencv/opencv | — | — | [pages](https://go-malcolms-projects-18e573c3.vercel.app/lib/opencv) |
-| [streamlit](streamlit) | streamlit/streamlit | 93% | 31 | [pages](https://go-malcolms-projects-18e573c3.vercel.app/lib/streamlit) |
+| [algebra](algebra) | sympy/sympy | 90.8% | 292 | [pages](https://go-malcolms-projects-18e573c3.vercel.app/lib/algebra) |
+| [opencv](opencv) | opencv/opencv | 77.6% | 751 | [pages](https://go-malcolms-projects-18e573c3.vercel.app/lib/opencv) |
+| [streamlit](streamlit) | streamlit/streamlit | 69.1% | 55 | [pages](https://go-malcolms-projects-18e573c3.vercel.app/lib/streamlit) |
 
 ### Tooling & data wrangling
 
 | Library | Ports | Parity | Cases | Docs |
 | ------- | ----- | :----: | ----: | ---- |
-| [fastmcp](fastmcp) | jlowin/fastmcp (Python) | 99% | 161 | [pages](https://go-malcolms-projects-18e573c3.vercel.app/lib/fastmcp) |
-| [jq](jq) | jqlang/jq (C) | 92.5% | 782 | [pages](https://go-malcolms-projects-18e573c3.vercel.app/lib/jq) |
-| [rrule](rrule) | dateutil/dateutil (Python) | 99.6% | 256 | [pages](https://go-malcolms-projects-18e573c3.vercel.app/lib/rrule) |
+| [fastmcp](fastmcp) | jlowin/fastmcp (Python) | 50.0% | 110 | [pages](https://go-malcolms-projects-18e573c3.vercel.app/lib/fastmcp) |
+| [jq](jq) | jqlang/jq (C) | 89.7% | 574 | [pages](https://go-malcolms-projects-18e573c3.vercel.app/lib/jq) |
+| [rrule](rrule) | dateutil/dateutil (Python) | 85.8% | 261 | [pages](https://go-malcolms-projects-18e573c3.vercel.app/lib/rrule) |
 
 > Module paths follow `github.com/malcolmston/<name>`, with one exception:
 > Socket.IO is `github.com/malcolmston/socketio`.
