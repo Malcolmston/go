@@ -1,0 +1,277 @@
+{
+  "group": "endpoint",
+  "upstream": "socket.io-client@4.8.1",
+  "note": "Where a connection would go, without dialling anything. Upstream is composed the way socket.io-client itself composes it: lookup() parses the URI with url(), hands parsed.source to a Manager, and Manager.open() builds `new Engine(this.uri, this.opts)` — here with autoConnect false, so the websocket Transport is created and asked for its uri() but never opened. The reply is {namespace, base, query}: `base` is the endpoint URL up to the '?', and `query` is a MAP, because upstream appends EIO/transport after the caller's parameters while Go's url.Values.Encode sorts them and the order carries no meaning. Note that the URL's PATH is the namespace; the HTTP path comes from the `path` option.",
+  "cases": [
+    {
+      "id": "ep-host-port",
+      "fn": "endpoint.resolve",
+      "args": [
+        {
+          "uri": "http://localhost:3000"
+        }
+      ],
+      "upstreamFn": "url() + Manager + engine.io-client Transport.uri()",
+      "goFn": "client.ResolveEndpoint"
+    },
+    {
+      "id": "ep-http-no-port",
+      "fn": "endpoint.resolve",
+      "args": [
+        {
+          "uri": "http://localhost"
+        }
+      ],
+      "upstreamFn": "url() + Manager + engine.io-client Transport.uri()",
+      "goFn": "client.ResolveEndpoint",
+      "note": "no port: the default 80 must not appear in the endpoint URL"
+    },
+    {
+      "id": "ep-http-default-port",
+      "fn": "endpoint.resolve",
+      "args": [
+        {
+          "uri": "http://localhost:80"
+        }
+      ],
+      "upstreamFn": "url() + Manager + engine.io-client Transport.uri()",
+      "goFn": "client.ResolveEndpoint",
+      "note": "an explicit :80 on ws is dropped, so ws://h and ws://h:80 are one endpoint"
+    },
+    {
+      "id": "ep-https",
+      "fn": "endpoint.resolve",
+      "args": [
+        {
+          "uri": "https://example.com"
+        }
+      ],
+      "upstreamFn": "url() + Manager + engine.io-client Transport.uri()",
+      "goFn": "client.ResolveEndpoint",
+      "note": "https becomes wss"
+    },
+    {
+      "id": "ep-https-default-port",
+      "fn": "endpoint.resolve",
+      "args": [
+        {
+          "uri": "https://example.com:443"
+        }
+      ],
+      "upstreamFn": "url() + Manager + engine.io-client Transport.uri()",
+      "goFn": "client.ResolveEndpoint",
+      "note": "an explicit :443 on wss is dropped"
+    },
+    {
+      "id": "ep-https-custom-port",
+      "fn": "endpoint.resolve",
+      "args": [
+        {
+          "uri": "https://example.com:8443"
+        }
+      ],
+      "upstreamFn": "url() + Manager + engine.io-client Transport.uri()",
+      "goFn": "client.ResolveEndpoint"
+    },
+    {
+      "id": "ep-ws-scheme",
+      "fn": "endpoint.resolve",
+      "args": [
+        {
+          "uri": "ws://h:8080"
+        }
+      ],
+      "upstreamFn": "url() + Manager + engine.io-client Transport.uri()",
+      "goFn": "client.ResolveEndpoint"
+    },
+    {
+      "id": "ep-wss-scheme",
+      "fn": "endpoint.resolve",
+      "args": [
+        {
+          "uri": "wss://h"
+        }
+      ],
+      "upstreamFn": "url() + Manager + engine.io-client Transport.uri()",
+      "goFn": "client.ResolveEndpoint"
+    },
+    {
+      "id": "ep-namespace",
+      "fn": "endpoint.resolve",
+      "args": [
+        {
+          "uri": "http://h/admin"
+        }
+      ],
+      "upstreamFn": "url() + Manager + engine.io-client Transport.uri()",
+      "goFn": "client.ResolveEndpoint",
+      "note": "the path is the NAMESPACE: the HTTP path stays /socket.io/"
+    },
+    {
+      "id": "ep-namespace-trailing-slash",
+      "fn": "endpoint.resolve",
+      "args": [
+        {
+          "uri": "http://h/admin/"
+        }
+      ],
+      "upstreamFn": "url() + Manager + engine.io-client Transport.uri()",
+      "goFn": "client.ResolveEndpoint",
+      "note": "a trailing slash is part of the namespace name upstream, and is not normalised away"
+    },
+    {
+      "id": "ep-namespace-nested",
+      "fn": "endpoint.resolve",
+      "args": [
+        {
+          "uri": "http://h/a/b/c"
+        }
+      ],
+      "upstreamFn": "url() + Manager + engine.io-client Transport.uri()",
+      "goFn": "client.ResolveEndpoint"
+    },
+    {
+      "id": "ep-namespace-with-port",
+      "fn": "endpoint.resolve",
+      "args": [
+        {
+          "uri": "http://127.0.0.1:3000/x"
+        }
+      ],
+      "upstreamFn": "url() + Manager + engine.io-client Transport.uri()",
+      "goFn": "client.ResolveEndpoint"
+    },
+    {
+      "id": "ep-query-preserved",
+      "fn": "endpoint.resolve",
+      "args": [
+        {
+          "uri": "http://h/admin?token=1&z=2"
+        }
+      ],
+      "upstreamFn": "url() + Manager + engine.io-client Transport.uri()",
+      "goFn": "client.ResolveEndpoint",
+      "note": "query parameters from the URI reach the transport URL alongside EIO and transport"
+    },
+    {
+      "id": "ep-query-empty-value",
+      "fn": "endpoint.resolve",
+      "args": [
+        {
+          "uri": "http://h/?flag="
+        }
+      ],
+      "upstreamFn": "url() + Manager + engine.io-client Transport.uri()",
+      "goFn": "client.ResolveEndpoint"
+    },
+    {
+      "id": "ep-custom-path",
+      "fn": "endpoint.resolve",
+      "args": [
+        {
+          "uri": "http://h",
+          "path": "/custom"
+        }
+      ],
+      "upstreamFn": "url() + Manager + engine.io-client Transport.uri()",
+      "goFn": "client.ResolveEndpoint",
+      "note": "the mount path is an option, and gains its trailing slash"
+    },
+    {
+      "id": "ep-custom-path-slash",
+      "fn": "endpoint.resolve",
+      "args": [
+        {
+          "uri": "http://h",
+          "path": "/custom/"
+        }
+      ],
+      "upstreamFn": "url() + Manager + engine.io-client Transport.uri()",
+      "goFn": "client.ResolveEndpoint"
+    },
+    {
+      "id": "ep-custom-path-and-namespace",
+      "fn": "endpoint.resolve",
+      "args": [
+        {
+          "uri": "http://h/ns",
+          "path": "/mount"
+        }
+      ],
+      "upstreamFn": "url() + Manager + engine.io-client Transport.uri()",
+      "goFn": "client.ResolveEndpoint"
+    },
+    {
+      "id": "ep-userinfo-dropped",
+      "fn": "endpoint.resolve",
+      "args": [
+        {
+          "uri": "http://user:pw@h:3000/ns"
+        }
+      ],
+      "upstreamFn": "url() + Manager + engine.io-client Transport.uri()",
+      "goFn": "client.ResolveEndpoint",
+      "note": "credentials in the URL must not reach the transport URL; the namespace still comes from the path"
+    },
+    {
+      "id": "ep-ipv6",
+      "fn": "endpoint.resolve",
+      "args": [
+        {
+          "uri": "http://[::1]:3000"
+        }
+      ],
+      "upstreamFn": "url() + Manager + engine.io-client Transport.uri()",
+      "goFn": "client.ResolveEndpoint",
+      "note": "an IPv6 literal keeps its brackets"
+    },
+    {
+      "id": "ep-ipv6-default-port",
+      "fn": "endpoint.resolve",
+      "args": [
+        {
+          "uri": "http://[::1]:80"
+        }
+      ],
+      "upstreamFn": "url() + Manager + engine.io-client Transport.uri()",
+      "goFn": "client.ResolveEndpoint"
+    },
+    {
+      "id": "ep-uppercase-scheme",
+      "fn": "endpoint.resolve",
+      "args": [
+        {
+          "uri": "HTTP://h:3000"
+        }
+      ],
+      "upstreamFn": "url() + Manager + engine.io-client Transport.uri()",
+      "goFn": "client.ResolveEndpoint",
+      "note": "an upper-case scheme; URI schemes are case-insensitive",
+      "deviation": "socket.io-client's url() tests the scheme with the CASE-SENSITIVE regex /^(https?|wss?):\\/\\//, so \"HTTP://h:3000\" is not recognised as absolute and is resolved against window.location — absent under Node, giving the nonsense endpoint \"ws://undefined/socket.io/\" and the namespace \"//HTTP://h:3000\". URI schemes are case-insensitive (RFC 3986 3.1), so upstream is the outlier; net/url lowercases the scheme and the port resolves it normally."
+    },
+    {
+      "id": "ep-unknown-scheme",
+      "fn": "endpoint.resolve",
+      "args": [
+        {
+          "uri": "foo://h:1234"
+        }
+      ],
+      "upstreamFn": "url() + Manager + engine.io-client Transport.uri()",
+      "goFn": "client.ResolveEndpoint",
+      "deviation": "socket.io-client's url() only recognises http/https/ws/wss; anything else is treated as a relative address and resolved against window.location, which does not exist under Node — upstream produces the nonsense endpoint \"ws://undefined/socket.io/\". The port keeps the host and falls back to the ws scheme. Upstream is the outlier."
+    },
+    {
+      "id": "ep-schemeless",
+      "fn": "endpoint.resolve",
+      "args": [
+        {
+          "uri": "h:3000"
+        }
+      ],
+      "upstreamFn": "url() + Manager + engine.io-client Transport.uri()",
+      "goFn": "client.ResolveEndpoint",
+      "deviation": "A schemeless address is browser-only: url() prepends window.location.protocol, and under Node that is undefined, so upstream produces \"ws://undefined/socket.io/\". The port parses it with net/url and defaults the scheme to ws. Upstream is the outlier."
+    }
+  ]
+}

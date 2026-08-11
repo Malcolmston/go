@@ -1,0 +1,157 @@
+{
+  "group": "options",
+  "upstream": "socket.io-client@4.8.1",
+  "note": "Option normalisation. Upstream is a real Manager built with autoConnect false, read back through its own accessors (reconnection(), reconnectionDelay(), …); the mount path is read from the engine.io Socket the Manager would create, because that is where the trailing slash is added. Times are in milliseconds. `reconnectionAttempts` is null when unlimited, since upstream's default is Infinity, which has no JSON form.",
+  "cases": [
+    {
+      "id": "opt-defaults",
+      "fn": "options.defaults",
+      "args": [
+        {}
+      ],
+      "upstreamFn": "Manager option accessors",
+      "goFn": "client.Options.WithDefaults",
+      "note": "every default at once",
+      "deviation": "socket.io-client defaults `reconnection` to TRUE (`opts.reconnection !== false`). A Go struct's zero value cannot express a true default, and Options is part of a published API, so Options.Reconnection stays false-by-default and must be set explicitly. Documented in socket.io/API-DEVIATIONS.md. socket.io-client defaults `randomizationFactor` to 0.5. The same Go zero-value limitation applies: 0 is indistinguishable from unset, so the port leaves reconnection jitter off unless RandomizationFactor is set. Documented in socket.io/API-DEVIATIONS.md."
+    },
+    {
+      "id": "opt-reconnection-explicit",
+      "fn": "options.defaults",
+      "args": [
+        {
+          "reconnection": true
+        }
+      ],
+      "upstreamFn": "Manager option accessors",
+      "goFn": "client.Options.WithDefaults",
+      "note": "with reconnection set explicitly the only remaining difference is the jitter default",
+      "deviation": "socket.io-client defaults `randomizationFactor` to 0.5. The same Go zero-value limitation applies: 0 is indistinguishable from unset, so the port leaves reconnection jitter off unless RandomizationFactor is set. Documented in socket.io/API-DEVIATIONS.md."
+    },
+    {
+      "id": "opt-reconnection-off",
+      "fn": "options.defaults",
+      "args": [
+        {
+          "reconnection": false,
+          "randomizationFactor": 0.5
+        }
+      ],
+      "upstreamFn": "Manager option accessors",
+      "goFn": "client.Options.WithDefaults",
+      "note": "reconnection off and jitter set: everything else must agree exactly"
+    },
+    {
+      "id": "opt-full-explicit",
+      "fn": "options.defaults",
+      "args": [
+        {
+          "reconnection": true,
+          "reconnectionAttempts": 5,
+          "reconnectionDelay": 250,
+          "reconnectionDelayMax": 4000,
+          "randomizationFactor": 0.25,
+          "timeout": 3000,
+          "path": "/mount"
+        }
+      ],
+      "upstreamFn": "Manager option accessors",
+      "goFn": "client.Options.WithDefaults",
+      "note": "every option set explicitly: no defaulting on either side"
+    },
+    {
+      "id": "opt-delay-only",
+      "fn": "options.defaults",
+      "args": [
+        {
+          "reconnection": true,
+          "reconnectionDelay": 2500,
+          "randomizationFactor": 0.5
+        }
+      ],
+      "upstreamFn": "Manager option accessors",
+      "goFn": "client.Options.WithDefaults",
+      "note": "a custom initial delay must not disturb the ceiling default"
+    },
+    {
+      "id": "opt-delay-max-only",
+      "fn": "options.defaults",
+      "args": [
+        {
+          "reconnection": true,
+          "reconnectionDelayMax": 30000,
+          "randomizationFactor": 0.5
+        }
+      ],
+      "upstreamFn": "Manager option accessors",
+      "goFn": "client.Options.WithDefaults"
+    },
+    {
+      "id": "opt-timeout-only",
+      "fn": "options.defaults",
+      "args": [
+        {
+          "reconnection": true,
+          "timeout": 1000,
+          "randomizationFactor": 0.5
+        }
+      ],
+      "upstreamFn": "Manager option accessors",
+      "goFn": "client.Options.WithDefaults",
+      "note": "socket.io-client's `timeout` is this port's DialTimeout"
+    },
+    {
+      "id": "opt-attempts-only",
+      "fn": "options.defaults",
+      "args": [
+        {
+          "reconnection": true,
+          "reconnectionAttempts": 3,
+          "randomizationFactor": 0.5
+        }
+      ],
+      "upstreamFn": "Manager option accessors",
+      "goFn": "client.Options.WithDefaults",
+      "note": "a finite attempt budget"
+    },
+    {
+      "id": "opt-path-no-slash",
+      "fn": "options.defaults",
+      "args": [
+        {
+          "reconnection": true,
+          "randomizationFactor": 0.5,
+          "path": "/base"
+        }
+      ],
+      "upstreamFn": "Manager option accessors",
+      "goFn": "client.Options.WithDefaults",
+      "note": "the mount path gains its trailing slash on both sides"
+    },
+    {
+      "id": "opt-path-with-slash",
+      "fn": "options.defaults",
+      "args": [
+        {
+          "reconnection": true,
+          "randomizationFactor": 0.5,
+          "path": "/base/"
+        }
+      ],
+      "upstreamFn": "Manager option accessors",
+      "goFn": "client.Options.WithDefaults"
+    },
+    {
+      "id": "opt-jitter-out-of-range",
+      "fn": "options.defaults",
+      "args": [
+        {
+          "reconnection": true,
+          "randomizationFactor": 1.5
+        }
+      ],
+      "upstreamFn": "Manager option accessors",
+      "goFn": "client.Options.WithDefaults",
+      "deviation": "Manager stores randomizationFactor verbatim (1.5) and only backo2 later decides that a value outside (0,1] means no jitter; the port normalises it to 0 up front, at the option layer. The resulting SCHEDULE is identical — see the bo-jitter-over-one case — only the reported option value differs."
+    }
+  ]
+}

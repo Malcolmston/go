@@ -1,0 +1,199 @@
+{
+  "group": "packet-encode",
+  "upstream": "engine.io-parser@5.2.3",
+  "note": "encodePacket: a single Engine.IO v4 packet to its wire form. `type` is the engine.io type name (open, close, ping, pong, message, upgrade, noop) so that both PacketType's constants and its String method are exercised. `binary` is the payload as a LOWERCASE HEX string, since JSON has no byte type; a packet carries either `data` (text) or `binary`, never both. `supportsBinary` defaults to false, the polling form, where a binary payload becomes \"b\" + standard base64 and the type prefix is dropped by both implementations. Reply: {kind: \"string\"|\"binary\", encoded: <string form or hex of the raw frame>}.",
+  "cases": [
+    {
+      "id": "enc-open-handshake",
+      "fn": "eio.encodePacket",
+      "args": [{ "type": "open", "data": "{\"sid\":\"abc123\",\"upgrades\":[\"websocket\"],\"pingInterval\":25000,\"pingTimeout\":20000}" }],
+      "upstreamFn": "encodePacket",
+      "goFn": "engineio.NewOpen + Packet.Encode",
+      "note": "the OPEN handshake, the only packet whose data is defined by engine.io itself"
+    },
+    {
+      "id": "enc-open-empty",
+      "fn": "eio.encodePacket",
+      "args": [{ "type": "open" }],
+      "upstreamFn": "encodePacket",
+      "goFn": "engineio.Packet.Encode",
+      "note": "type prefix alone; data is absent, not empty-string"
+    },
+    {
+      "id": "enc-close",
+      "fn": "eio.encodePacket",
+      "args": [{ "type": "close" }],
+      "upstreamFn": "encodePacket",
+      "goFn": "engineio.NewClose + Packet.Encode"
+    },
+    {
+      "id": "enc-ping-bare",
+      "fn": "eio.encodePacket",
+      "args": [{ "type": "ping" }],
+      "upstreamFn": "encodePacket",
+      "goFn": "engineio.NewPing + Packet.Encode",
+      "note": "the v4 heartbeat ping carries no payload"
+    },
+    {
+      "id": "enc-ping-probe",
+      "fn": "eio.encodePacket",
+      "args": [{ "type": "ping", "data": "probe" }],
+      "upstreamFn": "encodePacket",
+      "goFn": "engineio.NewPing + Packet.Encode",
+      "note": "the upgrade handshake probe"
+    },
+    {
+      "id": "enc-pong-bare",
+      "fn": "eio.encodePacket",
+      "args": [{ "type": "pong" }],
+      "upstreamFn": "encodePacket",
+      "goFn": "engineio.NewPong + Packet.Encode"
+    },
+    {
+      "id": "enc-pong-probe",
+      "fn": "eio.encodePacket",
+      "args": [{ "type": "pong", "data": "probe" }],
+      "upstreamFn": "encodePacket",
+      "goFn": "engineio.NewPong + Packet.Encode"
+    },
+    {
+      "id": "enc-message-text",
+      "fn": "eio.encodePacket",
+      "args": [{ "type": "message", "data": "40" }],
+      "upstreamFn": "encodePacket",
+      "goFn": "engineio.NewMessage + Packet.Encode",
+      "note": "a MESSAGE carrying a Socket.IO CONNECT packet"
+    },
+    {
+      "id": "enc-message-empty",
+      "fn": "eio.encodePacket",
+      "args": [{ "type": "message", "data": "" }],
+      "upstreamFn": "encodePacket",
+      "goFn": "engineio.NewMessage + Packet.Encode"
+    },
+    {
+      "id": "enc-message-unicode",
+      "fn": "eio.encodePacket",
+      "args": [{ "type": "message", "data": "42[\"greet\",\"héllo 你好 🌍\"]" }],
+      "upstreamFn": "encodePacket",
+      "goFn": "engineio.NewMessage + Packet.Encode",
+      "note": "multi-byte UTF-8 must survive framing untouched"
+    },
+    {
+      "id": "enc-message-with-separator",
+      "fn": "eio.encodePacket",
+      "args": [{ "type": "message", "data": "a\u001eb" }],
+      "upstreamFn": "encodePacket",
+      "goFn": "engineio.NewMessage + Packet.Encode",
+      "note": "the record separator is not escaped by encodePacket; only encodePayload gives it meaning"
+    },
+    {
+      "id": "enc-message-newlines",
+      "fn": "eio.encodePacket",
+      "args": [{ "type": "message", "data": "line1\nline2\r\n\ttab" }],
+      "upstreamFn": "encodePacket",
+      "goFn": "engineio.NewMessage + Packet.Encode"
+    },
+    {
+      "id": "enc-message-nul",
+      "fn": "eio.encodePacket",
+      "args": [{ "type": "message", "data": "a\u0000b" }],
+      "upstreamFn": "encodePacket",
+      "goFn": "engineio.NewMessage + Packet.Encode",
+      "note": "an embedded NUL is ordinary text to the framing layer"
+    },
+    {
+      "id": "enc-upgrade",
+      "fn": "eio.encodePacket",
+      "args": [{ "type": "upgrade" }],
+      "upstreamFn": "encodePacket",
+      "goFn": "engineio.NewUpgrade + Packet.Encode"
+    },
+    {
+      "id": "enc-noop",
+      "fn": "eio.encodePacket",
+      "args": [{ "type": "noop" }],
+      "upstreamFn": "encodePacket",
+      "goFn": "engineio.NewNoop + Packet.Encode"
+    },
+    {
+      "id": "enc-binary-base64",
+      "fn": "eio.encodePacket",
+      "args": [{ "type": "message", "binary": "00ff10" }],
+      "upstreamFn": "encodePacket",
+      "goFn": "engineio.NewBinaryMessage + Packet.Encode",
+      "note": "binary payload (hex 00 ff 10) in the polling form: \"b\" + base64, type prefix dropped"
+    },
+    {
+      "id": "enc-binary-empty",
+      "fn": "eio.encodePacket",
+      "args": [{ "type": "message", "binary": "" }],
+      "upstreamFn": "encodePacket",
+      "goFn": "engineio.NewBinaryMessage + Packet.Encode",
+      "note": "zero-length binary payload still gets the \"b\" prefix"
+    },
+    {
+      "id": "enc-binary-padding-1",
+      "fn": "eio.encodePacket",
+      "args": [{ "type": "message", "binary": "61" }],
+      "upstreamFn": "encodePacket",
+      "goFn": "engineio.NewBinaryMessage + Packet.Encode",
+      "note": "one byte: base64 with two padding characters"
+    },
+    {
+      "id": "enc-binary-padding-2",
+      "fn": "eio.encodePacket",
+      "args": [{ "type": "message", "binary": "6162" }],
+      "upstreamFn": "encodePacket",
+      "goFn": "engineio.NewBinaryMessage + Packet.Encode",
+      "note": "two bytes: base64 with one padding character"
+    },
+    {
+      "id": "enc-binary-all-bytes",
+      "fn": "eio.encodePacket",
+      "args": [{ "type": "message", "binary": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f7f80fefffdfc" }],
+      "upstreamFn": "encodePacket",
+      "goFn": "engineio.NewBinaryMessage + Packet.Encode",
+      "note": "control bytes, the record separator byte 0x1e and high bytes all base64 identically"
+    },
+    {
+      "id": "enc-binary-type-ignored",
+      "fn": "eio.encodePacket",
+      "args": [{ "type": "ping", "binary": "00ff" }],
+      "upstreamFn": "encodePacket",
+      "goFn": "engineio.Packet.Encode",
+      "note": "a binary payload on a non-MESSAGE packet: both implementations drop the type entirely and emit only \"b\"+base64"
+    },
+    {
+      "id": "enc-binary-native-frame",
+      "fn": "eio.encodePacket",
+      "args": [{ "type": "message", "binary": "00ff10", "supportsBinary": true }],
+      "upstreamFn": "encodePacket (supportsBinary=true)",
+      "goFn": "engineio.Packet.Binary",
+      "note": "over websocket the bytes ride in a native binary frame: upstream's encoder returns the Buffer unchanged, and the port hands Packet.Binary to the frame writer unchanged"
+    },
+    {
+      "id": "enc-binary-native-frame-empty",
+      "fn": "eio.encodePacket",
+      "args": [{ "type": "message", "binary": "", "supportsBinary": true }],
+      "upstreamFn": "encodePacket (supportsBinary=true)",
+      "goFn": "engineio.Packet.Binary"
+    },
+    {
+      "id": "enc-text-supports-binary",
+      "fn": "eio.encodePacket",
+      "args": [{ "type": "message", "data": "hello", "supportsBinary": true }],
+      "upstreamFn": "encodePacket (supportsBinary=true)",
+      "goFn": "engineio.Packet.Encode",
+      "note": "supportsBinary must not change how a text packet is framed"
+    },
+    {
+      "id": "enc-unknown-type",
+      "fn": "eio.encodePacket",
+      "args": [{ "type": "handshake", "data": "x" }],
+      "upstreamFn": "encodePacket",
+      "goFn": "engineio.PacketType",
+      "note": "a type outside the seven-name table: neither side can express it, both runners must fail"
+    }
+  ]
+}

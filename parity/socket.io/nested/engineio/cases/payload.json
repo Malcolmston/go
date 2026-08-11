@@ -1,0 +1,564 @@
+{
+  "group": "payload",
+  "upstream": "engine.io-parser@5.2.3",
+  "note": "encodePayload / decodePayload: the HTTP long-polling batch, in which several packets share one body joined by the Engine.IO v4 record separator U+001E (written \\u001e in these cases). Binary payloads are lowercase hex in the case specs and always travel base64 (\"b\"-prefixed) inside a payload, never as raw bytes. A payload with any unparseable member must fail as a whole on both sides. `eio.roundTrip` encodes a batch and decodes it again, returning both the wire string and the recovered packets.",
+  "cases": [
+    {
+      "id": "encpay-single",
+      "fn": "eio.encodePayload",
+      "args": [
+        {
+          "packets": [
+            {
+              "type": "message",
+              "data": "hello"
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "encodePayload",
+      "goFn": "engineio.EncodePayload",
+      "note": "a one-packet payload carries no separator"
+    },
+    {
+      "id": "encpay-two-messages",
+      "fn": "eio.encodePayload",
+      "args": [
+        {
+          "packets": [
+            {
+              "type": "message",
+              "data": "a"
+            },
+            {
+              "type": "message",
+              "data": "b"
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "encodePayload",
+      "goFn": "engineio.EncodePayload"
+    },
+    {
+      "id": "encpay-empty-batch",
+      "fn": "eio.encodePayload",
+      "args": [
+        {
+          "packets": []
+        }
+      ],
+      "upstreamFn": "encodePayload",
+      "goFn": "engineio.EncodePayload",
+      "note": "no packets encodes to the empty string in the port; upstream never calls back at all",
+      "deviation": "engine.io-parser's encodePayload counts completed packets against the batch length, so for an EMPTY batch the counter never reaches the length and the callback is NEVER invoked — upstream simply hangs. engineio.EncodePayload returns the empty string. Upstream is the outlier (a latent hang); the port is not going to reproduce it."
+    },
+    {
+      "id": "encpay-all-types",
+      "fn": "eio.encodePayload",
+      "args": [
+        {
+          "packets": [
+            {
+              "type": "open",
+              "data": "{\"sid\":\"x\"}"
+            },
+            {
+              "type": "close"
+            },
+            {
+              "type": "ping",
+              "data": "probe"
+            },
+            {
+              "type": "pong",
+              "data": "probe"
+            },
+            {
+              "type": "message",
+              "data": "hi"
+            },
+            {
+              "type": "upgrade"
+            },
+            {
+              "type": "noop"
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "encodePayload",
+      "goFn": "engineio.EncodePayload",
+      "note": "all seven packet types in one batch"
+    },
+    {
+      "id": "encpay-empty-data-packets",
+      "fn": "eio.encodePayload",
+      "args": [
+        {
+          "packets": [
+            {
+              "type": "message",
+              "data": ""
+            },
+            {
+              "type": "message",
+              "data": ""
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "encodePayload",
+      "goFn": "engineio.EncodePayload",
+      "note": "two empty MESSAGEs are distinguishable from one, because the type prefix survives"
+    },
+    {
+      "id": "encpay-binary-only",
+      "fn": "eio.encodePayload",
+      "args": [
+        {
+          "packets": [
+            {
+              "type": "message",
+              "binary": "00ff10"
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "encodePayload",
+      "goFn": "engineio.EncodePayload",
+      "note": "inside a payload binary is always base64: \"b\" + base64(00 ff 10)"
+    },
+    {
+      "id": "encpay-binary-mixed",
+      "fn": "eio.encodePayload",
+      "args": [
+        {
+          "packets": [
+            {
+              "type": "message",
+              "data": "text"
+            },
+            {
+              "type": "message",
+              "binary": "0102"
+            },
+            {
+              "type": "ping"
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "encodePayload",
+      "goFn": "engineio.EncodePayload"
+    },
+    {
+      "id": "encpay-binary-with-separator-byte",
+      "fn": "eio.encodePayload",
+      "args": [
+        {
+          "packets": [
+            {
+              "type": "message",
+              "binary": "1e1e"
+            },
+            {
+              "type": "message",
+              "data": "after"
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "encodePayload",
+      "goFn": "engineio.EncodePayload",
+      "note": "base64 is exactly why the separator byte inside binary data cannot split the batch"
+    },
+    {
+      "id": "encpay-data-contains-separator",
+      "fn": "eio.encodePayload",
+      "args": [
+        {
+          "packets": [
+            {
+              "type": "message",
+              "data": "a\u001eb"
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "encodePayload",
+      "goFn": "engineio.EncodePayload",
+      "note": "the format has no escaping: a text payload containing the separator is emitted verbatim by both implementations and will decode as two packets. Recorded, not fixed — changing it would break the wire format."
+    },
+    {
+      "id": "encpay-unicode",
+      "fn": "eio.encodePayload",
+      "args": [
+        {
+          "packets": [
+            {
+              "type": "message",
+              "data": "héllo"
+            },
+            {
+              "type": "message",
+              "data": "你好"
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "encodePayload",
+      "goFn": "engineio.EncodePayload"
+    },
+    {
+      "id": "decpay-single",
+      "fn": "eio.decodePayload",
+      "args": [
+        {
+          "encoded": "4hello"
+        }
+      ],
+      "upstreamFn": "decodePayload",
+      "goFn": "engineio.DecodePayload",
+      "note": "a body with no separator is a one-packet payload"
+    },
+    {
+      "id": "decpay-two",
+      "fn": "eio.decodePayload",
+      "args": [
+        {
+          "encoded": "4a\u001e4b"
+        }
+      ],
+      "upstreamFn": "decodePayload",
+      "goFn": "engineio.DecodePayload"
+    },
+    {
+      "id": "decpay-handshake-then-messages",
+      "fn": "eio.decodePayload",
+      "args": [
+        {
+          "encoded": "0{\"sid\":\"x\",\"pingInterval\":25000}\u001e40\u001e42[\"ev\",1]"
+        }
+      ],
+      "upstreamFn": "decodePayload",
+      "goFn": "engineio.DecodePayload",
+      "note": "the real first polling response: OPEN, then the Socket.IO CONNECT and an EVENT"
+    },
+    {
+      "id": "decpay-all-types",
+      "fn": "eio.decodePayload",
+      "args": [
+        {
+          "encoded": "0{}\u001e1\u001e2probe\u001e3probe\u001e4msg\u001e5\u001e6"
+        }
+      ],
+      "upstreamFn": "decodePayload",
+      "goFn": "engineio.DecodePayload"
+    },
+    {
+      "id": "decpay-binary-first",
+      "fn": "eio.decodePayload",
+      "args": [
+        {
+          "encoded": "bAP8Q\u001e4hello"
+        }
+      ],
+      "upstreamFn": "decodePayload",
+      "goFn": "engineio.DecodePayload"
+    },
+    {
+      "id": "decpay-binary-empty-member",
+      "fn": "eio.decodePayload",
+      "args": [
+        {
+          "encoded": "b\u001e4x"
+        }
+      ],
+      "upstreamFn": "decodePayload",
+      "goFn": "engineio.DecodePayload",
+      "note": "a zero-length binary member is legal"
+    },
+    {
+      "id": "decpay-empty-body",
+      "fn": "eio.decodePayload",
+      "args": [
+        {
+          "encoded": ""
+        }
+      ],
+      "upstreamFn": "decodePayload",
+      "goFn": "engineio.DecodePayload (ErrEmptyPacket)",
+      "note": "an empty/truncated POST body must not decode as an empty batch: both must fail"
+    },
+    {
+      "id": "decpay-separator-only",
+      "fn": "eio.decodePayload",
+      "args": [
+        {
+          "encoded": "\u001e"
+        }
+      ],
+      "upstreamFn": "decodePayload",
+      "goFn": "engineio.DecodePayload",
+      "note": "both must fail"
+    },
+    {
+      "id": "decpay-trailing-separator",
+      "fn": "eio.decodePayload",
+      "args": [
+        {
+          "encoded": "4a\u001e"
+        }
+      ],
+      "upstreamFn": "decodePayload",
+      "goFn": "engineio.DecodePayload",
+      "note": "a trailing separator leaves an empty record; both must fail rather than ignore it"
+    },
+    {
+      "id": "decpay-leading-separator",
+      "fn": "eio.decodePayload",
+      "args": [
+        {
+          "encoded": "\u001e4a"
+        }
+      ],
+      "upstreamFn": "decodePayload",
+      "goFn": "engineio.DecodePayload",
+      "note": "both must fail"
+    },
+    {
+      "id": "decpay-double-separator",
+      "fn": "eio.decodePayload",
+      "args": [
+        {
+          "encoded": "4a\u001e\u001e4b"
+        }
+      ],
+      "upstreamFn": "decodePayload",
+      "goFn": "engineio.DecodePayload",
+      "note": "both must fail"
+    },
+    {
+      "id": "decpay-bad-member-type",
+      "fn": "eio.decodePayload",
+      "args": [
+        {
+          "encoded": "4a\u001e7x"
+        }
+      ],
+      "upstreamFn": "decodePayload",
+      "goFn": "engineio.DecodePayload",
+      "note": "one bad member poisons the whole batch: both must fail"
+    },
+    {
+      "id": "decpay-bad-member-first",
+      "fn": "eio.decodePayload",
+      "args": [
+        {
+          "encoded": "9\u001e4a"
+        }
+      ],
+      "upstreamFn": "decodePayload",
+      "goFn": "engineio.DecodePayload",
+      "note": "both must fail"
+    },
+    {
+      "id": "decpay-many",
+      "fn": "eio.decodePayload",
+      "args": [
+        {
+          "encoded": "4a\u001e4b\u001e4c\u001e4d\u001e4e\u001e4f\u001e4g\u001e4h\u001e4i\u001e4j"
+        }
+      ],
+      "upstreamFn": "decodePayload",
+      "goFn": "engineio.DecodePayload",
+      "note": "ten members, to pin down ordering"
+    },
+    {
+      "id": "decpay-unicode",
+      "fn": "eio.decodePayload",
+      "args": [
+        {
+          "encoded": "4héllo\u001e4你好\u001e4🌍"
+        }
+      ],
+      "upstreamFn": "decodePayload",
+      "goFn": "engineio.DecodePayload"
+    },
+    {
+      "id": "roundtrip-mixed",
+      "fn": "eio.roundTrip",
+      "args": [
+        {
+          "packets": [
+            {
+              "type": "open",
+              "data": "{\"sid\":\"s\"}"
+            },
+            {
+              "type": "message",
+              "data": "42[\"ev\",{\"a\":1}]"
+            },
+            {
+              "type": "message",
+              "binary": "deadbeef"
+            },
+            {
+              "type": "ping"
+            },
+            {
+              "type": "noop"
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "encodePayload + decodePayload",
+      "goFn": "engineio.EncodePayload + DecodePayload",
+      "note": "the batching format's only real invariant: what goes in comes out, in order"
+    },
+    {
+      "id": "roundtrip-binary-only",
+      "fn": "eio.roundTrip",
+      "args": [
+        {
+          "packets": [
+            {
+              "type": "message",
+              "binary": "00"
+            },
+            {
+              "type": "message",
+              "binary": "1e"
+            },
+            {
+              "type": "message",
+              "binary": "ff00ff"
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "encodePayload + decodePayload",
+      "goFn": "engineio.EncodePayload + DecodePayload"
+    },
+    {
+      "id": "roundtrip-single-empty-message",
+      "fn": "eio.roundTrip",
+      "args": [
+        {
+          "packets": [
+            {
+              "type": "message",
+              "data": ""
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "encodePayload + decodePayload",
+      "goFn": "engineio.EncodePayload + DecodePayload"
+    },
+    {
+      "id": "roundtrip-unicode",
+      "fn": "eio.roundTrip",
+      "args": [
+        {
+          "packets": [
+            {
+              "type": "message",
+              "data": "héllo 🌍"
+            },
+            {
+              "type": "message",
+              "data": "你好"
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "encodePayload + decodePayload",
+      "goFn": "engineio.EncodePayload + DecodePayload"
+    },
+    {
+      "id": "decpay-large-batch",
+      "fn": "eio.decodePayload",
+      "args": [
+        {
+          "encoded": "4msg0\u001e4msg1\u001e4msg2\u001e4msg3\u001e4msg4\u001e4msg5\u001e4msg6\u001e4msg7\u001e4msg8\u001e4msg9\u001e4msg10\u001e4msg11\u001e4msg12\u001e4msg13\u001e4msg14\u001e4msg15\u001e4msg16\u001e4msg17\u001e4msg18\u001e4msg19\u001e4msg20\u001e4msg21\u001e4msg22\u001e4msg23\u001e4msg24\u001e4msg25\u001e4msg26\u001e4msg27\u001e4msg28\u001e4msg29\u001e4msg30\u001e4msg31\u001e4msg32\u001e4msg33\u001e4msg34\u001e4msg35\u001e4msg36\u001e4msg37\u001e4msg38\u001e4msg39\u001e4msg40\u001e4msg41\u001e4msg42\u001e4msg43\u001e4msg44\u001e4msg45\u001e4msg46\u001e4msg47\u001e4msg48\u001e4msg49\u001e4msg50\u001e4msg51\u001e4msg52\u001e4msg53\u001e4msg54\u001e4msg55\u001e4msg56\u001e4msg57\u001e4msg58\u001e4msg59\u001e4msg60\u001e4msg61\u001e4msg62\u001e4msg63\u001e4msg64\u001e4msg65\u001e4msg66\u001e4msg67\u001e4msg68\u001e4msg69\u001e4msg70\u001e4msg71\u001e4msg72\u001e4msg73\u001e4msg74\u001e4msg75\u001e4msg76\u001e4msg77\u001e4msg78\u001e4msg79\u001e4msg80\u001e4msg81\u001e4msg82\u001e4msg83\u001e4msg84\u001e4msg85\u001e4msg86\u001e4msg87\u001e4msg88\u001e4msg89\u001e4msg90\u001e4msg91\u001e4msg92\u001e4msg93\u001e4msg94\u001e4msg95\u001e4msg96\u001e4msg97\u001e4msg98\u001e4msg99\u001e4msg100\u001e4msg101\u001e4msg102\u001e4msg103\u001e4msg104\u001e4msg105\u001e4msg106\u001e4msg107\u001e4msg108\u001e4msg109\u001e4msg110\u001e4msg111\u001e4msg112\u001e4msg113\u001e4msg114\u001e4msg115\u001e4msg116\u001e4msg117\u001e4msg118\u001e4msg119\u001e4msg120\u001e4msg121\u001e4msg122\u001e4msg123\u001e4msg124\u001e4msg125\u001e4msg126\u001e4msg127\u001e4msg128\u001e4msg129\u001e4msg130\u001e4msg131\u001e4msg132\u001e4msg133\u001e4msg134\u001e4msg135\u001e4msg136\u001e4msg137\u001e4msg138\u001e4msg139\u001e4msg140\u001e4msg141\u001e4msg142\u001e4msg143\u001e4msg144\u001e4msg145\u001e4msg146\u001e4msg147\u001e4msg148\u001e4msg149\u001e4msg150\u001e4msg151\u001e4msg152\u001e4msg153\u001e4msg154\u001e4msg155\u001e4msg156\u001e4msg157\u001e4msg158\u001e4msg159\u001e4msg160\u001e4msg161\u001e4msg162\u001e4msg163\u001e4msg164\u001e4msg165\u001e4msg166\u001e4msg167\u001e4msg168\u001e4msg169\u001e4msg170\u001e4msg171\u001e4msg172\u001e4msg173\u001e4msg174\u001e4msg175\u001e4msg176\u001e4msg177\u001e4msg178\u001e4msg179\u001e4msg180\u001e4msg181\u001e4msg182\u001e4msg183\u001e4msg184\u001e4msg185\u001e4msg186\u001e4msg187\u001e4msg188\u001e4msg189\u001e4msg190\u001e4msg191\u001e4msg192\u001e4msg193\u001e4msg194\u001e4msg195\u001e4msg196\u001e4msg197\u001e4msg198\u001e4msg199"
+        }
+      ],
+      "upstreamFn": "decodePayload",
+      "goFn": "engineio.DecodePayload",
+      "note": "200 members: ordering and count under load"
+    },
+    {
+      "id": "decpay-error-after-good-members",
+      "fn": "eio.decodePayload",
+      "args": [
+        {
+          "encoded": "4a\u001e4b\u001e4c\u001ezz\u001e4d"
+        }
+      ],
+      "upstreamFn": "decodePayload",
+      "goFn": "engineio.DecodePayload",
+      "note": "upstream stops at the first bad member and returns the earlier packets plus an error packet; the port returns an error for the whole body. Both refuse the body, which is what the transport layer acts on: both runners report failure."
+    },
+    {
+      "id": "roundtrip-all-types",
+      "fn": "eio.roundTrip",
+      "args": [
+        {
+          "packets": [
+            {
+              "type": "open",
+              "data": "{\"sid\":\"s\",\"upgrades\":[],\"pingInterval\":25000,\"pingTimeout\":20000}"
+            },
+            {
+              "type": "close"
+            },
+            {
+              "type": "ping",
+              "data": "probe"
+            },
+            {
+              "type": "pong",
+              "data": "probe"
+            },
+            {
+              "type": "message",
+              "data": "4"
+            },
+            {
+              "type": "upgrade"
+            },
+            {
+              "type": "noop"
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "encodePayload + decodePayload",
+      "goFn": "engineio.EncodePayload + DecodePayload",
+      "note": "every packet type through the batch, including a MESSAGE whose data is itself a digit"
+    },
+    {
+      "id": "roundtrip-binary-large",
+      "fn": "eio.roundTrip",
+      "args": [
+        {
+          "packets": [
+            {
+              "type": "message",
+              "binary": "abababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab"
+            },
+            {
+              "type": "message",
+              "data": "tail"
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "encodePayload + decodePayload",
+      "goFn": "engineio.EncodePayload + DecodePayload",
+      "note": "10 000-byte binary member followed by a text member"
+    }
+  ]
+}

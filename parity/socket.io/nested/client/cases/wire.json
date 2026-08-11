@@ -1,0 +1,542 @@
+{
+  "group": "wire",
+  "upstream": "socket.io-client@4.8.1 + socket.io-parser@4.2.7",
+  "note": "The packets a client actually puts on the wire, encoded. Upstream builds them with the real Socket: an emit on a Socket that is not connected lands in sendBuffer, and _sendConnectPacket is intercepted by stubbing io._packet — no server is involved. The packets are then encoded with socket.io-parser's Encoder. The reply is the encoded frames: the text frame first, then each binary attachment as \"bin:<lowercase hex>\". A binary event argument is written {\"$bin\": \"<lowercase hex>\"} in the case and becomes a Buffer / []byte in the runner. Objects with more than one key are avoided: Go maps do not preserve insertion order, which is an already-documented deviation of the shared codec (see parity/socket.io/COVERAGE.md).",
+  "cases": [
+    {
+      "id": "wire-connect-root",
+      "fn": "wire.connect",
+      "args": [
+        {
+          "namespace": "/"
+        }
+      ],
+      "upstreamFn": "Socket._sendConnectPacket + socket.io-parser Encoder",
+      "goFn": "client.ConnectPacket + socketio.Packet.EncodeBinary",
+      "note": "CONNECT to the default namespace with no auth"
+    },
+    {
+      "id": "wire-connect-namespace",
+      "fn": "wire.connect",
+      "args": [
+        {
+          "namespace": "/admin"
+        }
+      ],
+      "upstreamFn": "Socket._sendConnectPacket + socket.io-parser Encoder",
+      "goFn": "client.ConnectPacket + socketio.Packet.EncodeBinary"
+    },
+    {
+      "id": "wire-connect-nested-namespace",
+      "fn": "wire.connect",
+      "args": [
+        {
+          "namespace": "/a/b"
+        }
+      ],
+      "upstreamFn": "Socket._sendConnectPacket + socket.io-parser Encoder",
+      "goFn": "client.ConnectPacket + socketio.Packet.EncodeBinary"
+    },
+    {
+      "id": "wire-connect-auth-object",
+      "fn": "wire.connect",
+      "args": [
+        {
+          "namespace": "/",
+          "auth": {
+            "token": "abc"
+          }
+        }
+      ],
+      "upstreamFn": "Socket._sendConnectPacket + socket.io-parser Encoder",
+      "goFn": "client.ConnectPacket + socketio.Packet.EncodeBinary",
+      "note": "the auth payload rides in the CONNECT packet"
+    },
+    {
+      "id": "wire-connect-auth-namespace",
+      "fn": "wire.connect",
+      "args": [
+        {
+          "namespace": "/admin",
+          "auth": {
+            "token": "abc"
+          }
+        }
+      ],
+      "upstreamFn": "Socket._sendConnectPacket + socket.io-parser Encoder",
+      "goFn": "client.ConnectPacket + socketio.Packet.EncodeBinary"
+    },
+    {
+      "id": "wire-connect-auth-nested",
+      "fn": "wire.connect",
+      "args": [
+        {
+          "namespace": "/",
+          "auth": {
+            "user": {
+              "id": 7
+            }
+          }
+        }
+      ],
+      "upstreamFn": "Socket._sendConnectPacket + socket.io-parser Encoder",
+      "goFn": "client.ConnectPacket + socketio.Packet.EncodeBinary"
+    },
+    {
+      "id": "wire-connect-auth-empty-object",
+      "fn": "wire.connect",
+      "args": [
+        {
+          "namespace": "/",
+          "auth": {}
+        }
+      ],
+      "upstreamFn": "Socket._sendConnectPacket + socket.io-parser Encoder",
+      "goFn": "client.ConnectPacket + socketio.Packet.EncodeBinary",
+      "note": "an empty auth object is still a payload, not an absent one"
+    },
+    {
+      "id": "wire-connect-auth-unicode",
+      "fn": "wire.connect",
+      "args": [
+        {
+          "namespace": "/",
+          "auth": {
+            "token": "héllo 你好"
+          }
+        }
+      ],
+      "upstreamFn": "Socket._sendConnectPacket + socket.io-parser Encoder",
+      "goFn": "client.ConnectPacket + socketio.Packet.EncodeBinary"
+    },
+    {
+      "id": "wire-emit-no-args",
+      "fn": "wire.emit",
+      "args": [
+        {
+          "namespace": "/",
+          "event": "ping-ish"
+        }
+      ],
+      "upstreamFn": "Socket.emit + socket.io-parser Encoder",
+      "goFn": "client.EventPacket + socketio.Packet.EncodeBinary",
+      "note": "an event with no arguments"
+    },
+    {
+      "id": "wire-emit-scalars",
+      "fn": "wire.emit",
+      "args": [
+        {
+          "namespace": "/",
+          "event": "ev",
+          "args": [
+            1,
+            "two",
+            true,
+            null,
+            3.5
+          ]
+        }
+      ],
+      "upstreamFn": "Socket.emit + socket.io-parser Encoder",
+      "goFn": "client.EventPacket + socketio.Packet.EncodeBinary",
+      "note": "every JSON scalar type as an argument"
+    },
+    {
+      "id": "wire-emit-namespace",
+      "fn": "wire.emit",
+      "args": [
+        {
+          "namespace": "/admin",
+          "event": "ev",
+          "args": [
+            "x"
+          ]
+        }
+      ],
+      "upstreamFn": "Socket.emit + socket.io-parser Encoder",
+      "goFn": "client.EventPacket + socketio.Packet.EncodeBinary"
+    },
+    {
+      "id": "wire-emit-array-arg",
+      "fn": "wire.emit",
+      "args": [
+        {
+          "namespace": "/",
+          "event": "ev",
+          "args": [
+            [
+              1,
+              2,
+              3
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "Socket.emit + socket.io-parser Encoder",
+      "goFn": "client.EventPacket + socketio.Packet.EncodeBinary"
+    },
+    {
+      "id": "wire-emit-single-key-object",
+      "fn": "wire.emit",
+      "args": [
+        {
+          "namespace": "/",
+          "event": "ev",
+          "args": [
+            {
+              "a": 1
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "Socket.emit + socket.io-parser Encoder",
+      "goFn": "client.EventPacket + socketio.Packet.EncodeBinary"
+    },
+    {
+      "id": "wire-emit-empty-string-arg",
+      "fn": "wire.emit",
+      "args": [
+        {
+          "namespace": "/",
+          "event": "ev",
+          "args": [
+            ""
+          ]
+        }
+      ],
+      "upstreamFn": "Socket.emit + socket.io-parser Encoder",
+      "goFn": "client.EventPacket + socketio.Packet.EncodeBinary"
+    },
+    {
+      "id": "wire-emit-unicode",
+      "fn": "wire.emit",
+      "args": [
+        {
+          "namespace": "/",
+          "event": "greet",
+          "args": [
+            "héllo 你好 🌍"
+          ]
+        }
+      ],
+      "upstreamFn": "Socket.emit + socket.io-parser Encoder",
+      "goFn": "client.EventPacket + socketio.Packet.EncodeBinary"
+    },
+    {
+      "id": "wire-emit-event-name-comma",
+      "fn": "wire.emit",
+      "args": [
+        {
+          "namespace": "/",
+          "event": "a,b",
+          "args": [
+            1
+          ]
+        }
+      ],
+      "upstreamFn": "Socket.emit + socket.io-parser Encoder",
+      "goFn": "client.EventPacket + socketio.Packet.EncodeBinary",
+      "note": "the namespace/payload separator is a comma, so a comma in the event name must not confuse the encoding"
+    },
+    {
+      "id": "wire-emit-event-name-numeric",
+      "fn": "wire.emit",
+      "args": [
+        {
+          "namespace": "/",
+          "event": "42",
+          "args": []
+        }
+      ],
+      "upstreamFn": "Socket.emit + socket.io-parser Encoder",
+      "goFn": "client.EventPacket + socketio.Packet.EncodeBinary"
+    },
+    {
+      "id": "wire-emit-ack-0",
+      "fn": "wire.emit",
+      "args": [
+        {
+          "namespace": "/",
+          "event": "ev",
+          "args": [
+            "q"
+          ],
+          "ackId": 0
+        }
+      ],
+      "upstreamFn": "Socket.emit + socket.io-parser Encoder",
+      "goFn": "client.EventPacket + socketio.Packet.EncodeBinary",
+      "note": "the first acknowledged emit claims id 0"
+    },
+    {
+      "id": "wire-emit-ack-7",
+      "fn": "wire.emit",
+      "args": [
+        {
+          "namespace": "/",
+          "event": "ev",
+          "args": [
+            "q"
+          ],
+          "ackId": 7
+        }
+      ],
+      "upstreamFn": "Socket.emit + socket.io-parser Encoder",
+      "goFn": "client.EventPacket + socketio.Packet.EncodeBinary"
+    },
+    {
+      "id": "wire-emit-ack-namespace",
+      "fn": "wire.emit",
+      "args": [
+        {
+          "namespace": "/admin",
+          "event": "ev",
+          "args": [
+            "q"
+          ],
+          "ackId": 3
+        }
+      ],
+      "upstreamFn": "Socket.emit + socket.io-parser Encoder",
+      "goFn": "client.EventPacket + socketio.Packet.EncodeBinary",
+      "note": "namespace and ack id in the same frame"
+    },
+    {
+      "id": "wire-emit-ack-large",
+      "fn": "wire.emit",
+      "args": [
+        {
+          "namespace": "/",
+          "event": "ev",
+          "args": [],
+          "ackId": 4294967295
+        }
+      ],
+      "upstreamFn": "Socket.emit + socket.io-parser Encoder",
+      "goFn": "client.EventPacket + socketio.Packet.EncodeBinary",
+      "note": "a large ack id"
+    },
+    {
+      "id": "wire-emit-binary",
+      "fn": "wire.emit",
+      "args": [
+        {
+          "namespace": "/",
+          "event": "file",
+          "args": [
+            {
+              "$bin": "00ff10"
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "Socket.emit + socket.io-parser Encoder",
+      "goFn": "client.EventPacket + socketio.Packet.EncodeBinary",
+      "note": "a []byte / Buffer argument turns the EVENT into a BINARY_EVENT with one attachment frame"
+    },
+    {
+      "id": "wire-emit-binary-two",
+      "fn": "wire.emit",
+      "args": [
+        {
+          "namespace": "/",
+          "event": "files",
+          "args": [
+            {
+              "$bin": "0001"
+            },
+            {
+              "$bin": "ff"
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "Socket.emit + socket.io-parser Encoder",
+      "goFn": "client.EventPacket + socketio.Packet.EncodeBinary",
+      "note": "two attachments, in order"
+    },
+    {
+      "id": "wire-emit-binary-mixed",
+      "fn": "wire.emit",
+      "args": [
+        {
+          "namespace": "/",
+          "event": "mixed",
+          "args": [
+            "label",
+            {
+              "$bin": "deadbeef"
+            },
+            3
+          ]
+        }
+      ],
+      "upstreamFn": "Socket.emit + socket.io-parser Encoder",
+      "goFn": "client.EventPacket + socketio.Packet.EncodeBinary",
+      "note": "placeholders keep their position among the plain arguments"
+    },
+    {
+      "id": "wire-emit-binary-empty",
+      "fn": "wire.emit",
+      "args": [
+        {
+          "namespace": "/",
+          "event": "file",
+          "args": [
+            {
+              "$bin": ""
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "Socket.emit + socket.io-parser Encoder",
+      "goFn": "client.EventPacket + socketio.Packet.EncodeBinary",
+      "note": "a zero-length attachment is still an attachment"
+    },
+    {
+      "id": "wire-emit-binary-namespaced-ack",
+      "fn": "wire.emit",
+      "args": [
+        {
+          "namespace": "/admin",
+          "event": "file",
+          "args": [
+            {
+              "$bin": "00ff"
+            }
+          ],
+          "ackId": 2
+        }
+      ],
+      "upstreamFn": "Socket.emit + socket.io-parser Encoder",
+      "goFn": "client.EventPacket + socketio.Packet.EncodeBinary",
+      "note": "BINARY_EVENT with a namespace and an ack id"
+    },
+    {
+      "id": "wire-emit-reserved-connect",
+      "fn": "wire.emit",
+      "args": [
+        {
+          "namespace": "/",
+          "event": "connect",
+          "args": []
+        }
+      ],
+      "upstreamFn": "Socket.emit + socket.io-parser Encoder",
+      "goFn": "client.EventPacket + socketio.Packet.EncodeBinary",
+      "note": "reserved event name: both must refuse"
+    },
+    {
+      "id": "wire-emit-reserved-connect-error",
+      "fn": "wire.emit",
+      "args": [
+        {
+          "namespace": "/",
+          "event": "connect_error",
+          "args": []
+        }
+      ],
+      "upstreamFn": "Socket.emit + socket.io-parser Encoder",
+      "goFn": "client.EventPacket + socketio.Packet.EncodeBinary",
+      "note": "both must refuse"
+    },
+    {
+      "id": "wire-emit-reserved-disconnect",
+      "fn": "wire.emit",
+      "args": [
+        {
+          "namespace": "/",
+          "event": "disconnect",
+          "args": []
+        }
+      ],
+      "upstreamFn": "Socket.emit + socket.io-parser Encoder",
+      "goFn": "client.EventPacket + socketio.Packet.EncodeBinary",
+      "note": "both must refuse"
+    },
+    {
+      "id": "wire-emit-reserved-disconnecting",
+      "fn": "wire.emit",
+      "args": [
+        {
+          "namespace": "/",
+          "event": "disconnecting",
+          "args": []
+        }
+      ],
+      "upstreamFn": "Socket.emit + socket.io-parser Encoder",
+      "goFn": "client.EventPacket + socketio.Packet.EncodeBinary",
+      "note": "both must refuse"
+    },
+    {
+      "id": "wire-emit-reserved-new-listener",
+      "fn": "wire.emit",
+      "args": [
+        {
+          "namespace": "/",
+          "event": "newListener",
+          "args": []
+        }
+      ],
+      "upstreamFn": "Socket.emit + socket.io-parser Encoder",
+      "goFn": "client.EventPacket + socketio.Packet.EncodeBinary",
+      "note": "the EventEmitter reserved names are refused too"
+    },
+    {
+      "id": "wire-emit-reserved-remove-listener",
+      "fn": "wire.emit",
+      "args": [
+        {
+          "namespace": "/",
+          "event": "removeListener",
+          "args": []
+        }
+      ],
+      "upstreamFn": "Socket.emit + socket.io-parser Encoder",
+      "goFn": "client.EventPacket + socketio.Packet.EncodeBinary",
+      "note": "both must refuse"
+    },
+    {
+      "id": "wire-emit-not-reserved-lookalike",
+      "fn": "wire.emit",
+      "args": [
+        {
+          "namespace": "/",
+          "event": "connected",
+          "args": []
+        }
+      ],
+      "upstreamFn": "Socket.emit + socket.io-parser Encoder",
+      "goFn": "client.EventPacket + socketio.Packet.EncodeBinary",
+      "note": "only the exact reserved names are refused: \"connected\" is an ordinary event"
+    },
+    {
+      "id": "wire-emit-not-reserved-case",
+      "fn": "wire.emit",
+      "args": [
+        {
+          "namespace": "/",
+          "event": "Connect",
+          "args": []
+        }
+      ],
+      "upstreamFn": "Socket.emit + socket.io-parser Encoder",
+      "goFn": "client.EventPacket + socketio.Packet.EncodeBinary",
+      "note": "the reserved-name check is case-sensitive on both sides"
+    },
+    {
+      "id": "wire-ack-ids-sequence",
+      "fn": "wire.ackIds",
+      "args": [
+        {
+          "namespace": "/",
+          "count": 5
+        }
+      ],
+      "upstreamFn": "Socket.ids",
+      "goFn": "client.AckIDs.Next",
+      "note": "the allocator: five acknowledged emits in a row claim 0,1,2,3,4"
+    }
+  ]
+}

@@ -1,0 +1,531 @@
+{
+  "group": "backoff",
+  "upstream": "socket.io-client@4.8.1",
+  "note": "The reconnection schedule. Upstream is the backo2 module bundled inside socket.io-client (`build/esm/contrib/backo2.js`), which Manager seeds from reconnectionDelay / reconnectionDelayMax / randomizationFactor. All times are in MILLISECONDS: `min`/`max` in the request, `durations` in the reply. Jitter is made deterministic by replacing Math.random on the upstream side and injecting BackoffOptions.Rand on the Go side with the identical `rands` sequence, cycled if more draws are needed. `attempts` is the counter after the last call.",
+  "cases": [
+    {
+      "id": "bo-defaults",
+      "fn": "backoff.durations",
+      "args": [
+        {
+          "count": 8
+        }
+      ],
+      "upstreamFn": "Backoff (socket.io-client/contrib/backo2).duration",
+      "goFn": "client.Backoff.Duration",
+      "note": "no options at all: 100ms doubling to the 10s ceiling"
+    },
+    {
+      "id": "bo-single",
+      "fn": "backoff.durations",
+      "args": [
+        {
+          "min": 100,
+          "max": 5000,
+          "count": 1
+        }
+      ],
+      "upstreamFn": "Backoff (socket.io-client/contrib/backo2).duration",
+      "goFn": "client.Backoff.Duration",
+      "note": "the very first delay is min"
+    },
+    {
+      "id": "bo-manager-defaults",
+      "fn": "backoff.durations",
+      "args": [
+        {
+          "min": 1000,
+          "max": 5000,
+          "count": 6
+        }
+      ],
+      "upstreamFn": "Backoff (socket.io-client/contrib/backo2).duration",
+      "goFn": "client.Backoff.Duration",
+      "note": "the schedule a default Manager uses: 1000, 2000, 4000, then the 5000 ceiling"
+    },
+    {
+      "id": "bo-hits-ceiling",
+      "fn": "backoff.durations",
+      "args": [
+        {
+          "min": 100,
+          "max": 1000,
+          "count": 8
+        }
+      ],
+      "upstreamFn": "Backoff (socket.io-client/contrib/backo2).duration",
+      "goFn": "client.Backoff.Duration",
+      "note": "clamping at max must not stop the attempt counter"
+    },
+    {
+      "id": "bo-ceiling-below-min",
+      "fn": "backoff.durations",
+      "args": [
+        {
+          "min": 5000,
+          "max": 1000,
+          "count": 3
+        }
+      ],
+      "upstreamFn": "Backoff (socket.io-client/contrib/backo2).duration",
+      "goFn": "client.Backoff.Duration",
+      "note": "a max below min clamps every delay from the first"
+    },
+    {
+      "id": "bo-factor-1",
+      "fn": "backoff.durations",
+      "args": [
+        {
+          "min": 250,
+          "max": 5000,
+          "factor": 1,
+          "count": 4
+        }
+      ],
+      "upstreamFn": "Backoff (socket.io-client/contrib/backo2).duration",
+      "goFn": "client.Backoff.Duration",
+      "note": "factor 1 is a constant delay"
+    },
+    {
+      "id": "bo-factor-3",
+      "fn": "backoff.durations",
+      "args": [
+        {
+          "min": 100,
+          "max": 100000,
+          "factor": 3,
+          "count": 6
+        }
+      ],
+      "upstreamFn": "Backoff (socket.io-client/contrib/backo2).duration",
+      "goFn": "client.Backoff.Duration"
+    },
+    {
+      "id": "bo-factor-fractional",
+      "fn": "backoff.durations",
+      "args": [
+        {
+          "min": 1000,
+          "max": 100000,
+          "factor": 1.5,
+          "count": 6
+        }
+      ],
+      "upstreamFn": "Backoff (socket.io-client/contrib/backo2).duration",
+      "goFn": "client.Backoff.Duration",
+      "note": "a fractional factor exposes rounding: backo2 truncates the result to whole milliseconds"
+    },
+    {
+      "id": "bo-factor-zero",
+      "fn": "backoff.durations",
+      "args": [
+        {
+          "min": 100,
+          "max": 5000,
+          "factor": 0,
+          "count": 3
+        }
+      ],
+      "upstreamFn": "Backoff (socket.io-client/contrib/backo2).duration",
+      "goFn": "client.Backoff.Duration",
+      "note": "factor 0 is falsy upstream and falls back to 2"
+    },
+    {
+      "id": "bo-min-zero",
+      "fn": "backoff.durations",
+      "args": [
+        {
+          "min": 0,
+          "max": 5000,
+          "count": 3
+        }
+      ],
+      "upstreamFn": "Backoff (socket.io-client/contrib/backo2).duration",
+      "goFn": "client.Backoff.Duration",
+      "note": "min 0 is falsy upstream and falls back to 100"
+    },
+    {
+      "id": "bo-max-zero",
+      "fn": "backoff.durations",
+      "args": [
+        {
+          "min": 100,
+          "max": 0,
+          "count": 8
+        }
+      ],
+      "upstreamFn": "Backoff (socket.io-client/contrib/backo2).duration",
+      "goFn": "client.Backoff.Duration",
+      "note": "max 0 is falsy upstream and falls back to 10000"
+    },
+    {
+      "id": "bo-long-run",
+      "fn": "backoff.durations",
+      "args": [
+        {
+          "min": 100,
+          "max": 10000,
+          "count": 20
+        }
+      ],
+      "upstreamFn": "Backoff (socket.io-client/contrib/backo2).duration",
+      "goFn": "client.Backoff.Duration",
+      "note": "twenty attempts: the growth saturates rather than overflowing"
+    },
+    {
+      "id": "bo-huge-growth",
+      "fn": "backoff.durations",
+      "args": [
+        {
+          "min": 1000,
+          "max": 5000,
+          "factor": 10,
+          "count": 40
+        }
+      ],
+      "upstreamFn": "Backoff (socket.io-client/contrib/backo2).duration",
+      "goFn": "client.Backoff.Duration",
+      "note": "min*factor^attempt reaches +Infinity in JS after ~300 attempts; at 40 it is merely astronomically large, and both sides must still answer max"
+    },
+    {
+      "id": "bo-reset",
+      "fn": "backoff.durations",
+      "args": [
+        {
+          "min": 100,
+          "max": 5000,
+          "count": 6,
+          "resetAfter": 3
+        }
+      ],
+      "upstreamFn": "Backoff (socket.io-client/contrib/backo2).duration + reset",
+      "goFn": "client.Backoff.Duration + Reset",
+      "note": "reset before the fourth call returns the schedule to min"
+    },
+    {
+      "id": "bo-attempts",
+      "fn": "backoff.durations",
+      "args": [
+        {
+          "min": 100,
+          "max": 5000,
+          "count": 5
+        }
+      ],
+      "upstreamFn": "Backoff (socket.io-client/contrib/backo2).attempts",
+      "goFn": "client.Backoff.Attempts",
+      "note": "the attempt counter after five calls"
+    },
+    {
+      "id": "bo-attempts-after-reset",
+      "fn": "backoff.durations",
+      "args": [
+        {
+          "min": 100,
+          "max": 5000,
+          "count": 4,
+          "resetAfter": 2
+        }
+      ],
+      "upstreamFn": "Backoff (socket.io-client/contrib/backo2).attempts",
+      "goFn": "client.Backoff.Attempts"
+    },
+    {
+      "id": "bo-jitter-half",
+      "fn": "backoff.durations",
+      "args": [
+        {
+          "min": 1000,
+          "max": 5000,
+          "jitter": 0.5,
+          "rands": [
+            0.05,
+            0.37,
+            0.5,
+            0.9,
+            0.123,
+            0.0,
+            0.999
+          ],
+          "count": 7
+        }
+      ],
+      "upstreamFn": "Backoff (socket.io-client/contrib/backo2).duration",
+      "goFn": "client.Backoff.Duration",
+      "note": "randomizationFactor 0.5, the Manager default, over a fixed draw sequence"
+    },
+    {
+      "id": "bo-jitter-small-draw",
+      "fn": "backoff.durations",
+      "args": [
+        {
+          "min": 100,
+          "max": 5000,
+          "jitter": 0.5,
+          "rands": [
+            0.05
+          ],
+          "count": 4
+        }
+      ],
+      "upstreamFn": "Backoff (socket.io-client/contrib/backo2).duration",
+      "goFn": "client.Backoff.Duration",
+      "note": "draw 0.05 lands in an even decile, so the deviation is SUBTRACTED, and floor(0.05*0.5*100)=2 pins that the deviation is floored before it is applied"
+    },
+    {
+      "id": "bo-jitter-odd-decile",
+      "fn": "backoff.durations",
+      "args": [
+        {
+          "min": 100,
+          "max": 5000,
+          "jitter": 0.5,
+          "rands": [
+            0.37
+          ],
+          "count": 4
+        }
+      ],
+      "upstreamFn": "Backoff (socket.io-client/contrib/backo2).duration",
+      "goFn": "client.Backoff.Duration",
+      "note": "draw 0.37 is an odd decile: the deviation is ADDED"
+    },
+    {
+      "id": "bo-jitter-zero-draw",
+      "fn": "backoff.durations",
+      "args": [
+        {
+          "min": 1000,
+          "max": 5000,
+          "jitter": 0.5,
+          "rands": [
+            0.0
+          ],
+          "count": 3
+        }
+      ],
+      "upstreamFn": "Backoff (socket.io-client/contrib/backo2).duration",
+      "goFn": "client.Backoff.Duration",
+      "note": "a draw of 0 leaves the delay untouched"
+    },
+    {
+      "id": "bo-jitter-max-draw",
+      "fn": "backoff.durations",
+      "args": [
+        {
+          "min": 1000,
+          "max": 20000,
+          "jitter": 1,
+          "rands": [
+            0.999
+          ],
+          "count": 3
+        }
+      ],
+      "upstreamFn": "Backoff (socket.io-client/contrib/backo2).duration",
+      "goFn": "client.Backoff.Duration",
+      "note": "jitter 1 with a draw of ~1 nearly doubles the delay"
+    },
+    {
+      "id": "bo-jitter-over-ceiling",
+      "fn": "backoff.durations",
+      "args": [
+        {
+          "min": 4000,
+          "max": 5000,
+          "jitter": 0.5,
+          "rands": [
+            0.9
+          ],
+          "count": 3
+        }
+      ],
+      "upstreamFn": "Backoff (socket.io-client/contrib/backo2).duration",
+      "goFn": "client.Backoff.Duration",
+      "note": "the jitter is applied BEFORE the max is enforced: 4000 + floor(0.9*0.5*4000) = 5800 is then clamped to 5000"
+    },
+    {
+      "id": "bo-jitter-after-ceiling",
+      "fn": "backoff.durations",
+      "args": [
+        {
+          "min": 1000,
+          "max": 2000,
+          "jitter": 0.5,
+          "rands": [
+            0.05
+          ],
+          "count": 5
+        }
+      ],
+      "upstreamFn": "Backoff (socket.io-client/contrib/backo2).duration",
+      "goFn": "client.Backoff.Duration",
+      "note": "once the UNCLAMPED delay is past max, the deviation is still computed from the unclamped value — a delay jittered down from 8000 is not the same as one jittered down from 2000"
+    },
+    {
+      "id": "bo-jitter-zero",
+      "fn": "backoff.durations",
+      "args": [
+        {
+          "min": 100,
+          "max": 5000,
+          "jitter": 0,
+          "rands": [
+            0.5
+          ],
+          "count": 3
+        }
+      ],
+      "upstreamFn": "Backoff (socket.io-client/contrib/backo2).duration",
+      "goFn": "client.Backoff.Duration",
+      "note": "jitter 0 disables randomisation entirely"
+    },
+    {
+      "id": "bo-jitter-negative",
+      "fn": "backoff.durations",
+      "args": [
+        {
+          "min": 100,
+          "max": 5000,
+          "jitter": -0.5,
+          "rands": [
+            0.5
+          ],
+          "count": 3
+        }
+      ],
+      "upstreamFn": "Backoff (socket.io-client/contrib/backo2).duration",
+      "goFn": "client.Backoff.Duration",
+      "note": "a negative jitter is not in (0,1] and disables randomisation"
+    },
+    {
+      "id": "bo-jitter-over-one",
+      "fn": "backoff.durations",
+      "args": [
+        {
+          "min": 100,
+          "max": 5000,
+          "jitter": 1.5,
+          "rands": [
+            0.5
+          ],
+          "count": 3
+        }
+      ],
+      "upstreamFn": "Backoff (socket.io-client/contrib/backo2).duration",
+      "goFn": "client.Backoff.Duration",
+      "note": "backo2 accepts a jitter only in (0,1]: 1.5 disables randomisation rather than being clamped to 1"
+    },
+    {
+      "id": "bo-jitter-exactly-one",
+      "fn": "backoff.durations",
+      "args": [
+        {
+          "min": 200,
+          "max": 100000,
+          "jitter": 1,
+          "rands": [
+            0.05,
+            0.37,
+            0.5,
+            0.9,
+            0.123,
+            0.0,
+            0.999
+          ],
+          "count": 7
+        }
+      ],
+      "upstreamFn": "Backoff (socket.io-client/contrib/backo2).duration",
+      "goFn": "client.Backoff.Duration",
+      "note": "jitter exactly 1 is still enabled"
+    },
+    {
+      "id": "bo-jitter-tiny",
+      "fn": "backoff.durations",
+      "args": [
+        {
+          "min": 100,
+          "max": 5000,
+          "jitter": 0.01,
+          "rands": [
+            0.9
+          ],
+          "count": 4
+        }
+      ],
+      "upstreamFn": "Backoff (socket.io-client/contrib/backo2).duration",
+      "goFn": "client.Backoff.Duration",
+      "note": "a deviation that floors to 0 (floor(0.9*0.01*100)=0) must leave the delay unchanged"
+    },
+    {
+      "id": "bo-jitter-with-reset",
+      "fn": "backoff.durations",
+      "args": [
+        {
+          "min": 1000,
+          "max": 5000,
+          "jitter": 0.5,
+          "rands": [
+            0.05,
+            0.37,
+            0.5,
+            0.9,
+            0.123,
+            0.0,
+            0.999
+          ],
+          "count": 8,
+          "resetAfter": 4
+        }
+      ],
+      "upstreamFn": "Backoff (socket.io-client/contrib/backo2).duration + reset",
+      "goFn": "client.Backoff.Duration + Reset",
+      "note": "the draw sequence keeps advancing across a reset on both sides"
+    },
+    {
+      "id": "bo-jitter-fractional-factor",
+      "fn": "backoff.durations",
+      "args": [
+        {
+          "min": 333,
+          "max": 60000,
+          "factor": 1.7,
+          "jitter": 0.3,
+          "rands": [
+            0.05,
+            0.37,
+            0.5,
+            0.9,
+            0.123,
+            0.0,
+            0.999
+          ],
+          "count": 8
+        }
+      ],
+      "upstreamFn": "Backoff (socket.io-client/contrib/backo2).duration",
+      "goFn": "client.Backoff.Duration",
+      "note": "fractional factor and fractional jitter together: every rounding step has to agree"
+    },
+    {
+      "id": "bo-jitter-sub-millisecond",
+      "fn": "backoff.durations",
+      "args": [
+        {
+          "min": 1,
+          "max": 5000,
+          "jitter": 0.5,
+          "rands": [
+            0.9,
+            0.05
+          ],
+          "count": 5
+        }
+      ],
+      "upstreamFn": "Backoff (socket.io-client/contrib/backo2).duration",
+      "goFn": "client.Backoff.Duration",
+      "note": "delays of a few milliseconds, where flooring the deviation dominates the result"
+    }
+  ]
+}
