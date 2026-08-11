@@ -54,15 +54,37 @@ function AnswerMarkdown({ text }: { text: string }) {
   );
 }
 
+// A message part, narrowed to just the fields this view reads. The AI SDK types
+// message parts as a wide union keyed by the tool name, so this describes the
+// shape we actually consume instead of casting the union away.
+interface ToolPart {
+  type: string;
+  state?: string;
+  output?: unknown;
+}
+
+// isToolHit validates a single tool-output record before it is rendered: the
+// output crosses a network boundary, so its shape is not guaranteed by types.
+function isToolHit(value: unknown): value is ToolHit {
+  if (typeof value !== 'object' || value === null) return false;
+  const h = value as Record<string, unknown>;
+  return (
+    typeof h.url === 'string' && h.url !== '' &&
+    typeof h.name === 'string' &&
+    typeof h.kind === 'string' &&
+    typeof h.library === 'string'
+  );
+}
+
 // Collect the searchSymbols results a message produced, deduped by url.
-function messageSources(parts: readonly { type: string; state?: string; output?: unknown }[]): ToolHit[] {
+export function messageSources(parts: readonly ToolPart[]): ToolHit[] {
   const out: ToolHit[] = [];
   const seen = new Set<string>();
   for (const p of parts) {
     if (p.type !== 'tool-searchSymbols' || p.state !== 'output-available') continue;
-    const hits = Array.isArray(p.output) ? (p.output as ToolHit[]) : [];
-    for (const h of hits) {
-      if (!h?.url || seen.has(h.url)) continue;
+    if (!Array.isArray(p.output)) continue;
+    for (const h of p.output) {
+      if (!isToolHit(h) || seen.has(h.url)) continue;
       seen.add(h.url);
       out.push(h);
     }
@@ -72,12 +94,13 @@ function messageSources(parts: readonly { type: string; state?: string; output?:
 
 export function Ask() {
   const [input, setInput] = useState('');
-  const { messages, sendMessage, status } = useChat();
+  const { messages, sendMessage, status, error, regenerate, stop, clearError } = useChat();
   const busy = status === 'submitted' || status === 'streaming';
 
   const send = (text: string) => {
     const t = text.trim();
     if (!t || busy) return;
+    clearError();
     sendMessage({ text: t });
     setInput('');
   };
@@ -99,13 +122,19 @@ export function Ask() {
 
       <SecH>Conversation</SecH>
 
-      <div className="ask-chat card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div
+        className="ask-chat card"
+        style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
+        role="log"
+        aria-live="polite"
+        aria-label="Conversation"
+      >
         {messages.length === 0 && (
           <div className="ask-empty muted">
             <p>Try one of these, or ask your own:</p>
             <div className="ask-suggest">
               {SUGGESTIONS.map((s) => (
-                <button key={s} className="pill" onClick={() => send(s)} disabled={busy}>
+                <button key={s} type="button" className="pill" onClick={() => send(s)} disabled={busy}>
                   {s}
                 </button>
               ))}
@@ -115,7 +144,7 @@ export function Ask() {
 
         {messages.map((message) => {
           const isUser = message.role === 'user';
-          const sources = !isUser ? messageSources(message.parts as never) : [];
+          const sources = !isUser ? messageSources(message.parts as readonly ToolPart[]) : [];
           return (
             <div key={message.id} className={`ask-msg ask-msg-${isUser ? 'user' : 'ai'}`}>
               <div className="ask-role muted">{isUser ? 'You' : 'Assistant'}</div>
@@ -135,6 +164,15 @@ export function Ask() {
                     return (
                       <div key={`${message.id}-${i}`} className="ask-tool muted">
                         <i className="fa-solid fa-clock-rotate-left" /> recalling past answers…
+                      </div>
+                    );
+                  }
+                  // runCode is opt-in (env-gated) on the backend; this indicator
+                  // only ever renders when the tool is actually mounted there.
+                  if (part.type === 'tool-runCode' && part.state !== 'output-available') {
+                    return (
+                      <div key={`${message.id}-${i}`} className="ask-tool muted">
+                        <i className="fa-solid fa-play" /> running code in a sandbox…
                       </div>
                     );
                   }
@@ -171,6 +209,17 @@ export function Ask() {
             </div>
           </div>
         )}
+
+        {error && (
+          <div className="ask-error" role="alert">
+            <b>The assistant couldn&apos;t answer.</b>{' '}
+            <span className="muted">{error.message || 'The request failed.'}</span>
+            <div className="ask-error-actions">
+              <button type="button" className="pill" onClick={() => regenerate()}>Try again</button>
+              <button type="button" className="pill" onClick={() => clearError()}>Dismiss</button>
+            </div>
+          </div>
+        )}
       </div>
 
       <form
@@ -190,7 +239,14 @@ export function Ask() {
         <button className="btn primary" type="submit" disabled={busy || input.trim() === ''}>
           {busy ? 'Sending…' : 'Send'}
         </button>
+        {busy && (
+          <button className="btn" type="button" onClick={() => stop()}>
+            Stop
+          </button>
+        )}
       </form>
+
+      <style>{askCss}</style>
 
       <p className="muted ask-disclaimer">
         Answers are AI-generated from this project's own API index and may be imperfect — follow the links and verify
@@ -199,3 +255,12 @@ export function Ask() {
     </section>
   );
 }
+
+const askCss = `
+.ask-error {
+  border: 1px solid color-mix(in srgb, #ef4444 45%, var(--edge));
+  background: color-mix(in srgb, #ef4444 10%, transparent);
+  border-radius: 12px; padding: .75rem .9rem; font-size: .9rem;
+}
+.ask-error-actions { display: flex; gap: .5rem; margin-top: .6rem; }
+`;

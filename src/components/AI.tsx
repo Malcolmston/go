@@ -17,6 +17,9 @@ export function AI() {
         <div className="card"><span className="ico"><i className="fa-solid fa-circle-check" /></span><h3>Verified, not vibes</h3><p className="muted">Every package ships tests. CI runs build + vet + test on Go 1.23 and 1.24.</p></div>
         <div className="card"><span className="ico"><i className="fa-solid fa-book" /></span><h3>Self-documenting</h3><p className="muted">A <code>go/doc</code> generator produces the API sites, so docs never drift from the code.</p></div>
       </div>
+      <SecH>The site assistant</SecH>
+      <p className="muted">The <a className="ask-link" href="/ask">/ask</a> assistant answers questions about the libraries, grounded in a live search over the symbol corpus, and cites in-site deep links. On deployments where it is switched on, it can also <b>run code to verify it</b>: it writes a small Go, Node/TypeScript or Python program and executes it in an isolated, ephemeral sandbox, then reports the real stdout/stderr and exit code before presenting the snippet.</p>
+      <div className="note"><b>Code execution is opt-in.</b> It runs only when the deployment sets the <code>CHAT_SANDBOX_ENABLED</code> flag; otherwise the assistant answers normally and simply says it can't run code. The sandbox is ephemeral, receives none of the site's secrets, and is bounded by hard timeouts, output-size caps, and a per-conversation run limit.</div>
       <div className="note"><b>Transparency:</b> AI wrote the code, humans set the direction, and the test suites + protocol interop checks are what make it trustworthy. Treat these as you would any dependency — read the docs, run the tests, pin your versions.</div>
     </section>
   );
