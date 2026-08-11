@@ -20,7 +20,13 @@ jobs:
   lock:
     runs-on: ubuntu-latest
     steps:
-      - uses: dessant/lock-threads@v5
+      # v6, not v5: v5 validates that github-token is at most 100 characters, and
+      # GitHub's generated GITHUB_TOKEN is now longer than that, so every run failed
+      # with '"github-token" length must be less than or equal to 100 characters
+      # long' before doing any work. Nothing here passes a token explicitly — it is
+      # the action's own default that trips the check. v6 also runs on Node 24,
+      # clearing the Node 20 deprecation warning.
+      - uses: dessant/lock-threads@v6
         with:
           issue-inactive-days: "180"
           pr-inactive-days: "180"
