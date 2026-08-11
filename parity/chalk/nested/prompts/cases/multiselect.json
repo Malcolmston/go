@@ -1,0 +1,361 @@
+{
+  "group": "multiselect",
+  "upstream": "prompts@2.4.2",
+  "cases": [
+    {
+      "id": "ms-none",
+      "fn": "multiselect",
+      "args": [
+        {
+          "message": "pick",
+          "choices": [
+            {
+              "title": "Red"
+            },
+            {
+              "title": "Green"
+            },
+            {
+              "title": "Blue"
+            }
+          ]
+        },
+        [
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.MultiSelect",
+      "note": "nothing selected is an empty list, never null",
+      "upstreamFn": "prompts.multiselect"
+    },
+    {
+      "id": "ms-first",
+      "fn": "multiselect",
+      "args": [
+        {
+          "message": "pick",
+          "choices": [
+            {
+              "title": "Red"
+            },
+            {
+              "title": "Green"
+            },
+            {
+              "title": "Blue"
+            }
+          ]
+        },
+        [
+          "<space>",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.MultiSelect",
+      "upstreamFn": "prompts.multiselect"
+    },
+    {
+      "id": "ms-two",
+      "fn": "multiselect",
+      "args": [
+        {
+          "message": "pick",
+          "choices": [
+            {
+              "title": "Red"
+            },
+            {
+              "title": "Green"
+            },
+            {
+              "title": "Blue"
+            }
+          ]
+        },
+        [
+          "<space>",
+          "<down>",
+          "<down>",
+          "<space>",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.MultiSelect",
+      "upstreamFn": "prompts.multiselect"
+    },
+    {
+      "id": "ms-all",
+      "fn": "multiselect",
+      "args": [
+        {
+          "message": "pick",
+          "choices": [
+            {
+              "title": "Red"
+            },
+            {
+              "title": "Green"
+            },
+            {
+              "title": "Blue"
+            }
+          ]
+        },
+        [
+          "<space>",
+          "<down>",
+          "<space>",
+          "<down>",
+          "<space>",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.MultiSelect",
+      "upstreamFn": "prompts.multiselect"
+    },
+    {
+      "id": "ms-toggle-off",
+      "fn": "multiselect",
+      "args": [
+        {
+          "message": "pick",
+          "choices": [
+            {
+              "title": "Red"
+            },
+            {
+              "title": "Green"
+            },
+            {
+              "title": "Blue"
+            }
+          ]
+        },
+        [
+          "<space>",
+          "<space>",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.MultiSelect",
+      "upstreamFn": "prompts.multiselect"
+    },
+    {
+      "id": "ms-select-out-of-order",
+      "fn": "multiselect",
+      "args": [
+        {
+          "message": "pick",
+          "choices": [
+            {
+              "title": "Red"
+            },
+            {
+              "title": "Green"
+            },
+            {
+              "title": "Blue"
+            }
+          ]
+        },
+        [
+          "<down>",
+          "<down>",
+          "<space>",
+          "<up>",
+          "<up>",
+          "<space>",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.MultiSelect",
+      "note": "the result follows choice order, not selection order",
+      "upstreamFn": "prompts.multiselect"
+    },
+    {
+      "id": "ms-preselected",
+      "fn": "multiselect",
+      "args": [
+        {
+          "message": "pick",
+          "choices": [
+            {
+              "title": "Red"
+            },
+            {
+              "title": "Green",
+              "selected": true
+            },
+            {
+              "title": "Blue"
+            }
+          ]
+        },
+        [
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.MultiSelect",
+      "note": "upstream `selected` is the port's Checked",
+      "upstreamFn": "prompts.multiselect"
+    },
+    {
+      "id": "ms-preselected-toggled-off",
+      "fn": "multiselect",
+      "args": [
+        {
+          "message": "pick",
+          "choices": [
+            {
+              "title": "Red"
+            },
+            {
+              "title": "Green",
+              "selected": true
+            },
+            {
+              "title": "Blue"
+            }
+          ]
+        },
+        [
+          "<down>",
+          "<space>",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.MultiSelect",
+      "upstreamFn": "prompts.multiselect"
+    },
+    {
+      "id": "ms-preselected-plus-one",
+      "fn": "multiselect",
+      "args": [
+        {
+          "message": "pick",
+          "choices": [
+            {
+              "title": "Red",
+              "selected": true
+            },
+            {
+              "title": "Green"
+            },
+            {
+              "title": "Blue"
+            }
+          ]
+        },
+        [
+          "<down>",
+          "<down>",
+          "<space>",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.MultiSelect",
+      "upstreamFn": "prompts.multiselect"
+    },
+    {
+      "id": "ms-explicit-values",
+      "fn": "multiselect",
+      "args": [
+        {
+          "message": "pick",
+          "choices": [
+            {
+              "title": "Red",
+              "value": "r"
+            },
+            {
+              "title": "Green",
+              "value": "g"
+            }
+          ]
+        },
+        [
+          "<space>",
+          "<down>",
+          "<space>",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.MultiSelect",
+      "upstreamFn": "prompts.multiselect"
+    },
+    {
+      "id": "ms-tab-navigation",
+      "fn": "multiselect",
+      "args": [
+        {
+          "message": "pick",
+          "choices": [
+            {
+              "title": "Red"
+            },
+            {
+              "title": "Green"
+            },
+            {
+              "title": "Blue"
+            }
+          ]
+        },
+        [
+          "<tab>",
+          "<space>",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.MultiSelect",
+      "upstreamFn": "prompts.multiselect"
+    },
+    {
+      "id": "ms-up-wraps",
+      "fn": "multiselect",
+      "args": [
+        {
+          "message": "pick",
+          "choices": [
+            {
+              "title": "Red"
+            },
+            {
+              "title": "Green"
+            },
+            {
+              "title": "Blue"
+            }
+          ]
+        },
+        [
+          "<up>",
+          "<space>",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.MultiSelect",
+      "upstreamFn": "prompts.multiselect"
+    },
+    {
+      "id": "ms-single-choice",
+      "fn": "multiselect",
+      "args": [
+        {
+          "message": "pick",
+          "choices": [
+            {
+              "title": "Only"
+            }
+          ]
+        },
+        [
+          "<space>",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.MultiSelect",
+      "upstreamFn": "prompts.multiselect"
+    }
+  ]
+}

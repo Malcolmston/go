@@ -1,0 +1,150 @@
+{
+  "group": "validate",
+  "upstream": "prompts@2.4.2",
+  "cases": [
+    {
+      "id": "validate-nonempty-pass",
+      "fn": "text",
+      "args": [
+        {
+          "message": "name",
+          "validate": "nonEmpty"
+        },
+        [
+          "bob",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Input",
+      "upstreamFn": "prompts.text"
+    },
+    {
+      "id": "validate-nonempty-reject-then-fix",
+      "fn": "text",
+      "args": [
+        {
+          "message": "name",
+          "validate": "nonEmpty"
+        },
+        [
+          "<enter>",
+          "bob",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Input",
+      "note": "a rejected submission re-prompts; the second answer is accepted",
+      "upstreamFn": "prompts.text"
+    },
+    {
+      "id": "validate-min3-pass",
+      "fn": "text",
+      "args": [
+        {
+          "message": "name",
+          "validate": "min3"
+        },
+        [
+          "abcd",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Input",
+      "upstreamFn": "prompts.text"
+    },
+    {
+      "id": "validate-min3-reject-then-fix",
+      "fn": "text",
+      "args": [
+        {
+          "message": "name",
+          "validate": "min3"
+        },
+        [
+          "ab",
+          "<enter>",
+          "<backspace>",
+          "<backspace>",
+          "abcd",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Input",
+      "note": "the line is cleared with backspaces so both sides retry from empty",
+      "upstreamFn": "prompts.text"
+    },
+    {
+      "id": "validate-always-rejects-then-cancel",
+      "fn": "text",
+      "args": [
+        {
+          "message": "name",
+          "validate": "reject"
+        },
+        [
+          "x",
+          "<enter>",
+          "<ctrl-c>"
+        ]
+      ],
+      "goFn": "prompts.Input",
+      "note": "an unsatisfiable validator can only be escaped by cancelling",
+      "upstreamFn": "prompts.text"
+    },
+    {
+      "id": "validate-default-satisfies-validator",
+      "fn": "text",
+      "args": [
+        {
+          "message": "name",
+          "initial": "anon",
+          "validate": "nonEmpty"
+        },
+        [
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Input",
+      "note": "the default is substituted before the validator runs, so Enter is a valid answer",
+      "upstreamFn": "prompts.text"
+    },
+    {
+      "id": "validate-password-reject-then-fix",
+      "fn": "password",
+      "args": [
+        {
+          "message": "secret",
+          "validate": "min3"
+        },
+        [
+          "ab",
+          "<enter>",
+          "<backspace>",
+          "<backspace>",
+          "abcd",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Password",
+      "upstreamFn": "prompts.password"
+    },
+    {
+      "id": "validate-with-format",
+      "fn": "text",
+      "args": [
+        {
+          "message": "name",
+          "validate": "min3",
+          "format": "upper"
+        },
+        [
+          "abcd",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Input",
+      "note": "the validator sees the raw value, the format is applied after",
+      "upstreamFn": "prompts.text"
+    }
+  ]
+}

@@ -1,0 +1,173 @@
+{
+  "group": "confirm",
+  "upstream": "prompts@2.4.2",
+  "cases": [
+    {
+      "id": "confirm-yes",
+      "fn": "confirm",
+      "args": [
+        {
+          "message": "ok?"
+        },
+        [
+          "y",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Confirm",
+      "upstreamFn": "prompts.confirm"
+    },
+    {
+      "id": "confirm-no",
+      "fn": "confirm",
+      "args": [
+        {
+          "message": "ok?"
+        },
+        [
+          "n",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Confirm",
+      "upstreamFn": "prompts.confirm"
+    },
+    {
+      "id": "confirm-yes-upper",
+      "fn": "confirm",
+      "args": [
+        {
+          "message": "ok?"
+        },
+        [
+          "Y",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Confirm",
+      "upstreamFn": "prompts.confirm"
+    },
+    {
+      "id": "confirm-no-upper",
+      "fn": "confirm",
+      "args": [
+        {
+          "message": "ok?"
+        },
+        [
+          "N",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Confirm",
+      "upstreamFn": "prompts.confirm"
+    },
+    {
+      "id": "confirm-yes-word",
+      "fn": "confirm",
+      "args": [
+        {
+          "message": "ok?"
+        },
+        [
+          "yes",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Confirm",
+      "upstreamFn": "prompts.confirm"
+    },
+    {
+      "id": "confirm-no-word",
+      "fn": "confirm",
+      "args": [
+        {
+          "message": "ok?"
+        },
+        [
+          "no",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Confirm",
+      "upstreamFn": "prompts.confirm"
+    },
+    {
+      "id": "confirm-enter-default-false",
+      "fn": "confirm",
+      "args": [
+        {
+          "message": "ok?"
+        },
+        [
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Confirm",
+      "note": "no initial means false",
+      "upstreamFn": "prompts.confirm"
+    },
+    {
+      "id": "confirm-enter-default-true",
+      "fn": "confirm",
+      "args": [
+        {
+          "message": "ok?",
+          "initial": true
+        },
+        [
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Confirm",
+      "upstreamFn": "prompts.confirm"
+    },
+    {
+      "id": "confirm-enter-default-false-explicit",
+      "fn": "confirm",
+      "args": [
+        {
+          "message": "ok?",
+          "initial": false
+        },
+        [
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Confirm",
+      "upstreamFn": "prompts.confirm"
+    },
+    {
+      "id": "confirm-unrecognised-then-enter",
+      "fn": "confirm",
+      "args": [
+        {
+          "message": "ok?"
+        },
+        [
+          "zzz",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Confirm",
+      "note": "characters that are neither y nor n are ignored by both sides",
+      "upstreamFn": "prompts.confirm"
+    },
+    {
+      "id": "dev-confirm-yes-inside-a-word",
+      "fn": "confirm",
+      "args": [
+        {
+          "message": "ok?"
+        },
+        [
+          "maybe",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Confirm",
+      "deviation": "upstream submits on the first y/n keypress, so the y in \"maybe\" answers yes; the port reads a whole line and only accepts y/yes/n/no. See chalk/API-DEVIATIONS.md",
+      "upstreamFn": "prompts.confirm"
+    }
+  ]
+}

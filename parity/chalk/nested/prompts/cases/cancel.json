@@ -1,0 +1,147 @@
+{
+  "group": "cancel",
+  "upstream": "prompts@2.4.2",
+  "cases": [
+    {
+      "id": "cancel-text",
+      "fn": "text",
+      "args": [
+        {
+          "message": "name"
+        },
+        [
+          "<ctrl-c>"
+        ]
+      ],
+      "goFn": "prompts.Input",
+      "note": "Ctrl-C cancels; both sides report a failure rather than a value",
+      "upstreamFn": "prompts.text"
+    },
+    {
+      "id": "cancel-text-after-typing",
+      "fn": "text",
+      "args": [
+        {
+          "message": "name"
+        },
+        [
+          "bob",
+          "<ctrl-c>"
+        ]
+      ],
+      "goFn": "prompts.Input",
+      "upstreamFn": "prompts.text"
+    },
+    {
+      "id": "cancel-text-with-initial",
+      "fn": "text",
+      "args": [
+        {
+          "message": "name",
+          "initial": "anon"
+        },
+        [
+          "<ctrl-c>"
+        ]
+      ],
+      "goFn": "prompts.Input",
+      "upstreamFn": "prompts.text"
+    },
+    {
+      "id": "cancel-password",
+      "fn": "password",
+      "args": [
+        {
+          "message": "secret"
+        },
+        [
+          "abc",
+          "<ctrl-c>"
+        ]
+      ],
+      "goFn": "prompts.Password",
+      "upstreamFn": "prompts.password"
+    },
+    {
+      "id": "cancel-number",
+      "fn": "number",
+      "args": [
+        {
+          "message": "n"
+        },
+        [
+          "42",
+          "<ctrl-c>"
+        ]
+      ],
+      "goFn": "prompts.Number",
+      "upstreamFn": "prompts.number"
+    },
+    {
+      "id": "cancel-confirm",
+      "fn": "confirm",
+      "args": [
+        {
+          "message": "ok?"
+        },
+        [
+          "<ctrl-c>"
+        ]
+      ],
+      "goFn": "prompts.Confirm",
+      "upstreamFn": "prompts.confirm"
+    },
+    {
+      "id": "cancel-select",
+      "fn": "select",
+      "args": [
+        {
+          "message": "pick",
+          "choices": [
+            {
+              "title": "Red"
+            },
+            {
+              "title": "Green"
+            },
+            {
+              "title": "Blue"
+            }
+          ]
+        },
+        [
+          "<down>",
+          "<ctrl-c>"
+        ]
+      ],
+      "goFn": "prompts.Select",
+      "upstreamFn": "prompts.select"
+    },
+    {
+      "id": "cancel-multiselect",
+      "fn": "multiselect",
+      "args": [
+        {
+          "message": "pick",
+          "choices": [
+            {
+              "title": "Red"
+            },
+            {
+              "title": "Green"
+            },
+            {
+              "title": "Blue"
+            }
+          ]
+        },
+        [
+          "<space>",
+          "<ctrl-c>"
+        ]
+      ],
+      "goFn": "prompts.MultiSelect",
+      "upstreamFn": "prompts.multiselect"
+    }
+  ]
+}

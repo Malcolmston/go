@@ -1,0 +1,258 @@
+{
+  "group": "text-edge",
+  "upstream": "figlet@1.11.4",
+  "cases": [
+    {
+      "id": "text-empty",
+      "fn": "textSync",
+      "args": [
+        "Standard",
+        ""
+      ],
+      "note": "empty input",
+      "upstreamFn": "figlet.textSync",
+      "goFn": "figlet.Font.Render"
+    },
+    {
+      "id": "text-space",
+      "fn": "textSync",
+      "args": [
+        "Standard",
+        " "
+      ],
+      "upstreamFn": "figlet.textSync",
+      "goFn": "figlet.Font.Render"
+    },
+    {
+      "id": "text-spaces",
+      "fn": "textSync",
+      "args": [
+        "Standard",
+        "   "
+      ],
+      "upstreamFn": "figlet.textSync",
+      "goFn": "figlet.Font.Render"
+    },
+    {
+      "id": "text-newline-only",
+      "fn": "textSync",
+      "args": [
+        "Standard",
+        "\n"
+      ],
+      "upstreamFn": "figlet.textSync",
+      "goFn": "figlet.Font.Render"
+    },
+    {
+      "id": "text-three-newlines",
+      "fn": "textSync",
+      "args": [
+        "Standard",
+        "\n\n\n"
+      ],
+      "upstreamFn": "figlet.textSync",
+      "goFn": "figlet.Font.Render"
+    },
+    {
+      "id": "text-single-char",
+      "fn": "textSync",
+      "args": [
+        "Standard",
+        "a"
+      ],
+      "upstreamFn": "figlet.textSync",
+      "goFn": "figlet.Font.Render"
+    },
+    {
+      "id": "text-tab",
+      "fn": "textSync",
+      "args": [
+        "Standard",
+        "a\tb"
+      ],
+      "note": "a tab has no glyph and no width",
+      "upstreamFn": "figlet.textSync",
+      "goFn": "figlet.Font.Render"
+    },
+    {
+      "id": "text-crlf",
+      "fn": "textSync",
+      "args": [
+        "Standard",
+        "a\r\nb"
+      ],
+      "note": "CRLF is normalised to LF before splitting",
+      "upstreamFn": "figlet.textSync",
+      "goFn": "figlet.Font.Render"
+    },
+    {
+      "id": "text-cr-only",
+      "fn": "textSync",
+      "args": [
+        "Standard",
+        "a\rb"
+      ],
+      "upstreamFn": "figlet.textSync",
+      "goFn": "figlet.Font.Render"
+    },
+    {
+      "id": "text-leading-trailing-space",
+      "fn": "textSync",
+      "args": [
+        "Standard",
+        "  pad  "
+      ],
+      "upstreamFn": "figlet.textSync",
+      "goFn": "figlet.Font.Render"
+    },
+    {
+      "id": "text-all-printable-ascii",
+      "fn": "textSync",
+      "args": [
+        "Standard",
+        " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
+      ],
+      "note": "every glyph the format requires",
+      "upstreamFn": "figlet.textSync",
+      "goFn": "figlet.Font.Render"
+    },
+    {
+      "id": "text-german-required",
+      "fn": "textSync",
+      "args": [
+        "Standard",
+        "ÄÖÜäöüß"
+      ],
+      "note": "the seven characters the FIGfont spec mandates after ASCII",
+      "upstreamFn": "figlet.textSync",
+      "goFn": "figlet.Font.Render"
+    },
+    {
+      "id": "text-german-small",
+      "fn": "textSync",
+      "args": [
+        "Small",
+        "Grüße"
+      ],
+      "upstreamFn": "figlet.textSync",
+      "goFn": "figlet.Font.Render"
+    },
+    {
+      "id": "text-latin1-accent",
+      "fn": "textSync",
+      "args": [
+        "Standard",
+        "café"
+      ],
+      "note": "a code-tagged character, if the font defines one",
+      "upstreamFn": "figlet.textSync",
+      "goFn": "figlet.Font.Render"
+    },
+    {
+      "id": "text-cjk",
+      "fn": "textSync",
+      "args": [
+        "Standard",
+        "中文"
+      ],
+      "note": "undefined characters contribute nothing",
+      "upstreamFn": "figlet.textSync",
+      "goFn": "figlet.Font.Render"
+    },
+    {
+      "id": "text-astral-emoji",
+      "fn": "textSync",
+      "args": [
+        "Standard",
+        "hi 😀"
+      ],
+      "note": "an astral character is two UTF-16 units, neither of which is a glyph",
+      "upstreamFn": "figlet.textSync",
+      "goFn": "figlet.Font.Render"
+    },
+    {
+      "id": "text-control-chars",
+      "fn": "textSync",
+      "args": [
+        "Standard",
+        "a\u0001\u0002b"
+      ],
+      "upstreamFn": "figlet.textSync",
+      "goFn": "figlet.Font.Render"
+    },
+    {
+      "id": "text-nul",
+      "fn": "textSync",
+      "args": [
+        "Standard",
+        "a\u0000b"
+      ],
+      "upstreamFn": "figlet.textSync",
+      "goFn": "figlet.Font.Render"
+    },
+    {
+      "id": "text-long-repeat",
+      "fn": "textSync",
+      "args": [
+        "Small",
+        "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      ],
+      "upstreamFn": "figlet.textSync",
+      "goFn": "figlet.Font.Render"
+    },
+    {
+      "id": "text-mixed-case",
+      "fn": "textSync",
+      "args": [
+        "Standard",
+        "MiXeD cAsE"
+      ],
+      "upstreamFn": "figlet.textSync",
+      "goFn": "figlet.Font.Render"
+    },
+    {
+      "id": "text-underscores",
+      "fn": "textSync",
+      "args": [
+        "Standard",
+        "__--__"
+      ],
+      "note": "characters that exercise the underscore and hierarchy rules",
+      "upstreamFn": "figlet.textSync",
+      "goFn": "figlet.Font.Render"
+    },
+    {
+      "id": "text-brackets",
+      "fn": "textSync",
+      "args": [
+        "Standard",
+        "[]{}()<>"
+      ],
+      "note": "the hierarchy and opposite-pair rules",
+      "upstreamFn": "figlet.textSync",
+      "goFn": "figlet.Font.Render"
+    },
+    {
+      "id": "text-slashes",
+      "fn": "textSync",
+      "args": [
+        "Standard",
+        "/\\/\\><"
+      ],
+      "note": "the big-X rule",
+      "upstreamFn": "figlet.textSync",
+      "goFn": "figlet.Font.Render"
+    },
+    {
+      "id": "text-nbsp",
+      "fn": "textSync",
+      "args": [
+        "Standard",
+        "a b"
+      ],
+      "note": "a non-breaking space is whitespace to the word-break test but has no glyph",
+      "upstreamFn": "figlet.textSync",
+      "goFn": "figlet.Font.Render"
+    }
+  ]
+}

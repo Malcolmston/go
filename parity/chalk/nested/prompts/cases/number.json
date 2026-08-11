@@ -1,0 +1,329 @@
+{
+  "group": "number",
+  "upstream": "prompts@2.4.2",
+  "cases": [
+    {
+      "id": "number-basic",
+      "fn": "number",
+      "args": [
+        {
+          "message": "n"
+        },
+        [
+          "42",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Number",
+      "upstreamFn": "prompts.number"
+    },
+    {
+      "id": "number-zero",
+      "fn": "number",
+      "args": [
+        {
+          "message": "n"
+        },
+        [
+          "0",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Number",
+      "upstreamFn": "prompts.number"
+    },
+    {
+      "id": "number-negative",
+      "fn": "number",
+      "args": [
+        {
+          "message": "n"
+        },
+        [
+          "-7",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Number",
+      "upstreamFn": "prompts.number"
+    },
+    {
+      "id": "number-many-digits",
+      "fn": "number",
+      "args": [
+        {
+          "message": "n"
+        },
+        [
+          "1234567",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Number",
+      "upstreamFn": "prompts.number"
+    },
+    {
+      "id": "number-initial-used",
+      "fn": "number",
+      "args": [
+        {
+          "message": "n",
+          "initial": 7
+        },
+        [
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Number",
+      "upstreamFn": "prompts.number"
+    },
+    {
+      "id": "number-initial-overridden",
+      "fn": "number",
+      "args": [
+        {
+          "message": "n",
+          "initial": 7
+        },
+        [
+          "9",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Number",
+      "upstreamFn": "prompts.number"
+    },
+    {
+      "id": "number-backspace",
+      "fn": "number",
+      "args": [
+        {
+          "message": "n"
+        },
+        [
+          "129",
+          "<backspace>",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Number",
+      "upstreamFn": "prompts.number"
+    },
+    {
+      "id": "number-float",
+      "fn": "number",
+      "args": [
+        {
+          "message": "n",
+          "float": true
+        },
+        [
+          "3.14",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Number",
+      "upstreamFn": "prompts.number"
+    },
+    {
+      "id": "number-float-half",
+      "fn": "number",
+      "args": [
+        {
+          "message": "n",
+          "float": true
+        },
+        [
+          "0.5",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Number",
+      "upstreamFn": "prompts.number"
+    },
+    {
+      "id": "number-float-negative",
+      "fn": "number",
+      "args": [
+        {
+          "message": "n",
+          "float": true
+        },
+        [
+          "-2.5",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Number",
+      "upstreamFn": "prompts.number"
+    },
+    {
+      "id": "number-in-bounds",
+      "fn": "number",
+      "args": [
+        {
+          "message": "n",
+          "min": 1,
+          "max": 100
+        },
+        [
+          "42",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Number",
+      "upstreamFn": "prompts.number"
+    },
+    {
+      "id": "number-at-min",
+      "fn": "number",
+      "args": [
+        {
+          "message": "n",
+          "min": 5,
+          "max": 100
+        },
+        [
+          "5",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Number",
+      "upstreamFn": "prompts.number"
+    },
+    {
+      "id": "number-at-max",
+      "fn": "number",
+      "args": [
+        {
+          "message": "n",
+          "min": 1,
+          "max": 9
+        },
+        [
+          "9",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Number",
+      "upstreamFn": "prompts.number"
+    },
+    {
+      "id": "number-validate-even-pass",
+      "fn": "number",
+      "args": [
+        {
+          "message": "n",
+          "validate": "even"
+        },
+        [
+          "4",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Number",
+      "upstreamFn": "prompts.number"
+    },
+    {
+      "id": "dev-number-above-max",
+      "fn": "number",
+      "args": [
+        {
+          "message": "n",
+          "max": 10
+        },
+        [
+          "99",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Number",
+      "deviation": "upstream silently clamps a typed number into [min,max]; the port rejects it and re-prompts, so a bound is a validation rule rather than a rounding rule. See chalk/API-DEVIATIONS.md",
+      "upstreamFn": "prompts.number"
+    },
+    {
+      "id": "dev-number-below-min",
+      "fn": "number",
+      "args": [
+        {
+          "message": "n",
+          "min": 10
+        },
+        [
+          "5",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Number",
+      "deviation": "upstream silently clamps a typed number into [min,max]; the port rejects it and re-prompts, so a bound is a validation rule rather than a rounding rule. See chalk/API-DEVIATIONS.md",
+      "upstreamFn": "prompts.number"
+    },
+    {
+      "id": "dev-number-empty-no-initial",
+      "fn": "number",
+      "args": [
+        {
+          "message": "n"
+        },
+        [
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Number",
+      "deviation": "upstream returns the empty string from a number prompt with no initial; the port insists on a number. See chalk/API-DEVIATIONS.md",
+      "upstreamFn": "prompts.number"
+    },
+    {
+      "id": "dev-number-decimal-in-integer-mode",
+      "fn": "number",
+      "args": [
+        {
+          "message": "n"
+        },
+        [
+          "3.7",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Number",
+      "deviation": "upstream filters keystrokes to the characters the mode allows and keeps the typed digits after a validation failure; the port reads a whole line and re-prompts from an empty buffer. See chalk/API-DEVIATIONS.md",
+      "upstreamFn": "prompts.number"
+    },
+    {
+      "id": "dev-number-retry-after-validation",
+      "fn": "number",
+      "args": [
+        {
+          "message": "n",
+          "validate": "even"
+        },
+        [
+          "3",
+          "<enter>",
+          "4",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Number",
+      "deviation": "upstream filters keystrokes to the characters the mode allows and keeps the typed digits after a validation failure; the port reads a whole line and re-prompts from an empty buffer. See chalk/API-DEVIATIONS.md",
+      "upstreamFn": "prompts.number"
+    },
+    {
+      "id": "dev-number-float-rounding",
+      "fn": "number",
+      "args": [
+        {
+          "message": "n",
+          "float": true
+        },
+        [
+          "3.14159",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Number",
+      "deviation": "upstream rounds a float answer to 2 decimals (its `round` option); the port returns the number as typed. See chalk/API-DEVIATIONS.md",
+      "upstreamFn": "prompts.number"
+    }
+  ]
+}

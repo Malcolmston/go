@@ -1,0 +1,178 @@
+{
+  "group": "errors",
+  "upstream": "figlet@1.11.4",
+  "cases": [
+    {
+      "id": "err-unknown-font",
+      "fn": "textSync",
+      "args": [
+        "NoSuchFontHere",
+        "x"
+      ],
+      "upstreamFn": "figlet.loadFontSync",
+      "goFn": "figlet.LoadFontFile",
+      "note": "both sides must fail"
+    },
+    {
+      "id": "err-unknown-font-with-space",
+      "fn": "textSync",
+      "args": [
+        "Not A Font",
+        "x"
+      ],
+      "upstreamFn": "figlet.loadFontSync",
+      "goFn": "figlet.LoadFontFile"
+    },
+    {
+      "id": "err-parse-empty",
+      "fn": "parseFont",
+      "args": [
+        ""
+      ],
+      "upstreamFn": "figlet.parseFont",
+      "goFn": "figlet.ParseFont"
+    },
+    {
+      "id": "err-parse-header-only",
+      "fn": "parseFont",
+      "args": [
+        "flf2a$"
+      ],
+      "upstreamFn": "figlet.parseFont",
+      "goFn": "figlet.ParseFont"
+    },
+    {
+      "id": "err-parse-non-numeric-height",
+      "fn": "parseFont",
+      "args": [
+        "flf2a$ x 1 5 0 1\ncomment\n"
+      ],
+      "upstreamFn": "figlet.parseFont",
+      "goFn": "figlet.ParseFont"
+    },
+    {
+      "id": "dev-parse-float-height",
+      "fn": "parseFont",
+      "args": [
+        "flf2a$ 1.5 1 5 0 1\ncomment 0\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n"
+      ],
+      "upstreamFn": "figlet.parseFont",
+      "goFn": "figlet.ParseFont",
+      "deviation": "upstream reads header numbers with parseInt, which truncates \"1.5\" to 1 and \"5abc\" to 5; the port rejects a header field that is not a whole number outright rather than rendering from a silently-corrected height. See chalk/API-DEVIATIONS.md"
+    },
+    {
+      "id": "dev-parse-trailing-garbage-height",
+      "fn": "parseFont",
+      "args": [
+        "flf2a$ 1abc 1 5 0 1\ncomment 0\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n"
+      ],
+      "upstreamFn": "figlet.parseFont",
+      "goFn": "figlet.ParseFont",
+      "deviation": "as dev-parse-float-height: parseInt(\"1abc\") is 1 upstream, an error in the port"
+    },
+    {
+      "id": "err-parse-zero-height",
+      "fn": "parseFont",
+      "args": [
+        "flf2a$ 0 1 5 0 1\ncomment 0\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n"
+      ],
+      "upstreamFn": "figlet.parseFont",
+      "goFn": "figlet.ParseFont"
+    },
+    {
+      "id": "err-parse-negative-baseline",
+      "fn": "parseFont",
+      "args": [
+        "flf2a$ 1 -1 5 0 1\ncomment 0\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n"
+      ],
+      "upstreamFn": "figlet.parseFont",
+      "goFn": "figlet.ParseFont"
+    },
+    {
+      "id": "err-parse-negative-maxlength",
+      "fn": "parseFont",
+      "args": [
+        "flf2a$ 1 1 -5 0 1\ncomment 0\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n"
+      ],
+      "upstreamFn": "figlet.parseFont",
+      "goFn": "figlet.ParseFont"
+    },
+    {
+      "id": "err-parse-negative-comments",
+      "fn": "parseFont",
+      "args": [
+        "flf2a$ 1 1 5 0 -1\n"
+      ],
+      "upstreamFn": "figlet.parseFont",
+      "goFn": "figlet.ParseFont"
+    },
+    {
+      "id": "err-parse-truncated-glyphs",
+      "fn": "parseFont",
+      "args": [
+        "flf2a$ 2 1 5 0 1\ncomment\n#@\n#@@\n"
+      ],
+      "upstreamFn": "figlet.parseFont",
+      "goFn": "figlet.ParseFont",
+      "note": "a font that stops after two glyph rows is missing data"
+    },
+    {
+      "id": "err-parse-bad-code-tag",
+      "fn": "parseFont",
+      "args": [
+        "flf2a$ 1 1 5 0 1\ncomment 0\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\nnotanumber\nX@@\n"
+      ],
+      "upstreamFn": "figlet.parseFont",
+      "goFn": "figlet.ParseFont"
+    },
+    {
+      "id": "err-parse-code-tag-minus-one",
+      "fn": "parseFont",
+      "args": [
+        "flf2a$ 1 1 5 0 1\ncomment 0\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n-1\nX@@\n"
+      ],
+      "upstreamFn": "figlet.parseFont",
+      "goFn": "figlet.ParseFont",
+      "note": "the char code -1 is explicitly not permitted"
+    },
+    {
+      "id": "ok-parse-minimal-font",
+      "fn": "parseFont",
+      "args": [
+        "flf2a$ 1 1 5 0 1\ncomment 0\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n"
+      ],
+      "upstreamFn": "figlet.parseFont",
+      "goFn": "figlet.ParseFont",
+      "note": "the smallest complete font both sides accept"
+    },
+    {
+      "id": "ok-parse-code-tagged",
+      "fn": "parseFont",
+      "args": [
+        "flf2a$ 1 1 5 0 1\ncomment 0\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n0x2603\nS@@\n"
+      ],
+      "upstreamFn": "figlet.parseFont",
+      "goFn": "figlet.ParseFont",
+      "note": "a hexadecimal code tag"
+    },
+    {
+      "id": "ok-parse-octal-code-tag",
+      "fn": "parseFont",
+      "args": [
+        "flf2a$ 1 1 5 0 1\ncomment 0\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n#@@\n0101\nA@@\n"
+      ],
+      "upstreamFn": "figlet.parseFont",
+      "goFn": "figlet.ParseFont"
+    },
+    {
+      "id": "err-registry-unknown",
+      "fn": "registryRender",
+      "args": [
+        "definitely-not-a-font",
+        "x"
+      ],
+      "upstreamFn": "figlet.loadFontSync",
+      "goFn": "figlet.RenderFont"
+    }
+  ]
+}

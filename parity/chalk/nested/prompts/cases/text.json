@@ -1,0 +1,282 @@
+{
+  "group": "text",
+  "upstream": "prompts@2.4.2",
+  "cases": [
+    {
+      "id": "text-basic",
+      "fn": "text",
+      "args": [
+        {
+          "message": "name"
+        },
+        [
+          "bob",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Input",
+      "upstreamFn": "prompts.text"
+    },
+    {
+      "id": "text-empty",
+      "fn": "text",
+      "args": [
+        {
+          "message": "name"
+        },
+        [
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Input",
+      "note": "an empty submission with no default is the empty string",
+      "upstreamFn": "prompts.text"
+    },
+    {
+      "id": "text-initial-used",
+      "fn": "text",
+      "args": [
+        {
+          "message": "name",
+          "initial": "anon"
+        },
+        [
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Input",
+      "note": "upstream `initial` is the port's Default",
+      "upstreamFn": "prompts.text"
+    },
+    {
+      "id": "text-initial-overridden",
+      "fn": "text",
+      "args": [
+        {
+          "message": "name",
+          "initial": "anon"
+        },
+        [
+          "bob",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Input",
+      "upstreamFn": "prompts.text"
+    },
+    {
+      "id": "text-backspace",
+      "fn": "text",
+      "args": [
+        {
+          "message": "name"
+        },
+        [
+          "bobx",
+          "<backspace>",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Input",
+      "upstreamFn": "prompts.text"
+    },
+    {
+      "id": "text-backspace-past-start",
+      "fn": "text",
+      "args": [
+        {
+          "message": "name"
+        },
+        [
+          "ab",
+          "<backspace>",
+          "<backspace>",
+          "<backspace>",
+          "<backspace>",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Input",
+      "note": "backspacing past the start of the line must not underflow",
+      "upstreamFn": "prompts.text"
+    },
+    {
+      "id": "text-backspace-to-initial",
+      "fn": "text",
+      "args": [
+        {
+          "message": "name",
+          "initial": "anon"
+        },
+        [
+          "ab",
+          "<backspace>",
+          "<backspace>",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Input",
+      "note": "emptying the line falls back to the default",
+      "upstreamFn": "prompts.text"
+    },
+    {
+      "id": "text-spaces-preserved",
+      "fn": "text",
+      "args": [
+        {
+          "message": "name"
+        },
+        [
+          "  x  ",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Input",
+      "upstreamFn": "prompts.text"
+    },
+    {
+      "id": "text-unicode",
+      "fn": "text",
+      "args": [
+        {
+          "message": "name"
+        },
+        [
+          "héllo wörld",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Input",
+      "upstreamFn": "prompts.text"
+    },
+    {
+      "id": "text-cjk",
+      "fn": "text",
+      "args": [
+        {
+          "message": "name"
+        },
+        [
+          "日本語",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Input",
+      "upstreamFn": "prompts.text"
+    },
+    {
+      "id": "text-digits",
+      "fn": "text",
+      "args": [
+        {
+          "message": "name"
+        },
+        [
+          "12345",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Input",
+      "note": "a text prompt returns digits as a string",
+      "upstreamFn": "prompts.text"
+    },
+    {
+      "id": "text-long",
+      "fn": "text",
+      "args": [
+        {
+          "message": "name"
+        },
+        [
+          "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Input",
+      "upstreamFn": "prompts.text"
+    },
+    {
+      "id": "text-tab-ignored",
+      "fn": "text",
+      "args": [
+        {
+          "message": "name"
+        },
+        [
+          "<tab>",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Input",
+      "note": "tab is not a character; neither side inserts it",
+      "upstreamFn": "prompts.text"
+    },
+    {
+      "id": "text-tab-with-initial",
+      "fn": "text",
+      "args": [
+        {
+          "message": "name",
+          "initial": "anon"
+        },
+        [
+          "<tab>",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Input",
+      "note": "upstream's tab accepts the placeholder, the port's empty line falls back to it",
+      "upstreamFn": "prompts.text"
+    },
+    {
+      "id": "text-format-upper",
+      "fn": "text",
+      "args": [
+        {
+          "message": "name",
+          "format": "upper"
+        },
+        [
+          "bob",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Input",
+      "note": "upstream `format` is the port's Transform",
+      "upstreamFn": "prompts.text"
+    },
+    {
+      "id": "text-format-trim",
+      "fn": "text",
+      "args": [
+        {
+          "message": "name",
+          "format": "trim"
+        },
+        [
+          "  x  ",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Input",
+      "upstreamFn": "prompts.text"
+    },
+    {
+      "id": "text-format-on-default",
+      "fn": "text",
+      "args": [
+        {
+          "message": "name",
+          "initial": "anon",
+          "format": "upper"
+        },
+        [
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Input",
+      "note": "the transform also applies to the default",
+      "upstreamFn": "prompts.text"
+    }
+  ]
+}

@@ -1,0 +1,454 @@
+{
+  "group": "select",
+  "upstream": "prompts@2.4.2",
+  "cases": [
+    {
+      "id": "select-first",
+      "fn": "select",
+      "args": [
+        {
+          "message": "pick",
+          "choices": [
+            {
+              "title": "Red"
+            },
+            {
+              "title": "Green"
+            },
+            {
+              "title": "Blue"
+            }
+          ]
+        },
+        [
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Select",
+      "upstreamFn": "prompts.select"
+    },
+    {
+      "id": "select-down",
+      "fn": "select",
+      "args": [
+        {
+          "message": "pick",
+          "choices": [
+            {
+              "title": "Red"
+            },
+            {
+              "title": "Green"
+            },
+            {
+              "title": "Blue"
+            }
+          ]
+        },
+        [
+          "<down>",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Select",
+      "upstreamFn": "prompts.select"
+    },
+    {
+      "id": "select-down-twice",
+      "fn": "select",
+      "args": [
+        {
+          "message": "pick",
+          "choices": [
+            {
+              "title": "Red"
+            },
+            {
+              "title": "Green"
+            },
+            {
+              "title": "Blue"
+            }
+          ]
+        },
+        [
+          "<down>",
+          "<down>",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Select",
+      "upstreamFn": "prompts.select"
+    },
+    {
+      "id": "select-down-wraps",
+      "fn": "select",
+      "args": [
+        {
+          "message": "pick",
+          "choices": [
+            {
+              "title": "Red"
+            },
+            {
+              "title": "Green"
+            },
+            {
+              "title": "Blue"
+            }
+          ]
+        },
+        [
+          "<down>",
+          "<down>",
+          "<down>",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Select",
+      "note": "the cursor wraps to the top",
+      "upstreamFn": "prompts.select"
+    },
+    {
+      "id": "select-up-wraps",
+      "fn": "select",
+      "args": [
+        {
+          "message": "pick",
+          "choices": [
+            {
+              "title": "Red"
+            },
+            {
+              "title": "Green"
+            },
+            {
+              "title": "Blue"
+            }
+          ]
+        },
+        [
+          "<up>",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Select",
+      "note": "up from the first entry wraps to the last",
+      "upstreamFn": "prompts.select"
+    },
+    {
+      "id": "select-up-down",
+      "fn": "select",
+      "args": [
+        {
+          "message": "pick",
+          "choices": [
+            {
+              "title": "Red"
+            },
+            {
+              "title": "Green"
+            },
+            {
+              "title": "Blue"
+            }
+          ]
+        },
+        [
+          "<down>",
+          "<down>",
+          "<up>",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Select",
+      "upstreamFn": "prompts.select"
+    },
+    {
+      "id": "select-initial-index",
+      "fn": "select",
+      "args": [
+        {
+          "message": "pick",
+          "choices": [
+            {
+              "title": "Red"
+            },
+            {
+              "title": "Green"
+            },
+            {
+              "title": "Blue"
+            }
+          ],
+          "initial": 2
+        },
+        [
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Select",
+      "upstreamFn": "prompts.select"
+    },
+    {
+      "id": "select-initial-then-down",
+      "fn": "select",
+      "args": [
+        {
+          "message": "pick",
+          "choices": [
+            {
+              "title": "Red"
+            },
+            {
+              "title": "Green"
+            },
+            {
+              "title": "Blue"
+            }
+          ],
+          "initial": 2
+        },
+        [
+          "<down>",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Select",
+      "upstreamFn": "prompts.select"
+    },
+    {
+      "id": "select-tab-moves-forward",
+      "fn": "select",
+      "args": [
+        {
+          "message": "pick",
+          "choices": [
+            {
+              "title": "Red"
+            },
+            {
+              "title": "Green"
+            },
+            {
+              "title": "Blue"
+            }
+          ]
+        },
+        [
+          "<tab>",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Select",
+      "upstreamFn": "prompts.select"
+    },
+    {
+      "id": "select-explicit-string-values",
+      "fn": "select",
+      "args": [
+        {
+          "message": "pick",
+          "choices": [
+            {
+              "title": "Red",
+              "value": "r"
+            },
+            {
+              "title": "Green",
+              "value": "g"
+            },
+            {
+              "title": "Blue",
+              "value": "b"
+            }
+          ]
+        },
+        [
+          "<down>",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Select",
+      "note": "the choice's value is returned, not its label",
+      "upstreamFn": "prompts.select"
+    },
+    {
+      "id": "select-explicit-numeric-values",
+      "fn": "select",
+      "args": [
+        {
+          "message": "pick",
+          "choices": [
+            {
+              "title": "ten",
+              "value": 10
+            },
+            {
+              "title": "twenty",
+              "value": 20
+            }
+          ]
+        },
+        [
+          "<down>",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Select",
+      "upstreamFn": "prompts.select"
+    },
+    {
+      "id": "select-single-choice",
+      "fn": "select",
+      "args": [
+        {
+          "message": "pick",
+          "choices": [
+            {
+              "title": "Only"
+            }
+          ]
+        },
+        [
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Select",
+      "upstreamFn": "prompts.select"
+    },
+    {
+      "id": "select-single-choice-down",
+      "fn": "select",
+      "args": [
+        {
+          "message": "pick",
+          "choices": [
+            {
+              "title": "Only"
+            }
+          ]
+        },
+        [
+          "<down>",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Select",
+      "note": "wrapping a one-entry list stays put",
+      "upstreamFn": "prompts.select"
+    },
+    {
+      "id": "select-long-list",
+      "fn": "select",
+      "args": [
+        {
+          "message": "pick",
+          "choices": [
+            {
+              "title": "opt0"
+            },
+            {
+              "title": "opt1"
+            },
+            {
+              "title": "opt2"
+            },
+            {
+              "title": "opt3"
+            },
+            {
+              "title": "opt4"
+            },
+            {
+              "title": "opt5"
+            },
+            {
+              "title": "opt6"
+            },
+            {
+              "title": "opt7"
+            },
+            {
+              "title": "opt8"
+            },
+            {
+              "title": "opt9"
+            },
+            {
+              "title": "opt10"
+            },
+            {
+              "title": "opt11"
+            }
+          ]
+        },
+        [
+          "<down>",
+          "<down>",
+          "<down>",
+          "<down>",
+          "<down>",
+          "<down>",
+          "<down>",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Select",
+      "upstreamFn": "prompts.select"
+    },
+    {
+      "id": "select-long-list-up",
+      "fn": "select",
+      "args": [
+        {
+          "message": "pick",
+          "choices": [
+            {
+              "title": "opt0"
+            },
+            {
+              "title": "opt1"
+            },
+            {
+              "title": "opt2"
+            },
+            {
+              "title": "opt3"
+            },
+            {
+              "title": "opt4"
+            },
+            {
+              "title": "opt5"
+            },
+            {
+              "title": "opt6"
+            },
+            {
+              "title": "opt7"
+            },
+            {
+              "title": "opt8"
+            },
+            {
+              "title": "opt9"
+            },
+            {
+              "title": "opt10"
+            },
+            {
+              "title": "opt11"
+            }
+          ]
+        },
+        [
+          "<up>",
+          "<enter>"
+        ]
+      ],
+      "goFn": "prompts.Select",
+      "upstreamFn": "prompts.select"
+    }
+  ]
+}
