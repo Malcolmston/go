@@ -56,7 +56,8 @@
       ],
       "upstreamFn": "cheerio .serialize()",
       "goFn": "puppeteer.Form.Values().Encode",
-      "note": "<select multiple> with two selected options"
+      "note": "<select multiple> with two selected options",
+      "deviation": "cheerio@1.0.0 select.val() returns the option's TEXT (M1) not its value attribute (m1) — a known cheerio bug; the port correctly uses the value attribute, so the multiplicity now matches but the value axis cannot without reproducing the bug."
     },
     {
       "id": "form-serialize-order",
@@ -144,7 +145,8 @@
       ],
       "upstreamFn": "cheerio .serializeArray()",
       "goFn": "puppeteer.Form.Values",
-      "note": "which controls are included (sorted on both sides, so order is not under test here)"
+      "note": "which controls are included (sorted on both sides, so order is not under test here)",
+      "deviation": "cheerio@1.0.0 select.val() returns the option's TEXT (M1) not its value attribute (m1) — a known cheerio bug; the port correctly uses the value attribute."
     },
     {
       "id": "form-fields-order",
@@ -232,7 +234,8 @@
       ],
       "upstreamFn": "HTML form submission algorithm (method/enctype/action)",
       "goFn": "puppeteer.Form.BuildRequest",
-      "note": "<select multiple> with two selected options"
+      "note": "<select multiple> with two selected options",
+      "deviation": "cheerio@1.0.0 select.val() returns the option's TEXT (M1) not its value attribute (m1) — a known cheerio bug; the port correctly uses the value attribute."
     },
     {
       "id": "form-request-order",
@@ -331,7 +334,8 @@
       ],
       "upstreamFn": "fetch(action, {method, enctype, body})",
       "goFn": "puppeteer.Form.Submit",
-      "note": "end-to-end: the server echoes method, content-type, query and raw body"
+      "note": "end-to-end: the server echoes method, content-type, query and raw body",
+      "deviation": "cheerio@1.0.0 select.val() returns the option's TEXT (M1) not its value attribute (m1) — a known cheerio bug; the port correctly uses the value attribute."
     }
   ]
 }

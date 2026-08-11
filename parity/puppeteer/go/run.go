@@ -613,7 +613,7 @@ func handle(req request) (any, error) {
 			return nil, err
 		}
 		defer b.Close()
-		return f.Values().Encode(), nil
+		return f.Serialize(), nil
 
 	case "form.fields":
 		b, f, err := loadForm(str(a, 0), str(a, 1))

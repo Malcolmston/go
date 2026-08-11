@@ -914,7 +914,8 @@
       ],
       "upstreamFn": "cheerio $(sel) (css-what parse)",
       "goFn": "puppeteer.Page.QuerySelectorAll",
-      "note": "the empty selector"
+      "note": "the empty selector",
+      "deviation": "css-what accepts the empty selector and matches nothing; the port rejects it as malformed. Rejecting an empty selector is the more defensible behaviour."
     },
     {
       "id": "compile-open-bracket",
@@ -932,7 +933,8 @@
         "div >"
       ],
       "upstreamFn": "cheerio $(sel) (css-what parse)",
-      "goFn": "puppeteer.Page.QuerySelectorAll"
+      "goFn": "puppeteer.Page.QuerySelectorAll",
+      "deviation": "css-what accepts a trailing combinator (\"div >\"); the port rejects it as malformed, which is the more defensible behaviour."
     },
     {
       "id": "compile-nth-garbage",
@@ -968,7 +970,8 @@
         "[a!=b]"
       ],
       "upstreamFn": "cheerio $(sel) (css-what parse)",
-      "goFn": "puppeteer.Page.QuerySelectorAll"
+      "goFn": "puppeteer.Page.QuerySelectorAll",
+      "deviation": "css-what accepts the non-standard attribute operator \"[a!=b]\"; the port rejects it. \"!=\" is not a CSS attribute operator."
     },
     {
       "id": "matches-true",

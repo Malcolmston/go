@@ -4,219 +4,28 @@
   "goModule": "github.com/malcolmston/puppeteer v0.2.0",
   "generatedBy": "go test ./parity/puppeteer/",
   "total": 197,
-  "match": 141,
-  "differ": 56,
-  "deviations": 0,
-  "parityPercent": 71.57,
+  "match": 185,
+  "differ": 5,
+  "deviations": 7,
+  "parityPercent": 97.37,
   "groups": {
     "forms": {
-      "differ": 17,
-      "match": 13
+      "deviation": 4,
+      "match": 26
     },
     "http": {
-      "differ": 2,
-      "match": 22
+      "match": 24
     },
     "parsing": {
-      "differ": 24,
-      "match": 22
+      "differ": 5,
+      "match": 41
     },
     "selectors": {
-      "differ": 13,
-      "match": 84
+      "deviation": 3,
+      "match": 94
     }
   },
   "mismatches": [
-    {
-      "id": "compile-bad-attr-op",
-      "group": "selectors",
-      "status": "differs",
-      "upstream": "true",
-      "go": "ERROR: puppeteer: invalid attribute selector in \"[a!=b]\""
-    },
-    {
-      "id": "compile-dangling-combinator",
-      "group": "selectors",
-      "status": "differs",
-      "upstream": "true",
-      "go": "ERROR: puppeteer: trailing combinator in selector \"div \u003e\""
-    },
-    {
-      "id": "compile-empty",
-      "group": "selectors",
-      "status": "differs",
-      "upstream": "true",
-      "go": "ERROR: puppeteer: trailing combinator in selector \"\"",
-      "note": "the empty selector"
-    },
-    {
-      "id": "form-fields-select-multiple",
-      "group": "forms",
-      "status": "differs",
-      "upstream": "[{\"name\":\"multi\",\"value\":\"M1\"},{\"name\":\"multi\",\"value\":\"M3\"}]",
-      "go": "[{\"name\":\"multi\",\"value\":\"m1\"}]",
-      "note": "which controls are included (sorted on both sides, so order is not under test here)"
-    },
-    {
-      "id": "form-request-basic",
-      "group": "forms",
-      "status": "differs",
-      "upstream": "{\"body\":\"t=tv\\u0026h=hv\\u0026c1=on1\\u0026r=r1\\u0026ta=tav\\u0026sel=o2\",\"contentType\":\"application/x-www-form-urlencoded\",\"method\":\"POST\",\"path\":\"/echo\",\"query\":\"\"}",
-      "go": "{\"body\":\"c1=on1\\u0026h=hv\\u0026r=r1\\u0026sel=o2\\u0026t=tv\\u0026ta=tav\",\"contentType\":\"application/x-www-form-urlencoded\",\"method\":\"POST\",\"path\":\"/echo\",\"query\":\"\"}",
-      "note": "the full control zoo: text, hidden, checkbox, radio, submit, reset, file, disabled, nameless, textarea, select, button"
-    },
-    {
-      "id": "form-request-get",
-      "group": "forms",
-      "status": "differs",
-      "upstream": "{\"body\":\"\",\"contentType\":\"\",\"method\":\"GET\",\"path\":\"/echo\",\"query\":\"pre=1\\u0026zeta=z\\u0026alpha=a\\u0026mid=m\"}",
-      "go": "{\"body\":\"\",\"contentType\":\"\",\"method\":\"GET\",\"path\":\"/echo\",\"query\":\"alpha=a\\u0026mid=m\\u0026pre=1\\u0026zeta=z\"}",
-      "note": "method=GET with an action that already carries a query string"
-    },
-    {
-      "id": "form-request-multipart",
-      "group": "forms",
-      "status": "differs",
-      "upstream": "{\"body\":\"t=tv\",\"contentType\":\"multipart/form-data\",\"method\":\"POST\",\"path\":\"/echo\",\"query\":\"\"}",
-      "go": "{\"body\":\"t=tv\",\"contentType\":\"application/x-www-form-urlencoded\",\"method\":\"POST\",\"path\":\"/echo\",\"query\":\"\"}",
-      "note": "the form declares enctype=multipart/form-data"
-    },
-    {
-      "id": "form-request-novalue",
-      "group": "forms",
-      "status": "differs",
-      "upstream": "{\"body\":\"empty=\\u0026cb=on\\u0026s=plain\",\"contentType\":\"application/x-www-form-urlencoded\",\"method\":\"POST\",\"path\":\"/echo\",\"query\":\"\"}",
-      "go": "{\"body\":\"cb=on\\u0026empty=\\u0026s=plain\",\"contentType\":\"application/x-www-form-urlencoded\",\"method\":\"POST\",\"path\":\"/echo\",\"query\":\"\"}",
-      "note": "controls with no value attribute"
-    },
-    {
-      "id": "form-request-order",
-      "group": "forms",
-      "status": "differs",
-      "upstream": "{\"body\":\"zzz=3\\u0026aaa=1\\u0026mmm=2\",\"contentType\":\"application/x-www-form-urlencoded\",\"method\":\"POST\",\"path\":\"/echo\",\"query\":\"\"}",
-      "go": "{\"body\":\"aaa=1\\u0026mmm=2\\u0026zzz=3\",\"contentType\":\"application/x-www-form-urlencoded\",\"method\":\"POST\",\"path\":\"/echo\",\"query\":\"\"}",
-      "note": "field order: document order vs sorted"
-    },
-    {
-      "id": "form-request-select-multiple",
-      "group": "forms",
-      "status": "differs",
-      "upstream": "{\"body\":\"multi=M1\\u0026multi=M3\",\"contentType\":\"application/x-www-form-urlencoded\",\"method\":\"POST\",\"path\":\"/echo\",\"query\":\"\"}",
-      "go": "{\"body\":\"multi=m1\",\"contentType\":\"application/x-www-form-urlencoded\",\"method\":\"POST\",\"path\":\"/echo\",\"query\":\"\"}",
-      "note": "\u003cselect multiple\u003e with two selected options"
-    },
-    {
-      "id": "form-serialize-basic",
-      "group": "forms",
-      "status": "differs",
-      "upstream": "\"t=tv\\u0026h=hv\\u0026c1=on1\\u0026r=r1\\u0026ta=tav\\u0026sel=o2\"",
-      "go": "\"c1=on1\\u0026h=hv\\u0026r=r1\\u0026sel=o2\\u0026t=tv\\u0026ta=tav\"",
-      "note": "the full control zoo: text, hidden, checkbox, radio, submit, reset, file, disabled, nameless, textarea, select, button"
-    },
-    {
-      "id": "form-serialize-get",
-      "group": "forms",
-      "status": "differs",
-      "upstream": "\"zeta=z\\u0026alpha=a\\u0026mid=m\"",
-      "go": "\"alpha=a\\u0026mid=m\\u0026zeta=z\"",
-      "note": "method=GET with an action that already carries a query string"
-    },
-    {
-      "id": "form-serialize-novalue",
-      "group": "forms",
-      "status": "differs",
-      "upstream": "\"empty=\\u0026cb=on\\u0026s=plain\"",
-      "go": "\"cb=on\\u0026empty=\\u0026s=plain\"",
-      "note": "controls with no value attribute"
-    },
-    {
-      "id": "form-serialize-order",
-      "group": "forms",
-      "status": "differs",
-      "upstream": "\"zzz=3\\u0026aaa=1\\u0026mmm=2\"",
-      "go": "\"aaa=1\\u0026mmm=2\\u0026zzz=3\"",
-      "note": "field order: document order vs sorted"
-    },
-    {
-      "id": "form-serialize-select-multiple",
-      "group": "forms",
-      "status": "differs",
-      "upstream": "\"multi=M1\\u0026multi=M3\"",
-      "go": "\"multi=m1\"",
-      "note": "\u003cselect multiple\u003e with two selected options"
-    },
-    {
-      "id": "form-submit-basic",
-      "group": "forms",
-      "status": "differs",
-      "upstream": "{\"body\":\"t=tv\\u0026h=hv\\u0026c1=on1\\u0026r=r1\\u0026ta=tav\\u0026sel=o2\",\"contentType\":\"application/x-www-form-urlencoded\",\"method\":\"POST\",\"query\":\"\",\"status\":200}",
-      "go": "{\"body\":\"c1=on1\\u0026h=hv\\u0026r=r1\\u0026sel=o2\\u0026t=tv\\u0026ta=tav\",\"contentType\":\"application/x-www-form-urlencoded\",\"method\":\"POST\",\"query\":\"\",\"status\":200}",
-      "note": "end-to-end: the server echoes method, content-type, query and raw body"
-    },
-    {
-      "id": "form-submit-get",
-      "group": "forms",
-      "status": "differs",
-      "upstream": "{\"body\":\"\",\"contentType\":\"\",\"method\":\"GET\",\"query\":\"pre=1\\u0026zeta=z\\u0026alpha=a\\u0026mid=m\",\"status\":200}",
-      "go": "{\"body\":\"\",\"contentType\":\"\",\"method\":\"GET\",\"query\":\"alpha=a\\u0026mid=m\\u0026pre=1\\u0026zeta=z\",\"status\":200}",
-      "note": "end-to-end: the server echoes method, content-type, query and raw body"
-    },
-    {
-      "id": "form-submit-novalue",
-      "group": "forms",
-      "status": "differs",
-      "upstream": "{\"body\":\"empty=\\u0026cb=on\\u0026s=plain\",\"contentType\":\"application/x-www-form-urlencoded\",\"method\":\"POST\",\"query\":\"\",\"status\":200}",
-      "go": "{\"body\":\"cb=on\\u0026empty=\\u0026s=plain\",\"contentType\":\"application/x-www-form-urlencoded\",\"method\":\"POST\",\"query\":\"\",\"status\":200}",
-      "note": "end-to-end: the server echoes method, content-type, query and raw body"
-    },
-    {
-      "id": "form-submit-order",
-      "group": "forms",
-      "status": "differs",
-      "upstream": "{\"body\":\"zzz=3\\u0026aaa=1\\u0026mmm=2\",\"contentType\":\"application/x-www-form-urlencoded\",\"method\":\"POST\",\"query\":\"\",\"status\":200}",
-      "go": "{\"body\":\"aaa=1\\u0026mmm=2\\u0026zzz=3\",\"contentType\":\"application/x-www-form-urlencoded\",\"method\":\"POST\",\"query\":\"\",\"status\":200}",
-      "note": "end-to-end: the server echoes method, content-type, query and raw body"
-    },
-    {
-      "id": "form-submit-select-multiple",
-      "group": "forms",
-      "status": "differs",
-      "upstream": "{\"body\":\"multi=M1\\u0026multi=M3\",\"contentType\":\"application/x-www-form-urlencoded\",\"method\":\"POST\",\"query\":\"\",\"status\":200}",
-      "go": "{\"body\":\"multi=m1\",\"contentType\":\"application/x-www-form-urlencoded\",\"method\":\"POST\",\"query\":\"\",\"status\":200}",
-      "note": "end-to-end: the server echoes method, content-type, query and raw body"
-    },
-    {
-      "id": "http-links-resolved",
-      "group": "http",
-      "status": "differs",
-      "upstream": "[\"SRV/deep/a/b/sibling\",\"SRV/deep/a/other\",\"SRV/final\",\"https://example.com/w\",\"SRV/area-target\"]",
-      "go": "[\"SRV/deep/a/b/sibling\",\"SRV/deep/a/other\",\"SRV/final\",\"https://example.com/w\"]",
-      "note": "document.links semantics: a[href] and area[href], resolved and de-duplicated"
-    },
-    {
-      "id": "http-page-html",
-      "group": "http",
-      "status": "differs",
-      "upstream": "\"\\u003c!doctype html\\u003e\\u003chtml lang=\\\"en\\\"\\u003e\\u003chead\\u003e\\u003cmeta charset=\\\"utf-8\\\"\\u003e\\u003ctitle\\u003eDoc \\u0026amp; Title\\u003c/title\\u003e\\u003c/head\\u003e\\u003cbody\\u003e\\u003ch1\\u003eH\\u003c/h1\\u003e\\u003cp\\u003ebody text\\u003c/p\\u003e\\u003c/body\\u003e\\u003c/html\\u003e\"",
-      "go": "\"\\u003c!doctype html\\u003e\\u003chtml lang=\\\"en\\\"\\u003e\\u003chead\\u003e\\u003cmeta charset=\\\"utf-8\\\"\\u003e\\u003ctitle\\u003eDoc \\u0026 Title\\u003c/title\\u003e\\u003c/head\\u003e\\u003cbody\\u003e\\u003ch1\\u003eH\\u003c/h1\\u003e\\u003cp\\u003ebody text\\u003c/p\\u003e\\u003c/body\\u003e\\u003c/html\\u003e\"",
-      "note": "re-serialised DOM"
-    },
-    {
-      "id": "parse-attr-dup",
-      "group": "parsing",
-      "status": "differs",
-      "upstream": "\"\\u003cdiv class=\\\"a\\\" id=\\\"first\\\"\\u003ed\\u003c/div\\u003e\"",
-      "go": "\"\\u003cdiv class=\\\"a\\\" id=\\\"first\\\" id=\\\"second\\\"\\u003ed\\u003c/div\\u003e\"",
-      "note": "duplicate attribute: first wins"
-    },
-    {
-      "id": "parse-cdata-bogus",
-      "group": "parsing",
-      "status": "differs",
-      "upstream": "\"\\u003cdiv\\u003e\\u003c!--[CDATA[x]]--\\u003e\\u003c!--?pi foo?--\\u003e\\u003c!--bogus--\\u003e\\u003c/div\\u003e\"",
-      "go": "\"\\u003cdiv\\u003e\\u003c!--![CDATA[x]]--\\u003e\\u003c!--?pi foo?--\\u003e\\u003c!--!bogus--\\u003e\\u003c/div\\u003e\"",
-      "note": "bogus comments: CDATA, processing instruction, \u003c!bogus\u003e"
-    },
     {
       "id": "parse-comments-doctype",
       "group": "parsing",
@@ -224,22 +33,6 @@
       "upstream": "\"\\u003c!doctype html\\u003e\\u003c!-- lead --\\u003e\\u003chtml\\u003e\\u003chead\\u003e\\u003c/head\\u003e\\u003cbody\\u003e\\u003cdiv\\u003ex\\u003c!--in--\\u003e\\u003c/div\\u003e\\u003c!-- tail --\\u003e\\u003c/body\\u003e\\u003c/html\\u003e\"",
       "go": "\"\\u003c!doctype html\\u003e\\u003chtml\\u003e\\u003chead\\u003e\\u003c/head\\u003e\\u003cbody\\u003e\\u003c!-- lead --\\u003e\\u003cdiv\\u003ex\\u003c!--in--\\u003e\\u003c/div\\u003e\\u003c!-- tail --\\u003e\\u003c/body\\u003e\\u003c/html\\u003e\"",
       "note": "comments and the doctype node"
-    },
-    {
-      "id": "parse-entities",
-      "group": "parsing",
-      "status": "differs",
-      "upstream": "\"\\u003cp id=\\\"e\\\"\\u003e\\u0026amp; \\u0026lt; \\u0026gt; \\\" \\u0026amp; \\u0026amp; \\u0026nbsp; © ¬anentity; \\u0026amp;\\u003c/p\\u003e\"",
-      "go": "\"\\u003cp id=\\\"e\\\"\\u003e\\u0026amp; \\u0026lt; \\u0026gt; \\\" \\u0026amp; \\u0026amp;   © \\u0026amp;notanentity; \\u0026amp;amp\\u003c/p\\u003e\"",
-      "note": "character reference decoding and re-escaping"
-    },
-    {
-      "id": "parse-full-document",
-      "group": "parsing",
-      "status": "differs",
-      "upstream": "\"\\u003c!doctype html\\u003e\\u003chtml lang=\\\"en\\\"\\u003e\\u003chead\\u003e\\u003cmeta charset=\\\"utf-8\\\"\\u003e\\u003ctitle\\u003eDoc \\u0026amp; Title\\u003c/title\\u003e\\u003c/head\\u003e\\u003cbody\\u003e\\u003ch1\\u003eH\\u003c/h1\\u003e\\u003cp\\u003ebody text\\u003c/p\\u003e\\u003c/body\\u003e\\u003c/html\\u003e\"",
-      "go": "\"\\u003c!doctype html\\u003e\\u003chtml lang=\\\"en\\\"\\u003e\\u003chead\\u003e\\u003cmeta charset=\\\"utf-8\\\"\\u003e\\u003ctitle\\u003eDoc \\u0026 Title\\u003c/title\\u003e\\u003c/head\\u003e\\u003cbody\\u003e\\u003ch1\\u003eH\\u003c/h1\\u003e\\u003cp\\u003ebody text\\u003c/p\\u003e\\u003c/body\\u003e\\u003c/html\\u003e\"",
-      "note": "a complete document with doctype/head/body"
     },
     {
       "id": "parse-misnested-deep",
@@ -258,168 +51,6 @@
       "note": "adoption agency algorithm"
     },
     {
-      "id": "parse-nbsp-text",
-      "group": "parsing",
-      "status": "differs",
-      "upstream": "\"\\u003cdiv id=\\\"n\\\"\\u003ea\\u0026nbsp;b\\u0026nbsp;c\\u003c/div\\u003e\"",
-      "go": "\"\\u003cdiv id=\\\"n\\\"\\u003ea b c\\u003c/div\\u003e\"",
-      "note": "non-breaking space: literal or \u0026nbsp; on output?"
-    },
-    {
-      "id": "parse-raw-text",
-      "group": "parsing",
-      "status": "differs",
-      "upstream": "\"\\u003cscript\\u003eif (a\\u003cb \\u0026\\u0026 c\\u003ed) { e(); }\\u003c/script\\u003e\\u003cstyle\\u003ea\\u003eb{color:red}\\u003c/style\\u003e\\u003ctextarea\\u003e\\u0026lt;b\\u0026gt;hi\\u0026lt;/b\\u0026gt;\\u0026amp;\\u003c/textarea\\u003e\\u003ctitle\\u003eT\\u0026amp;T\\u003c/title\\u003e\"",
-      "go": "\"\\u003cscript\\u003eif (a\\u003cb \\u0026\\u0026 c\\u003ed) { e(); }\\u003c/script\\u003e\\u003cstyle\\u003ea\\u003eb{color:red}\\u003c/style\\u003e\\u003ctextarea\\u003e\\u003cb\\u003ehi\\u003c/b\\u003e\\u0026\\u003c/textarea\\u003e\\u003ctitle\\u003eT\\u0026T\\u003c/title\\u003e\"",
-      "note": "script/style/textarea/title raw-text modes"
-    },
-    {
-      "id": "parse-select-in-p",
-      "group": "parsing",
-      "status": "differs",
-      "upstream": "\"\\u003cp\\u003ea\\u003c/p\\u003e\\u003ctable\\u003e\\u003ctbody\\u003e\\u003ctr\\u003e\\u003ctd\\u003eb\\u003c/td\\u003e\\u003c/tr\\u003e\\u003c/tbody\\u003e\\u003c/table\\u003ec\\u003cp\\u003e\\u003c/p\\u003e\"",
-      "go": "\"\\u003cp\\u003ea\\u003c/p\\u003e\\u003ctable\\u003e\\u003ctr\\u003e\\u003ctd\\u003eb\\u003c/td\\u003e\\u003c/tr\\u003e\\u003c/table\\u003ec\"",
-      "note": "\u003ctable\u003e closes an open \u003cp\u003e"
-    },
-    {
-      "id": "parse-self-closing-nonvoid",
-      "group": "parsing",
-      "status": "differs",
-      "upstream": "\"\\u003cdiv\\u003e\\u003cspan\\u003eafter\\u003c/span\\u003e\\u003c/div\\u003e\"",
-      "go": "\"\\u003cdiv\\u003e\\u003cspan\\u003e\\u003c/span\\u003eafter\\u003c/div\\u003e\"",
-      "note": "\u003cspan/\u003e is not self-closing in HTML"
-    },
-    {
-      "id": "parse-table-foster",
-      "group": "parsing",
-      "status": "differs",
-      "upstream": "\"\\u003cb\\u003estray\\u003c/b\\u003e\\u003ctable\\u003e\\u003ctbody\\u003e\\u003ctr\\u003e\\u003ctd\\u003ey\\u003c/td\\u003e\\u003c/tr\\u003e\\u003c/tbody\\u003e\\u003c/table\\u003e\"",
-      "go": "\"\\u003ctable\\u003e\\u003cb\\u003estray\\u003c/b\\u003e\\u003ctr\\u003e\\u003ctd\\u003ey\\u003c/td\\u003e\\u003c/tr\\u003e\\u003c/table\\u003e\"",
-      "note": "foster parenting: \u003cb\u003e must move out of the table"
-    },
-    {
-      "id": "parse-table-implied-tbody",
-      "group": "parsing",
-      "status": "differs",
-      "upstream": "\"\\u003ctable\\u003e\\u003ctbody\\u003e\\u003ctr\\u003e\\u003ctd\\u003ea\\u003c/td\\u003e\\u003ctd\\u003eb\\u003c/td\\u003e\\u003c/tr\\u003e\\u003c/tbody\\u003e\\u003c/table\\u003e\"",
-      "go": "\"\\u003ctable\\u003e\\u003ctr\\u003e\\u003ctd\\u003ea\\u003c/td\\u003e\\u003ctd\\u003eb\\u003c/td\\u003e\\u003c/tr\\u003e\\u003c/table\\u003e\"",
-      "note": "tree construction must decide whether \u003ctbody\u003e is synthesised"
-    },
-    {
-      "id": "parse-table-mixed",
-      "group": "parsing",
-      "status": "differs",
-      "upstream": "\"\\u003ctable\\u003e\\u003ccaption\\u003eC\\u003c/caption\\u003e\\u003cthead\\u003e\\u003ctr\\u003e\\u003cth\\u003eh\\u003c/th\\u003e\\u003c/tr\\u003e\\u003c/thead\\u003e\\u003ctbody\\u003e\\u003ctr\\u003e\\u003ctd\\u003e1\\u003c/td\\u003e\\u003c/tr\\u003e\\u003c/tbody\\u003e\\u003ctfoot\\u003e\\u003ctr\\u003e\\u003ctd\\u003ef\\u003c/td\\u003e\\u003c/tr\\u003e\\u003c/tfoot\\u003e\\u003c/table\\u003e\"",
-      "go": "\"\\u003ctable\\u003e\\u003ccaption\\u003eC\\u003c/caption\\u003e\\u003cthead\\u003e\\u003ctr\\u003e\\u003cth\\u003eh\\u003c/th\\u003e\\u003c/tr\\u003e\\u003c/thead\\u003e\\u003ctr\\u003e\\u003ctd\\u003e1\\u003c/td\\u003e\\u003c/tr\\u003e\\u003ctfoot\\u003e\\u003ctr\\u003e\\u003ctd\\u003ef\\u003c/td\\u003e\\u003c/tr\\u003e\\u003c/tfoot\\u003e\\u003c/table\\u003e\"",
-      "note": "caption/thead/tfoot plus an implied tbody row"
-    },
-    {
-      "id": "parse-table-nested",
-      "group": "parsing",
-      "status": "differs",
-      "upstream": "\"\\u003ctable\\u003e\\u003ctbody\\u003e\\u003ctr\\u003e\\u003ctd\\u003e\\u003ctable\\u003e\\u003ctbody\\u003e\\u003ctr\\u003e\\u003ctd\\u003einner\\u003c/td\\u003e\\u003c/tr\\u003e\\u003c/tbody\\u003e\\u003c/table\\u003e\\u003c/td\\u003e\\u003c/tr\\u003e\\u003c/tbody\\u003e\\u003c/table\\u003e\"",
-      "go": "\"\\u003ctable\\u003e\\u003ctr\\u003e\\u003ctd\\u003e\\u003ctable\\u003e\\u003ctr\\u003e\\u003ctd\\u003einner\\u003c/td\\u003e\\u003c/tr\\u003e\\u003c/table\\u003e\\u003c/td\\u003e\\u003c/tr\\u003e\\u003c/table\\u003e\""
-    },
-    {
-      "id": "parse-table-unclosed-cells",
-      "group": "parsing",
-      "status": "differs",
-      "upstream": "\"\\u003ctable\\u003e\\u003ctbody\\u003e\\u003ctr\\u003e\\u003ctd\\u003ea\\u003c/td\\u003e\\u003ctd\\u003eb\\u003c/td\\u003e\\u003c/tr\\u003e\\u003ctr\\u003e\\u003ctd\\u003ec\\u003c/td\\u003e\\u003c/tr\\u003e\\u003c/tbody\\u003e\\u003c/table\\u003e\"",
-      "go": "\"\\u003ctable\\u003e\\u003ctr\\u003e\\u003ctd\\u003ea\\u003c/td\\u003e\\u003ctd\\u003eb\\u003c/td\\u003e\\u003c/tr\\u003e\\u003ctr\\u003e\\u003ctd\\u003ec\\u003c/td\\u003e\\u003c/tr\\u003e\\u003c/table\\u003e\"",
-      "note": "implied \u003c/td\u003e and \u003c/tr\u003e"
-    },
-    {
-      "id": "parse-void-elements",
-      "group": "parsing",
-      "status": "differs",
-      "upstream": "\"\\u003cdiv\\u003e\\u003cbr\\u003e\\u003chr\\u003e\\u003cimg src=\\\"a.png\\\"\\u003e\\u003cinput name=\\\"n\\\" value=\\\"v\\\"\\u003e\\u003cmeta charset=\\\"utf-8\\\"\\u003e\\u003clink rel=\\\"x\\\"\\u003e\\u003carea\\u003e\\u003cbase\\u003e\\u003cembed\\u003e\\u003csource\\u003e\\u003ctrack\\u003e\\u003cwbr\\u003e\\u003c/div\\u003e\"",
-      "go": "\"\\u003cdiv\\u003e\\u003cbr\\u003e\\u003chr\\u003e\\u003cimg src=\\\"a.png\\\"\\u003e\\u003cinput name=\\\"n\\\" value=\\\"v\\\"\\u003e\\u003cmeta charset=\\\"utf-8\\\"\\u003e\\u003clink rel=\\\"x\\\"\\u003e\\u003carea\\u003e\\u003cbase\\u003e\\u003ccol\\u003e\\u003cembed\\u003e\\u003csource\\u003e\\u003ctrack\\u003e\\u003cwbr\\u003e\\u003c/div\\u003e\"",
-      "note": "the void element set"
-    },
-    {
-      "id": "pseudo-checked",
-      "group": "selectors",
-      "status": "differs",
-      "upstream": "[\"i2\"]",
-      "go": "ERROR: puppeteer: unsupported pseudo-class :checked"
-    },
-    {
-      "id": "pseudo-contains",
-      "group": "selectors",
-      "status": "differs",
-      "upstream": "1",
-      "go": "ERROR: puppeteer: unsupported pseudo-class :contains",
-      "note": "cheerio/jQuery extension"
-    },
-    {
-      "id": "pseudo-disabled",
-      "group": "selectors",
-      "status": "differs",
-      "upstream": "[\"i4\"]",
-      "go": "ERROR: puppeteer: unsupported pseudo-class :disabled"
-    },
-    {
-      "id": "pseudo-empty",
-      "group": "selectors",
-      "status": "differs",
-      "upstream": "[[\"empty\"]]",
-      "go": "[[\"empty\"],[\"ws\"]]"
-    },
-    {
-      "id": "pseudo-empty-whitespace",
-      "group": "selectors",
-      "status": "differs",
-      "upstream": "0",
-      "go": "1",
-      "note": "whitespace-only element: :empty per CSS2 vs the Selectors 4 relaxation"
-    },
-    {
-      "id": "pseudo-enabled",
-      "group": "selectors",
-      "status": "differs",
-      "upstream": "3",
-      "go": "ERROR: puppeteer: unsupported pseudo-class :enabled"
-    },
-    {
-      "id": "pseudo-first-positional",
-      "group": "selectors",
-      "status": "differs",
-      "upstream": "1",
-      "go": "ERROR: puppeteer: unsupported pseudo-class :first",
-      "note": "jQuery positional pseudo-class"
-    },
-    {
-      "id": "pseudo-has",
-      "group": "selectors",
-      "status": "differs",
-      "upstream": "[\"ul\"]",
-      "go": "ERROR: puppeteer: unsupported pseudo-class :has",
-      "note": ":has()"
-    },
-    {
-      "id": "pseudo-has-child",
-      "group": "selectors",
-      "status": "differs",
-      "upstream": "1",
-      "go": "ERROR: puppeteer: unsupported pseudo-class :has",
-      "note": ":has() with a child combinator"
-    },
-    {
-      "id": "pseudo-selected",
-      "group": "selectors",
-      "status": "differs",
-      "upstream": "[\"o2\"]",
-      "go": "ERROR: puppeteer: unsupported pseudo-class :selected"
-    },
-    {
-      "id": "text-entities",
-      "group": "parsing",
-      "status": "differs",
-      "upstream": "\"\\u0026 \\u003c \\u003e \\\" \\u0026 \\u0026   © ¬anentity; \\u0026\"",
-      "go": "\"\\u0026 \\u003c \\u003e \\\" \\u0026 \\u0026   © \\u0026notanentity; \\u0026amp\"",
-      "note": "decoded text of a run of character references"
-    },
-    {
       "id": "tree-comments-doctype",
       "group": "parsing",
       "status": "differs",
@@ -428,42 +59,11 @@
       "note": "doctype/comment node kinds at top level"
     },
     {
-      "id": "tree-foster",
-      "group": "parsing",
-      "status": "differs",
-      "upstream": "[\"b\",\"table\"]",
-      "go": "[\"table\"]",
-      "note": "top-level nodes: does \u003cb\u003e escape the table?"
-    },
-    {
       "id": "tree-misnested-deep",
       "group": "parsing",
       "status": "differs",
       "upstream": "[\"p\",\"div\",\"b\"]",
       "go": "[\"p\",\"div\",\"#text\"]"
-    },
-    {
-      "id": "tree-select-in-p",
-      "group": "parsing",
-      "status": "differs",
-      "upstream": "[\"p\",\"table\",\"#text\",\"p\"]",
-      "go": "[\"p\",\"table\",\"#text\"]"
-    },
-    {
-      "id": "tree-table-implied",
-      "group": "parsing",
-      "status": "differs",
-      "upstream": "[\"tbody\"]",
-      "go": "[\"tr\"]",
-      "note": "children of \u003ctable\u003e: is a tbody inserted?"
-    },
-    {
-      "id": "tree-void",
-      "group": "parsing",
-      "status": "differs",
-      "upstream": "[\"br\",\"hr\",\"img\",\"input\",\"meta\",\"link\",\"area\",\"base\",\"embed\",\"source\",\"track\",\"wbr\"]",
-      "go": "[\"br\",\"hr\",\"img\",\"input\",\"meta\",\"link\",\"area\",\"base\",\"col\",\"embed\",\"source\",\"track\",\"wbr\"]",
-      "note": "the void element set as child nodes"
     }
   ]
 }
