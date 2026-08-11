@@ -30,6 +30,34 @@ parity/<lib>/
 `<lang>` is named for the upstream ecosystem, not the package: `node`, `python`,
 `java`, `ruby`, `rust`, `elixir`, `c`.
 
+### Nested packages
+
+Several sub-repos are not one port but many: `express/qs`, `express/etag`,
+`socket.io/engineio`, `chalk/figlet` are each a port of a *different* upstream
+package that happens to live inside a larger repo. The library's own harness
+(`parity/express/`) scores express itself and says nothing about them, so each
+nested port gets its own harness under a `nested/` directory:
+
+```
+parity/<lib>/nested/<pkg>/
+├── cases/
+├── <lang>/                     # that package's OWN upstream, pinned separately
+├── go/
+├── parity_test.go
+├── go.mod                      # module github.com/malcolmston/go-parity/<lib>-<pkg>
+├── COVERAGE.md
+└── parity.json
+```
+
+The oracle is the nested package's own upstream (`qs`, not express), pinned in
+that directory. A nested harness is a peer of the top-level one, never a
+replacement: `parity/express/parity.json` stays the score for express, and
+`parity/express/nested/qs/parity.json` is the score for the `qs` port.
+
+Only write a nested harness where the package really has a distinct upstream. A
+package that is internal decomposition with no independent counterpart is covered
+by its parent's harness and belongs in that parent's `COVERAGE.md` instead.
+
 ## The runner contract
 
 Both runners are **plain subprocesses speaking JSON Lines on stdio**. That is the
