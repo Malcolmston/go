@@ -406,8 +406,14 @@ func main() {
 
 	// ---------------------------------------------------- redirects & helpers
 	section("Redirect control + response helpers (cookies, Location, Retry-After)")
+	// MaxRedirects is a *int as of axios v0.4.0, mirroring axios' maxRedirects:
+	// nil follows redirects, 0 means "do not follow" and hands back the 3xx
+	// itself, a positive value caps the chain, and a negative value fails on the
+	// first redirect. This block wants the 3xx in hand so it can read Location
+	// and Retry-After off it, so 0 is the right value — the -1 this used to pass
+	// would now fail the request instead.
 	noFollow := client.Create(axios.Config{
-		MaxRedirects:   -1,
+		MaxRedirects:   noRedirects(0),
 		ValidateStatus: func(s int) bool { return s < 400 },
 	})
 	cr, err := noFollow.Get("/cookie")
@@ -501,3 +507,7 @@ func fatal(err error) {
 	fmt.Fprintln(os.Stderr, "FATAL:", err)
 	os.Exit(1)
 }
+
+// noRedirects returns a pointer to n, for Config.MaxRedirects (a *int so that
+// "unset" is distinguishable from "zero").
+func noRedirects(n int) *int { return &n }

@@ -1,0 +1,11 @@
+{
+  "repo": "d3",
+  "upstream": "d3/d3",
+  "parityBefore": "—",
+  "parityAfter": "—",
+  "upstreamCasesSynced": 0,
+  "gapsFound": 0,
+  "gapsClosed": 0,
+  "asOf": "2026-08-05",
+  "notes": "2026-08-05: first release. No number is published because none has been measured — d3's own tests are spread across thirty-odd separate repositories and a large share of them assert against a jsdom document, so there is no single upstream case corpus this port could be diffed against, and any percentage would be invented. Building that corpus (the same inputs run through real d3 in Node and through this port, diffed in CI) is the top item in BACKLOG.md, and the figure belongs here only once it exists. What is ported: the computational half of d3 — array (statistics, bisect, transforms, sets, bins, and the tick algorithm every scale depends on), color (sRGB/HSL/Lab/HCL and CSS parsing), interpolate (numbers, strings, colors, basis splines, piecewise), scale (linear/pow/log/symlog/time/sequential/diverging/quantize/quantile/threshold/ordinal/band/point), path (the SVG path builder), shape (line, area, arc, pie, stack, symbols and the curve family), format (d3's number-format specifier grammar and SI prefixes), timefmt (time intervals, time-axis ticks, and strftime-style parse/format), hierarchy (tree, cluster, treemap, partition, pack), ease, random (the distributions, over a package default source or an explicit randomLcg one) and dsv (CSV/TSV with object parsing and autoType inference). Two known internal seams, both tracked in BACKLOG.md: scale.TickFormat carries its own step-derived formatter rather than routing through the format package, and time intervals are implemented both in scale/timeinterval.go and in timefmt. What is deliberately excluded: d3-selection, d3-transition, d3-drag, d3-zoom and d3-brush, all of which exist to manipulate a live document — Go has no DOM, so this port computes and github.com/malcolmston/react renders. What is missing but wanted: d3-geo and its projections, d3-contour, d3-delaunay/Voronoi, d3-quadtree, d3-force, d3-chord and d3-polygon; these are unported work, not scope decisions, and are tracked in BACKLOG.md. Intentional API differences are itemised in API-DEVIATIONS.md."
+}
