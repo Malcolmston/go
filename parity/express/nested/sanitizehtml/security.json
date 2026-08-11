@@ -1,0 +1,28 @@
+{
+  "repo": "express",
+  "module": "github.com/malcolmston/express/sanitizehtml",
+  "note": "Nested-package findings from parity/express/nested/sanitizehtml/. Both were found by running sanitize-html@2.17.6 and the port over the same inputs and comparing; both are fixed in the working tree but unfixed in every published version, so the advisories are drafts until a release goes out.",
+  "findings": [
+    {
+      "id": "sanitizehtml-no-url-scheme-validation",
+      "summary": "sanitizehtml performs no URL scheme validation on any attribute, so javascript: and data: URLs survive in href, src and every other URL-bearing attribute the caller allows",
+      "severity": "high",
+      "cases": [
+        "def-scheme-attributes",
+        "pol-scheme-attrs-action",
+        "pol-scheme-attrs-formaction",
+        "pol-scheme-attrs-poster",
+        "pol-scheme-attrs-xlink",
+        "pol-scheme-attrs-background",
+        "pol-scheme-attrs-longdesc",
+        "pol-scheme-attrs-usemap",
+        "pol-scheme-attrs-data",
+        "pol-scheme-attrs-ping",
+        "pol-scheme-attrs-dynsrc",
+        "pol-imagesrcset"
+      ],
+      "affectedVersions": "<= 0.4.0",
+      "description": "## Summary\n\n`sanitizehtml.Sanitize` does not validate URL schemes at all. Upstream\n`sanitize-html` filters every URL-bearing attribute against `allowedSchemes`\n(`http, https, ftp, mailto, tel`) and drops the attribute when the scheme is not\npermitted. The port keeps the attribute verbatim, so a `javascript:` or\n`data:text/html` URL passes straight through into the sanitized output.\n\nThis is broader than an earlier draft of this finding stated. That draft claimed\n`href`, `src` and `cite` were scheme-checked and only the other sixteen\nattributes were missed. Direct execution against the published module disproves\nthat: `href` is not checked either.\n\n## Verified against the published module\n\nReproduced against `github.com/malcolmston/express@v0.4.0`, the latest published\nversion:\n\n```go\nopts := sanitizehtml.Options{\n    AllowedTags:       []string{\"a\"},\n    AllowedAttributes: map[string][]string{\"a\": {\"href\"}},\n}\nsanitizehtml.Sanitize(`<a href=\"javascript:alert(1)\">click</a>`, opts)\n// => <a href=\"javascript:alert(1)\">click</a>      (payload retained)\n\n// Same for every other URL attribute, e.g.:\n//   <button formaction=\"javascript:alert(1)\">  with button[formaction] allowed\n//   <video poster=\"javascript:alert(1)\">       with video[poster] allowed\n```\n\nUpstream `sanitize-html@2.17.6` returns `<a>click</a>` for the first case —\nattribute dropped, text kept.\n\n## Impact\n\nStored or reflected XSS in any application that uses this package to sanitize\nuntrusted HTML and permits a URL-bearing attribute. A `javascript:` URL in an\n`href` executes on click; `data:text/html` navigates to attacker-controlled\nmarkup. The whole purpose of the package is to make such input safe, so a caller\nhas no reason to filter schemes themselves.\n\n## Precondition, stated precisely\n\nThe caller must allow at least one URL-bearing attribute. The zero-value\n`Options{}` policy in v0.4.0 allows no tags at all and strips everything, so the\nliteral default is not affected. But allowing `a[href]` is the canonical way to\nuse an HTML sanitizer, and it is exactly what upstream permits in its OWN\ndefaults — so this is normal, documented usage rather than an exotic\nconfiguration.\n\n## Scope note\n\nThis manifest deliberately no longer contains a `nonTextTag` raw-content finding.\nAn earlier draft claimed an allowed `<option>`/`<textarea>` had its content\nemitted verbatim. Direct execution against v0.4.0 disproves it:\n`Sanitize(\"<option><img src=x onerror=alert(1)></option>\", Options{AllowedTags:\n[]string{\"option\"}})` returns `<option></option>`, and the `<textarea>` case\nreturns `<textarea></textarea>`. That defect existed only in the unreleased\nworking tree, where `nonTextTags` handling was added, and was fixed there before\nrelease. It is not a disclosure.\n\n## Fix\n\nThe port now carries upstream's full `allowedSchemes` /\n`allowedSchemesByTag` / `allowedSchemesAppliedToAttributes` model and applies\nit to all nineteen URL-bearing attributes, with `imagesrcset` srcset-filtered."
+    }
+  ]
+}

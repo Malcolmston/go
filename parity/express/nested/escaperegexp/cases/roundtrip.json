@@ -1,0 +1,119 @@
+{
+  "group": "roundtrip",
+  "upstream": "escape-string-regexp@5.0.0",
+  "note": "Behavioural cases: the escaped needle is compiled and used, so the point of the function (literal matching, no interpolation) is measured rather than just its output bytes. value = {matchesSelf, count of non-overlapping matches in the haystack}.",
+  "cases": [
+    {
+      "id": "rt-plain",
+      "fn": "roundTrip",
+      "args": ["abc", "xxabcyyabc"],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp"
+    },
+    {
+      "id": "rt-dot-literal",
+      "fn": "roundTrip",
+      "args": ["a.c", "abc a.c axc a.c"],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp",
+      "note": "the dot must match only a literal dot, so count is 2 and not 4"
+    },
+    {
+      "id": "rt-star",
+      "fn": "roundTrip",
+      "args": ["a*", "a aa a* a*"],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp"
+    },
+    {
+      "id": "rt-hyphen",
+      "fn": "roundTrip",
+      "args": ["a-z", "a-z abz a-z"],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp",
+      "note": "\\x2d must still match a literal hyphen"
+    },
+    {
+      "id": "rt-class",
+      "fn": "roundTrip",
+      "args": ["[abc]", "a [abc] b"],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp"
+    },
+    {
+      "id": "rt-group-alternation",
+      "fn": "roundTrip",
+      "args": ["(a|b)", "a b (a|b)"],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp",
+      "note": "an alternation in the needle must not become a real alternation"
+    },
+    {
+      "id": "rt-anchors",
+      "fn": "roundTrip",
+      "args": ["^x$", "x ^x$ y"],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp"
+    },
+    {
+      "id": "rt-backslash",
+      "fn": "roundTrip",
+      "args": ["a\\b", "a\\b ab"],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp",
+      "note": "without escaping, \\b would be a word boundary"
+    },
+    {
+      "id": "rt-quantifier-braces",
+      "fn": "roundTrip",
+      "args": ["a{2}", "aa a{2}"],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp"
+    },
+    {
+      "id": "rt-plus",
+      "fn": "roundTrip",
+      "args": ["c++", "c c+ c++ c+++"],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp"
+    },
+    {
+      "id": "rt-non-ascii",
+      "fn": "roundTrip",
+      "args": ["café.", "cafe. café. cafex"],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp"
+    },
+    {
+      "id": "rt-emoji",
+      "fn": "roundTrip",
+      "args": ["🔥+", "🔥 🔥+ 🔥🔥+"],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp",
+      "note": "astral needle: escaping must not split the surrogate pair"
+    },
+    {
+      "id": "rt-no-match",
+      "fn": "roundTrip",
+      "args": [".*", "anything at all"],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp",
+      "note": "the escaped .* must match nothing here, proving it is literal"
+    },
+    {
+      "id": "rt-html",
+      "fn": "roundTrip",
+      "args": ["<a href=\"x\">", "<a href=\"x\"> <a href='x'>"],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp"
+    },
+    {
+      "id": "rt-err-nonstring-needle",
+      "fn": "roundTrip",
+      "args": [7, "7"],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp",
+      "note": "both must fail"
+    }
+  ]
+}

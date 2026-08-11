@@ -1,0 +1,527 @@
+{
+  "group": "encode",
+  "upstream": "html-entities@2.6.0",
+  "note": "encode(text, {mode, level, numeric}). Defaults: mode specialChars, level all (= html5), numeric decimal. The level decides whether a character gets a named entity or falls back to a numeric reference.",
+  "cases": [
+    {
+      "id": "enc-empty",
+      "fn": "encode",
+      "args": [
+        ""
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode"
+    },
+    {
+      "id": "enc-plain",
+      "fn": "encode",
+      "args": [
+        "hello world 123"
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode"
+    },
+    {
+      "id": "enc-specials-default",
+      "fn": "encode",
+      "args": [
+        "<a href=\"x\">Tom & Jerry's</a>"
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode",
+      "note": "the default mode: the five HTML-significant characters only"
+    },
+    {
+      "id": "enc-apostrophe",
+      "fn": "encode",
+      "args": [
+        "'"
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode",
+      "note": "html-entities prefers the named &apos;, unlike escape-html's &#39;"
+    },
+    {
+      "id": "enc-script-payload",
+      "fn": "encode",
+      "args": [
+        "<script>alert(1)</script>"
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode"
+    },
+    {
+      "id": "enc-attr-breakout",
+      "fn": "encode",
+      "args": [
+        "x\" onerror=\"alert(1)"
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode"
+    },
+    {
+      "id": "enc-attr-breakout-single",
+      "fn": "encode",
+      "args": [
+        "x' onerror='alert(1)"
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode"
+    },
+    {
+      "id": "enc-double-escape",
+      "fn": "encode",
+      "args": [
+        "&lt;b&gt;"
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode",
+      "note": "the & of an existing entity is escaped again"
+    },
+    {
+      "id": "enc-specials-keeps-non-ascii",
+      "fn": "encode",
+      "args": [
+        "café ©"
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode",
+      "note": "specialChars must not touch non-ASCII"
+    },
+    {
+      "id": "enc-specials-keeps-controls",
+      "fn": "encode",
+      "args": [
+        "a\tb\nc"
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode"
+    },
+    {
+      "id": "enc-nonascii-default-level",
+      "fn": "encode",
+      "args": [
+        "café © é",
+        {
+          "mode": "nonAscii"
+        }
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode",
+      "note": "at level all the HTML5 NAMES win: &eacute;, &copy;"
+    },
+    {
+      "id": "enc-nonascii-specials-too",
+      "fn": "encode",
+      "args": [
+        "<é>",
+        {
+          "mode": "nonAscii"
+        }
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode"
+    },
+    {
+      "id": "enc-nonascii-xml",
+      "fn": "encode",
+      "args": [
+        "©∆℞😂",
+        {
+          "mode": "nonAscii",
+          "level": "xml"
+        }
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode",
+      "note": "xml has no names for these, so all four fall back to decimal"
+    },
+    {
+      "id": "enc-nonascii-html4",
+      "fn": "encode",
+      "args": [
+        "©∆℞😂",
+        {
+          "mode": "nonAscii",
+          "level": "html4"
+        }
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode"
+    },
+    {
+      "id": "enc-nonascii-html5",
+      "fn": "encode",
+      "args": [
+        "©∆℞😂",
+        {
+          "mode": "nonAscii",
+          "level": "html5"
+        }
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode"
+    },
+    {
+      "id": "enc-nonascii-all",
+      "fn": "encode",
+      "args": [
+        "©∆℞😂",
+        {
+          "mode": "nonAscii",
+          "level": "all"
+        }
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode",
+      "note": "all is an alias of html5"
+    },
+    {
+      "id": "enc-nonascii-astral",
+      "fn": "encode",
+      "args": [
+        "🔥🎉👨‍👩‍👧",
+        {
+          "mode": "nonAscii"
+        }
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode",
+      "note": "astral code points: upstream matches a surrogate pair, the port a rune, and the reference must be the same"
+    },
+    {
+      "id": "enc-nonascii-hex",
+      "fn": "encode",
+      "args": [
+        "é∆",
+        {
+          "mode": "nonAscii",
+          "level": "xml",
+          "numeric": "hexadecimal"
+        }
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode"
+    },
+    {
+      "id": "enc-nonascii-hex-astral",
+      "fn": "encode",
+      "args": [
+        "😂",
+        {
+          "mode": "nonAscii",
+          "level": "xml",
+          "numeric": "hexadecimal"
+        }
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode"
+    },
+    {
+      "id": "enc-nonascii-decimal-explicit",
+      "fn": "encode",
+      "args": [
+        "é",
+        {
+          "mode": "nonAscii",
+          "level": "xml",
+          "numeric": "decimal"
+        }
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode"
+    },
+    {
+      "id": "enc-nonascii-nbsp",
+      "fn": "encode",
+      "args": [
+        "a b",
+        {
+          "mode": "nonAscii"
+        }
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode"
+    },
+    {
+      "id": "enc-nonascii-cjk",
+      "fn": "encode",
+      "args": [
+        "日本語",
+        {
+          "mode": "nonAscii"
+        }
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode"
+    },
+    {
+      "id": "enc-nonascii-rtl",
+      "fn": "encode",
+      "args": [
+        "a‮b",
+        {
+          "mode": "nonAscii"
+        }
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode",
+      "note": "a bidi override is above U+007F and so gets encoded"
+    },
+    {
+      "id": "enc-nonascii-del",
+      "fn": "encode",
+      "args": [
+        "ab",
+        {
+          "mode": "nonAscii"
+        }
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode",
+      "note": "DEL is below U+0080, so nonAscii leaves it"
+    },
+    {
+      "id": "enc-printable-controls",
+      "fn": "encode",
+      "args": [
+        "a\u0001\bb",
+        {
+          "mode": "nonAsciiPrintable"
+        }
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode"
+    },
+    {
+      "id": "enc-printable-gaps",
+      "fn": "encode",
+      "args": [
+        "\t\u000b\u0010\u0016\u001f\n",
+        {
+          "mode": "nonAsciiPrintable"
+        }
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode",
+      "note": "upstream's ranges have gaps (U+0009..U+0010 and U+0016 are NOT encoded); the port reproduces them"
+    },
+    {
+      "id": "enc-printable-del",
+      "fn": "encode",
+      "args": [
+        "ab",
+        {
+          "mode": "nonAsciiPrintable"
+        }
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode",
+      "note": "DEL IS encoded in this mode"
+    },
+    {
+      "id": "enc-printable-specials",
+      "fn": "encode",
+      "args": [
+        "<&>",
+        {
+          "mode": "nonAsciiPrintable"
+        }
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode"
+    },
+    {
+      "id": "enc-printable-only-specials",
+      "fn": "encode",
+      "args": [
+        "<&>é",
+        {
+          "mode": "nonAsciiPrintableOnly"
+        }
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode",
+      "note": "the specials are deliberately left alone in this mode"
+    },
+    {
+      "id": "enc-printable-only-xml",
+      "fn": "encode",
+      "args": [
+        "é",
+        {
+          "mode": "nonAsciiPrintableOnly",
+          "level": "xml"
+        }
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode"
+    },
+    {
+      "id": "enc-extensive",
+      "fn": "encode",
+      "args": [
+        "é<>&\"—",
+        {
+          "mode": "extensive"
+        }
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode"
+    },
+    {
+      "id": "enc-extensive-punct",
+      "fn": "encode",
+      "args": [
+        "!#$%()*+,./:;=?@[]^_`{|}",
+        {
+          "mode": "extensive"
+        }
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode",
+      "note": "the whole punctuation sweep, which is where the range boundaries show"
+    },
+    {
+      "id": "enc-extensive-keeps",
+      "fn": "encode",
+      "args": [
+        "abcXYZ019 -~",
+        {
+          "mode": "extensive"
+        }
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode",
+      "note": "letters, digits, space, hyphen and tilde are outside the extensive ranges"
+    },
+    {
+      "id": "enc-extensive-xml",
+      "fn": "encode",
+      "args": [
+        "!<>&",
+        {
+          "mode": "extensive",
+          "level": "xml"
+        }
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode"
+    },
+    {
+      "id": "enc-extensive-hex",
+      "fn": "encode",
+      "args": [
+        "!@#",
+        {
+          "mode": "extensive",
+          "level": "xml",
+          "numeric": "hexadecimal"
+        }
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode"
+    },
+    {
+      "id": "enc-extensive-html4",
+      "fn": "encode",
+      "args": [
+        "©—<",
+        {
+          "mode": "extensive",
+          "level": "html4"
+        }
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode",
+      "note": "html4 has &copy; but no name for an em dash"
+    },
+    {
+      "id": "enc-level-xml-specials",
+      "fn": "encode",
+      "args": [
+        "&<>\"'",
+        {
+          "level": "xml"
+        }
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode"
+    },
+    {
+      "id": "enc-level-html4-specials",
+      "fn": "encode",
+      "args": [
+        "&<>\"'",
+        {
+          "level": "html4"
+        }
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode",
+      "note": "html4 has no &apos;, so the apostrophe falls back to a numeric reference"
+    },
+    {
+      "id": "enc-level-html5-specials",
+      "fn": "encode",
+      "args": [
+        "&<>\"'",
+        {
+          "level": "html5"
+        }
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode"
+    },
+    {
+      "id": "enc-unknown-mode",
+      "fn": "encode",
+      "args": [
+        "<é>",
+        {
+          "mode": "notAMode"
+        }
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode",
+      "deviation": "an unrecognized mode has no defined behaviour upstream (the regex lookup yields undefined and String.replace then throws); the port falls back to specialChars"
+    },
+    {
+      "id": "enc-unknown-level",
+      "fn": "encode",
+      "args": [
+        "<é>",
+        {
+          "mode": "nonAscii",
+          "level": "notALevel"
+        }
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode",
+      "deviation": "an unrecognized level is undefined behaviour upstream; the port falls back to level all"
+    },
+    {
+      "id": "enc-empty-options",
+      "fn": "encode",
+      "args": [
+        "<é>",
+        {}
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode",
+      "note": "an empty options object must behave exactly like the defaults"
+    },
+    {
+      "id": "enc-long-mixed",
+      "fn": "encode",
+      "args": [
+        "a<b>c&d\"e'f café © 日本 😂",
+        {
+          "mode": "nonAscii"
+        }
+      ],
+      "upstreamFn": "encode",
+      "goFn": "htmlentities.Encode"
+    }
+  ]
+}

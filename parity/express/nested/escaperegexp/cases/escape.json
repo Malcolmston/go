@@ -1,0 +1,442 @@
+{
+  "group": "escape",
+  "upstream": "escape-string-regexp@5.0.0",
+  "note": "escape-string-regexp has one default export. Upstream throws TypeError('Expected a string') for a non-string, so the non-string cases must fail on both sides.",
+  "cases": [
+    {
+      "id": "empty",
+      "fn": "escapeRegExp",
+      "args": [
+        ""
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp"
+    },
+    {
+      "id": "plain",
+      "fn": "escapeRegExp",
+      "args": [
+        "hello world"
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp",
+      "note": "nothing to escape"
+    },
+    {
+      "id": "meta-pipe",
+      "fn": "escapeRegExp",
+      "args": [
+        "|"
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp"
+    },
+    {
+      "id": "meta-backslash",
+      "fn": "escapeRegExp",
+      "args": [
+        "\\"
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp"
+    },
+    {
+      "id": "meta-braces",
+      "fn": "escapeRegExp",
+      "args": [
+        "{}"
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp"
+    },
+    {
+      "id": "meta-parens",
+      "fn": "escapeRegExp",
+      "args": [
+        "()"
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp"
+    },
+    {
+      "id": "meta-brackets",
+      "fn": "escapeRegExp",
+      "args": [
+        "[]"
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp"
+    },
+    {
+      "id": "meta-caret",
+      "fn": "escapeRegExp",
+      "args": [
+        "^"
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp"
+    },
+    {
+      "id": "meta-dollar",
+      "fn": "escapeRegExp",
+      "args": [
+        "$"
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp"
+    },
+    {
+      "id": "meta-plus",
+      "fn": "escapeRegExp",
+      "args": [
+        "+"
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp"
+    },
+    {
+      "id": "meta-star",
+      "fn": "escapeRegExp",
+      "args": [
+        "*"
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp"
+    },
+    {
+      "id": "meta-question",
+      "fn": "escapeRegExp",
+      "args": [
+        "?"
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp"
+    },
+    {
+      "id": "meta-dot",
+      "fn": "escapeRegExp",
+      "args": [
+        "."
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp"
+    },
+    {
+      "id": "meta-hyphen",
+      "fn": "escapeRegExp",
+      "args": [
+        "-"
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp",
+      "note": "the hyphen is the one character rendered as the hex escape \\x2d, not \\-"
+    },
+    {
+      "id": "meta-all",
+      "fn": "escapeRegExp",
+      "args": [
+        "|\\{}()[]^$+*?.-"
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp",
+      "note": "every metacharacter, in the order the upstream regex lists them"
+    },
+    {
+      "id": "not-escaped-slash",
+      "fn": "escapeRegExp",
+      "args": [
+        "/"
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp",
+      "note": "forward slash is NOT escaped"
+    },
+    {
+      "id": "not-escaped-punct",
+      "fn": "escapeRegExp",
+      "args": [
+        "!\"#%&',:;<=>@_`~"
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp",
+      "note": "characters outside the metacharacter set pass through verbatim"
+    },
+    {
+      "id": "already-escaped",
+      "fn": "escapeRegExp",
+      "args": [
+        "\\."
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp",
+      "note": "double escaping: the backslash is escaped too"
+    },
+    {
+      "id": "backslash-x2d",
+      "fn": "escapeRegExp",
+      "args": [
+        "\\x2d"
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp",
+      "note": "a literal \\x2d in the input must not be confused with the hyphen's replacement"
+    },
+    {
+      "id": "hyphen-run",
+      "fn": "escapeRegExp",
+      "args": [
+        "a--b---c"
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp"
+    },
+    {
+      "id": "hyphen-in-class-shape",
+      "fn": "escapeRegExp",
+      "args": [
+        "a-z"
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp",
+      "note": "the range shape a-z must be neutralised so it cannot become a class range"
+    },
+    {
+      "id": "class-breakout",
+      "fn": "escapeRegExp",
+      "args": [
+        "]|["
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp",
+      "note": "closing a character class early is the interpolation attack this function exists to stop"
+    },
+    {
+      "id": "group-breakout",
+      "fn": "escapeRegExp",
+      "args": [
+        ")|(.*"
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp"
+    },
+    {
+      "id": "redos-nested-quantifier",
+      "fn": "escapeRegExp",
+      "args": [
+        "(a+)+$"
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp",
+      "note": "the classic catastrophic-backtracking pattern must come out inert"
+    },
+    {
+      "id": "quantifier-braces",
+      "fn": "escapeRegExp",
+      "args": [
+        "a{1,10000}"
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp"
+    },
+    {
+      "id": "anchors",
+      "fn": "escapeRegExp",
+      "args": [
+        "^start$end^"
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp"
+    },
+    {
+      "id": "dot-star",
+      "fn": "escapeRegExp",
+      "args": [
+        ".*"
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp"
+    },
+    {
+      "id": "lookahead",
+      "fn": "escapeRegExp",
+      "args": [
+        "(?=x)"
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp"
+    },
+    {
+      "id": "named-group",
+      "fn": "escapeRegExp",
+      "args": [
+        "(?<n>x)"
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp"
+    },
+    {
+      "id": "backref",
+      "fn": "escapeRegExp",
+      "args": [
+        "(x)\\1"
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp"
+    },
+    {
+      "id": "class-shorthand",
+      "fn": "escapeRegExp",
+      "args": [
+        "\\d\\w\\s\\b"
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp"
+    },
+    {
+      "id": "whitespace",
+      "fn": "escapeRegExp",
+      "args": [
+        "a\nb\tc\r\nd"
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp",
+      "note": "real whitespace is not turned into escapes"
+    },
+    {
+      "id": "nul",
+      "fn": "escapeRegExp",
+      "args": [
+        "ab"
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp"
+    },
+    {
+      "id": "non-ascii-latin",
+      "fn": "escapeRegExp",
+      "args": [
+        "café-über"
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp",
+      "note": "multi-byte UTF-8 must survive, and the hyphen between must still be escaped"
+    },
+    {
+      "id": "non-ascii-cjk",
+      "fn": "escapeRegExp",
+      "args": [
+        "日本語.テキスト"
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp"
+    },
+    {
+      "id": "emoji",
+      "fn": "escapeRegExp",
+      "args": [
+        "🔥*🔥"
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp",
+      "note": "astral characters: Go iterates runes, JS iterates UTF-16 code units, and the result must still be identical"
+    },
+    {
+      "id": "lone-hyphen-emoji",
+      "fn": "escapeRegExp",
+      "args": [
+        "🔥-🔥"
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp"
+    },
+    {
+      "id": "unicode-dash",
+      "fn": "escapeRegExp",
+      "args": [
+        "a‑b–c—d"
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp",
+      "note": "only ASCII HYPHEN-MINUS is rewritten; the Unicode dashes are left alone"
+    },
+    {
+      "id": "html-ish",
+      "fn": "escapeRegExp",
+      "args": [
+        "<script>alert(1)</script>"
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp",
+      "note": "angle brackets are not metacharacters; the parens are"
+    },
+    {
+      "id": "long-mixed",
+      "fn": "escapeRegExp",
+      "args": [
+        "v1.2.3-rc.1+build(42)[x]{y}^$|*?\\"
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp"
+    },
+    {
+      "id": "err-number",
+      "fn": "escapeRegExp",
+      "args": [
+        42
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp",
+      "note": "upstream throws TypeError for a non-string; the Go runner rejects the argument shape — both must fail"
+    },
+    {
+      "id": "err-null",
+      "fn": "escapeRegExp",
+      "args": [
+        null
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp",
+      "note": "both must fail"
+    },
+    {
+      "id": "err-array",
+      "fn": "escapeRegExp",
+      "args": [
+        [
+          "a"
+        ]
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp",
+      "note": "both must fail"
+    },
+    {
+      "id": "err-object",
+      "fn": "escapeRegExp",
+      "args": [
+        {}
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp",
+      "note": "both must fail"
+    },
+    {
+      "id": "err-bool",
+      "fn": "escapeRegExp",
+      "args": [
+        true
+      ],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp",
+      "note": "both must fail"
+    },
+    {
+      "id": "err-missing-arg",
+      "fn": "escapeRegExp",
+      "args": [],
+      "upstreamFn": "escapeStringRegexp",
+      "goFn": "escaperegexp.EscapeRegExp",
+      "note": "undefined is not a string: both must fail"
+    }
+  ]
+}

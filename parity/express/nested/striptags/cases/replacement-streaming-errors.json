@@ -1,0 +1,37 @@
+{
+  "group": "replacement-streaming-errors",
+  "upstream": "striptags@3.2.0",
+  "note": "The third argument (tag_replacement), streaming mode, and the inputs upstream throws on.",
+  "cases": [
+    { "id": "repl-pipe", "fn": "stripWith", "args": ["<p>a</p><b>b</b>", [], "|"], "upstreamFn": "striptags", "goFn": "striptags.StripTagsWith" },
+    { "id": "repl-space", "fn": "stripWith", "args": ["<p>one</p><p>two</p>", [], " "], "upstreamFn": "striptags", "goFn": "striptags.StripTagsWith", "note": "the common 'keep words apart' use" },
+    { "id": "repl-empty", "fn": "stripWith", "args": ["<p>a</p>", [], ""], "upstreamFn": "striptags", "goFn": "striptags.StripTagsWith" },
+    { "id": "repl-with-allowed", "fn": "stripWith", "args": ["<p>a</p><b>b</b>", ["p"], "X"], "upstreamFn": "striptags", "goFn": "striptags.StripTagsWith", "note": "only removed tags are replaced" },
+    { "id": "repl-comment-not-replaced", "fn": "stripWith", "args": ["a<!-- x -->b", [], "X"], "upstreamFn": "striptags", "goFn": "striptags.StripTagsWith", "note": "a removed comment emits NO replacement" },
+    { "id": "repl-markup", "fn": "stripWith", "args": ["<p>a</p>", [], "<br>"], "upstreamFn": "striptags", "goFn": "striptags.StripTagsWith", "note": "the replacement is not re-parsed or escaped by either side" },
+    { "id": "repl-multichar", "fn": "stripWith", "args": ["<a><b><c>", [], "[tag]"], "upstreamFn": "striptags", "goFn": "striptags.StripTagsWith" },
+    { "id": "repl-string-allowed", "fn": "stripWith", "args": ["<p>a</p><b>b</b>", "<p>", "|"], "upstreamFn": "striptags", "goFn": "striptags.StripTagsWith", "note": "allowed given in the string form together with a replacement" },
+    { "id": "repl-doctype", "fn": "stripWith", "args": ["<!DOCTYPE html><p>a</p>", [], "|"], "upstreamFn": "striptags", "goFn": "striptags.StripTagsWith", "note": "the doctype counts as a removed tag and gets a replacement" },
+    { "id": "repl-unclosed", "fn": "stripWith", "args": ["a<b", [], "|"], "upstreamFn": "striptags", "goFn": "striptags.StripTagsWith", "note": "a partial tag at end of input produces no replacement" },
+
+    { "id": "stream-one-chunk", "fn": "stripStreaming", "args": [["<p>hello <b>world</b></p>"], [], ""], "upstreamFn": "striptags.init_streaming_mode", "goFn": "striptags.NewStreamer" },
+    { "id": "stream-split-in-tag", "fn": "stripStreaming", "args": [["<p>hel", "lo <b", ">world</b></p>"], [], ""], "upstreamFn": "striptags.init_streaming_mode", "goFn": "striptags.NewStreamer", "note": "the tag <b> is split across a chunk boundary; the parser state must carry over" },
+    { "id": "stream-split-in-comment", "fn": "stripStreaming", "args": [["a<!-- b", "c -->d"], [], ""], "upstreamFn": "striptags.init_streaming_mode", "goFn": "striptags.NewStreamer" },
+    { "id": "stream-split-in-quote", "fn": "stripStreaming", "args": [["<a title=\"x", ">y\">z</a>"], [], ""], "upstreamFn": "striptags.init_streaming_mode", "goFn": "striptags.NewStreamer", "note": "in_quote_char must survive the boundary" },
+    { "id": "stream-split-lt-space", "fn": "stripStreaming", "args": [["a <", " b"], [], ""], "upstreamFn": "striptags.init_streaming_mode", "goFn": "striptags.NewStreamer", "note": "the bare-< escape hatch across a boundary" },
+    { "id": "stream-allowed", "fn": "stripStreaming", "args": [["<p>a", "</p><b>b</b>"], ["p"], ""], "upstreamFn": "striptags.init_streaming_mode", "goFn": "striptags.NewStreamer" },
+    { "id": "stream-replacement", "fn": "stripStreaming", "args": [["<p>a", "</p>"], [], "|"], "upstreamFn": "striptags.init_streaming_mode", "goFn": "striptags.NewStreamer" },
+    { "id": "stream-per-char", "fn": "stripStreaming", "args": [["<", "p", ">", "h", "i", "<", "/", "p", ">"], [], ""], "upstreamFn": "striptags.init_streaming_mode", "goFn": "striptags.NewStreamer", "note": "one character per chunk: the hardest boundary case" },
+    { "id": "stream-empty-chunks", "fn": "stripStreaming", "args": [["", "<p>", "", "a", "", "</p>", ""], [], ""], "upstreamFn": "striptags.init_streaming_mode", "goFn": "striptags.NewStreamer" },
+    { "id": "stream-trailing-partial", "fn": "stripStreaming", "args": [["a<b"], [], ""], "upstreamFn": "striptags.init_streaming_mode", "goFn": "striptags.NewStreamer", "note": "a stream that ends mid-tag emits nothing for it" },
+    { "id": "stream-depth", "fn": "stripStreaming", "args": [["<a<", "<b>", ">>x"], [], ""], "upstreamFn": "striptags.init_streaming_mode", "goFn": "striptags.NewStreamer", "note": "the nesting depth must carry over" },
+    { "id": "stream-string-allowed", "fn": "stripStreaming", "args": [["<p>a</p><b>b</b>"], "<p>", ""], "upstreamFn": "striptags.init_streaming_mode", "goFn": "striptags.NewStreamer" },
+
+    { "id": "err-number-html", "fn": "strip", "args": [123], "upstreamFn": "striptags", "goFn": "striptags.StripTags", "note": "upstream throws TypeError(\"'html' parameter must be a string\"); the Go runner rejects the argument shape — both must fail" },
+    { "id": "err-true-html", "fn": "strip", "args": [true], "upstreamFn": "striptags", "goFn": "striptags.StripTags", "note": "both must fail" },
+    { "id": "err-object-html", "fn": "strip", "args": [{ "a": 1 }], "upstreamFn": "striptags", "goFn": "striptags.StripTags", "note": "both must fail" },
+    { "id": "err-array-html", "fn": "strip", "args": [["<b>x</b>"]], "upstreamFn": "striptags", "goFn": "striptags.StripTags", "note": "an array is truthy and not a string: both must fail" },
+    { "id": "err-nested-array-html", "fn": "strip", "args": [[["x"]]], "upstreamFn": "striptags", "goFn": "striptags.StripTags", "note": "both must fail" },
+    { "id": "err-number-html-with-allowed", "fn": "stripAllowedArray", "args": [7, ["p"]], "upstreamFn": "striptags", "goFn": "striptags.StripTagsWith", "note": "both must fail" }
+  ]
+}

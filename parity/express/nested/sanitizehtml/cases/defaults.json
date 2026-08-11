@@ -1,0 +1,64 @@
+{
+  "group": "defaults",
+  "upstream": "sanitize-html@2.17.6",
+  "note": "The default POLICY itself, not just its effect on sample inputs. A port whose default allowlists differ silently changes the security posture of every caller who does not pass options, so each default list is compared directly (sorted on both sides — declaration order is not part of the contract).",
+  "cases": [
+    {
+      "id": "def-allowed-tags",
+      "fn": "defaultAllowedTags",
+      "args": [],
+      "upstreamFn": "sanitizeHtml.defaults.allowedTags",
+      "goFn": "sanitizehtml.DefaultOptions().AllowedTags"
+    },
+    {
+      "id": "def-allowed-attributes",
+      "fn": "defaultAllowedAttributes",
+      "args": [],
+      "upstreamFn": "sanitizeHtml.defaults.allowedAttributes",
+      "goFn": "sanitizehtml.DefaultOptions().AllowedAttributes"
+    },
+    {
+      "id": "def-self-closing",
+      "fn": "defaultSelfClosing",
+      "args": [],
+      "upstreamFn": "sanitizeHtml.defaults.selfClosing",
+      "goFn": "sanitizehtml.DefaultSelfClosing"
+    },
+    {
+      "id": "def-allowed-schemes",
+      "fn": "defaultAllowedSchemes",
+      "args": [],
+      "upstreamFn": "sanitizeHtml.defaults.allowedSchemes",
+      "goFn": "sanitizehtml.DefaultSchemes"
+    },
+    {
+      "id": "def-scheme-attributes",
+      "fn": "defaultAllowedSchemesAppliedToAttributes",
+      "args": [],
+      "upstreamFn": "sanitizeHtml.defaults.allowedSchemesAppliedToAttributes",
+      "goFn": "sanitizehtml.DefaultSchemeAttributes",
+      "note": "the list of attributes whose URL is scheme-checked: every attribute missing here is an unchecked javascript: sink"
+    },
+    {
+      "id": "def-non-text-tags",
+      "fn": "defaultNonTextTags",
+      "args": [],
+      "upstreamFn": "the nonTextTags default inside sanitizeHtml()",
+      "goFn": "sanitizehtml.DefaultNonTextTags"
+    },
+    {
+      "id": "def-disallowed-mode",
+      "fn": "defaultDisallowedTagsMode",
+      "args": [],
+      "upstreamFn": "sanitizeHtml.defaults.disallowedTagsMode",
+      "goFn": "sanitizehtml.DefaultOptions().DisallowedTagsMode"
+    },
+    {
+      "id": "def-allow-protocol-relative",
+      "fn": "defaultAllowProtocolRelative",
+      "args": [],
+      "upstreamFn": "sanitizeHtml.defaults.allowProtocolRelative",
+      "goFn": "sanitizehtml.DefaultOptions().AllowProtocolRelative"
+    }
+  ]
+}

@@ -1,0 +1,352 @@
+{
+  "group": "escape",
+  "upstream": "escape-html@1.0.3",
+  "note": "escape-html exports one function; every case is a string in, a string out. Non-string inputs are out of scope: the Node function coerces with '' + string while the Go port takes a typed string (recorded in COVERAGE.md).",
+  "cases": [
+    {
+      "id": "empty",
+      "fn": "escape",
+      "args": [
+        ""
+      ],
+      "upstreamFn": "escapeHtml",
+      "goFn": "escapehtml.Escape",
+      "note": "empty string round-trips"
+    },
+    {
+      "id": "plain-ascii",
+      "fn": "escape",
+      "args": [
+        "hello world"
+      ],
+      "upstreamFn": "escapeHtml",
+      "goFn": "escapehtml.Escape",
+      "note": "no special characters: returned unchanged"
+    },
+    {
+      "id": "amp",
+      "fn": "escape",
+      "args": [
+        "&"
+      ],
+      "upstreamFn": "escapeHtml",
+      "goFn": "escapehtml.Escape"
+    },
+    {
+      "id": "lt",
+      "fn": "escape",
+      "args": [
+        "<"
+      ],
+      "upstreamFn": "escapeHtml",
+      "goFn": "escapehtml.Escape"
+    },
+    {
+      "id": "gt",
+      "fn": "escape",
+      "args": [
+        ">"
+      ],
+      "upstreamFn": "escapeHtml",
+      "goFn": "escapehtml.Escape"
+    },
+    {
+      "id": "dquote",
+      "fn": "escape",
+      "args": [
+        "\""
+      ],
+      "upstreamFn": "escapeHtml",
+      "goFn": "escapehtml.Escape"
+    },
+    {
+      "id": "squote",
+      "fn": "escape",
+      "args": [
+        "'"
+      ],
+      "upstreamFn": "escapeHtml",
+      "goFn": "escapehtml.Escape",
+      "note": "apostrophe becomes the numeric &#39;, not &apos;"
+    },
+    {
+      "id": "all-five",
+      "fn": "escape",
+      "args": [
+        "&<>\"'"
+      ],
+      "upstreamFn": "escapeHtml",
+      "goFn": "escapehtml.Escape"
+    },
+    {
+      "id": "all-five-reversed",
+      "fn": "escape",
+      "args": [
+        "'\">&<"
+      ],
+      "upstreamFn": "escapeHtml",
+      "goFn": "escapehtml.Escape",
+      "note": "order of the special characters must not matter"
+    },
+    {
+      "id": "script-tag",
+      "fn": "escape",
+      "args": [
+        "<script>alert(1)</script>"
+      ],
+      "upstreamFn": "escapeHtml",
+      "goFn": "escapehtml.Escape",
+      "note": "the canonical XSS payload must come out inert"
+    },
+    {
+      "id": "img-onerror",
+      "fn": "escape",
+      "args": [
+        "<img src=x onerror=alert(1)>"
+      ],
+      "upstreamFn": "escapeHtml",
+      "goFn": "escapehtml.Escape"
+    },
+    {
+      "id": "attr-breakout-dquote",
+      "fn": "escape",
+      "args": [
+        "x\" onmouseover=\"alert(1)"
+      ],
+      "upstreamFn": "escapeHtml",
+      "goFn": "escapehtml.Escape",
+      "note": "double-quoted attribute breakout"
+    },
+    {
+      "id": "attr-breakout-squote",
+      "fn": "escape",
+      "args": [
+        "x' onmouseover='alert(1)"
+      ],
+      "upstreamFn": "escapeHtml",
+      "goFn": "escapehtml.Escape",
+      "note": "single-quoted attribute breakout: escaping ' is what makes this safe"
+    },
+    {
+      "id": "attr-breakout-unquoted",
+      "fn": "escape",
+      "args": [
+        "x onerror=alert(1)"
+      ],
+      "upstreamFn": "escapeHtml",
+      "goFn": "escapehtml.Escape",
+      "note": "unquoted attribute values are not protected by escape-html: neither side escapes space or ="
+    },
+    {
+      "id": "already-escaped",
+      "fn": "escape",
+      "args": [
+        "&lt;b&gt;"
+      ],
+      "upstreamFn": "escapeHtml",
+      "goFn": "escapehtml.Escape",
+      "note": "double escaping: the leading & of an existing entity is escaped again"
+    },
+    {
+      "id": "amp-entity-name",
+      "fn": "escape",
+      "args": [
+        "&amp;"
+      ],
+      "upstreamFn": "escapeHtml",
+      "goFn": "escapehtml.Escape"
+    },
+    {
+      "id": "leading-special",
+      "fn": "escape",
+      "args": [
+        "<tail"
+      ],
+      "upstreamFn": "escapeHtml",
+      "goFn": "escapehtml.Escape",
+      "note": "special character at index 0: the fast-path prefix copy is empty"
+    },
+    {
+      "id": "trailing-special",
+      "fn": "escape",
+      "args": [
+        "head<"
+      ],
+      "upstreamFn": "escapeHtml",
+      "goFn": "escapehtml.Escape"
+    },
+    {
+      "id": "middle-special",
+      "fn": "escape",
+      "args": [
+        "head<tail"
+      ],
+      "upstreamFn": "escapeHtml",
+      "goFn": "escapehtml.Escape"
+    },
+    {
+      "id": "repeated-amp",
+      "fn": "escape",
+      "args": [
+        "&&&&"
+      ],
+      "upstreamFn": "escapeHtml",
+      "goFn": "escapehtml.Escape"
+    },
+    {
+      "id": "long-mixed",
+      "fn": "escape",
+      "args": [
+        "a<b>c&d\"e'f<g>h&i\"j'k"
+      ],
+      "upstreamFn": "escapeHtml",
+      "goFn": "escapehtml.Escape"
+    },
+    {
+      "id": "newline-tab",
+      "fn": "escape",
+      "args": [
+        "a\nb\tc\r\nd"
+      ],
+      "upstreamFn": "escapeHtml",
+      "goFn": "escapehtml.Escape",
+      "note": "whitespace is not escaped"
+    },
+    {
+      "id": "backtick",
+      "fn": "escape",
+      "args": [
+        "a`b"
+      ],
+      "upstreamFn": "escapeHtml",
+      "goFn": "escapehtml.Escape",
+      "note": "backtick is NOT escaped by escape-html (old-IE attribute delimiter)"
+    },
+    {
+      "id": "equals-slash",
+      "fn": "escape",
+      "args": [
+        "a=b/c"
+      ],
+      "upstreamFn": "escapeHtml",
+      "goFn": "escapehtml.Escape"
+    },
+    {
+      "id": "nul-byte",
+      "fn": "escape",
+      "args": [
+        "a\u0000<b"
+      ],
+      "upstreamFn": "escapeHtml",
+      "goFn": "escapehtml.Escape",
+      "note": "NUL passes through untouched; it does not stop the scan"
+    },
+    {
+      "id": "non-ascii-latin",
+      "fn": "escape",
+      "args": [
+        "café Ünïcödé"
+      ],
+      "upstreamFn": "escapeHtml",
+      "goFn": "escapehtml.Escape",
+      "note": "multi-byte UTF-8 must survive verbatim"
+    },
+    {
+      "id": "non-ascii-cjk",
+      "fn": "escape",
+      "args": [
+        "日本語のテキスト"
+      ],
+      "upstreamFn": "escapeHtml",
+      "goFn": "escapehtml.Escape"
+    },
+    {
+      "id": "emoji-and-lt",
+      "fn": "escape",
+      "args": [
+        "🔥<🔥>🔥"
+      ],
+      "upstreamFn": "escapeHtml",
+      "goFn": "escapehtml.Escape",
+      "note": "surrogate-pair astral characters interleaved with escaped bytes"
+    },
+    {
+      "id": "rtl-override",
+      "fn": "escape",
+      "args": [
+        "a‮b<c"
+      ],
+      "upstreamFn": "escapeHtml",
+      "goFn": "escapehtml.Escape",
+      "note": "bidi control characters are not stripped"
+    },
+    {
+      "id": "combining-marks",
+      "fn": "escape",
+      "args": [
+        "é<x"
+      ],
+      "upstreamFn": "escapeHtml",
+      "goFn": "escapehtml.Escape",
+      "note": "no Unicode normalization on either side"
+    },
+    {
+      "id": "svg-payload",
+      "fn": "escape",
+      "args": [
+        "<svg/onload=alert(1)>"
+      ],
+      "upstreamFn": "escapeHtml",
+      "goFn": "escapehtml.Escape"
+    },
+    {
+      "id": "comment-payload",
+      "fn": "escape",
+      "args": [
+        "<!--<script>--><script>alert(1)</script>"
+      ],
+      "upstreamFn": "escapeHtml",
+      "goFn": "escapehtml.Escape"
+    },
+    {
+      "id": "js-string-context",
+      "fn": "escape",
+      "args": [
+        "\");alert(1);//"
+      ],
+      "upstreamFn": "escapeHtml",
+      "goFn": "escapehtml.Escape",
+      "note": "escape-html is HTML-only: parentheses and semicolons survive, so this is not safe for a JS string context — both sides agree"
+    },
+    {
+      "id": "unicode-fullwidth-lt",
+      "fn": "escape",
+      "args": [
+        "＜script＞"
+      ],
+      "upstreamFn": "escapeHtml",
+      "goFn": "escapehtml.Escape",
+      "note": "full-width angle brackets are not the ASCII ones and are left alone"
+    },
+    {
+      "id": "very-long-safe",
+      "fn": "escape",
+      "args": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ],
+      "upstreamFn": "escapeHtml",
+      "goFn": "escapehtml.Escape",
+      "note": "the no-match fast path on a longer input"
+    },
+    {
+      "id": "long-with-late-special",
+      "fn": "escape",
+      "args": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa<"
+      ],
+      "upstreamFn": "escapeHtml",
+      "goFn": "escapehtml.Escape",
+      "note": "prefix copy of a long safe run followed by one escape"
+    }
+  ]
+}

@@ -1,0 +1,1268 @@
+{
+  "group": "policy",
+  "upstream": "sanitize-html@2.17.6",
+  "note": "Configuration: allowedTags, allowedAttributes, allowedClasses, the scheme options, nonTextTags, selfClosing, disallowedTagsMode and textFilter. Upstream merges a supplied options object over sanitizeHtml.defaults, and both runners do the same, so a case only states what it overrides.",
+  "cases": [
+    {
+      "id": "pol-tags-subset",
+      "fn": "sanitize",
+      "args": [
+        "<p>a</p><b>b</b><i>c</i>",
+        {
+          "allowedTags": [
+            "b"
+          ]
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "pol-tags-empty",
+      "fn": "sanitize",
+      "args": [
+        "<p>a</p><script>alert(1)</script>",
+        {
+          "allowedTags": []
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "an empty allowlist still drops script CONTENT, because script is a nonTextTag"
+    },
+    {
+      "id": "pol-tags-all",
+      "fn": "sanitize",
+      "args": [
+        "<p onclick=\"alert(1)\">a</p><blink>b</blink>",
+        {
+          "allowedTags": false
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "allowedTags:false means every tag; the Go runner translates that to the port's \"*\""
+    },
+    {
+      "id": "pol-tags-all-script",
+      "fn": "sanitize",
+      "args": [
+        "<script>alert(1)</script>",
+        {
+          "allowedTags": false
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "with every tag allowed, an allowed nonTextTag keeps its raw content — upstream warns about this on stderr"
+    },
+    {
+      "id": "pol-tags-star-literal",
+      "fn": "sanitize",
+      "args": [
+        "<p>a</p>",
+        {
+          "allowedTags": [
+            "*"
+          ]
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "deviation": "upstream has no wildcard for allowedTags, so [\"*\"] permits only a tag literally named \"*\" and strips <p>; the port reads \"*\" as \"every tag\""
+    },
+    {
+      "id": "pol-tags-case",
+      "fn": "sanitize",
+      "args": [
+        "<P>a</P>",
+        {
+          "allowedTags": [
+            "p"
+          ]
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "tag names are compared lower-cased"
+    },
+    {
+      "id": "pol-tags-allowlist-uppercase",
+      "fn": "sanitize",
+      "args": [
+        "<p>a</p>",
+        {
+          "allowedTags": [
+            "P"
+          ]
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "deviation": "upstream compares the lower-cased tag name against the allowlist verbatim, so an upper-case entry never matches; the port lower-cases the allowlist"
+    },
+    {
+      "id": "pol-tags-script-allowed",
+      "fn": "sanitize",
+      "args": [
+        "<script>alert(1)</script>",
+        {
+          "allowedTags": [
+            "script"
+          ]
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "the caller explicitly allows script: both sides keep the raw body"
+    },
+    {
+      "id": "pol-tags-style-allowed",
+      "fn": "sanitize",
+      "args": [
+        "<style>b{color:red}</style>",
+        {
+          "allowedTags": [
+            "style"
+          ]
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "pol-tags-textarea-allowed",
+      "fn": "sanitize",
+      "args": [
+        "<textarea><b>x</b></textarea>",
+        {
+          "allowedTags": [
+            "textarea"
+          ]
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "pol-tags-img-default-attrs",
+      "fn": "sanitize",
+      "args": [
+        "<img src=\"/a.png\" alt=\"a\" width=\"1\" height=\"2\" loading=\"lazy\" title=\"t\" id=\"z\">",
+        {
+          "allowedTags": [
+            "img"
+          ]
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "the default allowedAttributes for img survive the merge; id does not"
+    },
+    {
+      "id": "pol-attrs-star",
+      "fn": "sanitize",
+      "args": [
+        "<p id=\"a\" class=\"b\">x</p>",
+        {
+          "allowedAttributes": {
+            "*": [
+              "id"
+            ]
+          }
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "pol-attrs-per-tag",
+      "fn": "sanitize",
+      "args": [
+        "<p id=\"a\">x</p><b id=\"c\">y</b>",
+        {
+          "allowedAttributes": {
+            "p": [
+              "id"
+            ]
+          }
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "pol-attrs-glob-data",
+      "fn": "sanitize",
+      "args": [
+        "<p data-a=\"1\" data-b=\"2\" dataX=\"3\">x</p>",
+        {
+          "allowedAttributes": {
+            "p": [
+              "data-*"
+            ]
+          }
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "pol-attrs-glob-mid",
+      "fn": "sanitize",
+      "args": [
+        "<p axb=\"1\" ab=\"2\">x</p>",
+        {
+          "allowedAttributes": {
+            "p": [
+              "a*b"
+            ]
+          }
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "upstream turns the glob into a regex, so a * in the middle works"
+    },
+    {
+      "id": "pol-attrs-none",
+      "fn": "sanitize",
+      "args": [
+        "<a href=\"/x\">y</a>",
+        {
+          "allowedAttributes": {}
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "pol-attrs-null",
+      "fn": "sanitize",
+      "args": [
+        "<a href=\"javascript:alert(1)\" onclick=\"alert(2)\">y</a>",
+        {
+          "allowedAttributes": null
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "allowedAttributes:null means ALLOW EVERY attribute upstream; the scheme check still runs",
+      "deviation": "allowedAttributes:null means ALLOW EVERY ATTRIBUTE upstream. The Go zero value of a map is nil, so reading nil as \"allow everything\" would make Options{} silently permit event handlers; the port treats nil as \"nothing beyond the defaults\" and spells allow-all as {\"*\": {\"*\"}}"
+    },
+    {
+      "id": "pol-attrs-case",
+      "fn": "sanitize",
+      "args": [
+        "<p ID=\"a\">x</p>",
+        {
+          "allowedAttributes": {
+            "p": [
+              "id"
+            ]
+          }
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "pol-attrs-empty-value",
+      "fn": "sanitize",
+      "args": [
+        "<p id=\"\" title=\"\">x</p>",
+        {
+          "allowedAttributes": {
+            "p": [
+              "id",
+              "title"
+            ]
+          }
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "upstream drops an empty-valued non-boolean attribute unless it is in allowedEmptyAttributes"
+    },
+    {
+      "id": "pol-attrs-empty-alt",
+      "fn": "sanitize",
+      "args": [
+        "<img src=\"/a.png\" alt=\"\">",
+        {
+          "allowedTags": [
+            "img"
+          ]
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "alt IS in allowedEmptyAttributes, so an empty alt is kept"
+    },
+    {
+      "id": "pol-attrs-boolean",
+      "fn": "sanitize",
+      "args": [
+        "<input disabled>",
+        {
+          "allowedTags": [
+            "input"
+          ],
+          "allowedAttributes": {
+            "input": [
+              "disabled"
+            ]
+          }
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "a valueless boolean attribute"
+    },
+    {
+      "id": "pol-attrs-value-with-apostrophe",
+      "fn": "sanitize",
+      "args": [
+        "<p title=\"it's\">x</p>",
+        {
+          "allowedAttributes": {
+            "p": [
+              "title"
+            ]
+          }
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "the output is double-quoted, so an apostrophe needs no escaping"
+    },
+    {
+      "id": "pol-attrs-value-with-amp",
+      "fn": "sanitize",
+      "args": [
+        "<p title=\"a&b &amp; c\">x</p>",
+        {
+          "allowedAttributes": {
+            "p": [
+              "title"
+            ]
+          }
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "pol-attrs-value-newline",
+      "fn": "sanitize",
+      "args": [
+        "<p title=\"a\nb\">x</p>",
+        {
+          "allowedAttributes": {
+            "p": [
+              "title"
+            ]
+          }
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "pol-classes-filter",
+      "fn": "sanitize",
+      "args": [
+        "<p class=\"ok bad also-ok\">x</p>",
+        {
+          "allowedClasses": {
+            "p": [
+              "ok",
+              "also-ok"
+            ]
+          }
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "pol-classes-glob",
+      "fn": "sanitize",
+      "args": [
+        "<p class=\"pfx-a pfx-b other\">x</p>",
+        {
+          "allowedClasses": {
+            "p": [
+              "pfx-*"
+            ]
+          }
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "pol-classes-star-tag",
+      "fn": "sanitize",
+      "args": [
+        "<p class=\"ok bad\">x</p><b class=\"ok\">y</b>",
+        {
+          "allowedClasses": {
+            "*": [
+              "ok"
+            ]
+          }
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "pol-classes-none-survive",
+      "fn": "sanitize",
+      "args": [
+        "<p class=\"bad\">x</p>",
+        {
+          "allowedClasses": {
+            "p": [
+              "ok"
+            ]
+          }
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "no class survives: the attribute itself must go"
+    },
+    {
+      "id": "pol-classes-implicit-permission",
+      "fn": "sanitize",
+      "args": [
+        "<p class=\"ok\">x</p>",
+        {
+          "allowedClasses": {
+            "p": [
+              "ok"
+            ]
+          },
+          "allowedAttributes": {}
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "naming a tag in allowedClasses implicitly permits its class attribute"
+    },
+    {
+      "id": "pol-classes-star-class",
+      "fn": "sanitize",
+      "args": [
+        "<p class=\"anything at all\">x</p>",
+        {
+          "allowedClasses": {
+            "p": [
+              "*"
+            ]
+          }
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "pol-classes-multiple-spaces",
+      "fn": "sanitize",
+      "args": [
+        "<p class=\"  ok   bad  \">x</p>",
+        {
+          "allowedClasses": {
+            "p": [
+              "ok"
+            ]
+          }
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "pol-schemes-custom",
+      "fn": "sanitize",
+      "args": [
+        "<a href=\"gopher://x\">y</a><a href=\"http://x\">z</a>",
+        {
+          "allowedSchemes": [
+            "gopher"
+          ]
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "pol-schemes-empty",
+      "fn": "sanitize",
+      "args": [
+        "<a href=\"http://x\">y</a><a href=\"/rel\">z</a>",
+        {
+          "allowedSchemes": []
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "an empty scheme allowlist rejects every scheme but keeps relative URLs"
+    },
+    {
+      "id": "pol-schemes-by-tag",
+      "fn": "sanitize",
+      "args": [
+        "<a href=\"ftp://x\">y</a><img src=\"ftp://x\">",
+        {
+          "allowedTags": [
+            "a",
+            "img"
+          ],
+          "allowedSchemesByTag": {
+            "a": [
+              "https"
+            ]
+          }
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "a per-tag override replaces the global list for that tag only"
+    },
+    {
+      "id": "pol-schemes-by-tag-empty",
+      "fn": "sanitize",
+      "args": [
+        "<a href=\"https://x\">y</a>",
+        {
+          "allowedSchemesByTag": {
+            "a": []
+          }
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "pol-scheme-attrs-narrowed",
+      "fn": "sanitize",
+      "args": [
+        "<a href=\"javascript:alert(1)\">y</a>",
+        {
+          "allowedSchemesAppliedToAttributes": [
+            "src"
+          ]
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "if href is not on the list, its URL is NOT checked — both sides let the payload through, which is the caller's doing"
+    },
+    {
+      "id": "pol-scheme-attrs-action",
+      "fn": "sanitize",
+      "args": [
+        "<form action=\"javascript:alert(1)\">x</form>",
+        {
+          "allowedTags": [
+            "form"
+          ],
+          "allowedAttributes": {
+            "form": [
+              "action"
+            ]
+          }
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "action is on the DEFAULT scheme-checked list upstream"
+    },
+    {
+      "id": "pol-scheme-attrs-formaction",
+      "fn": "sanitize",
+      "args": [
+        "<button formaction=\"javascript:alert(1)\">x</button>",
+        {
+          "allowedTags": [
+            "button"
+          ],
+          "allowedAttributes": {
+            "button": [
+              "formaction"
+            ]
+          }
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "formaction on a submit button is a live javascript: sink"
+    },
+    {
+      "id": "pol-scheme-attrs-poster",
+      "fn": "sanitize",
+      "args": [
+        "<video poster=\"javascript:alert(1)\">x</video>",
+        {
+          "allowedTags": [
+            "video"
+          ],
+          "allowedAttributes": {
+            "video": [
+              "poster"
+            ]
+          }
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "pol-scheme-attrs-xlink",
+      "fn": "sanitize",
+      "args": [
+        "<svg><a xlink:href=\"javascript:alert(1)\">x</a></svg>",
+        {
+          "allowedTags": [
+            "svg",
+            "a"
+          ],
+          "allowedAttributes": {
+            "a": [
+              "xlink:href"
+            ]
+          }
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "xlink:href inside SVG is the classic SVG XSS sink"
+    },
+    {
+      "id": "pol-scheme-attrs-background",
+      "fn": "sanitize",
+      "args": [
+        "<table background=\"javascript:alert(1)\"><tr><td>x</td></tr></table>",
+        {
+          "allowedAttributes": {
+            "table": [
+              "background"
+            ]
+          }
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "pol-scheme-attrs-longdesc",
+      "fn": "sanitize",
+      "args": [
+        "<img src=\"/a.png\" longdesc=\"javascript:alert(1)\">",
+        {
+          "allowedTags": [
+            "img"
+          ],
+          "allowedAttributes": {
+            "img": [
+              "src",
+              "longdesc"
+            ]
+          }
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "pol-scheme-attrs-usemap",
+      "fn": "sanitize",
+      "args": [
+        "<img src=\"/a.png\" usemap=\"javascript:alert(1)\">",
+        {
+          "allowedTags": [
+            "img"
+          ],
+          "allowedAttributes": {
+            "img": [
+              "src",
+              "usemap"
+            ]
+          }
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "pol-scheme-attrs-data",
+      "fn": "sanitize",
+      "args": [
+        "<object data=\"javascript:alert(1)\">x</object>",
+        {
+          "allowedTags": [
+            "object"
+          ],
+          "allowedAttributes": {
+            "object": [
+              "data"
+            ]
+          }
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "pol-scheme-attrs-ping",
+      "fn": "sanitize",
+      "args": [
+        "<a href=\"/ok\" ping=\"javascript:alert(1)\">x</a>",
+        {
+          "allowedAttributes": {
+            "a": [
+              "href",
+              "ping"
+            ]
+          }
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "pol-scheme-attrs-dynsrc",
+      "fn": "sanitize",
+      "args": [
+        "<img dynsrc=\"javascript:alert(1)\" lowsrc=\"javascript:alert(2)\">",
+        {
+          "allowedTags": [
+            "img"
+          ],
+          "allowedAttributes": {
+            "img": [
+              "dynsrc",
+              "lowsrc"
+            ]
+          }
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "pol-scheme-attrs-cite",
+      "fn": "sanitize",
+      "args": [
+        "<blockquote cite=\"javascript:alert(1)\">x</blockquote>",
+        {
+          "allowedAttributes": {
+            "blockquote": [
+              "cite"
+            ]
+          }
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "pol-srcset-filter",
+      "fn": "sanitize",
+      "args": [
+        "<img srcset=\"/a.png 1x, javascript:alert(1) 2x, /b.png 3x\">",
+        {
+          "allowedTags": [
+            "img"
+          ]
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "srcset is filtered candidate by candidate"
+    },
+    {
+      "id": "pol-srcset-all-bad",
+      "fn": "sanitize",
+      "args": [
+        "<img srcset=\"javascript:alert(1) 1x\">",
+        {
+          "allowedTags": [
+            "img"
+          ]
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "no candidate survives: the attribute goes"
+    },
+    {
+      "id": "pol-srcset-widths",
+      "fn": "sanitize",
+      "args": [
+        "<img srcset=\"/a.png 100w, /b.png 200w\">",
+        {
+          "allowedTags": [
+            "img"
+          ]
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "pol-srcset-no-descriptor",
+      "fn": "sanitize",
+      "args": [
+        "<img srcset=\"/a.png\">",
+        {
+          "allowedTags": [
+            "img"
+          ]
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "pol-imagesrcset",
+      "fn": "sanitize",
+      "args": [
+        "<link imagesrcset=\"javascript:alert(1) 1x, /b.png 2x\">",
+        {
+          "allowedTags": [
+            "link"
+          ],
+          "allowedAttributes": {
+            "link": [
+              "imagesrcset"
+            ]
+          }
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "upstream applies the srcset filtering to imagesrcset as well"
+    },
+    {
+      "id": "pol-nontext-custom",
+      "fn": "sanitize",
+      "args": [
+        "<p>a</p><foo>bar</foo>",
+        {
+          "nonTextTags": [
+            "foo"
+          ]
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "a custom nonTextTags list replaces the default one"
+    },
+    {
+      "id": "pol-nontext-empty",
+      "fn": "sanitize",
+      "args": [
+        "<script>alert(1)</script>",
+        {
+          "nonTextTags": []
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "with an empty nonTextTags the script BODY is kept as text — the caller asked for it"
+    },
+    {
+      "id": "pol-selfclosing-custom",
+      "fn": "sanitize",
+      "args": [
+        "<p>x</p>",
+        {
+          "selfClosing": [
+            "p"
+          ]
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "pol-selfclosing-default-br",
+      "fn": "sanitize",
+      "args": [
+        "a<br>b<br/>c"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "br is serialised in the self-closing form either way"
+    },
+    {
+      "id": "pol-selfclosing-default-col",
+      "fn": "sanitize",
+      "args": [
+        "<table><colgroup><col><col></colgroup></table>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "col is on the upstream default selfClosing list"
+    },
+    {
+      "id": "pol-selfclosing-hr",
+      "fn": "sanitize",
+      "args": [
+        "a<hr>b"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "pol-mode-discard",
+      "fn": "sanitize",
+      "args": [
+        "<foo>keep me</foo>",
+        {
+          "disallowedTagsMode": "discard"
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "pol-mode-completely-discard",
+      "fn": "sanitize",
+      "args": [
+        "a<foo>drop me</foo>b",
+        {
+          "disallowedTagsMode": "completelyDiscard"
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "pol-mode-completely-discard-nested",
+      "fn": "sanitize",
+      "args": [
+        "a<foo>x<b>y</b>z</foo>b",
+        {
+          "disallowedTagsMode": "completelyDiscard"
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "deviation": "upstream leaves nested ALLOWED tags in place inside a completelyDiscard'd tag (its skipText flag only suppresses text), so <foo><b>y</b></foo> keeps <b>y</b>; the port discards the whole subtree, which is what the option name promises"
+    },
+    {
+      "id": "pol-mode-escape",
+      "fn": "sanitize",
+      "args": [
+        "<foo class=\"x\">bar</foo>",
+        {
+          "disallowedTagsMode": "escape"
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "pol-mode-escape-script",
+      "fn": "sanitize",
+      "args": [
+        "<script>alert(1)</script>",
+        {
+          "disallowedTagsMode": "escape"
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "escaping a nonTextTag must not surface its body as live markup"
+    },
+    {
+      "id": "pol-mode-escape-nested-allowed",
+      "fn": "sanitize",
+      "args": [
+        "<foo><b>x</b></foo>",
+        {
+          "disallowedTagsMode": "escape"
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "escape mode still sanitises the CONTENT"
+    },
+    {
+      "id": "pol-mode-recursive-escape",
+      "fn": "sanitize",
+      "args": [
+        "<foo><b>x</b></foo>",
+        {
+          "disallowedTagsMode": "recursiveEscape"
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "everything nested inside becomes text"
+    },
+    {
+      "id": "pol-mode-recursive-escape-script",
+      "fn": "sanitize",
+      "args": [
+        "<foo><script>alert(1)</script></foo>",
+        {
+          "disallowedTagsMode": "recursiveEscape"
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "pol-mode-escape-selfclosing",
+      "fn": "sanitize",
+      "args": [
+        "<foo/>x",
+        {
+          "disallowedTagsMode": "escape"
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "pol-mode-unknown",
+      "fn": "sanitize",
+      "args": [
+        "<foo>x</foo>",
+        {
+          "disallowedTagsMode": "notAMode"
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "an unrecognized mode: neither side may crash"
+    },
+    {
+      "id": "pol-textfilter-upper",
+      "fn": "sanitize",
+      "args": [
+        "<p>hello</p> world",
+        {
+          "textFilterKind": "upper"
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "pol-textfilter-tagname",
+      "fn": "sanitize",
+      "args": [
+        "top<p>inside</p>",
+        {
+          "textFilterKind": "brackets"
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "the filter is told the enclosing tag name"
+    },
+    {
+      "id": "pol-textfilter-drop",
+      "fn": "sanitize",
+      "args": [
+        "<p>gone</p>",
+        {
+          "textFilterKind": "drop"
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "pol-textfilter-markup",
+      "fn": "sanitize",
+      "args": [
+        "<p>x</p>",
+        {
+          "textFilterKind": "markup"
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "a textFilter that returns markup is trusted by both sides: its output is NOT re-escaped"
+    },
+    {
+      "id": "pol-textfilter-disallowed-tag",
+      "fn": "sanitize",
+      "args": [
+        "<foo>x</foo>",
+        {
+          "textFilterKind": "upper"
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "the text of a discarded tag also goes through the filter"
+    },
+    {
+      "id": "pol-attrs-allow-all-glob",
+      "fn": "sanitize",
+      "args": [
+        "<a href=\"/x\" onclick=\"alert(1)\" data-y=\"1\">z</a>",
+        {
+          "allowedAttributes": {
+            "*": [
+              "*"
+            ]
+          }
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "the portable spelling of \"allow every attribute\": a \"*\" glob under the \"*\" tag"
+    },
+    {
+      "id": "pol-attrs-empty-custom",
+      "fn": "sanitize",
+      "args": [
+        "<p id=\"\">y</p>",
+        {
+          "allowedAttributes": {
+            "p": [
+              "id"
+            ]
+          },
+          "allowedEmptyAttributes": [
+            "id"
+          ]
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "a custom allowedEmptyAttributes list keeps the empty value"
+    },
+    {
+      "id": "pol-attrs-nonboolean-star",
+      "fn": "sanitize",
+      "args": [
+        "<input disabled>",
+        {
+          "allowedTags": [
+            "input"
+          ],
+          "allowedAttributes": {
+            "input": [
+              "disabled"
+            ]
+          },
+          "nonBooleanAttributes": [
+            "*"
+          ]
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "nonBooleanAttributes:[\"*\"] means no attribute may be valueless"
+    },
+    {
+      "id": "pol-scheme-attrs-srcset-tagless",
+      "fn": "sanitize",
+      "args": [
+        "<source srcset=\"javascript:alert(1) 1x\">",
+        {
+          "allowedTags": [
+            "source"
+          ],
+          "allowedAttributes": {
+            "source": [
+              "srcset"
+            ]
+          }
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "srcset filtering is keyed on the attribute name, so it applies on any tag"
+    },
+    {
+      "id": "pol-nontext-option-disallowed-nested",
+      "fn": "sanitize",
+      "args": [
+        "<option>t<b>x</b>u</option>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "option is a nonTextTag but not a raw-text element: with it disallowed its text is dropped"
+    },
+    {
+      "id": "pol-mode-completely-discard-text-only",
+      "fn": "sanitize",
+      "args": [
+        "plain text",
+        {
+          "disallowedTagsMode": "completelyDiscard"
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "completelyDiscard blanks text whose enclosing element is not allowed, and at top level there is no enclosing element at all"
+    },
+    {
+      "id": "pol-mode-completely-discard-in-allowed",
+      "fn": "sanitize",
+      "args": [
+        "<p>a</p><foo>drop</foo><p>b</p>",
+        {
+          "disallowedTagsMode": "completelyDiscard"
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "text inside an allowed element survives"
+    },
+    {
+      "id": "pol-mode-escape-void",
+      "fn": "sanitize",
+      "args": [
+        "<img src=x>y",
+        {
+          "disallowedTagsMode": "escape"
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "the escaped rendering is the NORMALIZED tag, so a void element gains \" /\""
+    },
+    {
+      "id": "pol-mode-unknown-nested",
+      "fn": "sanitize",
+      "args": [
+        "<foo><b>x</b></foo>",
+        {
+          "disallowedTagsMode": "notAMode"
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "an unrecognized mode behaves like escape, so the nested allowed tag survives"
+    },
+    {
+      "id": "pol-textfilter-nontext-content",
+      "fn": "sanitize",
+      "args": [
+        "<textarea>x</textarea>",
+        {
+          "allowedTags": [
+            "textarea"
+          ],
+          "textFilterKind": "upper"
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "textFilter is NOT applied to the content of a raw-text element"
+    }
+  ]
+}

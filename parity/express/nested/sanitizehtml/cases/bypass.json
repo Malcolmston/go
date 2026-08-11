@@ -1,0 +1,1155 @@
+{
+  "group": "bypass",
+  "upstream": "sanitize-html@2.17.6",
+  "note": "The classic sanitizer-bypass corpus, run under the DEFAULT policy unless a case says otherwise. Any case where the port emits live markup that upstream strips or escapes is a vulnerability in the port, not a cosmetic difference.",
+  "cases": [
+    {
+      "id": "by-script-plain",
+      "fn": "sanitize",
+      "args": [
+        "<script>alert(1)</script>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "script is a nonTextTag: the tag AND its body must go"
+    },
+    {
+      "id": "by-script-mixed-case",
+      "fn": "sanitize",
+      "args": [
+        "<ScRiPt>alert(1)</ScRiPt>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-script-attrs",
+      "fn": "sanitize",
+      "args": [
+        "<script type=\"text/javascript\" src=\"//evil/x.js\"></script>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-script-unclosed",
+      "fn": "sanitize",
+      "args": [
+        "<script>alert(1)"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "no closing tag: the raw text run reaches end of input"
+    },
+    {
+      "id": "by-script-nested-close",
+      "fn": "sanitize",
+      "args": [
+        "<script>var s = \"</script>\"; alert(1)</script>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "raw-text elements end at the FIRST </script, so the tail becomes text"
+    },
+    {
+      "id": "by-script-in-script",
+      "fn": "sanitize",
+      "args": [
+        "<script><script>alert(1)</script></script>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-script-slash-close",
+      "fn": "sanitize",
+      "args": [
+        "<script>alert(1)</script foo>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-script-newline-close",
+      "fn": "sanitize",
+      "args": [
+        "<script>alert(1)</script\n>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-script-selfclosing",
+      "fn": "sanitize",
+      "args": [
+        "<script/>alert(1)"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "a self-closed script has no raw-text run, so the tail is ordinary text"
+    },
+    {
+      "id": "by-script-space-before-name",
+      "fn": "sanitize",
+      "args": [
+        "< script>alert(1)</script>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "\"< script\" is not a tag; it must come out escaped, not raw"
+    },
+    {
+      "id": "by-script-slash-name",
+      "fn": "sanitize",
+      "args": [
+        "</script>alert(1)"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-style-plain",
+      "fn": "sanitize",
+      "args": [
+        "<style>body{background:url(javascript:alert(1))}</style>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "style is a nonTextTag too"
+    },
+    {
+      "id": "by-style-import",
+      "fn": "sanitize",
+      "args": [
+        "<style>@import url(\"//evil/x.css\");</style>x"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-textarea",
+      "fn": "sanitize",
+      "args": [
+        "<textarea><script>alert(1)</script></textarea>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "escapable raw text: the content must not be re-emitted as live markup"
+    },
+    {
+      "id": "by-textarea-entities",
+      "fn": "sanitize",
+      "args": [
+        "<textarea>&lt;script&gt;alert(1)&lt;/script&gt;</textarea>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "entity-encoded payload inside escapable raw text — the CVE-2026-40186 shape"
+    },
+    {
+      "id": "by-title-entities",
+      "fn": "sanitize",
+      "args": [
+        "<title>&lt;script&gt;alert(1)&lt;/script&gt;</title>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "title is escapable raw text but NOT a nonTextTag"
+    },
+    {
+      "id": "by-title-raw",
+      "fn": "sanitize",
+      "args": [
+        "<title><img src=x onerror=alert(1)></title>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-option-entities",
+      "fn": "sanitize",
+      "args": [
+        "<option>&lt;script&gt;alert(1)&lt;/script&gt;</option>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-xmp",
+      "fn": "sanitize",
+      "args": [
+        "<xmp><script>alert(1)</script></xmp>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "xmp is a raw-text element the parser hands over as text; upstream lists it in nonTextTags for exactly this reason"
+    },
+    {
+      "id": "by-xmp-img",
+      "fn": "sanitize",
+      "args": [
+        "<xmp><img src=x onerror=alert(1)></xmp>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-noscript",
+      "fn": "sanitize",
+      "args": [
+        "<noscript><p title=\"</noscript><img src=x onerror=alert(1)>\">"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-noembed",
+      "fn": "sanitize",
+      "args": [
+        "<noembed><img src=x onerror=alert(1)></noembed>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-iframe-srcdoc",
+      "fn": "sanitize",
+      "args": [
+        "<iframe srcdoc=\"<script>alert(1)</script>\"></iframe>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-svg-onload",
+      "fn": "sanitize",
+      "args": [
+        "<svg onload=alert(1)>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-svg-slash-onload",
+      "fn": "sanitize",
+      "args": [
+        "<svg/onload=alert(1)>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "a slash instead of whitespace still separates the attribute"
+    },
+    {
+      "id": "by-svg-script",
+      "fn": "sanitize",
+      "args": [
+        "<svg><script>alert(1)</script></svg>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-math-href",
+      "fn": "sanitize",
+      "args": [
+        "<math><maction actiontype=\"statusline#\" xlink:href=\"javascript:alert(1)\">x</maction></math>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-img-onerror",
+      "fn": "sanitize",
+      "args": [
+        "<img src=x onerror=alert(1)>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "img is not allowed by default at all"
+    },
+    {
+      "id": "by-img-onerror-allowed",
+      "fn": "sanitize",
+      "args": [
+        "<img src=\"x\" onerror=\"alert(1)\">",
+        {
+          "allowedTags": [
+            "img"
+          ]
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "img allowed but onerror is not in allowedAttributes: the handler must be dropped"
+    },
+    {
+      "id": "by-event-handler-on-allowed",
+      "fn": "sanitize",
+      "args": [
+        "<p onclick=\"alert(1)\" onmouseover='alert(2)'>x</p>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "p IS allowed by default; the handlers must not be"
+    },
+    {
+      "id": "by-event-handler-uppercase",
+      "fn": "sanitize",
+      "args": [
+        "<p ONCLICK=\"alert(1)\">x</p>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-attr-star-handlers",
+      "fn": "sanitize",
+      "args": [
+        "<p onclick=\"alert(1)\">x</p>",
+        {
+          "allowedAttributes": {
+            "*": [
+              "on*"
+            ]
+          }
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "a glob the caller asked for: both sides honour it, which is the caller's problem, not the port's"
+    },
+    {
+      "id": "by-href-javascript",
+      "fn": "sanitize",
+      "args": [
+        "<a href=\"javascript:alert(1)\">x</a>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-href-javascript-case",
+      "fn": "sanitize",
+      "args": [
+        "<a href=\"JaVaScRiPt:alert(1)\">x</a>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-href-javascript-spaces",
+      "fn": "sanitize",
+      "args": [
+        "<a href=\"  javascript:alert(1)\">x</a>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-href-javascript-tab",
+      "fn": "sanitize",
+      "args": [
+        "<a href=\"jav\tascript:alert(1)\">x</a>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "a raw tab inside the scheme"
+    },
+    {
+      "id": "by-href-javascript-entity-tab",
+      "fn": "sanitize",
+      "args": [
+        "<a href=\"jav&#x09;ascript:alert(1)\">x</a>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "an entity-encoded tab, decoded before the scheme check"
+    },
+    {
+      "id": "by-href-javascript-entity-newline",
+      "fn": "sanitize",
+      "args": [
+        "<a href=\"jav&#x0A;ascript:alert(1)\">x</a>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-href-javascript-nul",
+      "fn": "sanitize",
+      "args": [
+        "<a href=\"java&#0;script:alert(1)\">x</a>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-href-javascript-comment",
+      "fn": "sanitize",
+      "args": [
+        "<a href=\"java<!--x-->script:alert(1)\">x</a>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "an HTML comment smuggled into the URL; both sides clobber comments before the scheme check"
+    },
+    {
+      "id": "by-href-javascript-comment-unterminated",
+      "fn": "sanitize",
+      "args": [
+        "<a href=\"javascript<!--:alert(1)\">x</a>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "an UNTERMINATED comment: upstream leaves the rest of the URL in place"
+    },
+    {
+      "id": "by-href-vbscript",
+      "fn": "sanitize",
+      "args": [
+        "<a href=\"vbscript:msgbox(1)\">x</a>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-href-data-html",
+      "fn": "sanitize",
+      "args": [
+        "<a href=\"data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==\">x</a>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-href-relative",
+      "fn": "sanitize",
+      "args": [
+        "<a href=\"/safe/path?a=1#f\">x</a>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "scheme-less URLs are always kept"
+    },
+    {
+      "id": "by-href-protocol-relative",
+      "fn": "sanitize",
+      "args": [
+        "<a href=\"//evil.example/x\">x</a>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "allowed by default"
+    },
+    {
+      "id": "by-href-protocol-relative-backslash",
+      "fn": "sanitize",
+      "args": [
+        "<a href=\"\\\\evil.example/x\">x</a>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "backslashes count as a protocol-relative prefix"
+    },
+    {
+      "id": "by-href-protocol-relative-denied",
+      "fn": "sanitize",
+      "args": [
+        "<a href=\"//evil.example/x\">x</a>",
+        {
+          "allowProtocolRelative": false
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-href-scheme-weird-chars",
+      "fn": "sanitize",
+      "args": [
+        "<a href=\"j+a-v.a1script:alert(1)\">x</a>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "the scheme grammar allows . - + after the first letter"
+    },
+    {
+      "id": "by-href-colon-only",
+      "fn": "sanitize",
+      "args": [
+        "<a href=\":alert(1)\">x</a>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "a leading colon is not a scheme"
+    },
+    {
+      "id": "by-href-mailto",
+      "fn": "sanitize",
+      "args": [
+        "<a href=\"mailto:a@b.c\">x</a>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-href-tel",
+      "fn": "sanitize",
+      "args": [
+        "<a href=\"tel:+15551234\">x</a>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-href-empty",
+      "fn": "sanitize",
+      "args": [
+        "<a href=\"\">x</a>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "an empty non-boolean attribute value"
+    },
+    {
+      "id": "by-attr-breakout-quote",
+      "fn": "sanitize",
+      "args": [
+        "<a href=\"x&quot; onmouseover=&quot;alert(1)\">y</a>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "an entity-encoded quote inside the value must be re-escaped, not re-emitted raw"
+    },
+    {
+      "id": "by-attr-breakout-raw-quote",
+      "fn": "sanitize",
+      "args": [
+        "<a href='x\" onmouseover=\"alert(1)'>y</a>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "a raw double quote inside a single-quoted value"
+    },
+    {
+      "id": "by-attr-breakout-apostrophe",
+      "fn": "sanitize",
+      "args": [
+        "<a href=\"x' onmouseover='alert(1)\">y</a>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "the output is always double-quoted, so an apostrophe cannot break out"
+    },
+    {
+      "id": "by-attr-breakout-gt",
+      "fn": "sanitize",
+      "args": [
+        "<a href=\"x&gt;&lt;script&gt;alert(1)&lt;/script&gt;\">y</a>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "an encoded > inside an attribute must not close the tag on re-serialisation"
+    },
+    {
+      "id": "by-attr-name-with-quote",
+      "fn": "sanitize",
+      "args": [
+        "<p data-x\"onclick=alert(1)>y</p>",
+        {
+          "allowedAttributes": {
+            "p": [
+              "data-*"
+            ]
+          }
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "an attribute NAME containing a quote would break the tag if echoed; both sides reject it",
+      "deviation": "the port is STRICTER: upstream's VALID_HTML_ATTRIBUTE_NAME permits a double quote in an attribute name and echoes it, producing <p data-x\"onclick=\"alert(1)\">; the port rejects any name containing a character that could terminate the name, the value or the tag"
+    },
+    {
+      "id": "by-attr-name-with-lt",
+      "fn": "sanitize",
+      "args": [
+        "<p data-x<b=1>y</p>",
+        {
+          "allowedAttributes": {
+            "p": [
+              "data-*"
+            ]
+          }
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-attr-name-with-equals",
+      "fn": "sanitize",
+      "args": [
+        "<p data-a=b=c>y</p>",
+        {
+          "allowedAttributes": {
+            "p": [
+              "data-*"
+            ]
+          }
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-attr-name-backtick",
+      "fn": "sanitize",
+      "args": [
+        "<p data-x`onclick=alert(1)>y</p>",
+        {
+          "allowedAttributes": {
+            "p": [
+              "data-*"
+            ]
+          }
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "deviation": "the port is STRICTER: upstream permits a backtick in an attribute name and echoes it; the port rejects it"
+    },
+    {
+      "id": "by-attr-unquoted-value",
+      "fn": "sanitize",
+      "args": [
+        "<a href=/x/y>z</a>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-attr-duplicate",
+      "fn": "sanitize",
+      "args": [
+        "<a href=\"/ok\" href=\"javascript:alert(1)\">x</a>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "which duplicate wins must be the same on both sides"
+    },
+    {
+      "id": "by-comment-plain",
+      "fn": "sanitize",
+      "args": [
+        "a<!-- <script>alert(1)</script> -->b"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-comment-unterminated",
+      "fn": "sanitize",
+      "args": [
+        "a<!-- <script>alert(1)</script>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-comment-abrupt",
+      "fn": "sanitize",
+      "args": [
+        "<!--><script>alert(1)</script>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "the abrupt-closing comment: <!--> ends the comment in HTML5"
+    },
+    {
+      "id": "by-comment-nested",
+      "fn": "sanitize",
+      "args": [
+        "<!--<!-- --><script>alert(1)</script>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-comment-conditional",
+      "fn": "sanitize",
+      "args": [
+        "<!--[if IE]><script>alert(1)</script><![endif]-->x"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-comment-bogus",
+      "fn": "sanitize",
+      "args": [
+        "<?php echo 1; ?><p>x</p>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "a processing instruction is a bogus comment in HTML5"
+    },
+    {
+      "id": "by-doctype",
+      "fn": "sanitize",
+      "args": [
+        "<!DOCTYPE html><p>x</p>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-cdata",
+      "fn": "sanitize",
+      "args": [
+        "<![CDATA[<script>alert(1)</script>]]>x"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-stray-lt",
+      "fn": "sanitize",
+      "args": [
+        "a < b and 1<2"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "a stray < must come out escaped"
+    },
+    {
+      "id": "by-stray-gt",
+      "fn": "sanitize",
+      "args": [
+        "a > b"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-stray-amp",
+      "fn": "sanitize",
+      "args": [
+        "a & b &amp; c &notanentity; d"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "entity round-tripping: an existing entity must not be double-encoded"
+    },
+    {
+      "id": "by-unclosed-tag",
+      "fn": "sanitize",
+      "args": [
+        "<p>a<b>c"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "unclosed allowed tags"
+    },
+    {
+      "id": "by-mismatched-close",
+      "fn": "sanitize",
+      "args": [
+        "<p>a</b></p>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-stray-close",
+      "fn": "sanitize",
+      "args": [
+        "</p>x</b>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-nonstandard-nesting",
+      "fn": "sanitize",
+      "args": [
+        "<p><div><table><p>x</p></table></div></p>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "nesting no parser would accept as written",
+      "deviation": "upstream runs a full HTML tree builder (htmlparser2), which applies implied end tags and closes <p> before <div>; the port is a tokenizer and preserves the authored nesting"
+    },
+    {
+      "id": "by-malformed-lt-in-tag",
+      "fn": "sanitize",
+      "args": [
+        "<p<b>x</p>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "deviation": "tree-construction difference: htmlparser2 reorders the text before the recovered <p>; the port emits the tokens in source order"
+    },
+    {
+      "id": "by-unterminated-tag",
+      "fn": "sanitize",
+      "args": [
+        "<p class=\"x"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "a tag that never closes"
+    },
+    {
+      "id": "by-unterminated-tag-with-payload",
+      "fn": "sanitize",
+      "args": [
+        "<p onclick=\"alert(1)"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-lt-slash-in-attr",
+      "fn": "sanitize",
+      "args": [
+        "<p title=\"</p><script>alert(1)</script>\">x</p>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "markup hidden inside a quoted attribute value"
+    },
+    {
+      "id": "by-tag-name-nul",
+      "fn": "sanitize",
+      "args": [
+        "<scr\u0000ipt>alert(1)</scr\u0000ipt>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "a NUL inside the tag name"
+    },
+    {
+      "id": "by-tag-name-newline",
+      "fn": "sanitize",
+      "args": [
+        "<script\n>alert(1)</script>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-tag-name-formfeed",
+      "fn": "sanitize",
+      "args": [
+        "<script\f>alert(1)</script>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-tag-name-digits",
+      "fn": "sanitize",
+      "args": [
+        "<h1>a</h1><h7>b</h7>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-namespaced-tag",
+      "fn": "sanitize",
+      "args": [
+        "<o:p>x</o:p>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-fullwidth-lt",
+      "fn": "sanitize",
+      "args": [
+        "＜script＞alert(1)＜/script＞"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "full-width brackets are text, not markup"
+    },
+    {
+      "id": "by-entity-encoded-tag",
+      "fn": "sanitize",
+      "args": [
+        "&lt;script&gt;alert(1)&lt;/script&gt;"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "must round-trip as escaped text, NOT be decoded into a live tag"
+    },
+    {
+      "id": "by-double-entity-encoded-tag",
+      "fn": "sanitize",
+      "args": [
+        "&amp;lt;script&amp;gt;alert(1)"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-numeric-entity-tag",
+      "fn": "sanitize",
+      "args": [
+        "&#60;script&#62;alert(1)&#60;/script&#62;"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-emoji-and-markup",
+      "fn": "sanitize",
+      "args": [
+        "🔥<b>x</b><script>alert(1)</script>🔥"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-empty",
+      "fn": "sanitize",
+      "args": [
+        ""
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-text-only",
+      "fn": "sanitize",
+      "args": [
+        "just text"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-long-nesting",
+      "fn": "sanitize",
+      "args": [
+        "<b><b><b><b><b><b><b><b><b><b>x</b></b></b></b></b></b></b></b></b></b>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-option-allowed-markup",
+      "fn": "sanitize",
+      "args": [
+        "<option><img src=x onerror=alert(1)></option>",
+        {
+          "allowedTags": [
+            "option"
+          ]
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "REGRESSION GUARD for GO-SANITIZEHTML-NONTEXT-RAW: <option> is not a raw-text element, so its content is markup and must be sanitized. An <option> outside a <select> is parsed in \"in body\" mode, where a nested <img> really does fire its onerror, so emitting this content verbatim is script execution."
+    },
+    {
+      "id": "by-option-allowed-entities",
+      "fn": "sanitize",
+      "args": [
+        "<option>&lt;img src=x onerror=alert(1)&gt;</option>",
+        {
+          "allowedTags": [
+            "option"
+          ]
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "the entity-encoded form must round-trip as escaped text"
+    },
+    {
+      "id": "by-option-allowed-nested-tag",
+      "fn": "sanitize",
+      "args": [
+        "<option><b>x</b></option>",
+        {
+          "allowedTags": [
+            "option"
+          ]
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "b is not allowed here, so only its text survives"
+    },
+    {
+      "id": "by-textarea-allowed-markup",
+      "fn": "sanitize",
+      "args": [
+        "<textarea><img src=x onerror=alert(1)></textarea>",
+        {
+          "allowedTags": [
+            "textarea"
+          ]
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "REGRESSION GUARD: escapable raw text must be re-escaped, never re-emitted raw (GHSA-jxwj-j7wr-gfrw mutation-XSS shape)"
+    },
+    {
+      "id": "by-textarea-allowed-mis-close",
+      "fn": "sanitize",
+      "args": [
+        "<textarea></textarea/><img src=x onerror=alert(1)></textarea>",
+        {
+          "allowedTags": [
+            "textarea"
+          ]
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "the </textarea/> solidus mis-close"
+    },
+    {
+      "id": "by-xmp-allowed-markup",
+      "fn": "sanitize",
+      "args": [
+        "<xmp><img src=x onerror=alert(1)></xmp>",
+        {
+          "allowedTags": [
+            "xmp"
+          ]
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "xmp holds raw text: only the angle brackets are escaped, so entities already in the source are not double-encoded"
+    },
+    {
+      "id": "by-plaintext-allowed",
+      "fn": "sanitize",
+      "args": [
+        "<plaintext><img src=x onerror=alert(1)>",
+        {
+          "allowedTags": [
+            "plaintext"
+          ]
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "plaintext runs to the end of the input and has no close tag"
+    },
+    {
+      "id": "by-noembed-allowed",
+      "fn": "sanitize",
+      "args": [
+        "<noembed>a&amp;b<img src=x onerror=alert(1)></noembed>",
+        {
+          "allowedTags": [
+            "noembed"
+          ]
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-iframe-allowed",
+      "fn": "sanitize",
+      "args": [
+        "<iframe><img src=x onerror=alert(1)></iframe>",
+        {
+          "allowedTags": [
+            "iframe"
+          ]
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize"
+    },
+    {
+      "id": "by-title-allowed",
+      "fn": "sanitize",
+      "args": [
+        "<title>a&amp;b<img src=x onerror=alert(1)></title>",
+        {
+          "allowedTags": [
+            "title"
+          ]
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "title holds escapable raw text: entities are decoded and then everything is re-escaped"
+    },
+    {
+      "id": "by-noscript-not-raw",
+      "fn": "sanitize",
+      "args": [
+        "<noscript>a&amp;b<b>x</b></noscript>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "noscript is NOT a raw-text element when scripting is disabled, so its content is parsed and a nested allowed tag survives"
+    },
+    {
+      "id": "by-script-allowed-verbatim",
+      "fn": "sanitize",
+      "args": [
+        "<script>if (a<b && c>d) x()</script>",
+        {
+          "allowedTags": [
+            "script"
+          ]
+        }
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "allowing script is a decision to trust its body; escaping it would break the code, so both sides emit it verbatim"
+    },
+    {
+      "id": "by-stray-close-br",
+      "fn": "sanitize",
+      "args": [
+        "</br>x"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "the HTML quirk: a stray </br> becomes a <br>"
+    },
+    {
+      "id": "by-stray-close-p-after-p",
+      "fn": "sanitize",
+      "args": [
+        "<p>a</p></p>"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "and a stray </p> becomes an empty <p>"
+    },
+    {
+      "id": "by-selfclosing-nonvoid",
+      "fn": "sanitize",
+      "args": [
+        "<b/>x"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "note": "a solidus on a non-void element opens and immediately closes it"
+    },
+    {
+      "id": "by-unterminated-name-only",
+      "fn": "sanitize",
+      "args": [
+        "a<p"
+      ],
+      "upstreamFn": "sanitizeHtml",
+      "goFn": "sanitizehtml.Sanitize",
+      "deviation": "htmlparser2 flushes the partial tag name as text (\"ap\"); the port drops an unterminated tag entirely, so that no part of a half-written tag — including attribute values — can surface as content"
+    }
+  ]
+}

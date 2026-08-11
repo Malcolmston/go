@@ -1,0 +1,564 @@
+{
+  "group": "strip",
+  "upstream": "striptags@3.2.0",
+  "note": "One-argument striptags(html): every tag is removed and the text between tags kept. striptags is a hand-rolled state machine, not a parser, so the malformed and boundary cases are where a port actually diverges.",
+  "cases": [
+    {
+      "id": "empty",
+      "fn": "strip",
+      "args": [
+        ""
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "plain",
+      "fn": "strip",
+      "args": [
+        "just text"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "basic",
+      "fn": "strip",
+      "args": [
+        "<p>hello <b>world</b></p>"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "attrs",
+      "fn": "strip",
+      "args": [
+        "<a href=\"/x\" title='t'>link</a>"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "deep-nesting",
+      "fn": "strip",
+      "args": [
+        "<div><span><em><b>x</b></em></span></div>"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "script",
+      "fn": "strip",
+      "args": [
+        "<script>alert(1)</script>"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags",
+      "note": "striptags is a text extractor: the script BODY survives as text on both sides"
+    },
+    {
+      "id": "script-nested-close",
+      "fn": "strip",
+      "args": [
+        "<script>var a=\"</script>\";</script>"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags",
+      "note": "raw-text elements are not special-cased by striptags"
+    },
+    {
+      "id": "script-type",
+      "fn": "strip",
+      "args": [
+        "<script type=\"text/javascript\">x<1</script>"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "style",
+      "fn": "strip",
+      "args": [
+        "<style>body{color:red}</style>"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "title",
+      "fn": "strip",
+      "args": [
+        "<title>a &lt; b</title>"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags",
+      "note": "escapable raw text: entities are left alone"
+    },
+    {
+      "id": "textarea",
+      "fn": "strip",
+      "args": [
+        "<textarea><b>x</b></textarea>"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "comment",
+      "fn": "strip",
+      "args": [
+        "a<!-- <b>x</b> -->c"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags",
+      "note": "comments are always removed, contents included"
+    },
+    {
+      "id": "comment-unterminated",
+      "fn": "strip",
+      "args": [
+        "a<!-- b"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "comment-extra-dashes",
+      "fn": "strip",
+      "args": [
+        "a<!--- b --->c"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "comment-single-dash",
+      "fn": "strip",
+      "args": [
+        "a<!- b >c"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags",
+      "note": "only a second dash enters comment state"
+    },
+    {
+      "id": "comment-in-tag",
+      "fn": "strip",
+      "args": [
+        "<a<!--x-->b>y"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "comment-conditional",
+      "fn": "strip",
+      "args": [
+        "<!--[if IE]><script>x</script><![endif]-->y"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "comment-then-tag",
+      "fn": "strip",
+      "args": [
+        "<!--><script>alert(1)</script>"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags",
+      "note": "the abrupt-closing comment trick"
+    },
+    {
+      "id": "lt-space",
+      "fn": "strip",
+      "args": [
+        "a < b"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags",
+      "note": "a bare < followed by a space is literal text"
+    },
+    {
+      "id": "lt-newline",
+      "fn": "strip",
+      "args": [
+        "a <\nb"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "lt-tab",
+      "fn": "strip",
+      "args": [
+        "a <\tb>c"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags",
+      "note": "tab is NOT in the whitespace escape hatch; only space and newline are"
+    },
+    {
+      "id": "lt-only",
+      "fn": "strip",
+      "args": [
+        "a <"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags",
+      "note": "unterminated tag run at end of input is dropped"
+    },
+    {
+      "id": "gt-only",
+      "fn": "strip",
+      "args": [
+        "a > b"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "unclosed-tag",
+      "fn": "strip",
+      "args": [
+        "a <b"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "unclosed-attr",
+      "fn": "strip",
+      "args": [
+        "a <b class=\"x"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "unclosed-quote-then-gt",
+      "fn": "strip",
+      "args": [
+        "<a title=\"x>y</a>z"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags",
+      "note": "an unbalanced quote swallows the rest of the input"
+    },
+    {
+      "id": "nested-lt",
+      "fn": "strip",
+      "args": [
+        "<<b>>hi"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "nested-lt-deep",
+      "fn": "strip",
+      "args": [
+        "<a<<b>>>x"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags",
+      "note": "depth counting on nested angle brackets"
+    },
+    {
+      "id": "malformed-bb",
+      "fn": "strip",
+      "args": [
+        "<b<b>x"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "tag-in-tag-space",
+      "fn": "strip",
+      "args": [
+        "<a <b> c"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "quote-gt",
+      "fn": "strip",
+      "args": [
+        "<a title=\"a>b\">x</a>"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags",
+      "note": "> inside a quoted attribute does not close the tag"
+    },
+    {
+      "id": "quote-lt",
+      "fn": "strip",
+      "args": [
+        "<a title=\"a<b\">x</a>"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "single-quote-gt",
+      "fn": "strip",
+      "args": [
+        "<a title='a>b'>x</a>"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "mixed-quotes",
+      "fn": "strip",
+      "args": [
+        "<a title=\"it's\">x</a>"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags",
+      "note": "an apostrophe inside a double-quoted value must not open a quote"
+    },
+    {
+      "id": "attr-gt-unquoted",
+      "fn": "strip",
+      "args": [
+        "<a href=a>b>x</a>"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "doctype",
+      "fn": "strip",
+      "args": [
+        "<!DOCTYPE html>x"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "bang-short",
+      "fn": "strip",
+      "args": [
+        "<!x>y"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "cdata",
+      "fn": "strip",
+      "args": [
+        "<![CDATA[<b>x</b>]]>y"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "xml-pi",
+      "fn": "strip",
+      "args": [
+        "<?xml version=\"1.0\"?>x"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "php-tag",
+      "fn": "strip",
+      "args": [
+        "<?php echo 1; ?>x"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "close-only",
+      "fn": "strip",
+      "args": [
+        "</b>x"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "close-with-space",
+      "fn": "strip",
+      "args": [
+        "</ b>x"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags",
+      "note": "no tag name after </ : upstream's normalize regex fails to match"
+    },
+    {
+      "id": "selfclose",
+      "fn": "strip",
+      "args": [
+        "a<br/>b"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "selfclose-space",
+      "fn": "strip",
+      "args": [
+        "a<br />b"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "newline-in-tag",
+      "fn": "strip",
+      "args": [
+        "<a\nhref=\"x\">y</a>"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "tab-in-tag",
+      "fn": "strip",
+      "args": [
+        "<a\thref=\"x\">y</a>"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "entities-kept",
+      "fn": "strip",
+      "args": [
+        "&lt;b&gt;bold&lt;/b&gt;"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags",
+      "note": "entities are NOT decoded, so no second-order tag appears"
+    },
+    {
+      "id": "entity-encoded-lt",
+      "fn": "strip",
+      "args": [
+        "&#60;script&#62;alert(1)&#60;/script&#62;"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "img-onerror",
+      "fn": "strip",
+      "args": [
+        "<img src=x onerror=alert(1)>"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "svg-onload",
+      "fn": "strip",
+      "args": [
+        "<svg/onload=alert(1)>"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "iframe-srcdoc",
+      "fn": "strip",
+      "args": [
+        "<iframe srcdoc=\"<script>alert(1)</script>\"></iframe>"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "javascript-href",
+      "fn": "strip",
+      "args": [
+        "<a href=\"javascript:alert(1)\">x</a>"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "mixed-case-tag",
+      "fn": "strip",
+      "args": [
+        "<P>a</P>"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "weird-tag-name",
+      "fn": "strip",
+      "args": [
+        "<foo:bar baz>x</foo:bar>"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "nul-in-tag",
+      "fn": "strip",
+      "args": [
+        "<scr ipt>alert(1)</scr ipt>"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "cjk",
+      "fn": "strip",
+      "args": [
+        "<p>日本語のテキスト</p>"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags",
+      "note": "multi-byte text between tags must survive byte-for-byte"
+    },
+    {
+      "id": "emoji",
+      "fn": "strip",
+      "args": [
+        "<b>🔥</b>🔥"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "cjk-in-attr",
+      "fn": "strip",
+      "args": [
+        "<a title=\"日本\">x</a>"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    },
+    {
+      "id": "fullwidth-lt",
+      "fn": "strip",
+      "args": [
+        "＜script＞alert(1)＜/script＞"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags",
+      "note": "full-width brackets are ordinary text"
+    },
+    {
+      "id": "long",
+      "fn": "strip",
+      "args": [
+        "<p>a</p><p>b</p><p>c</p><p>d</p><p>e</p><p>f</p><p>g</p><p>h</p>"
+      ],
+      "upstreamFn": "striptags",
+      "goFn": "striptags.StripTags"
+    }
+  ]
+}
