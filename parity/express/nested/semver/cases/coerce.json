@@ -1,0 +1,31 @@
+{
+  "group": "coerce",
+  "upstream": "semver@7.8.5",
+  "note": "coerce() finds the leftmost run of up to three dot-separated numeric components, each at most MAX_SAFE_COMPONENT_LENGTH (16) digits, bounded by non-digits, and fills missing fields with 0. A digit run longer than 16 digits is skipped over rather than truncated. Upstream returns null when nothing matches; both runners map that to a failure.",
+  "cases": [
+    { "id": "co-plain",        "fn": "coerce", "args": ["1.2.3"],                    "upstreamFn": "semver.coerce", "goFn": "semver.Coerce" },
+    { "id": "co-v-only",       "fn": "coerce", "args": ["v2"],                       "upstreamFn": "semver.coerce", "goFn": "semver.Coerce" },
+    { "id": "co-v-text",       "fn": "coerce", "args": ["v2 release"],               "upstreamFn": "semver.coerce", "goFn": "semver.Coerce" },
+    { "id": "co-partial",      "fn": "coerce", "args": ["1.2"],                      "upstreamFn": "semver.coerce", "goFn": "semver.Coerce" },
+    { "id": "co-prefix-text",  "fn": "coerce", "args": ["version 4.5.6 final"],      "upstreamFn": "semver.coerce", "goFn": "semver.Coerce" },
+    { "id": "co-leading-dot",  "fn": "coerce", "args": [".1"],                       "upstreamFn": "semver.coerce", "goFn": "semver.Coerce" },
+    { "id": "co-four-fields",  "fn": "coerce", "args": ["1.2.3.4"],                  "upstreamFn": "semver.coerce", "goFn": "semver.Coerce", "note": "only the first three components are taken" },
+    { "id": "co-five-fields",  "fn": "coerce", "args": ["1.2.3.4.5"],                "upstreamFn": "semver.coerce", "goFn": "semver.Coerce" },
+    { "id": "co-glued",        "fn": "coerce", "args": ["a1.2.3.4"],                 "upstreamFn": "semver.coerce", "goFn": "semver.Coerce" },
+    { "id": "co-no-digits",    "fn": "coerce", "args": ["nope"],                     "upstreamFn": "semver.coerce", "goFn": "semver.Coerce", "note": "both sides must fail" },
+    { "id": "co-empty",        "fn": "coerce", "args": [""],                         "upstreamFn": "semver.coerce", "goFn": "semver.Coerce" },
+    { "id": "co-dots-only",    "fn": "coerce", "args": ["..."],                      "upstreamFn": "semver.coerce", "goFn": "semver.Coerce" },
+    { "id": "co-leadzero",     "fn": "coerce", "args": ["01.02.03"],                 "upstreamFn": "semver.coerce", "goFn": "semver.Coerce", "note": "coerce normalises leading zeros away" },
+    { "id": "co-16-digits",    "fn": "coerce", "args": ["1234567890123456.1.2"],     "upstreamFn": "semver.coerce", "goFn": "semver.Coerce", "note": "exactly 16 digits, but above MAX_SAFE_INTEGER" },
+    { "id": "co-17-digits",    "fn": "coerce", "args": ["12345678901234567.1.2"],    "upstreamFn": "semver.coerce", "goFn": "semver.Coerce", "note": "17-digit run is skipped, so the match starts after it" },
+    { "id": "co-17-only",      "fn": "coerce", "args": ["12345678901234567"],        "upstreamFn": "semver.coerce", "goFn": "semver.Coerce", "note": "nothing left after skipping the over-long run" },
+    { "id": "co-long-minor",   "fn": "coerce", "args": ["1.12345678901234567.2"],    "upstreamFn": "semver.coerce", "goFn": "semver.Coerce" },
+    { "id": "co-multi-cand",   "fn": "coerce", "args": ["1.2.3 and 4.5.6"],          "upstreamFn": "semver.coerce", "goFn": "semver.Coerce", "note": "leftmost candidate wins (no rtl option)" },
+    { "id": "co-tag",          "fn": "coerce", "args": ["release-10.20.30-beta"],    "upstreamFn": "semver.coerce", "goFn": "semver.Coerce", "note": "default coerce ignores prerelease text" },
+    { "id": "co-big-safe",     "fn": "coerce", "args": ["9007199254740991.0.0"],     "upstreamFn": "semver.coerce", "goFn": "semver.Coerce" },
+    { "id": "co-over-safe",    "fn": "coerce", "args": ["9007199254740992.0.0"],     "upstreamFn": "semver.coerce", "goFn": "semver.Coerce", "note": "past MAX_SAFE_INTEGER but only 16 digits" },
+    { "id": "co-trailing-dot", "fn": "coerce", "args": ["1."],                       "upstreamFn": "semver.coerce", "goFn": "semver.Coerce" },
+    { "id": "co-dash-digits",  "fn": "coerce", "args": ["-1.2.3"],                   "upstreamFn": "semver.coerce", "goFn": "semver.Coerce" },
+    { "id": "co-spaced-parts", "fn": "coerce", "args": ["1. 2. 3"],                  "upstreamFn": "semver.coerce", "goFn": "semver.Coerce" }
+  ]
+}

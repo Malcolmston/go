@@ -1,0 +1,820 @@
+{
+  "group": "generate",
+  "upstream": "otpauth@9.5.1",
+  "note": "Code generation over fixed secrets, fixed millisecond timestamps and fixed HOTP counters, including the RFC 4226 appendix D and RFC 6238 appendix B vectors. No case reads the clock.",
+  "cases": [
+    {
+      "id": "gen-rfc6238-t59-sha1",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+          "algorithm": "SHA1",
+          "digits": 8,
+          "period": 30
+        },
+        {
+          "timestamp": 59000
+        }
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate",
+      "note": "RFC 6238 vector: 94287082"
+    },
+    {
+      "id": "gen-rfc6238-t1111111109",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+          "algorithm": "SHA1",
+          "digits": 8,
+          "period": 30
+        },
+        {
+          "timestamp": 1111111109000
+        }
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate"
+    },
+    {
+      "id": "gen-rfc6238-t1234567890",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+          "algorithm": "SHA1",
+          "digits": 8,
+          "period": 30
+        },
+        {
+          "timestamp": 1234567890000
+        }
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate"
+    },
+    {
+      "id": "gen-rfc6238-t2000000000",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+          "algorithm": "SHA1",
+          "digits": 8,
+          "period": 30
+        },
+        {
+          "timestamp": 2000000000000
+        }
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate"
+    },
+    {
+      "id": "gen-rfc6238-t59-sha256",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+          "algorithm": "SHA256",
+          "digits": 8,
+          "period": 30
+        },
+        {
+          "timestamp": 59000
+        }
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate"
+    },
+    {
+      "id": "gen-rfc6238-t59-sha512",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+          "algorithm": "SHA512",
+          "digits": 8,
+          "period": 30
+        },
+        {
+          "timestamp": 59000
+        }
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate"
+    },
+    {
+      "id": "gen-rfc6238-t1234567890-sha256",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+          "algorithm": "SHA256",
+          "digits": 8,
+          "period": 30
+        },
+        {
+          "timestamp": 1234567890000
+        }
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate"
+    },
+    {
+      "id": "gen-rfc6238-t1234567890-sha512",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+          "algorithm": "SHA512",
+          "digits": 8,
+          "period": 30
+        },
+        {
+          "timestamp": 1234567890000
+        }
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate"
+    },
+    {
+      "id": "gen-totp-epoch",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        {
+          "timestamp": 0
+        }
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate",
+      "note": "counter 0"
+    },
+    {
+      "id": "gen-totp-fixed-now",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        {
+          "timestamp": 1700000000000
+        }
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate"
+    },
+    {
+      "id": "gen-totp-one-step-later",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        {
+          "timestamp": 1700000030000
+        }
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate"
+    },
+    {
+      "id": "gen-totp-within-same-step",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        {
+          "timestamp": 1700000029999
+        }
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate",
+      "note": "same 30s step, so the same code"
+    },
+    {
+      "id": "gen-totp-period-60",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 60
+        },
+        {
+          "timestamp": 1700000000000
+        }
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate"
+    },
+    {
+      "id": "gen-totp-period-1",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 1
+        },
+        {
+          "timestamp": 1700000000000
+        }
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate"
+    },
+    {
+      "id": "gen-totp-period-90",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 90
+        },
+        {
+          "timestamp": 1700000000000
+        }
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate"
+    },
+    {
+      "id": "gen-totp-digits-4",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 4,
+          "period": 30
+        },
+        {
+          "timestamp": 1700000000000
+        }
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate"
+    },
+    {
+      "id": "gen-totp-digits-7",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 7,
+          "period": 30
+        },
+        {
+          "timestamp": 1700000000000
+        }
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate"
+    },
+    {
+      "id": "gen-totp-digits-8",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 8,
+          "period": 30
+        },
+        {
+          "timestamp": 1700000000000
+        }
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate"
+    },
+    {
+      "id": "gen-totp-digits-10",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 10,
+          "period": 30
+        },
+        {
+          "timestamp": 1700000000000
+        }
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate"
+    },
+    {
+      "id": "gen-totp-digits-12",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 12,
+          "period": 30
+        },
+        {
+          "timestamp": 1700000000000
+        }
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate",
+      "note": "past 10 digits the code is left-padded with zeros"
+    },
+    {
+      "id": "gen-totp-sha224",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA224",
+          "digits": 6,
+          "period": 30
+        },
+        {
+          "timestamp": 1700000000000
+        }
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate"
+    },
+    {
+      "id": "gen-totp-sha384",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA384",
+          "digits": 6,
+          "period": 30
+        },
+        {
+          "timestamp": 1700000000000
+        }
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate"
+    },
+    {
+      "id": "gen-totp-lowercase-algorithm",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "sha256",
+          "digits": 6,
+          "period": 30
+        },
+        {
+          "timestamp": 1700000000000
+        }
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate",
+      "note": "algorithm names are case-insensitive"
+    },
+    {
+      "id": "gen-totp-lowercase-secret",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "jbswy3dpehpk3pxp",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        {
+          "timestamp": 1700000000000
+        }
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate"
+    },
+    {
+      "id": "gen-totp-spaced-secret",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSW Y3DP EHPK 3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        {
+          "timestamp": 1700000000000
+        }
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate",
+      "note": "the spaced form users copy from enrollment pages"
+    },
+    {
+      "id": "gen-totp-padded-secret",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP====",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        {
+          "timestamp": 1700000000000
+        }
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate"
+    },
+    {
+      "id": "gen-totp-long-secret",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        {
+          "timestamp": 1700000000000
+        }
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate",
+      "note": "a key longer than the SHA-1 block size"
+    },
+    {
+      "id": "gen-hotp-counter-0",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "hotp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "counter": 0
+        },
+        {
+          "counter": 0
+        }
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate",
+      "note": "RFC 4226 appendix D vector: 755224"
+    },
+    {
+      "id": "gen-hotp-counter-0-rfc",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "hotp",
+          "label": "alice",
+          "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "counter": 0
+        },
+        {
+          "counter": 0
+        }
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate",
+      "note": "RFC 4226 vector 0: 755224"
+    },
+    {
+      "id": "gen-hotp-counter-1-rfc",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "hotp",
+          "label": "alice",
+          "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "counter": 0
+        },
+        {
+          "counter": 1
+        }
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate",
+      "note": "RFC 4226 vector 1: 287082"
+    },
+    {
+      "id": "gen-hotp-counter-5-rfc",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "hotp",
+          "label": "alice",
+          "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "counter": 0
+        },
+        {
+          "counter": 5
+        }
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate",
+      "note": "RFC 4226 vector 5: 254676"
+    },
+    {
+      "id": "gen-hotp-counter-9-rfc",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "hotp",
+          "label": "alice",
+          "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "counter": 0
+        },
+        {
+          "counter": 9
+        }
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate",
+      "note": "RFC 4226 vector 9: 520489"
+    },
+    {
+      "id": "gen-hotp-counter-from-config",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "hotp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "counter": 7
+        },
+        {}
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate",
+      "note": "the counter carried by the config"
+    },
+    {
+      "id": "gen-hotp-large-counter",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "hotp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "counter": 4294967296
+        },
+        {}
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate",
+      "note": "a counter past 2^32"
+    },
+    {
+      "id": "gen-hotp-digits-8",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "hotp",
+          "label": "alice",
+          "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+          "algorithm": "SHA1",
+          "digits": 8,
+          "counter": 3
+        },
+        {}
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate"
+    },
+    {
+      "id": "gen-hotp-sha512",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "hotp",
+          "label": "alice",
+          "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+          "algorithm": "SHA512",
+          "digits": 6,
+          "counter": 3
+        },
+        {}
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate"
+    },
+    {
+      "id": "gen-bad-secret-chars",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "not-base32!",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        {
+          "timestamp": 1700000000000
+        }
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate",
+      "note": "must fail on both sides"
+    },
+    {
+      "id": "gen-bad-secret-digit-1",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "ABC1",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        {
+          "timestamp": 1700000000000
+        }
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate",
+      "note": "1 is not in the base32 alphabet"
+    },
+    {
+      "id": "gen-unknown-algorithm",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "MD5",
+          "digits": 6,
+          "period": 30
+        },
+        {
+          "timestamp": 1700000000000
+        }
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate",
+      "note": "must fail on both sides"
+    },
+    {
+      "id": "gen-sha3-algorithm",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA3-256",
+          "digits": 6,
+          "period": 30
+        },
+        {
+          "timestamp": 1700000000000
+        }
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate",
+      "note": "upstream delegates to node crypto, which has SHA-3",
+      "deviation": "SHA-3 is outside the Go standard library, so the port does not implement the SHA3-* algorithms the URI scheme allows"
+    },
+    {
+      "id": "gen-empty-secret",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        {
+          "timestamp": 1700000000000
+        }
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate",
+      "note": "upstream accepts an empty secret and HMACs an empty key",
+      "deviation": "the port rejects an empty secret (ErrInvalidSecret) rather than signing with a zero-length key"
+    },
+    {
+      "id": "gen-single-char-secret",
+      "fn": "generate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "A",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        {
+          "timestamp": 1700000000000
+        }
+      ],
+      "upstreamFn": "TOTP#generate / HOTP#generate",
+      "goFn": "Config.Generate",
+      "note": "a single base32 character carries no whole byte",
+      "deviation": "the port rejects an incomplete base32 block; upstream decodes it to zero bytes"
+    }
+  ]
+}

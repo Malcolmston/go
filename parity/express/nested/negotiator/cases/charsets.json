@@ -1,0 +1,31 @@
+{
+  "group": "charsets",
+  "upstream": "negotiator@0.6.3",
+  "note": "Negotiator#charset / #charsets — Accept-Charset parsing, wildcards, q-values and malformed input.",
+  "cases": [
+    { "id": "cs-all-no-header", "fn": "charsets", "args": [{}, null], "upstreamFn": "Negotiator#charsets", "goFn": "Negotiator.Charsets", "note": "absent header defaults to *" },
+    { "id": "cs-all-empty-header", "fn": "charsets", "args": [{ "Accept-Charset": "" }, null], "upstreamFn": "Negotiator#charsets", "goFn": "Negotiator.Charsets" },
+    { "id": "cs-all-sorted", "fn": "charsets", "args": [{ "Accept-Charset": "utf-8;q=0.3, iso-8859-1;q=0.9, shift_jis" }, null], "upstreamFn": "Negotiator#charsets", "goFn": "Negotiator.Charsets" },
+    { "id": "cs-all-drops-q-zero", "fn": "charsets", "args": [{ "Accept-Charset": "utf-8;q=0, iso-8859-1" }, null], "upstreamFn": "Negotiator#charsets", "goFn": "Negotiator.Charsets" },
+    { "id": "cs-all-keeps-star", "fn": "charsets", "args": [{ "Accept-Charset": "utf-8, *;q=0.1" }, null], "upstreamFn": "Negotiator#charsets", "goFn": "Negotiator.Charsets" },
+    { "id": "cs-all-preserves-case", "fn": "charsets", "args": [{ "Accept-Charset": "UTF-8" }, null], "upstreamFn": "Negotiator#charsets", "goFn": "Negotiator.Charsets" },
+    { "id": "cs-all-malformed-q", "fn": "charsets", "args": [{ "Accept-Charset": "utf-8;q=abc" }, null], "upstreamFn": "Negotiator#charsets", "goFn": "Negotiator.Charsets" },
+    { "id": "cs-all-trailing-comma", "fn": "charsets", "args": [{ "Accept-Charset": "utf-8," }, null], "upstreamFn": "Negotiator#charsets", "goFn": "Negotiator.Charsets" },
+    { "id": "cs-all-whitespace", "fn": "charsets", "args": [{ "Accept-Charset": "  utf-8 ; q=0.5 ,  iso-8859-1  " }, null], "upstreamFn": "Negotiator#charsets", "goFn": "Negotiator.Charsets" },
+    { "id": "cs-pick-exact", "fn": "charset", "args": [{ "Accept-Charset": "utf-8" }, ["utf-8"]], "upstreamFn": "Negotiator#charset", "goFn": "Negotiator.Charset" },
+    { "id": "cs-pick-miss", "fn": "charset", "args": [{ "Accept-Charset": "utf-8" }, ["iso-8859-1"]], "upstreamFn": "Negotiator#charset", "goFn": "Negotiator.Charset" },
+    { "id": "cs-pick-q", "fn": "charset", "args": [{ "Accept-Charset": "utf-8;q=0.2, iso-8859-1;q=0.8" }, ["utf-8", "iso-8859-1"]], "upstreamFn": "Negotiator#charset", "goFn": "Negotiator.Charset" },
+    { "id": "cs-pick-q-zero", "fn": "charset", "args": [{ "Accept-Charset": "utf-8;q=0, iso-8859-1" }, ["utf-8", "iso-8859-1"]], "upstreamFn": "Negotiator#charset", "goFn": "Negotiator.Charset" },
+    { "id": "cs-pick-star", "fn": "charset", "args": [{ "Accept-Charset": "*" }, ["utf-8", "shift_jis"]], "upstreamFn": "Negotiator#charset", "goFn": "Negotiator.Charset" },
+    { "id": "cs-pick-star-exclusion", "fn": "charset", "args": [{ "Accept-Charset": "*, utf-8;q=0" }, ["utf-8", "iso-8859-1"]], "upstreamFn": "Negotiator#charset", "goFn": "Negotiator.Charset" },
+    { "id": "cs-pick-exact-over-star", "fn": "charset", "args": [{ "Accept-Charset": "*;q=0.9, iso-8859-1;q=0.5" }, ["utf-8", "iso-8859-1"]], "upstreamFn": "Negotiator#charset", "goFn": "Negotiator.Charset", "note": "specificity is compared before quality" },
+    { "id": "cs-pick-case-header", "fn": "charset", "args": [{ "Accept-Charset": "UTF-8" }, ["utf-8"]], "upstreamFn": "Negotiator#charset", "goFn": "Negotiator.Charset" },
+    { "id": "cs-pick-case-available", "fn": "charset", "args": [{ "Accept-Charset": "utf-8" }, ["UTF-8"]], "upstreamFn": "Negotiator#charset", "goFn": "Negotiator.Charset" },
+    { "id": "cs-pick-no-header", "fn": "charset", "args": [{}, ["iso-8859-1", "utf-8"]], "upstreamFn": "Negotiator#charset", "goFn": "Negotiator.Charset" },
+    { "id": "cs-pick-empty-header", "fn": "charset", "args": [{ "Accept-Charset": "" }, ["utf-8"]], "upstreamFn": "Negotiator#charset", "goFn": "Negotiator.Charset" },
+    { "id": "cs-list-multi", "fn": "charsets", "args": [{ "Accept-Charset": "utf-8;q=0.5, iso-8859-1;q=0.9" }, ["utf-8", "iso-8859-1", "shift_jis"]], "upstreamFn": "Negotiator#charsets", "goFn": "Negotiator.Charsets" },
+    { "id": "cs-list-star-keeps-order", "fn": "charsets", "args": [{ "Accept-Charset": "*" }, ["shift_jis", "utf-8"]], "upstreamFn": "Negotiator#charsets", "goFn": "Negotiator.Charsets" },
+    { "id": "cs-list-empty-result", "fn": "charsets", "args": [{ "Accept-Charset": "utf-8" }, ["shift_jis"]], "upstreamFn": "Negotiator#charsets", "goFn": "Negotiator.Charsets" },
+    { "id": "cs-alias-preferred", "fn": "preferredCharset", "args": [{ "Accept-Charset": "utf-8;q=0.1, iso-8859-1" }, ["utf-8", "iso-8859-1"]], "upstreamFn": "Negotiator#preferredCharset", "goFn": "Negotiator.Charset", "note": "backwards-compatibility alias" }
+  ]
+}

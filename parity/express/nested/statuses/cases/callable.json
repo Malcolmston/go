@@ -1,0 +1,72 @@
+{
+  "group": "callable",
+  "upstream": "statuses@2.0.1",
+  "note": "The polymorphic module callable, statuses(codeOrMessage), which dispatches on the argument's type.",
+  "cases": [
+    {
+      "id": "status-number",
+      "fn": "status",
+      "args": [
+        404
+      ],
+      "upstreamFn": "statuses",
+      "goFn": "statuses.Message"
+    },
+    {
+      "id": "status-number-200",
+      "fn": "status",
+      "args": [
+        200
+      ],
+      "upstreamFn": "statuses",
+      "goFn": "statuses.Message"
+    },
+    {
+      "id": "status-message",
+      "fn": "status",
+      "args": [
+        "Not Found"
+      ],
+      "upstreamFn": "statuses",
+      "goFn": "statuses.Code"
+    },
+    {
+      "id": "status-message-lower",
+      "fn": "status",
+      "args": [
+        "not found"
+      ],
+      "upstreamFn": "statuses",
+      "goFn": "statuses.Code"
+    },
+    {
+      "id": "status-unknown-number",
+      "fn": "status",
+      "args": [
+        999
+      ],
+      "upstreamFn": "statuses",
+      "goFn": "statuses.Message"
+    },
+    {
+      "id": "status-unknown-message",
+      "fn": "status",
+      "args": [
+        "Nope"
+      ],
+      "upstreamFn": "statuses",
+      "goFn": "statuses.Code"
+    },
+    {
+      "id": "status-numeric-string",
+      "fn": "status",
+      "args": [
+        "404"
+      ],
+      "upstreamFn": "statuses",
+      "goFn": "statuses.Code",
+      "note": "upstream's callable parseInts a numeric string and returns the message for it",
+      "deviation": "Go splits the polymorphic callable into Message(int) and Code(string); Code(\"404\") is a lookup miss because there is no such reason phrase"
+    }
+  ]
+}

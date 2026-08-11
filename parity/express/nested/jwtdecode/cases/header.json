@@ -1,0 +1,61 @@
+{
+  "group": "header",
+  "upstream": "jwt-decode@4.0.0",
+  "note": "Header decoding, the jwtDecode(token, {header: true}) path, which the port exposes as DecodeHeader.",
+  "cases": [
+    {
+      "id": "header-hs256",
+      "fn": "decodeHeader",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ4In0.c2lnbmF0dXJl"
+      ],
+      "upstreamFn": "jwtDecode(token, {header: true})",
+      "goFn": "jwtdecode.DecodeHeader"
+    },
+    {
+      "id": "header-with-kid",
+      "fn": "decodeHeader",
+      "args": [
+        "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImtleS0xIn0.eyJzdWIiOiJ4In0.c2lnbmF0dXJl"
+      ],
+      "upstreamFn": "jwtDecode(token, {header: true})",
+      "goFn": "jwtdecode.DecodeHeader"
+    },
+    {
+      "id": "header-alg-none",
+      "fn": "decodeHeader",
+      "args": [
+        "eyJhbGciOiJub25lIn0.eyJzdWIiOiJ4In0."
+      ],
+      "upstreamFn": "jwtDecode(token, {header: true})",
+      "goFn": "jwtdecode.DecodeHeader"
+    },
+    {
+      "id": "header-extra-params",
+      "fn": "decodeHeader",
+      "args": [
+        "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCIsImN0eSI6IkpXVCIsImNyaXQiOlsiZXhwIl19.eyJzdWIiOiJ4In0.c2lnbmF0dXJl"
+      ],
+      "upstreamFn": "jwtDecode(token, {header: true})",
+      "goFn": "jwtdecode.DecodeHeader"
+    },
+    {
+      "id": "header-empty-object",
+      "fn": "decodeHeader",
+      "args": [
+        "e30.eyJzdWIiOiJ4In0.c2lnbmF0dXJl"
+      ],
+      "upstreamFn": "jwtDecode(token, {header: true})",
+      "goFn": "jwtdecode.DecodeHeader"
+    },
+    {
+      "id": "header-unicode",
+      "fn": "decodeHeader",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsIm5vdGUiOiJow6lhZGVyIn0.eyJzdWIiOiJ4In0.c2lnbmF0dXJl"
+      ],
+      "upstreamFn": "jwtDecode(token, {header: true})",
+      "goFn": "jwtdecode.DecodeHeader"
+    }
+  ]
+}

@@ -1,0 +1,674 @@
+{
+  "group": "validate",
+  "upstream": "otpauth@9.5.1",
+  "note": "The verification surface. Tokens were produced by the pinned upstream, so accepting cases are cross-implementation verification; the rest must be rejected on BOTH sides — wrong code, one digit changed, wrong digit count, wrong period, wrong algorithm, wrong secret, and codes outside the search window.",
+  "cases": [
+    {
+      "id": "val-totp-exact",
+      "fn": "validate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        {
+          "token": "324550",
+          "timestamp": 1700000000000,
+          "window": 1
+        }
+      ],
+      "upstreamFn": "TOTP#validate / HOTP#validate",
+      "goFn": "Config.Validate",
+      "note": "delta 0"
+    },
+    {
+      "id": "val-totp-zero-window",
+      "fn": "validate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        {
+          "token": "324550",
+          "timestamp": 1700000000000,
+          "window": 0
+        }
+      ],
+      "upstreamFn": "TOTP#validate / HOTP#validate",
+      "goFn": "Config.Validate"
+    },
+    {
+      "id": "val-totp-previous-step",
+      "fn": "validate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        {
+          "token": "822542",
+          "timestamp": 1700000000000,
+          "window": 1
+        }
+      ],
+      "upstreamFn": "TOTP#validate / HOTP#validate",
+      "goFn": "Config.Validate",
+      "note": "delta -1"
+    },
+    {
+      "id": "val-totp-next-step",
+      "fn": "validate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        {
+          "token": "367665",
+          "timestamp": 1700000000000,
+          "window": 1
+        }
+      ],
+      "upstreamFn": "TOTP#validate / HOTP#validate",
+      "goFn": "Config.Validate",
+      "note": "delta +1"
+    },
+    {
+      "id": "val-totp-previous-step-zero-window",
+      "fn": "validate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        {
+          "token": "822542",
+          "timestamp": 1700000000000,
+          "window": 0
+        }
+      ],
+      "upstreamFn": "TOTP#validate / HOTP#validate",
+      "goFn": "Config.Validate",
+      "note": "outside the window: null"
+    },
+    {
+      "id": "val-totp-next-step-zero-window",
+      "fn": "validate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        {
+          "token": "367665",
+          "timestamp": 1700000000000,
+          "window": 0
+        }
+      ],
+      "upstreamFn": "TOTP#validate / HOTP#validate",
+      "goFn": "Config.Validate",
+      "note": "outside the window: null"
+    },
+    {
+      "id": "val-totp-far-outside-window",
+      "fn": "validate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        {
+          "token": "968494",
+          "timestamp": 1700000000000,
+          "window": 1
+        }
+      ],
+      "upstreamFn": "TOTP#validate / HOTP#validate",
+      "goFn": "Config.Validate",
+      "note": "ten steps away: null"
+    },
+    {
+      "id": "val-totp-far-inside-wide-window",
+      "fn": "validate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        {
+          "token": "968494",
+          "timestamp": 1700000000000,
+          "window": 10
+        }
+      ],
+      "upstreamFn": "TOTP#validate / HOTP#validate",
+      "goFn": "Config.Validate",
+      "note": "delta +10"
+    },
+    {
+      "id": "val-totp-wrong-code",
+      "fn": "validate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        {
+          "token": "000000",
+          "timestamp": 1700000000000,
+          "window": 1
+        }
+      ],
+      "upstreamFn": "TOTP#validate / HOTP#validate",
+      "goFn": "Config.Validate",
+      "note": "must be null on both sides"
+    },
+    {
+      "id": "val-totp-code-off-by-one-digit",
+      "fn": "validate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        {
+          "token": "324551",
+          "timestamp": 1700000000000,
+          "window": 1
+        }
+      ],
+      "upstreamFn": "TOTP#validate / HOTP#validate",
+      "goFn": "Config.Validate",
+      "note": "one digit changed: null"
+    },
+    {
+      "id": "val-totp-wrong-digit-count",
+      "fn": "validate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        {
+          "token": "32455",
+          "timestamp": 1700000000000,
+          "window": 1
+        }
+      ],
+      "upstreamFn": "TOTP#validate / HOTP#validate",
+      "goFn": "Config.Validate",
+      "note": "a 5-digit token against a 6-digit config: null"
+    },
+    {
+      "id": "val-totp-too-many-digits",
+      "fn": "validate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        {
+          "token": "3245500",
+          "timestamp": 1700000000000,
+          "window": 1
+        }
+      ],
+      "upstreamFn": "TOTP#validate / HOTP#validate",
+      "goFn": "Config.Validate",
+      "note": "null"
+    },
+    {
+      "id": "val-totp-empty-token",
+      "fn": "validate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        {
+          "token": "",
+          "timestamp": 1700000000000,
+          "window": 1
+        }
+      ],
+      "upstreamFn": "TOTP#validate / HOTP#validate",
+      "goFn": "Config.Validate"
+    },
+    {
+      "id": "val-totp-non-numeric-token",
+      "fn": "validate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        {
+          "token": "abcdef",
+          "timestamp": 1700000000000,
+          "window": 1
+        }
+      ],
+      "upstreamFn": "TOTP#validate / HOTP#validate",
+      "goFn": "Config.Validate"
+    },
+    {
+      "id": "val-totp-code-of-other-period",
+      "fn": "validate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        {
+          "token": "508648",
+          "timestamp": 1700000000000,
+          "window": 1
+        }
+      ],
+      "upstreamFn": "TOTP#validate / HOTP#validate",
+      "goFn": "Config.Validate",
+      "note": "a 60s-period code against a 30s config"
+    },
+    {
+      "id": "val-totp-code-of-other-algorithm",
+      "fn": "validate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        {
+          "token": "049486",
+          "timestamp": 1700000000000,
+          "window": 1
+        }
+      ],
+      "upstreamFn": "TOTP#validate / HOTP#validate",
+      "goFn": "Config.Validate",
+      "note": "a SHA256 code against a SHA1 config"
+    },
+    {
+      "id": "val-totp-code-of-other-secret",
+      "fn": "validate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        {
+          "token": "921300",
+          "timestamp": 1700000000000,
+          "window": 1
+        }
+      ],
+      "upstreamFn": "TOTP#validate / HOTP#validate",
+      "goFn": "Config.Validate",
+      "note": "a code for a different secret"
+    },
+    {
+      "id": "val-totp-sha256-matching",
+      "fn": "validate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA256",
+          "digits": 6,
+          "period": 30
+        },
+        {
+          "token": "049486",
+          "timestamp": 1700000000000,
+          "window": 1
+        }
+      ],
+      "upstreamFn": "TOTP#validate / HOTP#validate",
+      "goFn": "Config.Validate"
+    },
+    {
+      "id": "val-totp-8-digit-matching",
+      "fn": "validate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 8,
+          "period": 30
+        },
+        {
+          "token": "02324550",
+          "timestamp": 1700000000000,
+          "window": 1
+        }
+      ],
+      "upstreamFn": "TOTP#validate / HOTP#validate",
+      "goFn": "Config.Validate"
+    },
+    {
+      "id": "val-totp-leading-zero-code",
+      "fn": "validate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+          "algorithm": "SHA1",
+          "digits": 8,
+          "period": 30
+        },
+        {
+          "token": "94287082",
+          "timestamp": 59000,
+          "window": 0
+        }
+      ],
+      "upstreamFn": "TOTP#validate / HOTP#validate",
+      "goFn": "Config.Validate",
+      "note": "the RFC vector 94287082"
+    },
+    {
+      "id": "val-totp-default-window",
+      "fn": "validate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        {
+          "token": "822542",
+          "timestamp": 1700000000000
+        }
+      ],
+      "upstreamFn": "TOTP#validate / HOTP#validate",
+      "goFn": "Config.Validate",
+      "note": "window defaults to 1 on both sides"
+    },
+    {
+      "id": "val-hotp-exact",
+      "fn": "validate",
+      "args": [
+        {
+          "type": "hotp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "counter": 5
+        },
+        {
+          "token": "768897",
+          "window": 1
+        }
+      ],
+      "upstreamFn": "TOTP#validate / HOTP#validate",
+      "goFn": "Config.Validate",
+      "note": "delta 0"
+    },
+    {
+      "id": "val-hotp-behind",
+      "fn": "validate",
+      "args": [
+        {
+          "type": "hotp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "counter": 5
+        },
+        {
+          "token": "960129",
+          "window": 1
+        }
+      ],
+      "upstreamFn": "TOTP#validate / HOTP#validate",
+      "goFn": "Config.Validate",
+      "note": "delta -1"
+    },
+    {
+      "id": "val-hotp-ahead",
+      "fn": "validate",
+      "args": [
+        {
+          "type": "hotp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "counter": 5
+        },
+        {
+          "token": "883951",
+          "window": 1
+        }
+      ],
+      "upstreamFn": "TOTP#validate / HOTP#validate",
+      "goFn": "Config.Validate",
+      "note": "delta +1"
+    },
+    {
+      "id": "val-hotp-ahead-3-window-3",
+      "fn": "validate",
+      "args": [
+        {
+          "type": "hotp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "counter": 5
+        },
+        {
+          "token": "964230",
+          "window": 3
+        }
+      ],
+      "upstreamFn": "TOTP#validate / HOTP#validate",
+      "goFn": "Config.Validate",
+      "note": "delta +3"
+    },
+    {
+      "id": "val-hotp-ahead-4-window-3",
+      "fn": "validate",
+      "args": [
+        {
+          "type": "hotp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "counter": 5
+        },
+        {
+          "token": "924769",
+          "window": 3
+        }
+      ],
+      "upstreamFn": "TOTP#validate / HOTP#validate",
+      "goFn": "Config.Validate",
+      "note": "outside the window: null"
+    },
+    {
+      "id": "val-hotp-zero-window-behind",
+      "fn": "validate",
+      "args": [
+        {
+          "type": "hotp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "counter": 5
+        },
+        {
+          "token": "960129",
+          "window": 0
+        }
+      ],
+      "upstreamFn": "TOTP#validate / HOTP#validate",
+      "goFn": "Config.Validate",
+      "note": "null"
+    },
+    {
+      "id": "val-hotp-wrong-code",
+      "fn": "validate",
+      "args": [
+        {
+          "type": "hotp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "counter": 5
+        },
+        {
+          "token": "000000",
+          "window": 1
+        }
+      ],
+      "upstreamFn": "TOTP#validate / HOTP#validate",
+      "goFn": "Config.Validate"
+    },
+    {
+      "id": "val-hotp-counter-override",
+      "fn": "validate",
+      "args": [
+        {
+          "type": "hotp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "counter": 0
+        },
+        {
+          "token": "090604",
+          "counter": 42,
+          "window": 0
+        }
+      ],
+      "upstreamFn": "TOTP#validate / HOTP#validate",
+      "goFn": "Config.Validate",
+      "note": "the counter from the options wins"
+    },
+    {
+      "id": "val-hotp-totp-code",
+      "fn": "validate",
+      "args": [
+        {
+          "type": "hotp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "counter": 5
+        },
+        {
+          "token": "324550",
+          "window": 1
+        }
+      ],
+      "upstreamFn": "TOTP#validate / HOTP#validate",
+      "goFn": "Config.Validate",
+      "note": "a TOTP code against an HOTP config"
+    },
+    {
+      "id": "val-bad-secret",
+      "fn": "validate",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "!!!",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        {
+          "token": "123456",
+          "timestamp": 1700000000000,
+          "window": 1
+        }
+      ],
+      "upstreamFn": "TOTP#validate / HOTP#validate",
+      "goFn": "Config.Validate",
+      "note": "must fail on both sides"
+    }
+  ]
+}

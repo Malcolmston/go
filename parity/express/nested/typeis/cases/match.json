@@ -1,0 +1,28 @@
+{
+  "group": "match",
+  "upstream": "type-is@1.6.18",
+  "note": "typeis.match(expected, actual) — the raw wildcard matcher: '*' in the type or subtype position, and a '*+suffix' subtype that matches any subtype sharing the suffix. Neither side is normalised.",
+  "cases": [
+    { "id": "m-exact", "fn": "match", "args": ["text/html", "text/html"], "upstreamFn": "typeis.match", "goFn": "typeis.Match" },
+    { "id": "m-exact-miss", "fn": "match", "args": ["text/html", "text/plain"], "upstreamFn": "typeis.match", "goFn": "typeis.Match" },
+    { "id": "m-subtype-star", "fn": "match", "args": ["text/*", "text/html"], "upstreamFn": "typeis.match", "goFn": "typeis.Match" },
+    { "id": "m-subtype-star-miss", "fn": "match", "args": ["text/*", "application/json"], "upstreamFn": "typeis.match", "goFn": "typeis.Match" },
+    { "id": "m-type-star", "fn": "match", "args": ["*/html", "text/html"], "upstreamFn": "typeis.match", "goFn": "typeis.Match" },
+    { "id": "m-type-star-miss", "fn": "match", "args": ["*/html", "text/plain"], "upstreamFn": "typeis.match", "goFn": "typeis.Match" },
+    { "id": "m-star-star", "fn": "match", "args": ["*/*", "text/html"], "upstreamFn": "typeis.match", "goFn": "typeis.Match" },
+    { "id": "m-suffix-json", "fn": "match", "args": ["*/*+json", "application/vnd.api+json"], "upstreamFn": "typeis.match", "goFn": "typeis.Match" },
+    { "id": "m-suffix-json-plain", "fn": "match", "args": ["*/*+json", "application/json"], "upstreamFn": "typeis.match", "goFn": "typeis.Match", "note": "the length check makes a bare \"json\" subtype too short to carry the suffix" },
+    { "id": "m-suffix-xml", "fn": "match", "args": ["*/*+xml", "image/svg+xml"], "upstreamFn": "typeis.match", "goFn": "typeis.Match" },
+    { "id": "m-suffix-wrong", "fn": "match", "args": ["*/*+xml", "application/vnd.api+json"], "upstreamFn": "typeis.match", "goFn": "typeis.Match" },
+    { "id": "m-suffix-typed", "fn": "match", "args": ["application/*+json", "application/vnd.api+json"], "upstreamFn": "typeis.match", "goFn": "typeis.Match" },
+    { "id": "m-suffix-typed-miss", "fn": "match", "args": ["application/*+json", "image/svg+json"], "upstreamFn": "typeis.match", "goFn": "typeis.Match" },
+    { "id": "m-suffix-shorter-actual", "fn": "match", "args": ["*/*+json", "application/x+json"], "upstreamFn": "typeis.match", "goFn": "typeis.Match" },
+    { "id": "m-empty-expected", "fn": "match", "args": ["", "text/html"], "upstreamFn": "typeis.match", "goFn": "typeis.Match" },
+    { "id": "m-empty-actual", "fn": "match", "args": ["text/html", ""], "upstreamFn": "typeis.match", "goFn": "typeis.Match" },
+    { "id": "m-no-slash-expected", "fn": "match", "args": ["texthtml", "text/html"], "upstreamFn": "typeis.match", "goFn": "typeis.Match" },
+    { "id": "m-no-slash-actual", "fn": "match", "args": ["text/html", "texthtml"], "upstreamFn": "typeis.match", "goFn": "typeis.Match" },
+    { "id": "m-too-many-slashes", "fn": "match", "args": ["text/html", "text/html/extra"], "upstreamFn": "typeis.match", "goFn": "typeis.Match" },
+    { "id": "m-case-sensitive", "fn": "match", "args": ["text/html", "TEXT/HTML"], "upstreamFn": "typeis.match", "goFn": "typeis.Match", "note": "match does no case folding of its own" },
+    { "id": "m-both-star", "fn": "match", "args": ["*/*", "*/*"], "upstreamFn": "typeis.match", "goFn": "typeis.Match" }
+  ]
+}

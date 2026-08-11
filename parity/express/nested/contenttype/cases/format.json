@@ -1,0 +1,446 @@
+{
+  "group": "format",
+  "upstream": "content-type@1.0.5",
+  "note": "contentType.format(obj) and the parse-then-format round trip. Parameters are emitted in sorted name order; a value that is not a token is quoted and escaped, and a value that cannot appear in a quoted-string at all (empty, tab, CR, LF, NUL) is a TypeError rather than something smuggled into a header.",
+  "cases": [
+    {
+      "id": "f-bare",
+      "fn": "format",
+      "args": [
+        {
+          "type": "text/html",
+          "parameters": {}
+        }
+      ],
+      "upstreamFn": "contentType.format",
+      "goFn": "contenttype.Format"
+    },
+    {
+      "id": "f-charset",
+      "fn": "format",
+      "args": [
+        {
+          "type": "text/html",
+          "parameters": {
+            "charset": "utf-8"
+          }
+        }
+      ],
+      "upstreamFn": "contentType.format",
+      "goFn": "contenttype.Format"
+    },
+    {
+      "id": "f-sorted-params",
+      "fn": "format",
+      "args": [
+        {
+          "type": "text/html",
+          "parameters": {
+            "z": "1",
+            "a": "2",
+            "m": "3"
+          }
+        }
+      ],
+      "upstreamFn": "contentType.format",
+      "goFn": "contenttype.Format",
+      "note": "parameters are emitted in sorted name order, so the output is deterministic"
+    },
+    {
+      "id": "f-value-case-preserved",
+      "fn": "format",
+      "args": [
+        {
+          "type": "text/html",
+          "parameters": {
+            "charset": "UTF-8"
+          }
+        }
+      ],
+      "upstreamFn": "contentType.format",
+      "goFn": "contenttype.Format"
+    },
+    {
+      "id": "f-name-case-preserved",
+      "fn": "format",
+      "args": [
+        {
+          "type": "text/html",
+          "parameters": {
+            "CharSet": "utf-8"
+          }
+        }
+      ],
+      "upstreamFn": "contentType.format",
+      "goFn": "contenttype.Format",
+      "note": "format does not lower-case names, unlike parse"
+    },
+    {
+      "id": "f-type-case-preserved",
+      "fn": "format",
+      "args": [
+        {
+          "type": "TEXT/HTML",
+          "parameters": {
+            "charset": "utf-8"
+          }
+        }
+      ],
+      "upstreamFn": "contentType.format",
+      "goFn": "contenttype.Format"
+    },
+    {
+      "id": "f-quotes-when-needed",
+      "fn": "format",
+      "args": [
+        {
+          "type": "text/html",
+          "parameters": {
+            "title": "a b"
+          }
+        }
+      ],
+      "upstreamFn": "contentType.format",
+      "goFn": "contenttype.Format",
+      "note": "a value that is not a token is quoted"
+    },
+    {
+      "id": "f-quotes-semicolon",
+      "fn": "format",
+      "args": [
+        {
+          "type": "text/html",
+          "parameters": {
+            "title": "a;b"
+          }
+        }
+      ],
+      "upstreamFn": "contentType.format",
+      "goFn": "contenttype.Format"
+    },
+    {
+      "id": "f-escapes-quote",
+      "fn": "format",
+      "args": [
+        {
+          "type": "text/html",
+          "parameters": {
+            "title": "a\"b"
+          }
+        }
+      ],
+      "upstreamFn": "contentType.format",
+      "goFn": "contenttype.Format"
+    },
+    {
+      "id": "f-escapes-backslash",
+      "fn": "format",
+      "args": [
+        {
+          "type": "text/html",
+          "parameters": {
+            "title": "a\\b"
+          }
+        }
+      ],
+      "upstreamFn": "contentType.format",
+      "goFn": "contenttype.Format"
+    },
+    {
+      "id": "f-obs-text-value",
+      "fn": "format",
+      "args": [
+        {
+          "type": "text/html",
+          "parameters": {
+            "title": "caf\u00e9"
+          }
+        }
+      ],
+      "upstreamFn": "contentType.format",
+      "goFn": "contenttype.Format",
+      "note": "obs-text is quotable"
+    },
+    {
+      "id": "f-empty-value",
+      "fn": "format",
+      "args": [
+        {
+          "type": "text/html",
+          "parameters": {
+            "charset": ""
+          }
+        }
+      ],
+      "upstreamFn": "contentType.format",
+      "goFn": "contenttype.Format",
+      "note": "the text grammar requires at least one character, so an empty value is invalid"
+    },
+    {
+      "id": "f-tab-value",
+      "fn": "format",
+      "args": [
+        {
+          "type": "text/html",
+          "parameters": {
+            "title": "a\tb"
+          }
+        }
+      ],
+      "upstreamFn": "contentType.format",
+      "goFn": "contenttype.Format",
+      "note": "a tab cannot be represented in a quoted-string upstream"
+    },
+    {
+      "id": "f-vtab-value",
+      "fn": "format",
+      "args": [
+        {
+          "type": "text/html",
+          "parameters": {
+            "title": "a\u000bb"
+          }
+        }
+      ],
+      "upstreamFn": "contentType.format",
+      "goFn": "contenttype.Format",
+      "note": "vertical tab can be"
+    },
+    {
+      "id": "f-newline-value",
+      "fn": "format",
+      "args": [
+        {
+          "type": "text/html",
+          "parameters": {
+            "title": "a\nb"
+          }
+        }
+      ],
+      "upstreamFn": "contentType.format",
+      "goFn": "contenttype.Format",
+      "note": "a newline must be rejected, not emitted into a header"
+    },
+    {
+      "id": "f-crlf-value",
+      "fn": "format",
+      "args": [
+        {
+          "type": "text/html",
+          "parameters": {
+            "charset": "utf-8\r\nX-Injected: 1"
+          }
+        }
+      ],
+      "upstreamFn": "contentType.format",
+      "goFn": "contenttype.Format",
+      "note": "header injection attempt: must fail rather than produce a two-line header"
+    },
+    {
+      "id": "f-nul-value",
+      "fn": "format",
+      "args": [
+        {
+          "type": "text/html",
+          "parameters": {
+            "title": "a\u0000b"
+          }
+        }
+      ],
+      "upstreamFn": "contentType.format",
+      "goFn": "contenttype.Format"
+    },
+    {
+      "id": "f-bad-param-name",
+      "fn": "format",
+      "args": [
+        {
+          "type": "text/html",
+          "parameters": {
+            "char set": "utf-8"
+          }
+        }
+      ],
+      "upstreamFn": "contentType.format",
+      "goFn": "contenttype.Format"
+    },
+    {
+      "id": "f-empty-param-name",
+      "fn": "format",
+      "args": [
+        {
+          "type": "text/html",
+          "parameters": {
+            "": "utf-8"
+          }
+        }
+      ],
+      "upstreamFn": "contentType.format",
+      "goFn": "contenttype.Format"
+    },
+    {
+      "id": "f-invalid-type-no-slash",
+      "fn": "format",
+      "args": [
+        {
+          "type": "bogus",
+          "parameters": {}
+        }
+      ],
+      "upstreamFn": "contentType.format",
+      "goFn": "contenttype.Format"
+    },
+    {
+      "id": "f-invalid-type-space",
+      "fn": "format",
+      "args": [
+        {
+          "type": "text / html",
+          "parameters": {}
+        }
+      ],
+      "upstreamFn": "contentType.format",
+      "goFn": "contenttype.Format"
+    },
+    {
+      "id": "f-invalid-type-empty",
+      "fn": "format",
+      "args": [
+        {
+          "type": "",
+          "parameters": {}
+        }
+      ],
+      "upstreamFn": "contentType.format",
+      "goFn": "contenttype.Format"
+    },
+    {
+      "id": "f-invalid-type-empty-subtype",
+      "fn": "format",
+      "args": [
+        {
+          "type": "text/",
+          "parameters": {}
+        }
+      ],
+      "upstreamFn": "contentType.format",
+      "goFn": "contenttype.Format"
+    },
+    {
+      "id": "f-wildcard-type",
+      "fn": "format",
+      "args": [
+        {
+          "type": "*/*",
+          "parameters": {}
+        }
+      ],
+      "upstreamFn": "contentType.format",
+      "goFn": "contenttype.Format",
+      "note": "'*' is a token character, so this is a valid type as far as format cares"
+    },
+    {
+      "id": "f-suffix-type",
+      "fn": "format",
+      "args": [
+        {
+          "type": "application/vnd.api+json",
+          "parameters": {
+            "charset": "utf-8"
+          }
+        }
+      ],
+      "upstreamFn": "contentType.format",
+      "goFn": "contenttype.Format"
+    },
+    {
+      "id": "f-no-parameters",
+      "fn": "format",
+      "args": [
+        {
+          "type": "text/html",
+          "parameters": null
+        }
+      ],
+      "upstreamFn": "contentType.format",
+      "goFn": "contenttype.Format",
+      "note": "a missing parameters object is skipped entirely"
+    },
+    {
+      "id": "rt-charset",
+      "fn": "roundTrip",
+      "args": [
+        "text/html; charset=utf-8"
+      ],
+      "upstreamFn": "contentType.format(contentType.parse(v))",
+      "goFn": "contenttype.Format(contenttype.Parse(v))",
+      "note": "parse then format, the usual way to canonicalise a header value"
+    },
+    {
+      "id": "rt-uppercase",
+      "fn": "roundTrip",
+      "args": [
+        "TEXT/HTML; CharSet=UTF-8"
+      ],
+      "upstreamFn": "contentType.format(contentType.parse(v))",
+      "goFn": "contenttype.Format(contenttype.Parse(v))"
+    },
+    {
+      "id": "rt-reorders",
+      "fn": "roundTrip",
+      "args": [
+        "text/html; z=1; a=2"
+      ],
+      "upstreamFn": "contentType.format(contentType.parse(v))",
+      "goFn": "contenttype.Format(contenttype.Parse(v))",
+      "note": "the round trip sorts the parameters"
+    },
+    {
+      "id": "rt-requotes",
+      "fn": "roundTrip",
+      "args": [
+        "text/html; title=\"a b\""
+      ],
+      "upstreamFn": "contentType.format(contentType.parse(v))",
+      "goFn": "contenttype.Format(contenttype.Parse(v))"
+    },
+    {
+      "id": "rt-unquotes-token",
+      "fn": "roundTrip",
+      "args": [
+        "text/html; charset=\"utf-8\""
+      ],
+      "upstreamFn": "contentType.format(contentType.parse(v))",
+      "goFn": "contenttype.Format(contenttype.Parse(v))",
+      "note": "a quoted token comes back unquoted"
+    },
+    {
+      "id": "rt-empty-quoted",
+      "fn": "roundTrip",
+      "args": [
+        "text/html; title=\"\""
+      ],
+      "upstreamFn": "contentType.format(contentType.parse(v))",
+      "goFn": "contenttype.Format(contenttype.Parse(v))",
+      "note": "parse accepts an empty quoted value but format cannot re-emit it"
+    },
+    {
+      "id": "rt-escaped-quote",
+      "fn": "roundTrip",
+      "args": [
+        "text/html; title=\"a\\\"b\""
+      ],
+      "upstreamFn": "contentType.format(contentType.parse(v))",
+      "goFn": "contenttype.Format(contenttype.Parse(v))"
+    },
+    {
+      "id": "rt-invalid",
+      "fn": "roundTrip",
+      "args": [
+        "bogus"
+      ],
+      "upstreamFn": "contentType.format(contentType.parse(v))",
+      "goFn": "contenttype.Format(contenttype.Parse(v))"
+    }
+  ]
+}

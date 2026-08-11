@@ -1,0 +1,27 @@
+{
+  "group": "roundtrip",
+  "upstream": "qs@6.15.3",
+  "note": "parse and stringify composed in both directions. These are the cases that catch a disagreement the one-way groups can hide: a port can encode a bracket the same way upstream does and still fail to read its own output back.",
+  "cases": [
+    { "id": "r-flat",             "fn": "parseStringify", "args": ["a=b&c=d"],                    "upstreamFn": "qs.stringify(qs.parse(…))", "goFn": "qs.StringifyWith(qs.ParseWith(…))" },
+    { "id": "r-nested",          "fn": "parseStringify", "args": ["a[b]=c"],                      "upstreamFn": "qs.stringify(qs.parse(…))", "goFn": "qs.StringifyWith(qs.ParseWith(…))" },
+    { "id": "r-nested-deep",     "fn": "parseStringify", "args": ["a[b][c][d]=e"],                "upstreamFn": "qs.stringify(qs.parse(…))", "goFn": "qs.StringifyWith(qs.ParseWith(…))" },
+    { "id": "r-array-push",      "fn": "parseStringify", "args": ["a[]=1&a[]=2"],                 "upstreamFn": "qs.stringify(qs.parse(…))", "goFn": "qs.StringifyWith(qs.ParseWith(…))", "note": "pushes come back as indices, since 'indices' is the stringify default" },
+    { "id": "r-array-brackets",  "fn": "parseStringify", "args": ["a[]=1&a[]=2", null, { "arrayFormat": "brackets" }], "upstreamFn": "qs.stringify(qs.parse(…))", "goFn": "qs.StringifyWith(qs.ParseWith(…))", "note": "with arrayFormat 'brackets' the input is reproduced exactly" },
+    { "id": "r-duplicates",      "fn": "parseStringify", "args": ["a=b&a=c"],                     "upstreamFn": "qs.stringify(qs.parse(…))", "goFn": "qs.StringifyWith(qs.ParseWith(…))" },
+    { "id": "r-space",           "fn": "parseStringify", "args": ["a=b+c"],                       "upstreamFn": "qs.stringify(qs.parse(…))", "goFn": "qs.StringifyWith(qs.ParseWith(…))", "note": "'+' in, '%20' out" },
+    { "id": "r-space-1738",      "fn": "parseStringify", "args": ["a=b+c", null, { "format": "RFC1738" }], "upstreamFn": "qs.stringify(qs.parse(…))", "goFn": "qs.StringifyWith(qs.ParseWith(…))" },
+    { "id": "r-past-depth",      "fn": "parseStringify", "args": ["a[b][c][d][e][f][g]=h"],       "upstreamFn": "qs.stringify(qs.parse(…))", "goFn": "qs.StringifyWith(qs.ParseWith(…))", "note": "the literal remainder key is re-encoded, not re-nested" },
+    { "id": "r-dots",            "fn": "parseStringify", "args": ["a.b=c", { "allowDots": true }, { "allowDots": true }], "upstreamFn": "qs.stringify(qs.parse(…))", "goFn": "qs.StringifyWith(qs.ParseWith(…))" },
+    { "id": "r-obj-flat",        "fn": "stringifyParse", "args": [{ "a": "b", "c": "d" }],         "upstreamFn": "qs.parse(qs.stringify(…))", "goFn": "qs.ParseWith(qs.StringifyWith(…))" },
+    { "id": "r-obj-nested",      "fn": "stringifyParse", "args": [{ "a": { "b": { "c": "d" } } }], "upstreamFn": "qs.parse(qs.stringify(…))", "goFn": "qs.ParseWith(qs.StringifyWith(…))" },
+    { "id": "r-obj-array",       "fn": "stringifyParse", "args": [{ "a": ["1", "2", "3"] }],       "upstreamFn": "qs.parse(qs.stringify(…))", "goFn": "qs.ParseWith(qs.StringifyWith(…))" },
+    { "id": "r-obj-array-brackets", "fn": "stringifyParse", "args": [{ "a": ["1", "2"] }, { "arrayFormat": "brackets" }], "upstreamFn": "qs.parse(qs.stringify(…))", "goFn": "qs.ParseWith(qs.StringifyWith(…))" },
+    { "id": "r-obj-array-repeat", "fn": "stringifyParse", "args": [{ "a": ["1", "2"] }, { "arrayFormat": "repeat" }],     "upstreamFn": "qs.parse(qs.stringify(…))", "goFn": "qs.ParseWith(qs.StringifyWith(…))" },
+    { "id": "r-obj-reserved",    "fn": "stringifyParse", "args": [{ "a": "b&c=d", "e": "f?g#h" }], "upstreamFn": "qs.parse(qs.stringify(…))", "goFn": "qs.ParseWith(qs.StringifyWith(…))", "note": "a value full of delimiters must survive the round trip intact" },
+    { "id": "r-obj-brackets-in-key", "fn": "stringifyParse", "args": [{ "a[b]": "c" }],            "upstreamFn": "qs.parse(qs.stringify(…))", "goFn": "qs.ParseWith(qs.StringifyWith(…))", "note": "and here it must not: %5B is normalised back to a bracket, so the flat key becomes nested" },
+    { "id": "r-obj-utf8",        "fn": "stringifyParse", "args": [{ "a": "✓ 😀" }],                "upstreamFn": "qs.parse(qs.stringify(…))", "goFn": "qs.ParseWith(qs.StringifyWith(…))" },
+    { "id": "r-obj-mixed",       "fn": "stringifyParse", "args": [{ "a": { "b": ["1", "2"], "c": "d" }, "e": "f" }], "upstreamFn": "qs.parse(qs.stringify(…))", "goFn": "qs.ParseWith(qs.StringifyWith(…))" },
+    { "id": "r-obj-empty",       "fn": "stringifyParse", "args": [{}],                             "upstreamFn": "qs.parse(qs.stringify(…))", "goFn": "qs.ParseWith(qs.StringifyWith(…))" }
+  ]
+}

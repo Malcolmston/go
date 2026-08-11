@@ -1,0 +1,29 @@
+{
+  "group": "select",
+  "upstream": "semver@7.8.5",
+  "note": "maxSatisfying / minSatisfying over a candidate list. Upstream returns null for an empty list, for no match and for an unparseable range; the port returns ok=false. Both are mapped to a failure, so \"no answer\" compares as \"no answer\". Upstream skips list entries it cannot parse rather than throwing.",
+  "cases": [
+    { "id": "sel-max-basic",    "fn": "maxSatisfying", "args": [["1.2.3", "1.2.4", "1.3.0"], "^1.2.3"],           "upstreamFn": "semver.maxSatisfying", "goFn": "semver.MaxSatisfying" },
+    { "id": "sel-max-bounded",  "fn": "maxSatisfying", "args": [["1.2.3", "1.2.4", "2.0.0"], "^1.2.3"],           "upstreamFn": "semver.maxSatisfying", "goFn": "semver.MaxSatisfying" },
+    { "id": "sel-max-tilde",    "fn": "maxSatisfying", "args": [["1.2.3", "1.2.9", "1.3.0"], "~1.2.0"],           "upstreamFn": "semver.maxSatisfying", "goFn": "semver.MaxSatisfying" },
+    { "id": "sel-max-union",    "fn": "maxSatisfying", "args": [["1.0.0", "2.0.0", "3.0.0"], "1.x || 2.x"],       "upstreamFn": "semver.maxSatisfying", "goFn": "semver.MaxSatisfying" },
+    { "id": "sel-max-vprefix",  "fn": "maxSatisfying", "args": [["v1.2.3", "v1.2.4"], "^1.0.0"],                  "upstreamFn": "semver.maxSatisfying", "goFn": "semver.MaxSatisfying", "note": "the answer is the matching input element, unchanged" },
+    { "id": "sel-max-order",    "fn": "maxSatisfying", "args": [["1.10.0", "1.9.0", "1.2.0"], "1.x"],             "upstreamFn": "semver.maxSatisfying", "goFn": "semver.MaxSatisfying", "note": "list order must not matter" },
+    { "id": "sel-max-build",    "fn": "maxSatisfying", "args": [["1.2.3+a", "1.2.3+b"], "1.2.3"],                 "upstreamFn": "semver.maxSatisfying", "goFn": "semver.MaxSatisfying", "note": "equal precedence: the first match is kept" },
+    { "id": "sel-max-pre",      "fn": "maxSatisfying", "args": [["1.2.3-rc.1", "1.2.3"], "^1.2.0"],               "upstreamFn": "semver.maxSatisfying", "goFn": "semver.MaxSatisfying" },
+    { "id": "sel-max-pre-only", "fn": "maxSatisfying", "args": [["1.2.3-rc.1"], "^1.2.0"],                        "upstreamFn": "semver.maxSatisfying", "goFn": "semver.MaxSatisfying", "note": "a prerelease alone does not satisfy: no answer" },
+    { "id": "sel-max-pre-range","fn": "maxSatisfying", "args": [["1.2.3-rc.1", "1.2.3-rc.2"], ">=1.2.3-rc.1"],    "upstreamFn": "semver.maxSatisfying", "goFn": "semver.MaxSatisfying" },
+    { "id": "sel-max-nomatch",  "fn": "maxSatisfying", "args": [["1.0.0", "1.5.0"], "^2.0.0"],                    "upstreamFn": "semver.maxSatisfying", "goFn": "semver.MaxSatisfying" },
+    { "id": "sel-max-empty",    "fn": "maxSatisfying", "args": [[], "*"],                                         "upstreamFn": "semver.maxSatisfying", "goFn": "semver.MaxSatisfying" },
+    { "id": "sel-max-bad-item", "fn": "maxSatisfying", "args": [["nope", "1.2.3"], "*"],                          "upstreamFn": "semver.maxSatisfying", "goFn": "semver.MaxSatisfying", "note": "unparseable entries are skipped, not fatal" },
+    { "id": "sel-max-all-bad",  "fn": "maxSatisfying", "args": [["nope", "1.2"], "*"],                            "upstreamFn": "semver.maxSatisfying", "goFn": "semver.MaxSatisfying" },
+    { "id": "sel-max-bad-range","fn": "maxSatisfying", "args": [["1.2.3"], "garbage"],                            "upstreamFn": "semver.maxSatisfying", "goFn": "semver.MaxSatisfying", "note": "an unparseable range must not select a version" },
+    { "id": "sel-min-basic",    "fn": "minSatisfying", "args": [["1.2.3", "1.2.4", "1.3.0"], "^1.2.3"],           "upstreamFn": "semver.minSatisfying", "goFn": "semver.MinSatisfying" },
+    { "id": "sel-min-bounded",  "fn": "minSatisfying", "args": [["1.0.0", "1.2.3", "1.2.4"], "^1.2.3"],           "upstreamFn": "semver.minSatisfying", "goFn": "semver.MinSatisfying" },
+    { "id": "sel-min-union",    "fn": "minSatisfying", "args": [["3.0.0", "2.0.0", "1.0.0"], "1.x || 2.x"],       "upstreamFn": "semver.minSatisfying", "goFn": "semver.MinSatisfying" },
+    { "id": "sel-min-pre",      "fn": "minSatisfying", "args": [["1.2.3-rc.1", "1.2.3-rc.2"], ">=1.2.3-rc.1"],    "upstreamFn": "semver.minSatisfying", "goFn": "semver.MinSatisfying" },
+    { "id": "sel-min-nomatch",  "fn": "minSatisfying", "args": [["1.0.0"], "^2.0.0"],                             "upstreamFn": "semver.minSatisfying", "goFn": "semver.MinSatisfying" },
+    { "id": "sel-min-empty",    "fn": "minSatisfying", "args": [[], "*"],                                         "upstreamFn": "semver.minSatisfying", "goFn": "semver.MinSatisfying" },
+    { "id": "sel-min-bad-range","fn": "minSatisfying", "args": [["1.2.3"], "^^1"],                                "upstreamFn": "semver.minSatisfying", "goFn": "semver.MinSatisfying" }
+  ]
+}

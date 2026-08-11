@@ -1,0 +1,28 @@
+{
+  "group": "roundtrip",
+  "upstream": "bytes@3.1.2",
+  "note": "The two compositions. roundtrip = format(parse(s)) proves the pair agrees on the ladder in both directions; roundtripParse = parse(format(n)) proves the port's own output is re-readable by the same rules upstream uses (which is not trivially true, because parse's grammar has no `b` unit and format happily emits one).",
+  "cases": [
+    { "id": "rt-1kb",        "fn": "roundtrip",      "args": ["1KB"],          "upstreamFn": "bytes.format∘bytes.parse", "goFn": "bytes.Format∘bytes.Parse" },
+    { "id": "rt-1024",       "fn": "roundtrip",      "args": ["1024"],         "upstreamFn": "bytes.format∘bytes.parse", "goFn": "bytes.Format∘bytes.Parse" },
+    { "id": "rt-1000",       "fn": "roundtrip",      "args": ["1000"],         "upstreamFn": "bytes.format∘bytes.parse", "goFn": "bytes.Format∘bytes.Parse" },
+    { "id": "rt-1023b",      "fn": "roundtrip",      "args": ["1023b"],        "upstreamFn": "bytes.format∘bytes.parse", "goFn": "bytes.Format∘bytes.Parse" },
+    { "id": "rt-1p5mb",      "fn": "roundtrip",      "args": ["1.5MB"],        "upstreamFn": "bytes.format∘bytes.parse", "goFn": "bytes.Format∘bytes.Parse" },
+    { "id": "rt-1p7kb",      "fn": "roundtrip",      "args": ["1.7kb"],        "upstreamFn": "bytes.format∘bytes.parse", "goFn": "bytes.Format∘bytes.Parse", "note": "1740.8 floors to 1740, which formats back as 1.7KB" },
+    { "id": "rt-1tb",        "fn": "roundtrip",      "args": ["1TB"],          "upstreamFn": "bytes.format∘bytes.parse", "goFn": "bytes.Format∘bytes.Parse" },
+    { "id": "rt-1pb",        "fn": "roundtrip",      "args": ["1PB"],          "upstreamFn": "bytes.format∘bytes.parse", "goFn": "bytes.Format∘bytes.Parse" },
+    { "id": "rt-neg-kb",     "fn": "roundtrip",      "args": ["-1kb"],         "upstreamFn": "bytes.format∘bytes.parse", "goFn": "bytes.Format∘bytes.Parse" },
+    { "id": "rt-spaced",     "fn": "roundtrip",      "args": [" 42 "],         "upstreamFn": "bytes.format∘bytes.parse", "goFn": "bytes.Format∘bytes.Parse", "note": "the whitespace demotes this to 42 bytes" },
+    { "id": "rt-bad",        "fn": "roundtrip",      "args": ["nope"],         "upstreamFn": "bytes.format∘bytes.parse", "goFn": "bytes.Format∘bytes.Parse", "note": "both sides must fail before ever reaching format" },
+    { "id": "rtp-1024",      "fn": "roundtripParse", "args": [1024],           "upstreamFn": "bytes.parse∘bytes.format", "goFn": "bytes.Parse∘bytes.Format" },
+    { "id": "rtp-1536",      "fn": "roundtripParse", "args": [1536],           "upstreamFn": "bytes.parse∘bytes.format", "goFn": "bytes.Parse∘bytes.Format" },
+    { "id": "rtp-1000",      "fn": "roundtripParse", "args": [1000],           "upstreamFn": "bytes.parse∘bytes.format", "goFn": "bytes.Parse∘bytes.Format", "note": "format emits '1000B'; parse's grammar has no `b`, so parseInt reads it back" },
+    { "id": "rtp-500",       "fn": "roundtripParse", "args": [500],            "upstreamFn": "bytes.parse∘bytes.format", "goFn": "bytes.Parse∘bytes.Format" },
+    { "id": "rtp-1740",      "fn": "roundtripParse", "args": [1740],           "upstreamFn": "bytes.parse∘bytes.format", "goFn": "bytes.Parse∘bytes.Format" },
+    { "id": "rtp-1048575",   "fn": "roundtripParse", "args": [1048575],        "upstreamFn": "bytes.parse∘bytes.format", "goFn": "bytes.Parse∘bytes.Format", "note": "lossy on both sides: '1024KB' reads back as 1048576" },
+    { "id": "rtp-neg-1536",  "fn": "roundtripParse", "args": [-1536],          "upstreamFn": "bytes.parse∘bytes.format", "goFn": "bytes.Parse∘bytes.Format" },
+    { "id": "rtp-neg-1024",  "fn": "roundtripParse", "args": [-1024],          "upstreamFn": "bytes.parse∘bytes.format", "goFn": "bytes.Parse∘bytes.Format" },
+    { "id": "rtp-pb",        "fn": "roundtripParse", "args": [1125899906842624],"upstreamFn": "bytes.parse∘bytes.format", "goFn": "bytes.Parse∘bytes.Format" },
+    { "id": "rtp-zero",      "fn": "roundtripParse", "args": [0],              "upstreamFn": "bytes.parse∘bytes.format", "goFn": "bytes.Parse∘bytes.Format" }
+  ]
+}

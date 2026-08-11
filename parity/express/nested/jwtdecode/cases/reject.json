@@ -1,0 +1,285 @@
+{
+  "group": "reject",
+  "upstream": "jwt-decode@4.0.0",
+  "note": "The rejection corpus: missing segments, empty segments, the wrong base64 alphabet, impossible base64 lengths, non-JSON and non-object payloads. Errors are cases too — what is compared is whether each side failed.",
+  "cases": [
+    {
+      "id": "reject-empty-string",
+      "fn": "decode",
+      "args": [
+        ""
+      ],
+      "upstreamFn": "jwtDecode",
+      "goFn": "jwtdecode.Decode",
+      "note": "no segment #2 at all"
+    },
+    {
+      "id": "reject-single-segment",
+      "fn": "decode",
+      "args": [
+        "eyJzdWIiOiJ4In0"
+      ],
+      "upstreamFn": "jwtDecode",
+      "goFn": "jwtdecode.Decode",
+      "note": "no dot, so no payload segment"
+    },
+    {
+      "id": "reject-two-segments",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ4In0"
+      ],
+      "upstreamFn": "jwtDecode",
+      "goFn": "jwtdecode.Decode",
+      "note": "upstream reads part #2 without requiring a signature segment"
+    },
+    {
+      "id": "reject-four-segments",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ4In0.c2lnbmF0dXJl.extra"
+      ],
+      "upstreamFn": "jwtDecode",
+      "goFn": "jwtdecode.Decode",
+      "note": "upstream ignores anything past the part it needs"
+    },
+    {
+      "id": "reject-empty-payload-segment",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..c2ln"
+      ],
+      "upstreamFn": "jwtDecode",
+      "goFn": "jwtdecode.Decode",
+      "note": "part #2 is empty"
+    },
+    {
+      "id": "reject-only-dots",
+      "fn": "decode",
+      "args": [
+        ".."
+      ],
+      "upstreamFn": "jwtDecode",
+      "goFn": "jwtdecode.Decode"
+    },
+    {
+      "id": "reject-one-dot",
+      "fn": "decode",
+      "args": [
+        "."
+      ],
+      "upstreamFn": "jwtDecode",
+      "goFn": "jwtdecode.Decode"
+    },
+    {
+      "id": "reject-invalid-base64-char",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.!!!!.sig"
+      ],
+      "upstreamFn": "jwtDecode",
+      "goFn": "jwtdecode.Decode",
+      "note": "not base64 at all"
+    },
+    {
+      "id": "reject-base64-bad-length",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.abcde.sig"
+      ],
+      "upstreamFn": "jwtDecode",
+      "goFn": "jwtdecode.Decode",
+      "note": "length % 4 === 1 is impossible base64"
+    },
+    {
+      "id": "reject-standard-base64-payload",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzIjoiP2EvYitjPyJ9.sig"
+      ],
+      "upstreamFn": "jwtDecode",
+      "goFn": "jwtdecode.Decode",
+      "note": "a payload encoded with the standard (+/) alphabet rather than base64url"
+    },
+    {
+      "id": "reject-padded-payload",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhIjoxfQ==.sig"
+      ],
+      "upstreamFn": "jwtDecode",
+      "goFn": "jwtdecode.Decode",
+      "note": "base64 with = padding retained"
+    },
+    {
+      "id": "reject-not-json",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.bm90IGpzb24gYXQgYWxs.sig"
+      ],
+      "upstreamFn": "jwtDecode",
+      "goFn": "jwtdecode.Decode"
+    },
+    {
+      "id": "reject-truncated-json",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ4Ig.sig"
+      ],
+      "upstreamFn": "jwtDecode",
+      "goFn": "jwtdecode.Decode"
+    },
+    {
+      "id": "reject-json-number-payload",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.MTIzNDU.sig"
+      ],
+      "upstreamFn": "jwtDecode",
+      "goFn": "jwtdecode.Decode",
+      "note": "a bare JSON number is valid JSON but not an object",
+      "deviation": "the port returns map[string]interface{}, so a non-object payload is an error; upstream returns the bare JSON value"
+    },
+    {
+      "id": "reject-json-string-payload",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.Imp1c3QgYSBzdHJpbmci.sig"
+      ],
+      "upstreamFn": "jwtDecode",
+      "goFn": "jwtdecode.Decode",
+      "note": "a bare JSON string",
+      "deviation": "the port returns map[string]interface{}, so a non-object payload is an error; upstream returns the bare JSON value"
+    },
+    {
+      "id": "reject-json-array-payload",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.WzEsMiwzXQ.sig"
+      ],
+      "upstreamFn": "jwtDecode",
+      "goFn": "jwtdecode.Decode",
+      "note": "a JSON array",
+      "deviation": "the port returns map[string]interface{}, so a non-object payload is an error; upstream returns the bare JSON value"
+    },
+    {
+      "id": "reject-json-true-payload",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dHJ1ZQ.sig"
+      ],
+      "upstreamFn": "jwtDecode",
+      "goFn": "jwtdecode.Decode",
+      "note": "a bare JSON boolean",
+      "deviation": "the port returns map[string]interface{}, so a non-object payload is an error; upstream returns the bare JSON value"
+    },
+    {
+      "id": "accept-json-null-payload",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.bnVsbA.sig"
+      ],
+      "upstreamFn": "jwtDecode",
+      "goFn": "jwtdecode.Decode",
+      "note": "JSON null decodes to null on both sides"
+    },
+    {
+      "id": "reject-whitespace-json",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ICB7ImEiOiAxfSAg.sig"
+      ],
+      "upstreamFn": "jwtDecode",
+      "goFn": "jwtdecode.Decode",
+      "note": "JSON parsers skip surrounding whitespace"
+    },
+    {
+      "id": "reject-header-missing-part",
+      "fn": "decodeHeader",
+      "args": [
+        ""
+      ],
+      "upstreamFn": "jwtDecode(token, {header: true})",
+      "goFn": "jwtdecode.DecodeHeader",
+      "note": "no part #1"
+    },
+    {
+      "id": "reject-header-invalid-base64",
+      "fn": "decodeHeader",
+      "args": [
+        "!!!.eyJzdWIiOiJ4In0.sig"
+      ],
+      "upstreamFn": "jwtDecode(token, {header: true})",
+      "goFn": "jwtdecode.DecodeHeader"
+    },
+    {
+      "id": "reject-header-not-json",
+      "fn": "decodeHeader",
+      "args": [
+        "bm9wZQ.eyJzdWIiOiJ4In0.sig"
+      ],
+      "upstreamFn": "jwtDecode(token, {header: true})",
+      "goFn": "jwtdecode.DecodeHeader"
+    },
+    {
+      "id": "reject-header-two-segments",
+      "fn": "decodeHeader",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ4In0"
+      ],
+      "upstreamFn": "jwtDecode(token, {header: true})",
+      "goFn": "jwtdecode.DecodeHeader",
+      "note": "part #1 is present, so upstream succeeds"
+    },
+    {
+      "id": "reject-header-single-segment",
+      "fn": "decodeHeader",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+      ],
+      "upstreamFn": "jwtDecode(token, {header: true})",
+      "goFn": "jwtdecode.DecodeHeader",
+      "note": "part #1 is present even with no dots at all"
+    },
+    {
+      "id": "reject-leading-whitespace-token",
+      "fn": "decode",
+      "args": [
+        " eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ4In0.c2lnbmF0dXJl"
+      ],
+      "upstreamFn": "jwtDecode",
+      "goFn": "jwtdecode.Decode",
+      "note": "a leading space corrupts part #1 but not part #2"
+    },
+    {
+      "id": "reject-trailing-newline-token",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ4In0.c2lnbmF0dXJl\n"
+      ],
+      "upstreamFn": "jwtDecode",
+      "goFn": "jwtdecode.Decode",
+      "note": "the newline lands in the signature segment"
+    },
+    {
+      "id": "reject-utf16-bom-payload",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.77u_eyJhIjoxfQ.sig"
+      ],
+      "upstreamFn": "jwtDecode",
+      "goFn": "jwtdecode.Decode",
+      "note": "a BOM before the JSON"
+    },
+    {
+      "id": "reject-double-encoded",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ZXlKaElqb3hmUQ.sig"
+      ],
+      "upstreamFn": "jwtDecode",
+      "goFn": "jwtdecode.Decode",
+      "note": "base64 of base64: decodes cleanly but is not JSON"
+    }
+  ]
+}

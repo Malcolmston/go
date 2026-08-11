@@ -1,0 +1,315 @@
+{
+  "group": "uri",
+  "upstream": "otpauth@9.5.1",
+  "note": "Key-URI construction: parameter order, the defaults upstream always writes out, and encodeURIComponent escaping of issuers and labels.",
+  "cases": [
+    {
+      "id": "uri-totp-basic",
+      "fn": "uri",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice@example.com",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30,
+          "issuer": "ACME Co"
+        }
+      ],
+      "upstreamFn": "TOTP#toString / HOTP#toString",
+      "goFn": "otpauth.URL"
+    },
+    {
+      "id": "uri-totp-no-issuer",
+      "fn": "uri",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice@example.com",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        }
+      ],
+      "upstreamFn": "TOTP#toString / HOTP#toString",
+      "goFn": "otpauth.URL"
+    },
+    {
+      "id": "uri-totp-issuer-out-of-label",
+      "fn": "uri",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30,
+          "issuer": "ACME Co",
+          "omitIssuerFromLabel": true
+        }
+      ],
+      "upstreamFn": "TOTP#toString / HOTP#toString",
+      "goFn": "otpauth.URL"
+    },
+    {
+      "id": "uri-totp-defaults-written-out",
+      "fn": "uri",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "ACME",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP"
+        }
+      ],
+      "upstreamFn": "TOTP#toString / HOTP#toString",
+      "goFn": "otpauth.URL",
+      "note": "algorithm, digits and period are always emitted"
+    },
+    {
+      "id": "uri-totp-sha256-8-60",
+      "fn": "uri",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA256",
+          "digits": 8,
+          "period": 60,
+          "issuer": "ACME"
+        }
+      ],
+      "upstreamFn": "TOTP#toString / HOTP#toString",
+      "goFn": "otpauth.URL"
+    },
+    {
+      "id": "uri-totp-unicode-issuer",
+      "fn": "uri",
+      "args": [
+        {
+          "type": "totp",
+          "label": "josé@example.com",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30,
+          "issuer": "Ünïcøde Ltd"
+        }
+      ],
+      "upstreamFn": "TOTP#toString / HOTP#toString",
+      "goFn": "otpauth.URL"
+    },
+    {
+      "id": "uri-totp-emoji-label",
+      "fn": "uri",
+      "args": [
+        {
+          "type": "totp",
+          "label": "user-🔐",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30,
+          "issuer": "ACME"
+        }
+      ],
+      "upstreamFn": "TOTP#toString / HOTP#toString",
+      "goFn": "otpauth.URL"
+    },
+    {
+      "id": "uri-totp-space-and-colon",
+      "fn": "uri",
+      "args": [
+        {
+          "type": "totp",
+          "label": "c: d",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30,
+          "issuer": "A: B"
+        }
+      ],
+      "upstreamFn": "TOTP#toString / HOTP#toString",
+      "goFn": "otpauth.URL",
+      "note": "colons in the components must be escaped"
+    },
+    {
+      "id": "uri-totp-reserved-chars",
+      "fn": "uri",
+      "args": [
+        {
+          "type": "totp",
+          "label": "a/b?c&d=e+f",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30,
+          "issuer": "!'()*-._~"
+        }
+      ],
+      "upstreamFn": "TOTP#toString / HOTP#toString",
+      "goFn": "otpauth.URL",
+      "note": "encodeURIComponent leaves !'()*-._~ alone"
+    },
+    {
+      "id": "uri-totp-empty-label",
+      "fn": "uri",
+      "args": [
+        {
+          "type": "totp",
+          "label": "",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30,
+          "issuer": "ACME"
+        }
+      ],
+      "upstreamFn": "TOTP#toString / HOTP#toString",
+      "goFn": "otpauth.URL"
+    },
+    {
+      "id": "uri-totp-empty-issuer",
+      "fn": "uri",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30,
+          "issuer": ""
+        }
+      ],
+      "upstreamFn": "TOTP#toString / HOTP#toString",
+      "goFn": "otpauth.URL"
+    },
+    {
+      "id": "uri-totp-lowercase-secret",
+      "fn": "uri",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "jbswy3dpehpk3pxp",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30,
+          "issuer": "ACME"
+        }
+      ],
+      "upstreamFn": "TOTP#toString / HOTP#toString",
+      "goFn": "otpauth.URL",
+      "note": "the secret is canonicalised to upper case"
+    },
+    {
+      "id": "uri-totp-spaced-secret",
+      "fn": "uri",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSW Y3DP EHPK 3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30,
+          "issuer": "ACME"
+        }
+      ],
+      "upstreamFn": "TOTP#toString / HOTP#toString",
+      "goFn": "otpauth.URL"
+    },
+    {
+      "id": "uri-hotp-basic",
+      "fn": "uri",
+      "args": [
+        {
+          "type": "hotp",
+          "label": "bob",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "counter": 5,
+          "issuer": "ACME"
+        }
+      ],
+      "upstreamFn": "TOTP#toString / HOTP#toString",
+      "goFn": "otpauth.URL"
+    },
+    {
+      "id": "uri-hotp-counter-zero",
+      "fn": "uri",
+      "args": [
+        {
+          "type": "hotp",
+          "label": "bob",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "counter": 0,
+          "issuer": "ACME"
+        }
+      ],
+      "upstreamFn": "TOTP#toString / HOTP#toString",
+      "goFn": "otpauth.URL"
+    },
+    {
+      "id": "uri-hotp-large-counter",
+      "fn": "uri",
+      "args": [
+        {
+          "type": "hotp",
+          "label": "bob",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "counter": 4294967296,
+          "issuer": "ACME"
+        }
+      ],
+      "upstreamFn": "TOTP#toString / HOTP#toString",
+      "goFn": "otpauth.URL"
+    },
+    {
+      "id": "uri-hotp-sha512-8",
+      "fn": "uri",
+      "args": [
+        {
+          "type": "hotp",
+          "label": "bob",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA512",
+          "digits": 8,
+          "counter": 3,
+          "issuer": "ACME"
+        }
+      ],
+      "upstreamFn": "TOTP#toString / HOTP#toString",
+      "goFn": "otpauth.URL"
+    },
+    {
+      "id": "stringify-totp",
+      "fn": "stringify",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30,
+          "issuer": "ACME"
+        }
+      ],
+      "upstreamFn": "URI.stringify",
+      "goFn": "otpauth.URL",
+      "note": "URI.stringify is toString"
+    }
+  ]
+}

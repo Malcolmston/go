@@ -1,0 +1,20 @@
+{
+  "group": "exports",
+  "upstream": "bytes@3.1.2",
+  "note": "The default export, bytes(value, options), dispatches on the runtime type of its argument: a string goes to parse, a number to format, anything else returns null. Go has no such dispatch and no null, so the two live directions land on Parse and Format/FormatOpts and the third has no Go entry point at all — the port declines, which is the same observable outcome as upstream's null once node/run.js normalises it into a failure.",
+  "cases": [
+    { "id": "x-str-1kb",     "fn": "bytesString",     "args": ["1KB"],                          "upstreamFn": "bytes", "goFn": "bytes.Parse",      "note": "test/bytes.js: bytes('1KB') === 1024" },
+    { "id": "x-str-1024",    "fn": "bytesString",     "args": ["1024"],                         "upstreamFn": "bytes", "goFn": "bytes.Parse" },
+    { "id": "x-str-1p5gb",   "fn": "bytesString",     "args": ["1.5gb"],                        "upstreamFn": "bytes", "goFn": "bytes.Parse" },
+    { "id": "x-str-bad",     "fn": "bytesString",     "args": ["foobar"],                       "upstreamFn": "bytes", "goFn": "bytes.Parse",      "note": "test/bytes.js: bytes('foobar') === null" },
+    { "id": "x-num-1024",    "fn": "bytesNumber",     "args": [1024],                           "upstreamFn": "bytes", "goFn": "bytes.Format",     "note": "test/bytes.js: bytes(1024) === '1KB'" },
+    { "id": "x-num-zero",    "fn": "bytesNumber",     "args": [0],                              "upstreamFn": "bytes", "goFn": "bytes.Format" },
+    { "id": "x-num-neg",     "fn": "bytesNumber",     "args": [-1024],                          "upstreamFn": "bytes", "goFn": "bytes.Format" },
+    { "id": "x-num-opts",    "fn": "bytesNumberOpts", "args": [1000, {"thousandsSeparator": " "}], "upstreamFn": "bytes", "goFn": "bytes.FormatOpts", "note": "test/bytes.js: bytes(1000, {thousandsSeparator:' '}) === '1 000B'" },
+    { "id": "x-num-opts-u",  "fn": "bytesNumberOpts", "args": [1048576, {"unit": "KB", "unitSeparator": " "}], "upstreamFn": "bytes", "goFn": "bytes.FormatOpts" },
+    { "id": "x-other-true",  "fn": "bytesOther",      "args": [true],                           "upstreamFn": "bytes", "goFn": "—",                "note": "neither string nor number: null upstream, no entry point in the port" },
+    { "id": "x-other-null",  "fn": "bytesOther",      "args": [null],                           "upstreamFn": "bytes", "goFn": "—" },
+    { "id": "x-other-obj",   "fn": "bytesOther",      "args": [{}],                             "upstreamFn": "bytes", "goFn": "—" },
+    { "id": "x-other-arr",   "fn": "bytesOther",      "args": [[1024]],                         "upstreamFn": "bytes", "goFn": "—" }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "group": "parse-invalid",
+  "upstream": "bytes@3.1.2",
+  "note": "Input upstream cannot make a number out of. bytes.parse returns null (normalised into a failure by node/run.js); the Go port returns an error. Errors are cases too: a port that answers where upstream gives up is not at parity. The rule upstream applies is isNaN(parseInt(val, 10)) once the unit grammar has missed, which is exactly \"there is no leading decimal-integer literal\".",
+  "cases": [
+    { "id": "pi-empty",        "fn": "parse", "args": [""],          "upstreamFn": "bytes.parse", "goFn": "bytes.Parse" },
+    { "id": "pi-spaces",       "fn": "parse", "args": ["   "],       "upstreamFn": "bytes.parse", "goFn": "bytes.Parse" },
+    { "id": "pi-newline-only", "fn": "parse", "args": ["\n"],        "upstreamFn": "bytes.parse", "goFn": "bytes.Parse" },
+    { "id": "pi-abc",          "fn": "parse", "args": ["abc"],       "upstreamFn": "bytes.parse", "goFn": "bytes.Parse" },
+    { "id": "pi-foobar",       "fn": "parse", "args": ["foobar"],    "upstreamFn": "bytes.parse", "goFn": "bytes.Parse", "note": "test/bytes.js: assert.strictEqual(bytes('foobar'), null)" },
+    { "id": "pi-b-only",       "fn": "parse", "args": ["b"],         "upstreamFn": "bytes.parse", "goFn": "bytes.Parse" },
+    { "id": "pi-dash",         "fn": "parse", "args": ["-"],         "upstreamFn": "bytes.parse", "goFn": "bytes.Parse" },
+    { "id": "pi-plus",         "fn": "parse", "args": ["+"],         "upstreamFn": "bytes.parse", "goFn": "bytes.Parse" },
+    { "id": "pi-dot",          "fn": "parse", "args": ["."],         "upstreamFn": "bytes.parse", "goFn": "bytes.Parse" },
+    { "id": "pi-dot-five",     "fn": "parse", "args": [".5"],        "upstreamFn": "bytes.parse", "goFn": "bytes.Parse", "note": "no digit before the dot, so parseInt finds nothing" },
+    { "id": "pi-dot-five-kb",  "fn": "parse", "args": [".5kb"],      "upstreamFn": "bytes.parse", "goFn": "bytes.Parse" },
+    { "id": "pi-double-neg",   "fn": "parse", "args": ["--1kb"],     "upstreamFn": "bytes.parse", "goFn": "bytes.Parse" },
+    { "id": "pi-plus-minus",   "fn": "parse", "args": ["+-1"],       "upstreamFn": "bytes.parse", "goFn": "bytes.Parse" },
+    { "id": "pi-minus-kb",     "fn": "parse", "args": ["-kb"],       "upstreamFn": "bytes.parse", "goFn": "bytes.Parse" },
+    { "id": "pi-null-word",    "fn": "parse", "args": ["null"],      "upstreamFn": "bytes.parse", "goFn": "bytes.Parse" },
+    { "id": "pi-nan-word",     "fn": "parse", "args": ["NaN"],       "upstreamFn": "bytes.parse", "goFn": "bytes.Parse" },
+    { "id": "pi-infinity",     "fn": "parse", "args": ["Infinity"],  "upstreamFn": "bytes.parse", "goFn": "bytes.Parse", "note": "parseInt cannot read it, so no Infinity leaks into a size limit" },
+    { "id": "pi-unit-first",   "fn": "parse", "args": ["kb1"],       "upstreamFn": "bytes.parse", "goFn": "bytes.Parse" },
+    { "id": "pi-space-word",   "fn": "parse", "args": [" abc"],      "upstreamFn": "bytes.parse", "goFn": "bytes.Parse" },
+    { "id": "pi-fullwidth",    "fn": "parse", "args": ["１kb"],       "upstreamFn": "bytes.parse", "goFn": "bytes.Parse", "note": "a full-width digit is not a DecimalDigit" },
+    { "id": "pi-underscore",   "fn": "parse", "args": ["_1024"],     "upstreamFn": "bytes.parse", "goFn": "bytes.Parse" },
+    { "id": "pi-nan-parse",    "fn": "parseNaN", "args": [],         "upstreamFn": "bytes.parse", "goFn": "bytes.Parse", "note": "bytes.parse(NaN) is a number but isNaN, so it falls through both guards to null" }
+  ]
+}

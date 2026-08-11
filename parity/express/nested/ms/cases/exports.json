@@ -1,0 +1,21 @@
+{
+  "group": "exports",
+  "upstream": "ms@4.0.0-nightly.202508271359",
+  "note": "The other three exported symbols. ms() dispatches on the runtime type of its argument and parseStrict narrows the argument type at compile time; Go has neither, so all three land on the same two port functions. These cases prove the behaviour is reachable and identical, not that the spelling matches.",
+  "cases": [
+    { "id": "x-ms-string-2h",     "fn": "msString",     "args": ["2h"],       "upstreamFn": "ms",             "goFn": "ms.Parse" },
+    { "id": "x-ms-string-100",    "fn": "msString",     "args": ["100"],      "upstreamFn": "ms",             "goFn": "ms.Parse" },
+    { "id": "x-ms-string-1w",     "fn": "msString",     "args": ["1w"],       "upstreamFn": "ms",             "goFn": "ms.Parse" },
+    { "id": "x-ms-string-neg",    "fn": "msString",     "args": ["-1.5h"],    "upstreamFn": "ms",             "goFn": "ms.Parse" },
+    { "id": "x-ms-string-bad",    "fn": "msString",     "args": ["nope"],     "upstreamFn": "ms",             "goFn": "ms.Parse" },
+    { "id": "x-ms-number-short",  "fn": "msNumber",     "args": [7200000],    "upstreamFn": "ms",             "goFn": "ms.Format" },
+    { "id": "x-ms-number-ms",     "fn": "msNumber",     "args": [250],        "upstreamFn": "ms",             "goFn": "ms.Format" },
+    { "id": "x-ms-number-neg",    "fn": "msNumber",     "args": [-86400000],  "upstreamFn": "ms",             "goFn": "ms.Format" },
+    { "id": "x-ms-number-long",   "fn": "msNumberLong", "args": [7200000],    "upstreamFn": "ms",             "goFn": "ms.FormatLong" },
+    { "id": "x-ms-number-long-1", "fn": "msNumberLong", "args": [3600000],    "upstreamFn": "ms",             "goFn": "ms.FormatLong" },
+    { "id": "x-strict-2h",        "fn": "parseStrict",  "args": ["2h"],       "upstreamFn": "ms.parseStrict", "goFn": "ms.Parse" },
+    { "id": "x-strict-30d",       "fn": "parseStrict",  "args": ["30d"],      "upstreamFn": "ms.parseStrict", "goFn": "ms.Parse" },
+    { "id": "x-strict-1y",        "fn": "parseStrict",  "args": ["1 year"],   "upstreamFn": "ms.parseStrict", "goFn": "ms.Parse" },
+    { "id": "x-strict-empty",     "fn": "parseStrict",  "args": [""],         "upstreamFn": "ms.parseStrict", "goFn": "ms.Parse" }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "group": "parse-flat",
+  "upstream": "qs@6.15.3",
+  "note": "Flat, bracket-free query strings: the baseline every other group builds on. Values are always strings on both sides — qs never coerces \"1\" to a number. Object keys are deep-sorted by both runners before emitting, because upstream follows JavaScript insertion order and Go maps have no order at all.",
+  "cases": [
+    { "id": "f-empty",            "fn": "parse", "args": [""],                     "upstreamFn": "qs.parse", "goFn": "qs.Parse", "note": "empty input yields an empty object, not null" },
+    { "id": "f-single",           "fn": "parse", "args": ["a=b"],                  "upstreamFn": "qs.parse", "goFn": "qs.Parse" },
+    { "id": "f-two",              "fn": "parse", "args": ["a=b&c=d"],              "upstreamFn": "qs.parse", "goFn": "qs.Parse" },
+    { "id": "f-many",             "fn": "parse", "args": ["a=1&b=2&c=3&d=4&e=5"],  "upstreamFn": "qs.parse", "goFn": "qs.Parse" },
+    { "id": "f-empty-value",      "fn": "parse", "args": ["a="],                   "upstreamFn": "qs.parse", "goFn": "qs.Parse" },
+    { "id": "f-no-equals",        "fn": "parse", "args": ["a"],                    "upstreamFn": "qs.parse", "goFn": "qs.Parse", "note": "a key with no '=' gets the empty string by default" },
+    { "id": "f-no-equals-mixed",  "fn": "parse", "args": ["a&b=c"],                "upstreamFn": "qs.parse", "goFn": "qs.Parse" },
+    { "id": "f-empty-pair",       "fn": "parse", "args": ["a=b&&c=d"],             "upstreamFn": "qs.parse", "goFn": "qs.Parse", "note": "an empty pair is skipped" },
+    { "id": "f-trailing-amp",     "fn": "parse", "args": ["a=b&"],                 "upstreamFn": "qs.parse", "goFn": "qs.Parse" },
+    { "id": "f-leading-amp",      "fn": "parse", "args": ["&a=b"],                 "upstreamFn": "qs.parse", "goFn": "qs.Parse" },
+    { "id": "f-only-amps",        "fn": "parse", "args": ["&&&"],                  "upstreamFn": "qs.parse", "goFn": "qs.Parse" },
+    { "id": "f-empty-key",        "fn": "parse", "args": ["=b"],                   "upstreamFn": "qs.parse", "goFn": "qs.Parse", "note": "an empty key is dropped entirely" },
+    { "id": "f-equals-only",      "fn": "parse", "args": ["="],                    "upstreamFn": "qs.parse", "goFn": "qs.Parse" },
+    { "id": "f-numeric-key",      "fn": "parse", "args": ["0=foo"],                "upstreamFn": "qs.parse", "goFn": "qs.Parse", "note": "the top level is always an object, never an array" },
+    { "id": "f-value-with-equals","fn": "parse", "args": ["a=b=c"],                "upstreamFn": "qs.parse", "goFn": "qs.Parse", "note": "only the first '=' splits" },
+    { "id": "f-question-default", "fn": "parse", "args": ["?a=b"],                 "upstreamFn": "qs.parse", "goFn": "qs.Parse", "note": "without ignoreQueryPrefix the '?' is part of the key" },
+    { "id": "f-dot-key",          "fn": "parse", "args": ["a.b=c"],                "upstreamFn": "qs.parse", "goFn": "qs.Parse", "note": "without allowDots a dot is an ordinary key character" },
+    { "id": "f-space-key",        "fn": "parse", "args": ["a%20b=c"],              "upstreamFn": "qs.parse", "goFn": "qs.Parse" },
+    { "id": "f-close-bracket-key","fn": "parse", "args": ["]=toString"],           "upstreamFn": "qs.parse", "goFn": "qs.Parse", "note": "a stray ']' is a literal key" },
+    { "id": "f-bracket-eq-value", "fn": "parse", "args": ["a[<=>]==23"],           "upstreamFn": "qs.parse", "goFn": "qs.Parse", "note": "']=' wins over the first '=' so keys may contain '='" }
+  ]
+}

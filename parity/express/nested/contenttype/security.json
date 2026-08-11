@@ -1,0 +1,19 @@
+{
+  "repo": "express",
+  "module": "github.com/malcolmston/express/contenttype",
+  "findings": [
+    {
+      "id": "contenttype-parse-accepts-control-chars",
+      "summary": "contenttype.Parse accepts CR, LF, HTAB and NUL inside a quoted Content-Type parameter value, returning a parameter that upstream content-type rejects outright",
+      "severity": "low",
+      "cases": [
+        "p-quoted-with-crlf",
+        "p-quoted-with-newline",
+        "p-quoted-with-tab",
+        "p-quoted-with-nul"
+      ],
+      "affectedVersions": "<= 0.4.0",
+      "description": "## Summary\n\n`github.com/malcolmston/express/contenttype`'s `Parse` used the pattern\n`\"(?:\\\\.|[^\"\\\\])*\"` for the quoted-string body of a Content-Type parameter. That\ncharacter class is \"anything that is not a quote or a backslash\", which admits\nevery control character: CR, LF, HTAB and NUL included.\n\nThe npm package this ports, `content-type@1.0.5`, restricts the quoted-string\nbody to `%x0b`, `%x20-21`, `%x23-5b`, `%x5d-7e` and obs-text `%x80-ff` (its\n`PARAM_REGEXP`), and throws a `TypeError` for anything else. So where upstream\nrefuses to parse, the port succeeded and handed the caller a parameter value\ncontaining the control bytes.\n\n## Impact\n\nA parameter value is routinely copied back out — into a response header, a log\nline, a filename, a stored record. A value carrying `\\r\\n` is a header-splitting\nprimitive if it reaches a sink that does not re-validate; a value carrying NUL is\na truncation primitive in anything that later crosses into a C string. The port\nwas the component whose job it was to reject that input, and it did not.\n\nSeverity is **low** rather than high because the most common source of a\nContent-Type value in a Go program is `net/http`, which rejects CR and LF in\ninbound header values before a handler ever sees them, and because Go's own\n`http.Header.Set` will not emit a header containing them. The exposure is real\nbut indirect: values that reach `Parse` from somewhere other than an\n`http.Request` — a multipart part header, a database column, a config file, a\nproxied upstream response body — were not filtered.\n\n## Upstream vs port\n\n```\ninput:  text/html; charset=\"utf-8\\r\\nX-Injected: 1\"\n\ncontent-type@1.0.5:  throws TypeError: invalid parameter format\nport (<= 0.4.0):     ContentType{Type: \"text/html\",\n                                  Parameters: {\"charset\": \"utf-8\\r\\nX-Injected: 1\"}}\n```\n\n## Repro\n\nThe finding was produced by the nested parity harness, which runs both\nimplementations over the same inputs:\n\n```console\n$ cd parity/express/nested/contenttype/node && npm install\n$ cd .. && GOWORK=off go test .\n--- FAIL: TestParity/p-quoted-with-crlf\n    ok mismatch: upstream ok=false (invalid parameter format), go ok=true ()\n```\n\nThe four case ids above are in [`cases/parse.json`](cases/parse.json).\n\n## Fix\n\n`Parse`'s parameter pattern now uses upstream's character class verbatim, and\n`Format`'s output check uses upstream's `TEXT_REGEXP` (`%x0b`, `%x20-7e`,\n`%x80-ff`) — the port previously allowed HTAB there and disallowed vertical tab,\nwhich was wrong in both directions. Tabs are also no longer accepted as\nparameter padding, matching upstream's spaces-only `; *name *= *value *`\ngrammar. All 76 parity cases now match. Regression vectors for the rejected\ncontrol characters were added to the package's `edge_test.go` and\n`contenttype_parity_test.go`."
+    }
+  ]
+}

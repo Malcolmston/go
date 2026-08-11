@@ -1,0 +1,176 @@
+{
+  "group": "errors",
+  "upstream": "keygrip@1.1.0",
+  "note": "Construction and configuration failures. Errors are cases too: an empty key list, an unknown hash and an unknown encoding must fail on both sides.",
+  "cases": [
+    {
+      "id": "new-ok",
+      "fn": "new",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        }
+      ],
+      "upstreamFn": "keygrip",
+      "goFn": "keygrip.NewWithOptions"
+    },
+    {
+      "id": "new-empty-keys",
+      "fn": "new",
+      "args": [
+        {
+          "keys": [],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        }
+      ],
+      "upstreamFn": "keygrip",
+      "goFn": "keygrip.NewWithOptions",
+      "note": "Node throws \"Keys must be provided.\"; the port panics, which the runner reports as a failure"
+    },
+    {
+      "id": "new-null-keys",
+      "fn": "new",
+      "args": [
+        {
+          "keys": null,
+          "algorithm": "sha256",
+          "encoding": "base64"
+        }
+      ],
+      "upstreamFn": "keygrip",
+      "goFn": "keygrip.NewWithOptions",
+      "note": "must fail on both sides"
+    },
+    {
+      "id": "sign-empty-keys",
+      "fn": "sign",
+      "args": [
+        {
+          "keys": [],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "x"
+      ],
+      "upstreamFn": "keygrip#sign",
+      "goFn": "Keygrip.Sign",
+      "note": "must fail on both sides"
+    },
+    {
+      "id": "sign-unknown-algorithm",
+      "fn": "sign",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha3-999",
+          "encoding": "base64"
+        },
+        "x"
+      ],
+      "upstreamFn": "keygrip#sign",
+      "goFn": "Keygrip.Sign",
+      "note": "must fail on both sides"
+    },
+    {
+      "id": "sign-unknown-encoding",
+      "fn": "sign",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha256",
+          "encoding": "not-an-encoding"
+        },
+        "x"
+      ],
+      "upstreamFn": "keygrip#sign",
+      "goFn": "Keygrip.Sign",
+      "note": "must fail on both sides"
+    },
+    {
+      "id": "verify-empty-keys",
+      "fn": "verify",
+      "args": [
+        {
+          "keys": [],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "x",
+        "hlsxIJIbTT4ZrFf43cVjz3TGq0rA2mu-v4PkIykl_8Q"
+      ],
+      "upstreamFn": "keygrip#verify",
+      "goFn": "Keygrip.Verify"
+    },
+    {
+      "id": "index-unknown-algorithm",
+      "fn": "index",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "bogus",
+          "encoding": "base64"
+        },
+        "x",
+        "hlsxIJIbTT4ZrFf43cVjz3TGq0rA2mu-v4PkIykl_8Q"
+      ],
+      "upstreamFn": "keygrip#index",
+      "goFn": "Keygrip.Index"
+    },
+    {
+      "id": "sign-default-scheme",
+      "fn": "sign",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ]
+        },
+        "session=abc123"
+      ],
+      "upstreamFn": "keygrip#sign",
+      "goFn": "Keygrip.Sign",
+      "note": "Node defaults to sha1/base64; this port deliberately defaults to sha256",
+      "deviation": "the port defaults to HMAC-SHA256 rather than the weaker HMAC-SHA1 Node defaults to; pass Algorithm \"sha1\" to interoperate"
+    },
+    {
+      "id": "verify-default-scheme",
+      "fn": "verify",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ]
+        },
+        "session=abc123",
+        "7Me8kOs78gEPLAuUnGmt8GN2Y34"
+      ],
+      "upstreamFn": "keygrip#verify",
+      "goFn": "Keygrip.Verify",
+      "note": "a digest from a default-configured Node keygrip, checked by a default-configured port",
+      "deviation": "the port defaults to HMAC-SHA256 rather than the weaker HMAC-SHA1 Node defaults to; pass Algorithm \"sha1\" to interoperate"
+    }
+  ]
+}

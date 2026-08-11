@@ -1,0 +1,21 @@
+{
+  "repo": "express",
+  "module": "github.com/malcolmston/express",
+  "package": "github.com/malcolmston/express/jsonwebtoken",
+  "note": "Found by the nested parity harness parity/express/nested/jsonwebtoken, which compares the port against jsonwebtoken@9.0.3 case by case. Both findings are cases where the PORT ACCEPTS a token upstream REJECTS, verified against the committed submodule source before being written down. Both are fixed in the express submodule; these entries exist so the released versions get an advisory.",
+  "findings": [
+    {
+      "id": "empty-hmac-secret-accepted",
+      "summary": "An empty secret is usable: jsonwebtoken.Verify accepts a token forged with a zero-length HMAC key, and Sign mints one",
+      "severity": "medium",
+      "cases": [
+        "rej-empty-secret-forgery",
+        "rej-empty-secret",
+        "sign-empty-secret",
+        "sign-no-secret"
+      ],
+      "affectedVersions": "<= 0.4.0",
+      "description": "## Summary\n\n`jsonwebtoken.Verify` accepts a token whose HMAC key is zero length, and `Sign`\nwill mint one. Upstream `jsonwebtoken@9.0.3` refuses both, because `!secretOrPublicKey`\nis falsy for an empty string/buffer and it throws `\"secretOrPrivateKey must have a value\"`.\n\n## Impact\n\nA deployment whose signing secret comes from configuration that resolves to empty\n— an unset environment variable, a missing secrets-manager key, a typo'd config\npath — does not fail. It silently signs and verifies with a zero-length key, which\nevery party can reproduce, so anyone can mint an accepted token. Upstream turns the\nsame misconfiguration into a startup error. The port converts a loud failure into a\nsilent total authentication bypass.\n\n## Verified against the published module\n\nReproduced against `github.com/malcolmston/express@v0.4.0` (the latest published\nversion) with the real v0.4.0 API:\n\n```go\n// forge() builds header.payload and HMAC-SHA256s it with the given key.\ntok := forge(\"HS256\", []byte(\"\"))\nclaims, err := jsonwebtoken.Verify(tok, []byte(\"\"))\n// => claims non-nil, err == nil   (accepted)\n```\n\n## Scope note\n\nThis manifest deliberately does NOT contain an algorithm-confusion finding. The\npublished `jsonwebtoken` package in v0.4.0 is HMAC-only: `SignOptions.Alg` accepts\nonly HS256/HS384/HS512, and `Verify` rejects a header `alg` of `none`, `RS256` or\nlowercase `hs256` outright with \"unsupported algorithm\" — verified by direct\nexecution. There is no asymmetric verification path to confuse, so the\npublic-key-as-HMAC-secret attack does not apply to any released version. That flaw\nexists only in the unreleased working tree, where asymmetric support and a\n`VerifyOptions.Algorithms` allowlist were added; it was fixed there before release\n(`ErrAsymmetricKey`, nil-vs-empty allowlist semantics) and so is not a disclosure.\n\n## Fix\n\n`Sign` and `Verify` now return `ErrMissingKey` for a zero-length key."
+    }
+  ]
+}

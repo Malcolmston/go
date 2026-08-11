@@ -1,0 +1,26 @@
+{
+  "group": "charsets",
+  "upstream": "accepts@1.3.8",
+  "note": "accepts(req).charset(...offers) and accepts(req).charsets() — Accept-Charset negotiation.",
+  "cases": [
+    { "id": "charset-exact", "fn": "charset", "args": [{ "Accept-Charset": "utf-8" }, ["utf-8"]], "upstreamFn": "accepts.charset", "goFn": "Accepts.Charset" },
+    { "id": "charset-miss", "fn": "charset", "args": [{ "Accept-Charset": "utf-8" }, ["iso-8859-1"]], "upstreamFn": "accepts.charset", "goFn": "Accepts.Charset" },
+    { "id": "charset-q-order", "fn": "charset", "args": [{ "Accept-Charset": "utf-8;q=0.2, iso-8859-1;q=0.8" }, ["utf-8", "iso-8859-1"]], "upstreamFn": "accepts.charset", "goFn": "Accepts.Charset" },
+    { "id": "charset-q-zero", "fn": "charset", "args": [{ "Accept-Charset": "utf-8;q=0, iso-8859-1" }, ["utf-8", "iso-8859-1"]], "upstreamFn": "accepts.charset", "goFn": "Accepts.Charset" },
+    { "id": "charset-star", "fn": "charset", "args": [{ "Accept-Charset": "*" }, ["utf-8", "shift_jis"]], "upstreamFn": "accepts.charset", "goFn": "Accepts.Charset" },
+    { "id": "charset-star-with-exclusion", "fn": "charset", "args": [{ "Accept-Charset": "*, utf-8;q=0" }, ["utf-8", "iso-8859-1"]], "upstreamFn": "accepts.charset", "goFn": "Accepts.Charset" },
+    { "id": "charset-exact-beats-star", "fn": "charset", "args": [{ "Accept-Charset": "*;q=0.9, iso-8859-1;q=0.5" }, ["utf-8", "iso-8859-1"]], "upstreamFn": "accepts.charset", "goFn": "Accepts.Charset", "note": "specificity is compared before quality" },
+    { "id": "charset-case-insensitive", "fn": "charset", "args": [{ "Accept-Charset": "UTF-8" }, ["utf-8"]], "upstreamFn": "accepts.charset", "goFn": "Accepts.Charset" },
+    { "id": "charset-offer-case", "fn": "charset", "args": [{ "Accept-Charset": "utf-8" }, ["UTF-8"]], "upstreamFn": "accepts.charset", "goFn": "Accepts.Charset" },
+    { "id": "charset-no-header", "fn": "charset", "args": [{}, ["iso-8859-1", "utf-8"]], "upstreamFn": "accepts.charset", "goFn": "Accepts.Charset", "note": "absent header defaults to *" },
+    { "id": "charset-empty-header", "fn": "charset", "args": [{ "Accept-Charset": "" }, ["utf-8"]], "upstreamFn": "accepts.charset", "goFn": "Accepts.Charset" },
+    { "id": "charset-malformed-q", "fn": "charset", "args": [{ "Accept-Charset": "utf-8;q=abc" }, ["utf-8"]], "upstreamFn": "accepts.charset", "goFn": "Accepts.Charset" },
+    { "id": "charset-trailing-comma", "fn": "charset", "args": [{ "Accept-Charset": "utf-8," }, ["utf-8"]], "upstreamFn": "accepts.charset", "goFn": "Accepts.Charset" },
+    { "id": "charset-whitespace-noise", "fn": "charset", "args": [{ "Accept-Charset": " iso-8859-1 ; q=0.3 , utf-8 ; q=0.9 " }, ["iso-8859-1", "utf-8"]], "upstreamFn": "accepts.charset", "goFn": "Accepts.Charset" },
+    { "id": "charsets-all", "fn": "charsets", "args": [{ "Accept-Charset": "utf-8;q=0.3, iso-8859-1;q=0.9, shift_jis" }], "upstreamFn": "accepts.charsets", "goFn": "Accepts.Charsets" },
+    { "id": "charsets-no-header", "fn": "charsets", "args": [{}], "upstreamFn": "accepts.charsets", "goFn": "Accepts.Charsets" },
+    { "id": "charsets-empty-header", "fn": "charsets", "args": [{ "Accept-Charset": "" }], "upstreamFn": "accepts.charsets", "goFn": "Accepts.Charsets" },
+    { "id": "charsets-drops-q-zero", "fn": "charsets", "args": [{ "Accept-Charset": "utf-8;q=0, iso-8859-1" }], "upstreamFn": "accepts.charsets", "goFn": "Accepts.Charsets" },
+    { "id": "charsets-keeps-star", "fn": "charsets", "args": [{ "Accept-Charset": "utf-8, *;q=0.1" }], "upstreamFn": "accepts.charsets", "goFn": "Accepts.Charsets" }
+  ]
+}

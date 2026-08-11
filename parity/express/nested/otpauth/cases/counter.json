@@ -1,0 +1,122 @@
+{
+  "group": "counter",
+  "upstream": "otpauth@9.5.1",
+  "note": "The RFC 6238 time step for a fixed timestamp, TOTP.counter / Config.CounterAt.",
+  "cases": [
+    {
+      "id": "counter-epoch",
+      "fn": "counter",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        {
+          "timestamp": 0
+        }
+      ],
+      "upstreamFn": "TOTP.counter",
+      "goFn": "Config.CounterAt"
+    },
+    {
+      "id": "counter-t59",
+      "fn": "counter",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        {
+          "timestamp": 59000
+        }
+      ],
+      "upstreamFn": "TOTP.counter",
+      "goFn": "Config.CounterAt"
+    },
+    {
+      "id": "counter-fixed-now",
+      "fn": "counter",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        {
+          "timestamp": 1700000000000
+        }
+      ],
+      "upstreamFn": "TOTP.counter",
+      "goFn": "Config.CounterAt"
+    },
+    {
+      "id": "counter-period-60",
+      "fn": "counter",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 60
+        },
+        {
+          "timestamp": 1700000000000
+        }
+      ],
+      "upstreamFn": "TOTP.counter",
+      "goFn": "Config.CounterAt"
+    },
+    {
+      "id": "counter-period-1",
+      "fn": "counter",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 1
+        },
+        {
+          "timestamp": 1700000000000
+        }
+      ],
+      "upstreamFn": "TOTP.counter",
+      "goFn": "Config.CounterAt"
+    },
+    {
+      "id": "counter-sub-second",
+      "fn": "counter",
+      "args": [
+        {
+          "type": "totp",
+          "label": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        {
+          "timestamp": 1700000000999
+        }
+      ],
+      "upstreamFn": "TOTP.counter",
+      "goFn": "Config.CounterAt",
+      "note": "milliseconds are truncated"
+    }
+  ]
+}

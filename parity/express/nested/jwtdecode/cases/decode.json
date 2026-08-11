@@ -1,0 +1,142 @@
+{
+  "group": "decode",
+  "upstream": "jwt-decode@4.0.0",
+  "note": "Payload decoding over fixed tokens. jwt-decode never verifies anything, so signatures are arbitrary strings and nothing depends on a clock or a key.",
+  "cases": [
+    {
+      "id": "decode-simple",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.c2lnbmF0dXJl"
+      ],
+      "upstreamFn": "jwtDecode",
+      "goFn": "jwtdecode.Decode"
+    },
+    {
+      "id": "decode-empty-object",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.c2lnbmF0dXJl"
+      ],
+      "upstreamFn": "jwtDecode",
+      "goFn": "jwtdecode.Decode"
+    },
+    {
+      "id": "decode-registered-claims",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2lzc3Vlci5leGFtcGxlIiwic3ViIjoidXNlci0xIiwiYXVkIjoiYXBpIiwiZXhwIjoxNzAwMDAzNjAwLCJuYmYiOjE3MDAwMDAwMDAsImlhdCI6MTcwMDAwMDAwMCwianRpIjoiaWQtMSJ9.c2lnbmF0dXJl"
+      ],
+      "upstreamFn": "jwtDecode",
+      "goFn": "jwtdecode.Decode"
+    },
+    {
+      "id": "decode-aud-array",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiYSIsImIiLCJjIl19.c2lnbmF0dXJl"
+      ],
+      "upstreamFn": "jwtDecode",
+      "goFn": "jwtdecode.Decode"
+    },
+    {
+      "id": "decode-nested",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjo3LCJyb2xlcyI6WyJhZG1pbiIsIm9wcyJdLCJtZXRhIjp7ImFjdGl2ZSI6dHJ1ZX19fQ.c2lnbmF0dXJl"
+      ],
+      "upstreamFn": "jwtDecode",
+      "goFn": "jwtdecode.Decode"
+    },
+    {
+      "id": "decode-unicode",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoibmHDr3ZlIGNhZsOpIOS9oOWlvSIsImNpdHkiOiJLcmFrw7N3In0.c2lnbmF0dXJl"
+      ],
+      "upstreamFn": "jwtDecode",
+      "goFn": "jwtdecode.Decode"
+    },
+    {
+      "id": "decode-emoji",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJtb29kIjoi8J-agPCflJAifQ.c2lnbmF0dXJl"
+      ],
+      "upstreamFn": "jwtDecode",
+      "goFn": "jwtdecode.Decode"
+    },
+    {
+      "id": "decode-numbers",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpbnQiOjQyLCJuZWdhdGl2ZSI6LTcsImZsb2F0IjoxLjUsInplcm8iOjAsImV4cCI6MTAwMDAwMDAwMDB9.c2lnbmF0dXJl"
+      ],
+      "upstreamFn": "jwtDecode",
+      "goFn": "jwtdecode.Decode"
+    },
+    {
+      "id": "decode-big-number",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuIjo5MDA3MTk5MjU0NzQwOTkyfQ.c2lnbmF0dXJl"
+      ],
+      "upstreamFn": "jwtDecode",
+      "goFn": "jwtdecode.Decode"
+    },
+    {
+      "id": "decode-booleans-and-null",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ5ZXMiOnRydWUsIm5vIjpmYWxzZSwibm90aGluZyI6bnVsbH0.c2lnbmF0dXJl"
+      ],
+      "upstreamFn": "jwtDecode",
+      "goFn": "jwtdecode.Decode"
+    },
+    {
+      "id": "decode-empty-string-values",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhIjoiIiwiYiI6IiAifQ.c2lnbmF0dXJl"
+      ],
+      "upstreamFn": "jwtDecode",
+      "goFn": "jwtdecode.Decode"
+    },
+    {
+      "id": "decode-deep-array",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaXN0IjpbMSxbMixbMyxbNF1dXV19.c2lnbmF0dXJl"
+      ],
+      "upstreamFn": "jwtDecode",
+      "goFn": "jwtdecode.Decode"
+    },
+    {
+      "id": "decode-many-claims",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrMCI6MCwiazEiOjEsImsyIjoyLCJrMyI6MywiazQiOjQsIms1Ijo1LCJrNiI6NiwiazciOjcsIms4Ijo4LCJrOSI6OSwiazEwIjoxMCwiazExIjoxMSwiazEyIjoxMiwiazEzIjoxMywiazE0IjoxNCwiazE1IjoxNSwiazE2IjoxNiwiazE3IjoxNywiazE4IjoxOCwiazE5IjoxOSwiazIwIjoyMCwiazIxIjoyMSwiazIyIjoyMiwiazIzIjoyMywiazI0IjoyNCwiazI1IjoyNSwiazI2IjoyNiwiazI3IjoyNywiazI4IjoyOCwiazI5IjoyOSwiazMwIjozMCwiazMxIjozMSwiazMyIjozMiwiazMzIjozMywiazM0IjozNCwiazM1IjozNSwiazM2IjozNiwiazM3IjozNywiazM4IjozOCwiazM5IjozOSwiazQwIjo0MCwiazQxIjo0MSwiazQyIjo0MiwiazQzIjo0MywiazQ0Ijo0NCwiazQ1Ijo0NSwiazQ2Ijo0NiwiazQ3Ijo0NywiazQ4Ijo0OCwiazQ5Ijo0OX0.c2lnbmF0dXJl"
+      ],
+      "upstreamFn": "jwtDecode",
+      "goFn": "jwtdecode.Decode"
+    },
+    {
+      "id": "decode-escaped-json",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJxdW90ZSI6ImhlIHNhaWQgXCJoaVwiIiwiYmFja3NsYXNoIjoiYVxcYiIsIm5ld2xpbmUiOiJhXG5iIiwidGFiIjoiYVx0YiJ9.c2lnbmF0dXJl"
+      ],
+      "upstreamFn": "jwtDecode",
+      "goFn": "jwtdecode.Decode"
+    },
+    {
+      "id": "decode-slash-and-plus",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzIjoiPz8_Pz8_PyIsInAiOiIrKysrKysifQ.c2lnbmF0dXJl"
+      ],
+      "upstreamFn": "jwtDecode",
+      "goFn": "jwtdecode.Decode"
+    }
+  ]
+}

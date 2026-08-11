@@ -1,0 +1,31 @@
+{
+  "group": "parse-encoding",
+  "upstream": "qs@6.15.3",
+  "note": "Percent-decoding of keys and values, plus-as-space, and percent-encoded brackets. Upstream normalises %5B/%5D to literal brackets across the whole string before it even splits on the delimiter, so encoded and unencoded bracket notation nest identically — and, less obviously, an encoded ']' inside a value can move the key/value split point. Undecodable input is not an error on either side: the decoder falls back to the raw text with '+' already turned into a space.",
+  "cases": [
+    { "id": "e-key-pct",           "fn": "parse", "args": ["a%20b=c"],                "upstreamFn": "qs.parse", "goFn": "qs.Parse" },
+    { "id": "e-value-pct",         "fn": "parse", "args": ["a=b%20c"],                "upstreamFn": "qs.parse", "goFn": "qs.Parse" },
+    { "id": "e-plus-value",        "fn": "parse", "args": ["a=b+c"],                   "upstreamFn": "qs.parse", "goFn": "qs.Parse", "note": "'+' decodes to a space" },
+    { "id": "e-plus-key",          "fn": "parse", "args": ["a+b=c"],                   "upstreamFn": "qs.parse", "goFn": "qs.Parse" },
+    { "id": "e-utf8-value",        "fn": "parse", "args": ["a=%E2%9C%93"],             "upstreamFn": "qs.parse", "goFn": "qs.Parse", "note": "a checkmark" },
+    { "id": "e-utf8-key",          "fn": "parse", "args": ["%E2%9C%93=a"],             "upstreamFn": "qs.parse", "goFn": "qs.Parse" },
+    { "id": "e-bad-pct-value",     "fn": "parse", "args": ["a=%ZZ"],                   "upstreamFn": "qs.parse", "goFn": "qs.Parse", "note": "invalid escape: the raw text survives, no throw" },
+    { "id": "e-bad-pct-plus",      "fn": "parse", "args": ["a=b+c%ZZ"],                "upstreamFn": "qs.parse", "goFn": "qs.Parse", "note": "the '+' is still a space even when decoding fails" },
+    { "id": "e-bad-pct-key",       "fn": "parse", "args": ["%ZZ=a"],                   "upstreamFn": "qs.parse", "goFn": "qs.Parse" },
+    { "id": "e-truncated-pct",     "fn": "parse", "args": ["a=%E2%9C"],                "upstreamFn": "qs.parse", "goFn": "qs.Parse", "note": "a truncated multi-byte sequence" },
+    { "id": "e-lone-pct",          "fn": "parse", "args": ["a=%"],                     "upstreamFn": "qs.parse", "goFn": "qs.Parse" },
+    { "id": "e-encoded-brackets",  "fn": "parse", "args": ["a%5Bb%5D=c"],              "upstreamFn": "qs.parse", "goFn": "qs.Parse", "note": "encoded brackets nest exactly like literal ones" },
+    { "id": "e-encoded-lower",     "fn": "parse", "args": ["a%5bb%5d=c"],              "upstreamFn": "qs.parse", "goFn": "qs.Parse", "note": "the substitution is case-insensitive" },
+    { "id": "e-encoded-push",      "fn": "parse", "args": ["a%5B%5D=b&a%5B%5D=c"],     "upstreamFn": "qs.parse", "goFn": "qs.Parse" },
+    { "id": "e-encoded-deep",      "fn": "parse", "args": ["a%5Bb%5D%5Bc%5D=d"],       "upstreamFn": "qs.parse", "goFn": "qs.Parse" },
+    { "id": "e-double-encoded",    "fn": "parse", "args": ["a%255Bb%255D=c"],          "upstreamFn": "qs.parse", "goFn": "qs.Parse", "note": "double-encoded brackets must NOT nest" },
+    { "id": "e-encoded-in-value",  "fn": "parse", "args": ["a=%5Bb%5D"],               "upstreamFn": "qs.parse", "goFn": "qs.Parse" },
+    { "id": "e-encoded-eq-in-value", "fn": "parse", "args": ["a=1%5D=2"],              "upstreamFn": "qs.parse", "goFn": "qs.Parse", "note": "the %5D becomes a ']' before the ']=' split is looked for, which moves the key boundary" },
+    { "id": "e-encoded-amp",       "fn": "parse", "args": ["a=b%26c=d"],               "upstreamFn": "qs.parse", "goFn": "qs.Parse", "note": "an encoded delimiter stays inside the value" },
+    { "id": "e-encoded-equals",    "fn": "parse", "args": ["a%3Db=c"],                 "upstreamFn": "qs.parse", "goFn": "qs.Parse" },
+    { "id": "e-encoded-dot",       "fn": "parse", "args": ["a%2Eb=c"],                 "upstreamFn": "qs.parse", "goFn": "qs.Parse" },
+    { "id": "e-null-byte",         "fn": "parse", "args": ["a=%00b"],                  "upstreamFn": "qs.parse", "goFn": "qs.Parse", "note": "a NUL in a value is data, not a terminator" },
+    { "id": "e-newline",           "fn": "parse", "args": ["a=b%0Ac"],                 "upstreamFn": "qs.parse", "goFn": "qs.Parse" },
+    { "id": "e-encoded-key-space-value", "fn": "parse", "args": ["my%20weird%20field=q1!2%22%27w%245%267%2Fz8)%3F"], "upstreamFn": "qs.parse", "goFn": "qs.Parse" }
+  ]
+}

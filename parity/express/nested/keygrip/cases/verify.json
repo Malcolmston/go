@@ -1,0 +1,593 @@
+{
+  "group": "verify",
+  "upstream": "keygrip@1.1.0",
+  "note": "Rotation and the rejection corpus. Every digest was produced by the pinned upstream, so the accepting cases double as cross-implementation verification; the rest — tampered data, mutated/truncated/re-encoded digests, retired keys, wrong hash — must be rejected on BOTH sides.",
+  "cases": [
+    {
+      "id": "verify-current-key",
+      "fn": "verify",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "session=abc123",
+        "hlsxIJIbTT4ZrFf43cVjz3TGq0rA2mu-v4PkIykl_8Q"
+      ],
+      "upstreamFn": "keygrip#verify",
+      "goFn": "Keygrip.Verify",
+      "note": "signed by keys[0]"
+    },
+    {
+      "id": "index-current-key",
+      "fn": "index",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "session=abc123",
+        "hlsxIJIbTT4ZrFf43cVjz3TGq0rA2mu-v4PkIykl_8Q"
+      ],
+      "upstreamFn": "keygrip#index",
+      "goFn": "Keygrip.Index",
+      "note": "signed by keys[0]"
+    },
+    {
+      "id": "verify-previous-key",
+      "fn": "verify",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "session=abc123",
+        "r7vq41pc3wks6lg11O-b_fJ2Z-L-Cs1RWUyIxjtVxxU"
+      ],
+      "upstreamFn": "keygrip#verify",
+      "goFn": "Keygrip.Verify",
+      "note": "signed by keys[1]: still valid, index 1"
+    },
+    {
+      "id": "index-previous-key",
+      "fn": "index",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "session=abc123",
+        "r7vq41pc3wks6lg11O-b_fJ2Z-L-Cs1RWUyIxjtVxxU"
+      ],
+      "upstreamFn": "keygrip#index",
+      "goFn": "Keygrip.Index",
+      "note": "signed by keys[1]: still valid, index 1"
+    },
+    {
+      "id": "verify-oldest-key",
+      "fn": "verify",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "session=abc123",
+        "BSTrPPZWdmLSVlWGz12PqYeIVLqVkhVQpUxJBIaFdO8"
+      ],
+      "upstreamFn": "keygrip#verify",
+      "goFn": "Keygrip.Verify",
+      "note": "signed by keys[2]: still valid, index 2"
+    },
+    {
+      "id": "index-oldest-key",
+      "fn": "index",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "session=abc123",
+        "BSTrPPZWdmLSVlWGz12PqYeIVLqVkhVQpUxJBIaFdO8"
+      ],
+      "upstreamFn": "keygrip#index",
+      "goFn": "Keygrip.Index",
+      "note": "signed by keys[2]: still valid, index 2"
+    },
+    {
+      "id": "verify-retired-key",
+      "fn": "verify",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "session=abc123",
+        "SuFBlyINKbFohYZRpxMN-tHaCsz3p8nU3GdUJYdb79o"
+      ],
+      "upstreamFn": "keygrip#verify",
+      "goFn": "Keygrip.Verify",
+      "note": "signed by a key no longer in the list: must be rejected"
+    },
+    {
+      "id": "index-retired-key",
+      "fn": "index",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "session=abc123",
+        "SuFBlyINKbFohYZRpxMN-tHaCsz3p8nU3GdUJYdb79o"
+      ],
+      "upstreamFn": "keygrip#index",
+      "goFn": "Keygrip.Index",
+      "note": "signed by a key no longer in the list: must be rejected"
+    },
+    {
+      "id": "verify-tampered-data",
+      "fn": "verify",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "session=abc124",
+        "hlsxIJIbTT4ZrFf43cVjz3TGq0rA2mu-v4PkIykl_8Q"
+      ],
+      "upstreamFn": "keygrip#verify",
+      "goFn": "Keygrip.Verify",
+      "note": "data changed under a genuine digest"
+    },
+    {
+      "id": "index-tampered-data",
+      "fn": "index",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "session=abc124",
+        "hlsxIJIbTT4ZrFf43cVjz3TGq0rA2mu-v4PkIykl_8Q"
+      ],
+      "upstreamFn": "keygrip#index",
+      "goFn": "Keygrip.Index",
+      "note": "must be -1"
+    },
+    {
+      "id": "verify-tampered-digest",
+      "fn": "verify",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "session=abc123",
+        "hlsxIJIbTT4ZrFf43cVjz3TGq0rA2mu-v4PkIykl_8A"
+      ],
+      "upstreamFn": "keygrip#verify",
+      "goFn": "Keygrip.Verify",
+      "note": "last digest character flipped"
+    },
+    {
+      "id": "index-tampered-digest",
+      "fn": "index",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "session=abc123",
+        "hlsxIJIbTT4ZrFf43cVjz3TGq0rA2mu-v4PkIykl_8A"
+      ],
+      "upstreamFn": "keygrip#index",
+      "goFn": "Keygrip.Index"
+    },
+    {
+      "id": "verify-truncated-digest",
+      "fn": "verify",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "session=abc123",
+        "hlsxIJIbTT4ZrFf43cVjz3TGq0rA2mu-v4PkI"
+      ],
+      "upstreamFn": "keygrip#verify",
+      "goFn": "Keygrip.Verify"
+    },
+    {
+      "id": "verify-extended-digest",
+      "fn": "verify",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "session=abc123",
+        "hlsxIJIbTT4ZrFf43cVjz3TGq0rA2mu-v4PkIykl_8QAA"
+      ],
+      "upstreamFn": "keygrip#verify",
+      "goFn": "Keygrip.Verify"
+    },
+    {
+      "id": "verify-padded-digest",
+      "fn": "verify",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "session=abc123",
+        "hlsxIJIbTT4ZrFf43cVjz3TGq0rA2mu-v4PkIykl_8Q="
+      ],
+      "upstreamFn": "keygrip#verify",
+      "goFn": "Keygrip.Verify",
+      "note": "Node strips = padding, so a padded digest must not verify"
+    },
+    {
+      "id": "verify-standard-base64-digest",
+      "fn": "verify",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "session=abc123",
+        "hlsxIJIbTT4ZrFf43cVjz3TGq0rA2mu+v4PkIykl/8Q"
+      ],
+      "upstreamFn": "keygrip#verify",
+      "goFn": "Keygrip.Verify",
+      "note": "the +/ variant must not verify"
+    },
+    {
+      "id": "verify-empty-digest",
+      "fn": "verify",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "session=abc123",
+        ""
+      ],
+      "upstreamFn": "keygrip#verify",
+      "goFn": "Keygrip.Verify"
+    },
+    {
+      "id": "verify-empty-digest-empty-data",
+      "fn": "verify",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "",
+        ""
+      ],
+      "upstreamFn": "keygrip#verify",
+      "goFn": "Keygrip.Verify",
+      "note": "both empty: still no match"
+    },
+    {
+      "id": "verify-wrong-algorithm-digest",
+      "fn": "verify",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "session=abc123",
+        "7Me8kOs78gEPLAuUnGmt8GN2Y34"
+      ],
+      "upstreamFn": "keygrip#verify",
+      "goFn": "Keygrip.Verify",
+      "note": "a sha1 digest presented to a sha256 keygrip"
+    },
+    {
+      "id": "verify-wrong-encoding-digest",
+      "fn": "verify",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "session=abc123",
+        "865b3120921b4d3e19ac57f8ddc563cf74c6ab4ac0da6bbebf83e4232925ffc4"
+      ],
+      "upstreamFn": "keygrip#verify",
+      "goFn": "Keygrip.Verify",
+      "note": "a hex digest presented to a base64 keygrip"
+    },
+    {
+      "id": "verify-sha1-digest-under-sha1",
+      "fn": "verify",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha1",
+          "encoding": "base64"
+        },
+        "session=abc123",
+        "7Me8kOs78gEPLAuUnGmt8GN2Y34"
+      ],
+      "upstreamFn": "keygrip#verify",
+      "goFn": "Keygrip.Verify"
+    },
+    {
+      "id": "index-sha1-digest-under-sha1",
+      "fn": "index",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha1",
+          "encoding": "base64"
+        },
+        "session=abc123",
+        "7Me8kOs78gEPLAuUnGmt8GN2Y34"
+      ],
+      "upstreamFn": "keygrip#index",
+      "goFn": "Keygrip.Index"
+    },
+    {
+      "id": "verify-hex-digest-under-hex",
+      "fn": "verify",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha256",
+          "encoding": "hex"
+        },
+        "session=abc123",
+        "865b3120921b4d3e19ac57f8ddc563cf74c6ab4ac0da6bbebf83e4232925ffc4"
+      ],
+      "upstreamFn": "keygrip#verify",
+      "goFn": "Keygrip.Verify"
+    },
+    {
+      "id": "verify-digest-of-other-data",
+      "fn": "verify",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "session=abc123",
+        "HNNTKed5HMOJ2eO72BhgNjkKMWE1HrZ1T8aEVSsGpkI"
+      ],
+      "upstreamFn": "keygrip#verify",
+      "goFn": "Keygrip.Verify"
+    },
+    {
+      "id": "verify-empty-data-roundtrip",
+      "fn": "verify",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "",
+        "7cidbu6dHjuLUCZbRYVCFgL93rTHwxfXJgpywxrdoXw"
+      ],
+      "upstreamFn": "keygrip#verify",
+      "goFn": "Keygrip.Verify"
+    },
+    {
+      "id": "verify-unicode-roundtrip",
+      "fn": "verify",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "naïve-café-你好",
+        "SH6nH0fvZfQx7Vz7Wyf3vxnifc-LmHGd8W5AiHjXZuA"
+      ],
+      "upstreamFn": "keygrip#verify",
+      "goFn": "Keygrip.Verify"
+    },
+    {
+      "id": "index-unicode-roundtrip",
+      "fn": "index",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "naïve-café-你好",
+        "SH6nH0fvZfQx7Vz7Wyf3vxnifc-LmHGd8W5AiHjXZuA"
+      ],
+      "upstreamFn": "keygrip#index",
+      "goFn": "Keygrip.Index"
+    },
+    {
+      "id": "verify-long-roundtrip",
+      "fn": "verify",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+        "lSW9e3jLX2-r4AHeSTpYz_jgmoLaIIK9jzCNf1Jc_I0"
+      ],
+      "upstreamFn": "keygrip#verify",
+      "goFn": "Keygrip.Verify"
+    },
+    {
+      "id": "verify-single-key-list-old-digest",
+      "fn": "verify",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "session=abc123",
+        "r7vq41pc3wks6lg11O-b_fJ2Z-L-Cs1RWUyIxjtVxxU"
+      ],
+      "upstreamFn": "keygrip#verify",
+      "goFn": "Keygrip.Verify",
+      "note": "the previous key has been dropped, so its digest must stop verifying"
+    },
+    {
+      "id": "index-reordered-keys",
+      "fn": "index",
+      "args": [
+        {
+          "keys": [
+            "parity-key-previous",
+            "parity-key-current",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "session=abc123",
+        "hlsxIJIbTT4ZrFf43cVjz3TGq0rA2mu-v4PkIykl_8Q"
+      ],
+      "upstreamFn": "keygrip#index",
+      "goFn": "Keygrip.Index",
+      "note": "index reflects the position in the supplied list"
+    }
+  ]
+}

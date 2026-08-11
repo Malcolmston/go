@@ -1,0 +1,455 @@
+{
+  "group": "sign",
+  "upstream": "keygrip@1.1.0",
+  "note": "Digest production over a fixed key rotation. The scheme (algorithm, encoding) is passed explicitly so both sides agree; keygrip is deterministic, with no clock or randomness involved.",
+  "cases": [
+    {
+      "id": "sign-sha256-plain",
+      "fn": "sign",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "session=abc123"
+      ],
+      "upstreamFn": "keygrip#sign",
+      "goFn": "Keygrip.Sign"
+    },
+    {
+      "id": "sign-sha256-empty",
+      "fn": "sign",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        ""
+      ],
+      "upstreamFn": "keygrip#sign",
+      "goFn": "Keygrip.Sign"
+    },
+    {
+      "id": "sign-sha256-unicode",
+      "fn": "sign",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "naïve-café-你好"
+      ],
+      "upstreamFn": "keygrip#sign",
+      "goFn": "Keygrip.Sign"
+    },
+    {
+      "id": "sign-sha256-emoji",
+      "fn": "sign",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "user-🔐-42"
+      ],
+      "upstreamFn": "keygrip#sign",
+      "goFn": "Keygrip.Sign"
+    },
+    {
+      "id": "sign-sha256-newline",
+      "fn": "sign",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "line1\nline2"
+      ],
+      "upstreamFn": "keygrip#sign",
+      "goFn": "Keygrip.Sign"
+    },
+    {
+      "id": "sign-sha256-dots",
+      "fn": "sign",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "a.b.c"
+      ],
+      "upstreamFn": "keygrip#sign",
+      "goFn": "Keygrip.Sign"
+    },
+    {
+      "id": "sign-sha256-long",
+      "fn": "sign",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+      ],
+      "upstreamFn": "keygrip#sign",
+      "goFn": "Keygrip.Sign"
+    },
+    {
+      "id": "sign-sha256-json",
+      "fn": "sign",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "{\"uid\":7,\"role\":\"admin\"}"
+      ],
+      "upstreamFn": "keygrip#sign",
+      "goFn": "Keygrip.Sign"
+    },
+    {
+      "id": "sign-sha256-binaryish",
+      "fn": "sign",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "\u0000\u0001ÿ"
+      ],
+      "upstreamFn": "keygrip#sign",
+      "goFn": "Keygrip.Sign"
+    },
+    {
+      "id": "sign-sha1",
+      "fn": "sign",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha1",
+          "encoding": "base64"
+        },
+        "session=abc123"
+      ],
+      "upstreamFn": "keygrip#sign",
+      "goFn": "Keygrip.Sign",
+      "note": "sha1 is the Node default hash; the port defaults to sha256 but must honour an explicit sha1"
+    },
+    {
+      "id": "sign-sha1-hex",
+      "fn": "sign",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha1",
+          "encoding": "hex"
+        },
+        "session=abc123"
+      ],
+      "upstreamFn": "keygrip#sign",
+      "goFn": "Keygrip.Sign"
+    },
+    {
+      "id": "sign-sha256-hex",
+      "fn": "sign",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha256",
+          "encoding": "hex"
+        },
+        "session=abc123"
+      ],
+      "upstreamFn": "keygrip#sign",
+      "goFn": "Keygrip.Sign"
+    },
+    {
+      "id": "sign-sha384",
+      "fn": "sign",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha384",
+          "encoding": "base64"
+        },
+        "session=abc123"
+      ],
+      "upstreamFn": "keygrip#sign",
+      "goFn": "Keygrip.Sign"
+    },
+    {
+      "id": "sign-sha512",
+      "fn": "sign",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha512",
+          "encoding": "base64"
+        },
+        "session=abc123"
+      ],
+      "upstreamFn": "keygrip#sign",
+      "goFn": "Keygrip.Sign"
+    },
+    {
+      "id": "sign-sha512-hex",
+      "fn": "sign",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha512",
+          "encoding": "hex"
+        },
+        "session=abc123"
+      ],
+      "upstreamFn": "keygrip#sign",
+      "goFn": "Keygrip.Sign"
+    },
+    {
+      "id": "sign-md5",
+      "fn": "sign",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "md5",
+          "encoding": "base64"
+        },
+        "session=abc123"
+      ],
+      "upstreamFn": "keygrip#sign",
+      "goFn": "Keygrip.Sign"
+    },
+    {
+      "id": "sign-base64url-alias",
+      "fn": "sign",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64url"
+        },
+        "session=abc123"
+      ],
+      "upstreamFn": "keygrip#sign",
+      "goFn": "Keygrip.Sign",
+      "note": "Node rewrites + / = out of its base64 output, so base64url is the same string"
+    },
+    {
+      "id": "sign-uppercase-algorithm",
+      "fn": "sign",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "SHA256",
+          "encoding": "base64"
+        },
+        "session=abc123"
+      ],
+      "upstreamFn": "keygrip#sign",
+      "goFn": "Keygrip.Sign",
+      "note": "OpenSSL digest names are case-insensitive"
+    },
+    {
+      "id": "sign-single-key",
+      "fn": "sign",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "session=abc123"
+      ],
+      "upstreamFn": "keygrip#sign",
+      "goFn": "Keygrip.Sign"
+    },
+    {
+      "id": "sign-uses-first-key",
+      "fn": "sign",
+      "args": [
+        {
+          "keys": [
+            "parity-key-previous",
+            "parity-key-current"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "session=abc123"
+      ],
+      "upstreamFn": "keygrip#sign",
+      "goFn": "Keygrip.Sign",
+      "note": "signing must use keys[0] only"
+    },
+    {
+      "id": "sign-empty-key",
+      "fn": "sign",
+      "args": [
+        {
+          "keys": [
+            ""
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "session=abc123"
+      ],
+      "upstreamFn": "keygrip#sign",
+      "goFn": "Keygrip.Sign",
+      "note": "an empty string is a usable HMAC key"
+    },
+    {
+      "id": "sign-unicode-key",
+      "fn": "sign",
+      "args": [
+        {
+          "keys": [
+            "clé-secrète-🔑"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "session=abc123"
+      ],
+      "upstreamFn": "keygrip#sign",
+      "goFn": "Keygrip.Sign"
+    },
+    {
+      "id": "sign-long-key",
+      "fn": "sign",
+      "args": [
+        {
+          "keys": [
+            "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "session=abc123"
+      ],
+      "upstreamFn": "keygrip#sign",
+      "goFn": "Keygrip.Sign",
+      "note": "a key longer than the hash block size is hashed down by HMAC"
+    },
+    {
+      "id": "sign-all-keys",
+      "fn": "signAll",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha256",
+          "encoding": "base64"
+        },
+        "session=abc123"
+      ],
+      "upstreamFn": "keygrip#sign",
+      "goFn": "Keygrip.Sign",
+      "note": "the digest each key in the rotation produces"
+    },
+    {
+      "id": "sign-all-keys-sha1",
+      "fn": "signAll",
+      "args": [
+        {
+          "keys": [
+            "parity-key-current",
+            "parity-key-previous",
+            "parity-key-oldest"
+          ],
+          "algorithm": "sha1",
+          "encoding": "base64"
+        },
+        "session=abc123"
+      ],
+      "upstreamFn": "keygrip#sign",
+      "goFn": "Keygrip.Sign"
+    }
+  ]
+}

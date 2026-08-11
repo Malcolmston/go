@@ -1,0 +1,23 @@
+{
+  "group": "parse-duplicates",
+  "upstream": "qs@6.15.3",
+  "note": "Repeated keys. Upstream's default is duplicates: 'combine', which gathers the values into an array rather than letting the last one win — the difference matters for anything that trusts a query parameter, since 'admin=0&admin=1' is neither 0 nor 1 but ['0','1'].",
+  "cases": [
+    { "id": "d-two",              "fn": "parse", "args": ["a=b&a=c"],                        "upstreamFn": "qs.parse", "goFn": "qs.Parse" },
+    { "id": "d-three",            "fn": "parse", "args": ["a=b&a=c&a=d"],                    "upstreamFn": "qs.parse", "goFn": "qs.Parse" },
+    { "id": "d-empty-second",     "fn": "parse", "args": ["a=b&a="],                         "upstreamFn": "qs.parse", "goFn": "qs.Parse" },
+    { "id": "d-no-equals-second", "fn": "parse", "args": ["a=b&a"],                          "upstreamFn": "qs.parse", "goFn": "qs.Parse" },
+    { "id": "d-nested",           "fn": "parse", "args": ["a[b]=1&a[b]=2"],                  "upstreamFn": "qs.parse", "goFn": "qs.Parse" },
+    { "id": "d-nested-deep",      "fn": "parse", "args": ["a[b][c]=1&a[b][c]=2"],            "upstreamFn": "qs.parse", "goFn": "qs.Parse" },
+    { "id": "d-index-twice",      "fn": "parse", "args": ["a[0]=b&a[0]=c"],                  "upstreamFn": "qs.parse", "goFn": "qs.Parse" },
+    { "id": "d-mixed-shape",      "fn": "parse", "args": ["a=1&a[]=2"],                      "upstreamFn": "qs.parse", "goFn": "qs.Parse" },
+    { "id": "d-object-and-scalar", "fn": "parse", "args": ["a[b]=c&a=d"],                    "upstreamFn": "qs.parse", "goFn": "qs.Parse", "note": "strictMerge keeps both: [{b:'c'},'d']" },
+    { "id": "d-last",             "fn": "parse", "args": ["a=b&a=c", { "duplicates": "last" }],    "upstreamFn": "qs.parse", "goFn": "qs.ParseWith" },
+    { "id": "d-first",            "fn": "parse", "args": ["a=b&a=c", { "duplicates": "first" }],   "upstreamFn": "qs.parse", "goFn": "qs.ParseWith" },
+    { "id": "d-combine-explicit", "fn": "parse", "args": ["a=b&a=c", { "duplicates": "combine" }], "upstreamFn": "qs.parse", "goFn": "qs.ParseWith" },
+    { "id": "d-push-nested-repeat", "fn": "parse", "args": ["a[][b]=1&a[][b]=2"],           "upstreamFn": "qs.parse", "goFn": "qs.Parse", "note": "the push marker only fires for a pair ending in '[]='; here the repeated key is 'a[][b]', so combine runs first and one object comes out" },
+    { "id": "d-push-repeat-deep",  "fn": "parse", "args": ["a[b][]=1&a[b][]=2&a[b][]=3"],    "upstreamFn": "qs.parse", "goFn": "qs.Parse" },
+    { "id": "d-last-nested",      "fn": "parse", "args": ["a[b]=1&a[b]=2", { "duplicates": "last" }], "upstreamFn": "qs.parse", "goFn": "qs.ParseWith" },
+    { "id": "d-bad-duplicates",   "fn": "parse", "args": ["a=b", { "duplicates": "nope" }],   "upstreamFn": "qs.parse", "goFn": "qs.ParseWith", "deviation": "Upstream throws a TypeError for an unrecognised duplicates value. ParseWith returns only a map — there is no error channel to report a bad option through, and adding one would change the signature — so the port falls back to the documented default instead.", "note": "see express/API-DEVIATIONS.md" }
+  ]
+}

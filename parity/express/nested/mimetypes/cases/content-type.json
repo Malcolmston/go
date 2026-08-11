@@ -1,0 +1,29 @@
+{
+  "group": "content-type",
+  "upstream": "mime-types@2.1.35",
+  "note": "mime.contentType(typeOrExt) — a full Content-Type value: an extension is looked up first, then a \"; charset=\" parameter is appended (lower-cased) when the type declares one and the value does not already mention charset.",
+  "cases": [
+    { "id": "ct-ext-html", "fn": "contentType", "args": ["html"], "upstreamFn": "mime.contentType", "goFn": "mimetypes.ContentType" },
+    { "id": "ct-ext-json", "fn": "contentType", "args": ["json"], "upstreamFn": "mime.contentType", "goFn": "mimetypes.ContentType" },
+    { "id": "ct-ext-png", "fn": "contentType", "args": ["png"], "upstreamFn": "mime.contentType", "goFn": "mimetypes.ContentType", "note": "no charset for a binary type" },
+    { "id": "ct-ext-css", "fn": "contentType", "args": ["css"], "upstreamFn": "mime.contentType", "goFn": "mimetypes.ContentType" },
+    { "id": "ct-ext-xml", "fn": "contentType", "args": ["xml"], "upstreamFn": "mime.contentType", "goFn": "mimetypes.ContentType", "note": "application/xml declares no charset, so nothing is appended" },
+    { "id": "ct-ext-dot", "fn": "contentType", "args": [".txt"], "upstreamFn": "mime.contentType", "goFn": "mimetypes.ContentType" },
+    { "id": "ct-ext-unknown", "fn": "contentType", "args": ["bogusext"], "upstreamFn": "mime.contentType", "goFn": "mimetypes.ContentType" },
+    { "id": "ct-type-text-html", "fn": "contentType", "args": ["text/html"], "upstreamFn": "mime.contentType", "goFn": "mimetypes.ContentType" },
+    { "id": "ct-type-text-unknown", "fn": "contentType", "args": ["text/x-made-up"], "upstreamFn": "mime.contentType", "goFn": "mimetypes.ContentType" },
+    { "id": "ct-type-binary", "fn": "contentType", "args": ["application/octet-stream"], "upstreamFn": "mime.contentType", "goFn": "mimetypes.ContentType" },
+    { "id": "ct-type-unknown", "fn": "contentType", "args": ["bogus/type"], "upstreamFn": "mime.contentType", "goFn": "mimetypes.ContentType", "note": "anything containing a slash is passed through unchanged" },
+    { "id": "ct-already-has-charset", "fn": "contentType", "args": ["text/html; charset=iso-8859-1"], "upstreamFn": "mime.contentType", "goFn": "mimetypes.ContentType", "note": "an existing charset is never overwritten" },
+    { "id": "ct-has-other-param", "fn": "contentType", "args": ["text/html; level=1"], "upstreamFn": "mime.contentType", "goFn": "mimetypes.ContentType" },
+    { "id": "ct-uppercase-type", "fn": "contentType", "args": ["TEXT/HTML"], "upstreamFn": "mime.contentType", "goFn": "mimetypes.ContentType", "note": "the type itself is echoed verbatim, only the appended charset is lower-cased" },
+    { "id": "ct-leading-space", "fn": "contentType", "args": [" text/html"], "upstreamFn": "mime.contentType", "goFn": "mimetypes.ContentType", "note": "contentType does not trim its input" },
+    { "id": "ct-non-utf8-charset", "fn": "contentType", "args": ["application/news-checkgroups"], "upstreamFn": "mime.contentType", "goFn": "mimetypes.ContentType", "note": "US-ASCII is appended lower-cased" },
+    { "id": "ct-empty", "fn": "contentType", "args": [""], "upstreamFn": "mime.contentType", "goFn": "mimetypes.ContentType" },
+    { "id": "ct-ext-woff2", "fn": "contentType", "args": ["woff2"], "upstreamFn": "mime.contentType", "goFn": "mimetypes.ContentType" },
+    { "id": "ct-ext-svg", "fn": "contentType", "args": ["svg"], "upstreamFn": "mime.contentType", "goFn": "mimetypes.ContentType" },
+    { "id": "ct-ext-js", "fn": "contentType", "args": ["js"], "upstreamFn": "mime.contentType", "goFn": "mimetypes.ContentType" },
+    { "id": "ct-filename", "fn": "contentType", "args": ["index.html"], "upstreamFn": "mime.contentType", "goFn": "mimetypes.ContentType", "note": "no slash, so it goes through the extension lookup" },
+    { "id": "ct-path", "fn": "contentType", "args": ["/a/b/c.json"], "upstreamFn": "mime.contentType", "goFn": "mimetypes.ContentType", "note": "a path contains a slash, so it is treated as a media type and passed through" }
+  ]
+}

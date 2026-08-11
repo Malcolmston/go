@@ -1,0 +1,63 @@
+{
+  "repo": "express",
+  "module": "github.com/malcolmston/express",
+  "findings": [
+    {
+      "id": "semver-unparseable-range-silently-accepted",
+      "summary": "semver.ParseRange accepts any string as a range; an unparseable constraint silently behaves as a permissive 0.x range instead of erroring",
+      "severity": "medium",
+      "cases": [
+        "rv-garbage",
+        "rv-tag",
+        "rv-url",
+        "rv-comma",
+        "rv-op-only",
+        "rv-double-op",
+        "rv-caret-word",
+        "rv-tilde-word",
+        "rv-lead-zero",
+        "rv-huge-field",
+        "rv-four-fields",
+        "rv-x-then-num",
+        "rv-dangling-pre",
+        "rv-hyphen-bad-hi",
+        "rv-hyphen-bad-lo",
+        "rv-union-bad-side",
+        "r-bad-range",
+        "r-and-comma",
+        "rt-bad-range",
+        "sel-max-bad-range",
+        "sel-min-bad-range"
+      ],
+      "affectedVersions": "<= 0.4.0",
+      "description": "## Summary\n\n`semver.ParseRange` never rejects its input. An unparseable field was degraded to\nthe wildcard `x` rather than reported, so a constraint that node-semver refuses —\n`\"garbage\"`, `\"latest\"`, a tarball URL, or the comma spelling `\">=1.0.0, <2.0.0\"`\nthat npm does not accept — parsed successfully and then matched versions.\n\n## Actual measured behaviour\n\nReproduced against `github.com/malcolmston/express@v0.4.0` (latest published):\n\n```\n\"garbage\"         parsed OK, matches 0.0.0 0.0.1 0.1.0 0.9.9   (not >= 1.0.0)\n\"latest\"          parsed OK, matches 0.0.0 0.0.1 0.1.0 0.9.9\n\"^1.2.3\"          parsed OK, matches nothing in that set\n```\n\nSo a bogus range does NOT match every version: it degrades to a permissive\n`0.x`-shaped constraint. An earlier draft of this finding claimed it collapsed to\n`>=0.0.0` and admitted everything; direct execution disproved that, and the claim\nis corrected here rather than published.\n\n## Impact\n\nTwo concrete consequences, both of which need the caller to feed in a range that\nis wrong or externally influenced:\n\n1. **A gate that should have failed closed does not fail at all.** A typo'd or\n   externally supplied constraint yields no error, so a caller that checks\n   `err` never learns the constraint was meaningless.\n2. **Pre-1.0 versions are admitted.** Because the degraded range matches the whole\n   `0.x` line, a check meant to pin `^1.2.3` silently accepts `0.0.1`. This is\n   material in this ecosystem specifically: most `malcolmston/*` modules are\n   themselves `0.x`, so the admitted set is exactly the set in play.\n\nSeverity is medium, not high: the range must already be invalid for this to\ntrigger, and the degraded range is more restrictive than \"everything\".\n\n## Fix\n\n`range.go` gained a strict `XRANGEPLAIN` parser (`semParsePartial`) plus upstream's\n`invalidXRangeOrder` rule, so an unparseable range now returns an error instead of\ndegrading to a wildcard."
+    },
+    {
+      "id": "semver-parse-accepts-loose-only-prefixes",
+      "summary": "semver.Parse accepted the loose-mode-only prefixes \"=\" and uppercase \"V\", so two spellings of the same check could disagree with node-semver about validity",
+      "severity": "medium",
+      "cases": [
+        "p-lead-eq",
+        "p-lead-eq-v",
+        "p-lead-V",
+        "cl-uppercase-v",
+        "co-leadzero",
+        "id-bad-identifier"
+      ],
+      "affectedVersions": "<= 0.4.0",
+      "description": "## Summary\n\n`semver.Parse` stripped a leading `=` and accepted an uppercase `V`, both of which belong to node-semver's *loose* mode; its strict grammar is `^v?` after a trim. Related leniencies in the same package: `Coerce` normalised a leading zero away (`Coerce(\"01.02.03\")` returned `\"1.2.3\"` where upstream `coerce` returns `null`, because upstream re-parses the reassembled digits), and `IncWith` accepted an arbitrary prerelease identifier and could therefore emit a string that is not a valid version (`IncWith(\"1.2.3\", \"prepatch\", \"bad id\")` returned `\"1.2.4-bad id.0\"` where upstream `inc` returns `null`).\n\n```go\nsemver.Valid(\"=1.2.3\")   // port: true   upstream: valid(\"=1.2.3\") === null\nsemver.Valid(\"V1.2.3\")   // port: true   upstream: null\nsemver.Clean(\"V1.2.3\")   // port: \"1.2.3\" upstream: null\nsemver.Coerce(\"01.02.03\") // port: \"1.2.3\" upstream: null\nsemver.IncWith(\"1.2.3\", \"prepatch\", \"bad id\") // port: \"1.2.4-bad id.0\"\n```\n\n## Impact\n\nLower than the range finding, but it is still a validate-here/compare-there hazard. A service that validates an incoming version string with this package and then forwards it to a JavaScript component (an npm resolver, a registry client, a manifest writer) will accept identifiers the JavaScript side rejects — and, in the `IncWith` case, will *produce* a version string that no strict semver parser will accept, which can turn a released artefact name into something unparseable downstream. Where two components disagree about whether a string is a version, a version pin can be smuggled past one of them.\n\n## Repro\n\n`parity/express/nested/semver` cases `p-lead-eq`, `p-lead-V`, `cl-uppercase-v`, `co-leadzero` and `id-bad-identifier`:\n\n```\ncd parity/express/nested/semver && GOWORK=off go test -run 'TestParity/(p-lead-eq|p-lead-V|cl-uppercase-v|co-leadzero|id-bad-identifier)$' .\n```\n\n## Fix\n\n`Parse` now strips only a single leading lowercase `v` after trimming. `Clean` keeps upstream's more permissive behaviour explicitly (trim, then strip any run of `[=v]`), which is where the `=`-prefixed spelling legitimately belongs. `Coerce` rejects a component with a leading zero, and `IncWith` validates the identifier against the prerelease-identifier grammar before using it."
+    },
+    {
+      "id": "semver-mustparse-panic-reachable-from-sort",
+      "summary": "Sort, Compare and the boolean comparators panic via MustParse on an invalid version, so attacker-supplied version lists can crash a caller that has no recover",
+      "severity": "low",
+      "cases": [
+        "s-sort-invalid",
+        "c-invalid-left",
+        "b-eq-invalid"
+      ],
+      "affectedVersions": "<= 0.4.0",
+      "description": "## Summary\n\n`semver.Sort`, `semver.Compare` and the `GT`/`GTE`/`LT`/`LTE`/`EQ`/`NEQ` wrappers call `MustParse` and therefore panic on an invalid version string. Upstream's equivalents throw a catchable `TypeError`, which in JavaScript is routinely caught; in Go an unrecovered panic in a goroutine takes the whole process down.\n\n```go\nsemver.Sort([]string{\"1.2.3\", \"nope\"}) // panics: semver: invalid version\n```\n\n## Impact\n\nDenial of service where the version list is attacker-influenced — sorting the tags returned by a remote registry, ordering versions parsed out of an uploaded manifest, comparing a client-supplied `X-App-Version` header. `net/http` recovers a panic for the serving goroutine, but a panic in any other goroutine (a background reindexer, a worker pool) terminates the process.\n\nThis is *documented* behaviour (\"Invalid strings cause a panic; validate untrusted input first\"), and the panicking spelling exists deliberately alongside the error-returning `Parse`/`Valid`/`Satisfies`, so it is reported as hardening rather than as a defect. It is listed here because the crash is reachable from a plausible attacker path and the safe alternative is not obvious at the call site.\n\n## Repro\n\nCases `s-sort-invalid`, `c-invalid-left` and `b-eq-invalid` in `parity/express/nested/semver` exercise it; the Go runner has to `recover()` to report the case at all.\n\n## Suggested mitigation\n\nEither add error-returning siblings (`SortStrings([]string) error`, `CompareStrings(a, b string) (int, error)`) and document the Must* spellings as constant-only, or have `Sort` skip/sink unparseable entries the way `MaxSatisfying` already does."
+    }
+  ]
+}

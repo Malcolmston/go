@@ -1,0 +1,31 @@
+{
+  "group": "normalize",
+  "upstream": "type-is@1.6.18",
+  "note": "typeis.normalize(candidate) — expand a candidate type into its matchable form: the \"urlencoded\" and \"multipart\" specials, a \"+suffix\" shorthand, an extension resolved through mime.lookup, or a passthrough for anything containing a slash.",
+  "cases": [
+    { "id": "n-urlencoded", "fn": "normalize", "args": ["urlencoded"], "upstreamFn": "typeis.normalize", "goFn": "typeis.Normalize" },
+    { "id": "n-multipart", "fn": "normalize", "args": ["multipart"], "upstreamFn": "typeis.normalize", "goFn": "typeis.Normalize" },
+    { "id": "n-suffix-json", "fn": "normalize", "args": ["+json"], "upstreamFn": "typeis.normalize", "goFn": "typeis.Normalize" },
+    { "id": "n-suffix-xml", "fn": "normalize", "args": ["+xml"], "upstreamFn": "typeis.normalize", "goFn": "typeis.Normalize" },
+    { "id": "n-ext-json", "fn": "normalize", "args": ["json"], "upstreamFn": "typeis.normalize", "goFn": "typeis.Normalize" },
+    { "id": "n-ext-html", "fn": "normalize", "args": ["html"], "upstreamFn": "typeis.normalize", "goFn": "typeis.Normalize" },
+    { "id": "n-ext-txt", "fn": "normalize", "args": ["txt"], "upstreamFn": "typeis.normalize", "goFn": "typeis.Normalize" },
+    { "id": "n-ext-csv", "fn": "normalize", "args": ["csv"], "upstreamFn": "typeis.normalize", "goFn": "typeis.Normalize" },
+    { "id": "n-ext-svg", "fn": "normalize", "args": ["svg"], "upstreamFn": "typeis.normalize", "goFn": "typeis.Normalize" },
+    { "id": "n-ext-pdf", "fn": "normalize", "args": ["pdf"], "upstreamFn": "typeis.normalize", "goFn": "typeis.Normalize" },
+    { "id": "n-ext-png", "fn": "normalize", "args": ["png"], "upstreamFn": "typeis.normalize", "goFn": "typeis.Normalize" },
+    { "id": "n-ext-js", "fn": "normalize", "args": ["js"], "upstreamFn": "typeis.normalize", "goFn": "typeis.Normalize" },
+    { "id": "n-ext-dotted", "fn": "normalize", "args": [".json"], "upstreamFn": "typeis.normalize", "goFn": "typeis.Normalize", "note": "mime.lookup accepts a leading dot" },
+    { "id": "n-ext-uppercase", "fn": "normalize", "args": ["JSON"], "upstreamFn": "typeis.normalize", "goFn": "typeis.Normalize" },
+    { "id": "n-ext-unknown", "fn": "normalize", "args": ["bogusext"], "upstreamFn": "typeis.normalize", "goFn": "typeis.Normalize" },
+    { "id": "n-empty", "fn": "normalize", "args": [""], "upstreamFn": "typeis.normalize", "goFn": "typeis.Normalize" },
+    { "id": "n-full-type", "fn": "normalize", "args": ["text/html"], "upstreamFn": "typeis.normalize", "goFn": "typeis.Normalize", "note": "anything with a slash is returned untouched, valid or not" },
+    { "id": "n-star-star", "fn": "normalize", "args": ["*/*"], "upstreamFn": "typeis.normalize", "goFn": "typeis.Normalize" },
+    { "id": "n-type-star", "fn": "normalize", "args": ["text/*"], "upstreamFn": "typeis.normalize", "goFn": "typeis.Normalize" },
+    { "id": "n-star-suffix", "fn": "normalize", "args": ["*/*+json"], "upstreamFn": "typeis.normalize", "goFn": "typeis.Normalize" },
+    { "id": "n-uppercase-type", "fn": "normalize", "args": ["TEXT/HTML"], "upstreamFn": "typeis.normalize", "goFn": "typeis.Normalize", "note": "no lower-casing happens on the passthrough path" },
+    { "id": "n-bogus-with-slash", "fn": "normalize", "args": ["bogus/type"], "upstreamFn": "typeis.normalize", "goFn": "typeis.Normalize" },
+    { "id": "n-urlencoded-case", "fn": "normalize", "args": ["URLENCODED"], "upstreamFn": "typeis.normalize", "goFn": "typeis.Normalize", "note": "the specials are matched case-sensitively, so this falls through to mime.lookup" },
+    { "id": "n-suffix-unknown", "fn": "normalize", "args": ["+bogus"], "upstreamFn": "typeis.normalize", "goFn": "typeis.Normalize", "note": "a '+' prefix is expanded without validating the suffix" }
+  ]
+}

@@ -1,0 +1,395 @@
+{
+  "group": "parse",
+  "upstream": "content-type@1.0.5",
+  "note": "contentType.parse(value) - split a Content-Type header into its media type and parameters. Upstream throws a TypeError for anything the grammar rejects, so those cases expect failure on both sides.",
+  "cases": [
+    {
+      "id": "p-bare",
+      "fn": "parse",
+      "args": [
+        "text/html"
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse"
+    },
+    {
+      "id": "p-charset",
+      "fn": "parse",
+      "args": [
+        "text/html; charset=utf-8"
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse"
+    },
+    {
+      "id": "p-charset-no-space",
+      "fn": "parse",
+      "args": [
+        "text/html;charset=utf-8"
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse"
+    },
+    {
+      "id": "p-charset-many-spaces",
+      "fn": "parse",
+      "args": [
+        "text/html;   charset=utf-8"
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse"
+    },
+    {
+      "id": "p-spaces-around-equals",
+      "fn": "parse",
+      "args": [
+        "text/html; charset = utf-8"
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse"
+    },
+    {
+      "id": "p-trailing-space",
+      "fn": "parse",
+      "args": [
+        "text/html; charset=utf-8 "
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse"
+    },
+    {
+      "id": "p-tab-separator",
+      "fn": "parse",
+      "args": [
+        "text/html;\tcharset=utf-8"
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse",
+      "note": "the separator grammar is \"; *\", so a tab is not allowed"
+    },
+    {
+      "id": "p-tab-around-equals",
+      "fn": "parse",
+      "args": [
+        "text/html; charset\t=\tutf-8"
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse"
+    },
+    {
+      "id": "p-two-params",
+      "fn": "parse",
+      "args": [
+        "multipart/form-data; boundary=abc; charset=utf-8"
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse"
+    },
+    {
+      "id": "p-lowercases-type",
+      "fn": "parse",
+      "args": [
+        "TEXT/HTML"
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse"
+    },
+    {
+      "id": "p-lowercases-param-name",
+      "fn": "parse",
+      "args": [
+        "text/html; CharSet=utf-8"
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse"
+    },
+    {
+      "id": "p-preserves-param-value-case",
+      "fn": "parse",
+      "args": [
+        "text/html; charset=UTF-8"
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse"
+    },
+    {
+      "id": "p-quoted-value",
+      "fn": "parse",
+      "args": [
+        "text/html; charset=\"utf-8\""
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse"
+    },
+    {
+      "id": "p-quoted-with-space",
+      "fn": "parse",
+      "args": [
+        "text/html; title=\"a b\""
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse"
+    },
+    {
+      "id": "p-quoted-with-semicolon",
+      "fn": "parse",
+      "args": [
+        "text/html; title=\"a;b\""
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse"
+    },
+    {
+      "id": "p-quoted-escaped-quote",
+      "fn": "parse",
+      "args": [
+        "text/html; title=\"a\\\"b\""
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse"
+    },
+    {
+      "id": "p-quoted-escaped-backslash",
+      "fn": "parse",
+      "args": [
+        "text/html; title=\"a\\\\b\""
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse"
+    },
+    {
+      "id": "p-quoted-empty",
+      "fn": "parse",
+      "args": [
+        "text/html; title=\"\""
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse"
+    },
+    {
+      "id": "p-quoted-with-tab",
+      "fn": "parse",
+      "args": [
+        "text/html; title=\"a\tb\""
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse",
+      "note": "a raw tab is outside the quoted-string character class upstream accepts"
+    },
+    {
+      "id": "p-quoted-with-newline",
+      "fn": "parse",
+      "args": [
+        "text/html; title=\"a\nb\""
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse",
+      "note": "a raw newline inside a quoted value must be rejected, not carried through"
+    },
+    {
+      "id": "p-quoted-with-crlf",
+      "fn": "parse",
+      "args": [
+        "text/html; charset=\"utf-8\r\nX-Injected: 1\""
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse",
+      "note": "a CRLF smuggled into a parameter value must be rejected"
+    },
+    {
+      "id": "p-quoted-with-nul",
+      "fn": "parse",
+      "args": [
+        "text/html; title=\"a\u0000b\""
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse",
+      "note": "a NUL byte inside a quoted value must be rejected"
+    },
+    {
+      "id": "p-quoted-with-vtab",
+      "fn": "parse",
+      "args": [
+        "text/html; title=\"a\u000bb\""
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse",
+      "note": "vertical tab is inside upstream's quoted-string class, unlike tab"
+    },
+    {
+      "id": "p-quoted-with-obs-text",
+      "fn": "parse",
+      "args": [
+        "text/html; title=\"caf\u00e9\""
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse",
+      "note": "obs-text (%x80-FF) is allowed inside a quoted string"
+    },
+    {
+      "id": "p-quoted-unterminated",
+      "fn": "parse",
+      "args": [
+        "text/html; title=\"abc"
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse"
+    },
+    {
+      "id": "p-param-no-value",
+      "fn": "parse",
+      "args": [
+        "text/html; charset"
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse"
+    },
+    {
+      "id": "p-param-empty-value",
+      "fn": "parse",
+      "args": [
+        "text/html; charset="
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse"
+    },
+    {
+      "id": "p-trailing-semicolon",
+      "fn": "parse",
+      "args": [
+        "text/html;"
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse"
+    },
+    {
+      "id": "p-double-semicolon",
+      "fn": "parse",
+      "args": [
+        "text/html;; charset=utf-8"
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse"
+    },
+    {
+      "id": "p-param-bad-name",
+      "fn": "parse",
+      "args": [
+        "text/html; char set=utf-8"
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse"
+    },
+    {
+      "id": "p-junk-after-param",
+      "fn": "parse",
+      "args": [
+        "text/html; charset=utf-8 junk"
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse"
+    },
+    {
+      "id": "p-leading-space-type",
+      "fn": "parse",
+      "args": [
+        "  text/html"
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse",
+      "note": "the media type is trimmed before validation"
+    },
+    {
+      "id": "p-trailing-space-type",
+      "fn": "parse",
+      "args": [
+        "text/html  "
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse"
+    },
+    {
+      "id": "p-space-in-type",
+      "fn": "parse",
+      "args": [
+        "text / html"
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse"
+    },
+    {
+      "id": "p-no-slash",
+      "fn": "parse",
+      "args": [
+        "bogus"
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse"
+    },
+    {
+      "id": "p-empty-subtype",
+      "fn": "parse",
+      "args": [
+        "text/"
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse"
+    },
+    {
+      "id": "p-empty-type",
+      "fn": "parse",
+      "args": [
+        "/html"
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse"
+    },
+    {
+      "id": "p-empty",
+      "fn": "parse",
+      "args": [
+        ""
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse"
+    },
+    {
+      "id": "p-wildcard",
+      "fn": "parse",
+      "args": [
+        "*/*"
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse",
+      "note": "'*' is a valid token character, so this parses"
+    },
+    {
+      "id": "p-suffix-type",
+      "fn": "parse",
+      "args": [
+        "application/vnd.api+json"
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse"
+    },
+    {
+      "id": "p-duplicate-param",
+      "fn": "parse",
+      "args": [
+        "text/html; charset=utf-8; charset=iso-8859-1"
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse",
+      "note": "the last occurrence wins"
+    },
+    {
+      "id": "p-token-value-with-star",
+      "fn": "parse",
+      "args": [
+        "text/html; charset=*"
+      ],
+      "upstreamFn": "contentType.parse",
+      "goFn": "contenttype.Parse"
+    }
+  ]
+}

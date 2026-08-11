@@ -1,0 +1,30 @@
+{
+  "group": "parse-bare",
+  "upstream": "bytes@3.1.2",
+  "note": "bytes.parse(string) with no unit. Upstream's grammar requires a unit, so every bare number takes the parseInt(val, 10) fallback: a leading integer prefix wins, the rest of the string is discarded, and a fractional part is truncated toward zero rather than floored.",
+  "cases": [
+    { "id": "pb-1024",        "fn": "parse", "args": ["1024"],                   "upstreamFn": "bytes.parse", "goFn": "bytes.Parse", "note": "Readme: bytes.parse('1024') -> 1024" },
+    { "id": "pb-zero",        "fn": "parse", "args": ["0"],                      "upstreamFn": "bytes.parse", "goFn": "bytes.Parse" },
+    { "id": "pb-one",         "fn": "parse", "args": ["1"],                      "upstreamFn": "bytes.parse", "goFn": "bytes.Parse" },
+    { "id": "pb-neg",         "fn": "parse", "args": ["-100"],                   "upstreamFn": "bytes.parse", "goFn": "bytes.Parse" },
+    { "id": "pb-plus",        "fn": "parse", "args": ["+100"],                   "upstreamFn": "bytes.parse", "goFn": "bytes.Parse" },
+    { "id": "pb-frac",        "fn": "parse", "args": ["1.9"],                    "upstreamFn": "bytes.parse", "goFn": "bytes.Parse", "note": "parseInt truncates at the dot -> 1" },
+    { "id": "pb-frac-neg",    "fn": "parse", "args": ["-1.9"],                   "upstreamFn": "bytes.parse", "goFn": "bytes.Parse", "note": "parseInt -> -1; a floor would give -2" },
+    { "id": "pb-frac-half",   "fn": "parse", "args": ["2.5"],                    "upstreamFn": "bytes.parse", "goFn": "bytes.Parse" },
+    { "id": "pb-lead-zeros",  "fn": "parse", "args": ["007"],                    "upstreamFn": "bytes.parse", "goFn": "bytes.Parse" },
+    { "id": "pb-lead-space",  "fn": "parse", "args": ["  42"],                   "upstreamFn": "bytes.parse", "goFn": "bytes.Parse", "note": "parseInt skips leading whitespace" },
+    { "id": "pb-trail-space", "fn": "parse", "args": ["42  "],                   "upstreamFn": "bytes.parse", "goFn": "bytes.Parse" },
+    { "id": "pb-inner-space", "fn": "parse", "args": ["4 2"],                    "upstreamFn": "bytes.parse", "goFn": "bytes.Parse", "note": "parseInt stops at the space -> 4" },
+    { "id": "pb-exp",         "fn": "parse", "args": ["1e3"],                    "upstreamFn": "bytes.parse", "goFn": "bytes.Parse", "note": "parseInt is radix-10 only -> 1, not 1000" },
+    { "id": "pb-hex",         "fn": "parse", "args": ["0x10"],                   "upstreamFn": "bytes.parse", "goFn": "bytes.Parse", "note": "parseInt(val, 10) reads the leading 0 and stops -> 0" },
+    { "id": "pb-comma",       "fn": "parse", "args": ["1,024"],                  "upstreamFn": "bytes.parse", "goFn": "bytes.Parse", "note": "a thousands-separated number parses as 1 byte" },
+    { "id": "pb-percent",     "fn": "parse", "args": ["100%"],                   "upstreamFn": "bytes.parse", "goFn": "bytes.Parse" },
+    { "id": "pb-trailing-junk","fn": "parse","args": ["1024 please"],            "upstreamFn": "bytes.parse", "goFn": "bytes.Parse" },
+    { "id": "pb-2pow53",      "fn": "parse", "args": ["9007199254740992"],       "upstreamFn": "bytes.parse", "goFn": "bytes.Parse", "note": "the last integer a double represents exactly" },
+    { "id": "pb-int64max",    "fn": "parse", "args": ["9223372036854775807"],    "upstreamFn": "bytes.parse", "goFn": "bytes.Parse", "deviation": "the literal rounds to the double 2^63, one past int64's range; upstream returns that number, the port reports an overflow error rather than an implementation-defined conversion" },
+    { "id": "pb-e999",        "fn": "parse", "args": ["1e999"],                  "upstreamFn": "bytes.parse", "goFn": "bytes.Parse", "note": "parseInt -> 1, so no Infinity escapes" },
+    { "id": "pb-1e21",        "fn": "parse", "args": ["1000000000000000000000"], "upstreamFn": "bytes.parse", "goFn": "bytes.Parse", "deviation": "upstream returns the double 1e21; int64 cannot hold it, so the port reports an overflow error rather than a wrapped number" },
+    { "id": "pb-1e23",        "fn": "parse", "args": ["99999999999999999999999"],"upstreamFn": "bytes.parse", "goFn": "bytes.Parse", "deviation": "upstream returns the double 1e23; the port reports an overflow error" },
+    { "id": "pb-pb-overflow", "fn": "parse", "args": ["99999999999999999999pb"], "upstreamFn": "bytes.parse", "goFn": "bytes.Parse", "deviation": "1e20 PB is ~1.1e35 bytes; upstream returns that double, the port reports an overflow error" }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "group": "charset",
+  "upstream": "mime-types@2.1.35",
+  "note": "mime.charset(type) — the charset mime-db declares for a type, falling back to UTF-8 for any text/* type and to false otherwise. Structured suffixes (+json, +xml) get nothing unless the concrete type declares a charset.",
+  "cases": [
+    { "id": "charset-text-html", "fn": "charset", "args": ["text/html"], "upstreamFn": "mime.charset", "goFn": "mimetypes.Charset" },
+    { "id": "charset-text-plain", "fn": "charset", "args": ["text/plain"], "upstreamFn": "mime.charset", "goFn": "mimetypes.Charset" },
+    { "id": "charset-text-css", "fn": "charset", "args": ["text/css"], "upstreamFn": "mime.charset", "goFn": "mimetypes.Charset" },
+    { "id": "charset-text-csv", "fn": "charset", "args": ["text/csv"], "upstreamFn": "mime.charset", "goFn": "mimetypes.Charset" },
+    { "id": "charset-text-unknown", "fn": "charset", "args": ["text/x-made-up"], "upstreamFn": "mime.charset", "goFn": "mimetypes.Charset", "note": "the text/* fallback applies even to types mime-db does not know" },
+    { "id": "charset-text-javascript", "fn": "charset", "args": ["text/javascript"], "upstreamFn": "mime.charset", "goFn": "mimetypes.Charset" },
+    { "id": "charset-app-javascript", "fn": "charset", "args": ["application/javascript"], "upstreamFn": "mime.charset", "goFn": "mimetypes.Charset", "note": "declared in mime-db" },
+    { "id": "charset-app-json", "fn": "charset", "args": ["application/json"], "upstreamFn": "mime.charset", "goFn": "mimetypes.Charset" },
+    { "id": "charset-app-manifest-json", "fn": "charset", "args": ["application/manifest+json"], "upstreamFn": "mime.charset", "goFn": "mimetypes.Charset" },
+    { "id": "charset-app-ld-json", "fn": "charset", "args": ["application/ld+json"], "upstreamFn": "mime.charset", "goFn": "mimetypes.Charset", "note": "no declared charset: a +json suffix is not enough" },
+    { "id": "charset-app-xml", "fn": "charset", "args": ["application/xml"], "upstreamFn": "mime.charset", "goFn": "mimetypes.Charset", "note": "application/xml declares no charset" },
+    { "id": "charset-svg-xml", "fn": "charset", "args": ["image/svg+xml"], "upstreamFn": "mime.charset", "goFn": "mimetypes.Charset" },
+    { "id": "charset-app-fhir-json", "fn": "charset", "args": ["application/fhir+json"], "upstreamFn": "mime.charset", "goFn": "mimetypes.Charset", "note": "this one does declare UTF-8" },
+    { "id": "charset-news-checkgroups", "fn": "charset", "args": ["application/news-checkgroups"], "upstreamFn": "mime.charset", "goFn": "mimetypes.Charset", "note": "a non-UTF-8 declared charset" },
+    { "id": "charset-prs-cyn", "fn": "charset", "args": ["application/prs.cyn"], "upstreamFn": "mime.charset", "goFn": "mimetypes.Charset", "note": "7-BIT" },
+    { "id": "charset-image-png", "fn": "charset", "args": ["image/png"], "upstreamFn": "mime.charset", "goFn": "mimetypes.Charset" },
+    { "id": "charset-app-octet-stream", "fn": "charset", "args": ["application/octet-stream"], "upstreamFn": "mime.charset", "goFn": "mimetypes.Charset" },
+    { "id": "charset-with-params", "fn": "charset", "args": ["text/html; charset=iso-8859-1"], "upstreamFn": "mime.charset", "goFn": "mimetypes.Charset", "note": "parameters are stripped before lookup; the declared charset wins, not the one in the value" },
+    { "id": "charset-with-params-nontext", "fn": "charset", "args": ["image/svg+xml; charset=utf-8"], "upstreamFn": "mime.charset", "goFn": "mimetypes.Charset" },
+    { "id": "charset-uppercase", "fn": "charset", "args": ["TEXT/HTML"], "upstreamFn": "mime.charset", "goFn": "mimetypes.Charset" },
+    { "id": "charset-leading-space", "fn": "charset", "args": ["  text/html"], "upstreamFn": "mime.charset", "goFn": "mimetypes.Charset", "note": "the extraction regexp skips leading whitespace" },
+    { "id": "charset-empty", "fn": "charset", "args": [""], "upstreamFn": "mime.charset", "goFn": "mimetypes.Charset" },
+    { "id": "charset-unknown", "fn": "charset", "args": ["bogus/type"], "upstreamFn": "mime.charset", "goFn": "mimetypes.Charset" },
+    { "id": "charset-not-a-type", "fn": "charset", "args": ["nonsense"], "upstreamFn": "mime.charset", "goFn": "mimetypes.Charset" },
+    { "id": "charset-text-prefix-only", "fn": "charset", "args": ["textual/thing"], "upstreamFn": "mime.charset", "goFn": "mimetypes.Charset", "note": "the fallback regexp anchors on \"text/\", so this must not match" }
+  ]
+}

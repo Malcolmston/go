@@ -1,0 +1,830 @@
+{
+  "group": "sign",
+  "upstream": "jsonwebtoken@9.0.3",
+  "note": "Token minting. Every payload carries an explicit iat, so expiresIn/notBefore produce fixed exp/nbf values and the token string is fully deterministic — the comparison is over the exact token bytes, which is what interoperability means.",
+  "cases": [
+    {
+      "id": "sign-minimal",
+      "fn": "sign",
+      "args": [
+        {
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {}
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign",
+      "note": "the smallest possible payload"
+    },
+    {
+      "id": "sign-empty-payload",
+      "fn": "sign",
+      "args": [
+        {},
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "noTimestamp": true
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign",
+      "note": "no claims at all"
+    },
+    {
+      "id": "sign-sub-and-iat",
+      "fn": "sign",
+      "args": [
+        {
+          "iat": 1700000000,
+          "sub": "user-1"
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {}
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign"
+    },
+    {
+      "id": "sign-hs384",
+      "fn": "sign",
+      "args": [
+        {
+          "iat": 1700000000,
+          "sub": "user-1"
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "algorithm": "HS384"
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign"
+    },
+    {
+      "id": "sign-hs512",
+      "fn": "sign",
+      "args": [
+        {
+          "iat": 1700000000,
+          "sub": "user-1"
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "algorithm": "HS512"
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign"
+    },
+    {
+      "id": "sign-expires-in-seconds",
+      "fn": "sign",
+      "args": [
+        {
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "expiresIn": 3600
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign",
+      "note": "exp is measured from the payload iat"
+    },
+    {
+      "id": "sign-not-before-seconds",
+      "fn": "sign",
+      "args": [
+        {
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "notBefore": 60
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign"
+    },
+    {
+      "id": "sign-expires-and-not-before",
+      "fn": "sign",
+      "args": [
+        {
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "expiresIn": 3600,
+          "notBefore": 60
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign"
+    },
+    {
+      "id": "sign-negative-expires-in",
+      "fn": "sign",
+      "args": [
+        {
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "expiresIn": -3600
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign",
+      "note": "a negative expiresIn mints an already-expired token",
+      "deviation": "the port treats only a positive ExpiresIn as set, since a time.Duration has no \"absent\" value; upstream honours a negative one"
+    },
+    {
+      "id": "sign-zero-expires-in",
+      "fn": "sign",
+      "args": [
+        {
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "expiresIn": 0
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign",
+      "note": "zero means \"expires at iat\" upstream",
+      "deviation": "the port treats a zero ExpiresIn as \"option not set\", since a time.Duration has no \"absent\" value"
+    },
+    {
+      "id": "sign-issuer",
+      "fn": "sign",
+      "args": [
+        {
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "issuer": "https://issuer.example"
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign"
+    },
+    {
+      "id": "sign-subject",
+      "fn": "sign",
+      "args": [
+        {
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "subject": "user-1"
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign"
+    },
+    {
+      "id": "sign-audience-string",
+      "fn": "sign",
+      "args": [
+        {
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "audience": "api.example"
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign"
+    },
+    {
+      "id": "sign-audience-array",
+      "fn": "sign",
+      "args": [
+        {
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "audience": [
+            "api.example",
+            "admin.example"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign"
+    },
+    {
+      "id": "sign-audience-single-element-array",
+      "fn": "sign",
+      "args": [
+        {
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "audience": [
+            "api.example"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign",
+      "note": "upstream writes a one-element array as a JSON array",
+      "deviation": "SignOptions.Audience is a []string, so a single entry is written as a JSON string to match the common Node form audience: \"x\"; Node's audience: [\"x\"] — an array of exactly one — has no distinct Go spelling"
+    },
+    {
+      "id": "sign-jwtid",
+      "fn": "sign",
+      "args": [
+        {
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "jwtid": "token-id-1"
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign"
+    },
+    {
+      "id": "sign-keyid",
+      "fn": "sign",
+      "args": [
+        {
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "keyid": "key-2023"
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign",
+      "note": "kid goes in the header"
+    },
+    {
+      "id": "sign-all-options",
+      "fn": "sign",
+      "args": [
+        {
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "algorithm": "HS512",
+          "expiresIn": 3600,
+          "notBefore": 60,
+          "audience": "api.example",
+          "issuer": "https://issuer.example",
+          "subject": "user-1",
+          "jwtid": "token-id-1",
+          "keyid": "key-2023"
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign"
+    },
+    {
+      "id": "sign-no-timestamp",
+      "fn": "sign",
+      "args": [
+        {
+          "sub": "user-1"
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "noTimestamp": true
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign",
+      "note": "no iat is stamped"
+    },
+    {
+      "id": "sign-no-timestamp-drops-explicit-iat",
+      "fn": "sign",
+      "args": [
+        {
+          "iat": 1700000000,
+          "sub": "user-1"
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "noTimestamp": true
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign",
+      "note": "noTimestamp removes an iat the caller supplied"
+    },
+    {
+      "id": "sign-no-timestamp-with-expires-in",
+      "fn": "sign",
+      "args": [
+        {
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "noTimestamp": true,
+          "expiresIn": 3600
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign",
+      "note": "iat is dropped but exp is still measured from it"
+    },
+    {
+      "id": "sign-explicit-exp-claim",
+      "fn": "sign",
+      "args": [
+        {
+          "exp": 1700003600,
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {}
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign",
+      "note": "exp supplied as a claim, not an option"
+    },
+    {
+      "id": "sign-explicit-nbf-claim",
+      "fn": "sign",
+      "args": [
+        {
+          "iat": 1700000000,
+          "nbf": 1700000060
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {}
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign"
+    },
+    {
+      "id": "sign-extra-header-params",
+      "fn": "sign",
+      "args": [
+        {
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "header": {
+            "cty": "JWT",
+            "foo": "bar"
+          }
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign"
+    },
+    {
+      "id": "sign-header-with-kid",
+      "fn": "sign",
+      "args": [
+        {
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "keyid": "k1",
+          "header": {
+            "cty": "JWT"
+          }
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign"
+    },
+    {
+      "id": "sign-unicode-claims",
+      "fn": "sign",
+      "args": [
+        {
+          "city": "Kraków",
+          "iat": 1700000000,
+          "name": "naïve café 你好"
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {}
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign"
+    },
+    {
+      "id": "sign-nested-claims",
+      "fn": "sign",
+      "args": [
+        {
+          "iat": 1700000000,
+          "user": {
+            "id": 7,
+            "meta": {
+              "active": true
+            },
+            "roles": [
+              "admin",
+              "ops"
+            ]
+          }
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {}
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign"
+    },
+    {
+      "id": "sign-numeric-claims",
+      "fn": "sign",
+      "args": [
+        {
+          "float": 1.5,
+          "iat": 1700000000,
+          "negative": -7,
+          "zero": 0
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {}
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign"
+    },
+    {
+      "id": "sign-null-and-bool-claims",
+      "fn": "sign",
+      "args": [
+        {
+          "iat": 1700000000,
+          "nothing": null,
+          "yes": true
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {}
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign"
+    },
+    {
+      "id": "sign-unicode-secret",
+      "fn": "sign",
+      "args": [
+        {
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "sécret-你-🔑"
+        },
+        {}
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign"
+    },
+    {
+      "id": "sign-long-secret",
+      "fn": "sign",
+      "args": [
+        {
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk"
+        },
+        {}
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign",
+      "note": "a secret longer than the hash block size"
+    },
+    {
+      "id": "sign-no-secret",
+      "fn": "sign",
+      "args": [
+        {
+          "iat": 1700000000
+        },
+        {
+          "kind": "none"
+        },
+        {}
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign",
+      "note": "must fail on both sides"
+    },
+    {
+      "id": "sign-empty-secret",
+      "fn": "sign",
+      "args": [
+        {
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": ""
+        },
+        {}
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign",
+      "note": "an empty HMAC key is a key everybody knows: must fail on both sides"
+    },
+    {
+      "id": "sign-unsupported-algorithm",
+      "fn": "sign",
+      "args": [
+        {
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "algorithm": "HS999"
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign",
+      "note": "must fail on both sides"
+    },
+    {
+      "id": "sign-rs256-with-hmac-secret",
+      "fn": "sign",
+      "args": [
+        {
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "algorithm": "RS256"
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign",
+      "note": "an asymmetric algorithm with a symmetric key: must fail on both sides"
+    },
+    {
+      "id": "sign-alg-none",
+      "fn": "sign",
+      "args": [
+        {
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "algorithm": "none"
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign",
+      "note": "upstream can mint an unsigned token",
+      "deviation": "the port implements the HMAC family only and refuses the unsecured \"none\" algorithm outright"
+    },
+    {
+      "id": "sign-exp-claim-and-expires-in",
+      "fn": "sign",
+      "args": [
+        {
+          "exp": 1700003600,
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "expiresIn": 3600
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign",
+      "note": "the option would overwrite the claim: must fail on both sides"
+    },
+    {
+      "id": "sign-nbf-claim-and-not-before",
+      "fn": "sign",
+      "args": [
+        {
+          "iat": 1700000000,
+          "nbf": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "notBefore": 60
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign",
+      "note": "must fail on both sides"
+    },
+    {
+      "id": "sign-aud-claim-and-audience",
+      "fn": "sign",
+      "args": [
+        {
+          "aud": "a",
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "audience": "b"
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign",
+      "note": "must fail on both sides"
+    },
+    {
+      "id": "sign-iss-claim-and-issuer",
+      "fn": "sign",
+      "args": [
+        {
+          "iat": 1700000000,
+          "iss": "a"
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "issuer": "b"
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign",
+      "note": "must fail on both sides"
+    },
+    {
+      "id": "sign-sub-claim-and-subject",
+      "fn": "sign",
+      "args": [
+        {
+          "iat": 1700000000,
+          "sub": "a"
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "subject": "b"
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign",
+      "note": "must fail on both sides"
+    },
+    {
+      "id": "sign-jti-claim-and-jwtid",
+      "fn": "sign",
+      "args": [
+        {
+          "iat": 1700000000,
+          "jti": "a"
+        },
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "jwtid": "b"
+        }
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign",
+      "note": "must fail on both sides"
+    },
+    {
+      "id": "sign-hs256-with-public-key-pem",
+      "fn": "sign",
+      "args": [
+        {
+          "iat": 1700000000
+        },
+        {
+          "kind": "oct",
+          "file": "rsa-2048.pub.pem"
+        },
+        {}
+      ],
+      "upstreamFn": "jwt.sign",
+      "goFn": "jsonwebtoken.Sign",
+      "note": "upstream happily HMACs with the bytes of a public key — which is how the algorithm-confusion forgery is built",
+      "deviation": "the port refuses asymmetric key material as an HMAC secret when SIGNING as well as when verifying; upstream only refuses it on verify, so a Node caller can mint exactly the forgery its own verify() rejects"
+    }
+  ]
+}

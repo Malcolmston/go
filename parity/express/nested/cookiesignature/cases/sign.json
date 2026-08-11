@@ -1,0 +1,258 @@
+{
+  "group": "sign",
+  "upstream": "cookie-signature@1.2.2",
+  "note": "Fixed secrets throughout. cookie-signature is a deterministic HMAC-SHA256 over the value, so no clock, key generation or randomness is involved.",
+  "cases": [
+    {
+      "id": "sign-simple",
+      "fn": "sign",
+      "args": [
+        "s:sessionid123",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.sign",
+      "goFn": "cookiesignature.Sign"
+    },
+    {
+      "id": "sign-empty",
+      "fn": "sign",
+      "args": [
+        "",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.sign",
+      "goFn": "cookiesignature.Sign"
+    },
+    {
+      "id": "sign-single-char",
+      "fn": "sign",
+      "args": [
+        "x",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.sign",
+      "goFn": "cookiesignature.Sign"
+    },
+    {
+      "id": "sign-with-dots",
+      "fn": "sign",
+      "args": [
+        "a.b.c",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.sign",
+      "goFn": "cookiesignature.Sign"
+    },
+    {
+      "id": "sign-leading-dot",
+      "fn": "sign",
+      "args": [
+        ".leading",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.sign",
+      "goFn": "cookiesignature.Sign"
+    },
+    {
+      "id": "sign-trailing-dot",
+      "fn": "sign",
+      "args": [
+        "trailing.",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.sign",
+      "goFn": "cookiesignature.Sign"
+    },
+    {
+      "id": "sign-only-dot",
+      "fn": "sign",
+      "args": [
+        ".",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.sign",
+      "goFn": "cookiesignature.Sign"
+    },
+    {
+      "id": "sign-unicode",
+      "fn": "sign",
+      "args": [
+        "naïve-café-你好",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.sign",
+      "goFn": "cookiesignature.Sign"
+    },
+    {
+      "id": "sign-emoji",
+      "fn": "sign",
+      "args": [
+        "session-🚀-id",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.sign",
+      "goFn": "cookiesignature.Sign"
+    },
+    {
+      "id": "sign-newline",
+      "fn": "sign",
+      "args": [
+        "line1\nline2",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.sign",
+      "goFn": "cookiesignature.Sign"
+    },
+    {
+      "id": "sign-tab",
+      "fn": "sign",
+      "args": [
+        "a\tb",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.sign",
+      "goFn": "cookiesignature.Sign"
+    },
+    {
+      "id": "sign-nul",
+      "fn": "sign",
+      "args": [
+        "a\u0000b",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.sign",
+      "goFn": "cookiesignature.Sign"
+    },
+    {
+      "id": "sign-spaces",
+      "fn": "sign",
+      "args": [
+        "  padded  ",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.sign",
+      "goFn": "cookiesignature.Sign"
+    },
+    {
+      "id": "sign-long",
+      "fn": "sign",
+      "args": [
+        "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.sign",
+      "goFn": "cookiesignature.Sign"
+    },
+    {
+      "id": "sign-base64ish",
+      "fn": "sign",
+      "args": [
+        "YWJjZGVmZw==",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.sign",
+      "goFn": "cookiesignature.Sign"
+    },
+    {
+      "id": "sign-json",
+      "fn": "sign",
+      "args": [
+        "{\"a\":1,\"b\":[2,3]}",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.sign",
+      "goFn": "cookiesignature.Sign"
+    },
+    {
+      "id": "sign-url",
+      "fn": "sign",
+      "args": [
+        "https://example.com/a?b=c&d=e",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.sign",
+      "goFn": "cookiesignature.Sign"
+    },
+    {
+      "id": "sign-percent",
+      "fn": "sign",
+      "args": [
+        "%2Fslash%20space",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.sign",
+      "goFn": "cookiesignature.Sign"
+    },
+    {
+      "id": "sign-high-latin1",
+      "fn": "sign",
+      "args": [
+        "ÿþý",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.sign",
+      "goFn": "cookiesignature.Sign"
+    },
+    {
+      "id": "sign-surrogate-pair",
+      "fn": "sign",
+      "args": [
+        "💩😀",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.sign",
+      "goFn": "cookiesignature.Sign"
+    },
+    {
+      "id": "sign-empty-secret",
+      "fn": "sign",
+      "args": [
+        "value",
+        ""
+      ],
+      "upstreamFn": "cookieSignature.sign",
+      "goFn": "cookiesignature.Sign",
+      "note": "an empty secret is not null, so upstream still signs"
+    },
+    {
+      "id": "sign-unicode-secret",
+      "fn": "sign",
+      "args": [
+        "value",
+        "sécret-你"
+      ],
+      "upstreamFn": "cookieSignature.sign",
+      "goFn": "cookiesignature.Sign"
+    },
+    {
+      "id": "sign-long-secret",
+      "fn": "sign",
+      "args": [
+        "value",
+        "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk"
+      ],
+      "upstreamFn": "cookieSignature.sign",
+      "goFn": "cookiesignature.Sign"
+    },
+    {
+      "id": "sign-other-secret",
+      "fn": "sign",
+      "args": [
+        "value",
+        "a-different-secret"
+      ],
+      "upstreamFn": "cookieSignature.sign",
+      "goFn": "cookiesignature.Sign"
+    },
+    {
+      "id": "sign-secret-with-nul",
+      "fn": "sign",
+      "args": [
+        "value",
+        "a\u0000b"
+      ],
+      "upstreamFn": "cookieSignature.sign",
+      "goFn": "cookiesignature.Sign"
+    }
+  ]
+}

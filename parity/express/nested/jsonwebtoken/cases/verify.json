@@ -1,0 +1,448 @@
+{
+  "group": "verify",
+  "upstream": "jsonwebtoken@9.0.3",
+  "note": "Verification of tokens minted by the pinned upstream: cross-implementation verification. clockTimestamp is pinned in every case.",
+  "cases": [
+    {
+      "id": "ver-plain",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MDAwMDAwMDAsInN1YiI6InVzZXItMSJ9.Qc-1lRaHILrMAgqzr_O-Gw7py7JklrpE7L65-pBzUFc",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jsonwebtoken.Verify",
+      "note": "a genuine upstream-minted token"
+    },
+    {
+      "id": "ver-plain-complete",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MDAwMDAwMDAsInN1YiI6InVzZXItMSJ9.Qc-1lRaHILrMAgqzr_O-Gw7py7JklrpE7L65-pBzUFc",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "algorithms": [
+            "HS256"
+          ],
+          "complete": true
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jsonwebtoken.Verify",
+      "note": "header, payload and signature"
+    },
+    {
+      "id": "ver-with-exp-still-valid",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MDAwMDAwMDAsImV4cCI6MTcwMDAwMzYwMCwic3ViIjoidXNlci0xIn0.uKSRptK0e_XfFh3h6rjPWdm_s9rH5m43WfU-ecsB9o4",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jsonwebtoken.Verify"
+    },
+    {
+      "id": "ver-hs384",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzM4NCIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MDAwMDAwMDAsInN1YiI6InVzZXItMSJ9.MBRImVPkVR5Go7-kTYK1uCZq0K4DsBaQxKlqOWsLkPQ6BYRhycn-_82cVpc8XuBg",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "algorithms": [
+            "HS384"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jsonwebtoken.Verify"
+    },
+    {
+      "id": "ver-hs512",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MDAwMDAwMDAsInN1YiI6InVzZXItMSJ9.Wl8wrspaw7Bxu0Lu8vdN9uWLj5U26Z2rYpYFdsug013IAWEkPNM9iRMW2OmFssr0EcBGYMT2xg7kwh0h6JHWrg",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "algorithms": [
+            "HS512"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jsonwebtoken.Verify"
+    },
+    {
+      "id": "ver-multiple-algorithms-allowed",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MDAwMDAwMDAsInN1YiI6InVzZXItMSJ9.Wl8wrspaw7Bxu0Lu8vdN9uWLj5U26Z2rYpYFdsug013IAWEkPNM9iRMW2OmFssr0EcBGYMT2xg7kwh0h6JHWrg",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "algorithms": [
+            "HS256",
+            "HS384",
+            "HS512"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jsonwebtoken.Verify"
+    },
+    {
+      "id": "ver-no-algorithms-option",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MDAwMDAwMDAsInN1YiI6InVzZXItMSJ9.Qc-1lRaHILrMAgqzr_O-Gw7py7JklrpE7L65-pBzUFc",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jsonwebtoken.Verify",
+      "note": "no allowlist: upstream infers the HMAC family from the symmetric key"
+    },
+    {
+      "id": "ver-kid-header",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImtleS0yMDIzIn0.eyJpYXQiOjE3MDAwMDAwMDAsInN1YiI6InVzZXItMSJ9.izvr16aSJ6kmMa99IyvV9PIwfI2dL9f7VFvm8de3fkI",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "algorithms": [
+            "HS256"
+          ],
+          "complete": true
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jsonwebtoken.Verify"
+    },
+    {
+      "id": "ver-audience-match",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MDAwMDAwMDAsImF1ZCI6ImFwaS5leGFtcGxlIiwic3ViIjoidXNlci0xIn0.2Qp8ILrheo3qILayvIzhUZLhuPbfMZ8yY0sLlF6jb1Q",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "algorithms": [
+            "HS256"
+          ],
+          "audience": "api.example"
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jsonwebtoken.Verify"
+    },
+    {
+      "id": "ver-audience-array-claim-match",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MDAwMDAwMDAsImF1ZCI6WyJhcGkuZXhhbXBsZSIsImFkbWluLmV4YW1wbGUiXSwic3ViIjoidXNlci0xIn0.iothWOiDG5iD2NzGs-gjkp0snyhLBXZUSO2JCEykZng",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "algorithms": [
+            "HS256"
+          ],
+          "audience": "admin.example"
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jsonwebtoken.Verify",
+      "note": "the aud claim is an array containing the expected value"
+    },
+    {
+      "id": "ver-issuer-match",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MDAwMDAwMDAsImlzcyI6Imh0dHBzOi8vaXNzdWVyLmV4YW1wbGUiLCJzdWIiOiJ1c2VyLTEifQ.g8pZCo6_s3bDVUeTjmNSCpI-XFvNkVZghBT0g6y3gkk",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "algorithms": [
+            "HS256"
+          ],
+          "issuer": "https://issuer.example"
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jsonwebtoken.Verify"
+    },
+    {
+      "id": "ver-issuer-list-match",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MDAwMDAwMDAsImlzcyI6Imh0dHBzOi8vaXNzdWVyLmV4YW1wbGUiLCJzdWIiOiJ1c2VyLTEifQ.g8pZCo6_s3bDVUeTjmNSCpI-XFvNkVZghBT0g6y3gkk",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "algorithms": [
+            "HS256"
+          ],
+          "issuer": [
+            "other",
+            "https://issuer.example"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jsonwebtoken.Verify"
+    },
+    {
+      "id": "ver-subject-match",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MDAwMDAwMDAsInN1YiI6InVzZXItMSJ9.Qc-1lRaHILrMAgqzr_O-Gw7py7JklrpE7L65-pBzUFc",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "algorithms": [
+            "HS256"
+          ],
+          "subject": "user-1"
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jsonwebtoken.Verify"
+    },
+    {
+      "id": "ver-jwtid-match",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MDAwMDAwMDAsImp0aSI6InRva2VuLWlkLTEiLCJzdWIiOiJ1c2VyLTEifQ.yN0Yi3FXf42yv6J0XkahS8kOE0ZL2REvAIhJSfB2VP4",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "algorithms": [
+            "HS256"
+          ],
+          "jwtid": "token-id-1"
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jsonwebtoken.Verify"
+    },
+    {
+      "id": "ver-expired-but-within-tolerance",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2MDAwMDAwMDAsImV4cCI6MTYwMDAwMDA2MCwic3ViIjoidXNlci0xIn0.7EywS-ClGbDIQ-Ys6vcaai_v098gw0s4Lg2o9iQagcg",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1600000090,
+          "algorithms": [
+            "HS256"
+          ],
+          "clockTolerance": 60
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jsonwebtoken.Verify",
+      "note": "clockTolerance forgives a token that expired 30 seconds ago"
+    },
+    {
+      "id": "ver-expired-ignored",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2MDAwMDAwMDAsImV4cCI6MTYwMDAwMDA2MCwic3ViIjoidXNlci0xIn0.7EywS-ClGbDIQ-Ys6vcaai_v098gw0s4Lg2o9iQagcg",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "algorithms": [
+            "HS256"
+          ],
+          "ignoreExpiration": true
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jsonwebtoken.Verify"
+    },
+    {
+      "id": "ver-not-yet-valid-ignored",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MDAwMDAwMDAsIm5iZiI6MTcwMDAwMzcwMCwic3ViIjoidXNlci0xIn0.j5JoWfxEIslY4V6AiXE3DPsca9SrRCg1t5rg4dRy2kk",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "algorithms": [
+            "HS256"
+          ],
+          "ignoreNotBefore": true
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jsonwebtoken.Verify"
+    },
+    {
+      "id": "ver-nbf-within-tolerance",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MDAwMDAwMDAsIm5iZiI6MTcwMDAwMzcwMCwic3ViIjoidXNlci0xIn0.j5JoWfxEIslY4V6AiXE3DPsca9SrRCg1t5rg4dRy2kk",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "algorithms": [
+            "HS256"
+          ],
+          "clockTolerance": 7200
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jsonwebtoken.Verify"
+    },
+    {
+      "id": "ver-maxage-within",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MDAwMDAwMDAsInN1YiI6InVzZXItMSJ9.Qc-1lRaHILrMAgqzr_O-Gw7py7JklrpE7L65-pBzUFc",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "algorithms": [
+            "HS256"
+          ],
+          "maxAge": 3600
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jsonwebtoken.Verify",
+      "note": "the token is 100 seconds old"
+    },
+    {
+      "id": "ver-exp-exactly-now",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MDAwMDAwMDAsImV4cCI6MTcwMDAwMzYwMCwic3ViIjoidXNlci0xIn0.uKSRptK0e_XfFh3h6rjPWdm_s9rH5m43WfU-ecsB9o4",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700003600,
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jsonwebtoken.Verify",
+      "note": "exp is inclusive: expired at exp"
+    },
+    {
+      "id": "ver-exp-one-second-before",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MDAwMDAwMDAsImV4cCI6MTcwMDAwMzYwMCwic3ViIjoidXNlci0xIn0.uKSRptK0e_XfFh3h6rjPWdm_s9rH5m43WfU-ecsB9o4",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700003599,
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jsonwebtoken.Verify"
+    },
+    {
+      "id": "ver-nbf-exactly-now",
+      "fn": "verify",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MDAwMDAwMDAsIm5iZiI6MTcwMDAwMDEwMH0.TjKNQrY7VOH8n-4Qd41dUWLc5b0YspVvpCf6C12GT2Q",
+        {
+          "kind": "oct",
+          "secret": "parity-hmac-secret-256-bits-long-enough"
+        },
+        {
+          "clockTimestamp": 1700000100,
+          "algorithms": [
+            "HS256"
+          ]
+        }
+      ],
+      "upstreamFn": "jwt.verify",
+      "goFn": "jsonwebtoken.Verify",
+      "note": "nbf is satisfied at nbf"
+    }
+  ]
+}

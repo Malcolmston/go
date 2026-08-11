@@ -1,0 +1,23 @@
+{
+  "group": "roundtrip",
+  "upstream": "ms@4.0.0-nightly.202508271359",
+  "note": "parse then format, the way a config value flows through the library: ms.format(ms.parse(\"2h\")).",
+  "cases": [
+    { "id": "rt-2h",        "fn": "roundtrip",     "args": ["2h"],        "upstreamFn": "ms.format", "goFn": "ms.Format(ms.Parse)" },
+    { "id": "rt-100ms",     "fn": "roundtrip",     "args": ["100ms"],     "upstreamFn": "ms.format", "goFn": "ms.Format(ms.Parse)" },
+    { "id": "rt-1day",      "fn": "roundtrip",     "args": ["1 day"],     "upstreamFn": "ms.format", "goFn": "ms.Format(ms.Parse)" },
+    { "id": "rt-1.5h",      "fn": "roundtrip",     "args": ["1.5h"],      "upstreamFn": "ms.format", "goFn": "ms.Format(ms.Parse)" },
+    { "id": "rt-week",      "fn": "roundtrip",     "args": ["1w"],        "upstreamFn": "ms.format", "goFn": "ms.Format(ms.Parse)" },
+    { "id": "rt-30d",       "fn": "roundtrip",     "args": ["30d"],       "upstreamFn": "ms.format", "goFn": "ms.Format(ms.Parse)" },
+    { "id": "rt-neg-3d",    "fn": "roundtrip",     "args": ["-3d"],       "upstreamFn": "ms.format", "goFn": "ms.Format(ms.Parse)" },
+    { "id": "rt-2.5days",   "fn": "roundtrip",     "args": ["2.5 days"],  "upstreamFn": "ms.format", "goFn": "ms.Format(ms.Parse)" },
+    { "id": "rt-neg-2.5d",  "fn": "roundtrip",     "args": ["-2.5d"],     "upstreamFn": "ms.format", "goFn": "ms.Format(ms.Parse)" },
+    { "id": "rt-0.5s",      "fn": "roundtrip",     "args": ["0.5s"],      "upstreamFn": "ms.format", "goFn": "ms.Format(ms.Parse)" },
+    { "id": "rt-long-2h",   "fn": "roundtripLong", "args": ["2h"],        "upstreamFn": "ms.format", "goFn": "ms.FormatLong(ms.Parse)" },
+    { "id": "rt-long-1s",   "fn": "roundtripLong", "args": ["1s"],        "upstreamFn": "ms.format", "goFn": "ms.FormatLong(ms.Parse)" },
+    { "id": "rt-long-week", "fn": "roundtripLong", "args": ["1 week"],    "upstreamFn": "ms.format", "goFn": "ms.FormatLong(ms.Parse)" },
+    { "id": "rt-long-year", "fn": "roundtripLong", "args": ["1y"],        "upstreamFn": "ms.format", "goFn": "ms.FormatLong(ms.Parse)" },
+    { "id": "rt-long-100",  "fn": "roundtripLong", "args": ["100"],       "upstreamFn": "ms.format", "goFn": "ms.FormatLong(ms.Parse)" },
+    { "id": "rt-err",       "fn": "roundtrip",     "args": ["nonsense"],  "upstreamFn": "ms.format", "goFn": "ms.Format(ms.Parse)", "note": "the failure propagates out of the round trip" }
+  ]
+}

@@ -1,0 +1,529 @@
+{
+  "group": "parse",
+  "upstream": "otpauth@9.5.1",
+  "note": "Key-URI parsing, including everything URI.parse refuses: a missing or non-base32 secret, an HOTP URI with no counter, a non-positive period or digits, an unknown algorithm, an unknown type and a wrong scheme.",
+  "cases": [
+    {
+      "id": "parse-totp-full",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/ACME%20Co:alice@example.com?issuer=ACME%20Co&secret=JBSWY3DPEHPK3PXP&algorithm=SHA256&digits=8&period=60"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse"
+    },
+    {
+      "id": "parse-totp-minimal",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse"
+    },
+    {
+      "id": "parse-totp-defaults-filled",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/ACME:alice?issuer=ACME&secret=JBSWY3DPEHPK3PXP"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse"
+    },
+    {
+      "id": "parse-totp-issuer-only-in-query",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/alice?issuer=ACME&secret=JBSWY3DPEHPK3PXP"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse"
+    },
+    {
+      "id": "parse-totp-issuer-conflict",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/LabelIssuer:alice?issuer=QueryIssuer&secret=JBSWY3DPEHPK3PXP"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse",
+      "note": "the query parameter wins"
+    },
+    {
+      "id": "parse-totp-encoded-colon",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/ACME%20Co%3Aalice?secret=JBSWY3DPEHPK3PXP"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse"
+    },
+    {
+      "id": "parse-totp-space-after-colon",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/ACME: alice?secret=JBSWY3DPEHPK3PXP"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse",
+      "note": "a space after the label separator is dropped"
+    },
+    {
+      "id": "parse-totp-param-order",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/alice?digits=7&period=45&secret=JBSWY3DPEHPK3PXP&algorithm=SHA512"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse",
+      "note": "any parameter order"
+    },
+    {
+      "id": "parse-totp-uppercase-type",
+      "fn": "parse",
+      "args": [
+        "otpauth://TOTP/alice?secret=JBSWY3DPEHPK3PXP"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse",
+      "note": "the type is case-insensitive"
+    },
+    {
+      "id": "parse-totp-lowercase-algorithm",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP&algorithm=sha512"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse"
+    },
+    {
+      "id": "parse-totp-lowercase-secret",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/alice?secret=jbswy3dpehpk3pxp"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse"
+    },
+    {
+      "id": "parse-totp-padded-secret",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP%3D%3D%3D%3D"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse"
+    },
+    {
+      "id": "parse-totp-plus-in-label",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/a+b?secret=JBSWY3DPEHPK3PXP"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse",
+      "note": "a plus is a literal plus, not a space"
+    },
+    {
+      "id": "parse-totp-plus-in-issuer",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/alice?issuer=A+B&secret=JBSWY3DPEHPK3PXP"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse"
+    },
+    {
+      "id": "parse-totp-percent-encoded-issuer",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/alice?issuer=A%20%26%20B&secret=JBSWY3DPEHPK3PXP"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse"
+    },
+    {
+      "id": "parse-totp-unicode",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/%C3%9Cn%C3%AFc%C3%B8de:jos%C3%A9?secret=JBSWY3DPEHPK3PXP"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse"
+    },
+    {
+      "id": "parse-totp-empty-label",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/?secret=JBSWY3DPEHPK3PXP"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse"
+    },
+    {
+      "id": "parse-totp-period-1",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP&period=1"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse"
+    },
+    {
+      "id": "parse-totp-digits-10",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP&digits=10"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse"
+    },
+    {
+      "id": "parse-hotp-full",
+      "fn": "parse",
+      "args": [
+        "otpauth://hotp/ACME:bob?issuer=ACME&secret=JBSWY3DPEHPK3PXP&algorithm=SHA1&digits=6&counter=5"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse"
+    },
+    {
+      "id": "parse-hotp-counter-zero",
+      "fn": "parse",
+      "args": [
+        "otpauth://hotp/bob?secret=JBSWY3DPEHPK3PXP&counter=0"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse"
+    },
+    {
+      "id": "parse-hotp-large-counter",
+      "fn": "parse",
+      "args": [
+        "otpauth://hotp/bob?secret=JBSWY3DPEHPK3PXP&counter=4294967296"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse"
+    },
+    {
+      "id": "parse-hotp-no-counter",
+      "fn": "parse",
+      "args": [
+        "otpauth://hotp/bob?secret=JBSWY3DPEHPK3PXP"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse",
+      "note": "counter is mandatory for HOTP: must fail on both sides"
+    },
+    {
+      "id": "parse-hotp-bad-counter",
+      "fn": "parse",
+      "args": [
+        "otpauth://hotp/bob?secret=JBSWY3DPEHPK3PXP&counter=abc"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse",
+      "note": "must fail on both sides"
+    },
+    {
+      "id": "parse-hotp-ignores-period",
+      "fn": "parse",
+      "args": [
+        "otpauth://hotp/bob?secret=JBSWY3DPEHPK3PXP&counter=1&period=60"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse"
+    },
+    {
+      "id": "parse-no-secret",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/alice?digits=6"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse",
+      "note": "secret is mandatory: must fail on both sides"
+    },
+    {
+      "id": "parse-empty-secret",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/alice?secret="
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse",
+      "note": "must fail on both sides"
+    },
+    {
+      "id": "parse-bad-secret",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/alice?secret=not-base32"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse",
+      "note": "must fail on both sides"
+    },
+    {
+      "id": "parse-unknown-type",
+      "fn": "parse",
+      "args": [
+        "otpauth://xotp/alice?secret=JBSWY3DPEHPK3PXP"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse",
+      "note": "must fail on both sides"
+    },
+    {
+      "id": "parse-wrong-scheme",
+      "fn": "parse",
+      "args": [
+        "https://totp/alice?secret=JBSWY3DPEHPK3PXP"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse",
+      "note": "must fail on both sides"
+    },
+    {
+      "id": "parse-no-scheme",
+      "fn": "parse",
+      "args": [
+        "totp/alice?secret=JBSWY3DPEHPK3PXP"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse",
+      "note": "must fail on both sides"
+    },
+    {
+      "id": "parse-empty-string",
+      "fn": "parse",
+      "args": [
+        ""
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse",
+      "note": "must fail on both sides"
+    },
+    {
+      "id": "parse-no-query",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/alice"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse",
+      "note": "must fail on both sides"
+    },
+    {
+      "id": "parse-bad-digits",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP&digits=abc"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse",
+      "note": "must fail on both sides"
+    },
+    {
+      "id": "parse-zero-digits",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP&digits=0"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse",
+      "note": "must fail on both sides"
+    },
+    {
+      "id": "parse-negative-digits",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP&digits=-6"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse",
+      "note": "must fail on both sides"
+    },
+    {
+      "id": "parse-zero-period",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP&period=0"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse",
+      "note": "must fail on both sides"
+    },
+    {
+      "id": "parse-negative-period",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP&period=-30"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse",
+      "note": "must fail on both sides"
+    },
+    {
+      "id": "parse-bad-algorithm",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP&algorithm=MD5"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse",
+      "note": "must fail on both sides"
+    },
+    {
+      "id": "parse-sha3-algorithm",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP&algorithm=SHA3-256"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse",
+      "note": "a legal URI algorithm the port cannot compute but must still parse"
+    },
+    {
+      "id": "roundtrip-totp-full",
+      "fn": "parseThenUri",
+      "args": [
+        "otpauth://totp/ACME%20Co:alice@example.com?issuer=ACME%20Co&secret=JBSWY3DPEHPK3PXP&algorithm=SHA256&digits=8&period=60"
+      ],
+      "upstreamFn": "URI.parse + toString",
+      "goFn": "otpauth.Parse + otpauth.URL",
+      "note": "parse then render: the canonical form of the same URI"
+    },
+    {
+      "id": "roundtrip-totp-minimal",
+      "fn": "parseThenUri",
+      "args": [
+        "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP"
+      ],
+      "upstreamFn": "URI.parse + toString",
+      "goFn": "otpauth.Parse + otpauth.URL",
+      "note": "parse then render: the canonical form of the same URI"
+    },
+    {
+      "id": "roundtrip-totp-defaults-filled",
+      "fn": "parseThenUri",
+      "args": [
+        "otpauth://totp/ACME:alice?issuer=ACME&secret=JBSWY3DPEHPK3PXP"
+      ],
+      "upstreamFn": "URI.parse + toString",
+      "goFn": "otpauth.Parse + otpauth.URL",
+      "note": "parse then render: the canonical form of the same URI"
+    },
+    {
+      "id": "roundtrip-totp-issuer-only-in-query",
+      "fn": "parseThenUri",
+      "args": [
+        "otpauth://totp/alice?issuer=ACME&secret=JBSWY3DPEHPK3PXP"
+      ],
+      "upstreamFn": "URI.parse + toString",
+      "goFn": "otpauth.Parse + otpauth.URL",
+      "note": "parse then render: the canonical form of the same URI"
+    },
+    {
+      "id": "roundtrip-totp-issuer-conflict",
+      "fn": "parseThenUri",
+      "args": [
+        "otpauth://totp/LabelIssuer:alice?issuer=QueryIssuer&secret=JBSWY3DPEHPK3PXP"
+      ],
+      "upstreamFn": "URI.parse + toString",
+      "goFn": "otpauth.Parse + otpauth.URL",
+      "note": "parse then render: the canonical form of the same URI"
+    },
+    {
+      "id": "roundtrip-totp-encoded-colon",
+      "fn": "parseThenUri",
+      "args": [
+        "otpauth://totp/ACME%20Co%3Aalice?secret=JBSWY3DPEHPK3PXP"
+      ],
+      "upstreamFn": "URI.parse + toString",
+      "goFn": "otpauth.Parse + otpauth.URL",
+      "note": "parse then render: the canonical form of the same URI"
+    },
+    {
+      "id": "roundtrip-totp-space-after-colon",
+      "fn": "parseThenUri",
+      "args": [
+        "otpauth://totp/ACME: alice?secret=JBSWY3DPEHPK3PXP"
+      ],
+      "upstreamFn": "URI.parse + toString",
+      "goFn": "otpauth.Parse + otpauth.URL",
+      "note": "parse then render: the canonical form of the same URI"
+    },
+    {
+      "id": "roundtrip-totp-param-order",
+      "fn": "parseThenUri",
+      "args": [
+        "otpauth://totp/alice?digits=7&period=45&secret=JBSWY3DPEHPK3PXP&algorithm=SHA512"
+      ],
+      "upstreamFn": "URI.parse + toString",
+      "goFn": "otpauth.Parse + otpauth.URL",
+      "note": "parse then render: the canonical form of the same URI"
+    },
+    {
+      "id": "roundtrip-totp-uppercase-type",
+      "fn": "parseThenUri",
+      "args": [
+        "otpauth://TOTP/alice?secret=JBSWY3DPEHPK3PXP"
+      ],
+      "upstreamFn": "URI.parse + toString",
+      "goFn": "otpauth.Parse + otpauth.URL",
+      "note": "parse then render: the canonical form of the same URI"
+    },
+    {
+      "id": "roundtrip-totp-lowercase-algorithm",
+      "fn": "parseThenUri",
+      "args": [
+        "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP&algorithm=sha512"
+      ],
+      "upstreamFn": "URI.parse + toString",
+      "goFn": "otpauth.Parse + otpauth.URL",
+      "note": "parse then render: the canonical form of the same URI"
+    },
+    {
+      "id": "roundtrip-totp-lowercase-secret",
+      "fn": "parseThenUri",
+      "args": [
+        "otpauth://totp/alice?secret=jbswy3dpehpk3pxp"
+      ],
+      "upstreamFn": "URI.parse + toString",
+      "goFn": "otpauth.Parse + otpauth.URL",
+      "note": "parse then render: the canonical form of the same URI"
+    },
+    {
+      "id": "roundtrip-totp-padded-secret",
+      "fn": "parseThenUri",
+      "args": [
+        "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP%3D%3D%3D%3D"
+      ],
+      "upstreamFn": "URI.parse + toString",
+      "goFn": "otpauth.Parse + otpauth.URL",
+      "note": "parse then render: the canonical form of the same URI"
+    },
+    {
+      "id": "roundtrip-totp-plus-in-label",
+      "fn": "parseThenUri",
+      "args": [
+        "otpauth://totp/a+b?secret=JBSWY3DPEHPK3PXP"
+      ],
+      "upstreamFn": "URI.parse + toString",
+      "goFn": "otpauth.Parse + otpauth.URL",
+      "note": "parse then render: the canonical form of the same URI"
+    },
+    {
+      "id": "roundtrip-totp-plus-in-issuer",
+      "fn": "parseThenUri",
+      "args": [
+        "otpauth://totp/alice?issuer=A+B&secret=JBSWY3DPEHPK3PXP"
+      ],
+      "upstreamFn": "URI.parse + toString",
+      "goFn": "otpauth.Parse + otpauth.URL",
+      "note": "parse then render: the canonical form of the same URI"
+    }
+  ]
+}

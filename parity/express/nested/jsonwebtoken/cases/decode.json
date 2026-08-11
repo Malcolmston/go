@@ -1,0 +1,146 @@
+{
+  "group": "decode",
+  "upstream": "jsonwebtoken@9.0.3",
+  "note": "The deliberately unauthenticated read: jwt.decode / Decode and DecodeComplete.",
+  "cases": [
+    {
+      "id": "dec-plain",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MDAwMDAwMDAsInN1YiI6InVzZXItMSJ9.Qc-1lRaHILrMAgqzr_O-Gw7py7JklrpE7L65-pBzUFc",
+        {}
+      ],
+      "upstreamFn": "jwt.decode",
+      "goFn": "jsonwebtoken.Decode"
+    },
+    {
+      "id": "dec-plain-complete",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MDAwMDAwMDAsInN1YiI6InVzZXItMSJ9.Qc-1lRaHILrMAgqzr_O-Gw7py7JklrpE7L65-pBzUFc",
+        {
+          "complete": true
+        }
+      ],
+      "upstreamFn": "jwt.decode",
+      "goFn": "jsonwebtoken.Decode"
+    },
+    {
+      "id": "dec-kid-complete",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImtleS0yMDIzIn0.eyJpYXQiOjE3MDAwMDAwMDAsInN1YiI6InVzZXItMSJ9.izvr16aSJ6kmMa99IyvV9PIwfI2dL9f7VFvm8de3fkI",
+        {
+          "complete": true
+        }
+      ],
+      "upstreamFn": "jwt.decode",
+      "goFn": "jsonwebtoken.Decode",
+      "note": "reading kid to choose a key before verifying"
+    },
+    {
+      "id": "dec-expired-token",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2MDAwMDAwMDAsImV4cCI6MTYwMDAwMDA2MCwic3ViIjoidXNlci0xIn0.7EywS-ClGbDIQ-Ys6vcaai_v098gw0s4Lg2o9iQagcg",
+        {}
+      ],
+      "upstreamFn": "jwt.decode",
+      "goFn": "jsonwebtoken.Decode",
+      "note": "decode never checks time"
+    },
+    {
+      "id": "dec-forged-token",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MDAwMDAwMDAsInN1YiI6ImF0dGFja2VyIn0.RzVgRTqP99bZTJFrAdUGDlvL6tNyhiJ734hG8SGs62o",
+        {}
+      ],
+      "upstreamFn": "jwt.decode",
+      "goFn": "jsonwebtoken.Decode",
+      "note": "decode never checks the signature either"
+    },
+    {
+      "id": "dec-alg-none",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJpYXQiOjE3MDAwMDAwMDAsInN1YiI6ImF0dGFja2VyIn0.",
+        {
+          "complete": true
+        }
+      ],
+      "upstreamFn": "jwt.decode",
+      "goFn": "jsonwebtoken.Decode"
+    },
+    {
+      "id": "dec-aud-array",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MDAwMDAwMDAsImF1ZCI6WyJhcGkuZXhhbXBsZSIsImFkbWluLmV4YW1wbGUiXSwic3ViIjoidXNlci0xIn0.iothWOiDG5iD2NzGs-gjkp0snyhLBXZUSO2JCEykZng",
+        {}
+      ],
+      "upstreamFn": "jwt.decode",
+      "goFn": "jsonwebtoken.Decode"
+    },
+    {
+      "id": "dec-unicode",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MDAwMDAwMDAsIm5hbWUiOiJuYcOvdmUgY2Fmw6kg5L2g5aW9In0.r6ScLTySF5FzYFDmtQOl2rffilEDFq5Hgr698en-fGs",
+        {}
+      ],
+      "upstreamFn": "jwt.decode",
+      "goFn": "jsonwebtoken.Decode"
+    },
+    {
+      "id": "dec-two-segments",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MDAwMDAwMDAsInN1YiI6InVzZXItMSJ9",
+        {}
+      ],
+      "upstreamFn": "jwt.decode",
+      "goFn": "jsonwebtoken.Decode",
+      "note": "upstream returns null for a malformed token",
+      "deviation": "the port returns ErrInvalidToken where jwt.decode returns null; a Go caller checks the error"
+    },
+    {
+      "id": "dec-empty-token",
+      "fn": "decode",
+      "args": [
+        "",
+        {}
+      ],
+      "upstreamFn": "jwt.decode",
+      "goFn": "jsonwebtoken.Decode",
+      "note": "upstream returns null",
+      "deviation": "the port returns ErrInvalidToken where jwt.decode returns null; a Go caller checks the error"
+    },
+    {
+      "id": "dec-malformed-base64",
+      "fn": "decode",
+      "args": [
+        "!!!.eyJpYXQiOjE3MDAwMDAwMDAsInN1YiI6InVzZXItMSJ9.Qc-1lRaHILrMAgqzr_O-Gw7py7JklrpE7L65-pBzUFc",
+        {
+          "complete": true
+        }
+      ],
+      "upstreamFn": "jwt.decode",
+      "goFn": "jsonwebtoken.Decode",
+      "note": "upstream returns null",
+      "deviation": "the port returns ErrInvalidToken where jwt.decode returns null; a Go caller checks the error"
+    },
+    {
+      "id": "dec-non-json-payload",
+      "fn": "decode",
+      "args": [
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.cGxhaW4gdGV4dA.x",
+        {}
+      ],
+      "upstreamFn": "jwt.decode",
+      "goFn": "jsonwebtoken.Decode",
+      "note": "upstream returns the raw string when the payload is not JSON",
+      "deviation": "the port returns Claims (a map), so a non-object payload is an error rather than a bare value"
+    }
+  ]
+}

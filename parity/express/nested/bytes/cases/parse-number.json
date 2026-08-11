@@ -1,0 +1,11 @@
+{
+  "group": "parse-number",
+  "upstream": "bytes@3.1.2",
+  "note": "bytes.parse also accepts a number, in which case it is the identity function (`if (typeof val === 'number' && !isNaN(val)) return val`). The Go port's Parse is string-typed, so there is no entry point to compare: every case here is a documented deviation, not a bug.",
+  "cases": [
+    { "id": "pn-int",   "fn": "parseNum", "args": [1024],   "upstreamFn": "bytes.parse", "goFn": "—", "deviation": "bytes.parse(number) returns its argument unchanged; Go's Parse(string) has no number overload and function overloading does not exist in Go" },
+    { "id": "pn-zero",  "fn": "parseNum", "args": [0],      "upstreamFn": "bytes.parse", "goFn": "—", "deviation": "as pn-int: no number overload in the Go port" },
+    { "id": "pn-neg",   "fn": "parseNum", "args": [-5],     "upstreamFn": "bytes.parse", "goFn": "—", "deviation": "as pn-int: no number overload in the Go port" },
+    { "id": "pn-frac",  "fn": "parseNum", "args": [1024.5], "upstreamFn": "bytes.parse", "goFn": "—", "deviation": "as pn-int, and the fraction is returned unfloored, which an int64 return type cannot express either" }
+  ]
+}

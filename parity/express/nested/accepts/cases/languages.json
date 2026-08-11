@@ -1,0 +1,33 @@
+{
+  "group": "languages",
+  "upstream": "accepts@1.3.8",
+  "note": "accepts(req).language(...offers) and accepts(req).languages() — Accept-Language negotiation including prefix matching, wildcards and q-values.",
+  "cases": [
+    { "id": "lang-exact", "fn": "language", "args": [{ "Accept-Language": "en" }, ["en"]], "upstreamFn": "accepts.language", "goFn": "Accepts.Language" },
+    { "id": "lang-miss", "fn": "language", "args": [{ "Accept-Language": "en" }, ["fr"]], "upstreamFn": "accepts.language", "goFn": "Accepts.Language" },
+    { "id": "lang-q-order", "fn": "language", "args": [{ "Accept-Language": "en;q=0.3, fr;q=0.7" }, ["en", "fr"]], "upstreamFn": "accepts.language", "goFn": "Accepts.Language" },
+    { "id": "lang-q-zero", "fn": "language", "args": [{ "Accept-Language": "en;q=0, fr" }, ["en", "fr"]], "upstreamFn": "accepts.language", "goFn": "Accepts.Language" },
+    { "id": "lang-star", "fn": "language", "args": [{ "Accept-Language": "*" }, ["en", "fr"]], "upstreamFn": "accepts.language", "goFn": "Accepts.Language" },
+    { "id": "lang-star-with-exclusion", "fn": "language", "args": [{ "Accept-Language": "*, en;q=0" }, ["en", "fr"]], "upstreamFn": "accepts.language", "goFn": "Accepts.Language", "note": "wildcard accepts everything except the explicitly refused tag" },
+    { "id": "lang-prefix-header-broad", "fn": "language", "args": [{ "Accept-Language": "en" }, ["en-US"]], "upstreamFn": "accepts.language", "goFn": "Accepts.Language", "note": "\"en\" matches the more specific \"en-US\"" },
+    { "id": "lang-prefix-offer-broad", "fn": "language", "args": [{ "Accept-Language": "en-US" }, ["en"]], "upstreamFn": "accepts.language", "goFn": "Accepts.Language", "note": "\"en-US\" also matches the broader \"en\" upstream" },
+    { "id": "lang-subtag-mismatch", "fn": "language", "args": [{ "Accept-Language": "en-US" }, ["en-GB"]], "upstreamFn": "accepts.language", "goFn": "Accepts.Language", "note": "two different subtags of the same primary must not match" },
+    { "id": "lang-exact-beats-prefix", "fn": "language", "args": [{ "Accept-Language": "en, en-US" }, ["en-US"]], "upstreamFn": "accepts.language", "goFn": "Accepts.Language" },
+    { "id": "lang-specificity-over-q", "fn": "language", "args": [{ "Accept-Language": "en;q=0.9, en-US;q=0.5" }, ["en-US"]], "upstreamFn": "accepts.language", "goFn": "Accepts.Language" },
+    { "id": "lang-case-insensitive-header", "fn": "language", "args": [{ "Accept-Language": "EN-us" }, ["en-US"]], "upstreamFn": "accepts.language", "goFn": "Accepts.Language" },
+    { "id": "lang-case-insensitive-offer", "fn": "language", "args": [{ "Accept-Language": "en-us" }, ["EN-US"]], "upstreamFn": "accepts.language", "goFn": "Accepts.Language", "note": "the offer is echoed back with its original casing" },
+    { "id": "lang-no-header", "fn": "language", "args": [{}, ["fr", "en"]], "upstreamFn": "accepts.language", "goFn": "Accepts.Language", "note": "absent header defaults to *, so the first offer wins" },
+    { "id": "lang-empty-header", "fn": "language", "args": [{ "Accept-Language": "" }, ["fr", "en"]], "upstreamFn": "accepts.language", "goFn": "Accepts.Language" },
+    { "id": "lang-three-part-tag", "fn": "language", "args": [{ "Accept-Language": "zh-Hant-TW" }, ["zh-Hant-TW"]], "upstreamFn": "accepts.language", "goFn": "Accepts.Language" },
+    { "id": "lang-three-part-prefix", "fn": "language", "args": [{ "Accept-Language": "zh" }, ["zh-Hant-TW"]], "upstreamFn": "accepts.language", "goFn": "Accepts.Language" },
+    { "id": "lang-three-part-partial", "fn": "language", "args": [{ "Accept-Language": "zh-Hant" }, ["zh-Hant-TW"]], "upstreamFn": "accepts.language", "goFn": "Accepts.Language", "note": "upstream only understands a two-part prefix" },
+    { "id": "lang-malformed-q", "fn": "language", "args": [{ "Accept-Language": "en;q=nope" }, ["en"]], "upstreamFn": "accepts.language", "goFn": "Accepts.Language" },
+    { "id": "lang-trailing-comma", "fn": "language", "args": [{ "Accept-Language": "en," }, ["en"]], "upstreamFn": "accepts.language", "goFn": "Accepts.Language" },
+    { "id": "lang-whitespace-noise", "fn": "language", "args": [{ "Accept-Language": "  fr ; q=0.4 ,  en ; q=0.8 " }, ["fr", "en"]], "upstreamFn": "accepts.language", "goFn": "Accepts.Language" },
+    { "id": "langs-all", "fn": "languages", "args": [{ "Accept-Language": "en;q=0.3, fr;q=0.9, de" }], "upstreamFn": "accepts.languages", "goFn": "Accepts.Languages" },
+    { "id": "langs-no-header", "fn": "languages", "args": [{}], "upstreamFn": "accepts.languages", "goFn": "Accepts.Languages" },
+    { "id": "langs-empty-header", "fn": "languages", "args": [{ "Accept-Language": "" }], "upstreamFn": "accepts.languages", "goFn": "Accepts.Languages" },
+    { "id": "langs-drops-q-zero", "fn": "languages", "args": [{ "Accept-Language": "en;q=0, fr" }], "upstreamFn": "accepts.languages", "goFn": "Accepts.Languages" },
+    { "id": "langs-keeps-star", "fn": "languages", "args": [{ "Accept-Language": "fr, *;q=0.1" }], "upstreamFn": "accepts.languages", "goFn": "Accepts.Languages" }
+  ]
+}

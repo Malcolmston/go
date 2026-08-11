@@ -1,0 +1,315 @@
+{
+  "group": "unsign",
+  "upstream": "cookie-signature@1.2.2",
+  "note": "The rejection corpus, which is what matters for a signature check: tampered values, mutated/truncated/re-encoded signatures, wrong secrets and malformed inputs must fail on BOTH sides. Every signed input was produced by the pinned upstream, so the positive cases double as cross-implementation verification.",
+  "cases": [
+    {
+      "id": "unsign-roundtrip",
+      "fn": "unsign",
+      "args": [
+        "s:sessionid123.DxKv8Vl6yh5KToq83AZZt3WmA/PsYVnEnoHtq/vSrl0",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.unsign",
+      "goFn": "cookiesignature.Unsign",
+      "note": "valid on both sides"
+    },
+    {
+      "id": "unsign-roundtrip-empty-value",
+      "fn": "unsign",
+      "args": [
+        ".9fbdwrOa6Bb2hQO0BrO/mT4GONleyQplw3bXPJHO/To",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.unsign",
+      "goFn": "cookiesignature.Unsign",
+      "note": "an empty value round-trips and must report success"
+    },
+    {
+      "id": "unsign-roundtrip-dots",
+      "fn": "unsign",
+      "args": [
+        "a.b.c.E0eIpjv5sB+ukAzFN54aCFPHkNWNm/QfzmUWHmSV0J0",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.unsign",
+      "goFn": "cookiesignature.Unsign",
+      "note": "only the final dot separates"
+    },
+    {
+      "id": "unsign-roundtrip-many-dots",
+      "fn": "unsign",
+      "args": [
+        "a.b.c.d.e.yMaRDvA5H2R36/22jZacTPVNM5MmUlAeoIfx03JP+uU",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.unsign",
+      "goFn": "cookiesignature.Unsign"
+    },
+    {
+      "id": "unsign-roundtrip-unicode",
+      "fn": "unsign",
+      "args": [
+        "naïve-café-你好.wqgbUTwEaC7NrTv5bUyJu/w/Yu8vUn5qJsPRg7gtNKk",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.unsign",
+      "goFn": "cookiesignature.Unsign"
+    },
+    {
+      "id": "unsign-roundtrip-emoji",
+      "fn": "unsign",
+      "args": [
+        "session-🚀-id.7BR3CXARHlJhu+EsCk++iDC20eQ4tFKDafebaA63p3E",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.unsign",
+      "goFn": "cookiesignature.Unsign"
+    },
+    {
+      "id": "unsign-roundtrip-newline",
+      "fn": "unsign",
+      "args": [
+        "line1\nline2.Ay3elJHtNqc9iG0IecyTBd0Gg+lp+zjQyXuIP9AxCV8",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.unsign",
+      "goFn": "cookiesignature.Unsign"
+    },
+    {
+      "id": "unsign-roundtrip-nul",
+      "fn": "unsign",
+      "args": [
+        "a\u0000b.G8DVsDCo7TbuVmazEiLppv3bzTsYflJC3lh5lsGwVRU",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.unsign",
+      "goFn": "cookiesignature.Unsign"
+    },
+    {
+      "id": "unsign-roundtrip-long",
+      "fn": "unsign",
+      "args": [
+        "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy.uBAoEXhs6PIyPRoYPRez8JU13mjRCUC/8hBgMy2ivtI",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.unsign",
+      "goFn": "cookiesignature.Unsign"
+    },
+    {
+      "id": "unsign-roundtrip-double-signed",
+      "fn": "unsign",
+      "args": [
+        "inner.14p3ZKXWGdb87vl+2LldchjD/FYQ3uH4++whj7z6Qcg.8pu4XOXRkM8H3rF0MjvoGdjQfCMdaK1OxmXEAr1hyWo",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.unsign",
+      "goFn": "cookiesignature.Unsign",
+      "note": "a signed value signed again"
+    },
+    {
+      "id": "unsign-roundtrip-unicode-secret",
+      "fn": "unsign",
+      "args": [
+        "value.H1fYh/mC//K8oIRV1TeF0F4asrwWt4pDnr0CtNTj59o",
+        "sécret-你"
+      ],
+      "upstreamFn": "cookieSignature.unsign",
+      "goFn": "cookiesignature.Unsign"
+    },
+    {
+      "id": "unsign-roundtrip-empty-secret",
+      "fn": "unsign",
+      "args": [
+        "value.YBcbxRIGgiQull2WMFn6QPQ66QrQVmjfxobgiflbiao",
+        ""
+      ],
+      "upstreamFn": "cookieSignature.unsign",
+      "goFn": "cookiesignature.Unsign"
+    },
+    {
+      "id": "unsign-wrong-secret",
+      "fn": "unsign",
+      "args": [
+        "s:sessionid123.DxKv8Vl6yh5KToq83AZZt3WmA/PsYVnEnoHtq/vSrl0",
+        "a-different-secret"
+      ],
+      "upstreamFn": "cookieSignature.unsign",
+      "goFn": "cookiesignature.Unsign",
+      "note": "must fail on both sides"
+    },
+    {
+      "id": "unsign-tampered-value",
+      "fn": "unsign",
+      "args": [
+        "s:sessionid124.DxKv8Vl6yh5KToq83AZZt3WmA/PsYVnEnoHtq/vSrl0",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.unsign",
+      "goFn": "cookiesignature.Unsign",
+      "note": "payload tampered under a good signature"
+    },
+    {
+      "id": "unsign-tampered-value-same-length",
+      "fn": "unsign",
+      "args": [
+        "admin=1.VsOd41AoH6K2kRW4N05slhJupTiVxTWasTHmJJcBcac",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.unsign",
+      "goFn": "cookiesignature.Unsign",
+      "note": "privilege flag flipped: must fail on both sides"
+    },
+    {
+      "id": "unsign-tampered-sig-last-char",
+      "fn": "unsign",
+      "args": [
+        "s:sessionid123.DxKv8Vl6yh5KToq83AZZt3WmA/PsYVnEnoHtq/vSrlA",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.unsign",
+      "goFn": "cookiesignature.Unsign"
+    },
+    {
+      "id": "unsign-tampered-sig-case",
+      "fn": "unsign",
+      "args": [
+        "s:x.c3wTAD9gULv7m21L+NnUEwUaVIMt0XZ3kw6uE97lZ/o",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.unsign",
+      "goFn": "cookiesignature.Unsign",
+      "note": "base64 is case sensitive"
+    },
+    {
+      "id": "unsign-truncated-sig",
+      "fn": "unsign",
+      "args": [
+        "s:sessionid123.DxKv8Vl6yh5KToq83AZZt3WmA/PsYVnEnoHtq/",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.unsign",
+      "goFn": "cookiesignature.Unsign",
+      "note": "signature too short"
+    },
+    {
+      "id": "unsign-extended-sig",
+      "fn": "unsign",
+      "args": [
+        "s:sessionid123.DxKv8Vl6yh5KToq83AZZt3WmA/PsYVnEnoHtq/vSrl0AA",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.unsign",
+      "goFn": "cookiesignature.Unsign",
+      "note": "signature too long"
+    },
+    {
+      "id": "unsign-padded-sig",
+      "fn": "unsign",
+      "args": [
+        "s:x.C3wTAD9gULv7m21L+NnUEwUaVIMt0XZ3kw6uE97lZ/o=",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.unsign",
+      "goFn": "cookiesignature.Unsign",
+      "note": "upstream strips = padding, so a padded signature must not verify"
+    },
+    {
+      "id": "unsign-base64url-sig",
+      "fn": "unsign",
+      "args": [
+        "s:x.C3wTAD9gULv7m21L-NnUEwUaVIMt0XZ3kw6uE97lZ_o",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.unsign",
+      "goFn": "cookiesignature.Unsign",
+      "note": "upstream emits standard base64, so the base64url variant must not verify"
+    },
+    {
+      "id": "unsign-sig-of-other-value",
+      "fn": "unsign",
+      "args": [
+        "b.Tx8a8DlYr61dkk1Oyi+APJ9+NTDco7lrkszXYc1zrZc",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.unsign",
+      "goFn": "cookiesignature.Unsign",
+      "note": "a genuine signature attached to a different value"
+    },
+    {
+      "id": "unsign-empty-sig",
+      "fn": "unsign",
+      "args": [
+        "value.",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.unsign",
+      "goFn": "cookiesignature.Unsign",
+      "note": "empty signature"
+    },
+    {
+      "id": "unsign-no-dot",
+      "fn": "unsign",
+      "args": [
+        "novalueatall",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.unsign",
+      "goFn": "cookiesignature.Unsign",
+      "note": "no separator at all"
+    },
+    {
+      "id": "unsign-empty-input",
+      "fn": "unsign",
+      "args": [
+        "",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.unsign",
+      "goFn": "cookiesignature.Unsign"
+    },
+    {
+      "id": "unsign-just-dot",
+      "fn": "unsign",
+      "args": [
+        ".",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.unsign",
+      "goFn": "cookiesignature.Unsign"
+    },
+    {
+      "id": "unsign-only-sig",
+      "fn": "unsign",
+      "args": [
+        "mlnt3WkdUqnZX69U6g75dwQHE2KuazWfQC0R+00IigQ",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.unsign",
+      "goFn": "cookiesignature.Unsign",
+      "note": "a bare signature with no value and no dot"
+    },
+    {
+      "id": "unsign-leading-dot-empty-value-sig",
+      "fn": "unsign",
+      "args": [
+        ".9fbdwrOa6Bb2hQO0BrO/mT4GONleyQplw3bXPJHO/To",
+        "parity-cookie-secret-abc123"
+      ],
+      "upstreamFn": "cookieSignature.unsign",
+      "goFn": "cookiesignature.Unsign",
+      "note": "the empty-value signature, presented with its separator"
+    },
+    {
+      "id": "unsign-secret-as-value",
+      "fn": "unsign",
+      "args": [
+        "parity-cookie-secret-abc123.TdbfNsMQpu0JrMzNrfgvVEAGSuOP7LTKk2QYTVWgMok",
+        "s:sessionid123"
+      ],
+      "upstreamFn": "cookieSignature.unsign",
+      "goFn": "cookiesignature.Unsign",
+      "note": "value and secret swapped: must fail on both sides"
+    }
+  ]
+}

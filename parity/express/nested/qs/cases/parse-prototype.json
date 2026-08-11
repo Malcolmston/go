@@ -1,0 +1,29 @@
+{
+  "group": "parse-prototype",
+  "upstream": "qs@6.15.3",
+  "note": "Prototype-pollution defences. Upstream refuses, by default, to build any key path whose parent or bracket-group content is an own property of Object.prototype — __proto__, constructor, hasOwnProperty, toString and the rest — and drops the entire pair rather than the offending level. plainObjects and allowPrototypes exist to switch that guard off. A Go map has no prototype chain, so nothing here is exploitable in the port; the reason these cases matter anyway is that the *shape* of the returned data must agree, or an application ported from Express sees keys upstream would never have produced.",
+  "cases": [
+    { "id": "p-proto-top",           "fn": "parse", "args": ["__proto__=x"],                      "upstreamFn": "qs.parse", "goFn": "qs.Parse", "note": "dropped: yields {}" },
+    { "id": "p-proto-top-value",     "fn": "parse", "args": ["a=b&__proto__=x"],                  "upstreamFn": "qs.parse", "goFn": "qs.Parse", "note": "the good pair survives, the bad one vanishes" },
+    { "id": "p-proto-nested",        "fn": "parse", "args": ["a[__proto__][b]=c"],                "upstreamFn": "qs.parse", "goFn": "qs.Parse", "note": "the whole key is dropped, not just the __proto__ level" },
+    { "id": "p-proto-leaf",          "fn": "parse", "args": ["a[__proto__]=b"],                   "upstreamFn": "qs.parse", "goFn": "qs.Parse" },
+    { "id": "p-proto-deep",          "fn": "parse", "args": ["a[b][__proto__][c]=d"],             "upstreamFn": "qs.parse", "goFn": "qs.Parse" },
+    { "id": "p-proto-encoded",       "fn": "parse", "args": ["a%5B__proto__%5D=b"],               "upstreamFn": "qs.parse", "goFn": "qs.Parse", "note": "encoding the brackets does not get past the guard" },
+    { "id": "p-proto-dots",          "fn": "parse", "args": ["a.__proto__.b=c", { "allowDots": true }], "upstreamFn": "qs.parse", "goFn": "qs.ParseWith", "note": "allowDots rewrites to brackets first, so the guard still sees it" },
+    { "id": "p-constructor-top",     "fn": "parse", "args": ["constructor=x"],                    "upstreamFn": "qs.parse", "goFn": "qs.Parse" },
+    { "id": "p-constructor-proto",   "fn": "parse", "args": ["constructor[prototype][x]=y"],      "upstreamFn": "qs.parse", "goFn": "qs.Parse", "note": "the classic constructor.prototype route" },
+    { "id": "p-constructor-nested",  "fn": "parse", "args": ["a[constructor][prototype][x]=y"],   "upstreamFn": "qs.parse", "goFn": "qs.Parse" },
+    { "id": "p-prototype-alone",     "fn": "parse", "args": ["prototype[x]=y"],                   "upstreamFn": "qs.parse", "goFn": "qs.Parse", "note": "'prototype' is NOT an own property of Object.prototype, so this one is allowed" },
+    { "id": "p-tostring",            "fn": "parse", "args": ["toString=x"],                       "upstreamFn": "qs.parse", "goFn": "qs.Parse" },
+    { "id": "p-hasownproperty",      "fn": "parse", "args": ["hasOwnProperty=x"],                 "upstreamFn": "qs.parse", "goFn": "qs.Parse" },
+    { "id": "p-valueof-nested",      "fn": "parse", "args": ["a[valueOf]=x"],                     "upstreamFn": "qs.parse", "goFn": "qs.Parse" },
+    { "id": "p-defineprop",          "fn": "parse", "args": ["a[__defineGetter__]=x"],            "upstreamFn": "qs.parse", "goFn": "qs.Parse" },
+    { "id": "p-proto-allow",         "fn": "parse", "args": ["a[__proto__][b]=c", { "allowPrototypes": true }],  "upstreamFn": "qs.parse", "goFn": "qs.ParseWith", "note": "guard off; upstream still refuses to write the literal __proto__ property" },
+    { "id": "p-proto-allow-top",     "fn": "parse", "args": ["__proto__=x", { "allowPrototypes": true }],        "upstreamFn": "qs.parse", "goFn": "qs.ParseWith" },
+    { "id": "p-constructor-allow",   "fn": "parse", "args": ["constructor[prototype][x]=y", { "allowPrototypes": true }], "upstreamFn": "qs.parse", "goFn": "qs.ParseWith" },
+    { "id": "p-tostring-allow",      "fn": "parse", "args": ["toString=x", { "allowPrototypes": true }],         "upstreamFn": "qs.parse", "goFn": "qs.ParseWith" },
+    { "id": "p-proto-plain",         "fn": "parse", "args": ["a[__proto__][b]=c", { "plainObjects": true }],     "upstreamFn": "qs.parse", "goFn": "qs.ParseWith", "note": "plainObjects also disables the guard, because a null-prototype object has nothing to pollute" },
+    { "id": "p-tostring-plain",      "fn": "parse", "args": ["toString=x", { "plainObjects": true }],            "upstreamFn": "qs.parse", "goFn": "qs.ParseWith" },
+    { "id": "p-proto-plain-top",     "fn": "parse", "args": ["__proto__=x", { "plainObjects": true }],           "upstreamFn": "qs.parse", "goFn": "qs.ParseWith" }
+  ]
+}
