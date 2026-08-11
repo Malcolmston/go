@@ -30,7 +30,14 @@ jobs:
           cache: false
       # go.work is committed — nothing to initialise here.
       - name: Install govulncheck
-        run: go install golang.org/x/vuln/cmd/govulncheck@latest
+        # Pinned, not @latest. govulncheck v1.2.0+ declares `go 1.25.0`, and this
+        # workspace mandates go 1.24.7 with GOTOOLCHAIN=local, so `@latest`
+        # fails outright: "requires go >= 1.25.0 (running go 1.24.7)". v1.1.4 is
+        # the newest release that builds under 1.24. This costs nothing in
+        # coverage — the vulnerability database is fetched at run time, so
+        # findings stay current; only the scanner binary is older. Bump this to
+        # @latest when the workspace moves to Go >= 1.25.
+        run: go install golang.org/x/vuln/cmd/govulncheck@v1.1.4
       # examples/integration no longer exists — the examples were reorganised into one
       # self-contained module per library (examples/<lib>/), each consuming the PUBLISHED
       # module rather than the workspace. Iterate the committed go.work members instead;

@@ -32,7 +32,10 @@ jobs:
         id: scan
         run: |
           # go.work is committed — nothing to initialise here.
-          go install golang.org/x/vuln/cmd/govulncheck@latest
+          # Pinned: v1.2.0+ needs Go >= 1.25 and this workspace mandates 1.24.7
+          # with GOTOOLCHAIN=local. The vuln DB is fetched at run time, so findings
+          # stay current. Bump when the workspace moves to Go >= 1.25.
+          go install golang.org/x/vuln/cmd/govulncheck@v1.1.4
           set +e
           # examples/integration no longer exists; scan every committed go.work
           # member and concatenate the reports. The step's exit code is the worst
