@@ -171,11 +171,33 @@
 // There is no DOM here, so a rendered tree is not an end in itself. The primary
 // output path is server rendering. [RenderToWriter] mounts a [Node], streams its
 // HTML to an io.Writer and unmounts it again; [RenderToString] is the same thing
-// accumulated into a string, [RenderToStaticMarkup] is its alias for output that
-// will never be hydrated, and [MustRenderToString] is the panicking convenience
-// for templates and tests. All four take a [Node] and manage the [Root]
-// themselves — build a Root by hand only when the tree needs to outlive one
-// render.
+// accumulated into a string, [RenderToStaticMarkup] renders output that will
+// never be hydrated, and [MustRenderToString] is the panicking convenience for
+// templates and tests. All four take a [Node] and manage the [Root] themselves —
+// build a Root by hand only when the tree needs to outlive one render.
+//
+// RenderToString and RenderToStaticMarkup are not aliases. They differ exactly
+// as React's two functions differ where the difference reaches the bytes: the
+// hydration separator between two adjacent text nodes. RenderToString of
+// H("div", nil, "a", "b") is "<div>a<!-- -->b</div>", because "ab" could have
+// come from one text node or from two and a hydrating client cannot guess;
+// RenderToStaticMarkup of the same tree is "<div>ab</div>". RenderToWriter
+// renders in RenderToString mode. Nothing else about hydration exists here —
+// no boundary comments, no bootstrap scripts, no client to consume them.
+//
+// Document metadata is hoisted, as React 19's Float does it: a title, meta,
+// link or async script src written inside the body is lifted to the front of the
+// document, into the head when the tree has one and into a synthesized head when
+// an html element lacks one. A tree that can hoist is buffered rather than
+// streamed, because the last element of a document can still belong at its
+// front; a tree with no document machinery in it streams as before. Several
+// things that look hoistable are not — see API-DEVIATIONS.md.
+//
+// Attributes are emitted in sorted prop-name order. React follows the props
+// object's insertion order, which a Go map has none of; sorting is what makes
+// one tree render to the same bytes twice. React's own hand-written orderings
+// for input, button, form and option are reproduced on top of that pass. See
+// API-DEVIATIONS.md.
 //
 // Text and attribute values are HTML-escaped on the way out, void elements are
 // emitted without a closing tag, React's prop-to-attribute names are mapped

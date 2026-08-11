@@ -301,9 +301,9 @@ func textOf(v any) string {
 	case string:
 		return t
 	case float64:
-		return strconv.FormatFloat(t, 'f', -1, 64)
+		return jsNumberString(t, 64)
 	case float32:
-		return strconv.FormatFloat(float64(t), 'f', -1, 32)
+		return jsNumberString(float64(t), 32)
 	case int:
 		return strconv.Itoa(t)
 	case int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:

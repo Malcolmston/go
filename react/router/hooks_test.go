@@ -17,7 +17,11 @@ func renderIn(t *testing.T, path string, routes []Route, body func() react.Node)
 	t.Helper()
 	var comp react.Component = func(react.Props) react.Node { return body() }
 
-	html, err := react.RenderToString(
+	// Static markup, not RenderToString: these tests assert on the markup a
+	// routing hook produced, and RenderToString would additionally write the
+	// "<!-- -->" hydration separator between adjacent text children (see
+	// react/ssr_textsep.go), which says nothing about routing.
+	html, err := react.RenderToStaticMarkup(
 		Router(ParseLocation(path), routes, react.CreateElement(comp, nil)))
 	if err != nil {
 		t.Fatalf("render: %v", err)
@@ -341,7 +345,8 @@ func TestUseResolvedPath(t *testing.T) {
 	}
 
 	routes := []Route{{Path: "/docs/*", Component: leaf}}
-	html, err := react.RenderToString(Router(ParseLocation("/docs/a/b"), routes))
+	// Static markup keeps the three resolved paths adjacent; see renderIn.
+	html, err := react.RenderToStaticMarkup(Router(ParseLocation("/docs/a/b"), routes))
 	if err != nil {
 		t.Fatal(err)
 	}

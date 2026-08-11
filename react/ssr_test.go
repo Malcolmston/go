@@ -64,9 +64,12 @@ func TestSSRRendersTreesAndText(t *testing.T) {
 			"<div><p>a</p><p>b</p></div>",
 		},
 		{
+			// Two adjacent text children, so RenderToString separates them for
+			// hydration exactly as React's renderToString does; see
+			// ssr_textsep.go and TestSSRTextSeparator.
 			"mixed text and elements",
 			ssrTag("p", nil, "count: ", 7, ssrTag("b", nil, "!")),
-			"<p>count: 7<b>!</b></p>",
+			"<p>count: <!-- -->7<b>!</b></p>",
 		},
 		{
 			"nil and bool children vanish",
@@ -89,9 +92,11 @@ func TestSSRRendersTreesAndText(t *testing.T) {
 			"<i></i>x",
 		},
 		{
+			// The component's two text children are adjacent in document order,
+			// so they are separated too: a component boundary is not a tag.
 			"components are transparent",
 			ssrTag("div", nil, ssrComp(greeting, Props{"who": "world"})),
-			"<div><span>hello, world</span></div>",
+			"<div><span>hello, <!-- -->world</span></div>",
 		},
 		{
 			"a component rendering nothing emits nothing",
@@ -125,7 +130,7 @@ func TestSSRTextEscaping(t *testing.T) {
 		{
 			"quotes in text are escaped too",
 			ssrTag("p", nil, `he said "it's fine"`),
-			`<p>he said &quot;it&#39;s fine&quot;</p>`,
+			`<p>he said &quot;it&#x27;s fine&quot;</p>`,
 		},
 		{
 			"attribute values are escaped",
@@ -316,11 +321,6 @@ func TestSSRStyleProp(t *testing.T) {
 		want string
 	}{
 		{
-			"string passthrough",
-			ssrTag("div", Props{"style": "color:red"}),
-			`<div style="color:red"></div>`,
-		},
-		{
 			"map is kebab-cased and sorted",
 			ssrTag("div", Props{"style": map[string]any{"zIndex": 3, "backgroundColor": "red"}}),
 			`<div style="background-color:red;z-index:3"></div>`,
@@ -342,8 +342,8 @@ func TestSSRStyleProp(t *testing.T) {
 		},
 		{
 			"style values are attribute-escaped",
-			ssrTag("div", Props{"style": `font-family: "Fancy"`}),
-			`<div style="font-family: &quot;Fancy&quot;"></div>`,
+			ssrTag("div", Props{"style": map[string]any{"fontFamily": `"Fancy"`}}),
+			`<div style="font-family:&quot;Fancy&quot;"></div>`,
 		},
 	}
 

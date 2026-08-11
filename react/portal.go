@@ -164,12 +164,18 @@ func PortalContents(r *Root) map[string][]Instance {
 // RenderPortalsToString renders node and returns the markup with every portal
 // removed, plus one markup string per container id.
 //
-// It is [RenderToString] plus the split, and it renders exactly once: the tree is
-// mounted, walked and unmounted the same way, so hooks run once, effects fire
-// once and the portal subtrees see the same contexts they would have seen
+// It is [RenderToStaticMarkup] plus the split, and it renders exactly once: the
+// tree is mounted, walked and unmounted the same way, so hooks run once, effects
+// fire once and the portal subtrees see the same contexts they would have seen
 // inline. Rendering the portals separately would have been the obvious
 // implementation and is the wrong one — a second [Root] means a second set of
 // hooks and no access to the providers above the portal.
+//
+// Static markup, despite the name, and the name is the older of the two: a
+// document torn into a main string plus one string per container is not a tree
+// any client can hydrate in one pass, so the "<!-- -->" separator
+// [RenderToString] writes between adjacent text nodes would be noise in every
+// piece. Adjacent text is therefore written as one run here; see ssr_textsep.go.
 //
 //	main, portals, err := react.RenderPortalsToString(page)
 //	fmt.Fprint(w, main)
@@ -182,7 +188,7 @@ func PortalContents(r *Root) map[string][]Instance {
 //
 // portals is always non-nil and contains only containers that actually rendered
 // something — a container with no portal has no entry, which is different from an
-// entry holding "". Errors are [RenderToString]'s, plus one of this function's
+// entry holding "". Errors are [RenderToStaticMarkup]'s, plus one of this function's
 // own: a [PortalTag] element with no container id, which means the reserved tag
 // was used as an ordinary host element.
 func RenderPortalsToString(node Node) (main string, portals map[string]string, err error) {

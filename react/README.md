@@ -270,16 +270,30 @@ walking it, and unmounting it (so effect cleanups run) before returning:
 
 ```go
 html, err := react.RenderToString(app)        // accumulate into a string
-html, err  = react.RenderToStaticMarkup(app)  // alias; use it when output is final
+html, err  = react.RenderToStaticMarkup(app)  // use it when the output is final
 err = react.RenderToWriter(w, app)            // stream to an io.Writer
 
 fmt.Fprint(w, react.MustRenderToString(app))  // panics on error; tests and init only
 ```
 
-`RenderToString` and `RenderToStaticMarkup` produce **identical** output today.
-Upstream they differ by hydration metadata; this port has no client to hydrate,
-and emitting markers nothing consumes would imply a capability that does not
-exist. The two names are kept because they carry intent.
+`RenderToString` and `RenderToStaticMarkup` are **not** aliases. As upstream,
+they differ by hydration metadata, and the one piece of that metadata which
+reaches the bytes is the separator between adjacent text nodes:
+
+```go
+el := react.H("div", nil, "a", "b")
+
+react.RenderToString(el)       // <div>a<!-- -->b</div>
+react.RenderToStaticMarkup(el) // <div>ab</div>
+```
+
+`ab` is ambiguous — one text node or two? — and a hydrating client cannot guess,
+so React writes an empty comment the parser turns into a splitting comment node.
+Static markup is never hydrated and never needs it. `RenderToWriter` renders in
+`RenderToString` mode, separator included. What the port still does not have is
+the rest of hydration: no boundary comments, no bootstrap scripts, no
+`hydrateRoot`. See [API-DEVIATIONS.md](API-DEVIATIONS.md) for the exact rules and
+for the attribute-order deviation that cannot be fixed here.
 
 Wired into `net/http`:
 
@@ -307,6 +321,19 @@ What the emitter handles:
   unitless properties. `FormatStyle` exposes it.
 - **Raw HTML** is opt-in through `DangerousHTML`, and cannot be combined with
   children.
+- **Document metadata is hoisted**, as React 19's Float does: a `<title>`,
+  `<meta>`, `<link>` or async `<script src>` written in the body is lifted to the
+  front of the document — into the `<head>` when the tree has one, which is
+  synthesized if an `<html>` lacks it. A tree that can hoist is buffered rather
+  than streamed, since the last element of a document can still belong at its
+  front. `<base>`, an unowned stylesheet, and anything carrying `itemProp` stay
+  put; see [API-DEVIATIONS.md](API-DEVIATIONS.md) for the full rules and the four
+  limits, including the image preloads that are decided but not yet flushed.
+- **Attribute order** is sorted by prop name. React follows the props object's
+  insertion order, which a Go map does not have; sorting is what makes one tree
+  render to the same bytes twice. React's own hand-written orderings — `input`,
+  `button`, `form` and `option` defer a fixed set of props to the end of the tag
+  — *are* reproduced on top of that pass.
 - **Panics** anywhere in rendering — an unrenderable child, a panicking
   component, a hook-order violation — are recovered and returned as an error, so
   a bad template fails the request rather than the process.

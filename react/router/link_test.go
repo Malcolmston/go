@@ -12,7 +12,10 @@ import (
 // than about route-relative resolution.
 func renderLink(t *testing.T, path string, el react.Node) string {
 	t.Helper()
-	html, err := react.RenderToString(Router(ParseLocation(path), nil, el))
+	// Static markup, so the assertions stay about the anchor: RenderToString
+	// would also write the "<!-- -->" hydration separator between adjacent text
+	// children of the link (see react/ssr_textsep.go).
+	html, err := react.RenderToStaticMarkup(Router(ParseLocation(path), nil, el))
 	if err != nil {
 		t.Fatalf("render: %v", err)
 	}

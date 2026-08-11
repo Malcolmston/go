@@ -91,14 +91,170 @@ the way `Object.is` special-cases it.
 | `createRoot(container).render(el)` mounts into a DOM node | `NewRoot(node)` returns a `*Root` holding a rendered tree | There is no container. A `Root` is the unit of state. |
 | The rendered result is the DOM | The rendered result is HTML from `RenderToString` / `RenderToStaticMarkup` / `RenderToWriter` / `MustRenderToString` | Go has no DOM, so server rendering is the primary output path rather than an add-on. |
 | `renderToString(element)` is separate from `createRoot` | Same: the render functions take a **`Node`**, not a `*Root`, and mount, walk and unmount their own `Root` | Matches upstream's shape, and means the common case — render a page and be done — never has to think about the `Root` lifecycle. Build a `Root` explicitly only when the tree must survive across renders. |
-| `renderToString` embeds hydration markers; `renderToStaticMarkup` does not | The two produce **identical** output; `RenderToStaticMarkup` is an alias | There is no client to hydrate. Emitting markers nothing consumes would put noise in the output and imply a capability that does not exist. Both names are kept because they carry intent, and are the natural place for markers to land if hydration is ever added. |
+| `renderToString` embeds hydration metadata; `renderToStaticMarkup` does not | Same split, for the one piece of that metadata that reaches the bytes: `RenderToString` writes React's `<!-- -->` separator between adjacent text nodes, `RenderToStaticMarkup` does not | See *The two render modes* below. The functions are no longer aliases. |
 | A render error throws | A render error is returned; a panic during rendering is recovered and returned as an error | A template rendering deep inside a request handler should fail that request, not the process. An I/O failure is the writer's own error, unwrappable; a tree problem is a `react:`-prefixed error naming the element at fault. |
 | Tests query DOM nodes (`container.querySelector`) | `Root.Tree()` returns an `Instance` view, with `Find`, `FindAll`, `FindByTag`, `FindByProp`, `TextContent` | An `Instance` is this port's stand-in for the node a browser test would assert against. |
 | `act(async () => …)` awaits | `Act(fn)` takes no root and settles synchronous work only | `Act` is `Batch` with a purpose-built name; it cannot know about a goroutine `fn` started. Wait for that goroutine with a channel, then call `Act` again. Note that the tree does not change *during* `fn` — read it after `Act` returns. |
 | Synthetic event system: `onClick` and friends fire | Handler props are inert data | There is nothing to dispatch an event. Props named `onClick` are carried but never invoked by the runtime. |
-| `hydrateRoot`, streaming SSR, selective hydration, `renderToPipeableStream` | Not ported | All are client/server coordination features. `RenderToWriter` streams bytes but does not implement React's streaming protocol or out-of-order shell flushing. |
+| `hydrateRoot`, streaming SSR, selective hydration, `renderToPipeableStream`, `bootstrapScripts` | Not ported | All are client/server coordination features. `RenderToWriter` streams bytes but implements no part of React's streaming protocol or out-of-order shell flushing — and a tree that can hoist is buffered rather than streamed. See *Document metadata and resource hoisting* below. |
+| React 19 Float: `<title>`/`<meta>`/`<link>` hoisted out of the body, synthesized resource hints | Hoisting is reproduced in its static-markup shape; image preloads are decided but not yet flushed | See *Document metadata and resource hoisting* below for the four limits and the exceptions. |
 | React Server Components, `use server`, server actions | Not ported | A build-and-transport protocol with no Go counterpart. `UseActionState` and `FormData` are ported as ordinary values, not as an RSC integration. |
 | React DevTools | Not ported; `UseDebugValue` values are read through `DebugValues(root)` | There is no browser extension protocol to speak. |
+
+## The two render modes
+
+`RenderToString` and `RenderToStaticMarkup` were an alias pair in v0.1.0. They
+are not any more. React's two functions differ by hydration metadata, and
+exactly one piece of that metadata reaches the bytes of a server-rendered
+document: the separator between two adjacent text nodes.
+
+```go
+el := react.H("div", nil, "a", "b")
+
+react.RenderToString(el)       // <div>a<!-- -->b</div>
+react.RenderToStaticMarkup(el) // <div>ab</div>
+```
+
+The reason the separator exists is that `ab` is ambiguous. It could have come
+from one text node or from two, and a client matching its own tree against the
+server's markup cannot tell. React writes an empty comment between them, which
+the parser turns into a comment node splitting the two text nodes, and hydration
+walks straight through it. `renderToStaticMarkup`, whose output by definition
+nobody hydrates, writes the two runs of text straight up against each other.
+
+The port reproduces React's rules here, not an approximation of them:
+
+- Only *adjacent text* separates. `<div>a<b>x</b>c</div>` gets no separator,
+  because a tag ends the run of text.
+- An empty text node emits nothing **and decides nothing**: a text, an empty
+  text and a text still separate exactly once.
+- The run is tracked in document order, not per parent, which is why
+  `<div>a<span>b<!-- -->c</span>d</div>` separates inside the span but not
+  around it — the `<span>` and the `</span>` each end a run.
+- Static markup never separates and never tracks anything.
+
+Two consequences worth stating plainly, because they are the port's choices and
+not React's:
+
+- **`RenderToWriter` renders in `RenderToString` mode**, separator included. It
+  is the writer-based entry point for a page that may be hydrated; there is no
+  static-markup writer variant, so build one with `RenderToStaticMarkup` and a
+  single `io.WriteString` if you need it. Note that it does not always stream —
+  see hoisting below.
+- **`RenderPortalsToString` renders in static-markup mode.** Splitting a
+  document across containers produces markup no client can hydrate as one tree,
+  so the separator would be pure noise.
+
+What still does not exist is the *rest* of hydration: no `data-reactroot`, no
+Suspense boundary comments, no bootstrap scripts, no `hydrateRoot` to consume
+any of it. `RenderToString` is byte-compatible with React on the text-separator
+axis and on nothing further, because there is nothing further to be compatible
+with.
+
+## Document metadata and resource hoisting (React 19 Float)
+
+React 19 does not necessarily emit a `<title>`, `<meta>`, `<link>` or `<script>`
+where you wrote it. Its Float machinery lifts head-managed elements out of the
+body and flushes them ahead of the document, and it synthesizes resource hints
+that were never in the tree at all. Probed against the pinned oracle,
+`react-dom@19.2.7`, `renderToStaticMarkup`:
+
+```
+<div>x<meta name="a"/>y</div>       ->  <meta name="a"/><div>xy</div>
+<div>x<title>T</title>y</div>      ->  <title>T</title><div>xy</div>
+<html><body><meta name="x"/></body></html>
+  ->  <html><head><meta name="x"/></head><body></body></html>
+```
+
+**The port hoists.** `ssr_hoist.go` reproduces the classifier, the flush order
+and the splice: head-managed elements are lifted out of the body and re-emitted
+at the front of the document, into the start of the `<head>` when the tree has
+one and ahead of everything when it does not — and an `<html>` with no `<head>`
+gets one synthesized to hold them, exactly as React does. The flush order is
+React's: `<meta charSet>` first, then `<meta name="viewport">`, then stylesheets
+grouped by precedence, then async scripts, then everything else in document
+order.
+
+What is reproduced is the **static-markup shape** of Float, and that phrase is a
+limit, not a hedge:
+
+- **No streaming.** Hoisting and streaming are in direct conflict — the last
+  element of a document can still belong at its front — so the hoisting path
+  buffers the whole document in memory and writes it once. `RenderToWriter` still
+  streams for a tree that cannot hoist anything (`ssrHoistCandidateTree` is the
+  test), but a tree containing a `<meta>` is buffered. Upstream this is where
+  `renderToPipeableStream` flushes late-discovered resources into the stream
+  after the shell; none of that protocol exists here.
+- **No bootstrap scripts.** `bootstrapScripts` / `bootstrapModules` have no
+  counterpart. There is no client to boot.
+- **No resource dedupe across requests.** React's resource keys live on a
+  request-scoped render state, and so do the port's. Two renders that both want
+  the same stylesheet each emit it. There is no shared registry, and inventing
+  one would make output depend on process history.
+- **Image preloads are decided but not yet flushed.** `ssr_preload.go` implements
+  React's decision in full — which `<img>` earns a
+  `<link rel="preload" as="image">`, the resource key it deduplicates on, the
+  `imageSrcSet`/`imageSizes` camelCase spellings React pushes through verbatim,
+  the `loading="lazy"` / `fetchPriority="low"` / `<picture>` / `<noscript>` /
+  `data:` suppressions, and the ten-entry early bucket — and the emitter collects
+  the chunks in React's two buckets. They are deliberately not emitted yet: the
+  link's `href` is built from the `img`'s `src` verbatim, and React sanitizes it,
+  so flushing before that sanitizing lands would put a `javascript:` URL in the
+  document that the `img` itself is careful not to emit. `void-img-src` remains a
+  recorded deviation until then, rather than being softened to make a number move.
+
+Not everything that looks hoistable is, and the exceptions are rules rather than
+oversights. `<base>` stays where it is written. So does a
+`<link rel="stylesheet">` or a `<style>` with no `precedence` prop — React only
+takes ownership once you opt in, at which point it also rewrites `precedence` to
+`data-precedence` and merges every style sharing a precedence into one element.
+A `<link>` needs an `href` to hoist. Any of the five tags carrying an `itemProp`
+stays put, because an `itemProp` makes the element microdata describing its
+parent and moving it would change what it says. A `<title>` inside `<svg>` is not
+a document title. Nothing hoists out of a `<noscript>`.
+
+One interaction to be aware of: a hoisted element's own attributes are still
+emitted by the ordinary sorted pass, so a `<meta name="a" content="b"/>` reaches
+the output as `<meta content="b" name="a"/>`. The element moves to React's
+position; its attributes keep the port's order. See the next section for why.
+
+## Attribute output order
+
+**This is the one deviation in the corpus that cannot be fixed from inside this
+package, and the reason is worth being precise about rather than papering over.**
+
+React emits an element's attributes in the JavaScript object's *insertion*
+order. `{id, className, title}` renders `id class title`; the same three keys
+written in the opposite order render `title class id`. The port emits attributes
+in **sorted** order.
+
+| Upstream | Here | Why |
+| --- | --- | --- |
+| Attributes follow the props object's insertion order | Attributes are emitted in sorted prop-name order | `Props` is a `map[string]any`, and a Go map has no order at all — not a scrambled one, none. Sorting is the only rule that makes the same tree render to the same bytes twice, and byte stability is worth more than imitating an order the source language chose arbitrarily. |
+
+Fixing it would take two changes, and only one of them is in this repository's
+gift:
+
+1. A new ordered-props representation in the port — `Props` would have to carry
+   a key sequence alongside the map, and every construction path
+   (`CreateElement`, `H`, `Props.Clone`, `CloneElement`) would have to maintain
+   it.
+2. A change to the parity harness. The harness decodes each case's props with
+   `json.Unmarshal` into a `map[string]any` (`parity/react/go/run.go`,
+   `buildProps`), so the authored key order is **already gone before the port
+   sees it**. Even a perfectly order-preserving `Props` would render the
+   harness's cases in whatever order the harness happened to hand over.
+
+So sorted output stays the port's documented rule. In practice the two agree
+everywhere it matters: every other case in the parity corpus is authored with
+its prop keys already in sorted order, which is why `order-insertion` is the
+single case that records the difference rather than a hundred of them.
+
+Sorting is the *default* pass, not the whole story. React's DOM server has
+hand-written serializers for `input`, `button`, `form` and `option` that defer a
+fixed set of props to the end of the tag in a fixed order, and the port
+reproduces that deferral on top of the sorted pass — see `ssr_order.go`. Those
+are ordering rules React actually specifies; insertion order is not.
 
 ## Context
 

@@ -5,6 +5,60 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Changed
+- **`RenderToString` and `RenderToStaticMarkup` are no longer aliases**, and
+  `RenderToString` output has changed. React's two functions differ by hydration
+  metadata; the one piece of that metadata which reaches the bytes of a
+  server-rendered document is the separator between two adjacent text nodes, and
+  the port now reproduces it. `RenderToString(H("div", nil, "a", "b"))` is
+  `<div>a<!-- -->b</div>` where it was `<div>ab</div>`;
+  `RenderToStaticMarkup` of the same tree is unchanged at `<div>ab</div>`.
+  `RenderToWriter` and `MustRenderToString` render in `RenderToString` mode and
+  so gained the separator too; `RenderPortalsToString` renders in static-markup
+  mode and did not. Only *adjacent text* separates — a tag ends the run — and an
+  empty text node between two real ones is not a boundary. **If you were
+  treating the two functions as interchangeable, switch the calls whose output is
+  final to `RenderToStaticMarkup`.** See `API-DEVIATIONS.md`.
+- **Attribute order for `input`, `button`, `form` and `option` has changed**, to
+  match React's hand-written serializers for those four tags: a fixed set of
+  props is now deferred to the end of the tag in React's own order rather than
+  emitted in the general sorted pass. An `input` given `id`, `name`, `required`
+  and `type` renders them `id required type name` where it rendered
+  `id name required type`. Attribute order elsewhere is unchanged — sorted by
+  prop name.
+- **Document metadata is now hoisted**, so an existing page that renders a
+  `<title>`, `<meta>`, `<link>` or async `<script src>` inside its body will see
+  that element move to the front of the document — into the `<head>` when there
+  is one, and into a synthesized `<head>` when an `<html>` lacks one. This
+  matches React 19's Float. `<base>`, a `<link rel="stylesheet">` or `<style>`
+  with no `precedence`, a `<link>` with no `href`, anything carrying `itemProp`,
+  a `<title>` inside `<svg>` and anything inside a `<noscript>` all stay where
+  they were written. One consequence for `RenderToWriter`: a tree that can hoist
+  is buffered in memory and written once, because the last element of a document
+  can still belong at its front. A tree with no document machinery in it still
+  streams exactly as before.
+
+### Documented
+- The attribute-order deviation is now written down as the one difference that
+  cannot be fixed from inside this package: React emits attributes in the props
+  object's insertion order, `Props` is a Go map with no order, and the parity
+  harness decodes each case's props through `json.Unmarshal` into a
+  `map[string]any` (`parity/react/go/run.go`, `buildProps`), so the authored key
+  order is gone before the port ever sees it. Sorted output remains the
+  documented rule. See `API-DEVIATIONS.md`, *Attribute output order*.
+- What "React 19 Float, in its static-markup shape" does and does not include:
+  the hoisting that landed, the exceptions that pin an element in place, and the
+  four limits — no streaming, no bootstrap scripts, no resource dedupe across
+  requests, and image preloads decided but not yet flushed pending URL
+  sanitizing. See `API-DEVIATIONS.md`, *Document metadata and resource hoisting*.
+- Every byte-level claim the documents make is now pinned by
+  `doc_claims_test.go`, so prose that quotes markup fails a test instead of
+  rotting quietly. Each case names the document it defends, and the two
+  deviations are asserted *as* deviations: the test fails if the port ever starts
+  matching React, which is the signal to rewrite the section rather than to relax
+  the assertion.
+
 ## [0.1.0] - 2026-08-05
 ### Added
 - Initial public release — React 19's component, props and hooks model for Go,

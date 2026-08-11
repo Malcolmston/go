@@ -63,9 +63,12 @@ var appRoutes = []Route{{
 // on any render error.
 func renderPath(t *testing.T, path string) string {
 	t.Helper()
-	html, err := react.RenderToString(Router(ParseLocation(path), appRoutes))
+	// Static markup, not RenderToString: these tests assert which page the
+	// ranking chose, and RenderToString would also write the "<!-- -->"
+	// hydration separator between adjacent text children (react/ssr_textsep.go).
+	html, err := react.RenderToStaticMarkup(Router(ParseLocation(path), appRoutes))
 	if err != nil {
-		t.Fatalf("RenderToString(%q): %v", path, err)
+		t.Fatalf("RenderToStaticMarkup(%q): %v", path, err)
 	}
 	return html
 }
@@ -194,7 +197,8 @@ func TestNestedRoutesElement(t *testing.T) {
 		{Path: "*"},
 	}}}
 
-	html, err := react.RenderToString(Router(ParseLocation("/acme/one"), routes))
+	// Static markup for the same reason as renderPath.
+	html, err := react.RenderToStaticMarkup(Router(ParseLocation("/acme/one"), routes))
 	if err != nil {
 		t.Fatal(err)
 	}

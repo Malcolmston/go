@@ -7,22 +7,37 @@ Go port arguably should.
 ## Renderer & output
 
 Escaping, void elements, the prop→attribute name map (`AttributeName`), style
-serialization (`FormatStyle`) and `DangerousHTML` have landed. What is left is
-the long tail:
+serialization (`FormatStyle`) and `DangerousHTML` have landed. So have the SVG
+and MathML namespaces with their case-sensitive attribute names
+(`ssr_namespace.go`), the controlled-form rewrites — `<select value>` deciding
+`selected` on the matching `<option>`, `<textarea value>` as text content
+(`ssr_control.go`) — React's per-tag attribute orderings for `input`, `button`,
+`form` and `option` (`ssr_order.go`), React 19 Float's document-metadata hoisting
+in its static-markup shape (`ssr_hoist.go`), and the parity corpus that measures
+all of it. What is left is the long tail:
 
 - [ ] Audit the attribute name table against React's full `possibleStandardNames`
       list, and decide what to do with unknown props (upstream passes `data-*`
       and `aria-*` through and drops the rest).
-- [ ] SVG and MathML namespaces, whose attribute names are case-sensitive
-      (`viewBox`, `strokeWidth`) and do not follow the HTML table.
-- [ ] `<select value>` → `selected` on the matching `<option>`, and the other
-      controlled-input attribute rewrites React's SSR performs.
-- [ ] Hoisting `<title>`, `<meta>` and `<link>` out of the body, as React 19
-      does for document metadata rendered mid-tree.
+- [ ] Sanitize the image preload's `href` the way React sanitizes it, then flush
+      the two preload buckets the emitter already collects. `ssr_preload.go`
+      decides every preload correctly and `ssr_hoist.go` knows where the buckets
+      belong in the flush order; the link's `href` is built from the `img`'s `src`
+      verbatim, so flushing now would put a `javascript:` URL in the document that
+      the `img` itself refuses to emit. This is the last step of Float's
+      static-markup shape and the last thing standing between `void-img-src` and
+      parity.
+- [ ] Stream a tree that hoists. Hoisting currently buffers the whole document,
+      because the last element can still belong at its front. React solves this
+      with `renderToPipeableStream` and a shell/resource protocol; short of that,
+      a two-pass walk that discovers hoistables before emitting the body would
+      restore streaming for the common case.
 - [ ] `<!DOCTYPE html>` and full-document rendering as a first-class mode rather
       than string concatenation at the call site.
-- [ ] Real hydration markers, and the client that would consume them — the only
-      thing that would make `RenderToString` and `RenderToStaticMarkup` differ.
+- [ ] The rest of hydration: boundary comments, bootstrap scripts, and the client
+      that would consume them. The adjacent-text separator has landed, so
+      `RenderToString` and `RenderToStaticMarkup` already differ; everything
+      above is what would make them differ *usefully*.
 - [ ] Streaming render with a real shell/fallback protocol
       (`renderToPipeableStream`-equivalent), including out-of-order flushing of
       resolved Suspense boundaries.
@@ -102,9 +117,11 @@ options, none of them free:
 
 ## Tooling & confidence
 
-- [ ] A parity corpus: a set of trees rendered by both real React
-      (`renderToStaticMarkup`) and this port, diffed in CI. This is the only
-      honest way to put a number in `parity.json`.
+- [x] A parity corpus: trees rendered by both real React and this port and diffed
+      in CI. Lives in `parity/react` — a vitest project renders each case with
+      the pinned `react-dom`, `go/run.go` renders the same cases with the port,
+      and the comparison writes `parity/react/parity.json`. What is left is
+      growing it, not building it.
 - [ ] Fuzz the reconciler: random keyed/keyless child-list mutations, asserting
       that state follows keys and that every dropped fiber is cleaned up exactly
       once.

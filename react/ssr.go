@@ -39,7 +39,15 @@ import (
 // component, a hook-order violation — is recovered and returned as an error
 // naming the panic value, because a template rendering deep inside a request
 // handler should fail that request rather than the process.
-func RenderToWriter(w io.Writer, node Node) (err error) {
+func RenderToWriter(w io.Writer, node Node) error {
+	return ssrRenderToWriter(w, node, false)
+}
+
+// ssrRenderToWriter is [RenderToWriter] with the choice of text mode made
+// explicit: staticMarkup selects React's renderToStaticMarkup text rules rather
+// than renderToString's. The only difference is the hydration separator between
+// adjacent text nodes; see ssr_textsep.go.
+func ssrRenderToWriter(w io.Writer, node Node, staticMarkup bool) (err error) {
 	// Registered last, so it runs after the Unmount below: cleanups get to run
 	// even when the render panicked, and a panic raised *by* a cleanup is
 	// caught here too.
@@ -52,9 +60,11 @@ func RenderToWriter(w io.Writer, node Node) (err error) {
 	root := NewRoot(node)
 	defer root.Unmount()
 
-	e := &ssrEmitter{w: w}
-	e.children(root.tree())
-	return e.err
+	e := &ssrEmitter{w: w, staticMarkup: staticMarkup}
+	// Head-managed elements do not render where they were written, so the walk
+	// goes through the hoisting path; it streams straight to w for any tree that
+	// cannot hoist. See ssr_hoist.go.
+	return ssrHoistRenderToWriter(e, w, root.tree())
 }
 
 // renderSeparatingPortals renders node once, emitting everything except portal
@@ -80,32 +90,39 @@ func renderSeparatingPortals(node Node) (main string, portals map[string]string,
 	root := NewRoot(node)
 	defer root.Unmount()
 
-	var b strings.Builder
-	e := &ssrEmitter{w: &b, portals: map[string]*strings.Builder{}}
-	e.children(root.tree())
-	if e.err != nil {
-		return "", nil, e.err
+	// staticMarkup: splitting a document across containers produces markup no
+	// client can hydrate as one tree, so the hydration text separator would be
+	// noise here. See [RenderPortalsToString] and ssr_textsep.go.
+	e := &ssrEmitter{portals: map[string]*strings.Builder{}, staticMarkup: true}
+	// The main output goes through the hoisting path, which owns the buffer it
+	// is assembled in; a container's output is its own stream and is not
+	// rearranged. See ssr_hoist.go.
+	main, err = ssrHoistRender(e, root.tree())
+	if err != nil {
+		return "", nil, err
 	}
 
 	portals = make(map[string]string, len(e.portals))
 	for id, buf := range e.portals {
 		portals[id] = buf.String()
 	}
-	return b.String(), portals, nil
+	return main, portals, nil
 }
 
 // RenderToString renders node to a complete HTML string.
 //
 // In React, renderToString and renderToStaticMarkup differ by hydration
-// metadata: renderToString embeds the comment markers and attributes that let
-// hydrateRoot match the client tree to the server output. This port has no
-// client, no hydration and therefore no markers, and inventing markers nothing
-// consumes would be worse than useless — it would put noise in the output and
-// imply a capability that does not exist. So the two functions produce byte-
-// identical output today, and [RenderToStaticMarkup] is documented as the alias.
-// The pair is kept because the names carry intent: code that would hydrate uses
-// RenderToString, and if hydration markers ever land they land here, not in
-// RenderToStaticMarkup.
+// metadata, and the difference that reaches the bytes of a server-rendered
+// document is the text separator: renderToString writes a "<!-- -->" comment
+// between two adjacent text nodes so that the client can tell where one ends and
+// the next begins, while renderToStaticMarkup, whose output is never hydrated,
+// writes the two runs of text straight up against each other. This port
+// reproduces that difference exactly — see ssr_textsep.go — so
+// RenderToString(div "a" "b") is "<div>a<!-- -->b</div>" and
+// [RenderToStaticMarkup] of the same tree is "<div>ab</div>".
+//
+// Reach for this name when the markup is going to a client that may hydrate it,
+// and for RenderToStaticMarkup when the output is final.
 func RenderToString(node Node) (string, error) {
 	var b strings.Builder
 	if err := RenderToWriter(&b, node); err != nil {
@@ -117,12 +134,16 @@ func RenderToString(node Node) (string, error) {
 // RenderToStaticMarkup renders node to HTML that is never going to be
 // hydrated — an email body, a static site page, a PDF source document.
 //
-// It is currently an exact alias for [RenderToString]: see that function for
-// why, in a port with no client runtime, the two cannot honestly differ. Prefer
-// this name when the output is genuinely final, so the intent survives if the
-// two ever diverge.
+// It differs from [RenderToString] exactly as React's renderToStaticMarkup
+// differs from its renderToString: no "<!-- -->" separator is written between
+// adjacent text nodes, because nothing will ever need to find the boundary. See
+// [RenderToString] and ssr_textsep.go.
 func RenderToStaticMarkup(node Node) (string, error) {
-	return RenderToString(node)
+	var b strings.Builder
+	if err := ssrRenderToWriter(&b, node, true); err != nil {
+		return "", err
+	}
+	return b.String(), nil
 }
 
 // MustRenderToString is [RenderToString] with the error turned into a panic. It
@@ -156,6 +177,23 @@ type ssrEmitter struct {
 	w   io.Writer
 	err error
 
+	// hoist, when non-nil, is the Float buffer that head-managed elements are
+	// diverted into instead of being written where they appear. It also holds
+	// the document buffer they are eventually spliced back into. See
+	// ssr_hoist.go.
+	hoist *ssrHoister
+
+	// preloads collects the hoisted <link rel="preload" as="image"> chunks the
+	// img elements in this render contributed, in React's two flush buckets.
+	// Nothing here emits them: the hoistable buffer flushes highChunks ahead of
+	// the other hoistables and bulkChunks after them, both still ahead of the
+	// document body. See ssr_preload.go.
+	preloads ssrImagePreloads
+
+	// noPreload is set while emitting the subtree of a <picture> or <noscript>,
+	// where React suppresses img preloads entirely.
+	noPreload bool
+
 	// portals, when non-nil, diverts each portal subtree's output into a buffer
 	// named by its container instead of emitting it inline.
 	//
@@ -174,6 +212,14 @@ type ssrEmitter struct {
 	// out, which is what makes <foreignObject> hand control back to HTML and
 	// give it up again at its closing tag. See ssr_namespace.go.
 	ns Namespace
+
+	// staticMarkup selects React's renderToStaticMarkup text rules over
+	// renderToString's, and lastText records whether the bytes written most
+	// recently were a text node. Together they decide the "<!-- -->" hydration
+	// separator between adjacent text nodes; both belong to ssr_textsep.go,
+	// which is where every rule that reads them lives.
+	staticMarkup bool
+	lastText     bool
 }
 
 // portalBuffer returns the buffer collecting output for a container, creating
@@ -195,9 +241,12 @@ func (e *ssrEmitter) portalBuffer(id string) *strings.Builder {
 // out for free, because the recursive walk re-enters this method and swaps the
 // destination again.
 func (e *ssrEmitter) portal(f *fiber, id string) {
-	previous := e.w
-	e.w = e.portalBuffer(id)
+	previous, previousText := e.w, e.lastText
+	// A container's buffer is its own document order, so the run of text in the
+	// stream being interrupted must not leak into it or back out of it.
+	e.w, e.lastText = e.portalBuffer(id), false
 	e.children(f)
+	e.lastText = previousText
 	e.w = previous
 }
 
@@ -260,7 +309,9 @@ func (e *ssrEmitter) fiber(f *fiber) {
 		e.host(f, t)
 	case textTag:
 		s, _ := f.props[textValueKey].(string)
-		e.write(ssrEscapeHTML(s))
+		// Not a plain write: adjacent text nodes are separated for hydration
+		// unless this is static markup. See ssr_textsep.go.
+		e.text(s)
 	default:
 		e.children(f)
 	}
@@ -275,6 +326,14 @@ func (e *ssrEmitter) host(f *fiber, tag string) {
 	outerNS := e.ns
 	e.ns = ElementNamespace(outerNS, tag)
 	defer func() { e.ns = outerNS }()
+
+	// React's Float machinery renders a <meta>, a <title>, a hoistable <link>
+	// and an async <script src> at the front of the document rather than here.
+	// The classifier, the buffer and the assembly all live in ssr_hoist.go; this
+	// is the one place the walk has to ask.
+	if e.hoistIntercept(f, tag) {
+		return
+	}
 
 	raw, hasRaw, err := ssrDangerousContent(f.props)
 	if err != nil {
@@ -292,6 +351,23 @@ func (e *ssrEmitter) host(f *fiber, tag string) {
 		return
 	}
 
+	// React's Float machinery hoists a <link rel="preload" as="image"> for an
+	// <img src>. Collecting it here, before the img is written, is the only
+	// wiring this file needs: the rules and the markup live in ssr_preload.go,
+	// and the buckets are handed to the hoistable buffer to flush.
+	if tag == "img" {
+		if preload, ok := ssrImagePreloadFor(f.props, e.noPreload); ok {
+			e.preloads.add(preload)
+		}
+	}
+	// picture and noscript suppress preloads for their whole subtree, so the
+	// flag is set for the children and restored on the way out.
+	if ssrPreloadSuppressingTag(tag) {
+		outerNoPreload := e.noPreload
+		e.noPreload = true
+		defer func() { e.noPreload = outerNoPreload }()
+	}
+
 	void := ssrIsVoidElement(tag)
 	if void && (hasChildren || hasRaw) {
 		e.fail(fmt.Errorf("react: <%s> is a void element and cannot have content; "+
@@ -300,8 +376,18 @@ func (e *ssrEmitter) host(f *fiber, tag string) {
 		return
 	}
 
+	// Controlled form values: a <select>'s and a <textarea>'s value props are
+	// subtree context and text content rather than attributes, and an
+	// <option>'s selected is decided by the <select> above it. See
+	// ssr_control.go; the rewritten props feed the attribute pass below.
+	ctlText, ctlHasText, ctlErr := ssrControlContent(f, tag, hasRaw)
+	if ctlErr != nil {
+		e.fail(ctlErr)
+		return
+	}
+
 	e.write("<" + tag)
-	e.attributes(f, tag)
+	e.attributes(ssrControlFiber(f, tag), tag)
 	if e.err != nil {
 		return
 	}
@@ -311,20 +397,32 @@ func (e *ssrEmitter) host(f *fiber, tag string) {
 		// keeps the output parseable as XHTML/XML, which matters for the email
 		// and feed use cases this renderer serves.
 		e.write("/>")
+		// A tag ends the run of text, so the next text node needs no separator.
+		e.lastText = false
 		return
 	}
 
 	e.write(">")
+	e.lastText = false
 	// Content, not the element itself: an integration point's children are HTML
 	// even though the element carrying them is SVG or MathML.
 	e.ns = ContentNamespace(e.ns, tag)
-	if hasRaw {
+	if ctlHasText {
+		// A <textarea>'s content is its value prop, already escaped by the
+		// helper that derived it. See ssr_control.go.
+		e.write(ctlText)
+	} else if hasRaw {
 		// Deliberately unescaped: that is the entire contract of DangerousHTML.
 		e.write(raw)
+	} else if text, ok := ssrRawTextChildren(f, tag); ok {
+		// script and style hold raw text, not markup: entity-escaping their
+		// content would corrupt the program or the stylesheet. See ssr_rawtext.go.
+		e.write(ssrRawTextContent(tag, text))
 	} else {
 		e.children(f)
 	}
 	e.write("</" + tag + ">")
+	e.lastText = false
 }
 
 // attributes emits the element's props as HTML attributes.
@@ -334,6 +432,11 @@ func (e *ssrEmitter) host(f *fiber, tag string) {
 // that makes the same tree render to the same bytes twice, and byte stability
 // is worth far more here than imitating an order the source language chose
 // arbitrarily.
+//
+// Sorting is not the whole story for input, button, form and option: React's
+// hand-written serializers for those tags defer a fixed set of props to the end
+// of the start tag, and that is visible in the bytes, so ssrAttributeOrder
+// reorders the sorted names to match. See ssr_order.go.
 func (e *ssrEmitter) attributes(f *fiber, tag string) {
 	if len(f.props) == 0 {
 		return
@@ -343,13 +446,24 @@ func (e *ssrEmitter) attributes(f *fiber, tag string) {
 		names = append(names, k)
 	}
 	sort.Strings(names)
+	names = ssrAttributeOrder(tag, f.props, names)
 
 	for _, prop := range names {
 		attr, ok := ssrResolveAttributeName(prop, e.ns)
 		if !ok {
 			continue
 		}
-		value, mode, err := ssrAttrValue(prop, attr, f.props[prop])
+		var (
+			value string
+			mode  ssrAttrMode
+			err   error
+		)
+		if prop == ssrStyleProp {
+			// The style prop has its own React-exact serializer; see ssr_style.go.
+			value, mode, err = ssrStyleAttrValue(f.props[prop])
+		} else {
+			value, mode, err = ssrAttrValue(prop, attr, f.props[prop])
+		}
 		if err != nil {
 			e.fail(fmt.Errorf("<%s>: %w", tag, err))
 			return
@@ -363,7 +477,11 @@ func (e *ssrEmitter) attributes(f *fiber, tag string) {
 			// See ssrAttrBare.
 			e.write(" " + attr + `=""`)
 		case ssrAttrValued:
-			e.write(" " + attr + `="` + ssrEscapeHTML(value) + `"`)
+			// A javascript: URL never reaches the page; see ssr_url.go.
+			if sanitized, blocked := ssrSanitizeURLValue(prop, value); blocked {
+				value = sanitized
+			}
+			e.write(" " + attr + `="` + ssrEscapeText(value) + `"`)
 		}
 	}
 }
