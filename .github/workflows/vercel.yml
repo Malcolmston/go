@@ -12,17 +12,50 @@ name: Vercel
 # (recommended once the project exists); otherwise the first run creates and
 # links a new Vercel project non-interactively from the repo root.
 
+# THIS WORKFLOW IS THE ONLY DEPLOY PATH. vercel.json sets
+# git.deploymentEnabled.main = false, which turns off Vercel's own Git
+# integration, because that integration clones the repository RECURSIVELY and
+# this repo has 39 submodules. Measured from a clean machine:
+#
+#   git clone --depth 1 --no-recurse-submodules   ->  15 s,  41 MB
+#   git clone --depth 1 --recurse-submodules      ->  still running at 240 s, 149 MB
+#
+# Every Git-integration build therefore sat on "Cloning github.com/Malcolmston/go"
+# until it hit the 45-minute build limit and errored — the build log contained
+# three lines and never reached the install step. actions/checkout does not fetch
+# submodules by default, so this path clones in seconds. The web build needs no
+# submodule source anyway: each library's API docs are committed under
+# public/docs/, and the import edges the graph derives from Go source are cached
+# in data/import-edges.json for exactly this reason.
+#
+# If you ever re-enable the Git integration, set the project's "Skip submodule
+# fetching" behaviour first, or the 45-minute timeouts come straight back.
+
 on:
   push:
     branches: ["main"]
+    # Anything the built site is derived from belongs here. The generators read
+    # more than the app source: scripts/build-graph-data.ts reads public/docs/,
+    # examples/, parity/ and data/import-edges.json, and build-security-data.ts
+    # reads parity/*/security.json plus each library's VERSION. A parity re-run or
+    # a new security manifest changes what the site SHOWS, so it has to deploy;
+    # before this list included them, those commits silently never shipped.
     paths:
       - "app/**"
       - "src/**"
       - "public/**"
       - "ui/**"
       - "api/**"
+      - "scripts/**"
+      - "parity/**"
+      - "data/**"
+      - "examples/**"
       - "package.json"
+      - "pnpm-lock.yaml"
+      - "tsconfig*.json"
       - "next.config.mjs"
+      - "vercel.json"
+      - ".vercelignore"
       - ".github/workflows/vercel.yml"
   workflow_dispatch:
 
@@ -43,10 +76,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
+      # Node 22 (not 20): package.json declares `engines.node >= 22.6.0`, and
+      # `vercel build` runs the project's own build with whatever Node is on the
+      # runner. It is also the floor for `--experimental-strip-types`, which the
+      # reindex step below needs, so one setup-node serves both.
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: "20"
+          node-version: "22"
 
       - name: Install Vercel CLI
         run: npm install -g vercel@latest
@@ -80,20 +117,16 @@ jobs:
       # only changes at build time, so we reindex once here rather than relying
       # on the safety-net Vercel Cron. symbols.json is gitignored (generated), so
       # we regenerate it with `pnpm build:graph` before indexing. Guarded to only
-      # run on main and only when the deploy actually produced a URL. Runs on
-      # Node 22 because `--experimental-strip-types` (used by build:graph /
-      # index:symbols) requires Node >= 22.6.0 — the deploy step above pins 20.
-      - name: Set up Node 22 (for reindex)
-        if: github.ref == 'refs/heads/main' && steps.deploy.outputs.url != ''
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-
+      # run on main and only when the deploy actually produced a URL.
       - name: Reindex symbols (Upstash Search)
         if: github.ref == 'refs/heads/main' && steps.deploy.outputs.url != ''
         env:
           UPSTASH_SEARCH_REST_URL: ${{ secrets.UPSTASH_SEARCH_REST_URL }}
           UPSTASH_SEARCH_REST_TOKEN: ${{ secrets.UPSTASH_SEARCH_REST_TOKEN }}
+          # Required: `@awesome.me/kit-*` resolves from the Font Awesome Pro
+          # registry (.npmrc). Without the token `pnpm install` 401s and the
+          # reindex fails after a successful deploy.
+          FONTAWESOME_PACKAGE_TOKEN: ${{ secrets.FONTAWESOME_PACKAGE_TOKEN }}
         run: |
           set -e
           if [ -z "$UPSTASH_SEARCH_REST_URL" ] || [ -z "$UPSTASH_SEARCH_REST_TOKEN" ]; then
