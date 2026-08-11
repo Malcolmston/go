@@ -1,0 +1,808 @@
+{
+  "group": "elements",
+  "upstream": "react@19.2.7 react-dom@19.2.7",
+  "note": "Element and child-model serialization: nesting, fragments, arrays, falsy children, numbers.",
+  "cases": [
+    {
+      "id": "el-empty-div",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div"
+        }
+      ],
+      "upstreamFn": "React.createElement",
+      "goFn": "react.CreateElement",
+      "feature": "createElement/host"
+    },
+    {
+      "id": "el-text-child",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            "hello"
+          ]
+        }
+      ],
+      "upstreamFn": "React.createElement",
+      "goFn": "react.CreateElement",
+      "feature": "createElement/host"
+    },
+    {
+      "id": "el-two-elements",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            {
+              "type": "span",
+              "children": [
+                "a"
+              ]
+            },
+            {
+              "type": "b",
+              "children": [
+                "b"
+              ]
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "createElement/host"
+    },
+    {
+      "id": "el-nested-3",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            {
+              "type": "span",
+              "children": [
+                {
+                  "type": "i",
+                  "children": [
+                    "x"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "createElement/host"
+    },
+    {
+      "id": "el-nested-6",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "a",
+          "children": [
+            {
+              "type": "b",
+              "children": [
+                {
+                  "type": "c",
+                  "children": [
+                    {
+                      "type": "d",
+                      "children": [
+                        {
+                          "type": "e",
+                          "children": [
+                            {
+                              "type": "f",
+                              "children": [
+                                "deep"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "createElement/host"
+    },
+    {
+      "id": "el-mixed-text-element",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "p",
+          "children": [
+            "a",
+            {
+              "type": "em",
+              "children": [
+                "b"
+              ]
+            },
+            "c"
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "createElement/host"
+    },
+    {
+      "id": "el-sibling-list",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "ul",
+          "children": [
+            {
+              "type": "li",
+              "children": [
+                "1"
+              ]
+            },
+            {
+              "type": "li",
+              "children": [
+                "2"
+              ]
+            },
+            {
+              "type": "li",
+              "children": [
+                "3"
+              ]
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "createElement/host"
+    },
+    {
+      "id": "el-with-props-and-children",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "className": "box",
+            "id": "root"
+          },
+          "children": [
+            "x"
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "createElement/props"
+    },
+    {
+      "id": "el-fragment-top",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "#fragment",
+          "children": [
+            "a",
+            "b"
+          ]
+        }
+      ],
+      "upstreamFn": "React.Fragment",
+      "goFn": "react.Fragment",
+      "feature": "Fragment"
+    },
+    {
+      "id": "el-fragment-nested",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            {
+              "type": "#fragment",
+              "children": [
+                {
+                  "type": "span",
+                  "children": [
+                    "a"
+                  ]
+                },
+                {
+                  "type": "span",
+                  "children": [
+                    "b"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "React.Fragment",
+      "goFn": "react.Fragment",
+      "feature": "Fragment"
+    },
+    {
+      "id": "el-fragment-empty",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            {
+              "type": "#fragment"
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "React.Fragment",
+      "goFn": "react.Fragment",
+      "feature": "Fragment"
+    },
+    {
+      "id": "el-fragment-of-fragments",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "#fragment",
+          "children": [
+            {
+              "type": "#fragment",
+              "children": [
+                "a"
+              ]
+            },
+            {
+              "type": "#fragment",
+              "children": [
+                {
+                  "type": "#fragment",
+                  "children": [
+                    "b"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "React.Fragment",
+      "goFn": "react.Fragment",
+      "feature": "Fragment"
+    },
+    {
+      "id": "el-array-child",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            [
+              "a",
+              "b",
+              "c"
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "array children"
+    },
+    {
+      "id": "el-array-nested",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            [
+              [
+                "a",
+                "b"
+              ],
+              "c",
+              [
+                [
+                  "d"
+                ]
+              ]
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "array children"
+    },
+    {
+      "id": "el-array-of-elements",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            [
+              {
+                "type": "i",
+                "props": {
+                  "key": "a"
+                },
+                "children": [
+                  "1"
+                ]
+              },
+              {
+                "type": "i",
+                "props": {
+                  "key": "b"
+                },
+                "children": [
+                  "2"
+                ]
+              }
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "array children + key"
+    },
+    {
+      "id": "el-array-keyed-top",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        [
+          {
+            "type": "i",
+            "props": {
+              "key": "1"
+            },
+            "children": [
+              "a"
+            ]
+          },
+          {
+            "type": "b",
+            "props": {
+              "key": "2"
+            },
+            "children": [
+              "b"
+            ]
+          }
+        ]
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "array children + key"
+    },
+    {
+      "id": "el-array-empty",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            []
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "array children"
+    },
+    {
+      "id": "el-child-null",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            null
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "falsy children"
+    },
+    {
+      "id": "el-child-undefined",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            {
+              "$undefined": true
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "falsy children"
+    },
+    {
+      "id": "el-child-false",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            false
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "falsy children"
+    },
+    {
+      "id": "el-child-true",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            true
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "falsy children"
+    },
+    {
+      "id": "el-child-empty-string",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            ""
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "falsy children"
+    },
+    {
+      "id": "el-child-zero",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            0
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "numeric children"
+    },
+    {
+      "id": "el-child-zero-string",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            "0"
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "numeric children"
+    },
+    {
+      "id": "el-child-falsy-mix",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            null,
+            false,
+            {
+              "$undefined": true
+            },
+            "",
+            0,
+            true,
+            "end"
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "falsy children"
+    },
+    {
+      "id": "el-child-int",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            42
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "numeric children"
+    },
+    {
+      "id": "el-child-negative",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            -7
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "numeric children"
+    },
+    {
+      "id": "el-child-float",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            1.5
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "numeric children"
+    },
+    {
+      "id": "el-child-float-repeating",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            0.3333333333333333
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "numeric children"
+    },
+    {
+      "id": "el-child-small-float",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            0.1
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "numeric children"
+    },
+    {
+      "id": "el-child-big-int",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            9007199254740991
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "numeric children"
+    },
+    {
+      "id": "el-child-exponent",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            1e+21
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "numeric children",
+      "note": "JS Number#toString switches to exponent form at 1e21; Go strconv.FormatFloat(-1) does not."
+    },
+    {
+      "id": "el-child-numbers-adjacent",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "numeric children"
+    },
+    {
+      "id": "el-component-passthrough",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "#component",
+          "children": [
+            "a",
+            {
+              "type": "b",
+              "children": [
+                "c"
+              ]
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "React function component",
+      "goFn": "react.Component",
+      "feature": "function component"
+    },
+    {
+      "id": "el-component-nested",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            {
+              "type": "#component",
+              "children": [
+                {
+                  "type": "#component",
+                  "children": [
+                    "x"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "function component"
+    },
+    {
+      "id": "el-component-empty",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            {
+              "type": "#component"
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "function component"
+    },
+    {
+      "id": "el-unknown-tag",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "my-element",
+          "props": {
+            "foo": "bar"
+          },
+          "children": [
+            "x"
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "custom element"
+    },
+    {
+      "id": "el-unknown-tag-nested",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            {
+              "type": "x-a",
+              "children": [
+                {
+                  "type": "x-b",
+                  "children": [
+                    "y"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "custom element"
+    },
+    {
+      "id": "el-textarea-children",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "textarea",
+          "children": [
+            "hi"
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "textarea content"
+    },
+    {
+      "id": "el-p-empty-string-attr",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "p",
+          "props": {
+            "id": ""
+          },
+          "children": [
+            "x"
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "empty attribute value"
+    }
+  ]
+}

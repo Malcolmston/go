@@ -1,0 +1,273 @@
+{
+  "group": "data-aria",
+  "upstream": "react@19.2.7 react-dom@19.2.7",
+  "note": "data-* and aria-* pass through untranslated, including the boolean values React keeps for them.",
+  "cases": [
+    {
+      "id": "da-data-simple",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "data-x": "y"
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "data-*/aria-* pass-through"
+    },
+    {
+      "id": "da-data-multiple",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "data-a": "1",
+            "data-b": "2",
+            "data-c": "3"
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "data-*/aria-* pass-through"
+    },
+    {
+      "id": "da-data-hyphenated",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "data-my-long-name": "v"
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "data-*/aria-* pass-through"
+    },
+    {
+      "id": "da-data-number",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "data-n": 5
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "data-*/aria-* pass-through"
+    },
+    {
+      "id": "da-data-true",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "data-flag": true
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "data-*/aria-* pass-through"
+    },
+    {
+      "id": "da-data-false",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "data-flag": false
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "data-*/aria-* pass-through"
+    },
+    {
+      "id": "da-data-null",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "data-flag": null
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "data-*/aria-* pass-through"
+    },
+    {
+      "id": "da-data-empty",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "data-flag": ""
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "data-*/aria-* pass-through"
+    },
+    {
+      "id": "da-data-escaped",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "data-json": "{\"a\":1,\"b\":\"<x>\"}"
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "data-*/aria-* pass-through"
+    },
+    {
+      "id": "da-aria-label",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "aria-label": "Close"
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "data-*/aria-* pass-through"
+    },
+    {
+      "id": "da-aria-hidden-true",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "aria-hidden": true
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "data-*/aria-* pass-through"
+    },
+    {
+      "id": "da-aria-hidden-false",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "aria-hidden": false
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "data-*/aria-* pass-through"
+    },
+    {
+      "id": "da-aria-hidden-string",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "aria-hidden": "true"
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "data-*/aria-* pass-through"
+    },
+    {
+      "id": "da-aria-describedby",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "aria-describedby": "a b",
+            "aria-labelledby": "c"
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "data-*/aria-* pass-through"
+    },
+    {
+      "id": "da-aria-level-number",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "aria-level": 2,
+            "role": "heading"
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "data-*/aria-* pass-through"
+    },
+    {
+      "id": "da-aria-null",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "aria-label": null,
+            "id": "x"
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "data-*/aria-* pass-through"
+    },
+    {
+      "id": "da-combined",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "button",
+          "props": {
+            "aria-pressed": false,
+            "className": "btn",
+            "data-id": "7",
+            "type": "button"
+          },
+          "children": [
+            "Go"
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "data-*/aria-* pass-through"
+    }
+  ]
+}

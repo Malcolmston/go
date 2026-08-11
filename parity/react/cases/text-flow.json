@@ -1,0 +1,361 @@
+{
+  "group": "text-flow",
+  "upstream": "react@19.2.7 react-dom@19.2.7",
+  "note": "Text ordering and whitespace: adjacent text nodes, preserved whitespace, and the renderToString/renderToStaticMarkup difference.",
+  "cases": [
+    {
+      "id": "tf-adjacent-text",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            "a",
+            "b"
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "adjacent text children"
+    },
+    {
+      "id": "tf-adjacent-text-three",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            "a",
+            "b",
+            "c"
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "adjacent text children"
+    },
+    {
+      "id": "tf-text-element-text",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            "a",
+            {
+              "type": "b",
+              "children": [
+                "x"
+              ]
+            },
+            "c"
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "child ordering"
+    },
+    {
+      "id": "tf-number-then-text",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            1,
+            "a"
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "adjacent text children"
+    },
+    {
+      "id": "tf-leading-trailing-space",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            "  a  "
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "whitespace preservation"
+    },
+    {
+      "id": "tf-newlines",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "pre",
+          "children": [
+            "line1\nline2\n  indented"
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "whitespace preservation"
+    },
+    {
+      "id": "tf-tabs",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "pre",
+          "children": [
+            "a\tb"
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "whitespace preservation"
+    },
+    {
+      "id": "tf-only-space",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "span",
+          "children": [
+            " "
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "whitespace preservation"
+    },
+    {
+      "id": "tf-space-between-elements",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            {
+              "type": "b",
+              "children": [
+                "a"
+              ]
+            },
+            " ",
+            {
+              "type": "b",
+              "children": [
+                "b"
+              ]
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "whitespace preservation"
+    },
+    {
+      "id": "tf-nbsp-between",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            {
+              "type": "b",
+              "children": [
+                "a"
+              ]
+            },
+            " ",
+            {
+              "type": "b",
+              "children": [
+                "b"
+              ]
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "whitespace preservation"
+    },
+    {
+      "id": "tf-order-deep",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "ol",
+          "children": [
+            {
+              "type": "li",
+              "children": [
+                "1",
+                {
+                  "type": "span",
+                  "children": [
+                    "a"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "li",
+              "children": [
+                {
+                  "type": "span",
+                  "children": [
+                    "b"
+                  ]
+                },
+                "2"
+              ]
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "child ordering"
+    },
+    {
+      "id": "rts-simple",
+      "fn": "renderToString",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "id": "x"
+          },
+          "children": [
+            "hello"
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToString",
+      "goFn": "react.RenderToString",
+      "feature": "renderToString"
+    },
+    {
+      "id": "rts-nested",
+      "fn": "renderToString",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            {
+              "type": "span",
+              "children": [
+                "a"
+              ]
+            },
+            {
+              "type": "span",
+              "children": [
+                "b"
+              ]
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToString",
+      "goFn": "react.RenderToString",
+      "feature": "renderToString"
+    },
+    {
+      "id": "rts-attrs",
+      "fn": "renderToString",
+      "args": [
+        {
+          "type": "a",
+          "props": {
+            "className": "c",
+            "href": "/h"
+          },
+          "children": [
+            "l"
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToString",
+      "goFn": "react.RenderToString",
+      "feature": "renderToString"
+    },
+    {
+      "id": "rts-void",
+      "fn": "renderToString",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            {
+              "type": "br"
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToString",
+      "goFn": "react.RenderToString",
+      "feature": "renderToString"
+    },
+    {
+      "id": "rts-adjacent-text",
+      "fn": "renderToString",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            "a",
+            "b"
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToString",
+      "goFn": "react.RenderToString",
+      "feature": "renderToString",
+      "deviation": "renderToString inserts a <!-- --> separator between adjacent text nodes so hydration can find the boundary. The port has no client and no hydration, so RenderToString is documented as an alias of RenderToStaticMarkup (react/ssr.go)."
+    },
+    {
+      "id": "rts-adjacent-numbers",
+      "fn": "renderToString",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            1,
+            2
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToString",
+      "goFn": "react.RenderToString",
+      "feature": "renderToString",
+      "deviation": "Same hydration text separator as rts-adjacent-text."
+    },
+    {
+      "id": "rts-fragment-texts",
+      "fn": "renderToString",
+      "args": [
+        {
+          "type": "#fragment",
+          "children": [
+            "a",
+            "b"
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToString",
+      "goFn": "react.RenderToString",
+      "feature": "renderToString",
+      "deviation": "Same hydration text separator as rts-adjacent-text."
+    }
+  ]
+}

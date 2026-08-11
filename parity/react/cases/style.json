@@ -1,0 +1,907 @@
+{
+  "group": "style",
+  "upstream": "react@19.2.7 react-dom@19.2.7",
+  "note": "The style prop: camelCase -> kebab-case, the px/unitless rule, dropped declarations, vendor prefixes, custom properties.",
+  "cases": [
+    {
+      "id": "st-single",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "color": "red"
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-two",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "color": "red",
+              "display": "block"
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-camel-to-kebab",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "backgroundColor": "blue"
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-camel-long",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "borderBottomLeftRadius": "2px"
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-already-kebab",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "background-color": "blue"
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-px-width",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "width": 10
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-px-float",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "width": 1.5
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-px-negative",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "marginTop": -5
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-px-zero",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "margin": 0
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-px-zero-float",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "margin": 0
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-unitless-zindex",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "zIndex": 3
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-unitless-flex",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "flex": 1
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-unitless-flexgrow",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "flexGrow": 2,
+              "flexShrink": 0
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-unitless-order",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "order": 1
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-unitless-opacity",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "opacity": 0.5
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-unitless-lineheight",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "lineHeight": 1.5
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-unitless-fontweight",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "fontWeight": 700
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-unitless-columncount",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "columnCount": 2
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-unitless-tabsize",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "tabSize": 4
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-unitless-orphans-widows",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "orphans": 2,
+              "widows": 3
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-unitless-aspectratio",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "aspectRatio": 2
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-unitless-zoom",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "zoom": 2
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-unitless-gridrow",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "gridRow": 2
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-unitless-strokewidth",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "strokeWidth": 2
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-unitless-fillopacity",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "fillOpacity": 0.25
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-unitless-animationiteration",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "animationIterationCount": 3
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-unitless-lineclamp",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "WebkitLineClamp": 3
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-string-number",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "width": "10"
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-numeric-string-with-unit",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "width": "10rem"
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-vendor-webkit",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "WebkitTransform": "rotate(1deg)"
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-vendor-ms",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "msTransform": "rotate(1deg)"
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-vendor-moz",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "MozAppearance": "none"
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-custom-property",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "--brand": "#fff"
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-custom-property-number",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "--count": 3
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-custom-and-normal",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "--x": "1",
+              "color": "red"
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-null-drops",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "color": null,
+              "display": "block"
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-undefined-drops",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "color": {
+                "$undefined": true
+              },
+              "display": "block"
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-empty-string-drops",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "color": "",
+              "display": "block"
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-all-dropped",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "color": null,
+              "width": {
+                "$undefined": true
+              }
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-empty-object",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {}
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-value-with-quote",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "fontFamily": "\"My Font\", serif"
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-value-with-semicolon-escape",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "content": "\"a;b\""
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-value-with-url",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "backgroundImage": "url(/a.png?a=1&b=2)"
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-value-calc",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "width": "calc(100% - 10px)"
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-value-important",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "color": "red !important"
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-value-multi-comma",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "transition": "color 1s, background 2s"
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-value-bool",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "width": true
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization",
+      "note": "React drops a boolean style value; the port errors."
+    },
+    {
+      "id": "st-many",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "alignItems": "center",
+              "display": "flex",
+              "justifyContent": "space-between",
+              "marginTop": 8,
+              "zIndex": 10
+            }
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-string-value",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": "color:red"
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization",
+      "note": "React throws for a string style prop; the port accepts it as a pre-formatted declaration list."
+    },
+    {
+      "id": "st-nested-elements",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "style": {
+              "color": "red"
+            }
+          },
+          "children": [
+            {
+              "type": "span",
+              "props": {
+                "style": {
+                  "fontSize": 12
+                }
+              },
+              "children": [
+                "x"
+              ]
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    },
+    {
+      "id": "st-svg-style",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "svg",
+          "children": [
+            {
+              "type": "rect",
+              "props": {
+                "style": {
+                  "fill": "red",
+                  "strokeWidth": 2
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOM style serializer",
+      "goFn": "react.FormatStyle",
+      "feature": "style prop serialization"
+    }
+  ]
+}

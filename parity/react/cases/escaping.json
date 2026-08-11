@@ -1,0 +1,434 @@
+{
+  "group": "escaping",
+  "upstream": "react@19.2.7 react-dom@19.2.7",
+  "note": "escapeTextForBrowser: the five escaped characters, in text and in attribute values, plus things that must NOT be touched.",
+  "cases": [
+    {
+      "id": "esc-text-all-five",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            "&<>\"'"
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "escapeTextForBrowser"
+    },
+    {
+      "id": "esc-text-amp",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            "a & b"
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "escapeTextForBrowser"
+    },
+    {
+      "id": "esc-text-lt",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            "a < b"
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "escapeTextForBrowser"
+    },
+    {
+      "id": "esc-text-gt",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            "a > b"
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "escapeTextForBrowser"
+    },
+    {
+      "id": "esc-text-quote",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            "say \"hi\""
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "escapeTextForBrowser"
+    },
+    {
+      "id": "esc-text-apostrophe",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            "it's"
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "escapeTextForBrowser",
+      "note": "React emits &#x27; for U+0027."
+    },
+    {
+      "id": "esc-text-already-escaped",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            "&amp;"
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "escapeTextForBrowser"
+    },
+    {
+      "id": "esc-text-entity-lookalike",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            "&nbsp;&#39;&lt;"
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "escapeTextForBrowser"
+    },
+    {
+      "id": "esc-text-bare-amp-semicolon",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            "a&;b"
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "escapeTextForBrowser"
+    },
+    {
+      "id": "esc-text-script-close",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            "</script><script>alert(1)</script>"
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "escapeTextForBrowser"
+    },
+    {
+      "id": "esc-text-script-inside-script",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "script",
+          "children": [
+            "var a = 1 < 2;"
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "escapeTextForBrowser"
+    },
+    {
+      "id": "esc-text-html-comment",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            "<!-- comment -->"
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "escapeTextForBrowser"
+    },
+    {
+      "id": "esc-text-nbsp",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            "a b"
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "escapeTextForBrowser"
+    },
+    {
+      "id": "esc-text-unicode",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            "héllo — 日本語 🎉"
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "escapeTextForBrowser"
+    },
+    {
+      "id": "esc-text-control-chars",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            "a\tb\nc\r\u000bd"
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "escapeTextForBrowser"
+    },
+    {
+      "id": "esc-text-line-separator",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            "a b c"
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "escapeTextForBrowser"
+    },
+    {
+      "id": "esc-text-null-char",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            "a\u0000b"
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "escapeTextForBrowser"
+    },
+    {
+      "id": "esc-attr-all-five",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "title": "&<>\"'"
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "escapeTextForBrowser (attribute)"
+    },
+    {
+      "id": "esc-attr-quote-breakout",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "title": "\" onmouseover=\"alert(1)"
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "escapeTextForBrowser (attribute)"
+    },
+    {
+      "id": "esc-attr-apostrophe",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "title": "it's"
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "escapeTextForBrowser (attribute)"
+    },
+    {
+      "id": "esc-attr-lt-gt",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "data-x": "<b>"
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "escapeTextForBrowser (attribute)"
+    },
+    {
+      "id": "esc-attr-nbsp",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "title": "a b"
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "escapeTextForBrowser (attribute)"
+    },
+    {
+      "id": "esc-attr-newline",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "title": "a\nb"
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "escapeTextForBrowser (attribute)"
+    },
+    {
+      "id": "esc-attr-url-amp",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "a",
+          "props": {
+            "href": "/x?a=1&b=2"
+          },
+          "children": [
+            "l"
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "escapeTextForBrowser (attribute)"
+    },
+    {
+      "id": "esc-attr-javascript-url",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "a",
+          "props": {
+            "href": "javascript:alert('x')"
+          },
+          "children": [
+            "l"
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "escapeTextForBrowser (attribute)",
+      "note": "Neither implementation is expected to sanitize the scheme; the case records what they do."
+    },
+    {
+      "id": "esc-attr-unicode",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "title": "日本語 🎉"
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "escapeTextForBrowser (attribute)"
+    },
+    {
+      "id": "esc-deep-text",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "children": [
+            {
+              "type": "span",
+              "children": [
+                "a&b"
+              ]
+            },
+            {
+              "type": "span",
+              "props": {
+                "title": "c<d"
+              },
+              "children": [
+                "e>f"
+              ]
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "escapeTextForBrowser"
+    }
+  ]
+}

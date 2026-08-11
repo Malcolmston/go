@@ -1,0 +1,232 @@
+{
+  "group": "raw-html",
+  "upstream": "react@19.2.7 react-dom@19.2.7",
+  "note": "dangerouslySetInnerHTML: written through byte for byte, and the error cases around it.",
+  "cases": [
+    {
+      "id": "dsi-simple",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "dangerouslySetInnerHTML": {
+              "$html": "<b>bold</b>"
+            }
+          }
+        }
+      ],
+      "upstreamFn": "props.dangerouslySetInnerHTML",
+      "goFn": "react.DangerousHTML",
+      "feature": "dangerouslySetInnerHTML"
+    },
+    {
+      "id": "dsi-unescaped-amp",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "dangerouslySetInnerHTML": {
+              "$html": "a & b < c"
+            }
+          }
+        }
+      ],
+      "upstreamFn": "props.dangerouslySetInnerHTML",
+      "goFn": "react.DangerousHTML",
+      "feature": "dangerouslySetInnerHTML"
+    },
+    {
+      "id": "dsi-empty",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "dangerouslySetInnerHTML": {
+              "$html": ""
+            }
+          }
+        }
+      ],
+      "upstreamFn": "props.dangerouslySetInnerHTML",
+      "goFn": "react.DangerousHTML",
+      "feature": "dangerouslySetInnerHTML"
+    },
+    {
+      "id": "dsi-script",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "dangerouslySetInnerHTML": {
+              "$html": "<script>alert(1)</script>"
+            }
+          }
+        }
+      ],
+      "upstreamFn": "props.dangerouslySetInnerHTML",
+      "goFn": "react.DangerousHTML",
+      "feature": "dangerouslySetInnerHTML"
+    },
+    {
+      "id": "dsi-with-attrs",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "className": "c",
+            "dangerouslySetInnerHTML": {
+              "$html": "<i>x</i>"
+            },
+            "id": "i"
+          }
+        }
+      ],
+      "upstreamFn": "props.dangerouslySetInnerHTML",
+      "goFn": "react.DangerousHTML",
+      "feature": "dangerouslySetInnerHTML"
+    },
+    {
+      "id": "dsi-nested-parent",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "section",
+          "children": [
+            {
+              "type": "div",
+              "props": {
+                "dangerouslySetInnerHTML": {
+                  "$html": "<p>x</p>"
+                }
+              }
+            },
+            {
+              "type": "span",
+              "children": [
+                "after"
+              ]
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "props.dangerouslySetInnerHTML",
+      "goFn": "react.DangerousHTML",
+      "feature": "dangerouslySetInnerHTML"
+    },
+    {
+      "id": "dsi-in-script-tag",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "script",
+          "props": {
+            "dangerouslySetInnerHTML": {
+              "$html": "if (a < b) { x = \"y\"; }"
+            }
+          }
+        }
+      ],
+      "upstreamFn": "props.dangerouslySetInnerHTML",
+      "goFn": "react.DangerousHTML",
+      "feature": "dangerouslySetInnerHTML"
+    },
+    {
+      "id": "dsi-in-style-tag",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "style",
+          "props": {
+            "dangerouslySetInnerHTML": {
+              "$html": "a > b { color: red }"
+            }
+          }
+        }
+      ],
+      "upstreamFn": "props.dangerouslySetInnerHTML",
+      "goFn": "react.DangerousHTML",
+      "feature": "dangerouslySetInnerHTML"
+    },
+    {
+      "id": "dsi-and-children",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "dangerouslySetInnerHTML": {
+              "$html": "<b>x</b>"
+            }
+          },
+          "children": [
+            "child"
+          ]
+        }
+      ],
+      "upstreamFn": "props.dangerouslySetInnerHTML",
+      "goFn": "react.DangerousHTML",
+      "feature": "dangerouslySetInnerHTML",
+      "note": "React throws \"Can only set one of children or props.dangerouslySetInnerHTML\"."
+    },
+    {
+      "id": "dsi-null",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "dangerouslySetInnerHTML": null
+          },
+          "children": [
+            "child"
+          ]
+        }
+      ],
+      "upstreamFn": "props.dangerouslySetInnerHTML",
+      "goFn": "react.DangerousHTML",
+      "feature": "dangerouslySetInnerHTML"
+    },
+    {
+      "id": "dsi-undefined",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "dangerouslySetInnerHTML": {
+              "$undefined": true
+            }
+          },
+          "children": [
+            "child"
+          ]
+        }
+      ],
+      "upstreamFn": "props.dangerouslySetInnerHTML",
+      "goFn": "react.DangerousHTML",
+      "feature": "dangerouslySetInnerHTML"
+    },
+    {
+      "id": "dsi-partial-tag",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "div",
+          "props": {
+            "dangerouslySetInnerHTML": {
+              "$html": "<div>unclosed"
+            }
+          }
+        }
+      ],
+      "upstreamFn": "props.dangerouslySetInnerHTML",
+      "goFn": "react.DangerousHTML",
+      "feature": "dangerouslySetInnerHTML"
+    }
+  ]
+}

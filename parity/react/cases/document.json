@@ -1,0 +1,372 @@
+{
+  "group": "document",
+  "upstream": "react@19.2.7 react-dom@19.2.7",
+  "note": "Document-shaped trees: the head elements and page skeletons a server renderer actually emits.",
+  "cases": [
+    {
+      "id": "doc-html-skeleton",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "html",
+          "props": {
+            "lang": "en"
+          },
+          "children": [
+            {
+              "type": "head",
+              "children": [
+                {
+                  "type": "title",
+                  "children": [
+                    "T"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "body",
+              "children": [
+                {
+                  "type": "div",
+                  "props": {
+                    "id": "root"
+                  },
+                  "children": [
+                    "x"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "document tree"
+    },
+    {
+      "id": "doc-title",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "title",
+          "children": [
+            "Hello & goodbye"
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "document tree"
+    },
+    {
+      "id": "doc-meta-charset",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "meta",
+          "props": {
+            "charSet": "utf-8"
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "document tree"
+    },
+    {
+      "id": "doc-meta-viewport",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "meta",
+          "props": {
+            "content": "width=device-width",
+            "name": "viewport"
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "document tree"
+    },
+    {
+      "id": "doc-link-stylesheet",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "link",
+          "props": {
+            "href": "/a.css",
+            "rel": "stylesheet"
+          }
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "document tree"
+    },
+    {
+      "id": "doc-style-tag",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "style",
+          "children": [
+            "body{margin:0}"
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "document tree"
+    },
+    {
+      "id": "doc-table",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "table",
+          "children": [
+            {
+              "type": "thead",
+              "children": [
+                {
+                  "type": "tr",
+                  "children": [
+                    {
+                      "type": "th",
+                      "props": {
+                        "scope": "col"
+                      },
+                      "children": [
+                        "H"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "tbody",
+              "children": [
+                {
+                  "type": "tr",
+                  "children": [
+                    {
+                      "type": "td",
+                      "props": {
+                        "colSpan": 2
+                      },
+                      "children": [
+                        "C"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "document tree"
+    },
+    {
+      "id": "doc-form",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "form",
+          "props": {
+            "acceptCharset": "utf-8",
+            "action": "/a",
+            "method": "post"
+          },
+          "children": [
+            {
+              "type": "label",
+              "props": {
+                "htmlFor": "q"
+              },
+              "children": [
+                "Q"
+              ]
+            },
+            {
+              "type": "input",
+              "props": {
+                "id": "q",
+                "name": "q",
+                "required": true,
+                "type": "text"
+              }
+            },
+            {
+              "type": "button",
+              "props": {
+                "type": "submit"
+              },
+              "children": [
+                "Go"
+              ]
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "document tree"
+    },
+    {
+      "id": "doc-select",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "select",
+          "props": {
+            "name": "s"
+          },
+          "children": [
+            {
+              "type": "option",
+              "props": {
+                "value": "1"
+              },
+              "children": [
+                "One"
+              ]
+            },
+            {
+              "type": "option",
+              "props": {
+                "value": "2"
+              },
+              "children": [
+                "Two"
+              ]
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "document tree"
+    },
+    {
+      "id": "doc-svg-icon",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "svg",
+          "props": {
+            "fill": "none",
+            "height": 16,
+            "viewBox": "0 0 16 16",
+            "width": 16,
+            "xmlns": "http://www.w3.org/2000/svg"
+          },
+          "children": [
+            {
+              "type": "path",
+              "props": {
+                "d": "M1 1L15 15",
+                "stroke": "currentColor",
+                "strokeLinecap": "round",
+                "strokeWidth": 2
+              }
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "document tree"
+    },
+    {
+      "id": "doc-email-table",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "table",
+          "props": {
+            "cellPadding": 0,
+            "cellSpacing": 0,
+            "role": "presentation",
+            "style": {
+              "width": "100%"
+            }
+          },
+          "children": [
+            {
+              "type": "tr",
+              "children": [
+                {
+                  "type": "td",
+                  "props": {
+                    "align": "center",
+                    "style": {
+                      "padding": 16
+                    }
+                  },
+                  "children": [
+                    "Body"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "document tree"
+    },
+    {
+      "id": "doc-nested-components",
+      "fn": "renderToStaticMarkup",
+      "args": [
+        {
+          "type": "#component",
+          "children": [
+            {
+              "type": "div",
+              "props": {
+                "className": "page"
+              },
+              "children": [
+                {
+                  "type": "#component",
+                  "children": [
+                    {
+                      "type": "h1",
+                      "children": [
+                        "Title"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "#component",
+                  "children": [
+                    {
+                      "type": "p",
+                      "children": [
+                        "Text & more"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "ReactDOMServer.renderToStaticMarkup",
+      "goFn": "react.RenderToStaticMarkup",
+      "feature": "function component"
+    }
+  ]
+}
