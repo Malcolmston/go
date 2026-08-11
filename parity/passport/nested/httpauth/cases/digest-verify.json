@@ -1,0 +1,330 @@
+{
+  "group": "digest-verify",
+  "upstream": "http-auth-utils@7.0.1",
+  "note": "Server-side verification of a Digest credential: parse the header, recompute the response digest and compare. Upstream has no verify helper, so the node runner composes DIGEST.parseAuthorizationRest with DIGEST.computeHash the way a server would; an algorithm no hash implementation supports is reported as a rejection (false) on both sides rather than an error. Every valid response digest in this file was produced by the upstream oracle.",
+  "cases": [
+    {
+      "id": "dv-correct",
+      "fn": "verifyDigest",
+      "args": [
+        "Digest username=\"alice\", realm=\"Parity\", nonce=\"deadbeefdeadbeefdeadbeefdeadbeef\", uri=\"/protected\", response=\"85af665982cef6c9b2b5dd7b67ab931f\", qop=auth, nc=00000001, cnonce=\"0a4f113b\", algorithm=MD5",
+        "GET",
+        "s3cr3t",
+        ""
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest + DIGEST.computeHash + ===",
+      "goFn": "httpauth.VerifyDigest",
+      "acceptance": true,
+      "note": "the one credential that must verify"
+    },
+    {
+      "id": "dv-correct-no-algorithm",
+      "fn": "verifyDigest",
+      "args": [
+        "Digest username=\"alice\", realm=\"Parity\", nonce=\"deadbeefdeadbeefdeadbeefdeadbeef\", uri=\"/protected\", response=\"85af665982cef6c9b2b5dd7b67ab931f\", qop=auth, nc=00000001, cnonce=\"0a4f113b\"",
+        "GET",
+        "s3cr3t",
+        ""
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest + DIGEST.computeHash + ===",
+      "goFn": "httpauth.VerifyDigest",
+      "acceptance": true,
+      "note": "an absent algorithm means MD5"
+    },
+    {
+      "id": "dv-correct-nc-incremented",
+      "fn": "verifyDigest",
+      "args": [
+        "Digest username=\"alice\", realm=\"Parity\", nonce=\"deadbeefdeadbeefdeadbeefdeadbeef\", uri=\"/protected\", response=\"f3ef038a558223630259374048ba2e02\", qop=auth, nc=00000002, cnonce=\"0a4f113b\", algorithm=MD5",
+        "GET",
+        "s3cr3t",
+        ""
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest + DIGEST.computeHash + ===",
+      "goFn": "httpauth.VerifyDigest",
+      "acceptance": true,
+      "note": "a fresh nonce-count with a recomputed response"
+    },
+    {
+      "id": "dv-correct-other-uri",
+      "fn": "verifyDigest",
+      "args": [
+        "Digest username=\"alice\", realm=\"Parity\", nonce=\"deadbeefdeadbeefdeadbeefdeadbeef\", uri=\"/other\", response=\"5103b91c8284ac0bc7f2acb329deb4ab\", qop=auth, nc=00000001, cnonce=\"0a4f113b\", algorithm=MD5",
+        "GET",
+        "s3cr3t",
+        ""
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest + DIGEST.computeHash + ===",
+      "goFn": "httpauth.VerifyDigest",
+      "acceptance": true,
+      "note": "a credential minted for /other verifies against /other"
+    },
+    {
+      "id": "dv-correct-post",
+      "fn": "verifyDigest",
+      "args": [
+        "Digest username=\"alice\", realm=\"Parity\", nonce=\"deadbeefdeadbeefdeadbeefdeadbeef\", uri=\"/protected\", response=\"bf15341db46d30bf01cdcfb37bd6ba84\", qop=auth, nc=00000001, cnonce=\"0a4f113b\", algorithm=MD5",
+        "POST",
+        "s3cr3t",
+        ""
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest + DIGEST.computeHash + ===",
+      "goFn": "httpauth.VerifyDigest",
+      "acceptance": true,
+      "note": "a credential minted for POST verifies as POST"
+    },
+    {
+      "id": "dv-correct-empty-password",
+      "fn": "verifyDigest",
+      "args": [
+        "Digest username=\"alice\", realm=\"Parity\", nonce=\"deadbeefdeadbeefdeadbeefdeadbeef\", uri=\"/protected\", response=\"64b41ef444c2896f13225a56ed300d29\", qop=auth, nc=00000001, cnonce=\"0a4f113b\", algorithm=MD5",
+        "GET",
+        "",
+        ""
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest + DIGEST.computeHash + ===",
+      "goFn": "httpauth.VerifyDigest",
+      "acceptance": true,
+      "note": "an empty password is still a password"
+    },
+    {
+      "id": "dv-correct-sha256",
+      "fn": "verifyDigest",
+      "args": [
+        "Digest username=\"alice\", realm=\"Parity\", nonce=\"deadbeefdeadbeefdeadbeefdeadbeef\", uri=\"/protected\", response=\"97d60a7bbf83928aa5ff0620cb80212ad30be25034d8b13701fc78403dc8da9e\", qop=auth, nc=00000001, cnonce=\"0a4f113b\", algorithm=SHA-256",
+        "GET",
+        "s3cr3t",
+        ""
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest + DIGEST.computeHash + ===",
+      "goFn": "httpauth.VerifyDigest",
+      "acceptance": true
+    },
+    {
+      "id": "dv-wrong-password",
+      "fn": "verifyDigest",
+      "args": [
+        "Digest username=\"alice\", realm=\"Parity\", nonce=\"deadbeefdeadbeefdeadbeefdeadbeef\", uri=\"/protected\", response=\"85af665982cef6c9b2b5dd7b67ab931f\", qop=auth, nc=00000001, cnonce=\"0a4f113b\", algorithm=MD5",
+        "GET",
+        "wrong",
+        ""
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest + DIGEST.computeHash + ===",
+      "goFn": "httpauth.VerifyDigest",
+      "acceptance": true,
+      "note": "must not verify"
+    },
+    {
+      "id": "dv-empty-password-against-real",
+      "fn": "verifyDigest",
+      "args": [
+        "Digest username=\"alice\", realm=\"Parity\", nonce=\"deadbeefdeadbeefdeadbeefdeadbeef\", uri=\"/protected\", response=\"85af665982cef6c9b2b5dd7b67ab931f\", qop=auth, nc=00000001, cnonce=\"0a4f113b\", algorithm=MD5",
+        "GET",
+        "",
+        ""
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest + DIGEST.computeHash + ===",
+      "goFn": "httpauth.VerifyDigest",
+      "acceptance": true,
+      "note": "must not verify"
+    },
+    {
+      "id": "dv-tampered-response-last-digit",
+      "fn": "verifyDigest",
+      "args": [
+        "Digest username=\"alice\", realm=\"Parity\", nonce=\"deadbeefdeadbeefdeadbeefdeadbeef\", uri=\"/protected\", response=\"85af665982cef6c9b2b5dd7b67ab931e\", qop=auth, nc=00000001, cnonce=\"0a4f113b\", algorithm=MD5",
+        "GET",
+        "s3cr3t",
+        ""
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest + DIGEST.computeHash + ===",
+      "goFn": "httpauth.VerifyDigest",
+      "acceptance": true,
+      "note": "one flipped hex digit must not verify"
+    },
+    {
+      "id": "dv-tampered-response-truncated",
+      "fn": "verifyDigest",
+      "args": [
+        "Digest username=\"alice\", realm=\"Parity\", nonce=\"deadbeefdeadbeefdeadbeefdeadbeef\", uri=\"/protected\", response=\"85af665982cef6c9b2b5dd7b67ab93\", qop=auth, nc=00000001, cnonce=\"0a4f113b\", algorithm=MD5",
+        "GET",
+        "s3cr3t",
+        ""
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest + DIGEST.computeHash + ===",
+      "goFn": "httpauth.VerifyDigest",
+      "acceptance": true,
+      "note": "a truncated digest must not verify"
+    },
+    {
+      "id": "dv-tampered-response-padded",
+      "fn": "verifyDigest",
+      "args": [
+        "Digest username=\"alice\", realm=\"Parity\", nonce=\"deadbeefdeadbeefdeadbeefdeadbeef\", uri=\"/protected\", response=\"85af665982cef6c9b2b5dd7b67ab931f00\", qop=auth, nc=00000001, cnonce=\"0a4f113b\", algorithm=MD5",
+        "GET",
+        "s3cr3t",
+        ""
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest + DIGEST.computeHash + ===",
+      "goFn": "httpauth.VerifyDigest",
+      "acceptance": true,
+      "note": "a lengthened digest must not verify"
+    },
+    {
+      "id": "dv-cross-method-replay",
+      "fn": "verifyDigest",
+      "args": [
+        "Digest username=\"alice\", realm=\"Parity\", nonce=\"deadbeefdeadbeefdeadbeefdeadbeef\", uri=\"/protected\", response=\"85af665982cef6c9b2b5dd7b67ab931f\", qop=auth, nc=00000001, cnonce=\"0a4f113b\", algorithm=MD5",
+        "POST",
+        "s3cr3t",
+        ""
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest + DIGEST.computeHash + ===",
+      "goFn": "httpauth.VerifyDigest",
+      "acceptance": true,
+      "note": "a GET credential replayed as POST must not verify"
+    },
+    {
+      "id": "dv-cross-uri-replay",
+      "fn": "verifyDigest",
+      "args": [
+        "Digest username=\"alice\", realm=\"Parity\", nonce=\"deadbeefdeadbeefdeadbeefdeadbeef\", uri=\"/other\", response=\"85af665982cef6c9b2b5dd7b67ab931f\", qop=auth, nc=00000001, cnonce=\"0a4f113b\", algorithm=MD5",
+        "GET",
+        "s3cr3t",
+        ""
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest + DIGEST.computeHash + ===",
+      "goFn": "httpauth.VerifyDigest",
+      "acceptance": true,
+      "note": "a /protected credential relabelled /other must not verify"
+    },
+    {
+      "id": "dv-replayed-nc",
+      "fn": "verifyDigest",
+      "args": [
+        "Digest username=\"alice\", realm=\"Parity\", nonce=\"deadbeefdeadbeefdeadbeefdeadbeef\", uri=\"/protected\", response=\"85af665982cef6c9b2b5dd7b67ab931f\", qop=auth, nc=00000002, cnonce=\"0a4f113b\", algorithm=MD5",
+        "GET",
+        "s3cr3t",
+        ""
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest + DIGEST.computeHash + ===",
+      "goFn": "httpauth.VerifyDigest",
+      "acceptance": true,
+      "note": "an nc bumped without recomputing the response must not verify"
+    },
+    {
+      "id": "dv-realm-substituted",
+      "fn": "verifyDigest",
+      "args": [
+        "Digest username=\"alice\", realm=\"Other\", nonce=\"deadbeefdeadbeefdeadbeefdeadbeef\", uri=\"/protected\", response=\"85af665982cef6c9b2b5dd7b67ab931f\", qop=auth, nc=00000001, cnonce=\"0a4f113b\", algorithm=MD5",
+        "GET",
+        "s3cr3t",
+        ""
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest + DIGEST.computeHash + ===",
+      "goFn": "httpauth.VerifyDigest",
+      "acceptance": true,
+      "note": "HA1 binds the realm"
+    },
+    {
+      "id": "dv-username-substituted",
+      "fn": "verifyDigest",
+      "args": [
+        "Digest username=\"bob\", realm=\"Parity\", nonce=\"deadbeefdeadbeefdeadbeefdeadbeef\", uri=\"/protected\", response=\"85af665982cef6c9b2b5dd7b67ab931f\", qop=auth, nc=00000001, cnonce=\"0a4f113b\", algorithm=MD5",
+        "GET",
+        "s3cr3t",
+        ""
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest + DIGEST.computeHash + ===",
+      "goFn": "httpauth.VerifyDigest",
+      "acceptance": true,
+      "note": "HA1 binds the username"
+    },
+    {
+      "id": "dv-algorithm-downgraded",
+      "fn": "verifyDigest",
+      "args": [
+        "Digest username=\"alice\", realm=\"Parity\", nonce=\"deadbeefdeadbeefdeadbeefdeadbeef\", uri=\"/protected\", response=\"97d60a7bbf83928aa5ff0620cb80212ad30be25034d8b13701fc78403dc8da9e\", qop=auth, nc=00000001, cnonce=\"0a4f113b\", algorithm=MD5",
+        "GET",
+        "s3cr3t",
+        ""
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest + DIGEST.computeHash + ===",
+      "goFn": "httpauth.VerifyDigest",
+      "acceptance": true,
+      "note": "a SHA-256 response claimed as MD5 must not verify"
+    },
+    {
+      "id": "dv-algorithm-upgraded",
+      "fn": "verifyDigest",
+      "args": [
+        "Digest username=\"alice\", realm=\"Parity\", nonce=\"deadbeefdeadbeefdeadbeefdeadbeef\", uri=\"/protected\", response=\"85af665982cef6c9b2b5dd7b67ab931f\", qop=auth, nc=00000001, cnonce=\"0a4f113b\", algorithm=SHA-256",
+        "GET",
+        "s3cr3t",
+        ""
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest + DIGEST.computeHash + ===",
+      "goFn": "httpauth.VerifyDigest",
+      "acceptance": true,
+      "note": "an MD5 response claimed as SHA-256 must not verify"
+    },
+    {
+      "id": "dv-algorithm-sess-claimed",
+      "fn": "verifyDigest",
+      "args": [
+        "Digest username=\"alice\", realm=\"Parity\", nonce=\"deadbeefdeadbeefdeadbeefdeadbeef\", uri=\"/protected\", response=\"85af665982cef6c9b2b5dd7b67ab931f\", qop=auth, nc=00000001, cnonce=\"0a4f113b\", algorithm=MD5-sess",
+        "GET",
+        "s3cr3t",
+        ""
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest + DIGEST.computeHash + ===",
+      "goFn": "httpauth.VerifyDigest",
+      "acceptance": true,
+      "note": "the session variant derives a different HA1"
+    },
+    {
+      "id": "dv-algorithm-unknown",
+      "fn": "verifyDigest",
+      "args": [
+        "Digest username=\"alice\", realm=\"Parity\", nonce=\"deadbeefdeadbeefdeadbeefdeadbeef\", uri=\"/protected\", response=\"85af665982cef6c9b2b5dd7b67ab931f\", qop=auth, nc=00000001, cnonce=\"0a4f113b\", algorithm=SHA-3",
+        "GET",
+        "s3cr3t",
+        ""
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest + DIGEST.computeHash + ===",
+      "goFn": "httpauth.VerifyDigest",
+      "acceptance": true,
+      "note": "an algorithm neither side implements cannot verify"
+    },
+    {
+      "id": "dv-response-uppercase-hex",
+      "fn": "verifyDigest",
+      "args": [
+        "Digest username=\"alice\", realm=\"Parity\", nonce=\"deadbeefdeadbeefdeadbeefdeadbeef\", uri=\"/protected\", response=\"85AF665982CEF6C9B2B5DD7B67AB931F\", qop=auth, nc=00000001, cnonce=\"0a4f113b\", algorithm=MD5",
+        "GET",
+        "s3cr3t",
+        ""
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest + DIGEST.computeHash + ===",
+      "goFn": "httpauth.VerifyDigest",
+      "acceptance": true,
+      "note": "RFC 7616 spells the response in lowercase hex (LHEX)",
+      "deviation": "VerifyDigest compares the response case-insensitively (still in constant time) because clients disagree about hex case, where upstream compares the exact string. Not a credential bypass: case-folding hex is a 1:1 relabelling of the same digest, so it admits nobody who does not already hold the correct response"
+    },
+    {
+      "id": "dv-response-empty",
+      "fn": "verifyDigest",
+      "args": [
+        "Digest username=\"alice\", realm=\"Parity\", nonce=\"deadbeefdeadbeefdeadbeefdeadbeef\", uri=\"/protected\", response=\"\", qop=auth, nc=00000001, cnonce=\"0a4f113b\", algorithm=MD5",
+        "GET",
+        "s3cr3t",
+        ""
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest + DIGEST.computeHash + ===",
+      "goFn": "httpauth.VerifyDigest",
+      "acceptance": true,
+      "note": "both sides must fail: an empty response is not a credential",
+      "deviation": "the port refuses to parse a credential whose response digest is empty; upstream parses it and only reports the rejection at verification time — same rejection, one layer apart"
+    }
+  ]
+}

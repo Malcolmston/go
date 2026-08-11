@@ -1,0 +1,574 @@
+{
+  "group": "verify",
+  "upstream": "otpauth@9.5.1",
+  "note": "Verifying a submitted code against an acceptance window, at fixed timestamps. Answers {ok, delta} where delta is the offset from the expected moving factor. The rejection corpus covers wrong codes, tampered codes, untrimmed codes, codes minted under another secret/algorithm/period/digit count, codes outside the window, and replayed HOTP counters.",
+  "cases": [
+    {
+      "id": "verify-totp-current-window-0",
+      "fn": "verify",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        "282760",
+        0,
+        0
+      ],
+      "upstreamFn": "TOTP/HOTP.validate",
+      "goFn": "otpauth.Key.Verify",
+      "note": "the code for this very step must verify",
+      "acceptance": true
+    },
+    {
+      "id": "verify-totp-current-window-1",
+      "fn": "verify",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        "282760",
+        0,
+        1
+      ],
+      "upstreamFn": "TOTP/HOTP.validate",
+      "goFn": "otpauth.Key.Verify",
+      "acceptance": true
+    },
+    {
+      "id": "verify-totp-previous-step-window-1",
+      "fn": "verify",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        "282760",
+        59000,
+        1
+      ],
+      "upstreamFn": "TOTP/HOTP.validate",
+      "goFn": "otpauth.Key.Verify",
+      "note": "one step of honest clock drift",
+      "acceptance": true
+    },
+    {
+      "id": "verify-totp-previous-step-window-0",
+      "fn": "verify",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        "282760",
+        59000,
+        0
+      ],
+      "upstreamFn": "TOTP/HOTP.validate",
+      "goFn": "otpauth.Key.Verify",
+      "note": "no window means no drift",
+      "acceptance": true
+    },
+    {
+      "id": "verify-totp-next-step-window-1",
+      "fn": "verify",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        "602287",
+        59000,
+        1
+      ],
+      "upstreamFn": "TOTP/HOTP.validate",
+      "goFn": "otpauth.Key.Verify",
+      "acceptance": true
+    },
+    {
+      "id": "verify-totp-two-steps-window-1",
+      "fn": "verify",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        "282760",
+        89000,
+        1
+      ],
+      "upstreamFn": "TOTP/HOTP.validate",
+      "goFn": "otpauth.Key.Verify",
+      "note": "outside the window: must not verify",
+      "acceptance": true
+    },
+    {
+      "id": "verify-totp-two-steps-window-2",
+      "fn": "verify",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        "282760",
+        89000,
+        2
+      ],
+      "upstreamFn": "TOTP/HOTP.validate",
+      "goFn": "otpauth.Key.Verify",
+      "acceptance": true
+    },
+    {
+      "id": "verify-totp-wrong-code",
+      "fn": "verify",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        "000000",
+        0,
+        1
+      ],
+      "upstreamFn": "TOTP/HOTP.validate",
+      "goFn": "otpauth.Key.Verify",
+      "note": "must not verify",
+      "acceptance": true
+    },
+    {
+      "id": "verify-totp-code-off-by-one-digit",
+      "fn": "verify",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        "282761",
+        0,
+        1
+      ],
+      "upstreamFn": "TOTP/HOTP.validate",
+      "goFn": "otpauth.Key.Verify",
+      "note": "must not verify",
+      "acceptance": true
+    },
+    {
+      "id": "verify-totp-code-with-spaces",
+      "fn": "verify",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        " 282760 ",
+        0,
+        1
+      ],
+      "upstreamFn": "TOTP/HOTP.validate",
+      "goFn": "otpauth.Key.Verify",
+      "note": "an untrimmed code must not verify",
+      "acceptance": true
+    },
+    {
+      "id": "verify-totp-code-truncated",
+      "fn": "verify",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        "28276",
+        0,
+        1
+      ],
+      "upstreamFn": "TOTP/HOTP.validate",
+      "goFn": "otpauth.Key.Verify",
+      "note": "must not verify",
+      "acceptance": true
+    },
+    {
+      "id": "verify-totp-code-empty",
+      "fn": "verify",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        "",
+        0,
+        1
+      ],
+      "upstreamFn": "TOTP/HOTP.validate",
+      "goFn": "otpauth.Key.Verify",
+      "note": "must not verify",
+      "acceptance": true
+    },
+    {
+      "id": "verify-totp-code-from-other-secret",
+      "fn": "verify",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        "282760",
+        0,
+        1
+      ],
+      "upstreamFn": "TOTP/HOTP.validate",
+      "goFn": "otpauth.Key.Verify",
+      "note": "a code minted under another secret must not verify",
+      "acceptance": true
+    },
+    {
+      "id": "verify-totp-code-from-other-algorithm",
+      "fn": "verify",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        "023015",
+        0,
+        1
+      ],
+      "upstreamFn": "TOTP/HOTP.validate",
+      "goFn": "otpauth.Key.Verify",
+      "note": "a SHA-256 code must not verify against a SHA-1 key",
+      "acceptance": true
+    },
+    {
+      "id": "verify-totp-code-from-other-period",
+      "fn": "verify",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 60
+        },
+        "996554",
+        59000,
+        0
+      ],
+      "upstreamFn": "TOTP/HOTP.validate",
+      "goFn": "otpauth.Key.Verify",
+      "note": "a 30-second code must not verify against a 60-second key",
+      "acceptance": true
+    },
+    {
+      "id": "verify-totp-digits-8-correct",
+      "fn": "verify",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+          "algorithm": "SHA1",
+          "digits": 8,
+          "period": 30
+        },
+        "94287082",
+        59000,
+        0
+      ],
+      "upstreamFn": "TOTP/HOTP.validate",
+      "goFn": "otpauth.Key.Verify",
+      "acceptance": true
+    },
+    {
+      "id": "verify-totp-digits-mismatch",
+      "fn": "verify",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        "94287082",
+        59000,
+        1
+      ],
+      "upstreamFn": "TOTP/HOTP.validate",
+      "goFn": "otpauth.Key.Verify",
+      "note": "an 8-digit code must not verify against a 6-digit key",
+      "acceptance": true
+    },
+    {
+      "id": "verify-totp-invalid-secret",
+      "fn": "verify",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "not-base32!!",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        "282760",
+        0,
+        1
+      ],
+      "upstreamFn": "TOTP/HOTP.validate",
+      "goFn": "otpauth.Key.Verify",
+      "note": "an unusable key cannot verify anything",
+      "acceptance": true
+    },
+    {
+      "id": "verify-totp-unknown-algorithm",
+      "fn": "verify",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA3",
+          "digits": 6,
+          "period": 30
+        },
+        "282760",
+        0,
+        1
+      ],
+      "upstreamFn": "TOTP/HOTP.validate",
+      "goFn": "otpauth.Key.Verify",
+      "note": "an unusable key cannot verify anything",
+      "acceptance": true
+    },
+    {
+      "id": "verify-hotp-exact-counter",
+      "fn": "verify",
+      "args": [
+        {
+          "type": "hotp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "counter": 0
+        },
+        "755224",
+        0,
+        0
+      ],
+      "upstreamFn": "TOTP/HOTP.validate",
+      "goFn": "otpauth.Key.Verify",
+      "acceptance": true
+    },
+    {
+      "id": "verify-hotp-ahead-within-window",
+      "fn": "verify",
+      "args": [
+        {
+          "type": "hotp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "counter": 0
+        },
+        "969429",
+        0,
+        5
+      ],
+      "upstreamFn": "TOTP/HOTP.validate",
+      "goFn": "otpauth.Key.Verify",
+      "note": "the user skipped three codes",
+      "acceptance": true
+    },
+    {
+      "id": "verify-hotp-ahead-at-window-edge",
+      "fn": "verify",
+      "args": [
+        {
+          "type": "hotp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "counter": 0
+        },
+        "254676",
+        0,
+        5
+      ],
+      "upstreamFn": "TOTP/HOTP.validate",
+      "goFn": "otpauth.Key.Verify",
+      "acceptance": true
+    },
+    {
+      "id": "verify-hotp-ahead-beyond-window",
+      "fn": "verify",
+      "args": [
+        {
+          "type": "hotp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "counter": 0
+        },
+        "520489",
+        0,
+        5
+      ],
+      "upstreamFn": "TOTP/HOTP.validate",
+      "goFn": "otpauth.Key.Verify",
+      "note": "too far ahead: must not verify",
+      "acceptance": true
+    },
+    {
+      "id": "verify-hotp-behind-counter",
+      "fn": "verify",
+      "args": [
+        {
+          "type": "hotp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "counter": 5
+        },
+        "969429",
+        0,
+        5
+      ],
+      "upstreamFn": "TOTP/HOTP.validate",
+      "goFn": "otpauth.Key.Verify",
+      "note": "a code for an ALREADY CONSUMED counter",
+      "acceptance": true,
+      "deviation": "upstream's HOTP window is symmetric, so a code for an ALREADY CONSUMED counter (delta -2) is accepted; the port's HOTP window is forward-only, which is what makes a consumed counter unreplayable. RFC 4226 section 7.4 requires the server to move the counter forward on a successful check. Deliberately not copied"
+    },
+    {
+      "id": "verify-hotp-wrong-code",
+      "fn": "verify",
+      "args": [
+        {
+          "type": "hotp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "counter": 0
+        },
+        "000000",
+        0,
+        5
+      ],
+      "upstreamFn": "TOTP/HOTP.validate",
+      "goFn": "otpauth.Key.Verify",
+      "note": "must not verify",
+      "acceptance": true
+    },
+    {
+      "id": "verify-hotp-window-zero-wrong-counter",
+      "fn": "verify",
+      "args": [
+        {
+          "type": "hotp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "counter": 0
+        },
+        "287082",
+        0,
+        0
+      ],
+      "upstreamFn": "TOTP/HOTP.validate",
+      "goFn": "otpauth.Key.Verify",
+      "note": "must not verify",
+      "acceptance": true
+    }
+  ]
+}

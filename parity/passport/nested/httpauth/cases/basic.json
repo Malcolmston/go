@@ -1,0 +1,347 @@
+{
+  "group": "basic",
+  "upstream": "http-auth-utils@7.0.1",
+  "note": "HTTP Basic (RFC 7617): encoding, decoding, credential comparison and the 401 challenge. Every base64 payload is a fixed literal; nothing here depends on a clock or on randomness.",
+  "cases": [
+    {
+      "id": "basic-encode",
+      "fn": "encodeBasic",
+      "args": [
+        "alice",
+        "s3cr3t"
+      ],
+      "upstreamFn": "BASIC.computeHash + buildAuthorizationHeader",
+      "goFn": "httpauth.EncodeBasic"
+    },
+    {
+      "id": "basic-encode-empty-password",
+      "fn": "encodeBasic",
+      "args": [
+        "alice",
+        ""
+      ],
+      "upstreamFn": "BASIC.computeHash + buildAuthorizationHeader",
+      "goFn": "httpauth.EncodeBasic"
+    },
+    {
+      "id": "basic-encode-empty-username",
+      "fn": "encodeBasic",
+      "args": [
+        "",
+        "s3cr3t"
+      ],
+      "upstreamFn": "BASIC.computeHash + buildAuthorizationHeader",
+      "goFn": "httpauth.EncodeBasic"
+    },
+    {
+      "id": "basic-encode-colon-in-password",
+      "fn": "encodeBasic",
+      "args": [
+        "alice",
+        "pa:ss:word"
+      ],
+      "upstreamFn": "BASIC.computeHash + buildAuthorizationHeader",
+      "goFn": "httpauth.EncodeBasic",
+      "note": "RFC 7617 forbids ':' in the user-id but not in the password"
+    },
+    {
+      "id": "basic-encode-unicode",
+      "fn": "encodeBasic",
+      "args": [
+        "aliçe",
+        "paßwörd"
+      ],
+      "upstreamFn": "BASIC.computeHash + buildAuthorizationHeader",
+      "goFn": "httpauth.EncodeBasic"
+    },
+    {
+      "id": "basic-parse",
+      "fn": "parseBasic",
+      "args": [
+        "Basic YWxpY2U6czNjcjN0"
+      ],
+      "upstreamFn": "parseAuthorizationHeader + BASIC.parseAuthorizationRest",
+      "goFn": "httpauth.ParseBasic"
+    },
+    {
+      "id": "basic-parse-lowercase-scheme",
+      "fn": "parseBasic",
+      "args": [
+        "basic YWxpY2U6czNjcjN0"
+      ],
+      "upstreamFn": "parseAuthorizationHeader({strict:false})",
+      "goFn": "httpauth.ParseBasic",
+      "note": "RFC 7235 section 2.1: the scheme token is case-insensitive"
+    },
+    {
+      "id": "basic-parse-uppercase-scheme",
+      "fn": "parseBasic",
+      "args": [
+        "BASIC YWxpY2U6czNjcjN0"
+      ],
+      "upstreamFn": "parseAuthorizationHeader({strict:false})",
+      "goFn": "httpauth.ParseBasic",
+      "deviation": "RFC 7235 section 2.1 makes the scheme token case-insensitive; upstream matches only the exact and the all-lowercase spelling, even with {strict:false}"
+    },
+    {
+      "id": "basic-parse-colon-password",
+      "fn": "parseBasic",
+      "args": [
+        "Basic YWxpY2U6cGE6c3M6d29yZA=="
+      ],
+      "upstreamFn": "BASIC.decodeHash",
+      "goFn": "httpauth.ParseBasic",
+      "note": "split at the FIRST colon only"
+    },
+    {
+      "id": "basic-parse-empty-password",
+      "fn": "parseBasic",
+      "args": [
+        "Basic YWxpY2U6"
+      ],
+      "upstreamFn": "BASIC.decodeHash",
+      "goFn": "httpauth.ParseBasic"
+    },
+    {
+      "id": "basic-parse-empty-username",
+      "fn": "parseBasic",
+      "args": [
+        "Basic OnMzY3IzdA=="
+      ],
+      "upstreamFn": "BASIC.decodeHash",
+      "goFn": "httpauth.ParseBasic"
+    },
+    {
+      "id": "basic-parse-unicode",
+      "fn": "parseBasic",
+      "args": [
+        "Basic YWxpw6dlOnBhw593w7ZyZA=="
+      ],
+      "upstreamFn": "BASIC.decodeHash",
+      "goFn": "httpauth.ParseBasic"
+    },
+    {
+      "id": "basic-parse-unpadded-base64",
+      "fn": "parseBasic",
+      "args": [
+        "Basic YWxpY2U6cGE6c3M6d29yZA"
+      ],
+      "upstreamFn": "BASIC.decodeHash",
+      "goFn": "httpauth.ParseBasic",
+      "note": "same payload as basic-parse-colon-password with the '==' padding stripped"
+    },
+    {
+      "id": "basic-parse-extra-space",
+      "fn": "parseBasic",
+      "args": [
+        "Basic  YWxpY2U6czNjcjN0"
+      ],
+      "upstreamFn": "parseAuthorizationHeader",
+      "goFn": "httpauth.ParseBasic"
+    },
+    {
+      "id": "basic-parse-tab-separator",
+      "fn": "parseBasic",
+      "args": [
+        "Basic\tYWxpY2U6czNjcjN0"
+      ],
+      "upstreamFn": "parseAuthorizationHeader",
+      "goFn": "httpauth.ParseBasic",
+      "note": "HTAB between scheme and credentials"
+    },
+    {
+      "id": "basic-parse-no-colon",
+      "fn": "parseBasic",
+      "args": [
+        "Basic YWxpY2VwYXNzd29yZA=="
+      ],
+      "upstreamFn": "BASIC.decodeHash",
+      "goFn": "httpauth.ParseBasic",
+      "note": "decoded payload 'alicepassword' has no ':' separator",
+      "deviation": "RFC 7617 requires a ':' in the decoded payload; upstream's decodeHash accepts a payload without one and reports the entire string as the username with an empty password"
+    },
+    {
+      "id": "basic-parse-invalid-base64",
+      "fn": "parseBasic",
+      "args": [
+        "Basic !!!!not-base64!!!!"
+      ],
+      "upstreamFn": "BASIC.decodeHash",
+      "goFn": "httpauth.ParseBasic",
+      "deviation": "upstream decodes with Buffer.from(rest, 'base64'), which silently discards invalid characters and yields a garbage username instead of rejecting the header"
+    },
+    {
+      "id": "basic-parse-empty-credentials",
+      "fn": "parseBasic",
+      "args": [
+        "Basic "
+      ],
+      "upstreamFn": "BASIC.parseAuthorizationRest",
+      "goFn": "httpauth.ParseBasic",
+      "note": "both sides must fail"
+    },
+    {
+      "id": "basic-parse-wrong-scheme",
+      "fn": "parseBasic",
+      "args": [
+        "Bearer YWxpY2U6czNjcjN0"
+      ],
+      "upstreamFn": "parseAuthorizationHeader([BASIC])",
+      "goFn": "httpauth.ParseBasic",
+      "note": "both sides must fail"
+    },
+    {
+      "id": "basic-parse-empty-header",
+      "fn": "parseBasic",
+      "args": [
+        ""
+      ],
+      "upstreamFn": "parseAuthorizationHeader",
+      "goFn": "httpauth.ParseBasic",
+      "note": "both sides must fail"
+    },
+    {
+      "id": "basic-parse-scheme-only-no-separator",
+      "fn": "parseBasic",
+      "args": [
+        "Basic"
+      ],
+      "upstreamFn": "parseAuthorizationHeader",
+      "goFn": "httpauth.ParseBasic",
+      "note": "both sides must fail"
+    },
+    {
+      "id": "basic-matches-correct",
+      "fn": "basicMatches",
+      "args": [
+        "Basic YWxpY2U6czNjcjN0",
+        "alice",
+        "s3cr3t"
+      ],
+      "upstreamFn": "BASIC.decodeHash + ===",
+      "goFn": "httpauth.BasicCredentials.Matches",
+      "acceptance": true
+    },
+    {
+      "id": "basic-matches-wrong-password",
+      "fn": "basicMatches",
+      "args": [
+        "Basic YWxpY2U6czNjcjN0",
+        "alice",
+        "wrong"
+      ],
+      "upstreamFn": "BASIC.decodeHash + ===",
+      "goFn": "httpauth.BasicCredentials.Matches",
+      "acceptance": true
+    },
+    {
+      "id": "basic-matches-wrong-username",
+      "fn": "basicMatches",
+      "args": [
+        "Basic YWxpY2U6czNjcjN0",
+        "bob",
+        "s3cr3t"
+      ],
+      "upstreamFn": "BASIC.decodeHash + ===",
+      "goFn": "httpauth.BasicCredentials.Matches",
+      "acceptance": true
+    },
+    {
+      "id": "basic-matches-username-case",
+      "fn": "basicMatches",
+      "args": [
+        "Basic YWxpY2U6czNjcjN0",
+        "Alice",
+        "s3cr3t"
+      ],
+      "upstreamFn": "BASIC.decodeHash + ===",
+      "goFn": "httpauth.BasicCredentials.Matches",
+      "acceptance": true,
+      "note": "usernames are compared byte-for-byte, not case-folded"
+    },
+    {
+      "id": "basic-matches-password-prefix",
+      "fn": "basicMatches",
+      "args": [
+        "Basic YWxpY2U6czNjcjN0",
+        "alice",
+        "s3cr3"
+      ],
+      "upstreamFn": "BASIC.decodeHash + ===",
+      "goFn": "httpauth.BasicCredentials.Matches",
+      "acceptance": true,
+      "note": "a correct prefix must not authenticate"
+    },
+    {
+      "id": "basic-matches-empty-password",
+      "fn": "basicMatches",
+      "args": [
+        "Basic YWxpY2U6",
+        "alice",
+        ""
+      ],
+      "upstreamFn": "BASIC.decodeHash + ===",
+      "goFn": "httpauth.BasicCredentials.Matches",
+      "acceptance": true
+    },
+    {
+      "id": "basic-challenge",
+      "fn": "basicChallenge",
+      "args": [
+        "Parity"
+      ],
+      "upstreamFn": "buildWWWAuthenticateHeader(BASIC)",
+      "goFn": "httpauth.BasicChallenge"
+    },
+    {
+      "id": "basic-challenge-empty-realm",
+      "fn": "basicChallenge",
+      "args": [
+        ""
+      ],
+      "upstreamFn": "buildWWWAuthenticateHeader(BASIC)",
+      "goFn": "httpauth.BasicChallenge"
+    },
+    {
+      "id": "basic-challenge-spaces-in-realm",
+      "fn": "basicChallenge",
+      "args": [
+        "Parity Harness Realm"
+      ],
+      "upstreamFn": "buildWWWAuthenticateHeader(BASIC)",
+      "goFn": "httpauth.BasicChallenge"
+    },
+    {
+      "id": "basic-challenge-quote-in-realm",
+      "fn": "basicChallenge",
+      "args": [
+        "He said \"hi\""
+      ],
+      "upstreamFn": "buildWWWAuthenticateHeader(BASIC)",
+      "goFn": "httpauth.BasicChallenge",
+      "note": "an unescaped quote would terminate the quoted-string",
+      "deviation": "the port renders caller-supplied values as RFC 7230 quoted-strings — escaping '\"' and '\\\\' and dropping control characters — so a realm or nonce cannot terminate the value or split the response; upstream interpolates them raw, which is an injection upstream and not a behaviour worth copying"
+    },
+    {
+      "id": "basic-challenge-crlf-in-realm",
+      "fn": "basicChallenge",
+      "args": [
+        "Parity\r\nX-Injected: 1"
+      ],
+      "upstreamFn": "buildWWWAuthenticateHeader(BASIC)",
+      "goFn": "httpauth.BasicChallenge",
+      "note": "response-splitting attempt through the realm",
+      "deviation": "the port renders caller-supplied values as RFC 7230 quoted-strings — escaping '\"' and '\\\\' and dropping control characters — so a realm or nonce cannot terminate the value or split the response; upstream interpolates them raw, which is an injection upstream and not a behaviour worth copying"
+    },
+    {
+      "id": "basic-challenge-backslash-in-realm",
+      "fn": "basicChallenge",
+      "args": [
+        "Parity\\Realm"
+      ],
+      "upstreamFn": "buildWWWAuthenticateHeader(BASIC)",
+      "goFn": "httpauth.BasicChallenge",
+      "deviation": "the port renders caller-supplied values as RFC 7230 quoted-strings — escaping '\"' and '\\\\' and dropping control characters — so a realm or nonce cannot terminate the value or split the response; upstream interpolates them raw, which is an injection upstream and not a behaviour worth copying"
+    }
+  ]
+}

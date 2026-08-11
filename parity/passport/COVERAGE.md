@@ -332,3 +332,30 @@ being stricter than upstream** (#5), and the remaining 21 are status-code,
 challenge-header or session-cookie differences in which both implementations
 agree on rejecting — or, for #9, on succeeding without the session upstream
 would have created.
+
+---
+
+## Nested packages — triage
+
+The passport submodule is not one port but several: some of its nested packages
+are ports of *distinct* upstream npm projects, and per `parity/HARNESS.md` each
+of those gets its own harness under `parity/passport/nested/<pkg>/`, with its own
+pinned oracle. The rest are internal decomposition of this port with no
+independent counterpart, and are covered here rather than given a harness of
+their own.
+
+| nested package | upstream | verdict |
+| --- | --- | --- |
+| `httpauth` | `http-auth-utils@7.0.1` | **own harness** — `nested/httpauth/`. Parses and builds `Authorization` / `WWW-Authenticate` headers for Basic, Bearer and Digest, and computes the RFC 7616 response digest. `http-auth-utils` is exactly that package upstream. 145 cases, 114 compared, 100% |
+| `pkce` | `pkce-challenge@6.0.0` | **own harness** — `nested/pkce/`. RFC 7636 verifier/challenge derivation and verification. 49 cases, 42 compared, 100% |
+| `otpauth` | `otpauth@9.5.1` (npm) | **own harness** — `nested/otpauth/`. The npm package of the same name owns both the `otpauth://` key-URI format and the HOTP/TOTP construction. 107 cases, 99 compared, 100% |
+| `pwhash` | `pbkdf2@3.1.6` | **own harness** — `nested/pwhash/`. The package implements PBKDF2 (RFC 2898), verified against the RFC 6070 vectors — *not* bcrypt, scrypt or argon2 — so the oracle is a PBKDF2 implementation. 62 cases, 57 compared, 100% |
+| `token` | — | **internal decomposition, no harness.** Random-token generation (`crypto/rand`), SHA-256 digesting and constant-time comparison, factored out of the bearer, API-key, magic-link and remember-me strategies which each used to roll their own. There is no npm package it is a port of: the closest counterparts are Node's own `crypto.randomBytes` / `crypto.timingSafeEqual`, which are the platform, not a library. Its generation surface is also non-deterministic by construction. Covered by the parent harness through the strategies that consume it (`bearer-*` cases) and by `token/token_test.go` |
+| `scope` | — | **internal decomposition, no harness.** An ordered set type for OAuth 2.0 scope strings. It centralises the scope splitting/joining that the `strategies/oauth2` provider presets used to do inline (the `scopeSeparator` knob `passport-oauth2` exposes). No npm package publishes this as a library — searched: `oauth-scope`, `oauth2-scope`, `scope-parser` are all unpublished — and the behaviour it mirrors lives inside `passport-oauth2`, not beside it. Covered by `scope/scope_parity_test.go` and `scope/scope_security_test.go` |
+| `oauthstate` | — | **internal decomposition, no harness.** CSRF `state` issuing and verification for the authorization-code flow. The concept mirrors `passport-oauth2`'s state store, but that store is not a published package (`passport-oauth2/lib/state/session`, not an export), its state values are opaque session-backed UUIDs, and the port's stateless `HMACStore` envelope has no upstream at all — there is nothing whose *answers* could be compared. Covered by `oauthstate/oauthstate_test.go` and `oauthstate/sweep_test.go` |
+| `strategies` | — | **not a single port, no single harness.** `strategies/` is a directory of ~200 individual strategy packages, each the port of a *different* `passport-*` npm module. There is no one upstream for the tree. The four with official upstreams already have oracle-backed coverage in this harness (`passport-local`, `passport-http` Basic and Digest, `passport-http-bearer`); the rest are provider presets that need a live remote identity provider (see "Untested — requires a live remote identity provider" above) |
+| `interop` | — | **not a library, no harness.** `interop/` is `package main`: a two-line command that signs an HS256 token for Node's `jsonwebtoken` to verify and verifies one Node produced. It is itself a cross-ecosystem check, already asserted against checked-in `jsonwebtoken@9` vectors in `interop/jwt_interop_test.go` |
+
+Each nested harness is a **peer** of this one, never a replacement:
+`parity/passport/parity.json` stays the score for passport, and
+`parity/passport/nested/<pkg>/parity.json` is the score for that package's port.

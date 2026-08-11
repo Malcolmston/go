@@ -1,0 +1,216 @@
+{
+  "group": "bearer",
+  "upstream": "http-auth-utils@7.0.1",
+  "note": "Bearer credentials and challenges (RFC 6750). Tokens are fixed literals.",
+  "cases": [
+    {
+      "id": "bearer-encode",
+      "fn": "encodeBearer",
+      "args": [
+        "tok-alice-0001"
+      ],
+      "upstreamFn": "buildAuthorizationHeader(BEARER)",
+      "goFn": "httpauth.EncodeBearer"
+    },
+    {
+      "id": "bearer-encode-jwt-shaped",
+      "fn": "encodeBearer",
+      "args": [
+        "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhbGljZSJ9.c2ln"
+      ],
+      "upstreamFn": "buildAuthorizationHeader(BEARER)",
+      "goFn": "httpauth.EncodeBearer"
+    },
+    {
+      "id": "bearer-encode-empty-token",
+      "fn": "encodeBearer",
+      "args": [
+        ""
+      ],
+      "upstreamFn": "buildAuthorizationHeader(BEARER)",
+      "goFn": "httpauth.EncodeBearer",
+      "deviation": "EncodeBearer is a pure formatter with no validation; upstream's builder rejects an empty hash. No credential decision is taken on either side"
+    },
+    {
+      "id": "bearer-parse",
+      "fn": "parseBearer",
+      "args": [
+        "Bearer tok-alice-0001"
+      ],
+      "upstreamFn": "BEARER.parseAuthorizationRest",
+      "goFn": "httpauth.ParseBearer"
+    },
+    {
+      "id": "bearer-parse-lowercase-scheme",
+      "fn": "parseBearer",
+      "args": [
+        "bearer tok-alice-0001"
+      ],
+      "upstreamFn": "parseAuthorizationHeader({strict:false})",
+      "goFn": "httpauth.ParseBearer"
+    },
+    {
+      "id": "bearer-parse-mixed-case-scheme",
+      "fn": "parseBearer",
+      "args": [
+        "BeArEr tok-alice-0001"
+      ],
+      "upstreamFn": "parseAuthorizationHeader({strict:false})",
+      "goFn": "httpauth.ParseBearer",
+      "deviation": "RFC 7235 section 2.1 makes the scheme token case-insensitive; upstream matches only the exact and the all-lowercase spelling, even with {strict:false}"
+    },
+    {
+      "id": "bearer-parse-jwt-shaped",
+      "fn": "parseBearer",
+      "args": [
+        "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhbGljZSJ9.c2ln"
+      ],
+      "upstreamFn": "BEARER.parseAuthorizationRest",
+      "goFn": "httpauth.ParseBearer"
+    },
+    {
+      "id": "bearer-parse-token-with-inner-space",
+      "fn": "parseBearer",
+      "args": [
+        "Bearer tok alice"
+      ],
+      "upstreamFn": "BEARER.parseAuthorizationRest",
+      "goFn": "httpauth.ParseBearer",
+      "note": "b64token has no spaces; both sides are asked what they make of one anyway"
+    },
+    {
+      "id": "bearer-parse-extra-space",
+      "fn": "parseBearer",
+      "args": [
+        "Bearer  tok-alice-0001"
+      ],
+      "upstreamFn": "BEARER.parseAuthorizationRest",
+      "goFn": "httpauth.ParseBearer",
+      "deviation": "RFC 7235 allows 1*SP before the credentials, so a token can never begin with a space; upstream returns the surplus space as part of the token"
+    },
+    {
+      "id": "bearer-parse-empty-credentials",
+      "fn": "parseBearer",
+      "args": [
+        "Bearer "
+      ],
+      "upstreamFn": "BEARER.parseAuthorizationRest",
+      "goFn": "httpauth.ParseBearer",
+      "note": "an empty token must not parse as a token"
+    },
+    {
+      "id": "bearer-parse-wrong-scheme",
+      "fn": "parseBearer",
+      "args": [
+        "Basic YWxpY2U6czNjcjN0"
+      ],
+      "upstreamFn": "parseAuthorizationHeader([BEARER])",
+      "goFn": "httpauth.ParseBearer",
+      "note": "both sides must fail"
+    },
+    {
+      "id": "bearer-parse-empty-header",
+      "fn": "parseBearer",
+      "args": [
+        ""
+      ],
+      "upstreamFn": "parseAuthorizationHeader",
+      "goFn": "httpauth.ParseBearer",
+      "note": "both sides must fail"
+    },
+    {
+      "id": "bearer-parse-scheme-only",
+      "fn": "parseBearer",
+      "args": [
+        "Bearer"
+      ],
+      "upstreamFn": "parseAuthorizationHeader",
+      "goFn": "httpauth.ParseBearer",
+      "note": "both sides must fail"
+    },
+    {
+      "id": "bearer-challenge-realm-only",
+      "fn": "bearerChallenge",
+      "args": [
+        "Parity",
+        ""
+      ],
+      "upstreamFn": "buildWWWAuthenticateHeader(BEARER)",
+      "goFn": "httpauth.BearerChallenge"
+    },
+    {
+      "id": "bearer-challenge-invalid-token",
+      "fn": "bearerChallenge",
+      "args": [
+        "Parity",
+        "invalid_token"
+      ],
+      "upstreamFn": "buildWWWAuthenticateHeader(BEARER)",
+      "goFn": "httpauth.BearerChallenge"
+    },
+    {
+      "id": "bearer-challenge-invalid-request",
+      "fn": "bearerChallenge",
+      "args": [
+        "Parity",
+        "invalid_request"
+      ],
+      "upstreamFn": "buildWWWAuthenticateHeader(BEARER)",
+      "goFn": "httpauth.BearerChallenge"
+    },
+    {
+      "id": "bearer-challenge-insufficient-scope",
+      "fn": "bearerChallenge",
+      "args": [
+        "Parity",
+        "insufficient_scope"
+      ],
+      "upstreamFn": "buildWWWAuthenticateHeader(BEARER)",
+      "goFn": "httpauth.BearerChallenge"
+    },
+    {
+      "id": "bearer-challenge-no-realm",
+      "fn": "bearerChallenge",
+      "args": [
+        "",
+        "invalid_token"
+      ],
+      "upstreamFn": "buildWWWAuthenticateHeader(BEARER)",
+      "goFn": "httpauth.BearerChallenge",
+      "note": "RFC 6750 makes realm OPTIONAL on the Bearer challenge"
+    },
+    {
+      "id": "bearer-challenge-unknown-error-code",
+      "fn": "bearerChallenge",
+      "args": [
+        "Parity",
+        "not_a_real_code"
+      ],
+      "upstreamFn": "buildWWWAuthenticateHeader(BEARER)",
+      "goFn": "httpauth.BearerChallenge",
+      "deviation": "RFC 6750 section 3 defines an extensible error-code registry; upstream hard-codes three values and throws for anything else"
+    },
+    {
+      "id": "bearer-challenge-quote-in-realm",
+      "fn": "bearerChallenge",
+      "args": [
+        "He said \"hi\"",
+        "invalid_token"
+      ],
+      "upstreamFn": "buildWWWAuthenticateHeader(BEARER)",
+      "goFn": "httpauth.BearerChallenge",
+      "deviation": "the port renders caller-supplied values as RFC 7230 quoted-strings — escaping '\"' and '\\\\' and dropping control characters — so a realm or nonce cannot terminate the value or split the response; upstream interpolates them raw, which is an injection upstream and not a behaviour worth copying"
+    },
+    {
+      "id": "bearer-challenge-crlf-in-realm",
+      "fn": "bearerChallenge",
+      "args": [
+        "Parity\r\nX-Injected: 1",
+        ""
+      ],
+      "upstreamFn": "buildWWWAuthenticateHeader(BEARER)",
+      "goFn": "httpauth.BearerChallenge",
+      "deviation": "the port renders caller-supplied values as RFC 7230 quoted-strings — escaping '\"' and '\\\\' and dropping control characters — so a realm or nonce cannot terminate the value or split the response; upstream interpolates them raw, which is an injection upstream and not a behaviour worth copying"
+    }
+  ]
+}

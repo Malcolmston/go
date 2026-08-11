@@ -1,0 +1,509 @@
+{
+  "group": "code",
+  "upstream": "otpauth@9.5.1",
+  "note": "Code generation at FIXED timestamps and counters - nothing reads the clock. Includes every published RFC 4226 Appendix D and RFC 6238 Appendix B vector.",
+  "cases": [
+    {
+      "id": "code-totp-epoch",
+      "fn": "code",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        0
+      ],
+      "upstreamFn": "TOTP.generate({timestamp})",
+      "goFn": "otpauth.Key.Code"
+    },
+    {
+      "id": "code-totp-t59",
+      "fn": "code",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        59000
+      ],
+      "upstreamFn": "TOTP.generate({timestamp})",
+      "goFn": "otpauth.Key.Code"
+    },
+    {
+      "id": "code-totp-step-boundary-29999",
+      "fn": "code",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        29999
+      ],
+      "upstreamFn": "TOTP.generate({timestamp})",
+      "goFn": "otpauth.Key.Code",
+      "note": "the last millisecond of step 0"
+    },
+    {
+      "id": "code-totp-step-boundary-30000",
+      "fn": "code",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        30000
+      ],
+      "upstreamFn": "TOTP.generate({timestamp})",
+      "goFn": "otpauth.Key.Code",
+      "note": "the first millisecond of step 1"
+    },
+    {
+      "id": "code-totp-rfc6238-sha1-59",
+      "fn": "code",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+          "algorithm": "SHA1",
+          "digits": 8,
+          "period": 30
+        },
+        59000
+      ],
+      "upstreamFn": "TOTP.generate({timestamp})",
+      "goFn": "otpauth.Key.Code",
+      "note": "RFC 6238 Appendix B vector: 94287082"
+    },
+    {
+      "id": "code-totp-rfc6238-sha1-1111111109",
+      "fn": "code",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+          "algorithm": "SHA1",
+          "digits": 8,
+          "period": 30
+        },
+        1111111109000
+      ],
+      "upstreamFn": "TOTP.generate({timestamp})",
+      "goFn": "otpauth.Key.Code",
+      "note": "RFC 6238 Appendix B vector: 07081804"
+    },
+    {
+      "id": "code-totp-rfc6238-sha1-1234567890",
+      "fn": "code",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+          "algorithm": "SHA1",
+          "digits": 8,
+          "period": 30
+        },
+        1234567890000
+      ],
+      "upstreamFn": "TOTP.generate({timestamp})",
+      "goFn": "otpauth.Key.Code",
+      "note": "RFC 6238 Appendix B vector: 89005924"
+    },
+    {
+      "id": "code-totp-rfc6238-sha1-2000000000",
+      "fn": "code",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+          "algorithm": "SHA1",
+          "digits": 8,
+          "period": 30
+        },
+        2000000000000
+      ],
+      "upstreamFn": "TOTP.generate({timestamp})",
+      "goFn": "otpauth.Key.Code",
+      "note": "RFC 6238 Appendix B vector: 69279037"
+    },
+    {
+      "id": "code-totp-rfc6238-sha256-59",
+      "fn": "code",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZA",
+          "algorithm": "SHA256",
+          "digits": 8,
+          "period": 30
+        },
+        59000
+      ],
+      "upstreamFn": "TOTP.generate({timestamp})",
+      "goFn": "otpauth.Key.Code",
+      "note": "RFC 6238 Appendix B vector: 46119246"
+    },
+    {
+      "id": "code-totp-rfc6238-sha512-59",
+      "fn": "code",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNA",
+          "algorithm": "SHA512",
+          "digits": 8,
+          "period": 30
+        },
+        59000
+      ],
+      "upstreamFn": "TOTP.generate({timestamp})",
+      "goFn": "otpauth.Key.Code",
+      "note": "RFC 6238 Appendix B vector: 90693936"
+    },
+    {
+      "id": "code-totp-period-60",
+      "fn": "code",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 60
+        },
+        0
+      ],
+      "upstreamFn": "TOTP.generate({timestamp})",
+      "goFn": "otpauth.Key.Code"
+    },
+    {
+      "id": "code-totp-digits-8",
+      "fn": "code",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 8,
+          "period": 30
+        },
+        0
+      ],
+      "upstreamFn": "TOTP.generate({timestamp})",
+      "goFn": "otpauth.Key.Code"
+    },
+    {
+      "id": "code-totp-digits-10",
+      "fn": "code",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 10,
+          "period": 30
+        },
+        0
+      ],
+      "upstreamFn": "TOTP.generate({timestamp})",
+      "goFn": "otpauth.Key.Code",
+      "note": "ten digits is the widest a 31-bit truncated HOTP value can fill"
+    },
+    {
+      "id": "code-totp-sha256-secret1",
+      "fn": "code",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA256",
+          "digits": 6,
+          "period": 30
+        },
+        0
+      ],
+      "upstreamFn": "TOTP.generate({timestamp})",
+      "goFn": "otpauth.Key.Code"
+    },
+    {
+      "id": "code-totp-sha512-secret1",
+      "fn": "code",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA512",
+          "digits": 6,
+          "period": 30
+        },
+        0
+      ],
+      "upstreamFn": "TOTP.generate({timestamp})",
+      "goFn": "otpauth.Key.Code"
+    },
+    {
+      "id": "code-totp-far-future",
+      "fn": "code",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        20000000000000
+      ],
+      "upstreamFn": "TOTP.generate({timestamp})",
+      "goFn": "otpauth.Key.Code"
+    },
+    {
+      "id": "code-totp-invalid-secret",
+      "fn": "code",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "not-base32!!",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        0
+      ],
+      "upstreamFn": "TOTP.generate({timestamp})",
+      "goFn": "otpauth.Key.Code",
+      "note": "both sides must fail"
+    },
+    {
+      "id": "code-totp-unknown-algorithm",
+      "fn": "code",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA3",
+          "digits": 6,
+          "period": 30
+        },
+        0
+      ],
+      "upstreamFn": "TOTP.generate({timestamp})",
+      "goFn": "otpauth.Key.Code",
+      "note": "both sides must fail"
+    },
+    {
+      "id": "code-hotp-counter-0",
+      "fn": "codeAtCounter",
+      "args": [
+        {
+          "type": "hotp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "counter": 0
+        },
+        0
+      ],
+      "upstreamFn": "HOTP.generate({counter})",
+      "goFn": "otpauth.Key.CodeAtCounter",
+      "note": "RFC 4226 Appendix D vector: 755224"
+    },
+    {
+      "id": "code-hotp-counter-1",
+      "fn": "codeAtCounter",
+      "args": [
+        {
+          "type": "hotp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "counter": 0
+        },
+        1
+      ],
+      "upstreamFn": "HOTP.generate({counter})",
+      "goFn": "otpauth.Key.CodeAtCounter",
+      "note": "RFC 4226 Appendix D vector: 287082"
+    },
+    {
+      "id": "code-hotp-counter-5",
+      "fn": "codeAtCounter",
+      "args": [
+        {
+          "type": "hotp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "counter": 0
+        },
+        5
+      ],
+      "upstreamFn": "HOTP.generate({counter})",
+      "goFn": "otpauth.Key.CodeAtCounter",
+      "note": "RFC 4226 Appendix D vector: 254676"
+    },
+    {
+      "id": "code-hotp-counter-9",
+      "fn": "codeAtCounter",
+      "args": [
+        {
+          "type": "hotp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "counter": 0
+        },
+        9
+      ],
+      "upstreamFn": "HOTP.generate({counter})",
+      "goFn": "otpauth.Key.CodeAtCounter",
+      "note": "RFC 4226 Appendix D vector: 520489"
+    },
+    {
+      "id": "code-hotp-counter-10",
+      "fn": "codeAtCounter",
+      "args": [
+        {
+          "type": "hotp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "counter": 0
+        },
+        10
+      ],
+      "upstreamFn": "HOTP.generate({counter})",
+      "goFn": "otpauth.Key.CodeAtCounter",
+      "note": "one past the published vectors"
+    },
+    {
+      "id": "moving-factor-epoch",
+      "fn": "movingFactor",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        0
+      ],
+      "upstreamFn": "TOTP.counter({timestamp})",
+      "goFn": "otpauth.Key.MovingFactor"
+    },
+    {
+      "id": "moving-factor-t59",
+      "fn": "movingFactor",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        59000
+      ],
+      "upstreamFn": "TOTP.counter({timestamp})",
+      "goFn": "otpauth.Key.MovingFactor"
+    },
+    {
+      "id": "moving-factor-period-60",
+      "fn": "movingFactor",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 60
+        },
+        59000
+      ],
+      "upstreamFn": "TOTP.counter({timestamp})",
+      "goFn": "otpauth.Key.MovingFactor"
+    },
+    {
+      "id": "moving-factor-far-future",
+      "fn": "movingFactor",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        },
+        1234567890000
+      ],
+      "upstreamFn": "TOTP.counter({timestamp})",
+      "goFn": "otpauth.Key.MovingFactor"
+    }
+  ]
+}

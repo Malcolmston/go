@@ -1,0 +1,180 @@
+{
+  "group": "url",
+  "upstream": "otpauth@9.5.1",
+  "note": "Rendering a Key back to an otpauth:// URI. Compared as {host, raw path, query as an object with sorted keys}: the format fixes no parameter order, but percent-encoding of the label is in scope.",
+  "cases": [
+    {
+      "id": "url-totp-full",
+      "fn": "url",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        }
+      ],
+      "upstreamFn": "TOTP/HOTP.toString",
+      "goFn": "otpauth.Key.URL"
+    },
+    {
+      "id": "url-totp-no-issuer",
+      "fn": "url",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "",
+          "account": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        }
+      ],
+      "upstreamFn": "TOTP/HOTP.toString",
+      "goFn": "otpauth.Key.URL"
+    },
+    {
+      "id": "url-totp-sha256-digits8-period60",
+      "fn": "url",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZA",
+          "algorithm": "SHA256",
+          "digits": 8,
+          "period": 60
+        }
+      ],
+      "upstreamFn": "TOTP/HOTP.toString",
+      "goFn": "otpauth.Key.URL"
+    },
+    {
+      "id": "url-totp-email-account",
+      "fn": "url",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity",
+          "account": "alice@example.com",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        }
+      ],
+      "upstreamFn": "TOTP/HOTP.toString",
+      "goFn": "otpauth.Key.URL",
+      "deviation": "label percent-encoding: upstream runs the label through encodeURIComponent, so '@' becomes %40 and '&' becomes %26, while the port escapes only what the RFC 3986 path grammar requires. Both URIs are RFC 3986 equivalent and each side parses the other's form - see parse-totp-encoded-label"
+    },
+    {
+      "id": "url-totp-space-in-issuer",
+      "fn": "url",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Parity Inc",
+          "account": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        }
+      ],
+      "upstreamFn": "TOTP/HOTP.toString",
+      "goFn": "otpauth.Key.URL"
+    },
+    {
+      "id": "url-totp-unicode-issuer",
+      "fn": "url",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "Paritê",
+          "account": "alïce",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        }
+      ],
+      "upstreamFn": "TOTP/HOTP.toString",
+      "goFn": "otpauth.Key.URL"
+    },
+    {
+      "id": "url-totp-ampersand-in-issuer",
+      "fn": "url",
+      "args": [
+        {
+          "type": "totp",
+          "issuer": "A&B",
+          "account": "alice",
+          "secret": "JBSWY3DPEHPK3PXP",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "period": 30
+        }
+      ],
+      "upstreamFn": "TOTP/HOTP.toString",
+      "goFn": "otpauth.Key.URL",
+      "note": "a separator character inside a parameter value",
+      "deviation": "label percent-encoding: upstream runs the label through encodeURIComponent, so '@' becomes %40 and '&' becomes %26, while the port escapes only what the RFC 3986 path grammar requires. Both URIs are RFC 3986 equivalent and each side parses the other's form - see parse-totp-encoded-label"
+    },
+    {
+      "id": "url-hotp-counter-zero",
+      "fn": "url",
+      "args": [
+        {
+          "type": "hotp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "counter": 0
+        }
+      ],
+      "upstreamFn": "TOTP/HOTP.toString",
+      "goFn": "otpauth.Key.URL"
+    },
+    {
+      "id": "url-hotp-counter-7",
+      "fn": "url",
+      "args": [
+        {
+          "type": "hotp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "counter": 7
+        }
+      ],
+      "upstreamFn": "TOTP/HOTP.toString",
+      "goFn": "otpauth.Key.URL"
+    },
+    {
+      "id": "url-hotp-counter-large",
+      "fn": "url",
+      "args": [
+        {
+          "type": "hotp",
+          "issuer": "Parity",
+          "account": "alice",
+          "secret": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+          "algorithm": "SHA1",
+          "digits": 6,
+          "counter": 4294967296
+        }
+      ],
+      "upstreamFn": "TOTP/HOTP.toString",
+      "goFn": "otpauth.Key.URL"
+    }
+  ]
+}

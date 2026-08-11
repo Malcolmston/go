@@ -1,0 +1,471 @@
+{
+  "group": "verify",
+  "upstream": "pbkdf2@3.1.6",
+  "note": "Verifying a password against a KNOWN derived key - the flow a login performs. Every correct key here was produced by the upstream oracle; the port reaches it through its own encoded form (pbkdf2_<alg>$iterations$b64salt$b64dk), so pwhash.Decode and pwhash.Verify are both under test. The rejection corpus covers wrong passwords, substituted salts, iteration counts and algorithms, and tampered, truncated, lengthened, empty and non-hex stored keys.",
+  "cases": [
+    {
+      "id": "verify-correct",
+      "fn": "verifyKnownKey",
+      "args": [
+        "correct horse battery staple",
+        "parity-fixed-salt",
+        1000,
+        "sha256",
+        "72b639703a956a6d4ab151d9961bfa681bc25c98f18c58fa7f6de3dc36cf2b33"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync + crypto.timingSafeEqual",
+      "goFn": "pwhash.Verify (via pwhash.Decode + pwhash.Key)",
+      "note": "the one credential that must verify",
+      "acceptance": true
+    },
+    {
+      "id": "verify-wrong-password",
+      "fn": "verifyKnownKey",
+      "args": [
+        "wrong password",
+        "parity-fixed-salt",
+        1000,
+        "sha256",
+        "72b639703a956a6d4ab151d9961bfa681bc25c98f18c58fa7f6de3dc36cf2b33"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync + crypto.timingSafeEqual",
+      "goFn": "pwhash.Verify (via pwhash.Decode + pwhash.Key)",
+      "note": "must not verify",
+      "acceptance": true
+    },
+    {
+      "id": "verify-password-case-changed",
+      "fn": "verifyKnownKey",
+      "args": [
+        "Correct horse battery staple",
+        "parity-fixed-salt",
+        1000,
+        "sha256",
+        "72b639703a956a6d4ab151d9961bfa681bc25c98f18c58fa7f6de3dc36cf2b33"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync + crypto.timingSafeEqual",
+      "goFn": "pwhash.Verify (via pwhash.Decode + pwhash.Key)",
+      "note": "must not verify",
+      "acceptance": true
+    },
+    {
+      "id": "verify-password-prefix",
+      "fn": "verifyKnownKey",
+      "args": [
+        "correct horse battery stapl",
+        "parity-fixed-salt",
+        1000,
+        "sha256",
+        "72b639703a956a6d4ab151d9961bfa681bc25c98f18c58fa7f6de3dc36cf2b33"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync + crypto.timingSafeEqual",
+      "goFn": "pwhash.Verify (via pwhash.Decode + pwhash.Key)",
+      "note": "a correct prefix must not verify",
+      "acceptance": true
+    },
+    {
+      "id": "verify-password-trailing-space",
+      "fn": "verifyKnownKey",
+      "args": [
+        "correct horse battery staple ",
+        "parity-fixed-salt",
+        1000,
+        "sha256",
+        "72b639703a956a6d4ab151d9961bfa681bc25c98f18c58fa7f6de3dc36cf2b33"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync + crypto.timingSafeEqual",
+      "goFn": "pwhash.Verify (via pwhash.Decode + pwhash.Key)",
+      "note": "passwords are not trimmed",
+      "acceptance": true
+    },
+    {
+      "id": "verify-password-empty",
+      "fn": "verifyKnownKey",
+      "args": [
+        "",
+        "parity-fixed-salt",
+        1000,
+        "sha256",
+        "72b639703a956a6d4ab151d9961bfa681bc25c98f18c58fa7f6de3dc36cf2b33"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync + crypto.timingSafeEqual",
+      "goFn": "pwhash.Verify (via pwhash.Decode + pwhash.Key)",
+      "note": "must not verify",
+      "acceptance": true
+    },
+    {
+      "id": "verify-empty-password-correct",
+      "fn": "verifyKnownKey",
+      "args": [
+        "",
+        "parity-fixed-salt",
+        1000,
+        "sha256",
+        "0265241ef290f9c33f075fcb06b19d9d263185e28f99d0a4792fda0580b97a50"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync + crypto.timingSafeEqual",
+      "goFn": "pwhash.Verify (via pwhash.Decode + pwhash.Key)",
+      "note": "an empty password is still a password and must verify against its own hash",
+      "acceptance": true
+    },
+    {
+      "id": "verify-unicode-password-correct",
+      "fn": "verifyKnownKey",
+      "args": [
+        "p\u00e4ssw\u00f6rd-\u00fcn\u00efcode",
+        "parity-fixed-salt",
+        1000,
+        "sha256",
+        "ce62f00387f5afa95664fa3674c507c2de26925a17963ef57f395a5445aac298"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync + crypto.timingSafeEqual",
+      "goFn": "pwhash.Verify (via pwhash.Decode + pwhash.Key)",
+      "acceptance": true
+    },
+    {
+      "id": "verify-unicode-password-decomposed",
+      "fn": "verifyKnownKey",
+      "args": [
+        "pa\u0308sswo\u0308rd-u\u0308ni\u0308code",
+        "parity-fixed-salt",
+        1000,
+        "sha256",
+        "ce62f00387f5afa95664fa3674c507c2de26925a17963ef57f395a5445aac298"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync + crypto.timingSafeEqual",
+      "goFn": "pwhash.Verify (via pwhash.Decode + pwhash.Key)",
+      "note": "a decomposed spelling of the same glyphs is different bytes and must not verify",
+      "acceptance": true
+    },
+    {
+      "id": "verify-long-password-correct",
+      "fn": "verifyKnownKey",
+      "args": [
+        "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "parity-fixed-salt",
+        1000,
+        "sha256",
+        "6c36a88213b5860ffbcdd0b79a2cc1ffa9b070e93cfd4d79bd905d3234355f1c"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync + crypto.timingSafeEqual",
+      "goFn": "pwhash.Verify (via pwhash.Decode + pwhash.Key)",
+      "acceptance": true
+    },
+    {
+      "id": "verify-salt-substituted",
+      "fn": "verifyKnownKey",
+      "args": [
+        "correct horse battery staple",
+        "other-fixed-salt",
+        1000,
+        "sha256",
+        "72b639703a956a6d4ab151d9961bfa681bc25c98f18c58fa7f6de3dc36cf2b33"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync + crypto.timingSafeEqual",
+      "goFn": "pwhash.Verify (via pwhash.Decode + pwhash.Key)",
+      "note": "the stored key belongs to another salt; must not verify",
+      "acceptance": true
+    },
+    {
+      "id": "verify-salt-one-byte-changed",
+      "fn": "verifyKnownKey",
+      "args": [
+        "correct horse battery staple",
+        "parity-fixed-sall",
+        1000,
+        "sha256",
+        "72b639703a956a6d4ab151d9961bfa681bc25c98f18c58fa7f6de3dc36cf2b33"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync + crypto.timingSafeEqual",
+      "goFn": "pwhash.Verify (via pwhash.Decode + pwhash.Key)",
+      "note": "must not verify",
+      "acceptance": true
+    },
+    {
+      "id": "verify-other-salt-correct",
+      "fn": "verifyKnownKey",
+      "args": [
+        "correct horse battery staple",
+        "other-fixed-salt",
+        1000,
+        "sha256",
+        "ab62b283e0a3f29c6ebd9e85aa3c20a3ea0e8e51f6591ecd1dd01b21d06476b8"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync + crypto.timingSafeEqual",
+      "goFn": "pwhash.Verify (via pwhash.Decode + pwhash.Key)",
+      "note": "must verify against its own salt",
+      "acceptance": true
+    },
+    {
+      "id": "verify-iterations-substituted",
+      "fn": "verifyKnownKey",
+      "args": [
+        "correct horse battery staple",
+        "parity-fixed-salt",
+        2000,
+        "sha256",
+        "72b639703a956a6d4ab151d9961bfa681bc25c98f18c58fa7f6de3dc36cf2b33"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync + crypto.timingSafeEqual",
+      "goFn": "pwhash.Verify (via pwhash.Decode + pwhash.Key)",
+      "note": "the stored key was derived with 1000 iterations; must not verify",
+      "acceptance": true
+    },
+    {
+      "id": "verify-iterations-correct-2000",
+      "fn": "verifyKnownKey",
+      "args": [
+        "correct horse battery staple",
+        "parity-fixed-salt",
+        2000,
+        "sha256",
+        "50151b94923bb04f6457d31af4ac0acc681b7e58461659a0d9ff7ff4d00fbe84"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync + crypto.timingSafeEqual",
+      "goFn": "pwhash.Verify (via pwhash.Decode + pwhash.Key)",
+      "note": "must verify",
+      "acceptance": true
+    },
+    {
+      "id": "verify-algorithm-substituted",
+      "fn": "verifyKnownKey",
+      "args": [
+        "correct horse battery staple",
+        "parity-fixed-salt",
+        1000,
+        "sha512",
+        "72b639703a956a6d4ab151d9961bfa681bc25c98f18c58fa7f6de3dc36cf2b33"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync + crypto.timingSafeEqual",
+      "goFn": "pwhash.Verify (via pwhash.Decode + pwhash.Key)",
+      "note": "a SHA-256 key claimed as SHA-512; must not verify",
+      "acceptance": true
+    },
+    {
+      "id": "verify-sha512-correct",
+      "fn": "verifyKnownKey",
+      "args": [
+        "correct horse battery staple",
+        "parity-fixed-salt",
+        1000,
+        "sha512",
+        "99e86c19d9f76b9c972cf4c393f2cf975b03aa4505830252d02a51ef197abdf07fa459ee6e35a1d8585c5979385ee6f93cfc1827c6bcf403e79865d18a690d1b"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync + crypto.timingSafeEqual",
+      "goFn": "pwhash.Verify (via pwhash.Decode + pwhash.Key)",
+      "note": "must verify",
+      "acceptance": true
+    },
+    {
+      "id": "verify-sha1-correct",
+      "fn": "verifyKnownKey",
+      "args": [
+        "correct horse battery staple",
+        "parity-fixed-salt",
+        1000,
+        "sha1",
+        "55583b45d1b4f44f4a9775b1c695ebc72caa2d6b"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync + crypto.timingSafeEqual",
+      "goFn": "pwhash.Verify (via pwhash.Decode + pwhash.Key)",
+      "note": "must verify",
+      "acceptance": true
+    },
+    {
+      "id": "verify-sha1-key-claimed-sha256",
+      "fn": "verifyKnownKey",
+      "args": [
+        "correct horse battery staple",
+        "parity-fixed-salt",
+        1000,
+        "sha256",
+        "55583b45d1b4f44f4a9775b1c695ebc72caa2d6b"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync + crypto.timingSafeEqual",
+      "goFn": "pwhash.Verify (via pwhash.Decode + pwhash.Key)",
+      "note": "must not verify",
+      "acceptance": true
+    },
+    {
+      "id": "verify-key-last-byte-flipped",
+      "fn": "verifyKnownKey",
+      "args": [
+        "correct horse battery staple",
+        "parity-fixed-salt",
+        1000,
+        "sha256",
+        "72b639703a956a6d4ab151d9961bfa681bc25c98f18c58fa7f6de3dc36cf2b00"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync + crypto.timingSafeEqual",
+      "goFn": "pwhash.Verify (via pwhash.Decode + pwhash.Key)",
+      "note": "one tampered byte must not verify",
+      "acceptance": true
+    },
+    {
+      "id": "verify-key-first-byte-flipped",
+      "fn": "verifyKnownKey",
+      "args": [
+        "correct horse battery staple",
+        "parity-fixed-salt",
+        1000,
+        "sha256",
+        "00b639703a956a6d4ab151d9961bfa681bc25c98f18c58fa7f6de3dc36cf2b33"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync + crypto.timingSafeEqual",
+      "goFn": "pwhash.Verify (via pwhash.Decode + pwhash.Key)",
+      "note": "must not verify",
+      "acceptance": true
+    },
+    {
+      "id": "verify-key-truncated",
+      "fn": "verifyKnownKey",
+      "args": [
+        "correct horse battery staple",
+        "parity-fixed-salt",
+        1000,
+        "sha256",
+        "72b639703a956a6d4ab151d9961bfa681bc25c98f18c58fa7f6de3dc36cf2b"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync + crypto.timingSafeEqual",
+      "goFn": "pwhash.Verify (via pwhash.Decode + pwhash.Key)",
+      "note": "a shortened stored key must not verify",
+      "acceptance": true
+    },
+    {
+      "id": "verify-key-extended",
+      "fn": "verifyKnownKey",
+      "args": [
+        "correct horse battery staple",
+        "parity-fixed-salt",
+        1000,
+        "sha256",
+        "72b639703a956a6d4ab151d9961bfa681bc25c98f18c58fa7f6de3dc36cf2b3300"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync + crypto.timingSafeEqual",
+      "goFn": "pwhash.Verify (via pwhash.Decode + pwhash.Key)",
+      "note": "a lengthened stored key must not verify",
+      "acceptance": true
+    },
+    {
+      "id": "verify-key-empty",
+      "fn": "verifyKnownKey",
+      "args": [
+        "correct horse battery staple",
+        "parity-fixed-salt",
+        1000,
+        "sha256",
+        ""
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync + crypto.timingSafeEqual",
+      "goFn": "pwhash.Verify (via pwhash.Decode + pwhash.Key)",
+      "note": "an empty stored key would otherwise compare equal to everything",
+      "acceptance": true
+    },
+    {
+      "id": "verify-key-not-hex",
+      "fn": "verifyKnownKey",
+      "args": [
+        "correct horse battery staple",
+        "parity-fixed-salt",
+        1000,
+        "sha256",
+        "zzzz"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync + crypto.timingSafeEqual",
+      "goFn": "pwhash.Verify (via pwhash.Decode + pwhash.Key)",
+      "note": "a corrupt stored value must not verify",
+      "acceptance": true
+    },
+    {
+      "id": "verify-key-odd-length-hex",
+      "fn": "verifyKnownKey",
+      "args": [
+        "correct horse battery staple",
+        "parity-fixed-salt",
+        1000,
+        "sha256",
+        "72b639703a956a6d4ab151d9961bfa681bc25c98f18c58fa7f6de3dc36cf2b3"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync + crypto.timingSafeEqual",
+      "goFn": "pwhash.Verify (via pwhash.Decode + pwhash.Key)",
+      "note": "must not verify",
+      "acceptance": true
+    },
+    {
+      "id": "verify-iterations-zero",
+      "fn": "verifyKnownKey",
+      "args": [
+        "correct horse battery staple",
+        "parity-fixed-salt",
+        0,
+        "sha256",
+        "72b639703a956a6d4ab151d9961bfa681bc25c98f18c58fa7f6de3dc36cf2b33"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync + crypto.timingSafeEqual",
+      "goFn": "pwhash.Verify (via pwhash.Decode + pwhash.Key)",
+      "note": "c=0 is outside RFC 2898; must not verify",
+      "acceptance": true
+    },
+    {
+      "id": "verify-iterations-negative",
+      "fn": "verifyKnownKey",
+      "args": [
+        "correct horse battery staple",
+        "parity-fixed-salt",
+        -1,
+        "sha256",
+        "72b639703a956a6d4ab151d9961bfa681bc25c98f18c58fa7f6de3dc36cf2b33"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync + crypto.timingSafeEqual",
+      "goFn": "pwhash.Verify (via pwhash.Decode + pwhash.Key)",
+      "note": "must not verify",
+      "acceptance": true
+    },
+    {
+      "id": "verify-iterations-absurd",
+      "fn": "verifyKnownKey",
+      "args": [
+        "correct horse battery staple",
+        "parity-fixed-salt",
+        100000001,
+        "sha256",
+        "72b639703a956a6d4ab151d9961bfa681bc25c98f18c58fa7f6de3dc36cf2b33"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync + crypto.timingSafeEqual",
+      "goFn": "pwhash.Verify (via pwhash.Decode + pwhash.Key)",
+      "note": "beyond the port's pwhash.MaxIterations; a stored hash is attacker-influenced, so an unbounded count is a denial of service",
+      "acceptance": true
+    },
+    {
+      "id": "verify-unknown-algorithm",
+      "fn": "verifyKnownKey",
+      "args": [
+        "correct horse battery staple",
+        "parity-fixed-salt",
+        1000,
+        "not-a-hash",
+        "72b639703a956a6d4ab151d9961bfa681bc25c98f18c58fa7f6de3dc36cf2b33"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync + crypto.timingSafeEqual",
+      "goFn": "pwhash.Verify (via pwhash.Decode + pwhash.Key)",
+      "note": "must not verify",
+      "acceptance": true
+    },
+    {
+      "id": "verify-empty-salt",
+      "fn": "verifyKnownKey",
+      "args": [
+        "correct horse battery staple",
+        "",
+        1000,
+        "sha256",
+        "0db401841eeea56cb6469915fb67d5d2d607e891d3fe97403d77c9bbf68a0ada"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync + crypto.timingSafeEqual",
+      "goFn": "pwhash.Verify (via pwhash.Decode + pwhash.Key)",
+      "note": "an unsalted stored hash",
+      "acceptance": true,
+      "deviation": "pwhash.Decode refuses a stored hash whose salt is empty: it is not producible by HashWithParams, so it means corruption or tampering, and an unsalted hash is exactly what salting exists to prevent. Upstream has no encoded form and no such check, so it verifies the password against the unsalted key. The port is the stricter side and keeps its check"
+    }
+  ]
+}

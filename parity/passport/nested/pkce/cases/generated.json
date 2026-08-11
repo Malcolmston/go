@@ -1,0 +1,27 @@
+{
+  "group": "generated",
+  "upstream": "pkce-challenge@6.0.0",
+  "note": "Properties of a freshly generated verifier/challenge pair. Randomness is never compared - only length, method, round-trip and whether the challenge equals the verifier.",
+  "cases": [
+    {
+      "id": "gen-properties-s256",
+      "fn": "generatedProperties",
+      "args": [
+        "S256"
+      ],
+      "upstreamFn": "pkceChallenge",
+      "goFn": "pkce.NewWithMethod",
+      "note": "the only case family that touches randomness: compares the LENGTH of a freshly generated verifier, the method echoed back, whether it round-trips through its own challenge, and whether the challenge leaked the verifier — never the random value itself"
+    },
+    {
+      "id": "gen-properties-plain",
+      "fn": "generatedProperties",
+      "args": [
+        "plain"
+      ],
+      "upstreamFn": "pkceChallenge",
+      "goFn": "pkce.NewWithMethod",
+      "note": "under plain the challenge IS the verifier, which both sides must report"
+    }
+  ]
+}

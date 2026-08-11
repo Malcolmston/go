@@ -1,0 +1,433 @@
+{
+  "group": "kdf",
+  "upstream": "pbkdf2@3.1.6",
+  "note": "Raw PBKDF2 derivation with every parameter fixed: password, salt, iteration count, key length and PRF. Includes the RFC 6070 test vectors. Derived keys are compared as lowercase hex.",
+  "cases": [
+    {
+      "id": "key-rfc6070-c1",
+      "fn": "key",
+      "args": [
+        "password",
+        "salt",
+        1,
+        20,
+        "sha1"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync",
+      "goFn": "pwhash.Key",
+      "note": "RFC 6070 vector: 0c60c80f961f0e71f3a9b524af6012062fe037a6"
+    },
+    {
+      "id": "key-rfc6070-c2",
+      "fn": "key",
+      "args": [
+        "password",
+        "salt",
+        2,
+        20,
+        "sha1"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync",
+      "goFn": "pwhash.Key",
+      "note": "RFC 6070 vector: ea6c014dc72d6f8ccd1ed92ace1d41f0d8de8957"
+    },
+    {
+      "id": "key-rfc6070-c4096",
+      "fn": "key",
+      "args": [
+        "password",
+        "salt",
+        4096,
+        20,
+        "sha1"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync",
+      "goFn": "pwhash.Key",
+      "note": "RFC 6070 vector: 4b007901b765489abead49d926f721d065a429c1"
+    },
+    {
+      "id": "key-rfc6070-long-inputs",
+      "fn": "key",
+      "args": [
+        "passwordPASSWORDpassword",
+        "saltSALTsaltSALTsaltSALTsaltSALTsalt",
+        4096,
+        25,
+        "sha1"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync",
+      "goFn": "pwhash.Key",
+      "note": "RFC 6070 vector: 3d2eec4fe41c849b80c8d83662c0e44a8b291a964cf2f07038"
+    },
+    {
+      "id": "key-rfc6070-embedded-nul",
+      "fn": "key",
+      "args": [
+        "pass\u0000word",
+        "sa\u0000lt",
+        4096,
+        16,
+        "sha1"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync",
+      "goFn": "pwhash.Key",
+      "note": "RFC 6070 vector: 56fa6aa75548099dcc37d7f03425e0c3; the NUL must not truncate either input"
+    },
+    {
+      "id": "key-sha256-32",
+      "fn": "key",
+      "args": [
+        "password",
+        "salt",
+        1000,
+        32,
+        "sha256"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync",
+      "goFn": "pwhash.Key"
+    },
+    {
+      "id": "key-sha512-64",
+      "fn": "key",
+      "args": [
+        "password",
+        "salt",
+        1000,
+        64,
+        "sha512"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync",
+      "goFn": "pwhash.Key"
+    },
+    {
+      "id": "key-sha256-1-byte",
+      "fn": "key",
+      "args": [
+        "password",
+        "salt",
+        1000,
+        1,
+        "sha256"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync",
+      "goFn": "pwhash.Key",
+      "note": "a key shorter than one PRF block"
+    },
+    {
+      "id": "key-sha256-31-bytes",
+      "fn": "key",
+      "args": [
+        "password",
+        "salt",
+        1000,
+        31,
+        "sha256"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync",
+      "goFn": "pwhash.Key",
+      "note": "not a multiple of the 32-byte block, so the last block is truncated"
+    },
+    {
+      "id": "key-sha256-33-bytes",
+      "fn": "key",
+      "args": [
+        "password",
+        "salt",
+        1000,
+        33,
+        "sha256"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync",
+      "goFn": "pwhash.Key",
+      "note": "two blocks, the second almost entirely discarded"
+    },
+    {
+      "id": "key-sha256-100-bytes",
+      "fn": "key",
+      "args": [
+        "password",
+        "salt",
+        1000,
+        100,
+        "sha256"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync",
+      "goFn": "pwhash.Key",
+      "note": "four blocks"
+    },
+    {
+      "id": "key-sha1-100-bytes",
+      "fn": "key",
+      "args": [
+        "password",
+        "salt",
+        1000,
+        100,
+        "sha1"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync",
+      "goFn": "pwhash.Key",
+      "note": "five blocks"
+    },
+    {
+      "id": "key-sha512-200-bytes",
+      "fn": "key",
+      "args": [
+        "password",
+        "salt",
+        100,
+        200,
+        "sha512"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync",
+      "goFn": "pwhash.Key"
+    },
+    {
+      "id": "key-empty-password",
+      "fn": "key",
+      "args": [
+        "",
+        "salt",
+        1000,
+        32,
+        "sha256"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync",
+      "goFn": "pwhash.Key"
+    },
+    {
+      "id": "key-empty-salt",
+      "fn": "key",
+      "args": [
+        "password",
+        "",
+        1000,
+        32,
+        "sha256"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync",
+      "goFn": "pwhash.Key",
+      "note": "an unsalted derivation is still a defined PBKDF2 computation"
+    },
+    {
+      "id": "key-empty-both",
+      "fn": "key",
+      "args": [
+        "",
+        "",
+        1000,
+        32,
+        "sha256"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync",
+      "goFn": "pwhash.Key"
+    },
+    {
+      "id": "key-unicode-password",
+      "fn": "key",
+      "args": [
+        "p\u00e4ssw\u00f6rd-\u00fcn\u00efcode",
+        "salt",
+        1000,
+        32,
+        "sha256"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync",
+      "goFn": "pwhash.Key",
+      "note": "hashed as UTF-8 on both sides"
+    },
+    {
+      "id": "key-unicode-salt",
+      "fn": "key",
+      "args": [
+        "password",
+        "s\u00e4lt-\u00fcnicode",
+        1000,
+        32,
+        "sha256"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync",
+      "goFn": "pwhash.Key"
+    },
+    {
+      "id": "key-long-password",
+      "fn": "key",
+      "args": [
+        "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "salt",
+        1000,
+        32,
+        "sha256"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync",
+      "goFn": "pwhash.Key",
+      "note": "longer than the PRF block size, so HMAC pre-hashes the key"
+    },
+    {
+      "id": "key-64-byte-password",
+      "fn": "key",
+      "args": [
+        "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+        "salt",
+        1000,
+        32,
+        "sha256"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync",
+      "goFn": "pwhash.Key",
+      "note": "exactly the HMAC-SHA256 block size"
+    },
+    {
+      "id": "key-65-byte-password",
+      "fn": "key",
+      "args": [
+        "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+        "salt",
+        1000,
+        32,
+        "sha256"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync",
+      "goFn": "pwhash.Key",
+      "note": "one byte over the HMAC-SHA256 block size"
+    },
+    {
+      "id": "key-long-salt",
+      "fn": "key",
+      "args": [
+        "password",
+        "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+        1000,
+        32,
+        "sha256"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync",
+      "goFn": "pwhash.Key"
+    },
+    {
+      "id": "key-single-iteration",
+      "fn": "key",
+      "args": [
+        "password",
+        "salt",
+        1,
+        32,
+        "sha256"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync",
+      "goFn": "pwhash.Key",
+      "note": "one iteration is the RFC minimum"
+    },
+    {
+      "id": "key-many-iterations",
+      "fn": "key",
+      "args": [
+        "password",
+        "salt",
+        100000,
+        32,
+        "sha256"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync",
+      "goFn": "pwhash.Key"
+    },
+    {
+      "id": "key-password-differs-by-case",
+      "fn": "key",
+      "args": [
+        "PASSWORD",
+        "salt",
+        1000,
+        32,
+        "sha256"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync",
+      "goFn": "pwhash.Key"
+    },
+    {
+      "id": "key-salt-differs-by-one-byte",
+      "fn": "key",
+      "args": [
+        "password",
+        "salu",
+        1000,
+        32,
+        "sha256"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync",
+      "goFn": "pwhash.Key"
+    },
+    {
+      "id": "key-iterations-zero",
+      "fn": "key",
+      "args": [
+        "password",
+        "salt",
+        0,
+        20,
+        "sha1"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync",
+      "goFn": "pwhash.Key",
+      "note": "zero iterations is outside RFC 2898's c >= 1",
+      "deviation": "pwhash.Key deliberately has no error return: it mirrors the signature the Go ecosystem's PBKDF2 has always had (golang.org/x/crypto/pbkdf2.Key), so an iteration count below 1 becomes 1 - the RFC 2898 minimum, never fewer - and a non-positive key length yields an empty key, where upstream throws. This is reachable only through the raw KDF: the credential path refuses both, which verify-iterations-zero and verify-iterations-negative confirm by rejecting on BOTH sides"
+    },
+    {
+      "id": "key-iterations-negative",
+      "fn": "key",
+      "args": [
+        "password",
+        "salt",
+        -1,
+        20,
+        "sha1"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync",
+      "goFn": "pwhash.Key",
+      "deviation": "pwhash.Key deliberately has no error return: it mirrors the signature the Go ecosystem's PBKDF2 has always had (golang.org/x/crypto/pbkdf2.Key), so an iteration count below 1 becomes 1 - the RFC 2898 minimum, never fewer - and a non-positive key length yields an empty key, where upstream throws. This is reachable only through the raw KDF: the credential path refuses both, which verify-iterations-zero and verify-iterations-negative confirm by rejecting on BOTH sides"
+    },
+    {
+      "id": "key-length-zero",
+      "fn": "key",
+      "args": [
+        "password",
+        "salt",
+        1000,
+        0,
+        "sha256"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync",
+      "goFn": "pwhash.Key",
+      "note": "a zero-length derived key would compare equal to everything",
+      "deviation": "pwhash.Key deliberately has no error return: it mirrors the signature the Go ecosystem's PBKDF2 has always had (golang.org/x/crypto/pbkdf2.Key), so an iteration count below 1 becomes 1 - the RFC 2898 minimum, never fewer - and a non-positive key length yields an empty key, where upstream throws. This is reachable only through the raw KDF: the credential path refuses both, which verify-iterations-zero and verify-iterations-negative confirm by rejecting on BOTH sides"
+    },
+    {
+      "id": "key-length-negative",
+      "fn": "key",
+      "args": [
+        "password",
+        "salt",
+        1000,
+        -1,
+        "sha256"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync",
+      "goFn": "pwhash.Key",
+      "deviation": "pwhash.Key deliberately has no error return: it mirrors the signature the Go ecosystem's PBKDF2 has always had (golang.org/x/crypto/pbkdf2.Key), so an iteration count below 1 becomes 1 - the RFC 2898 minimum, never fewer - and a non-positive key length yields an empty key, where upstream throws. This is reachable only through the raw KDF: the credential path refuses both, which verify-iterations-zero and verify-iterations-negative confirm by rejecting on BOTH sides"
+    },
+    {
+      "id": "key-unknown-algorithm",
+      "fn": "key",
+      "args": [
+        "password",
+        "salt",
+        1000,
+        32,
+        "not-a-hash"
+      ],
+      "upstreamFn": "pbkdf2.pbkdf2Sync",
+      "goFn": "pwhash.Key",
+      "note": "both sides must fail"
+    }
+  ]
+}

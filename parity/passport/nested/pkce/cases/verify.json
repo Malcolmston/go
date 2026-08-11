@@ -1,0 +1,352 @@
+{
+  "group": "verify",
+  "upstream": "pkce-challenge@6.0.0",
+  "note": "Server-side verification of a code verifier against a stored challenge (RFC 7636 section 4.6). Every challenge in this file was derived by the transform under test; the rejection corpus covers wrong challenges, tampered challenges, wrong encodings, swapped arguments, out-of-range verifiers and method substitution.",
+  "cases": [
+    {
+      "id": "vf-s256-rfc-vector",
+      "fn": "verify",
+      "args": [
+        "S256",
+        "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk",
+        "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"
+      ],
+      "upstreamFn": "verifyChallenge",
+      "goFn": "pkce.Verify",
+      "acceptance": true,
+      "note": "RFC 7636 Appendix B: must verify"
+    },
+    {
+      "id": "vf-s256-min-length",
+      "fn": "verify",
+      "args": [
+        "S256",
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "ZtNPunH49FD35FWYhT5Tv8I7vRKQJ8uxMaL0_9eHjNA"
+      ],
+      "upstreamFn": "verifyChallenge",
+      "goFn": "pkce.Verify",
+      "acceptance": true,
+      "note": "must verify"
+    },
+    {
+      "id": "vf-s256-max-length",
+      "fn": "verify",
+      "args": [
+        "S256",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "cK4cUwf1JQ1cueQHQrqWE_zfm42ett05MzBEOy1e_70"
+      ],
+      "upstreamFn": "verifyChallenge",
+      "goFn": "pkce.Verify",
+      "acceptance": true,
+      "note": "must verify"
+    },
+    {
+      "id": "vf-s256-unreserved-punctuation",
+      "fn": "verify",
+      "args": [
+        "S256",
+        "aA0-._~aA0-._~aA0-._~aA0-._~aA0-._~aA0-._~a",
+        "rdZrlUuh1i3ASbC1ZpSZ1w-vkdXY7_GnTJGuPybuoXA"
+      ],
+      "upstreamFn": "verifyChallenge",
+      "goFn": "pkce.Verify",
+      "acceptance": true,
+      "note": "must verify"
+    },
+    {
+      "id": "vf-s256-wrong-challenge",
+      "fn": "verify",
+      "args": [
+        "S256",
+        "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk",
+        "ZtNPunH49FD35FWYhT5Tv8I7vRKQJ8uxMaL0_9eHjNA"
+      ],
+      "upstreamFn": "verifyChallenge",
+      "goFn": "pkce.Verify",
+      "acceptance": true,
+      "note": "a challenge from another verifier must not verify"
+    },
+    {
+      "id": "vf-s256-challenge-one-char-flipped",
+      "fn": "verify",
+      "args": [
+        "S256",
+        "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk",
+        "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cX"
+      ],
+      "upstreamFn": "verifyChallenge",
+      "goFn": "pkce.Verify",
+      "acceptance": true,
+      "note": "must not verify"
+    },
+    {
+      "id": "vf-s256-challenge-truncated",
+      "fn": "verify",
+      "args": [
+        "S256",
+        "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk",
+        "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSst"
+      ],
+      "upstreamFn": "verifyChallenge",
+      "goFn": "pkce.Verify",
+      "acceptance": true,
+      "note": "must not verify"
+    },
+    {
+      "id": "vf-s256-challenge-padded",
+      "fn": "verify",
+      "args": [
+        "S256",
+        "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk",
+        "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM="
+      ],
+      "upstreamFn": "verifyChallenge",
+      "goFn": "pkce.Verify",
+      "acceptance": true,
+      "note": "RFC 7636 strips the base64url padding; must not verify"
+    },
+    {
+      "id": "vf-s256-challenge-standard-base64",
+      "fn": "verify",
+      "args": [
+        "S256",
+        "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk",
+        "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw+cM="
+      ],
+      "upstreamFn": "verifyChallenge",
+      "goFn": "pkce.Verify",
+      "acceptance": true,
+      "note": "base64 with +/ instead of base64url; must not verify"
+    },
+    {
+      "id": "vf-s256-challenge-empty",
+      "fn": "verify",
+      "args": [
+        "S256",
+        "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk",
+        ""
+      ],
+      "upstreamFn": "verifyChallenge",
+      "goFn": "pkce.Verify",
+      "acceptance": true,
+      "note": "must not verify"
+    },
+    {
+      "id": "vf-s256-verifier-empty",
+      "fn": "verify",
+      "args": [
+        "S256",
+        "",
+        "47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU"
+      ],
+      "upstreamFn": "verifyChallenge",
+      "goFn": "pkce.Verify",
+      "acceptance": true,
+      "note": "an empty verifier carries no entropy; RFC 7636 section 4.1 requires 43-128 characters",
+      "deviation": "RFC 7636 section 4.1 fixes the verifier syntax at 43-128 characters from the unreserved set, and section 4.6 requires the server to validate what it receives; upstream's verifyChallenge only re-derives the challenge and compares, so it accepts a verifier the RFC forbids. pkce.Verify checks the syntax first and refuses. Upstream is the outlier and the looser side, so the port keeps its check"
+    },
+    {
+      "id": "vf-s256-args-swapped",
+      "fn": "verify",
+      "args": [
+        "S256",
+        "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+        "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+      ],
+      "upstreamFn": "verifyChallenge",
+      "goFn": "pkce.Verify",
+      "acceptance": true,
+      "note": "presenting the challenge as the verifier must not verify"
+    },
+    {
+      "id": "vf-s256-verifier-too-short",
+      "fn": "verify",
+      "args": [
+        "S256",
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "elOGB_2quSlplZKfRRVlu7gULhhEEXMiqv0rPXawGv8"
+      ],
+      "upstreamFn": "verifyChallenge",
+      "goFn": "pkce.Verify",
+      "acceptance": true,
+      "note": "42 characters is below the RFC 7636 minimum",
+      "deviation": "RFC 7636 section 4.1 fixes the verifier syntax at 43-128 characters from the unreserved set, and section 4.6 requires the server to validate what it receives; upstream's verifyChallenge only re-derives the challenge and compares, so it accepts a verifier the RFC forbids. pkce.Verify checks the syntax first and refuses. Upstream is the outlier and the looser side, so the port keeps its check"
+    },
+    {
+      "id": "vf-s256-verifier-too-long",
+      "fn": "verify",
+      "args": [
+        "S256",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "dcdr4q7SdyMnU23C-odZ0Wy-fcnFNZVNfR4FoRvdP8Y"
+      ],
+      "upstreamFn": "verifyChallenge",
+      "goFn": "pkce.Verify",
+      "acceptance": true,
+      "note": "129 characters is above the RFC 7636 maximum",
+      "deviation": "RFC 7636 section 4.1 fixes the verifier syntax at 43-128 characters from the unreserved set, and section 4.6 requires the server to validate what it receives; upstream's verifyChallenge only re-derives the challenge and compares, so it accepts a verifier the RFC forbids. pkce.Verify checks the syntax first and refuses. Upstream is the outlier and the looser side, so the port keeps its check"
+    },
+    {
+      "id": "vf-s256-verifier-bad-charset",
+      "fn": "verify",
+      "args": [
+        "S256",
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa+",
+        "iwXbWFm6ct1JDeJlZO8FYEXe0UbbNRVyu6etiydm5O8"
+      ],
+      "upstreamFn": "verifyChallenge",
+      "goFn": "pkce.Verify",
+      "acceptance": true,
+      "note": "'+' is outside the unreserved verifier charset",
+      "deviation": "RFC 7636 section 4.1 fixes the verifier syntax at 43-128 characters from the unreserved set, and section 4.6 requires the server to validate what it receives; upstream's verifyChallenge only re-derives the challenge and compares, so it accepts a verifier the RFC forbids. pkce.Verify checks the syntax first and refuses. Upstream is the outlier and the looser side, so the port keeps its check"
+    },
+    {
+      "id": "vf-s256-verifier-unicode",
+      "fn": "verify",
+      "args": [
+        "S256",
+        "ünïcödé-verifier-that-is-long-enough-abcdef",
+        "6okCk_GKMN8A_nxYnNgvCMziWii_DhOaYvRN2T6DAh4"
+      ],
+      "upstreamFn": "verifyChallenge",
+      "goFn": "pkce.Verify",
+      "acceptance": true,
+      "note": "a non-ASCII verifier is not RFC 7636 syntax",
+      "deviation": "RFC 7636 section 4.1 fixes the verifier syntax at 43-128 characters from the unreserved set, and section 4.6 requires the server to validate what it receives; upstream's verifyChallenge only re-derives the challenge and compares, so it accepts a verifier the RFC forbids. pkce.Verify checks the syntax first and refuses. Upstream is the outlier and the looser side, so the port keeps its check"
+    },
+    {
+      "id": "vf-s256-method-downgraded-to-plain",
+      "fn": "verify",
+      "args": [
+        "plain",
+        "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk",
+        "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"
+      ],
+      "upstreamFn": "verifyChallenge",
+      "goFn": "pkce.Verify",
+      "acceptance": true,
+      "note": "the S256 challenge must not verify under plain"
+    },
+    {
+      "id": "vf-plain-correct",
+      "fn": "verify",
+      "args": [
+        "plain",
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ],
+      "upstreamFn": "verifyChallenge",
+      "goFn": "pkce.Verify",
+      "acceptance": true,
+      "note": "must verify"
+    },
+    {
+      "id": "vf-plain-rfc-verifier",
+      "fn": "verify",
+      "args": [
+        "plain",
+        "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk",
+        "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+      ],
+      "upstreamFn": "verifyChallenge",
+      "goFn": "pkce.Verify",
+      "acceptance": true,
+      "note": "must verify"
+    },
+    {
+      "id": "vf-plain-wrong",
+      "fn": "verify",
+      "args": [
+        "plain",
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ],
+      "upstreamFn": "verifyChallenge",
+      "goFn": "pkce.Verify",
+      "acceptance": true,
+      "note": "must not verify"
+    },
+    {
+      "id": "vf-plain-prefix",
+      "fn": "verify",
+      "args": [
+        "plain",
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ],
+      "upstreamFn": "verifyChallenge",
+      "goFn": "pkce.Verify",
+      "acceptance": true,
+      "note": "a truncated challenge must not verify"
+    },
+    {
+      "id": "vf-plain-both-empty",
+      "fn": "verify",
+      "args": [
+        "plain",
+        "",
+        ""
+      ],
+      "upstreamFn": "verifyChallenge",
+      "goFn": "pkce.Verify",
+      "acceptance": true,
+      "note": "the degenerate PKCE bypass: an empty verifier against an empty challenge",
+      "deviation": "the degenerate PKCE bypass: upstream derives challenge('') == '' and reports a match, so an authorization request that stored an empty code_challenge is satisfied by an empty code_verifier. pkce.Verify rejects an empty challenge and any verifier shorter than 43 characters, which is the whole point of RFC 7636 section 4.1. Deliberately NOT copied"
+    },
+    {
+      "id": "vf-plain-too-short",
+      "fn": "verify",
+      "args": [
+        "plain",
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ],
+      "upstreamFn": "verifyChallenge",
+      "goFn": "pkce.Verify",
+      "acceptance": true,
+      "note": "below the RFC 7636 minimum length",
+      "deviation": "RFC 7636 section 4.1 fixes the verifier syntax at 43-128 characters from the unreserved set, and section 4.6 requires the server to validate what it receives; upstream's verifyChallenge only re-derives the challenge and compares, so it accepts a verifier the RFC forbids. pkce.Verify checks the syntax first and refuses. Upstream is the outlier and the looser side, so the port keeps its check"
+    },
+    {
+      "id": "vf-plain-method-upgraded-to-s256",
+      "fn": "verify",
+      "args": [
+        "S256",
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ],
+      "upstreamFn": "verifyChallenge",
+      "goFn": "pkce.Verify",
+      "acceptance": true,
+      "note": "a plain challenge must not verify under S256"
+    },
+    {
+      "id": "vf-method-unknown",
+      "fn": "verify",
+      "args": [
+        "S512",
+        "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk",
+        "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"
+      ],
+      "upstreamFn": "verifyChallenge",
+      "goFn": "pkce.Verify",
+      "acceptance": true,
+      "note": "an unrecognised method cannot verify"
+    },
+    {
+      "id": "vf-method-empty",
+      "fn": "verify",
+      "args": [
+        "",
+        "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk",
+        "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+      ],
+      "upstreamFn": "verifyChallenge",
+      "goFn": "pkce.Verify",
+      "acceptance": true,
+      "note": "an empty method is not one of the two RFC 7636 transformations"
+    }
+  ]
+}

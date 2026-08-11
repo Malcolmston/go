@@ -1,0 +1,175 @@
+{
+  "group": "digest-challenge",
+  "upstream": "http-auth-utils@7.0.1",
+  "note": "The WWW-Authenticate challenge a server sends to open a Digest exchange (RFC 7616 section 3.3). Compared as the rendered header string, so parameter order and quoting are both in scope.",
+  "cases": [
+    {
+      "id": "dc-realm-nonce",
+      "fn": "digestChallenge",
+      "args": [
+        {
+          "realm": "Parity",
+          "nonce": "deadbeefdeadbeefdeadbeefdeadbeef"
+        }
+      ],
+      "upstreamFn": "buildWWWAuthenticateHeader(DIGEST)",
+      "goFn": "httpauth.DigestChallenge"
+    },
+    {
+      "id": "dc-with-opaque",
+      "fn": "digestChallenge",
+      "args": [
+        {
+          "realm": "Parity",
+          "nonce": "deadbeefdeadbeefdeadbeefdeadbeef",
+          "opaque": "opq-1"
+        }
+      ],
+      "upstreamFn": "buildWWWAuthenticateHeader(DIGEST)",
+      "goFn": "httpauth.DigestChallenge"
+    },
+    {
+      "id": "dc-with-algorithm-and-qop",
+      "fn": "digestChallenge",
+      "args": [
+        {
+          "realm": "Parity",
+          "nonce": "deadbeefdeadbeefdeadbeefdeadbeef",
+          "algorithm": "MD5",
+          "qop": "auth"
+        }
+      ],
+      "upstreamFn": "buildWWWAuthenticateHeader(DIGEST)",
+      "goFn": "httpauth.DigestChallenge"
+    },
+    {
+      "id": "dc-with-opaque-algorithm-qop",
+      "fn": "digestChallenge",
+      "args": [
+        {
+          "realm": "Parity",
+          "nonce": "deadbeefdeadbeefdeadbeefdeadbeef",
+          "opaque": "opq-1",
+          "algorithm": "SHA-256",
+          "qop": "auth,auth-int"
+        }
+      ],
+      "upstreamFn": "buildWWWAuthenticateHeader(DIGEST)",
+      "goFn": "httpauth.DigestChallenge"
+    },
+    {
+      "id": "dc-empty-realm",
+      "fn": "digestChallenge",
+      "args": [
+        {
+          "realm": "",
+          "nonce": "deadbeefdeadbeefdeadbeefdeadbeef"
+        }
+      ],
+      "upstreamFn": "buildWWWAuthenticateHeader(DIGEST)",
+      "goFn": "httpauth.DigestChallenge",
+      "deviation": "DigestChallenge is a renderer and omits fields it was not given; upstream's builder validates its required keys and throws instead. Neither side emits a usable challenge"
+    },
+    {
+      "id": "dc-missing-nonce",
+      "fn": "digestChallenge",
+      "args": [
+        {
+          "realm": "Parity"
+        }
+      ],
+      "upstreamFn": "buildWWWAuthenticateHeader(DIGEST)",
+      "goFn": "httpauth.DigestChallenge",
+      "note": "nonce is REQUIRED by RFC 7616 section 3.3",
+      "deviation": "DigestChallenge is a renderer and omits fields it was not given; upstream's builder validates its required keys and throws instead. Neither side emits a usable challenge"
+    },
+    {
+      "id": "dc-with-domain",
+      "fn": "digestChallenge",
+      "args": [
+        {
+          "realm": "Parity",
+          "nonce": "deadbeefdeadbeefdeadbeefdeadbeef",
+          "domain": "/a /b"
+        }
+      ],
+      "upstreamFn": "buildWWWAuthenticateHeader(DIGEST)",
+      "goFn": "httpauth.DigestChallenge",
+      "deviation": "RFC 7616 fixes no order for challenge parameters; the port follows passport-http's order (realm, domain, nonce, ...) and upstream its own key list"
+    },
+    {
+      "id": "dc-stale",
+      "fn": "digestChallenge",
+      "args": [
+        {
+          "realm": "Parity",
+          "nonce": "deadbeefdeadbeefdeadbeefdeadbeef",
+          "qop": "auth",
+          "stale": true
+        }
+      ],
+      "upstreamFn": "buildWWWAuthenticateHeader(DIGEST)",
+      "goFn": "httpauth.DigestChallenge",
+      "note": "RFC 7616 defines stale as an unquoted boolean",
+      "deviation": "RFC 7616 section 3.3 defines stale as an unquoted boolean; upstream quotes it, and emits it before algorithm and qop"
+    },
+    {
+      "id": "dc-charset",
+      "fn": "digestChallenge",
+      "args": [
+        {
+          "realm": "Parity",
+          "nonce": "deadbeefdeadbeefdeadbeefdeadbeef",
+          "charset": "UTF-8"
+        }
+      ],
+      "upstreamFn": "buildWWWAuthenticateHeader(DIGEST)",
+      "goFn": "httpauth.DigestChallenge",
+      "note": "charset is an RFC 7616 addition",
+      "deviation": "charset is an RFC 7616 addition; upstream implements the RFC 2617 parameter set and silently drops it"
+    },
+    {
+      "id": "dc-userhash",
+      "fn": "digestChallenge",
+      "args": [
+        {
+          "realm": "Parity",
+          "nonce": "deadbeefdeadbeefdeadbeefdeadbeef",
+          "userhash": true
+        }
+      ],
+      "upstreamFn": "buildWWWAuthenticateHeader(DIGEST)",
+      "goFn": "httpauth.DigestChallenge",
+      "note": "userhash is an RFC 7616 addition",
+      "deviation": "userhash is an RFC 7616 addition; upstream implements the RFC 2617 parameter set and silently drops it"
+    },
+    {
+      "id": "dc-quote-in-realm",
+      "fn": "digestChallenge",
+      "args": [
+        {
+          "realm": "He said \"hi\"",
+          "nonce": "deadbeefdeadbeefdeadbeefdeadbeef"
+        }
+      ],
+      "upstreamFn": "buildWWWAuthenticateHeader(DIGEST)",
+      "goFn": "httpauth.DigestChallenge",
+      "note": "an unescaped quote would end the realm early and inject a parameter",
+      "deviation": "the port renders caller-supplied values as RFC 7230 quoted-strings — escaping '\"' and '\\\\' and dropping control characters — so a realm or nonce cannot terminate the value or split the response; upstream interpolates them raw, which is an injection upstream and not a behaviour worth copying"
+    },
+    {
+      "id": "dc-crlf-in-nonce",
+      "fn": "digestChallenge",
+      "args": [
+        {
+          "realm": "Parity",
+          "nonce": "dead\r\nX-Injected: 1"
+        }
+      ],
+      "upstreamFn": "buildWWWAuthenticateHeader(DIGEST)",
+      "goFn": "httpauth.DigestChallenge",
+      "note": "response-splitting attempt through the nonce",
+      "deviation": "the port renders caller-supplied values as RFC 7230 quoted-strings — escaping '\"' and '\\\\' and dropping control characters — so a realm or nonce cannot terminate the value or split the response; upstream interpolates them raw, which is an injection upstream and not a behaviour worth copying"
+    }
+  ]
+}

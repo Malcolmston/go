@@ -1,0 +1,123 @@
+{
+  "group": "scheme",
+  "upstream": "http-auth-utils@7.0.1",
+  "note": "Scheme detection on an Authorization header. Upstream has no dedicated symbol, so the runner reads the `type` that parseAuthorizationHeader reports and maps E_UNKNOWN_AUTH_MECHANISM to 'no known scheme'.",
+  "cases": [
+    {
+      "id": "scheme-of-basic",
+      "fn": "schemeOf",
+      "args": [
+        "Basic YWxpY2U6czNjcjN0"
+      ],
+      "upstreamFn": "parseAuthorizationHeader().type",
+      "goFn": "httpauth.SchemeOf"
+    },
+    {
+      "id": "scheme-of-bearer",
+      "fn": "schemeOf",
+      "args": [
+        "Bearer tok-alice-0001"
+      ],
+      "upstreamFn": "parseAuthorizationHeader().type",
+      "goFn": "httpauth.SchemeOf"
+    },
+    {
+      "id": "scheme-of-bearer-lowercase",
+      "fn": "schemeOf",
+      "args": [
+        "bearer tok-alice-0001"
+      ],
+      "upstreamFn": "parseAuthorizationHeader().type",
+      "goFn": "httpauth.SchemeOf"
+    },
+    {
+      "id": "scheme-of-digest",
+      "fn": "schemeOf",
+      "args": [
+        "Digest username=\"alice\", realm=\"Parity\", nonce=\"deadbeefdeadbeefdeadbeefdeadbeef\", uri=\"/protected\", response=\"85af665982cef6c9b2b5dd7b67ab931f\""
+      ],
+      "upstreamFn": "parseAuthorizationHeader().type",
+      "goFn": "httpauth.SchemeOf"
+    },
+    {
+      "id": "scheme-of-unknown-scheme",
+      "fn": "schemeOf",
+      "args": [
+        "Bogus abcdef"
+      ],
+      "upstreamFn": "parseAuthorizationHeader().type",
+      "goFn": "httpauth.SchemeOf",
+      "note": "Go names the scheme it saw; upstream only knows three mechanisms",
+      "deviation": "SchemeOf reports whichever scheme token it found; upstream can only name the three mechanisms it implements, so an unknown scheme comes back as 'no scheme'"
+    },
+    {
+      "id": "scheme-of-empty",
+      "fn": "schemeOf",
+      "args": [
+        ""
+      ],
+      "upstreamFn": "parseAuthorizationHeader().type",
+      "goFn": "httpauth.SchemeOf"
+    },
+    {
+      "id": "scheme-of-no-separator",
+      "fn": "schemeOf",
+      "args": [
+        "Basic"
+      ],
+      "upstreamFn": "parseAuthorizationHeader().type",
+      "goFn": "httpauth.SchemeOf"
+    },
+    {
+      "id": "has-scheme-basic-yes",
+      "fn": "hasScheme",
+      "args": [
+        "Basic YWxpY2U6czNjcjN0",
+        "Basic"
+      ],
+      "upstreamFn": "parseAuthorizationHeader().type",
+      "goFn": "httpauth.HasScheme"
+    },
+    {
+      "id": "has-scheme-basic-case-insensitive",
+      "fn": "hasScheme",
+      "args": [
+        "basic YWxpY2U6czNjcjN0",
+        "BASIC"
+      ],
+      "upstreamFn": "parseAuthorizationHeader().type",
+      "goFn": "httpauth.HasScheme"
+    },
+    {
+      "id": "has-scheme-basic-vs-bearer",
+      "fn": "hasScheme",
+      "args": [
+        "Bearer tok-alice-0001",
+        "Basic"
+      ],
+      "upstreamFn": "parseAuthorizationHeader().type",
+      "goFn": "httpauth.HasScheme"
+    },
+    {
+      "id": "has-scheme-empty-header",
+      "fn": "hasScheme",
+      "args": [
+        "",
+        "Basic"
+      ],
+      "upstreamFn": "parseAuthorizationHeader().type",
+      "goFn": "httpauth.HasScheme"
+    },
+    {
+      "id": "has-scheme-prefix-only",
+      "fn": "hasScheme",
+      "args": [
+        "BasicX YWxpY2U6czNjcjN0",
+        "Basic"
+      ],
+      "upstreamFn": "parseAuthorizationHeader().type",
+      "goFn": "httpauth.HasScheme",
+      "note": "a scheme token that merely starts with 'Basic' is a different scheme"
+    }
+  ]
+}

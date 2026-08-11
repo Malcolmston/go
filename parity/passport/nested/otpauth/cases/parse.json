@@ -1,0 +1,267 @@
+{
+  "group": "parse",
+  "upstream": "otpauth@9.5.1",
+  "note": "Reading an otpauth:// key URI (Google Authenticator Key Uri Format). Both runners project the result onto the same eight fields, so a defaulted parameter and an explicit one compare equal.",
+  "cases": [
+    {
+      "id": "parse-totp-full",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/Parity:alice?secret=JBSWY3DPEHPK3PXP&issuer=Parity&algorithm=SHA1&digits=6&period=30"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse"
+    },
+    {
+      "id": "parse-totp-minimal",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse",
+      "note": "every optional parameter takes its Key Uri Format default"
+    },
+    {
+      "id": "parse-totp-issuer-only-in-label",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/Parity:alice?secret=JBSWY3DPEHPK3PXP"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse",
+      "note": "the issuer prefix in the label is the legacy form"
+    },
+    {
+      "id": "parse-totp-issuer-param-wins",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/Other:alice?secret=JBSWY3DPEHPK3PXP&issuer=Parity"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse",
+      "note": "label prefix and issuer parameter disagree"
+    },
+    {
+      "id": "parse-totp-encoded-label",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/Parity%20Inc:alice%40example.com?secret=JBSWY3DPEHPK3PXP&issuer=Parity%20Inc"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse"
+    },
+    {
+      "id": "parse-totp-sha256",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/Parity:alice?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZA&algorithm=SHA256"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse"
+    },
+    {
+      "id": "parse-totp-sha512",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/Parity:alice?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNA&algorithm=SHA512"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse"
+    },
+    {
+      "id": "parse-totp-digits-8",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/Parity:alice?secret=JBSWY3DPEHPK3PXP&digits=8"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse"
+    },
+    {
+      "id": "parse-totp-period-60",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/Parity:alice?secret=JBSWY3DPEHPK3PXP&period=60"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse"
+    },
+    {
+      "id": "parse-hotp-with-counter",
+      "fn": "parse",
+      "args": [
+        "otpauth://hotp/Parity:alice?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ&counter=7"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse"
+    },
+    {
+      "id": "parse-hotp-without-counter",
+      "fn": "parse",
+      "args": [
+        "otpauth://hotp/Parity:alice?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse",
+      "note": "an absent counter means 0"
+    },
+    {
+      "id": "parse-hotp-large-counter",
+      "fn": "parse",
+      "args": [
+        "otpauth://hotp/Parity:alice?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ&counter=4294967296"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse"
+    },
+    {
+      "id": "parse-type-uppercase",
+      "fn": "parse",
+      "args": [
+        "otpauth://TOTP/alice?secret=JBSWY3DPEHPK3PXP"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse"
+    },
+    {
+      "id": "parse-type-unknown",
+      "fn": "parse",
+      "args": [
+        "otpauth://nope/alice?secret=JBSWY3DPEHPK3PXP"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse",
+      "note": "both sides must fail"
+    },
+    {
+      "id": "parse-scheme-wrong",
+      "fn": "parse",
+      "args": [
+        "https://totp/alice?secret=JBSWY3DPEHPK3PXP"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse",
+      "note": "both sides must fail"
+    },
+    {
+      "id": "parse-missing-secret",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/alice?issuer=Parity"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse",
+      "note": "both sides must fail"
+    },
+    {
+      "id": "parse-empty-secret",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/alice?secret="
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse",
+      "note": "both sides must fail"
+    },
+    {
+      "id": "parse-invalid-secret",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/alice?secret=not-base32!!"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse",
+      "note": "a secret that is not base32 cannot produce a code"
+    },
+    {
+      "id": "parse-digits-zero",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP&digits=0"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse",
+      "note": "a zero-digit code is not a code"
+    },
+    {
+      "id": "parse-digits-too-many",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP&digits=12"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse",
+      "note": "the Key Uri Format tops out well below 12 digits",
+      "deviation": "RFC 4226 section 5.3 puts the code length at 6 to 8 digits (the port allows up to 10, the widest a 31-bit truncated HOTP value can fill); upstream accepts any digit count, including a 1-digit code with a 10-value search space. The port refuses the degenerate code spaces upstream permits"
+    },
+    {
+      "id": "parse-digits-not-a-number",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP&digits=six"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse",
+      "note": "both sides must fail"
+    },
+    {
+      "id": "parse-period-zero",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP&period=0"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse",
+      "note": "a zero period divides by zero when deriving the time step"
+    },
+    {
+      "id": "parse-period-negative",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP&period=-30"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse"
+    },
+    {
+      "id": "parse-algorithm-unknown",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/alice?secret=JBSWY3DPEHPK3PXP&algorithm=SHA3"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse",
+      "note": "an algorithm neither side can compute"
+    },
+    {
+      "id": "parse-algorithm-lowercase",
+      "fn": "parse",
+      "args": [
+        "otpauth://totp/alice?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZA&algorithm=sha256"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse"
+    },
+    {
+      "id": "parse-garbage",
+      "fn": "parse",
+      "args": [
+        "not a uri at all"
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse",
+      "note": "both sides must fail"
+    },
+    {
+      "id": "parse-empty",
+      "fn": "parse",
+      "args": [
+        ""
+      ],
+      "upstreamFn": "URI.parse",
+      "goFn": "otpauth.Parse",
+      "note": "both sides must fail"
+    }
+  ]
+}

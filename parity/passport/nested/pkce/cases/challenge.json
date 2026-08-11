@@ -1,0 +1,228 @@
+{
+  "group": "challenge",
+  "upstream": "pkce-challenge@6.0.0",
+  "note": "Deriving a code challenge from a verifier (RFC 7636 section 4.2). Every verifier is a fixed literal; the RFC 7636 Appendix B vector is included.",
+  "cases": [
+    {
+      "id": "ch-s256-rfc7636-appendix-b",
+      "fn": "challenge",
+      "args": [
+        "S256",
+        "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+      ],
+      "upstreamFn": "generateChallenge",
+      "goFn": "pkce.ComputeChallenge",
+      "note": "the worked example in RFC 7636 Appendix B"
+    },
+    {
+      "id": "ch-s256-min-length",
+      "fn": "challenge",
+      "args": [
+        "S256",
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ],
+      "upstreamFn": "generateChallenge",
+      "goFn": "pkce.ComputeChallenge"
+    },
+    {
+      "id": "ch-s256-max-length",
+      "fn": "challenge",
+      "args": [
+        "S256",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ],
+      "upstreamFn": "generateChallenge",
+      "goFn": "pkce.ComputeChallenge"
+    },
+    {
+      "id": "ch-s256-unreserved-punctuation",
+      "fn": "challenge",
+      "args": [
+        "S256",
+        "aA0-._~aA0-._~aA0-._~aA0-._~aA0-._~aA0-._~a"
+      ],
+      "upstreamFn": "generateChallenge",
+      "goFn": "pkce.ComputeChallenge",
+      "note": "the unreserved set is [A-Za-z0-9-._~]"
+    },
+    {
+      "id": "ch-s256-too-short",
+      "fn": "challenge",
+      "args": [
+        "S256",
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ],
+      "upstreamFn": "generateChallenge",
+      "goFn": "pkce.ComputeChallenge",
+      "note": "the transform itself does not police length"
+    },
+    {
+      "id": "ch-s256-too-long",
+      "fn": "challenge",
+      "args": [
+        "S256",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ],
+      "upstreamFn": "generateChallenge",
+      "goFn": "pkce.ComputeChallenge"
+    },
+    {
+      "id": "ch-s256-empty-verifier",
+      "fn": "challenge",
+      "args": [
+        "S256",
+        ""
+      ],
+      "upstreamFn": "generateChallenge",
+      "goFn": "pkce.ComputeChallenge"
+    },
+    {
+      "id": "ch-s256-single-char",
+      "fn": "challenge",
+      "args": [
+        "S256",
+        "a"
+      ],
+      "upstreamFn": "generateChallenge",
+      "goFn": "pkce.ComputeChallenge"
+    },
+    {
+      "id": "ch-s256-non-unreserved-char",
+      "fn": "challenge",
+      "args": [
+        "S256",
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa+"
+      ],
+      "upstreamFn": "generateChallenge",
+      "goFn": "pkce.ComputeChallenge",
+      "note": "'+' is outside the verifier charset but still hashable"
+    },
+    {
+      "id": "ch-s256-unicode",
+      "fn": "challenge",
+      "args": [
+        "S256",
+        "ünïcödé-verifier-that-is-long-enough-abcdef"
+      ],
+      "upstreamFn": "generateChallenge",
+      "goFn": "pkce.ComputeChallenge",
+      "note": "hashed as UTF-8 on both sides"
+    },
+    {
+      "id": "ch-s256-very-long",
+      "fn": "challenge",
+      "args": [
+        "S256",
+        "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+      ],
+      "upstreamFn": "generateChallenge",
+      "goFn": "pkce.ComputeChallenge"
+    },
+    {
+      "id": "ch-s256-all-digits",
+      "fn": "challenge",
+      "args": [
+        "S256",
+        "0000000000000000000000000000000000000000000"
+      ],
+      "upstreamFn": "generateChallenge",
+      "goFn": "pkce.ComputeChallenge"
+    },
+    {
+      "id": "ch-plain-min-length",
+      "fn": "challenge",
+      "args": [
+        "plain",
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ],
+      "upstreamFn": "generateChallenge",
+      "goFn": "pkce.ComputeChallenge",
+      "note": "the plain transform is the identity"
+    },
+    {
+      "id": "ch-plain-rfc-verifier",
+      "fn": "challenge",
+      "args": [
+        "plain",
+        "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+      ],
+      "upstreamFn": "generateChallenge",
+      "goFn": "pkce.ComputeChallenge"
+    },
+    {
+      "id": "ch-plain-empty-verifier",
+      "fn": "challenge",
+      "args": [
+        "plain",
+        ""
+      ],
+      "upstreamFn": "generateChallenge",
+      "goFn": "pkce.ComputeChallenge"
+    },
+    {
+      "id": "ch-plain-unicode",
+      "fn": "challenge",
+      "args": [
+        "plain",
+        "ünïcödé-verifier-that-is-long-enough-abcdef"
+      ],
+      "upstreamFn": "generateChallenge",
+      "goFn": "pkce.ComputeChallenge"
+    },
+    {
+      "id": "ch-method-unknown",
+      "fn": "challenge",
+      "args": [
+        "S512",
+        "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+      ],
+      "upstreamFn": "generateChallenge",
+      "goFn": "pkce.ComputeChallenge",
+      "note": "both sides must fail"
+    },
+    {
+      "id": "ch-method-lowercase-s256",
+      "fn": "challenge",
+      "args": [
+        "s256",
+        "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+      ],
+      "upstreamFn": "generateChallenge",
+      "goFn": "pkce.ComputeChallenge",
+      "note": "RFC 7636 defines the names as literals; both sides must fail"
+    },
+    {
+      "id": "ch-method-uppercase-plain",
+      "fn": "challenge",
+      "args": [
+        "PLAIN",
+        "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+      ],
+      "upstreamFn": "generateChallenge",
+      "goFn": "pkce.ComputeChallenge",
+      "note": "both sides must fail"
+    },
+    {
+      "id": "ch-method-empty",
+      "fn": "challenge",
+      "args": [
+        "",
+        "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+      ],
+      "upstreamFn": "generateChallenge",
+      "goFn": "pkce.ComputeChallenge",
+      "note": "both sides must fail"
+    },
+    {
+      "id": "ch-method-sha256-spelling",
+      "fn": "challenge",
+      "args": [
+        "SHA256",
+        "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+      ],
+      "upstreamFn": "generateChallenge",
+      "goFn": "pkce.ComputeChallenge",
+      "note": "both sides must fail"
+    }
+  ]
+}

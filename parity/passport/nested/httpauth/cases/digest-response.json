@@ -1,0 +1,461 @@
+{
+  "group": "digest-response",
+  "upstream": "http-auth-utils@7.0.1",
+  "note": "The RFC 7616 section 3.4.6 response digest. Every input is fixed: nonce, cnonce and nc are literals, so the expected digest is reproducible. Algorithm names arrive in RFC spelling and the node runner maps them to crypto.createHash names.",
+  "cases": [
+    {
+      "id": "dr-md5",
+      "fn": "digestResponse",
+      "args": [
+        {
+          "method": "GET",
+          "uri": "/protected",
+          "username": "alice",
+          "realm": "Parity",
+          "password": "s3cr3t",
+          "nonce": "deadbeefdeadbeefdeadbeefdeadbeef",
+          "nc": "00000001",
+          "cnonce": "0a4f113b",
+          "qop": "auth",
+          "algorithm": "MD5"
+        }
+      ],
+      "upstreamFn": "DIGEST.computeHash",
+      "goFn": "httpauth.DigestResponse"
+    },
+    {
+      "id": "dr-default-algorithm",
+      "fn": "digestResponse",
+      "args": [
+        {
+          "method": "GET",
+          "uri": "/protected",
+          "username": "alice",
+          "realm": "Parity",
+          "password": "s3cr3t",
+          "nonce": "deadbeefdeadbeefdeadbeefdeadbeef",
+          "nc": "00000001",
+          "cnonce": "0a4f113b",
+          "qop": "auth",
+          "algorithm": ""
+        }
+      ],
+      "upstreamFn": "DIGEST.computeHash",
+      "goFn": "httpauth.DigestResponse",
+      "note": "an absent algorithm means MD5 (RFC 7616 section 3.4)"
+    },
+    {
+      "id": "dr-lowercase-algorithm",
+      "fn": "digestResponse",
+      "args": [
+        {
+          "method": "GET",
+          "uri": "/protected",
+          "username": "alice",
+          "realm": "Parity",
+          "password": "s3cr3t",
+          "nonce": "deadbeefdeadbeefdeadbeefdeadbeef",
+          "nc": "00000001",
+          "cnonce": "0a4f113b",
+          "qop": "auth",
+          "algorithm": "md5"
+        }
+      ],
+      "upstreamFn": "DIGEST.computeHash",
+      "goFn": "httpauth.DigestResponse"
+    },
+    {
+      "id": "dr-md5-post",
+      "fn": "digestResponse",
+      "args": [
+        {
+          "method": "POST",
+          "uri": "/protected",
+          "username": "alice",
+          "realm": "Parity",
+          "password": "s3cr3t",
+          "nonce": "deadbeefdeadbeefdeadbeefdeadbeef",
+          "nc": "00000001",
+          "cnonce": "0a4f113b",
+          "qop": "auth",
+          "algorithm": "MD5"
+        }
+      ],
+      "upstreamFn": "DIGEST.computeHash",
+      "goFn": "httpauth.DigestResponse",
+      "note": "the method is bound into HA2"
+    },
+    {
+      "id": "dr-md5-other-uri",
+      "fn": "digestResponse",
+      "args": [
+        {
+          "method": "GET",
+          "uri": "/other",
+          "username": "alice",
+          "realm": "Parity",
+          "password": "s3cr3t",
+          "nonce": "deadbeefdeadbeefdeadbeefdeadbeef",
+          "nc": "00000001",
+          "cnonce": "0a4f113b",
+          "qop": "auth",
+          "algorithm": "MD5"
+        }
+      ],
+      "upstreamFn": "DIGEST.computeHash",
+      "goFn": "httpauth.DigestResponse",
+      "note": "the uri is bound into HA2"
+    },
+    {
+      "id": "dr-md5-uri-with-query",
+      "fn": "digestResponse",
+      "args": [
+        {
+          "method": "GET",
+          "uri": "/protected?a=1&b=2",
+          "username": "alice",
+          "realm": "Parity",
+          "password": "s3cr3t",
+          "nonce": "deadbeefdeadbeefdeadbeefdeadbeef",
+          "nc": "00000001",
+          "cnonce": "0a4f113b",
+          "qop": "auth",
+          "algorithm": "MD5"
+        }
+      ],
+      "upstreamFn": "DIGEST.computeHash",
+      "goFn": "httpauth.DigestResponse"
+    },
+    {
+      "id": "dr-md5-nc-incremented",
+      "fn": "digestResponse",
+      "args": [
+        {
+          "method": "GET",
+          "uri": "/protected",
+          "username": "alice",
+          "realm": "Parity",
+          "password": "s3cr3t",
+          "nonce": "deadbeefdeadbeefdeadbeefdeadbeef",
+          "nc": "00000002",
+          "cnonce": "0a4f113b",
+          "qop": "auth",
+          "algorithm": "MD5"
+        }
+      ],
+      "upstreamFn": "DIGEST.computeHash",
+      "goFn": "httpauth.DigestResponse"
+    },
+    {
+      "id": "dr-md5-other-cnonce",
+      "fn": "digestResponse",
+      "args": [
+        {
+          "method": "GET",
+          "uri": "/protected",
+          "username": "alice",
+          "realm": "Parity",
+          "password": "s3cr3t",
+          "nonce": "deadbeefdeadbeefdeadbeefdeadbeef",
+          "nc": "00000001",
+          "cnonce": "ffffffff",
+          "qop": "auth",
+          "algorithm": "MD5"
+        }
+      ],
+      "upstreamFn": "DIGEST.computeHash",
+      "goFn": "httpauth.DigestResponse"
+    },
+    {
+      "id": "dr-md5-other-nonce",
+      "fn": "digestResponse",
+      "args": [
+        {
+          "method": "GET",
+          "uri": "/protected",
+          "username": "alice",
+          "realm": "Parity",
+          "password": "s3cr3t",
+          "nonce": "00000000000000000000000000000000",
+          "nc": "00000001",
+          "cnonce": "0a4f113b",
+          "qop": "auth",
+          "algorithm": "MD5"
+        }
+      ],
+      "upstreamFn": "DIGEST.computeHash",
+      "goFn": "httpauth.DigestResponse"
+    },
+    {
+      "id": "dr-md5-wrong-password",
+      "fn": "digestResponse",
+      "args": [
+        {
+          "method": "GET",
+          "uri": "/protected",
+          "username": "alice",
+          "realm": "Parity",
+          "password": "wrong",
+          "nonce": "deadbeefdeadbeefdeadbeefdeadbeef",
+          "nc": "00000001",
+          "cnonce": "0a4f113b",
+          "qop": "auth",
+          "algorithm": "MD5"
+        }
+      ],
+      "upstreamFn": "DIGEST.computeHash",
+      "goFn": "httpauth.DigestResponse"
+    },
+    {
+      "id": "dr-md5-empty-password",
+      "fn": "digestResponse",
+      "args": [
+        {
+          "method": "GET",
+          "uri": "/protected",
+          "username": "alice",
+          "realm": "Parity",
+          "password": "",
+          "nonce": "deadbeefdeadbeefdeadbeefdeadbeef",
+          "nc": "00000001",
+          "cnonce": "0a4f113b",
+          "qop": "auth",
+          "algorithm": "MD5"
+        }
+      ],
+      "upstreamFn": "DIGEST.computeHash",
+      "goFn": "httpauth.DigestResponse"
+    },
+    {
+      "id": "dr-md5-unicode-password",
+      "fn": "digestResponse",
+      "args": [
+        {
+          "method": "GET",
+          "uri": "/protected",
+          "username": "aliçe",
+          "realm": "Parity",
+          "password": "paßwörd",
+          "nonce": "deadbeefdeadbeefdeadbeefdeadbeef",
+          "nc": "00000001",
+          "cnonce": "0a4f113b",
+          "qop": "auth",
+          "algorithm": "MD5"
+        }
+      ],
+      "upstreamFn": "DIGEST.computeHash",
+      "goFn": "httpauth.DigestResponse",
+      "note": "UTF-8 credentials, RFC 7616 section 4"
+    },
+    {
+      "id": "dr-md5-empty-realm",
+      "fn": "digestResponse",
+      "args": [
+        {
+          "method": "GET",
+          "uri": "/protected",
+          "username": "alice",
+          "realm": "",
+          "password": "s3cr3t",
+          "nonce": "deadbeefdeadbeefdeadbeefdeadbeef",
+          "nc": "00000001",
+          "cnonce": "0a4f113b",
+          "qop": "auth",
+          "algorithm": "MD5"
+        }
+      ],
+      "upstreamFn": "DIGEST.computeHash",
+      "goFn": "httpauth.DigestResponse"
+    },
+    {
+      "id": "dr-md5-other-realm",
+      "fn": "digestResponse",
+      "args": [
+        {
+          "method": "GET",
+          "uri": "/protected",
+          "username": "alice",
+          "realm": "Other",
+          "password": "s3cr3t",
+          "nonce": "deadbeefdeadbeefdeadbeefdeadbeef",
+          "nc": "00000001",
+          "cnonce": "0a4f113b",
+          "qop": "auth",
+          "algorithm": "MD5"
+        }
+      ],
+      "upstreamFn": "DIGEST.computeHash",
+      "goFn": "httpauth.DigestResponse",
+      "note": "the realm is bound into HA1, so the same password digests differently per realm"
+    },
+    {
+      "id": "dr-sha256",
+      "fn": "digestResponse",
+      "args": [
+        {
+          "method": "GET",
+          "uri": "/protected",
+          "username": "alice",
+          "realm": "Parity",
+          "password": "s3cr3t",
+          "nonce": "deadbeefdeadbeefdeadbeefdeadbeef",
+          "nc": "00000001",
+          "cnonce": "0a4f113b",
+          "qop": "auth",
+          "algorithm": "SHA-256"
+        }
+      ],
+      "upstreamFn": "DIGEST.computeHash",
+      "goFn": "httpauth.DigestResponse"
+    },
+    {
+      "id": "dr-sha512-256",
+      "fn": "digestResponse",
+      "args": [
+        {
+          "method": "GET",
+          "uri": "/protected",
+          "username": "alice",
+          "realm": "Parity",
+          "password": "s3cr3t",
+          "nonce": "deadbeefdeadbeefdeadbeefdeadbeef",
+          "nc": "00000001",
+          "cnonce": "0a4f113b",
+          "qop": "auth",
+          "algorithm": "SHA-512-256"
+        }
+      ],
+      "upstreamFn": "DIGEST.computeHash",
+      "goFn": "httpauth.DigestResponse"
+    },
+    {
+      "id": "dr-unknown-algorithm",
+      "fn": "digestResponse",
+      "args": [
+        {
+          "method": "GET",
+          "uri": "/protected",
+          "username": "alice",
+          "realm": "Parity",
+          "password": "s3cr3t",
+          "nonce": "deadbeefdeadbeefdeadbeefdeadbeef",
+          "nc": "00000001",
+          "cnonce": "0a4f113b",
+          "qop": "auth",
+          "algorithm": "SHA-3"
+        }
+      ],
+      "upstreamFn": "DIGEST.computeHash",
+      "goFn": "httpauth.DigestResponse",
+      "note": "both sides must fail rather than silently pick a default"
+    },
+    {
+      "id": "dr-empty-nonce",
+      "fn": "digestResponse",
+      "args": [
+        {
+          "method": "GET",
+          "uri": "/protected",
+          "username": "alice",
+          "realm": "Parity",
+          "password": "s3cr3t",
+          "nonce": "",
+          "nc": "00000001",
+          "cnonce": "0a4f113b",
+          "qop": "auth",
+          "algorithm": "MD5"
+        }
+      ],
+      "upstreamFn": "DIGEST.computeHash",
+      "goFn": "httpauth.DigestResponse"
+    },
+    {
+      "id": "dr-md5-sess",
+      "fn": "digestResponse",
+      "args": [
+        {
+          "method": "GET",
+          "uri": "/protected",
+          "username": "alice",
+          "realm": "Parity",
+          "password": "s3cr3t",
+          "nonce": "deadbeefdeadbeefdeadbeefdeadbeef",
+          "nc": "00000001",
+          "cnonce": "0a4f113b",
+          "qop": "auth",
+          "algorithm": "MD5-sess"
+        }
+      ],
+      "upstreamFn": "DIGEST.computeHash",
+      "goFn": "httpauth.DigestResponse",
+      "note": "session variant, RFC 7616 section 3.4.2",
+      "deviation": "the -sess session variant (RFC 7616 section 3.4.2) is not implemented upstream: computeHash hands the algorithm straight to crypto.createHash, which has no 'MD5-sess'"
+    },
+    {
+      "id": "dr-sha256-sess",
+      "fn": "digestResponse",
+      "args": [
+        {
+          "method": "GET",
+          "uri": "/protected",
+          "username": "alice",
+          "realm": "Parity",
+          "password": "s3cr3t",
+          "nonce": "deadbeefdeadbeefdeadbeefdeadbeef",
+          "nc": "00000001",
+          "cnonce": "0a4f113b",
+          "qop": "auth",
+          "algorithm": "SHA-256-sess"
+        }
+      ],
+      "upstreamFn": "DIGEST.computeHash",
+      "goFn": "httpauth.DigestResponse",
+      "deviation": "the -sess session variant (RFC 7616 section 3.4.2) is not implemented upstream: computeHash hands the algorithm straight to crypto.createHash, which has no 'MD5-sess'"
+    },
+    {
+      "id": "dr-auth-int-with-body",
+      "fn": "digestResponse",
+      "args": [
+        {
+          "method": "POST",
+          "uri": "/protected",
+          "username": "alice",
+          "realm": "Parity",
+          "password": "s3cr3t",
+          "nonce": "deadbeefdeadbeefdeadbeefdeadbeef",
+          "nc": "00000001",
+          "cnonce": "0a4f113b",
+          "qop": "auth-int",
+          "algorithm": "MD5",
+          "bodyHex": "7b2261223a317d"
+        }
+      ],
+      "upstreamFn": "DIGEST.computeHash",
+      "goFn": "httpauth.DigestResponse",
+      "note": "bodyHex is lowercase hex for '{\"a\":1}'; auth-int hashes it into HA2 (RFC 7616 section 3.4.3)",
+      "deviation": "qop=auth-int (RFC 7616 section 3.4.3) hashes the entity body into HA2; upstream's computeHash ignores the body entirely"
+    },
+    {
+      "id": "dr-rfc2069-no-qop",
+      "fn": "digestResponse",
+      "args": [
+        {
+          "method": "GET",
+          "uri": "/protected",
+          "username": "alice",
+          "realm": "Parity",
+          "password": "s3cr3t",
+          "nonce": "deadbeefdeadbeefdeadbeefdeadbeef",
+          "nc": "",
+          "cnonce": "",
+          "qop": "",
+          "algorithm": "MD5"
+        }
+      ],
+      "upstreamFn": "DIGEST.computeHash",
+      "goFn": "httpauth.DigestResponse",
+      "note": "the legacy RFC 2069 form omits nc, cnonce and qop from the response digest",
+      "deviation": "with no qop the response digest takes the RFC 2069 form H(HA1:nonce:HA2); upstream always joins nc, cnonce and qop into the digest even when they are empty"
+    }
+  ]
+}

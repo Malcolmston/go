@@ -1,0 +1,225 @@
+{
+  "group": "digest-parse",
+  "upstream": "http-auth-utils@7.0.1",
+  "note": "Parsing an 'Authorization: Digest ...' header (RFC 7616 section 3.4). Both runners project the result onto the same ten fields, so an absent parameter and an empty one compare equal.",
+  "cases": [
+    {
+      "id": "digest-parse-full",
+      "fn": "parseDigest",
+      "args": [
+        "Digest username=\"alice\", realm=\"Parity\", nonce=\"deadbeefdeadbeefdeadbeefdeadbeef\", uri=\"/protected\", response=\"85af665982cef6c9b2b5dd7b67ab931f\", qop=auth, nc=00000001, cnonce=\"0a4f113b\", algorithm=MD5, opaque=\"opq-1\""
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest",
+      "goFn": "httpauth.ParseDigest"
+    },
+    {
+      "id": "digest-parse-minimal",
+      "fn": "parseDigest",
+      "args": [
+        "Digest username=\"alice\", realm=\"Parity\", nonce=\"deadbeefdeadbeefdeadbeefdeadbeef\", uri=\"/protected\", response=\"85af665982cef6c9b2b5dd7b67ab931f\""
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest",
+      "goFn": "httpauth.ParseDigest"
+    },
+    {
+      "id": "digest-parse-lowercase-scheme",
+      "fn": "parseDigest",
+      "args": [
+        "digest username=\"alice\", realm=\"Parity\", nonce=\"deadbeefdeadbeefdeadbeefdeadbeef\", uri=\"/protected\", response=\"85af665982cef6c9b2b5dd7b67ab931f\""
+      ],
+      "upstreamFn": "parseAuthorizationHeader({strict:false})",
+      "goFn": "httpauth.ParseDigest"
+    },
+    {
+      "id": "digest-parse-quoted-qop-and-nc",
+      "fn": "parseDigest",
+      "args": [
+        "Digest username=\"alice\", realm=\"Parity\", nonce=\"deadbeefdeadbeefdeadbeefdeadbeef\", uri=\"/protected\", response=\"85af665982cef6c9b2b5dd7b67ab931f\", qop=\"auth\", nc=\"00000001\", cnonce=\"0a4f113b\""
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest",
+      "goFn": "httpauth.ParseDigest",
+      "note": "qop and nc are unquoted per RFC 7616 but clients quote them anyway"
+    },
+    {
+      "id": "digest-parse-mixed-case-keys",
+      "fn": "parseDigest",
+      "args": [
+        "Digest Username=\"alice\", Realm=\"Parity\", NONCE=\"deadbeefdeadbeefdeadbeefdeadbeef\", URI=\"/protected\", Response=\"85af665982cef6c9b2b5dd7b67ab931f\""
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest",
+      "goFn": "httpauth.ParseDigest",
+      "note": "auth-param names are case-insensitive"
+    },
+    {
+      "id": "digest-parse-duplicate-param",
+      "fn": "parseDigest",
+      "args": [
+        "Digest username=\"alice\", username=\"bob\", realm=\"Parity\", nonce=\"deadbeefdeadbeefdeadbeefdeadbeef\", uri=\"/protected\", response=\"85af665982cef6c9b2b5dd7b67ab931f\""
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest",
+      "goFn": "httpauth.ParseDigest",
+      "note": "which of two usernames wins decides who is authenticated"
+    },
+    {
+      "id": "digest-parse-comma-in-quoted-realm",
+      "fn": "parseDigest",
+      "args": [
+        "Digest username=\"alice\", realm=\"Parity, Inc.\", nonce=\"deadbeefdeadbeefdeadbeefdeadbeef\", uri=\"/protected\", response=\"85af665982cef6c9b2b5dd7b67ab931f\""
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest",
+      "goFn": "httpauth.ParseDigest"
+    },
+    {
+      "id": "digest-parse-uri-with-query",
+      "fn": "parseDigest",
+      "args": [
+        "Digest username=\"alice\", realm=\"Parity\", nonce=\"deadbeefdeadbeefdeadbeefdeadbeef\", uri=\"/protected?a=1&b=2\", response=\"85af665982cef6c9b2b5dd7b67ab931f\""
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest",
+      "goFn": "httpauth.ParseDigest"
+    },
+    {
+      "id": "digest-parse-no-space-after-comma",
+      "fn": "parseDigest",
+      "args": [
+        "Digest username=\"alice\",realm=\"Parity\",nonce=\"deadbeefdeadbeefdeadbeefdeadbeef\",uri=\"/protected\",response=\"85af665982cef6c9b2b5dd7b67ab931f\""
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest",
+      "goFn": "httpauth.ParseDigest"
+    },
+    {
+      "id": "digest-parse-spaces-around-equals",
+      "fn": "parseDigest",
+      "args": [
+        "Digest username = \"alice\", realm = \"Parity\", nonce = \"deadbeefdeadbeefdeadbeefdeadbeef\", uri = \"/protected\", response = \"85af665982cef6c9b2b5dd7b67ab931f\""
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest",
+      "goFn": "httpauth.ParseDigest",
+      "note": "RFC 7230 permits bad whitespace around '='",
+      "deviation": "RFC 7230 permits bad whitespace around '='; upstream's key-value regexp does not and rejects the whole header"
+    },
+    {
+      "id": "digest-parse-escaped-quote-in-realm",
+      "fn": "parseDigest",
+      "args": [
+        "Digest username=\"alice\", realm=\"Par\\\"ity\", nonce=\"deadbeefdeadbeefdeadbeefdeadbeef\", uri=\"/protected\", response=\"85af665982cef6c9b2b5dd7b67ab931f\""
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest",
+      "goFn": "httpauth.ParseDigest",
+      "note": "quoted-pair inside a quoted-string",
+      "deviation": "a quoted-pair inside a quoted-string (RFC 7230 section 3.2.6): the port unescapes it, upstream's regexp splitter keeps the backslash — its source carries a 'FIXME: Create a real parser'"
+    },
+    {
+      "id": "digest-parse-extension-param",
+      "fn": "parseDigest",
+      "args": [
+        "Digest username=\"alice\", realm=\"Parity\", nonce=\"deadbeefdeadbeefdeadbeefdeadbeef\", uri=\"/protected\", response=\"85af665982cef6c9b2b5dd7b67ab931f\", charset=UTF-8"
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest",
+      "goFn": "httpauth.ParseDigest",
+      "note": "RFC 7616 adds charset/userhash and allows further extension auth-params",
+      "deviation": "RFC 7616 section 3.4 allows extension auth-params, and defines charset and userhash; upstream rejects any key outside its RFC 2617 list"
+    },
+    {
+      "id": "digest-parse-missing-response",
+      "fn": "parseDigest",
+      "args": [
+        "Digest username=\"alice\", realm=\"Parity\", nonce=\"deadbeefdeadbeefdeadbeefdeadbeef\", uri=\"/protected\""
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest",
+      "goFn": "httpauth.ParseDigest",
+      "note": "both sides must fail"
+    },
+    {
+      "id": "digest-parse-missing-username",
+      "fn": "parseDigest",
+      "args": [
+        "Digest realm=\"Parity\", nonce=\"deadbeefdeadbeefdeadbeefdeadbeef\", uri=\"/protected\", response=\"85af665982cef6c9b2b5dd7b67ab931f\""
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest",
+      "goFn": "httpauth.ParseDigest",
+      "note": "both sides must fail"
+    },
+    {
+      "id": "digest-parse-missing-nonce",
+      "fn": "parseDigest",
+      "args": [
+        "Digest username=\"alice\", realm=\"Parity\", uri=\"/protected\", response=\"85af665982cef6c9b2b5dd7b67ab931f\""
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest",
+      "goFn": "httpauth.ParseDigest",
+      "note": "both sides must fail"
+    },
+    {
+      "id": "digest-parse-missing-uri",
+      "fn": "parseDigest",
+      "args": [
+        "Digest username=\"alice\", realm=\"Parity\", nonce=\"deadbeefdeadbeefdeadbeefdeadbeef\", response=\"85af665982cef6c9b2b5dd7b67ab931f\""
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest",
+      "goFn": "httpauth.ParseDigest",
+      "note": "both sides must fail"
+    },
+    {
+      "id": "digest-parse-missing-realm",
+      "fn": "parseDigest",
+      "args": [
+        "Digest username=\"alice\", nonce=\"deadbeefdeadbeefdeadbeefdeadbeef\", uri=\"/protected\", response=\"85af665982cef6c9b2b5dd7b67ab931f\""
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest",
+      "goFn": "httpauth.ParseDigest",
+      "note": "realm is REQUIRED by RFC 7616 section 3.4; both sides must fail"
+    },
+    {
+      "id": "digest-parse-empty-params",
+      "fn": "parseDigest",
+      "args": [
+        "Digest "
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest",
+      "goFn": "httpauth.ParseDigest",
+      "note": "both sides must fail"
+    },
+    {
+      "id": "digest-parse-garbage-params",
+      "fn": "parseDigest",
+      "args": [
+        "Digest not-a-param-list"
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest",
+      "goFn": "httpauth.ParseDigest",
+      "note": "both sides must fail"
+    },
+    {
+      "id": "digest-parse-wrong-scheme",
+      "fn": "parseDigest",
+      "args": [
+        "Basic YWxpY2U6czNjcjN0"
+      ],
+      "upstreamFn": "parseAuthorizationHeader([DIGEST])",
+      "goFn": "httpauth.ParseDigest",
+      "note": "both sides must fail"
+    },
+    {
+      "id": "digest-parse-empty-header",
+      "fn": "parseDigest",
+      "args": [
+        ""
+      ],
+      "upstreamFn": "parseAuthorizationHeader",
+      "goFn": "httpauth.ParseDigest",
+      "note": "both sides must fail"
+    },
+    {
+      "id": "digest-parse-empty-response-value",
+      "fn": "parseDigest",
+      "args": [
+        "Digest username=\"alice\", realm=\"Parity\", nonce=\"deadbeefdeadbeefdeadbeefdeadbeef\", uri=\"/protected\", response=\"\""
+      ],
+      "upstreamFn": "DIGEST.parseAuthorizationRest",
+      "goFn": "httpauth.ParseDigest",
+      "note": "an empty response digest is not a credential",
+      "deviation": "the port refuses to parse a credential whose response digest is empty; upstream parses it and only reports the rejection at verification time — same rejection, one layer apart"
+    }
+  ]
+}
