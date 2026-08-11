@@ -64,7 +64,45 @@ describe('api/_lib loaders resolve data paths dynamically', () => {
       expect(src, `${file} should route reads through a helper`).toMatch(
         /function readJson\(\s*\w+\s*:\s*string\s*\)/
       );
-      expect(src).toMatch(/new URL\(\s*\w+\s*,\s*import\.meta\.url\s*\)/);
     }
+  });
+
+  // Resolution lives in exactly one place. It used to be duplicated, and the
+  // duplicate was a second chance to be wrong in production only: both copies
+  // resolved solely against import.meta.url, which is correct locally and wrong in
+  // a deployed function, where the compiled module is inlined into a bundle under
+  // .next/server/app/api/** and the data is traced in relative to the tracing root.
+  // /api/health reported symbols: 0 and /api/parity answered {"libraries":{}} in
+  // production while every local run was fine.
+  // NB: these two read the RAW source, not stripComments(). That helper treats a
+  // "/**" appearing inside a // line comment as a block-comment opener, and both
+  // loaders legitimately mention glob paths like parity/**/ in their headers, which
+  // makes it swallow most of the file. It is fine for the literal-specifier scan
+  // above (where a false negative is the safe direction) but useless here.
+  it('security.ts delegates resolution to data.ts instead of resolving its own paths', () => {
+    const src = fs.readFileSync(libDir + 'security.ts', 'utf8');
+    expect(src, 'security.ts should import the shared resolver').toMatch(
+      /import\s*\{[^}]*\breadDataJson\b[^}]*\}\s*from\s*'\.\/data'/
+    );
+    // Asserted as "does not read the filesystem" rather than "does not mention
+    // import.meta.url", because the comments here deliberately explain the trap and
+    // would trip a raw-text search. A module that cannot read a file cannot hold a
+    // second, divergent copy of the path-resolution logic.
+    expect(
+      /\bfrom 'node:fs'|\brequire\('node:fs'\)|readFileSync\s*\(/.test(src),
+      'security.ts must not read data files itself — a second copy of the resolution logic is ' +
+        'a second thing to fix when the deployed layout differs from the local one.'
+    ).toBe(false);
+  });
+
+  // The resolver must not depend on a single guess.
+  it('data.ts tries more than one location and reports a miss instead of failing silently', () => {
+    const src = fs.readFileSync(libDir + 'data.ts', 'utf8');
+    expect(src, 'data.ts should consult process.cwd() as well as import.meta.url').toMatch(/process\.cwd\(\)/);
+    expect(src, 'data.ts should check a candidate exists before reading it').toMatch(/existsSync/);
+    expect(
+      src,
+      'a missing data file must warn: the silent empty corpus is exactly what hid this bug in production'
+    ).toMatch(/console\.warn/);
   });
 });

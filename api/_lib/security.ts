@@ -10,7 +10,7 @@
 // ./data.ts. Every read is best-effort: a missing or malformed file yields an
 // empty record, never a throw, because a chat tool that throws aborts the stream.
 
-import fs from 'node:fs';
+import { readDataJson } from './data';
 
 export type SecuritySeverity = 'critical' | 'high' | 'medium' | 'low';
 export type SecurityStatus = 'fixed' | 'unfixed' | 'unknown';
@@ -54,19 +54,23 @@ const EMPTY: SecurityIndex = { generatedAt: '', statusDerivation: '', findings: 
 
 let cache: SecurityIndex | null = null;
 
-// The relative path is passed through a parameter rather than written inline at
-// the `new URL` call site, exactly as ./data.ts readJson() does. That indirection
-// is load-bearing, not style: webpack statically analyses a literal
-// `new URL('./file.json', import.meta.url)` and rewrites it into an *asset*
-// reference (`__webpack_public_path__ + "static/media/security.<hash>.json"`),
-// which is a URL string and not a readable filesystem path. In the route-handler
-// layer that rewrite happens, so readFileSync fails and the loader silently
-// degrades to EMPTY — which is how /api/health came to report zero security
-// findings while /security rendered all of them. Keeping the specifier dynamic
-// leaves `import.meta.url` to resolve at runtime, the same as every other loader.
+// Resolution is delegated to ./data.ts so exactly ONE place knows where the
+// generated files live at runtime. Two things make that worth centralising:
+//
+//  * The path differs by environment. Locally these sit next to this module, so
+//    `new URL('../_data/x.json', import.meta.url)` finds them. In a deployed
+//    function the compiled module is inlined into a bundle under
+//    .next/server/app/api/**, and the data is traced in relative to the tracing
+//    root instead — so that single candidate misses, and because the caller
+//    swallows the error it degraded to EMPTY. That is how /api/health came to
+//    report zero findings while /security rendered all of them.
+//  * The specifier must stay dynamic. webpack statically analyses a literal
+//    `new URL('./file.json', import.meta.url)` and rewrites it into an asset
+//    reference (`__webpack_public_path__ + "static/media/security.<hash>.json"`),
+//    a URL string rather than a readable path. Passing the name through a
+//    parameter defeats that analysis, which is why readDataJson takes an argument.
 function readJson(relativePath: string): unknown {
-  const url = new URL(relativePath, import.meta.url);
-  return JSON.parse(fs.readFileSync(url, 'utf8'));
+  return readDataJson(relativePath.split('/').pop() as string);
 }
 
 export function loadSecurity(): SecurityIndex {
