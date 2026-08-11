@@ -124,6 +124,10 @@ func buildApp() http.Handler {
 	ba.Realm = adminRealm
 	p.UseNamed("basic-admin", ba)
 
+	// A fresh (nonce, nc) replay ledger per app, mirroring the node runner's
+	// `validate` callback: a spent pair re-issues the challenge. buildApp() is
+	// called once per case, so no replay state leaks across cases.
+	spent := map[string]bool{}
 	p.UseNamed("digest", digest.New(digest.Options{
 		Realm: realm,
 		Secret: func(name string) string {
@@ -133,6 +137,14 @@ func buildApp() http.Handler {
 			return ""
 		},
 		Nonce: func() string { return fixedNonce },
+		ValidateNonce: func(nonce, nc string) bool {
+			key := nonce + ":" + nc
+			if spent[key] {
+				return false
+			}
+			spent[key] = true
+			return true
+		},
 	}))
 
 	be := bearer.New(func(token string) (any, error) {
@@ -161,23 +173,24 @@ func buildApp() http.Handler {
 	}
 
 	// --- local ---------------------------------------------------------------
-	route("/login/local", p.Authenticate("local", passport.Options{Session: true}))
-	route("/login/local-nosession", p.Authenticate("local", passport.Options{Session: false}))
-	// Options with no explicit Session field: the port's Authenticate replaces
-	// the defaults wholesale, so this silently yields Session == false.
+	route("/login/local", p.Authenticate("local", passport.Options{Session: passport.WithSession()}))
+	route("/login/local-nosession", p.Authenticate("local", passport.Options{Session: passport.NoSession()}))
+	// Options with no explicit Session field: Options.Session is a *bool, so the
+	// zero value is nil, which the port treats as the Passport.js default
+	// (session:true) — matching upstream's authenticate('local', {successRedirect}).
 	route("/login/local-defaults", p.Authenticate("local", passport.Options{SuccessRedirect: "/ok"}))
-	route("/login/local-failredirect", p.Authenticate("local", passport.Options{Session: true, FailureRedirect: "/denied"}))
+	route("/login/local-failredirect", p.Authenticate("local", passport.Options{Session: passport.WithSession(), FailureRedirect: "/denied"}))
 
 	// --- http basic ----------------------------------------------------------
-	route("/basic", p.Authenticate("basic", passport.Options{Session: false}))
-	route("/basic-admin", p.Authenticate("basic-admin", passport.Options{Session: false}))
+	route("/basic", p.Authenticate("basic", passport.Options{Session: passport.NoSession()}))
+	route("/basic-admin", p.Authenticate("basic-admin", passport.Options{Session: passport.NoSession()}))
 
 	// --- http digest ---------------------------------------------------------
-	route("/digest", p.Authenticate("digest", passport.Options{Session: false}))
-	route("/digest/other", p.Authenticate("digest", passport.Options{Session: false}))
+	route("/digest", p.Authenticate("digest", passport.Options{Session: passport.NoSession()}))
+	route("/digest/other", p.Authenticate("digest", passport.Options{Session: passport.NoSession()}))
 
 	// --- bearer --------------------------------------------------------------
-	route("/bearer", p.Authenticate("bearer", passport.Options{Session: false}))
+	route("/bearer", p.Authenticate("bearer", passport.Options{Session: passport.NoSession()}))
 
 	// --- session / route protection -----------------------------------------
 	route("/whoami")

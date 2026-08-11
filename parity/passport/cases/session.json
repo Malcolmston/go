@@ -124,6 +124,7 @@
       ],
       "upstreamFn": "req.logout",
       "goFn": "passport.Passport.LogOut",
+      "deviation": "Deliberate Set-Cookie difference on logout, not a security gap. Upstream (express-session, keepSessionInfo:false) regenerates the session and issues a fresh empty cookie for the now-anonymous request (setCookiePresent:true on the 3rd request). The port destroys the session server-side and expires the client cookie (MaxAge<0, setCookiePresent:false), declining to mint a session for an unauthenticated user. Both invalidate the old id — the 4th request is 401 on both sides — and the port's behaviour is pinned by TestLogOutDestroysSessionAndCookie. See passport/API-DEVIATIONS.md.",
       "note": "SECURITY: after logout the old cookie must no longer authenticate"
     },
     {

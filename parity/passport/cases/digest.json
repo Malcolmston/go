@@ -211,6 +211,7 @@
       ],
       "upstreamFn": "passport-http.DigestStrategy (HA1 uses creds.realm)",
       "goFn": "digest.Options.Realm (HA1 uses the server realm)",
+      "deviation": "The port is deliberately stricter than upstream: it derives HA1 from its OWN configured realm, so a response computed under a client-chosen realm=\"Wrong\" is rejected (401). Upstream derives HA1 from creds.realm (the client's value) and therefore authenticates. Matching upstream would mean trusting an attacker-chosen realm, weakening the port, so this divergence is kept. See passport/API-DEVIATIONS.md.",
       "note": "SECURITY: response computed under a client-chosen realm. Upstream derives HA1 from creds.realm and therefore ACCEPTS; the port derives HA1 from its own configured realm and rejects. The port is the stricter of the two here."
     }
   ]
