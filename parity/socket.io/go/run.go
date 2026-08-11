@@ -347,7 +347,14 @@ func wireDecodeAttachments(spec map[string]any) (any, error) {
 	}
 	out := make([]any, 0, len(packets))
 	for _, p := range packets {
-		out = append(out, p.Attachments())
+		// A fully reassembled (or non-binary) packet has no declared attachments.
+		// Upstream deletes packet.attachments, so it reads back as undefined/null;
+		// the port clears the count to 0. Report 0 as null so the two compare.
+		if n := p.Attachments(); n == 0 {
+			out = append(out, nil)
+		} else {
+			out = append(out, n)
+		}
 	}
 	return map[string]any{"attachments": out}, nil
 }
@@ -938,6 +945,7 @@ func init() {
 		"disconnect-client-initiated": func() []string {
 			b := startServer(func(srv *socketio.Server, t *transcript) {
 				srv.OnConnection(func(s *socketio.Socket) {
+					s.OnDisconnecting(func(reason string) { t.push("srv:disconnecting", reason) })
 					s.OnDisconnect(func(reason string) { t.push("srv:disconnect", reason) })
 				})
 			})

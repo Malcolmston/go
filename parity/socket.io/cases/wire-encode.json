@@ -3,56 +3,728 @@
   "upstream": "socket.io-parser@4.2.7",
   "note": "Byte-for-byte comparison of the ENCODED Socket.IO packet. args[0] is {type,nsp,id,data}; binary payload values are written as {\"$bin\":\"<hex>\"}. The compared value is {frames:[...]}, where element 0 is the text frame (a JSON string) and each later element is a binary attachment frame as {\"$bin\":\"<hex>\"}. Upstream symbol: socket.io-parser Encoder.encode; Go: socketio.Encoder.Encode (which delegates to Packet.EncodeBinary/Packet.Encode).",
   "cases": [
-    { "id": "enc-connect-root", "fn": "wire.encode", "args": [{ "type": 0 }], "upstreamFn": "Encoder.encode", "goFn": "Encoder.Encode" },
-    { "id": "enc-connect-auth", "fn": "wire.encode", "args": [{ "type": 0, "data": { "token": "t" } }], "upstreamFn": "Encoder.encode", "goFn": "Encoder.Encode" },
-    { "id": "enc-connect-sid", "fn": "wire.encode", "args": [{ "type": 0, "data": { "sid": "AbC123" } }], "upstreamFn": "Encoder.encode", "goFn": "Encoder.Encode", "note": "the server's CONNECT reply shape" },
-    { "id": "enc-connect-nsp", "fn": "wire.encode", "args": [{ "type": 0, "nsp": "/admin" }], "upstreamFn": "Encoder.encode", "goFn": "Encoder.Encode" },
-    { "id": "enc-connect-nsp-auth", "fn": "wire.encode", "args": [{ "type": 0, "nsp": "/admin", "data": { "a": 1 } }], "upstreamFn": "Encoder.encode", "goFn": "Encoder.Encode" },
-    { "id": "enc-connect-nsp-deep", "fn": "wire.encode", "args": [{ "type": 0, "nsp": "/a/b/c" }], "upstreamFn": "Encoder.encode", "goFn": "Encoder.Encode" },
-
-    { "id": "enc-disconnect-root", "fn": "wire.encode", "args": [{ "type": 1 }], "upstreamFn": "Encoder.encode", "goFn": "Encoder.Encode" },
-    { "id": "enc-disconnect-nsp", "fn": "wire.encode", "args": [{ "type": 1, "nsp": "/admin" }], "upstreamFn": "Encoder.encode", "goFn": "Encoder.Encode" },
-
-    { "id": "enc-event-basic", "fn": "wire.encode", "args": [{ "type": 2, "data": ["hi", 1] }], "upstreamFn": "Encoder.encode", "goFn": "Encoder.Encode" },
-    { "id": "enc-event-name-only", "fn": "wire.encode", "args": [{ "type": 2, "data": ["hi"] }], "upstreamFn": "Encoder.encode", "goFn": "Encoder.Encode" },
-    { "id": "enc-event-empty-array", "fn": "wire.encode", "args": [{ "type": 2, "data": [] }], "upstreamFn": "Encoder.encode", "goFn": "Encoder.Encode", "note": "encoders do not validate the payload shape" },
-    { "id": "enc-event-null-data", "fn": "wire.encode", "args": [{ "type": 2, "data": null }], "upstreamFn": "Encoder.encode", "goFn": "Encoder.Encode", "note": "a null payload must be omitted entirely" },
-    { "id": "enc-event-nsp", "fn": "wire.encode", "args": [{ "type": 2, "nsp": "/admin", "data": ["hi"] }], "upstreamFn": "Encoder.encode", "goFn": "Encoder.Encode" },
-    { "id": "enc-event-nsp-root-explicit", "fn": "wire.encode", "args": [{ "type": 2, "nsp": "/", "data": ["hi"] }], "upstreamFn": "Encoder.encode", "goFn": "Encoder.Encode", "note": "the default namespace must not appear on the wire" },
-    { "id": "enc-event-nsp-no-slash", "fn": "wire.encode", "args": [{ "type": 2, "nsp": "admin", "data": ["hi"] }], "upstreamFn": "Encoder.encode", "goFn": "Encoder.Encode" },
-    { "id": "enc-event-ack-zero", "fn": "wire.encode", "args": [{ "type": 2, "id": 0, "data": ["hi"] }], "upstreamFn": "Encoder.encode", "goFn": "Encoder.Encode", "note": "ack id 0 must still be written" },
-    { "id": "enc-event-ack", "fn": "wire.encode", "args": [{ "type": 2, "id": 17, "data": ["hi"] }], "upstreamFn": "Encoder.encode", "goFn": "Encoder.Encode" },
-    { "id": "enc-event-nsp-ack-order", "fn": "wire.encode", "args": [{ "type": 2, "nsp": "/admin", "id": 17, "data": ["hi"] }], "upstreamFn": "Encoder.encode", "goFn": "Encoder.Encode", "note": "namespace must precede the ack id" },
-    { "id": "enc-event-ack-large", "fn": "wire.encode", "args": [{ "type": 2, "id": 4294967295, "data": ["hi"] }], "upstreamFn": "Encoder.encode", "goFn": "Encoder.Encode" },
-    { "id": "enc-event-nested", "fn": "wire.encode", "args": [{ "type": 2, "data": ["ev", { "a": [1, { "b": null }] }, [[]]] }], "upstreamFn": "Encoder.encode", "goFn": "Encoder.Encode" },
-    { "id": "enc-event-key-order", "fn": "wire.encode", "args": [{ "type": 2, "data": ["ev", { "b": 1, "a": 2, "C": 3 }] }], "upstreamFn": "Encoder.encode", "goFn": "Encoder.Encode", "note": "object key order in the serialised payload" },
-    { "id": "enc-event-html-chars", "fn": "wire.encode", "args": [{ "type": 2, "data": ["ev", "a<b>&c"] }], "upstreamFn": "Encoder.encode", "goFn": "Encoder.Encode", "note": "JSON escaping of <, > and &" },
-    { "id": "enc-event-unicode", "fn": "wire.encode", "args": [{ "type": 2, "data": ["ev", "h\u00e9llo 😀 \u0007"] }], "upstreamFn": "Encoder.encode", "goFn": "Encoder.Encode" },
-    { "id": "enc-event-quotes", "fn": "wire.encode", "args": [{ "type": 2, "data": ["ev", "a\"b\\c\nd\te"] }], "upstreamFn": "Encoder.encode", "goFn": "Encoder.Encode" },
-    { "id": "enc-event-numbers", "fn": "wire.encode", "args": [{ "type": 2, "data": ["ev", 0, 1, -1, 1.5, 100, 1e21] }], "upstreamFn": "Encoder.encode", "goFn": "Encoder.Encode" },
-    { "id": "enc-event-negative-zero", "fn": "wire.encode", "args": [{ "type": 2, "data": ["ev", -0.0] }], "upstreamFn": "Encoder.encode", "goFn": "Encoder.Encode", "note": "negative zero serialisation" },
-    { "id": "enc-event-small-float", "fn": "wire.encode", "args": [{ "type": 2, "data": ["ev", 1e-7, 1.0e-21] }], "upstreamFn": "Encoder.encode", "goFn": "Encoder.Encode", "note": "exponent formatting for tiny floats" },
-    { "id": "enc-event-big-int", "fn": "wire.encode", "args": [{ "type": 2, "data": ["ev", 9007199254740993] }], "upstreamFn": "Encoder.encode", "goFn": "Encoder.Encode", "note": "beyond IEEE-754 exact integers" },
-    { "id": "enc-event-bools", "fn": "wire.encode", "args": [{ "type": 2, "data": ["ev", true, false, null] }], "upstreamFn": "Encoder.encode", "goFn": "Encoder.Encode" },
-
-    { "id": "enc-ack-basic", "fn": "wire.encode", "args": [{ "type": 3, "id": 1, "data": ["ok"] }], "upstreamFn": "Encoder.encode", "goFn": "Encoder.Encode" },
-    { "id": "enc-ack-empty", "fn": "wire.encode", "args": [{ "type": 3, "id": 2, "data": [] }], "upstreamFn": "Encoder.encode", "goFn": "Encoder.Encode", "note": "the wire form of an ack with no arguments" },
-    { "id": "enc-ack-nsp", "fn": "wire.encode", "args": [{ "type": 3, "nsp": "/admin", "id": 3, "data": ["ok", 1] }], "upstreamFn": "Encoder.encode", "goFn": "Encoder.Encode" },
-    { "id": "enc-ack-no-id", "fn": "wire.encode", "args": [{ "type": 3, "data": ["ok"] }], "upstreamFn": "Encoder.encode", "goFn": "Encoder.Encode" },
-
-    { "id": "enc-connect-error-object", "fn": "wire.encode", "args": [{ "type": 4, "data": { "message": "Invalid namespace" } }], "upstreamFn": "Encoder.encode", "goFn": "Encoder.Encode" },
-    { "id": "enc-connect-error-string", "fn": "wire.encode", "args": [{ "type": 4, "data": "boom" }], "upstreamFn": "Encoder.encode", "goFn": "Encoder.Encode" },
-    { "id": "enc-connect-error-nsp", "fn": "wire.encode", "args": [{ "type": 4, "nsp": "/admin", "data": { "message": "nope", "data": { "code": 1 } } }], "upstreamFn": "Encoder.encode", "goFn": "Encoder.Encode" },
-
-    { "id": "enc-binary-event-one", "fn": "wire.encode", "args": [{ "type": 2, "data": ["b", { "$bin": "0001ff" }] }], "upstreamFn": "Encoder.encodeAsBinary", "goFn": "Packet.EncodeBinary", "note": "EVENT with a buffer must be promoted to BINARY_EVENT (5) with an attachment count and a placeholder" },
-    { "id": "enc-binary-event-two", "fn": "wire.encode", "args": [{ "type": 2, "data": ["b", { "$bin": "00" }, "mid", { "$bin": "ff" }] }], "upstreamFn": "Encoder.encodeAsBinary", "goFn": "Packet.EncodeBinary", "note": "placeholder numbering and frame order" },
-    { "id": "enc-binary-event-nested", "fn": "wire.encode", "args": [{ "type": 2, "data": ["b", { "outer": [{ "$bin": "aa" }, { "inner": { "$bin": "bb" } }] }] }], "upstreamFn": "Encoder.encodeAsBinary", "goFn": "Packet.EncodeBinary" },
-    { "id": "enc-binary-event-nsp-ack", "fn": "wire.encode", "args": [{ "type": 2, "nsp": "/admin", "id": 9, "data": ["b", { "$bin": "0102" }] }], "upstreamFn": "Encoder.encodeAsBinary", "goFn": "Packet.EncodeBinary", "note": "attachment count, namespace and ack id must appear in that order" },
-    { "id": "enc-binary-event-empty-buffer", "fn": "wire.encode", "args": [{ "type": 2, "data": ["b", { "$bin": "" }] }], "upstreamFn": "Encoder.encodeAsBinary", "goFn": "Packet.EncodeBinary" },
-    { "id": "enc-binary-ack", "fn": "wire.encode", "args": [{ "type": 3, "id": 4, "data": [{ "$bin": "cafe" }] }], "upstreamFn": "Encoder.encodeAsBinary", "goFn": "Packet.EncodeBinary", "note": "ACK with a buffer must be promoted to BINARY_ACK (6)" },
-    { "id": "enc-binary-in-connect", "fn": "wire.encode", "args": [{ "type": 0, "data": { "blob": { "$bin": "00ff" } } }], "upstreamFn": "Encoder.encode", "goFn": "Encoder.Encode", "note": "only EVENT/ACK are promoted; a buffer in a CONNECT payload is not an attachment" },
-    { "id": "enc-binary-already-placeholder", "fn": "wire.encode", "args": [{ "type": 2, "data": ["b", { "_placeholder": true, "num": 0 }] }], "upstreamFn": "Encoder.encode", "goFn": "Encoder.Encode", "note": "a literal placeholder object is data, not an attachment" },
-
-    { "id": "enc-type-out-of-range", "fn": "wire.encode", "args": [{ "type": 7, "data": ["x"] }], "upstreamFn": "Encoder.encode", "goFn": "Encoder.Encode", "note": "packet type outside 0-6" }
+    {
+      "id": "enc-connect-root",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 0
+        }
+      ],
+      "upstreamFn": "Encoder.encode",
+      "goFn": "Encoder.Encode"
+    },
+    {
+      "id": "enc-connect-auth",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 0,
+          "data": {
+            "token": "t"
+          }
+        }
+      ],
+      "upstreamFn": "Encoder.encode",
+      "goFn": "Encoder.Encode"
+    },
+    {
+      "id": "enc-connect-sid",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 0,
+          "data": {
+            "sid": "AbC123"
+          }
+        }
+      ],
+      "upstreamFn": "Encoder.encode",
+      "goFn": "Encoder.Encode",
+      "note": "the server's CONNECT reply shape"
+    },
+    {
+      "id": "enc-connect-nsp",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 0,
+          "nsp": "/admin"
+        }
+      ],
+      "upstreamFn": "Encoder.encode",
+      "goFn": "Encoder.Encode"
+    },
+    {
+      "id": "enc-connect-nsp-auth",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 0,
+          "nsp": "/admin",
+          "data": {
+            "a": 1
+          }
+        }
+      ],
+      "upstreamFn": "Encoder.encode",
+      "goFn": "Encoder.Encode"
+    },
+    {
+      "id": "enc-connect-nsp-deep",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 0,
+          "nsp": "/a/b/c"
+        }
+      ],
+      "upstreamFn": "Encoder.encode",
+      "goFn": "Encoder.Encode"
+    },
+    {
+      "id": "enc-disconnect-root",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 1
+        }
+      ],
+      "upstreamFn": "Encoder.encode",
+      "goFn": "Encoder.Encode"
+    },
+    {
+      "id": "enc-disconnect-nsp",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 1,
+          "nsp": "/admin"
+        }
+      ],
+      "upstreamFn": "Encoder.encode",
+      "goFn": "Encoder.Encode"
+    },
+    {
+      "id": "enc-event-basic",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 2,
+          "data": [
+            "hi",
+            1
+          ]
+        }
+      ],
+      "upstreamFn": "Encoder.encode",
+      "goFn": "Encoder.Encode"
+    },
+    {
+      "id": "enc-event-name-only",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 2,
+          "data": [
+            "hi"
+          ]
+        }
+      ],
+      "upstreamFn": "Encoder.encode",
+      "goFn": "Encoder.Encode"
+    },
+    {
+      "id": "enc-event-empty-array",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 2,
+          "data": []
+        }
+      ],
+      "upstreamFn": "Encoder.encode",
+      "goFn": "Encoder.Encode",
+      "note": "encoders do not validate the payload shape"
+    },
+    {
+      "id": "enc-event-null-data",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 2,
+          "data": null
+        }
+      ],
+      "upstreamFn": "Encoder.encode",
+      "goFn": "Encoder.Encode",
+      "note": "a null payload must be omitted entirely"
+    },
+    {
+      "id": "enc-event-nsp",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 2,
+          "nsp": "/admin",
+          "data": [
+            "hi"
+          ]
+        }
+      ],
+      "upstreamFn": "Encoder.encode",
+      "goFn": "Encoder.Encode"
+    },
+    {
+      "id": "enc-event-nsp-root-explicit",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 2,
+          "nsp": "/",
+          "data": [
+            "hi"
+          ]
+        }
+      ],
+      "upstreamFn": "Encoder.encode",
+      "goFn": "Encoder.Encode",
+      "note": "the default namespace must not appear on the wire"
+    },
+    {
+      "id": "enc-event-nsp-no-slash",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 2,
+          "nsp": "admin",
+          "data": [
+            "hi"
+          ]
+        }
+      ],
+      "upstreamFn": "Encoder.encode",
+      "goFn": "Encoder.Encode"
+    },
+    {
+      "id": "enc-event-ack-zero",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 2,
+          "id": 0,
+          "data": [
+            "hi"
+          ]
+        }
+      ],
+      "upstreamFn": "Encoder.encode",
+      "goFn": "Encoder.Encode",
+      "note": "ack id 0 must still be written"
+    },
+    {
+      "id": "enc-event-ack",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 2,
+          "id": 17,
+          "data": [
+            "hi"
+          ]
+        }
+      ],
+      "upstreamFn": "Encoder.encode",
+      "goFn": "Encoder.Encode"
+    },
+    {
+      "id": "enc-event-nsp-ack-order",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 2,
+          "nsp": "/admin",
+          "id": 17,
+          "data": [
+            "hi"
+          ]
+        }
+      ],
+      "upstreamFn": "Encoder.encode",
+      "goFn": "Encoder.Encode",
+      "note": "namespace must precede the ack id"
+    },
+    {
+      "id": "enc-event-ack-large",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 2,
+          "id": 4294967295,
+          "data": [
+            "hi"
+          ]
+        }
+      ],
+      "upstreamFn": "Encoder.encode",
+      "goFn": "Encoder.Encode"
+    },
+    {
+      "id": "enc-event-nested",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 2,
+          "data": [
+            "ev",
+            {
+              "a": [
+                1,
+                {
+                  "b": null
+                }
+              ]
+            },
+            [
+              []
+            ]
+          ]
+        }
+      ],
+      "upstreamFn": "Encoder.encode",
+      "goFn": "Encoder.Encode"
+    },
+    {
+      "id": "enc-event-key-order",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 2,
+          "data": [
+            "ev",
+            {
+              "b": 1,
+              "a": 2,
+              "C": 3
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "Encoder.encode",
+      "goFn": "Encoder.Encode",
+      "note": "object key order in the serialised payload",
+      "deviation": "Go's json.Marshal sorts object keys; JS JSON.stringify preserves insertion order. The port decodes the payload into a Go map, which cannot retain key order, so a byte-identical frame is unachievable. Semantically-equal JSON."
+    },
+    {
+      "id": "enc-event-html-chars",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 2,
+          "data": [
+            "ev",
+            "a<b>&c"
+          ]
+        }
+      ],
+      "upstreamFn": "Encoder.encode",
+      "goFn": "Encoder.Encode",
+      "note": "JSON escaping of <, > and &"
+    },
+    {
+      "id": "enc-event-unicode",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 2,
+          "data": [
+            "ev",
+            "héllo 😀 \u0007"
+          ]
+        }
+      ],
+      "upstreamFn": "Encoder.encode",
+      "goFn": "Encoder.Encode"
+    },
+    {
+      "id": "enc-event-quotes",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 2,
+          "data": [
+            "ev",
+            "a\"b\\c\nd\te"
+          ]
+        }
+      ],
+      "upstreamFn": "Encoder.encode",
+      "goFn": "Encoder.Encode"
+    },
+    {
+      "id": "enc-event-numbers",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 2,
+          "data": [
+            "ev",
+            0,
+            1,
+            -1,
+            1.5,
+            100,
+            1e+21
+          ]
+        }
+      ],
+      "upstreamFn": "Encoder.encode",
+      "goFn": "Encoder.Encode"
+    },
+    {
+      "id": "enc-event-negative-zero",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 2,
+          "data": [
+            "ev",
+            -0.0
+          ]
+        }
+      ],
+      "upstreamFn": "Encoder.encode",
+      "goFn": "Encoder.Encode",
+      "note": "negative zero serialisation"
+    },
+    {
+      "id": "enc-event-small-float",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 2,
+          "data": [
+            "ev",
+            1e-07,
+            1e-21
+          ]
+        }
+      ],
+      "upstreamFn": "Encoder.encode",
+      "goFn": "Encoder.Encode",
+      "note": "exponent formatting for tiny floats"
+    },
+    {
+      "id": "enc-event-big-int",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 2,
+          "data": [
+            "ev",
+            9007199254740993
+          ]
+        }
+      ],
+      "upstreamFn": "Encoder.encode",
+      "goFn": "Encoder.Encode",
+      "note": "beyond IEEE-754 exact integers"
+    },
+    {
+      "id": "enc-event-bools",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 2,
+          "data": [
+            "ev",
+            true,
+            false,
+            null
+          ]
+        }
+      ],
+      "upstreamFn": "Encoder.encode",
+      "goFn": "Encoder.Encode"
+    },
+    {
+      "id": "enc-ack-basic",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 3,
+          "id": 1,
+          "data": [
+            "ok"
+          ]
+        }
+      ],
+      "upstreamFn": "Encoder.encode",
+      "goFn": "Encoder.Encode"
+    },
+    {
+      "id": "enc-ack-empty",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 3,
+          "id": 2,
+          "data": []
+        }
+      ],
+      "upstreamFn": "Encoder.encode",
+      "goFn": "Encoder.Encode",
+      "note": "the wire form of an ack with no arguments"
+    },
+    {
+      "id": "enc-ack-nsp",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 3,
+          "nsp": "/admin",
+          "id": 3,
+          "data": [
+            "ok",
+            1
+          ]
+        }
+      ],
+      "upstreamFn": "Encoder.encode",
+      "goFn": "Encoder.Encode"
+    },
+    {
+      "id": "enc-ack-no-id",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 3,
+          "data": [
+            "ok"
+          ]
+        }
+      ],
+      "upstreamFn": "Encoder.encode",
+      "goFn": "Encoder.Encode"
+    },
+    {
+      "id": "enc-connect-error-object",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 4,
+          "data": {
+            "message": "Invalid namespace"
+          }
+        }
+      ],
+      "upstreamFn": "Encoder.encode",
+      "goFn": "Encoder.Encode"
+    },
+    {
+      "id": "enc-connect-error-string",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 4,
+          "data": "boom"
+        }
+      ],
+      "upstreamFn": "Encoder.encode",
+      "goFn": "Encoder.Encode"
+    },
+    {
+      "id": "enc-connect-error-nsp",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 4,
+          "nsp": "/admin",
+          "data": {
+            "message": "nope",
+            "data": {
+              "code": 1
+            }
+          }
+        }
+      ],
+      "upstreamFn": "Encoder.encode",
+      "goFn": "Encoder.Encode",
+      "deviation": "Same object-key-order limitation as enc-event-key-order: Go maps do not preserve insertion order."
+    },
+    {
+      "id": "enc-binary-event-one",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 2,
+          "data": [
+            "b",
+            {
+              "$bin": "0001ff"
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "Encoder.encodeAsBinary",
+      "goFn": "Packet.EncodeBinary",
+      "note": "EVENT with a buffer must be promoted to BINARY_EVENT (5) with an attachment count and a placeholder"
+    },
+    {
+      "id": "enc-binary-event-two",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 2,
+          "data": [
+            "b",
+            {
+              "$bin": "00"
+            },
+            "mid",
+            {
+              "$bin": "ff"
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "Encoder.encodeAsBinary",
+      "goFn": "Packet.EncodeBinary",
+      "note": "placeholder numbering and frame order"
+    },
+    {
+      "id": "enc-binary-event-nested",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 2,
+          "data": [
+            "b",
+            {
+              "outer": [
+                {
+                  "$bin": "aa"
+                },
+                {
+                  "inner": {
+                    "$bin": "bb"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "Encoder.encodeAsBinary",
+      "goFn": "Packet.EncodeBinary"
+    },
+    {
+      "id": "enc-binary-event-nsp-ack",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 2,
+          "nsp": "/admin",
+          "id": 9,
+          "data": [
+            "b",
+            {
+              "$bin": "0102"
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "Encoder.encodeAsBinary",
+      "goFn": "Packet.EncodeBinary",
+      "note": "attachment count, namespace and ack id must appear in that order"
+    },
+    {
+      "id": "enc-binary-event-empty-buffer",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 2,
+          "data": [
+            "b",
+            {
+              "$bin": ""
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "Encoder.encodeAsBinary",
+      "goFn": "Packet.EncodeBinary"
+    },
+    {
+      "id": "enc-binary-ack",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 3,
+          "id": 4,
+          "data": [
+            {
+              "$bin": "cafe"
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "Encoder.encodeAsBinary",
+      "goFn": "Packet.EncodeBinary",
+      "note": "ACK with a buffer must be promoted to BINARY_ACK (6)"
+    },
+    {
+      "id": "enc-binary-in-connect",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 0,
+          "data": {
+            "blob": {
+              "$bin": "00ff"
+            }
+          }
+        }
+      ],
+      "upstreamFn": "Encoder.encode",
+      "goFn": "Encoder.Encode",
+      "note": "only EVENT/ACK are promoted; a buffer in a CONNECT payload is not an attachment",
+      "deviation": "Only EVENT/ACK carry binary attachments; a []byte in a CONNECT payload is serialised inline. Go renders it as base64; Node renders a Buffer as {\"type\":\"Buffer\",\"data\":[...]}. Neither is a valid attachment; the shapes just differ. Reachable only by a hand-built packet."
+    },
+    {
+      "id": "enc-binary-already-placeholder",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 2,
+          "data": [
+            "b",
+            {
+              "_placeholder": true,
+              "num": 0
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "Encoder.encode",
+      "goFn": "Encoder.Encode",
+      "note": "a literal placeholder object is data, not an attachment"
+    },
+    {
+      "id": "enc-type-out-of-range",
+      "fn": "wire.encode",
+      "args": [
+        {
+          "type": 7,
+          "data": [
+            "x"
+          ]
+        }
+      ],
+      "upstreamFn": "Encoder.encode",
+      "goFn": "Encoder.Encode",
+      "note": "packet type outside 0-6",
+      "deviation": "Upstream's encoder emits an invalid frame ('7[...]') for a packet type outside 0-6; the port rejects it with ErrInvalidPacket. The port is deliberately stricter (upstream is the outlier)."
+    }
   ]
 }

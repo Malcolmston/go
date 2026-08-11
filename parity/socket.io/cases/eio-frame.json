@@ -3,41 +3,413 @@
   "upstream": "engine.io-parser@5.2.3",
   "note": "Engine.IO v4 transport framing — the layer that carries every Socket.IO packet. `type` is the numeric Engine.IO packet type (0 open, 1 close, 2 ping, 3 pong, 4 message, 5 upgrade, 6 noop); `binary` is a hex string for a binary MESSAGE. Payloads use the \\u001e record separator. encodePacket is compared with supportsBinary=false (the polling form, base64 with a \"b\" prefix), which is what Go's Packet.Encode produces.",
   "cases": [
-    { "id": "eio-enc-open", "fn": "eio.encodePacket", "args": [{ "type": 0, "data": "{\"sid\":\"x\",\"pingInterval\":25000}" }], "upstreamFn": "encodePacket", "goFn": "engineio.Packet.Encode" },
-    { "id": "eio-enc-close", "fn": "eio.encodePacket", "args": [{ "type": 1 }], "upstreamFn": "encodePacket", "goFn": "engineio.Packet.Encode" },
-    { "id": "eio-enc-ping-bare", "fn": "eio.encodePacket", "args": [{ "type": 2 }], "upstreamFn": "encodePacket", "goFn": "engineio.Packet.Encode", "note": "the v4 heartbeat ping has no payload" },
-    { "id": "eio-enc-ping-probe", "fn": "eio.encodePacket", "args": [{ "type": 2, "data": "probe" }], "upstreamFn": "encodePacket", "goFn": "engineio.Packet.Encode", "note": "the upgrade handshake probe" },
-    { "id": "eio-enc-pong-probe", "fn": "eio.encodePacket", "args": [{ "type": 3, "data": "probe" }], "upstreamFn": "encodePacket", "goFn": "engineio.Packet.Encode" },
-    { "id": "eio-enc-message", "fn": "eio.encodePacket", "args": [{ "type": 4, "data": "2[\"hi\",1]" }], "upstreamFn": "encodePacket", "goFn": "engineio.Packet.Encode", "note": "a Socket.IO EVENT inside an Engine.IO MESSAGE" },
-    { "id": "eio-enc-message-empty", "fn": "eio.encodePacket", "args": [{ "type": 4, "data": "" }], "upstreamFn": "encodePacket", "goFn": "engineio.Packet.Encode" },
-    { "id": "eio-enc-message-unicode", "fn": "eio.encodePacket", "args": [{ "type": 4, "data": "2[\"ev\",\"héllo 😀\"]" }], "upstreamFn": "encodePacket", "goFn": "engineio.Packet.Encode" },
-    { "id": "eio-enc-upgrade", "fn": "eio.encodePacket", "args": [{ "type": 5 }], "upstreamFn": "encodePacket", "goFn": "engineio.Packet.Encode" },
-    { "id": "eio-enc-noop", "fn": "eio.encodePacket", "args": [{ "type": 6 }], "upstreamFn": "encodePacket", "goFn": "engineio.Packet.Encode" },
-    { "id": "eio-enc-binary", "fn": "eio.encodePacket", "args": [{ "type": 4, "binary": "0001ff" }], "upstreamFn": "encodePacket", "goFn": "engineio.Packet.Encode", "note": "base64 with the \"b\" prefix" },
-    { "id": "eio-enc-binary-empty", "fn": "eio.encodePacket", "args": [{ "type": 4, "binary": "" }], "upstreamFn": "encodePacket", "goFn": "engineio.Packet.Encode" },
-    { "id": "eio-enc-binary-pad", "fn": "eio.encodePacket", "args": [{ "type": 4, "binary": "00" }], "upstreamFn": "encodePacket", "goFn": "engineio.Packet.Encode", "note": "base64 padding" },
-
-    { "id": "eio-dec-open", "fn": "eio.decodePacket", "args": [{ "encoded": "0{\"sid\":\"x\"}" }], "upstreamFn": "decodePacket", "goFn": "engineio.Decode" },
-    { "id": "eio-dec-ping-bare", "fn": "eio.decodePacket", "args": [{ "encoded": "2" }], "upstreamFn": "decodePacket", "goFn": "engineio.Decode" },
-    { "id": "eio-dec-ping-probe", "fn": "eio.decodePacket", "args": [{ "encoded": "2probe" }], "upstreamFn": "decodePacket", "goFn": "engineio.Decode" },
-    { "id": "eio-dec-message", "fn": "eio.decodePacket", "args": [{ "encoded": "42[\"hi\"]" }], "upstreamFn": "decodePacket", "goFn": "engineio.Decode" },
-    { "id": "eio-dec-noop", "fn": "eio.decodePacket", "args": [{ "encoded": "6" }], "upstreamFn": "decodePacket", "goFn": "engineio.Decode" },
-    { "id": "eio-dec-binary", "fn": "eio.decodePacket", "args": [{ "encoded": "bAAH/" }], "upstreamFn": "decodePacket", "goFn": "engineio.Decode" },
-    { "id": "eio-dec-binary-empty", "fn": "eio.decodePacket", "args": [{ "encoded": "b" }], "upstreamFn": "decodePacket", "goFn": "engineio.Decode" },
-    { "id": "eio-dec-binary-bad-base64", "fn": "eio.decodePacket", "args": [{ "encoded": "b!!!" }], "upstreamFn": "decodePacket", "goFn": "engineio.Decode", "note": "invalid base64 in a binary frame" },
-    { "id": "eio-dec-empty", "fn": "eio.decodePacket", "args": [{ "encoded": "" }], "upstreamFn": "decodePacket", "goFn": "engineio.Decode" },
-    { "id": "eio-dec-type-out-of-range", "fn": "eio.decodePacket", "args": [{ "encoded": "9x" }], "upstreamFn": "decodePacket", "goFn": "engineio.Decode" },
-    { "id": "eio-dec-type-nonnumeric", "fn": "eio.decodePacket", "args": [{ "encoded": "xy" }], "upstreamFn": "decodePacket", "goFn": "engineio.Decode" },
-
-    { "id": "eio-encpay-single", "fn": "eio.encodePayload", "args": [{ "packets": [{ "type": 4, "data": "2[\"a\"]" }] }], "upstreamFn": "encodePayload", "goFn": "engineio.EncodePayload" },
-    { "id": "eio-encpay-two", "fn": "eio.encodePayload", "args": [{ "packets": [{ "type": 4, "data": "2[\"a\"]" }, { "type": 4, "data": "2[\"b\"]" }] }], "upstreamFn": "encodePayload", "goFn": "engineio.EncodePayload" },
-    { "id": "eio-encpay-mixed", "fn": "eio.encodePayload", "args": [{ "packets": [{ "type": 0, "data": "{}" }, { "type": 4, "binary": "0001ff" }, { "type": 2 }] }], "upstreamFn": "encodePayload", "goFn": "engineio.EncodePayload", "note": "binary members are base64 in a polling payload" },
-
-    { "id": "eio-decpay-two", "fn": "eio.decodePayload", "args": [{ "encoded": "42[\"a\"]\u001e42[\"b\"]" }], "upstreamFn": "decodePayload", "goFn": "engineio.DecodePayload" },
-    { "id": "eio-decpay-mixed", "fn": "eio.decodePayload", "args": [{ "encoded": "0{}\u001ebAAH/\u001e2" }], "upstreamFn": "decodePayload", "goFn": "engineio.DecodePayload" },
-    { "id": "eio-decpay-single", "fn": "eio.decodePayload", "args": [{ "encoded": "42[\"a\"]" }], "upstreamFn": "decodePayload", "goFn": "engineio.DecodePayload" },
-    { "id": "eio-decpay-empty", "fn": "eio.decodePayload", "args": [{ "encoded": "" }], "upstreamFn": "decodePayload", "goFn": "engineio.DecodePayload", "note": "an empty polling body" },
-    { "id": "eio-decpay-trailing-sep", "fn": "eio.decodePayload", "args": [{ "encoded": "42[\"a\"]\u001e" }], "upstreamFn": "decodePayload", "goFn": "engineio.DecodePayload" },
-    { "id": "eio-decpay-bad-member", "fn": "eio.decodePayload", "args": [{ "encoded": "42[\"a\"]\u001e9x" }], "upstreamFn": "decodePayload", "goFn": "engineio.DecodePayload", "note": "one malformed member must fail the whole payload" }
+    {
+      "id": "eio-enc-open",
+      "fn": "eio.encodePacket",
+      "args": [
+        {
+          "type": 0,
+          "data": "{\"sid\":\"x\",\"pingInterval\":25000}"
+        }
+      ],
+      "upstreamFn": "encodePacket",
+      "goFn": "engineio.Packet.Encode"
+    },
+    {
+      "id": "eio-enc-close",
+      "fn": "eio.encodePacket",
+      "args": [
+        {
+          "type": 1
+        }
+      ],
+      "upstreamFn": "encodePacket",
+      "goFn": "engineio.Packet.Encode"
+    },
+    {
+      "id": "eio-enc-ping-bare",
+      "fn": "eio.encodePacket",
+      "args": [
+        {
+          "type": 2
+        }
+      ],
+      "upstreamFn": "encodePacket",
+      "goFn": "engineio.Packet.Encode",
+      "note": "the v4 heartbeat ping has no payload"
+    },
+    {
+      "id": "eio-enc-ping-probe",
+      "fn": "eio.encodePacket",
+      "args": [
+        {
+          "type": 2,
+          "data": "probe"
+        }
+      ],
+      "upstreamFn": "encodePacket",
+      "goFn": "engineio.Packet.Encode",
+      "note": "the upgrade handshake probe"
+    },
+    {
+      "id": "eio-enc-pong-probe",
+      "fn": "eio.encodePacket",
+      "args": [
+        {
+          "type": 3,
+          "data": "probe"
+        }
+      ],
+      "upstreamFn": "encodePacket",
+      "goFn": "engineio.Packet.Encode"
+    },
+    {
+      "id": "eio-enc-message",
+      "fn": "eio.encodePacket",
+      "args": [
+        {
+          "type": 4,
+          "data": "2[\"hi\",1]"
+        }
+      ],
+      "upstreamFn": "encodePacket",
+      "goFn": "engineio.Packet.Encode",
+      "note": "a Socket.IO EVENT inside an Engine.IO MESSAGE"
+    },
+    {
+      "id": "eio-enc-message-empty",
+      "fn": "eio.encodePacket",
+      "args": [
+        {
+          "type": 4,
+          "data": ""
+        }
+      ],
+      "upstreamFn": "encodePacket",
+      "goFn": "engineio.Packet.Encode"
+    },
+    {
+      "id": "eio-enc-message-unicode",
+      "fn": "eio.encodePacket",
+      "args": [
+        {
+          "type": 4,
+          "data": "2[\"ev\",\"héllo 😀\"]"
+        }
+      ],
+      "upstreamFn": "encodePacket",
+      "goFn": "engineio.Packet.Encode"
+    },
+    {
+      "id": "eio-enc-upgrade",
+      "fn": "eio.encodePacket",
+      "args": [
+        {
+          "type": 5
+        }
+      ],
+      "upstreamFn": "encodePacket",
+      "goFn": "engineio.Packet.Encode"
+    },
+    {
+      "id": "eio-enc-noop",
+      "fn": "eio.encodePacket",
+      "args": [
+        {
+          "type": 6
+        }
+      ],
+      "upstreamFn": "encodePacket",
+      "goFn": "engineio.Packet.Encode"
+    },
+    {
+      "id": "eio-enc-binary",
+      "fn": "eio.encodePacket",
+      "args": [
+        {
+          "type": 4,
+          "binary": "0001ff"
+        }
+      ],
+      "upstreamFn": "encodePacket",
+      "goFn": "engineio.Packet.Encode",
+      "note": "base64 with the \"b\" prefix"
+    },
+    {
+      "id": "eio-enc-binary-empty",
+      "fn": "eio.encodePacket",
+      "args": [
+        {
+          "type": 4,
+          "binary": ""
+        }
+      ],
+      "upstreamFn": "encodePacket",
+      "goFn": "engineio.Packet.Encode"
+    },
+    {
+      "id": "eio-enc-binary-pad",
+      "fn": "eio.encodePacket",
+      "args": [
+        {
+          "type": 4,
+          "binary": "00"
+        }
+      ],
+      "upstreamFn": "encodePacket",
+      "goFn": "engineio.Packet.Encode",
+      "note": "base64 padding"
+    },
+    {
+      "id": "eio-dec-open",
+      "fn": "eio.decodePacket",
+      "args": [
+        {
+          "encoded": "0{\"sid\":\"x\"}"
+        }
+      ],
+      "upstreamFn": "decodePacket",
+      "goFn": "engineio.Decode"
+    },
+    {
+      "id": "eio-dec-ping-bare",
+      "fn": "eio.decodePacket",
+      "args": [
+        {
+          "encoded": "2"
+        }
+      ],
+      "upstreamFn": "decodePacket",
+      "goFn": "engineio.Decode"
+    },
+    {
+      "id": "eio-dec-ping-probe",
+      "fn": "eio.decodePacket",
+      "args": [
+        {
+          "encoded": "2probe"
+        }
+      ],
+      "upstreamFn": "decodePacket",
+      "goFn": "engineio.Decode"
+    },
+    {
+      "id": "eio-dec-message",
+      "fn": "eio.decodePacket",
+      "args": [
+        {
+          "encoded": "42[\"hi\"]"
+        }
+      ],
+      "upstreamFn": "decodePacket",
+      "goFn": "engineio.Decode"
+    },
+    {
+      "id": "eio-dec-noop",
+      "fn": "eio.decodePacket",
+      "args": [
+        {
+          "encoded": "6"
+        }
+      ],
+      "upstreamFn": "decodePacket",
+      "goFn": "engineio.Decode"
+    },
+    {
+      "id": "eio-dec-binary",
+      "fn": "eio.decodePacket",
+      "args": [
+        {
+          "encoded": "bAAH/"
+        }
+      ],
+      "upstreamFn": "decodePacket",
+      "goFn": "engineio.Decode"
+    },
+    {
+      "id": "eio-dec-binary-empty",
+      "fn": "eio.decodePacket",
+      "args": [
+        {
+          "encoded": "b"
+        }
+      ],
+      "upstreamFn": "decodePacket",
+      "goFn": "engineio.Decode"
+    },
+    {
+      "id": "eio-dec-binary-bad-base64",
+      "fn": "eio.decodePacket",
+      "args": [
+        {
+          "encoded": "b!!!"
+        }
+      ],
+      "upstreamFn": "decodePacket",
+      "goFn": "engineio.Decode",
+      "note": "invalid base64 in a binary frame",
+      "deviation": "Node's Buffer.from(s,'base64') is lenient and yields an empty buffer for invalid input; Go's base64 decoder errors. The port is deliberately stricter (upstream is the outlier)."
+    },
+    {
+      "id": "eio-dec-empty",
+      "fn": "eio.decodePacket",
+      "args": [
+        {
+          "encoded": ""
+        }
+      ],
+      "upstreamFn": "decodePacket",
+      "goFn": "engineio.Decode"
+    },
+    {
+      "id": "eio-dec-type-out-of-range",
+      "fn": "eio.decodePacket",
+      "args": [
+        {
+          "encoded": "9x"
+        }
+      ],
+      "upstreamFn": "decodePacket",
+      "goFn": "engineio.Decode"
+    },
+    {
+      "id": "eio-dec-type-nonnumeric",
+      "fn": "eio.decodePacket",
+      "args": [
+        {
+          "encoded": "xy"
+        }
+      ],
+      "upstreamFn": "decodePacket",
+      "goFn": "engineio.Decode"
+    },
+    {
+      "id": "eio-encpay-single",
+      "fn": "eio.encodePayload",
+      "args": [
+        {
+          "packets": [
+            {
+              "type": 4,
+              "data": "2[\"a\"]"
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "encodePayload",
+      "goFn": "engineio.EncodePayload"
+    },
+    {
+      "id": "eio-encpay-two",
+      "fn": "eio.encodePayload",
+      "args": [
+        {
+          "packets": [
+            {
+              "type": 4,
+              "data": "2[\"a\"]"
+            },
+            {
+              "type": 4,
+              "data": "2[\"b\"]"
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "encodePayload",
+      "goFn": "engineio.EncodePayload"
+    },
+    {
+      "id": "eio-encpay-mixed",
+      "fn": "eio.encodePayload",
+      "args": [
+        {
+          "packets": [
+            {
+              "type": 0,
+              "data": "{}"
+            },
+            {
+              "type": 4,
+              "binary": "0001ff"
+            },
+            {
+              "type": 2
+            }
+          ]
+        }
+      ],
+      "upstreamFn": "encodePayload",
+      "goFn": "engineio.EncodePayload",
+      "note": "binary members are base64 in a polling payload"
+    },
+    {
+      "id": "eio-decpay-two",
+      "fn": "eio.decodePayload",
+      "args": [
+        {
+          "encoded": "42[\"a\"]\u001e42[\"b\"]"
+        }
+      ],
+      "upstreamFn": "decodePayload",
+      "goFn": "engineio.DecodePayload"
+    },
+    {
+      "id": "eio-decpay-mixed",
+      "fn": "eio.decodePayload",
+      "args": [
+        {
+          "encoded": "0{}\u001ebAAH/\u001e2"
+        }
+      ],
+      "upstreamFn": "decodePayload",
+      "goFn": "engineio.DecodePayload"
+    },
+    {
+      "id": "eio-decpay-single",
+      "fn": "eio.decodePayload",
+      "args": [
+        {
+          "encoded": "42[\"a\"]"
+        }
+      ],
+      "upstreamFn": "decodePayload",
+      "goFn": "engineio.DecodePayload"
+    },
+    {
+      "id": "eio-decpay-empty",
+      "fn": "eio.decodePayload",
+      "args": [
+        {
+          "encoded": ""
+        }
+      ],
+      "upstreamFn": "decodePayload",
+      "goFn": "engineio.DecodePayload",
+      "note": "an empty polling body"
+    },
+    {
+      "id": "eio-decpay-trailing-sep",
+      "fn": "eio.decodePayload",
+      "args": [
+        {
+          "encoded": "42[\"a\"]\u001e"
+        }
+      ],
+      "upstreamFn": "decodePayload",
+      "goFn": "engineio.DecodePayload"
+    },
+    {
+      "id": "eio-decpay-bad-member",
+      "fn": "eio.decodePayload",
+      "args": [
+        {
+          "encoded": "42[\"a\"]\u001e9x"
+        }
+      ],
+      "upstreamFn": "decodePayload",
+      "goFn": "engineio.DecodePayload",
+      "note": "one malformed member must fail the whole payload"
+    }
   ]
 }
