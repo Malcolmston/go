@@ -1,0 +1,289 @@
+{
+  "group": "case-mapping",
+  "upstream": "camelcase@9.0.0",
+  "note": "Characters whose JavaScript toLowerCase/toUpperCase is a FULL (possibly multi-character, possibly context-sensitive) mapping, where Go's stdlib only offers the simple per-rune mapping.",
+  "cases": [
+    {
+      "id": "casemap-000-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "İ"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase",
+      "note": "single Turkish dotted capital I"
+    },
+    {
+      "id": "casemap-000-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "İ"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase",
+      "note": "single Turkish dotted capital I"
+    },
+    {
+      "id": "casemap-001-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "İzmir"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase"
+    },
+    {
+      "id": "casemap-001-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "İzmir"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase"
+    },
+    {
+      "id": "casemap-002-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "izmir İzmir"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase"
+    },
+    {
+      "id": "casemap-002-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "izmir İzmir"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase"
+    },
+    {
+      "id": "casemap-003-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "İSTANBUL bey"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase"
+    },
+    {
+      "id": "casemap-003-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "İSTANBUL bey"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase"
+    },
+    {
+      "id": "casemap-004-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "ΟΔΟΣ street"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase",
+      "note": "Greek final sigma: JS toLowerCase is context sensitive"
+    },
+    {
+      "id": "casemap-004-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "ΟΔΟΣ street"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase",
+      "note": "Greek final sigma: JS toLowerCase is context sensitive"
+    },
+    {
+      "id": "casemap-005-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "ΣΟΦΟΣ"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase"
+    },
+    {
+      "id": "casemap-005-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "ΣΟΦΟΣ"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase"
+    },
+    {
+      "id": "casemap-006-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "ΑΣ-ΟΣ"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase"
+    },
+    {
+      "id": "casemap-006-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "ΑΣ-ΟΣ"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase"
+    },
+    {
+      "id": "casemap-007-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "ß-foo"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase",
+      "note": "JS toUpperCase('ß') is 'SS'"
+    },
+    {
+      "id": "casemap-007-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "ß-foo"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase",
+      "note": "JS toUpperCase('ß') is 'SS'"
+    },
+    {
+      "id": "casemap-008-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "straße"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase"
+    },
+    {
+      "id": "casemap-008-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "straße"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase"
+    },
+    {
+      "id": "casemap-009-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "ẛ-foo"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase",
+      "note": "U+1E9B has a multi-char uppercase in JS"
+    },
+    {
+      "id": "casemap-009-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "ẛ-foo"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase",
+      "note": "U+1E9B has a multi-char uppercase in JS"
+    },
+    {
+      "id": "casemap-010-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "ﬁ-le"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase",
+      "note": "the fi ligature uppercases to FI in JS"
+    },
+    {
+      "id": "casemap-010-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "ﬁ-le"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase",
+      "note": "the fi ligature uppercases to FI in JS"
+    },
+    {
+      "id": "casemap-011-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "ŉ-x"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase",
+      "note": "U+0149 uppercases to ʼN in JS"
+    },
+    {
+      "id": "casemap-011-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "ŉ-x"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase",
+      "note": "U+0149 uppercases to ʼN in JS"
+    },
+    {
+      "id": "casemap-012-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "ǰ-x"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase"
+    },
+    {
+      "id": "casemap-012-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "ǰ-x"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase"
+    },
+    {
+      "id": "casemap-013-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "ΐ-x"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase"
+    },
+    {
+      "id": "casemap-013-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "ΐ-x"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase"
+    },
+    {
+      "id": "casemap-014-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "ﬄ-x"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase"
+    },
+    {
+      "id": "casemap-014-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "ﬄ-x"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase"
+    }
+  ]
+}

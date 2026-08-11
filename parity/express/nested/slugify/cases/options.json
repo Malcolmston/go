@@ -1,0 +1,330 @@
+{
+  "group": "options",
+  "upstream": "slugify@1.6.9",
+  "note": "options.replacement / lower / strict / trim / remove, plus the string shorthand.",
+  "cases": [
+    {
+      "id": "opt-lower-true",
+      "fn": "slugifyOpts",
+      "args": [
+        "Hello World",
+        {
+          "lower": true
+        }
+      ],
+      "upstreamFn": "slugify options.lower",
+      "goFn": "slugify.Options.Lower"
+    },
+    {
+      "id": "opt-lower-false",
+      "fn": "slugifyOpts",
+      "args": [
+        "Hello World",
+        {
+          "lower": false
+        }
+      ],
+      "upstreamFn": "slugify options.lower",
+      "goFn": "slugify.Options.Lower"
+    },
+    {
+      "id": "opt-lower-turkish-dotted-i",
+      "fn": "slugifyOpts",
+      "args": [
+        "İstanbul ILIK",
+        {
+          "lower": true
+        }
+      ],
+      "upstreamFn": "slugify options.lower",
+      "goFn": "slugify.Options.Lower",
+      "note": "İ maps to \"I\" via the charmap, then toLowerCase/ToLower"
+    },
+    {
+      "id": "opt-replacement-underscore",
+      "fn": "slugifyOpts",
+      "args": [
+        "Hello Big World",
+        {
+          "replacement": "_"
+        }
+      ],
+      "upstreamFn": "slugify options.replacement",
+      "goFn": "slugify.Options.Separator"
+    },
+    {
+      "id": "opt-replacement-underscore-hyphen-kept",
+      "fn": "slugifyOpts",
+      "args": [
+        "a-b c",
+        {
+          "replacement": "_"
+        }
+      ],
+      "upstreamFn": "slugify options.replacement",
+      "goFn": "slugify.Options.Separator",
+      "note": "with a non-hyphen replacement, a literal hyphen survives"
+    },
+    {
+      "id": "opt-replacement-empty",
+      "fn": "slugifyOpts",
+      "args": [
+        "Hello Big World",
+        {
+          "replacement": ""
+        }
+      ],
+      "upstreamFn": "slugify options.replacement",
+      "goFn": "slugify.Options.Separator",
+      "note": "upstream only defaults when replacement is undefined, so \"\" really removes spaces",
+      "deviation": "Go's Options.Separator is a plain string whose zero value cannot be told apart from \"unset\", so an explicitly empty replacement falls back to \"-\"; upstream defaults only when the key is undefined"
+    },
+    {
+      "id": "opt-replacement-dot",
+      "fn": "slugifyOpts",
+      "args": [
+        "Hello World",
+        {
+          "replacement": "."
+        }
+      ],
+      "upstreamFn": "slugify options.replacement",
+      "goFn": "slugify.Options.Separator"
+    },
+    {
+      "id": "opt-replacement-multichar",
+      "fn": "slugifyOpts",
+      "args": [
+        "Hello World Again",
+        {
+          "replacement": "--"
+        }
+      ],
+      "upstreamFn": "slugify options.replacement",
+      "goFn": "slugify.Options.Separator"
+    },
+    {
+      "id": "opt-replacement-plus",
+      "fn": "slugifyOpts",
+      "args": [
+        "Hello World",
+        {
+          "replacement": "+"
+        }
+      ],
+      "upstreamFn": "slugify options.replacement",
+      "goFn": "slugify.Options.Separator"
+    },
+    {
+      "id": "opt-string-shorthand",
+      "fn": "slugifyOpts",
+      "args": [
+        "Hello World",
+        "_"
+      ],
+      "upstreamFn": "slugify(string, string)",
+      "goFn": "slugify.Options.Separator",
+      "note": "upstream's second-argument string shorthand for {replacement}"
+    },
+    {
+      "id": "opt-strict-true",
+      "fn": "slugifyOpts",
+      "args": [
+        "Hello, World! (v2.0)",
+        {
+          "strict": true
+        }
+      ],
+      "upstreamFn": "slugify options.strict",
+      "goFn": "slugify.Options.Strict"
+    },
+    {
+      "id": "opt-strict-lower",
+      "fn": "slugifyOpts",
+      "args": [
+        "Crème Brûlée — v2.0!",
+        {
+          "strict": true,
+          "lower": true
+        }
+      ],
+      "upstreamFn": "slugify options.strict",
+      "goFn": "slugify.Options.Strict"
+    },
+    {
+      "id": "opt-strict-keeps-digits",
+      "fn": "slugifyOpts",
+      "args": [
+        "Route 66 $$$",
+        {
+          "strict": true
+        }
+      ],
+      "upstreamFn": "slugify options.strict",
+      "goFn": "slugify.Options.Strict",
+      "note": "$ maps to \"dollar\" before strict runs"
+    },
+    {
+      "id": "opt-strict-cjk-dropped",
+      "fn": "slugifyOpts",
+      "args": [
+        "東京 Tokyo",
+        {
+          "strict": true
+        }
+      ],
+      "upstreamFn": "slugify options.strict",
+      "goFn": "slugify.Options.Strict",
+      "note": "strict drops every non-ASCII-alphanumeric"
+    },
+    {
+      "id": "opt-strict-with-replacement",
+      "fn": "slugifyOpts",
+      "args": [
+        "Hello, World!",
+        {
+          "strict": true,
+          "replacement": "_"
+        }
+      ],
+      "upstreamFn": "slugify options.strict",
+      "goFn": "slugify.Options.Strict"
+    },
+    {
+      "id": "opt-trim-true",
+      "fn": "slugifyOpts",
+      "args": [
+        "   padded   ",
+        {
+          "trim": true
+        }
+      ],
+      "upstreamFn": "slugify options.trim",
+      "goFn": "slugify.Options.Trim"
+    },
+    {
+      "id": "opt-trim-false",
+      "fn": "slugifyOpts",
+      "args": [
+        "   padded   ",
+        {
+          "trim": false
+        }
+      ],
+      "upstreamFn": "slugify options.trim",
+      "goFn": "slugify.Options.Trim",
+      "note": "untrimmed whitespace becomes leading/trailing separators"
+    },
+    {
+      "id": "opt-trim-false-empty",
+      "fn": "slugifyOpts",
+      "args": [
+        "   ",
+        {
+          "trim": false
+        }
+      ],
+      "upstreamFn": "slugify options.trim",
+      "goFn": "slugify.Options.Trim"
+    },
+    {
+      "id": "opt-trim-default-when-options-given",
+      "fn": "slugifyOpts",
+      "args": [
+        "  padded  ",
+        {
+          "lower": true
+        }
+      ],
+      "upstreamFn": "slugify options.trim",
+      "goFn": "slugify.Options.Trim",
+      "note": "trim defaults to true even when an options object is supplied"
+    },
+    {
+      "id": "opt-remove-custom-class",
+      "fn": "slugifyOpts",
+      "args": [
+        "Hello, (World)! v2.0",
+        {
+          "remove": "[*+~.()'\"!:@]"
+        }
+      ],
+      "upstreamFn": "slugify options.remove",
+      "goFn": "slugify.Options.Remove",
+      "note": "the classic README remove pattern; note it no longer removes the comma"
+    },
+    {
+      "id": "opt-remove-digits",
+      "fn": "slugifyOpts",
+      "args": [
+        "Route 66 Motel",
+        {
+          "remove": "[0-9]"
+        }
+      ],
+      "upstreamFn": "slugify options.remove",
+      "goFn": "slugify.Options.Remove"
+    },
+    {
+      "id": "opt-remove-nothing",
+      "fn": "slugifyOpts",
+      "args": [
+        "Hello, World! #1",
+        {
+          "remove": "[^\\s\\S]"
+        }
+      ],
+      "upstreamFn": "slugify options.remove",
+      "goFn": "slugify.Options.Remove",
+      "note": "a pattern that never matches: nothing is removed, so unsafe characters survive"
+    },
+    {
+      "id": "opt-remove-letters",
+      "fn": "slugifyOpts",
+      "args": [
+        "abc DEF 123",
+        {
+          "remove": "[a-z]"
+        }
+      ],
+      "upstreamFn": "slugify options.remove",
+      "goFn": "slugify.Options.Remove"
+    },
+    {
+      "id": "opt-combined-all",
+      "fn": "slugifyOpts",
+      "args": [
+        "  Crème Brûlée & Café — 100% Fun!  ",
+        {
+          "lower": true,
+          "strict": true,
+          "trim": true,
+          "replacement": "_"
+        }
+      ],
+      "upstreamFn": "slugify",
+      "goFn": "slugify.Slugify"
+    },
+    {
+      "id": "opt-empty-options-object",
+      "fn": "slugifyOpts",
+      "args": [
+        "Hello World",
+        {}
+      ],
+      "upstreamFn": "slugify",
+      "goFn": "slugify.Slugify"
+    },
+    {
+      "id": "opt-null-options",
+      "fn": "slugifyOpts",
+      "args": [
+        "Hello World",
+        null
+      ],
+      "upstreamFn": "slugify",
+      "goFn": "slugify.Slugify",
+      "note": "upstream coerces a null options argument to {}"
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "group": "charset",
+  "upstream": "nanoid@6.0.1",
+  "note": "Which characters the generator can emit. This is the closest deterministic proxy for an unbiased mapping: a mask/reject bug that never selects the tail of the alphabet shows up as a missing character.",
+  "cases": [
+    {
+      "id": "charset-00",
+      "fn": "customCharset",
+      "args": [
+        "ab",
+        64,
+        200
+      ],
+      "upstreamFn": "nanoid.customAlphabet",
+      "goFn": "nanoid.Custom",
+      "note": "the observed character set over 200*64 characters must be exactly the alphabet's distinct characters"
+    },
+    {
+      "id": "charset-01",
+      "fn": "customCharset",
+      "args": [
+        "abc",
+        64,
+        200
+      ],
+      "upstreamFn": "nanoid.customAlphabet",
+      "goFn": "nanoid.Custom",
+      "note": "the observed character set over 200*64 characters must be exactly the alphabet's distinct characters"
+    },
+    {
+      "id": "charset-02",
+      "fn": "customCharset",
+      "args": [
+        "0123456789abcdef",
+        64,
+        200
+      ],
+      "upstreamFn": "nanoid.customAlphabet",
+      "goFn": "nanoid.Custom",
+      "note": "the observed character set over 200*64 characters must be exactly the alphabet's distinct characters"
+    },
+    {
+      "id": "charset-03",
+      "fn": "customCharset",
+      "args": [
+        "-_",
+        64,
+        200
+      ],
+      "upstreamFn": "nanoid.customAlphabet",
+      "goFn": "nanoid.Custom",
+      "note": "the observed character set over 200*64 characters must be exactly the alphabet's distinct characters"
+    },
+    {
+      "id": "charset-04",
+      "fn": "customCharset",
+      "args": [
+        "aaab",
+        64,
+        200
+      ],
+      "upstreamFn": "nanoid.customAlphabet",
+      "goFn": "nanoid.Custom",
+      "note": "the observed character set over 200*64 characters must be exactly the alphabet's distinct characters"
+    },
+    {
+      "id": "charset-05",
+      "fn": "customCharset",
+      "args": [
+        "!@#$%^&*()",
+        64,
+        200
+      ],
+      "upstreamFn": "nanoid.customAlphabet",
+      "goFn": "nanoid.Custom",
+      "note": "the observed character set over 200*64 characters must be exactly the alphabet's distinct characters"
+    },
+    {
+      "id": "charset-06",
+      "fn": "customCharset",
+      "args": [
+        "abcdefghijklmnopqrstuvwxyz",
+        64,
+        400
+      ],
+      "upstreamFn": "nanoid.customAlphabet",
+      "goFn": "nanoid.Custom",
+      "note": "the observed character set over 400*64 characters must be exactly the alphabet's distinct characters"
+    }
+  ]
+}

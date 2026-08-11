@@ -1,0 +1,291 @@
+{
+  "group": "edge",
+  "upstream": "camelcase@9.0.0",
+  "note": "Empty, whitespace-only, single characters, already-camel input and very long input.",
+  "cases": [
+    {
+      "id": "edge-000-camelCase",
+      "fn": "camelCase",
+      "args": [
+        ""
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase",
+      "note": "empty string"
+    },
+    {
+      "id": "edge-000-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        ""
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase",
+      "note": "empty string"
+    },
+    {
+      "id": "edge-001-camelCase",
+      "fn": "camelCase",
+      "args": [
+        " "
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase",
+      "note": "whitespace only is trimmed away"
+    },
+    {
+      "id": "edge-001-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        " "
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase",
+      "note": "whitespace only is trimmed away"
+    },
+    {
+      "id": "edge-002-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "\t\n"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase"
+    },
+    {
+      "id": "edge-002-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "\t\n"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase"
+    },
+    {
+      "id": "edge-003-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "a"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase",
+      "note": "single letter"
+    },
+    {
+      "id": "edge-003-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "a"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase",
+      "note": "single letter"
+    },
+    {
+      "id": "edge-004-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "A"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase"
+    },
+    {
+      "id": "edge-004-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "A"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase"
+    },
+    {
+      "id": "edge-005-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "z"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase"
+    },
+    {
+      "id": "edge-005-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "z"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase"
+    },
+    {
+      "id": "edge-006-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "0"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase"
+    },
+    {
+      "id": "edge-006-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "0"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase"
+    },
+    {
+      "id": "edge-007-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "alreadyCamel"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase",
+      "note": "already camelCase round-trips"
+    },
+    {
+      "id": "edge-007-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "alreadyCamel"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase",
+      "note": "already camelCase round-trips"
+    },
+    {
+      "id": "edge-008-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "AlreadyPascal"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase"
+    },
+    {
+      "id": "edge-008-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "AlreadyPascal"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase"
+    },
+    {
+      "id": "edge-009-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase",
+      "note": "very long single word"
+    },
+    {
+      "id": "edge-009-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase",
+      "note": "very long single word"
+    },
+    {
+      "id": "edge-010-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-bar"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase",
+      "note": "very long separated input; guards against catastrophic backtracking"
+    },
+    {
+      "id": "edge-010-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-bar"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase",
+      "note": "very long separated input; guards against catastrophic backtracking"
+    },
+    {
+      "id": "edge-011-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "Content-Type"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase",
+      "note": "a real header name"
+    },
+    {
+      "id": "edge-011-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "Content-Type"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase",
+      "note": "a real header name"
+    },
+    {
+      "id": "edge-012-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "X-Forwarded-For"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase"
+    },
+    {
+      "id": "edge-012-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "X-Forwarded-For"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase"
+    },
+    {
+      "id": "edge-013-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "WWW-Authenticate"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase"
+    },
+    {
+      "id": "edge-013-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "WWW-Authenticate"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase"
+    },
+    {
+      "id": "edge-014-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "access-control-allow-origin"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase"
+    },
+    {
+      "id": "edge-014-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "access-control-allow-origin"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase"
+    }
+  ]
+}

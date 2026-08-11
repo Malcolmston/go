@@ -1,0 +1,327 @@
+{
+  "group": "unicode",
+  "upstream": "slugify@1.6.9",
+  "note": "Transliteration and non-Latin scripts. `charmap` cases slug each character independently and join with \"|\" so the failing entry is identifiable.",
+  "cases": [
+    {
+      "id": "uni-creme-brulee",
+      "fn": "slugifyOpts",
+      "args": [
+        "Crème brûlée",
+        {
+          "lower": true
+        }
+      ],
+      "upstreamFn": "slugify",
+      "goFn": "slugify.Slugify"
+    },
+    {
+      "id": "uni-german-sharp-s",
+      "fn": "slugify",
+      "args": [
+        "Straße und Grüße"
+      ],
+      "upstreamFn": "slugify",
+      "goFn": "slugify.Slugify"
+    },
+    {
+      "id": "uni-ligatures",
+      "fn": "slugify",
+      "args": [
+        "Æther Œuvre ĲsselmeeR"
+      ],
+      "upstreamFn": "slugify",
+      "goFn": "slugify.Slugify"
+    },
+    {
+      "id": "uni-decomposed-nfd",
+      "fn": "slugify",
+      "args": [
+        "Crème Brûlée"
+      ],
+      "upstreamFn": "slugify",
+      "goFn": "slugify.Slugify",
+      "note": "NFD input; upstream calls String.prototype.normalize() first"
+    },
+    {
+      "id": "uni-nbsp",
+      "fn": "slugify",
+      "args": [
+        "a b"
+      ],
+      "upstreamFn": "slugify",
+      "goFn": "slugify.Slugify",
+      "note": "U+00A0 is \\s in JavaScript but not in Go's regexp"
+    },
+    {
+      "id": "uni-ideographic-space",
+      "fn": "slugify",
+      "args": [
+        "a　b"
+      ],
+      "upstreamFn": "slugify",
+      "goFn": "slugify.Slugify",
+      "note": "U+3000 is \\s in JavaScript but not in Go's regexp"
+    },
+    {
+      "id": "uni-line-separator",
+      "fn": "slugify",
+      "args": [
+        "a b c"
+      ],
+      "upstreamFn": "slugify",
+      "goFn": "slugify.Slugify"
+    },
+    {
+      "id": "uni-bom",
+      "fn": "slugify",
+      "args": [
+        "﻿title"
+      ],
+      "upstreamFn": "slugify",
+      "goFn": "slugify.Slugify"
+    },
+    {
+      "id": "uni-cjk-passthrough",
+      "fn": "slugify",
+      "args": [
+        "日本語のタイトル"
+      ],
+      "upstreamFn": "slugify",
+      "goFn": "slugify.Slugify",
+      "note": "unmapped CJK passes through except where the remove pattern drops it"
+    },
+    {
+      "id": "uni-cjk-mixed",
+      "fn": "slugify",
+      "args": [
+        "東京 Tokyo 2020"
+      ],
+      "upstreamFn": "slugify",
+      "goFn": "slugify.Slugify"
+    },
+    {
+      "id": "uni-cjk-mapped",
+      "fn": "slugify",
+      "args": [
+        "100元 と 円"
+      ],
+      "upstreamFn": "slugify",
+      "goFn": "slugify.Slugify",
+      "note": "元 and 円 ARE in the charmap"
+    },
+    {
+      "id": "uni-korean",
+      "fn": "slugify",
+      "args": [
+        "안녕하세요 세계"
+      ],
+      "upstreamFn": "slugify",
+      "goFn": "slugify.Slugify"
+    },
+    {
+      "id": "uni-emoji",
+      "fn": "slugify",
+      "args": [
+        "I 💖 tacos 🌮🌮"
+      ],
+      "upstreamFn": "slugify",
+      "goFn": "slugify.Slugify",
+      "note": "astral-plane emoji: upstream splits by UTF-16 code unit, Go by rune"
+    },
+    {
+      "id": "uni-emoji-zwj",
+      "fn": "slugify",
+      "args": [
+        "family 👨‍👩‍👧‍👦 photo"
+      ],
+      "upstreamFn": "slugify",
+      "goFn": "slugify.Slugify"
+    },
+    {
+      "id": "uni-lone-surrogate-pair",
+      "fn": "slugify",
+      "args": [
+        "𝕳𝖊𝖑𝖑𝖔"
+      ],
+      "upstreamFn": "slugify",
+      "goFn": "slugify.Slugify",
+      "note": "mathematical fraktur: surrogate pairs, no charmap entries"
+    },
+    {
+      "id": "uni-rtl-arabic",
+      "fn": "slugifyOpts",
+      "args": [
+        "مرحبا بالعالم",
+        {
+          "lower": true
+        }
+      ],
+      "upstreamFn": "slugify",
+      "goFn": "slugify.Slugify"
+    },
+    {
+      "id": "uni-hebrew",
+      "fn": "slugify",
+      "args": [
+        "שלום עולם"
+      ],
+      "upstreamFn": "slugify",
+      "goFn": "slugify.Slugify",
+      "note": "Hebrew has no charmap entries"
+    },
+    {
+      "id": "uni-thai",
+      "fn": "slugify",
+      "args": [
+        "สวัสดี ราคา ฿100"
+      ],
+      "upstreamFn": "slugify",
+      "goFn": "slugify.Slugify"
+    },
+    {
+      "id": "charmap-latin1",
+      "fn": "charmap",
+      "args": [
+        "¢£¤¥©ª®ºÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ"
+      ],
+      "upstreamFn": "slugify (charMap)",
+      "goFn": "slugify.charMap"
+    },
+    {
+      "id": "charmap-latin-ext-a",
+      "fn": "charmap",
+      "args": [
+        "ĀāĂăĄąĆćČčĎďĐđĒēĖėęĚěĞğĢģĨĩīĮįİıķĻļĽľŁłŃńŅņŇňŌōŐőŒœŔŕŘřŚśŞşŠšŢţŤťŨũūŮůŰűŲųŴŵŶŷŸŹźŻżŽž"
+      ],
+      "upstreamFn": "slugify (charMap)",
+      "goFn": "slugify.charMap",
+      "note": "the four entries slugify@1.6.9 spells in lower case are split out into charmap-dev-* below"
+    },
+    {
+      "id": "charmap-latin-ext-b",
+      "fn": "charmap",
+      "args": [
+        "ƏƒƠơƯưǈǉǋǌȘșȚțə˚"
+      ],
+      "upstreamFn": "slugify (charMap)",
+      "goFn": "slugify.charMap"
+    },
+    {
+      "id": "charmap-greek",
+      "fn": "charmap",
+      "args": [
+        "ΆΈΉΊΌΎΏΐΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩΪΫάέήίΰαβγδεζηθικλμνξοπρςστυφχψωϊϋόύώ"
+      ],
+      "upstreamFn": "slugify (charMap)",
+      "goFn": "slugify.charMap"
+    },
+    {
+      "id": "charmap-cyrillic",
+      "fn": "charmap",
+      "args": [
+        "ЁЂЄІЇЈЉЊЋЏАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюяёђєіїјљњћѝџҐґҒғҚқҢңҮүҰұҺһӘәӨө"
+      ],
+      "upstreamFn": "slugify (charMap)",
+      "goFn": "slugify.charMap"
+    },
+    {
+      "id": "charmap-armenian",
+      "fn": "charmap",
+      "args": [
+        "ԱԲԳԴԵԶԷԸԹԺԻԼԽԾԿՀՁՂՃՄՅՆՇՈՉՊՋՌՍՎՏՐՑՒՓՔՕՖև"
+      ],
+      "upstreamFn": "slugify (charMap)",
+      "goFn": "slugify.charMap"
+    },
+    {
+      "id": "charmap-arabic",
+      "fn": "charmap",
+      "args": [
+        "ءآأؤإئابةتثجحخدذرزسشصضطظعغفقكلمنهوىي٠١٢٣٤٥٦٧٨٩پچژکگی۰۱۲۳۴۵۶۷۸۹"
+      ],
+      "upstreamFn": "slugify (charMap)",
+      "goFn": "slugify.charMap"
+    },
+    {
+      "id": "charmap-georgian",
+      "fn": "charmap",
+      "args": [
+        "აბგდევზთიკლმნოპჟრსტუფქღყშჩცძწჭხჯჰ"
+      ],
+      "upstreamFn": "slugify (charMap)",
+      "goFn": "slugify.charMap"
+    },
+    {
+      "id": "charmap-vietnamese",
+      "fn": "charmap",
+      "args": [
+        "ẠạẢảẤấẦầẨẩẪẫẬậẮắẰằẲẳẴẵẶặẸẹẺẻẼẽẾếỀềỂểỄễỆệỈỉỊịỌọỎỏỐốỒồỔổỖỗỘộỚớỜờỞởỠỡỢợỤụỦủỨứỪừỬửỮữỰựỲỳỴỵỶỷỸỹ"
+      ],
+      "upstreamFn": "slugify (charMap)",
+      "goFn": "slugify.charMap"
+    },
+    {
+      "id": "charmap-currency-and-symbols",
+      "fn": "charmap",
+      "args": [
+        "$%&<>|₠₢₣₤₥₦₧₨₩₪₫€₭₮₯₰₱₲₳₴₵₸₹₺₽₿℠™∂∆∑∞♥"
+      ],
+      "upstreamFn": "slugify (charMap)",
+      "goFn": "slugify.charMap"
+    },
+    {
+      "id": "charmap-punctuation-and-misc",
+      "fn": "charmap",
+      "args": [
+        "–‘’“”„†•…ṢṣẀẁẂẃẄẅẞ元円﷼ﻵﻷﻹﻻ"
+      ],
+      "upstreamFn": "slugify (charMap)",
+      "goFn": "slugify.charMap"
+    },
+    {
+      "id": "charmap-dev-e-ogonek",
+      "fn": "charmap",
+      "args": [
+        "Ę"
+      ],
+      "upstreamFn": "slugify (charMap)",
+      "goFn": "slugify.charMap",
+      "note": "a single charmap entry",
+      "deviation": "port tracks simov/slugify master, whose charmap.json spells this entry in upper case; the pinned 1.6.9 release still has the lower-case value"
+    },
+    {
+      "id": "charmap-dev-i-macron",
+      "fn": "charmap",
+      "args": [
+        "Ī"
+      ],
+      "upstreamFn": "slugify (charMap)",
+      "goFn": "slugify.charMap",
+      "note": "a single charmap entry",
+      "deviation": "port tracks simov/slugify master, whose charmap.json spells this entry in upper case; the pinned 1.6.9 release still has the lower-case value"
+    },
+    {
+      "id": "charmap-dev-k-cedilla",
+      "fn": "charmap",
+      "args": [
+        "Ķ"
+      ],
+      "upstreamFn": "slugify (charMap)",
+      "goFn": "slugify.charMap",
+      "note": "a single charmap entry",
+      "deviation": "port tracks simov/slugify master, whose charmap.json spells this entry in upper case; the pinned 1.6.9 release still has the lower-case value"
+    },
+    {
+      "id": "charmap-dev-u-macron",
+      "fn": "charmap",
+      "args": [
+        "Ū"
+      ],
+      "upstreamFn": "slugify (charMap)",
+      "goFn": "slugify.charMap",
+      "note": "a single charmap entry",
+      "deviation": "port tracks simov/slugify master, whose charmap.json spells this entry in upper case; the pinned 1.6.9 release still has the lower-case value"
+    }
+  ]
+}

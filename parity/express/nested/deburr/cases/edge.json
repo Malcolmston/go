@@ -1,0 +1,122 @@
+{
+  "group": "edge",
+  "upstream": "lodash@4.17.21",
+  "note": "Empty input, whitespace, emoji, very long input and surrogate pairs.",
+  "cases": [
+    {
+      "id": "edge-000",
+      "fn": "deburr",
+      "args": [
+        ""
+      ],
+      "upstreamFn": "_.deburr",
+      "goFn": "deburr.Deburr",
+      "note": "empty string"
+    },
+    {
+      "id": "edge-001",
+      "fn": "deburr",
+      "args": [
+        " "
+      ],
+      "upstreamFn": "_.deburr",
+      "goFn": "deburr.Deburr"
+    },
+    {
+      "id": "edge-002",
+      "fn": "deburr",
+      "args": [
+        "\t\n"
+      ],
+      "upstreamFn": "_.deburr",
+      "goFn": "deburr.Deburr"
+    },
+    {
+      "id": "edge-003",
+      "fn": "deburr",
+      "args": [
+        "a"
+      ],
+      "upstreamFn": "_.deburr",
+      "goFn": "deburr.Deburr"
+    },
+    {
+      "id": "edge-004",
+      "fn": "deburr",
+      "args": [
+        "é"
+      ],
+      "upstreamFn": "_.deburr",
+      "goFn": "deburr.Deburr"
+    },
+    {
+      "id": "edge-005",
+      "fn": "deburr",
+      "args": [
+        "🌮 déjà 🌮"
+      ],
+      "upstreamFn": "_.deburr",
+      "goFn": "deburr.Deburr",
+      "note": "emoji pass through"
+    },
+    {
+      "id": "edge-006",
+      "fn": "deburr",
+      "args": [
+        "👨‍👩‍👧‍👦"
+      ],
+      "upstreamFn": "_.deburr",
+      "goFn": "deburr.Deburr"
+    },
+    {
+      "id": "edge-007",
+      "fn": "deburr",
+      "args": [
+        "𝕳𝖊𝖑𝖑𝖔"
+      ],
+      "upstreamFn": "_.deburr",
+      "goFn": "deburr.Deburr",
+      "note": "astral-plane letters have no table entries"
+    },
+    {
+      "id": "edge-008",
+      "fn": "deburr",
+      "args": [
+        "déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà déjà "
+      ],
+      "upstreamFn": "_.deburr",
+      "goFn": "deburr.Deburr",
+      "note": "very long input"
+    },
+    {
+      "id": "edge-009",
+      "fn": "deburr",
+      "args": [
+        "éééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé"
+      ],
+      "upstreamFn": "_.deburr",
+      "goFn": "deburr.Deburr",
+      "note": "long run of mapped characters"
+    },
+    {
+      "id": "edge-010",
+      "fn": "deburr",
+      "args": [
+        "́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́́"
+      ],
+      "upstreamFn": "_.deburr",
+      "goFn": "deburr.Deburr",
+      "note": "long run of combining marks"
+    },
+    {
+      "id": "edge-011",
+      "fn": "deburr",
+      "args": [
+        "﷼"
+      ],
+      "upstreamFn": "_.deburr",
+      "goFn": "deburr.Deburr",
+      "note": "an Arabic presentation form"
+    }
+  ]
+}

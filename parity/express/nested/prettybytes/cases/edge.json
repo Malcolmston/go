@@ -1,0 +1,116 @@
+{
+  "group": "edge",
+  "upstream": "pretty-bytes@7.1.1",
+  "note": "Empty/null options, the extremes of the double range, and the non-finite inputs upstream rejects.",
+  "cases": [
+    {
+      "id": "edge-empty-opts",
+      "fn": "prettyBytesOpts",
+      "args": [
+        1337,
+        {}
+      ],
+      "upstreamFn": "prettyBytes",
+      "goFn": "prettybytes.PrettyBytesOpts"
+    },
+    {
+      "id": "edge-null-opts",
+      "fn": "prettyBytes",
+      "args": [
+        1337
+      ],
+      "upstreamFn": "prettyBytes",
+      "goFn": "prettybytes.PrettyBytes"
+    },
+    {
+      "id": "edge-max-safe",
+      "fn": "prettyBytes",
+      "args": [
+        9007199254740991
+      ],
+      "upstreamFn": "prettyBytes",
+      "goFn": "prettybytes.PrettyBytes"
+    },
+    {
+      "id": "edge-tiny",
+      "fn": "prettyBytes",
+      "args": [
+        1e-09
+      ],
+      "upstreamFn": "prettyBytes",
+      "goFn": "prettybytes.PrettyBytes"
+    },
+    {
+      "id": "edge-neg-tiny",
+      "fn": "prettyBytes",
+      "args": [
+        -1e-09
+      ],
+      "upstreamFn": "prettyBytes",
+      "goFn": "prettybytes.PrettyBytes"
+    },
+    {
+      "id": "edge-just-under-kb",
+      "fn": "prettyBytes",
+      "args": [
+        999.9
+      ],
+      "upstreamFn": "prettyBytes",
+      "goFn": "prettybytes.PrettyBytes"
+    },
+    {
+      "id": "edge-just-over-kb",
+      "fn": "prettyBytes",
+      "args": [
+        1000.1
+      ],
+      "upstreamFn": "prettyBytes",
+      "goFn": "prettybytes.PrettyBytes"
+    },
+    {
+      "id": "edge-1024-binary-boundary",
+      "fn": "prettyBytesOpts",
+      "args": [
+        1023.999,
+        {
+          "binary": true
+        }
+      ],
+      "upstreamFn": "prettyBytes",
+      "goFn": "prettybytes.PrettyBytesOpts"
+    },
+    {
+      "id": "err-nan",
+      "fn": "prettyBytes",
+      "args": [
+        "NaN"
+      ],
+      "upstreamFn": "prettyBytes",
+      "goFn": "prettybytes.PrettyBytes",
+      "note": "ERROR case: upstream throws TypeError('Expected a finite number')",
+      "deviation": "Go cannot throw: PrettyBytes returns a formatted string where pretty-bytes raises TypeError on a non-finite input"
+    },
+    {
+      "id": "err-infinity",
+      "fn": "prettyBytes",
+      "args": [
+        "Infinity"
+      ],
+      "upstreamFn": "prettyBytes",
+      "goFn": "prettybytes.PrettyBytes",
+      "note": "ERROR case: upstream throws",
+      "deviation": "Go cannot throw: PrettyBytes returns a formatted string where pretty-bytes raises TypeError on a non-finite input"
+    },
+    {
+      "id": "err-neg-infinity",
+      "fn": "prettyBytes",
+      "args": [
+        "-Infinity"
+      ],
+      "upstreamFn": "prettyBytes",
+      "goFn": "prettybytes.PrettyBytes",
+      "note": "ERROR case: upstream throws",
+      "deviation": "Go cannot throw: PrettyBytes returns a formatted string where pretty-bytes raises TypeError on a non-finite input"
+    }
+  ]
+}

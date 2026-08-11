@@ -1,0 +1,156 @@
+{
+  "group": "edge",
+  "upstream": "change-case@5.4.4",
+  "note": "Empty input, single characters, already-kebab input and very long input.",
+  "cases": [
+    {
+      "id": "edge-000",
+      "fn": "kebabCase",
+      "args": [
+        ""
+      ],
+      "upstreamFn": "changeCase.kebabCase",
+      "goFn": "kebabcase.KebabCase",
+      "note": "empty string"
+    },
+    {
+      "id": "edge-001",
+      "fn": "kebabCase",
+      "args": [
+        " "
+      ],
+      "upstreamFn": "changeCase.kebabCase",
+      "goFn": "kebabcase.KebabCase"
+    },
+    {
+      "id": "edge-002",
+      "fn": "kebabCase",
+      "args": [
+        "\t\n"
+      ],
+      "upstreamFn": "changeCase.kebabCase",
+      "goFn": "kebabcase.KebabCase"
+    },
+    {
+      "id": "edge-003",
+      "fn": "kebabCase",
+      "args": [
+        "a"
+      ],
+      "upstreamFn": "changeCase.kebabCase",
+      "goFn": "kebabcase.KebabCase"
+    },
+    {
+      "id": "edge-004",
+      "fn": "kebabCase",
+      "args": [
+        "A"
+      ],
+      "upstreamFn": "changeCase.kebabCase",
+      "goFn": "kebabcase.KebabCase"
+    },
+    {
+      "id": "edge-005",
+      "fn": "kebabCase",
+      "args": [
+        "0"
+      ],
+      "upstreamFn": "changeCase.kebabCase",
+      "goFn": "kebabcase.KebabCase"
+    },
+    {
+      "id": "edge-006",
+      "fn": "kebabCase",
+      "args": [
+        "already-kebab-case"
+      ],
+      "upstreamFn": "changeCase.kebabCase",
+      "goFn": "kebabcase.KebabCase",
+      "note": "round-trips unchanged"
+    },
+    {
+      "id": "edge-007",
+      "fn": "kebabCase",
+      "args": [
+        "Already-Kebab-Case"
+      ],
+      "upstreamFn": "changeCase.kebabCase",
+      "goFn": "kebabcase.KebabCase"
+    },
+    {
+      "id": "edge-008",
+      "fn": "kebabCase",
+      "args": [
+        "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      ],
+      "upstreamFn": "changeCase.kebabCase",
+      "goFn": "kebabcase.KebabCase",
+      "note": "very long single word"
+    },
+    {
+      "id": "edge-009",
+      "fn": "kebabCase",
+      "args": [
+        "foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-foo-bar"
+      ],
+      "upstreamFn": "changeCase.kebabCase",
+      "goFn": "kebabcase.KebabCase",
+      "note": "very long separated input; guards against catastrophic backtracking"
+    },
+    {
+      "id": "edge-010",
+      "fn": "kebabCase",
+      "args": [
+        "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa"
+      ],
+      "upstreamFn": "changeCase.kebabCase",
+      "goFn": "kebabcase.KebabCase",
+      "note": "very long capital run ending in a lowercase letter"
+    },
+    {
+      "id": "edge-011",
+      "fn": "kebabCase",
+      "args": [
+        "Content-Type"
+      ],
+      "upstreamFn": "changeCase.kebabCase",
+      "goFn": "kebabcase.KebabCase"
+    },
+    {
+      "id": "edge-012",
+      "fn": "kebabCase",
+      "args": [
+        "X-Forwarded-For"
+      ],
+      "upstreamFn": "changeCase.kebabCase",
+      "goFn": "kebabcase.KebabCase"
+    },
+    {
+      "id": "edge-013",
+      "fn": "kebabCase",
+      "args": [
+        "WWW-Authenticate"
+      ],
+      "upstreamFn": "changeCase.kebabCase",
+      "goFn": "kebabcase.KebabCase"
+    },
+    {
+      "id": "edge-014",
+      "fn": "kebabCase",
+      "args": [
+        "access-control-allow-origin"
+      ],
+      "upstreamFn": "changeCase.kebabCase",
+      "goFn": "kebabcase.KebabCase"
+    },
+    {
+      "id": "edge-015",
+      "fn": "kebabCase",
+      "args": [
+        "--"
+      ],
+      "upstreamFn": "changeCase.kebabCase",
+      "goFn": "kebabcase.KebabCase"
+    }
+  ]
+}

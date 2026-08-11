@@ -1,0 +1,201 @@
+{
+  "group": "combining",
+  "upstream": "lodash@4.17.21",
+  "note": "Combining-mark removal: the five Unicode blocks lodash's regexp covers, plus base+mark sequences.",
+  "cases": [
+    {
+      "id": "combining-000",
+      "fn": "deburr",
+      "args": [
+        "é"
+      ],
+      "upstreamFn": "_.deburr",
+      "goFn": "deburr.Deburr",
+      "note": "e + COMBINING ACUTE ACCENT (U+0301) is the decomposed 'é'"
+    },
+    {
+      "id": "combining-001",
+      "fn": "deburr",
+      "args": [
+        "àéîõü"
+      ],
+      "upstreamFn": "_.deburr",
+      "goFn": "deburr.Deburr"
+    },
+    {
+      "id": "combining-002",
+      "fn": "deburr",
+      "args": [
+        "Å"
+      ],
+      "upstreamFn": "_.deburr",
+      "goFn": "deburr.Deburr",
+      "note": "A + COMBINING RING ABOVE"
+    },
+    {
+      "id": "combining-003",
+      "fn": "deburr",
+      "args": [
+        "ñ"
+      ],
+      "upstreamFn": "_.deburr",
+      "goFn": "deburr.Deburr"
+    },
+    {
+      "id": "combining-004",
+      "fn": "deburr",
+      "args": [
+        "ç"
+      ],
+      "upstreamFn": "_.deburr",
+      "goFn": "deburr.Deburr"
+    },
+    {
+      "id": "combining-005",
+      "fn": "deburr",
+      "args": [
+        "̀"
+      ],
+      "upstreamFn": "_.deburr",
+      "goFn": "deburr.Deburr",
+      "note": "a lone combining mark disappears"
+    },
+    {
+      "id": "combining-006",
+      "fn": "deburr",
+      "args": [
+        "x́̂̃"
+      ],
+      "upstreamFn": "_.deburr",
+      "goFn": "deburr.Deburr",
+      "note": "several stacked marks"
+    },
+    {
+      "id": "combining-007",
+      "fn": "deburr",
+      "args": [
+        "ͯ"
+      ],
+      "upstreamFn": "_.deburr",
+      "goFn": "deburr.Deburr",
+      "note": "U+036F is the last Combining Diacritical Mark"
+    },
+    {
+      "id": "combining-008",
+      "fn": "deburr",
+      "args": [
+        "Ͱ"
+      ],
+      "upstreamFn": "_.deburr",
+      "goFn": "deburr.Deburr",
+      "note": "U+0370 is just past the block and must survive"
+    },
+    {
+      "id": "combining-009",
+      "fn": "deburr",
+      "args": [
+        "a᪰b"
+      ],
+      "upstreamFn": "_.deburr",
+      "goFn": "deburr.Deburr",
+      "note": "Combining Diacritical Marks Extended"
+    },
+    {
+      "id": "combining-010",
+      "fn": "deburr",
+      "args": [
+        "a᫿b"
+      ],
+      "upstreamFn": "_.deburr",
+      "goFn": "deburr.Deburr",
+      "note": "the last code point of the Extended block"
+    },
+    {
+      "id": "combining-011",
+      "fn": "deburr",
+      "args": [
+        "a᷀b"
+      ],
+      "upstreamFn": "_.deburr",
+      "goFn": "deburr.Deburr",
+      "note": "Combining Diacritical Marks Supplement"
+    },
+    {
+      "id": "combining-012",
+      "fn": "deburr",
+      "args": [
+        "a᷿b"
+      ],
+      "upstreamFn": "_.deburr",
+      "goFn": "deburr.Deburr"
+    },
+    {
+      "id": "combining-013",
+      "fn": "deburr",
+      "args": [
+        "a⃐b"
+      ],
+      "upstreamFn": "_.deburr",
+      "goFn": "deburr.Deburr",
+      "note": "Combining Diacritical Marks for Symbols"
+    },
+    {
+      "id": "combining-014",
+      "fn": "deburr",
+      "args": [
+        "a⃿b"
+      ],
+      "upstreamFn": "_.deburr",
+      "goFn": "deburr.Deburr"
+    },
+    {
+      "id": "combining-015",
+      "fn": "deburr",
+      "args": [
+        "a︠b"
+      ],
+      "upstreamFn": "_.deburr",
+      "goFn": "deburr.Deburr",
+      "note": "Combining Half Marks"
+    },
+    {
+      "id": "combining-016",
+      "fn": "deburr",
+      "args": [
+        "a︯b"
+      ],
+      "upstreamFn": "_.deburr",
+      "goFn": "deburr.Deburr"
+    },
+    {
+      "id": "combining-017",
+      "fn": "deburr",
+      "args": [
+        "a︰b"
+      ],
+      "upstreamFn": "_.deburr",
+      "goFn": "deburr.Deburr",
+      "note": "U+FE30 is past the Half Marks block and must survive"
+    },
+    {
+      "id": "combining-018",
+      "fn": "deburr",
+      "args": [
+        "Crème Brûlée"
+      ],
+      "upstreamFn": "_.deburr",
+      "goFn": "deburr.Deburr",
+      "note": "mixed precomposed and decomposed in one string"
+    },
+    {
+      "id": "combining-019",
+      "fn": "deburr",
+      "args": [
+        "नि"
+      ],
+      "upstreamFn": "_.deburr",
+      "goFn": "deburr.Deburr",
+      "note": "Devanagari vowel sign is Mc, not a combining diacritic, and must survive"
+    }
+  ]
+}

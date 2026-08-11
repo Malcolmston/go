@@ -1,0 +1,523 @@
+{
+  "group": "separators",
+  "upstream": "camelcase@9.0.0",
+  "note": "The four characters camelcase treats as separators: _ . - and space. Everything else is kept verbatim.",
+  "cases": [
+    {
+      "id": "separators-000-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "foo-bar"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase"
+    },
+    {
+      "id": "separators-000-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "foo-bar"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase"
+    },
+    {
+      "id": "separators-001-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "foo_bar"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase"
+    },
+    {
+      "id": "separators-001-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "foo_bar"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase"
+    },
+    {
+      "id": "separators-002-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "foo bar"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase"
+    },
+    {
+      "id": "separators-002-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "foo bar"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase"
+    },
+    {
+      "id": "separators-003-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "foo.bar"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase"
+    },
+    {
+      "id": "separators-003-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "foo.bar"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase"
+    },
+    {
+      "id": "separators-004-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "foo-bar-baz"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase"
+    },
+    {
+      "id": "separators-004-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "foo-bar-baz"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase"
+    },
+    {
+      "id": "separators-005-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "foo_bar_baz"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase"
+    },
+    {
+      "id": "separators-005-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "foo_bar_baz"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase"
+    },
+    {
+      "id": "separators-006-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "foo bar baz"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase"
+    },
+    {
+      "id": "separators-006-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "foo bar baz"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase"
+    },
+    {
+      "id": "separators-007-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "foo.bar.baz"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase"
+    },
+    {
+      "id": "separators-007-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "foo.bar.baz"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase"
+    },
+    {
+      "id": "separators-008-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "--foo--bar--"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase",
+      "note": "leading/trailing/repeated separators collapse"
+    },
+    {
+      "id": "separators-008-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "--foo--bar--"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase",
+      "note": "leading/trailing/repeated separators collapse"
+    },
+    {
+      "id": "separators-009-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "__foo__bar__"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase"
+    },
+    {
+      "id": "separators-009-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "__foo__bar__"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase"
+    },
+    {
+      "id": "separators-010-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "  foo  bar  "
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase"
+    },
+    {
+      "id": "separators-010-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "  foo  bar  "
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase"
+    },
+    {
+      "id": "separators-011-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "..foo..bar.."
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase"
+    },
+    {
+      "id": "separators-011-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "..foo..bar.."
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase"
+    },
+    {
+      "id": "separators-012-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "foo-_.bar"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase",
+      "note": "mixed separator run"
+    },
+    {
+      "id": "separators-012-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "foo-_.bar"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase",
+      "note": "mixed separator run"
+    },
+    {
+      "id": "separators-013-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "-"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase",
+      "note": "a lone separator"
+    },
+    {
+      "id": "separators-013-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "-"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase",
+      "note": "a lone separator"
+    },
+    {
+      "id": "separators-014-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "_"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase",
+      "note": "a lone underscore is a preserved prefix, not a separator"
+    },
+    {
+      "id": "separators-014-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "_"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase",
+      "note": "a lone underscore is a preserved prefix, not a separator"
+    },
+    {
+      "id": "separators-015-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "---"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase"
+    },
+    {
+      "id": "separators-015-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "---"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase"
+    },
+    {
+      "id": "separators-016-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "   "
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase"
+    },
+    {
+      "id": "separators-016-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "   "
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase"
+    },
+    {
+      "id": "separators-017-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "..."
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase"
+    },
+    {
+      "id": "separators-017-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "..."
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase"
+    },
+    {
+      "id": "separators-018-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "foo bar?"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase",
+      "note": "? is not a separator: kept verbatim"
+    },
+    {
+      "id": "separators-018-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "foo bar?"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase",
+      "note": "? is not a separator: kept verbatim"
+    },
+    {
+      "id": "separators-019-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "A::a"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase",
+      "note": ": is not a separator"
+    },
+    {
+      "id": "separators-019-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "A::a"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase",
+      "note": ": is not a separator"
+    },
+    {
+      "id": "separators-020-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "foo@bar"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase"
+    },
+    {
+      "id": "separators-020-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "foo@bar"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase"
+    },
+    {
+      "id": "separators-021-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "foo#bar"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase"
+    },
+    {
+      "id": "separators-021-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "foo#bar"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase"
+    },
+    {
+      "id": "separators-022-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "foo$bar"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase"
+    },
+    {
+      "id": "separators-022-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "foo$bar"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase"
+    },
+    {
+      "id": "separators-023-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "foo/bar"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase"
+    },
+    {
+      "id": "separators-023-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "foo/bar"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase"
+    },
+    {
+      "id": "separators-024-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "foo+bar"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase"
+    },
+    {
+      "id": "separators-024-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "foo+bar"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase"
+    },
+    {
+      "id": "separators-025-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "foo,bar"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase"
+    },
+    {
+      "id": "separators-025-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "foo,bar"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase"
+    },
+    {
+      "id": "separators-026-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "foo;bar"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase"
+    },
+    {
+      "id": "separators-026-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "foo;bar"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase"
+    },
+    {
+      "id": "separators-027-camelCase",
+      "fn": "camelCase",
+      "args": [
+        "foo:bar"
+      ],
+      "upstreamFn": "camelCase",
+      "goFn": "camelcase.CamelCase"
+    },
+    {
+      "id": "separators-027-pascalCase",
+      "fn": "pascalCase",
+      "args": [
+        "foo:bar"
+      ],
+      "upstreamFn": "camelCase(x,{pascalCase:true})",
+      "goFn": "camelcase.PascalCase"
+    }
+  ]
+}

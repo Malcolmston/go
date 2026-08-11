@@ -1,0 +1,292 @@
+{
+  "group": "edge",
+  "upstream": "pluralize@8.0.0",
+  "note": "Empty, whitespace, digits, unicode, emoji, hyphenated/multiword and very long input.",
+  "cases": [
+    {
+      "id": "edge-000-plural",
+      "fn": "plural",
+      "args": [
+        ""
+      ],
+      "upstreamFn": "pluralize.plural",
+      "goFn": "pluralize.Plural",
+      "note": "empty string is returned unchanged"
+    },
+    {
+      "id": "edge-001-singular",
+      "fn": "singular",
+      "args": [
+        ""
+      ],
+      "upstreamFn": "pluralize.singular",
+      "goFn": "pluralize.Singular"
+    },
+    {
+      "id": "edge-002-plural",
+      "fn": "plural",
+      "args": [
+        " "
+      ],
+      "upstreamFn": "pluralize.plural",
+      "goFn": "pluralize.Plural",
+      "note": "whitespace-only"
+    },
+    {
+      "id": "edge-003-singular",
+      "fn": "singular",
+      "args": [
+        "   "
+      ],
+      "upstreamFn": "pluralize.singular",
+      "goFn": "pluralize.Singular"
+    },
+    {
+      "id": "edge-004-plural",
+      "fn": "plural",
+      "args": [
+        "s"
+      ],
+      "upstreamFn": "pluralize.plural",
+      "goFn": "pluralize.Plural",
+      "note": "single letter"
+    },
+    {
+      "id": "edge-005-singular",
+      "fn": "singular",
+      "args": [
+        "s"
+      ],
+      "upstreamFn": "pluralize.singular",
+      "goFn": "pluralize.Singular"
+    },
+    {
+      "id": "edge-006-plural",
+      "fn": "plural",
+      "args": [
+        "a"
+      ],
+      "upstreamFn": "pluralize.plural",
+      "goFn": "pluralize.Plural"
+    },
+    {
+      "id": "edge-007-plural",
+      "fn": "plural",
+      "args": [
+        "1"
+      ],
+      "upstreamFn": "pluralize.plural",
+      "goFn": "pluralize.Plural",
+      "note": "digits"
+    },
+    {
+      "id": "edge-008-singular",
+      "fn": "singular",
+      "args": [
+        "42"
+      ],
+      "upstreamFn": "pluralize.singular",
+      "goFn": "pluralize.Singular"
+    },
+    {
+      "id": "edge-009-plural",
+      "fn": "plural",
+      "args": [
+        "café"
+      ],
+      "upstreamFn": "pluralize.plural",
+      "goFn": "pluralize.Plural",
+      "note": "non-ASCII: the [^\\x00-\\x7f]$ rule keeps it unchanged"
+    },
+    {
+      "id": "edge-010-singular",
+      "fn": "singular",
+      "args": [
+        "café"
+      ],
+      "upstreamFn": "pluralize.singular",
+      "goFn": "pluralize.Singular"
+    },
+    {
+      "id": "edge-011-plural",
+      "fn": "plural",
+      "args": [
+        "naïve"
+      ],
+      "upstreamFn": "pluralize.plural",
+      "goFn": "pluralize.Plural"
+    },
+    {
+      "id": "edge-012-plural",
+      "fn": "plural",
+      "args": [
+        "日本"
+      ],
+      "upstreamFn": "pluralize.plural",
+      "goFn": "pluralize.Plural",
+      "note": "CJK ends in a non-ASCII rune"
+    },
+    {
+      "id": "edge-013-singular",
+      "fn": "singular",
+      "args": [
+        "日本"
+      ],
+      "upstreamFn": "pluralize.singular",
+      "goFn": "pluralize.Singular"
+    },
+    {
+      "id": "edge-014-plural",
+      "fn": "plural",
+      "args": [
+        "🌮"
+      ],
+      "upstreamFn": "pluralize.plural",
+      "goFn": "pluralize.Plural",
+      "note": "emoji"
+    },
+    {
+      "id": "edge-015-singular",
+      "fn": "singular",
+      "args": [
+        "🌮"
+      ],
+      "upstreamFn": "pluralize.singular",
+      "goFn": "pluralize.Singular"
+    },
+    {
+      "id": "edge-016-plural",
+      "fn": "plural",
+      "args": [
+        "mother-in-law"
+      ],
+      "upstreamFn": "pluralize.plural",
+      "goFn": "pluralize.Plural",
+      "note": "hyphenated compound"
+    },
+    {
+      "id": "edge-017-singular",
+      "fn": "singular",
+      "args": [
+        "mothers-in-law"
+      ],
+      "upstreamFn": "pluralize.singular",
+      "goFn": "pluralize.Singular"
+    },
+    {
+      "id": "edge-018-plural",
+      "fn": "plural",
+      "args": [
+        "attorney general"
+      ],
+      "upstreamFn": "pluralize.plural",
+      "goFn": "pluralize.Plural",
+      "note": "multiword"
+    },
+    {
+      "id": "edge-019-singular",
+      "fn": "singular",
+      "args": [
+        "attorneys general"
+      ],
+      "upstreamFn": "pluralize.singular",
+      "goFn": "pluralize.Singular"
+    },
+    {
+      "id": "edge-020-singular",
+      "fn": "singular",
+      "args": [
+        "ChildRen"
+      ],
+      "upstreamFn": "pluralize.singular",
+      "goFn": "pluralize.Singular",
+      "note": "mixed case irregular"
+    },
+    {
+      "id": "edge-021-plural",
+      "fn": "plural",
+      "args": [
+        "_private"
+      ],
+      "upstreamFn": "pluralize.plural",
+      "goFn": "pluralize.Plural",
+      "note": "leading underscore"
+    },
+    {
+      "id": "edge-022-plural",
+      "fn": "plural",
+      "args": [
+        "foo.bar"
+      ],
+      "upstreamFn": "pluralize.plural",
+      "goFn": "pluralize.Plural",
+      "note": "dotted"
+    },
+    {
+      "id": "edge-023-plural",
+      "fn": "plural",
+      "args": [
+        "foo_bar"
+      ],
+      "upstreamFn": "pluralize.plural",
+      "goFn": "pluralize.Plural"
+    },
+    {
+      "id": "edge-024-plural",
+      "fn": "plural",
+      "args": [
+        "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      ],
+      "upstreamFn": "pluralize.plural",
+      "goFn": "pluralize.Plural",
+      "note": "very long input"
+    },
+    {
+      "id": "edge-025-singular",
+      "fn": "singular",
+      "args": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaies"
+      ],
+      "upstreamFn": "pluralize.singular",
+      "goFn": "pluralize.Singular",
+      "note": "long -ies input; guards against catastrophic backtracking"
+    },
+    {
+      "id": "edge-026-singular",
+      "fn": "singular",
+      "args": [
+        "ss"
+      ],
+      "upstreamFn": "pluralize.singular",
+      "goFn": "pluralize.Singular",
+      "note": "the (ss)$ rule keeps it"
+    },
+    {
+      "id": "edge-027-plural",
+      "fn": "plural",
+      "args": [
+        "SS"
+      ],
+      "upstreamFn": "pluralize.plural",
+      "goFn": "pluralize.Plural"
+    },
+    {
+      "id": "edge-028-plural",
+      "fn": "plural",
+      "args": [
+        "bill"
+      ],
+      "upstreamFn": "pluralize.plural",
+      "goFn": "pluralize.Plural"
+    },
+    {
+      "id": "edge-029-singular",
+      "fn": "singular",
+      "args": [
+        "Bill"
+      ],
+      "upstreamFn": "pluralize.singular",
+      "goFn": "pluralize.Singular"
+    }
+  ]
+}

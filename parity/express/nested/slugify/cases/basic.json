@@ -1,0 +1,127 @@
+{
+  "group": "basic",
+  "upstream": "slugify@1.6.9",
+  "note": "Default-options behaviour: separator \"-\", trim on, no lowercasing.",
+  "cases": [
+    {
+      "id": "basic-hello-world",
+      "fn": "slugify",
+      "args": ["Hello World"],
+      "upstreamFn": "slugify",
+      "goFn": "slugify.Slugify"
+    },
+    {
+      "id": "basic-no-lowercase-by-default",
+      "fn": "slugify",
+      "args": ["Hello World"],
+      "upstreamFn": "slugify",
+      "goFn": "slugify.Slugify",
+      "note": "npm slugify does NOT lowercase by default"
+    },
+    {
+      "id": "basic-empty",
+      "fn": "slugify",
+      "args": [""],
+      "upstreamFn": "slugify",
+      "goFn": "slugify.Slugify"
+    },
+    {
+      "id": "basic-single-space",
+      "fn": "slugify",
+      "args": [" "],
+      "upstreamFn": "slugify",
+      "goFn": "slugify.Slugify"
+    },
+    {
+      "id": "basic-leading-trailing-space",
+      "fn": "slugify",
+      "args": ["   padded title   "],
+      "upstreamFn": "slugify",
+      "goFn": "slugify.Slugify"
+    },
+    {
+      "id": "basic-collapse-space-runs",
+      "fn": "slugify",
+      "args": ["a     b\t\tc\n\nd"],
+      "upstreamFn": "slugify",
+      "goFn": "slugify.Slugify",
+      "note": "tabs and newlines are \\s too, runs collapse to one separator"
+    },
+    {
+      "id": "basic-already-slug",
+      "fn": "slugify",
+      "args": ["already-a-slug"],
+      "upstreamFn": "slugify",
+      "goFn": "slugify.Slugify",
+      "note": "existing hyphens equal the separator, so they become spaces then collapse"
+    },
+    {
+      "id": "basic-hyphen-runs",
+      "fn": "slugify",
+      "args": ["a---b"],
+      "upstreamFn": "slugify",
+      "goFn": "slugify.Slugify"
+    },
+    {
+      "id": "basic-allowed-punctuation",
+      "fn": "slugify",
+      "args": ["keep $*_+~.()'\"!:@ please"],
+      "upstreamFn": "slugify",
+      "goFn": "slugify.Slugify",
+      "note": "the default remove pattern whitelists $*_+~.()'\\\"!-:@"
+    },
+    {
+      "id": "basic-disallowed-punctuation",
+      "fn": "slugify",
+      "args": ["drop , ; ? # [ ] { } ^ ` \\ / = please"],
+      "upstreamFn": "slugify",
+      "goFn": "slugify.Slugify"
+    },
+    {
+      "id": "basic-digits",
+      "fn": "slugify",
+      "args": ["Top 10 Albums of 1999"],
+      "upstreamFn": "slugify",
+      "goFn": "slugify.Slugify"
+    },
+    {
+      "id": "basic-underscore-kept",
+      "fn": "slugify",
+      "args": ["snake_case_name"],
+      "upstreamFn": "slugify",
+      "goFn": "slugify.Slugify"
+    },
+    {
+      "id": "basic-long-input",
+      "fn": "slugify",
+      "args": ["Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua Ut enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur Excepteur sint occaecat cupidatat non proident sunt in culpa qui officia deserunt mollit anim id est laborum"],
+      "upstreamFn": "slugify",
+      "goFn": "slugify.Slugify",
+      "note": "very long input; also guards against catastrophic backtracking"
+    },
+    {
+      "id": "basic-non-string-number",
+      "fn": "slugify",
+      "args": [42],
+      "upstreamFn": "slugify",
+      "goFn": "slugify.Slugify",
+      "note": "ERROR case: upstream throws 'slugify: string argument expected'"
+    },
+    {
+      "id": "basic-non-string-null",
+      "fn": "slugify",
+      "args": [null],
+      "upstreamFn": "slugify",
+      "goFn": "slugify.Slugify",
+      "note": "ERROR case: upstream throws"
+    },
+    {
+      "id": "basic-non-string-array",
+      "fn": "slugify",
+      "args": [["a", "b"]],
+      "upstreamFn": "slugify",
+      "goFn": "slugify.Slugify",
+      "note": "ERROR case: upstream throws"
+    }
+  ]
+}

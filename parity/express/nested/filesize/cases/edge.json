@@ -1,0 +1,186 @@
+{
+  "group": "edge",
+  "upstream": "filesize@11.0.22",
+  "note": "Combined options, non-finite and non-numeric input (upstream throws), and the extremes of the range.",
+  "cases": [
+    {
+      "id": "comb-iec-round0",
+      "fn": "filesizeOpts",
+      "args": [
+        1536,
+        {
+          "standard": "iec",
+          "round": 0
+        }
+      ],
+      "upstreamFn": "filesize",
+      "goFn": "filesize.FileSizeOpts"
+    },
+    {
+      "id": "comb-jedec-round1",
+      "fn": "filesizeOpts",
+      "args": [
+        1536,
+        {
+          "standard": "jedec",
+          "round": 1
+        }
+      ],
+      "upstreamFn": "filesize",
+      "goFn": "filesize.FileSizeOpts"
+    },
+    {
+      "id": "comb-base2-round3",
+      "fn": "filesizeOpts",
+      "args": [
+        1234567,
+        {
+          "base": 2,
+          "round": 3
+        }
+      ],
+      "upstreamFn": "filesize",
+      "goFn": "filesize.FileSizeOpts"
+    },
+    {
+      "id": "comb-si-round0-neg",
+      "fn": "filesizeOpts",
+      "args": [
+        -1234567,
+        {
+          "standard": "si",
+          "round": 0
+        }
+      ],
+      "upstreamFn": "filesize",
+      "goFn": "filesize.FileSizeOpts"
+    },
+    {
+      "id": "comb-empty-opts",
+      "fn": "filesizeOpts",
+      "args": [
+        1337,
+        {}
+      ],
+      "upstreamFn": "filesize",
+      "goFn": "filesize.FileSizeOpts",
+      "note": "an empty options object must behave like the defaults"
+    },
+    {
+      "id": "comb-null-opts",
+      "fn": "filesize",
+      "args": [
+        1337
+      ],
+      "upstreamFn": "filesize",
+      "goFn": "filesize.FileSize"
+    },
+    {
+      "id": "err-nan",
+      "fn": "filesize",
+      "args": [
+        "NaN"
+      ],
+      "upstreamFn": "filesize",
+      "goFn": "filesize.FileSize",
+      "note": "ERROR case: upstream throws TypeError('Invalid number')"
+    },
+    {
+      "id": "err-infinity",
+      "fn": "filesize",
+      "args": [
+        "Infinity"
+      ],
+      "upstreamFn": "filesize",
+      "goFn": "filesize.FileSize",
+      "note": "ERROR case: upstream throws"
+    },
+    {
+      "id": "err-neg-infinity",
+      "fn": "filesize",
+      "args": [
+        "-Infinity"
+      ],
+      "upstreamFn": "filesize",
+      "goFn": "filesize.FileSize",
+      "note": "ERROR case: upstream throws"
+    },
+    {
+      "id": "err-not-a-number",
+      "fn": "filesize",
+      "args": [
+        "abc"
+      ],
+      "upstreamFn": "filesize",
+      "goFn": "filesize.FileSize",
+      "note": "ERROR case: Number('abc') is NaN, so upstream throws"
+    },
+    {
+      "id": "edge-max-safe-integer",
+      "fn": "filesize",
+      "args": [
+        9007199254740991
+      ],
+      "upstreamFn": "filesize",
+      "goFn": "filesize.FileSize"
+    },
+    {
+      "id": "edge-tiny",
+      "fn": "filesize",
+      "args": [
+        1e-09
+      ],
+      "upstreamFn": "filesize",
+      "goFn": "filesize.FileSize"
+    },
+    {
+      "id": "edge-one-byte-boundary",
+      "fn": "filesize",
+      "args": [
+        0.999
+      ],
+      "upstreamFn": "filesize",
+      "goFn": "filesize.FileSize"
+    },
+    {
+      "id": "edge-just-under-kb",
+      "fn": "filesize",
+      "args": [
+        999.9
+      ],
+      "upstreamFn": "filesize",
+      "goFn": "filesize.FileSize"
+    },
+    {
+      "id": "edge-just-over-kb",
+      "fn": "filesize",
+      "args": [
+        1000.1
+      ],
+      "upstreamFn": "filesize",
+      "goFn": "filesize.FileSize"
+    },
+    {
+      "id": "edge-huge-1e100",
+      "fn": "filesize",
+      "args": [
+        1e+100
+      ],
+      "upstreamFn": "filesize",
+      "goFn": "filesize.FileSize",
+      "note": "far beyond the last unit, which must clamp to YB"
+    },
+    {
+      "id": "edge-huge-1e100-iec",
+      "fn": "filesizeOpts",
+      "args": [
+        1e+100,
+        {
+          "standard": "iec"
+        }
+      ],
+      "upstreamFn": "filesize",
+      "goFn": "filesize.FileSize"
+    }
+  ]
+}

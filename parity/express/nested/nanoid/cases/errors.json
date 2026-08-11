@@ -1,0 +1,69 @@
+{
+  "group": "errors",
+  "upstream": "nanoid@6.0.1",
+  "note": "Sizes upstream rejects. Note that an EMPTY alphabet and an alphabet longer than 256 characters are deliberately absent: upstream loops forever on both instead of throwing, so there is no comparable answer (see COVERAGE.md).",
+  "cases": [
+    {
+      "id": "neg-1",
+      "fn": "negative",
+      "args": [
+        -1
+      ],
+      "upstreamFn": "nanoid",
+      "goFn": "nanoid.NewSize",
+      "note": "ERROR case: upstream throws 'Wrong ID size'"
+    },
+    {
+      "id": "neg-2",
+      "fn": "negative",
+      "args": [
+        -2
+      ],
+      "upstreamFn": "nanoid",
+      "goFn": "nanoid.NewSize",
+      "note": "ERROR case: upstream throws"
+    },
+    {
+      "id": "neg-21",
+      "fn": "negative",
+      "args": [
+        -21
+      ],
+      "upstreamFn": "nanoid",
+      "goFn": "nanoid.NewSize",
+      "note": "ERROR case: upstream throws"
+    },
+    {
+      "id": "neg-100",
+      "fn": "negative",
+      "args": [
+        -100
+      ],
+      "upstreamFn": "nanoid",
+      "goFn": "nanoid.NewSize",
+      "note": "ERROR case: upstream throws"
+    },
+    {
+      "id": "custom-neg-1",
+      "fn": "customNegative",
+      "args": [
+        "abc",
+        -1
+      ],
+      "upstreamFn": "nanoid.customAlphabet",
+      "goFn": "nanoid.Custom",
+      "note": "ERROR case: upstream throws"
+    },
+    {
+      "id": "custom-neg-64",
+      "fn": "customNegative",
+      "args": [
+        "0123456789abcdef",
+        -64
+      ],
+      "upstreamFn": "nanoid.customAlphabet",
+      "goFn": "nanoid.Custom",
+      "note": "ERROR case: upstream throws"
+    }
+  ]
+}
