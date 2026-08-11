@@ -1,0 +1,13 @@
+{
+  "group": "types",
+  "upstream": "sequelize@6.37.8",
+  "note": "column type round-tripping over SQLite: BOOLEAN, FLOAT, DECIMAL.",
+  "cases": [
+    { "id": "type-bool-where-true", "fn": "findAll", "args": [{"where": {"active": true}, "order": [["id", "ASC"]]}], "upstreamFn": "BOOLEAN", "goFn": "BOOLEAN", "note": "boolean stored as 0/1 in SQLite, read back as true/false on both" },
+    { "id": "type-bool-where-false", "fn": "findAll", "args": [{"where": {"active": false}, "order": [["id", "ASC"]]}], "upstreamFn": "BOOLEAN", "goFn": "BOOLEAN" },
+    { "id": "type-bool-create", "fn": "create", "args": [{"name": "Flag", "active": true, "score": 1.25}], "upstreamFn": "BOOLEAN", "goFn": "BOOLEAN", "note": "created row round-trips bool true and float 1.25" },
+    { "id": "type-float-sum", "fn": "sum", "args": ["score", {}], "upstreamFn": "FLOAT", "goFn": "FLOAT", "note": "4.5+3.0+5.0+2.5 = 15" },
+    { "id": "type-float-max", "fn": "max", "args": ["score", {}], "upstreamFn": "FLOAT", "goFn": "FLOAT" },
+    { "id": "type-decimal-create", "fn": "createThing", "args": [{"amount": 9.99}], "upstreamFn": "DECIMAL", "goFn": "DECIMAL", "deviation": "on SQLite upstream returns DECIMAL as a JS number (9.99); the port returns it as a string (\"9.99\") for precision, matching how Sequelize itself returns DECIMAL on Postgres/MySQL. Upstream's SQLite behaviour is the outlier across its own dialects." }
+  ]
+}

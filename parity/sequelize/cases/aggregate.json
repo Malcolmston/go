@@ -1,0 +1,16 @@
+{
+  "group": "aggregate",
+  "upstream": "sequelize@6.37.8",
+  "note": "count/sum/min/max over the seeded users.",
+  "cases": [
+    { "id": "count-all", "fn": "count", "args": [{}], "upstreamFn": "Model.count", "goFn": "Model.Count" },
+    { "id": "count-where", "fn": "count", "args": [{"where": {"age": 25}}], "upstreamFn": "Model.count", "goFn": "Model.Count" },
+    { "id": "count-gt", "fn": "count", "args": [{"where": {"age": {"gte": 30}}}], "upstreamFn": "Model.count", "goFn": "Model.Count" },
+    { "id": "sum-age", "fn": "sum", "args": ["age", {}], "upstreamFn": "Model.sum", "goFn": "Model.Sum" },
+    { "id": "sum-age-where", "fn": "sum", "args": ["age", {"where": {"age": 25}}], "upstreamFn": "Model.sum", "goFn": "Model.Sum" },
+    { "id": "sum-empty", "fn": "sum", "args": ["age", {"where": {"id": 999}}], "upstreamFn": "Model.sum", "goFn": "Model.Sum", "note": "no rows: both return null" },
+    { "id": "max-age", "fn": "max", "args": ["age", {}], "upstreamFn": "Model.max", "goFn": "Model.Max" },
+    { "id": "min-age", "fn": "min", "args": ["age", {}], "upstreamFn": "Model.min", "goFn": "Model.Min" },
+    { "id": "max-empty", "fn": "max", "args": ["age", {"where": {"id": 999}}], "upstreamFn": "Model.max", "goFn": "Model.Max", "note": "no rows: both return null" }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "group": "mutation",
+  "upstream": "sequelize@6.37.8",
+  "note": "create/bulkCreate/update/destroy on a fresh seeded database per case; errors are cases too.",
+  "cases": [
+    { "id": "create-basic", "fn": "create", "args": [{"name": "Eve", "age": 40, "email": "eve@example.com"}], "upstreamFn": "Model.create", "goFn": "Model.Create", "note": "returned row carries the generated id (5)" },
+    { "id": "create-default-age-null", "fn": "create", "args": [{"name": "Zoe"}], "upstreamFn": "Model.create", "goFn": "Model.Create", "note": "omitted nullable columns come back null" },
+    { "id": "create-null-name-fails", "fn": "create", "args": [{"age": 20, "email": "x@example.com"}], "upstreamFn": "Model.create", "goFn": "Model.Create", "note": "NOT NULL on name: both must fail" },
+    { "id": "create-dup-email-fails", "fn": "create", "args": [{"name": "Clone", "age": 20, "email": "alice@example.com"}], "upstreamFn": "Model.create", "goFn": "Model.Create", "note": "UNIQUE on email: both must fail" },
+    { "id": "bulk-create", "fn": "bulkCreate", "args": [[{"name": "X", "age": 1, "email": "x@example.com"}, {"name": "Y", "age": 2, "email": "y@example.com"}]], "upstreamFn": "Model.bulkCreate", "goFn": "Model.BulkCreate", "note": "generated ids 5 and 6" },
+    { "id": "bulk-create-null-name-fails", "fn": "bulkCreate", "args": [[{"name": "OK", "age": 1, "email": "ok@example.com"}, {"age": 2, "email": "bad@example.com"}]], "upstreamFn": "Model.bulkCreate", "goFn": "Model.BulkCreate", "note": "one NOT NULL violation fails the whole batch" },
+    { "id": "update-basic", "fn": "update", "args": [{"age": 99}, {"age": 25}], "upstreamFn": "Model.update", "goFn": "Model.Update", "note": "affected count" },
+    { "id": "update-none", "fn": "update", "args": [{"age": 99}, {"id": 999}], "upstreamFn": "Model.update", "goFn": "Model.Update" },
+    { "id": "destroy-basic", "fn": "destroy", "args": [{"age": 25}], "upstreamFn": "Model.destroy", "goFn": "Model.Destroy" },
+    { "id": "destroy-none", "fn": "destroy", "args": [{"id": 999}], "upstreamFn": "Model.destroy", "goFn": "Model.Destroy" },
+    { "id": "destroy-all", "fn": "destroy", "args": [{}], "upstreamFn": "Model.destroy", "goFn": "Model.Destroy", "note": "empty where deletes every row on both sides" }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "group": "associations",
+  "upstream": "sequelize@6.37.8",
+  "note": "eager include: User hasMany Post (batched), Post belongsTo User (join).",
+  "cases": [
+    { "id": "include-hasmany-one", "fn": "findAll", "args": [{"include": ["posts"], "where": {"id": 1}}], "upstreamFn": "hasMany + include", "goFn": "HasMany + Include" },
+    { "id": "include-hasmany-empty", "fn": "findAll", "args": [{"include": ["posts"], "where": {"id": 4}}], "upstreamFn": "hasMany + include", "goFn": "HasMany + Include", "note": "Dave has no posts: posts is an empty array on both" },
+    { "id": "include-hasmany-all", "fn": "findAll", "args": [{"include": ["posts"], "order": [["id", "ASC"]]}], "upstreamFn": "hasMany + include", "goFn": "HasMany + Include", "note": "no N+1: one batched child query" },
+    { "id": "include-belongsto-one", "fn": "findAllPost", "args": [{"include": ["user"], "where": {"id": 3}}], "upstreamFn": "belongsTo + include", "goFn": "BelongsTo + Include" },
+    { "id": "include-belongsto-all", "fn": "findAllPost", "args": [{"include": ["user"], "order": [["id", "ASC"]]}], "upstreamFn": "belongsTo + include", "goFn": "BelongsTo + Include", "note": "join, one row per post" }
+  ]
+}
