@@ -17,11 +17,16 @@
 //
 // CORS is permissive (Access-Control-Allow-Origin: *).
 
-import { esEnabled, esSearch } from '../../../api/_lib/es';
-import { search as bm25Search, queryTokens } from '../../../api/_lib/bm25';
+import { esEnabled, esSearch, type SearchHit } from '../../../api/_lib/es';
+import { search as bm25Search, queryTokens, type SearchResult } from '../../../api/_lib/bm25';
 import { getSymbols } from '../../../api/_lib/data';
 import { logSearch } from '../../../api/_lib/analytics';
-import { MAX_FIRST, firstParam, parseKinds, rerankEnabled } from './params';
+import { MAX_FIRST, parseSearchParams, rerankEnabled } from './params';
+
+// A hit as returned to the client: either an Upstash hit or a BM25 result. Both
+// carry the shared SearchHit contract fields; the union keeps the route honest
+// about which backend produced them without widening to `any`.
+type Hit = SearchHit | SearchResult;
 
 // Run on the Node.js runtime (the shared libs use node built-ins), and never
 // pre-render / cache — every request executes the search live.
@@ -41,7 +46,7 @@ async function runSearch(
   library: string,
   kinds: string[],
   reranking: boolean,
-): Promise<{ hits: any[]; backend: string; upstashUsed: boolean }> {
+): Promise<{ hits: Hit[]; backend: string; upstashUsed: boolean }> {
   if (q.trim() === '') return { hits: [], backend: 'memory', upstashUsed: false };
 
   if (esEnabled()) {
@@ -66,13 +71,13 @@ async function runSearch(
   const filtered = library !== '' || kinds.length > 0;
   const kindSet = kinds.length > 0 ? new Set(kinds) : null;
   const want = filtered ? Math.min(MAX_FIRST, first * 8) : first;
-  const scope = (hits: any[]): any[] =>
+  const scope = (hits: Hit[]): Hit[] =>
     hits
       .filter(
         (h) =>
           h &&
           (library === '' || h.library === library) &&
-          (kindSet === null || kindSet.has(h.kind)),
+          (kindSet === null || kindSet.has(String(h.kind))),
       )
       .slice(0, first);
   return { hits: scope(bm25Search(getSymbols(), q, want)), backend: 'memory', upstashUsed: false };
@@ -83,15 +88,27 @@ export async function OPTIONS(): Promise<Response> {
 }
 
 export async function GET(req: Request): Promise<Response> {
-  const params = new URL(req.url).searchParams;
-  const q = params.get('q') ?? '';
-  const first = firstParam(params.get('first'));
-  const library = (params.get('library') ?? '').trim();
-  const kinds = parseKinds(params.get('kind'));
+  // Every param is validated and bounded here (see ./params). Parsing is total,
+  // so malformed input degrades to the default rather than erroring.
+  const { q, first, library, kinds } = parseSearchParams(new URL(req.url).searchParams);
   const rerankOn = rerankEnabled();
 
   const startedAt = Date.now();
-  const { hits, backend, upstashUsed } = await runSearch(q, first, library, kinds, rerankOn);
+  let hits: Hit[];
+  let backend: string;
+  let upstashUsed: boolean;
+  try {
+    ({ hits, backend, upstashUsed } = await runSearch(q, first, library, kinds, rerankOn));
+  } catch (err) {
+    // runSearch already falls back to BM25 when Upstash fails, so reaching here
+    // means the corpus itself is unavailable. Report it as a dependency failure
+    // (503) rather than an opaque 500, and never echo the internal detail.
+    console.error('[search] backend failure', err);
+    return Response.json(
+      { error: 'search_unavailable', hits: [], backend: 'none', total: 0 },
+      { status: 503, headers: { ...CORS_HEADERS, 'Cache-Control': 'no-store' } },
+    );
+  }
   const tookMs = Math.round(Date.now() - startedAt);
 
   // reranking was actually applied only when Upstash served the query AND it

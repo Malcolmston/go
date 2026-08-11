@@ -11,6 +11,13 @@
 //   loadSymbols()/ getSymbols() -> the symbols array from symbols.json
 //                                  [ { id, name, kind, packageImportPath, library,
 //                                      signature, doc, anchor } ]
+//   getParity()  / getParityFor(libId)
+//                               -> the MEASURED parity corpus from parity.json,
+//                                  built out of parity/**/{parity.json,
+//                                  COVERAGE.md,cases/*.json,security.json}.
+//                                  This — not src/parity.ts, which is a legacy
+//                                  hand-written map — is the source of truth for
+//                                  what the ports actually score.
 
 import fs from 'node:fs';
 
@@ -76,9 +83,110 @@ export interface ExampleDoc {
   [key: string]: unknown;
 }
 
+// --- measured parity (api/_data/parity.json) -------------------------------
+// Written by scripts/build-graph-data.ts, which normalises the non-uniform
+// harness manifests under parity/** into this one shape. Numbers are always
+// finite; `status`/`percent` fields are never NaN.
+
+export type ParityCaseStatus = 'match' | 'mismatch' | 'deviation' | 'unknown';
+export type ParityCoverageStatus = 'match' | 'differs' | 'missing' | 'extra' | 'untested';
+
+export interface ParityUpstream {
+  /** exactly as the harness pinned it, e.g. "express@4.21.2". */
+  raw: string;
+  name: string;
+  version: string;
+  /** node | python | java | ruby | rust | elixir | c ("" when undetectable). */
+  ecosystem: string;
+}
+export interface ParityGroup {
+  name: string;
+  total: number;
+  match: number;
+  mismatch: number;
+  deviations: number;
+  /** the harness recorded a case count for this group but no verdicts. */
+  countsOnly: boolean;
+}
+export interface ParityCase {
+  id: string;
+  group: string;
+  fn: string;
+  upstreamFn: string;
+  goFn: string;
+  note: string;
+  deviation: string;
+  status: ParityCaseStatus;
+  /** the harness's failure list named this case, even if it is a declared deviation. */
+  harnessFailed: boolean;
+  file: string;
+}
+export interface ParityCoverageRow {
+  upstreamSymbol: string;
+  goSymbol: string;
+  status: ParityCoverageStatus;
+  cases: string[];
+  note: string;
+}
+export interface ParityCoverageSummary {
+  match: number;
+  differs: number;
+  missing: number;
+  extra: number;
+  untested: number;
+  percent: number;
+  total: number;
+}
+export interface ParitySecurityFinding {
+  id: string;
+  summary: string;
+  severity: string;
+  affectedVersions: string;
+  cases: string[];
+  /** repo-relative manifest holding the full markdown `description`. */
+  descriptionPath: string;
+  hasDescription: boolean;
+}
+export interface ParityLibrary {
+  library: string;
+  /** nested harnesses only: the upstream package this sub-port ports. */
+  package?: string;
+  harnessPath: string;
+  upstream: ParityUpstream;
+  goModule: string;
+  goPackage: string;
+  goVersion: string;
+  goVersionRaw: string;
+  generatedBy: string;
+  measuredAt: string;
+  total: number;
+  match: number;
+  mismatch: number;
+  deviations: number;
+  parityPercent: number;
+  comparedTotal: number;
+  /** false when the harness recorded no per-case verdicts (statuses are `unknown`). */
+  perCaseVerdicts: boolean;
+  groups: ParityGroup[];
+  groupsDerived: boolean;
+  cases: ParityCase[];
+  coverage: ParityCoverageRow[];
+  coverageSummary: ParityCoverageSummary;
+  coverageCommand: string;
+  security: ParitySecurityFinding[];
+  /** ports of a *different* upstream package living in the same sub-repo. */
+  nested?: Record<string, ParityLibrary>;
+  [key: string]: unknown;
+}
+export interface ParityCorpus {
+  generatedAt: string;
+  libraries: Record<string, ParityLibrary>;
+}
+
 let graphCache: Graph | null = null;
 let symbolsCache: SymbolDoc[] | null = null;
 let examplesCache: Record<string, ExampleDoc> | null = null;
+let parityCache: ParityCorpus | null = null;
 
 function readJson(relativePath: string): unknown {
   const url = new URL(relativePath, import.meta.url);
@@ -120,6 +228,100 @@ export function loadExamples(): Record<string, ExampleDoc> {
   }
   examplesCache = normalizeExamples(parsed);
   return examplesCache;
+}
+
+export function loadParity(): ParityCorpus {
+  if (parityCache) return parityCache;
+  let parsed: unknown;
+  try {
+    parsed = readJson('../_data/parity.json');
+  } catch {
+    parsed = null;
+  }
+  parityCache = normalizeParity(parsed);
+  return parityCache;
+}
+
+// Shape guard. The file is generated, but a stale or half-written artifact must
+// degrade to "no parity data" rather than throw inside a request handler, and a
+// library entry that is not an object must not poison the whole map.
+function normalizeParity(parsed: unknown): ParityCorpus {
+  const root = parsed && typeof parsed === 'object' ? (parsed as Record<string, unknown>) : {};
+  const generatedAt = typeof root.generatedAt === 'string' ? root.generatedAt : '';
+  const raw = root.libraries;
+  const libraries: Record<string, ParityLibrary> = {};
+  if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+    for (const [id, value] of Object.entries(raw as Record<string, unknown>)) {
+      const lib = normalizeParityLibrary(value, id);
+      if (lib) libraries[id] = lib;
+    }
+  }
+  return { generatedAt, libraries };
+}
+
+function num(v: unknown): number {
+  return typeof v === 'number' && Number.isFinite(v) ? v : 0;
+}
+
+function normalizeParityLibrary(value: unknown, id: string): ParityLibrary | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const v = value as Record<string, unknown>;
+  const upstream = (v.upstream && typeof v.upstream === 'object' ? v.upstream : {}) as Record<string, unknown>;
+  const cov = (v.coverageSummary && typeof v.coverageSummary === 'object'
+    ? v.coverageSummary
+    : {}) as Record<string, unknown>;
+  const nestedRaw = v.nested;
+  let nested: Record<string, ParityLibrary> | undefined;
+  if (nestedRaw && typeof nestedRaw === 'object' && !Array.isArray(nestedRaw)) {
+    nested = {};
+    for (const [k, sub] of Object.entries(nestedRaw as Record<string, unknown>)) {
+      const lib = normalizeParityLibrary(sub, k);
+      if (lib) nested[k] = lib;
+    }
+  }
+  const out: ParityLibrary = {
+    ...v,
+    library: typeof v.library === 'string' ? v.library : id,
+    harnessPath: typeof v.harnessPath === 'string' ? v.harnessPath : '',
+    upstream: {
+      raw: typeof upstream.raw === 'string' ? upstream.raw : '',
+      name: typeof upstream.name === 'string' ? upstream.name : '',
+      version: typeof upstream.version === 'string' ? upstream.version : '',
+      ecosystem: typeof upstream.ecosystem === 'string' ? upstream.ecosystem : '',
+    },
+    goModule: typeof v.goModule === 'string' ? v.goModule : '',
+    goPackage: typeof v.goPackage === 'string' ? v.goPackage : '',
+    goVersion: typeof v.goVersion === 'string' ? v.goVersion : '',
+    goVersionRaw: typeof v.goVersionRaw === 'string' ? v.goVersionRaw : '',
+    generatedBy: typeof v.generatedBy === 'string' ? v.generatedBy : '',
+    measuredAt: typeof v.measuredAt === 'string' ? v.measuredAt : '',
+    total: num(v.total),
+    match: num(v.match),
+    mismatch: num(v.mismatch),
+    deviations: num(v.deviations),
+    parityPercent: num(v.parityPercent),
+    comparedTotal: num(v.comparedTotal),
+    perCaseVerdicts: v.perCaseVerdicts === true,
+    groups: Array.isArray(v.groups) ? (v.groups as ParityGroup[]) : [],
+    groupsDerived: v.groupsDerived === true,
+    cases: Array.isArray(v.cases) ? (v.cases as ParityCase[]) : [],
+    coverage: Array.isArray(v.coverage) ? (v.coverage as ParityCoverageRow[]) : [],
+    coverageSummary: {
+      match: num(cov.match),
+      differs: num(cov.differs),
+      missing: num(cov.missing),
+      extra: num(cov.extra),
+      untested: num(cov.untested),
+      percent: num(cov.percent),
+      total: num(cov.total),
+    },
+    coverageCommand: typeof v.coverageCommand === 'string' ? v.coverageCommand : '',
+    security: Array.isArray(v.security) ? (v.security as ParitySecurityFinding[]) : [],
+  };
+  if (typeof v.package === 'string') out.package = v.package;
+  if (nested && Object.keys(nested).length > 0) out.nested = nested;
+  else delete out.nested;
+  return out;
 }
 
 function normalizeExamples(parsed: unknown): Record<string, ExampleDoc> {
@@ -172,6 +374,32 @@ export function getSymbols(): SymbolDoc[] {
 
 export function getExamples(): Record<string, ExampleDoc> {
   return loadExamples();
+}
+
+// The whole measured parity corpus, keyed by library id (the parity/<id>/ dir
+// name, which is also the docs/library id).
+export function getParity(): ParityCorpus {
+  return loadParity();
+}
+
+// One library's measured parity, or null when the id is unknown (a placeholder
+// port with no harness yet included). A nested package can be addressed as
+// "express/qs" or "express/nested/qs".
+export function getParityFor(libId: string): ParityLibrary | null {
+  const raw = String(libId ?? '').trim();
+  if (raw === '') return null;
+  const parts = raw.split('/').filter((p) => p !== '' && p !== 'nested');
+  if (parts.length === 0) return null;
+  const { libraries } = loadParity();
+  const rootId = parts[0].toLowerCase();
+  if (!Object.prototype.hasOwnProperty.call(libraries, rootId)) return null;
+  let lib: ParityLibrary = libraries[rootId];
+  for (const pkg of parts.slice(1)) {
+    const nested = lib.nested;
+    if (!nested || !Object.prototype.hasOwnProperty.call(nested, pkg)) return null;
+    lib = nested[pkg];
+  }
+  return lib;
 }
 
 // Look up a single runnable example by library id. Returns null when unknown.

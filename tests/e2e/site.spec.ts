@@ -3,14 +3,13 @@ import { LIBS } from '../../src/data';
 
 // The Next.js App Router migration turned every hash tab into a real route:
 //   home    -> '/'
-//   <top>   -> '/<top>'         (parity, pipeline, explore, releases, howto, faq, ai, about)
+//   <top>   -> '/<top>'         (parity, explore, releases, howto, faq, ai, about)
 //   <libId> -> '/lib/<libId>'   (every ecosystem library from src/data LIBS)
 // The go-ui <Layout> still renders each nav link with an href of `#<id>`, but its
 // onClick routes through the Next router, so the URL after navigation is the PATH
 // (mirrors app/nav.ts pathForTab / tabForPath).
 const TOP_LEVEL = [
   'parity',
-  'pipeline',
   'explore',
   'releases',
   'howto',
@@ -49,7 +48,7 @@ test.beforeEach(async ({ page }) => {
   // render-blocking font CSS from fonts.googleapis.com and some views fetch
   // api.github.com — all network-blocked in CI, where they stall until a slow
   // timeout. A render-blocking <link> that stalls delays first paint, which on
-  // the heaviest route (/pipeline) pushed the view past the 20s budget. Aborting
+  // the heaviest route (/parity) pushed the view past the 20s budget. Aborting
   // makes them fail immediately, so the browser paints without waiting.
   await page.route(/(fonts\.googleapis\.com|fonts\.gstatic\.com|kit\.fontawesome\.com|ka-f\.fontawesome\.com|api\.github\.com)/, (r) => r.abort());
 
@@ -77,7 +76,7 @@ async function gotoTab(page: Page, id: string) {
   // Wait only for domcontentloaded, not 'load': the site references external
   // fonts (fonts.googleapis.com) and some views fetch api.github.com, all of
   // which are network-blocked in CI and hang until they time out. Waiting for
-  // 'load' would block on those dead requests (worst on /pipeline, which makes
+  // 'load' would block on those dead requests (worst on /parity, which makes
   // the most external calls); the client-only SPA renders after DCL + hydration
   // regardless, so we wait for the active view to paint instead.
   await page.goto(pathForTab(id), { waitUntil: 'domcontentloaded' });

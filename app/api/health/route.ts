@@ -11,6 +11,7 @@
 // Upstash Search env vars are configured. CORS is permissive (Allow-Origin: *).
 
 import { esEnabled } from '../../../api/_lib/es';
+import { getGraph, getSymbols } from '../../../api/_lib/data';
 
 // Run on the Node.js runtime (the shared lib reads process.env), and never
 // pre-render / cache — every request reports live configuration state.
@@ -29,8 +30,36 @@ export async function OPTIONS(): Promise<Response> {
 }
 
 export async function GET(): Promise<Response> {
+  // `ok` and `es` are the stable contract the frontend probe (src/api/graph.ts
+  // hasApi()) depends on. The corpus counters below are additive diagnostics —
+  // they make it possible to tell "functions are up but the data files did not
+  // ship" apart from a healthy deploy, which the boolean alone cannot.
+  //
+  // Every read is defensive: a health probe must answer even when the data it
+  // reports on is broken, and it must never echo an internal error (which would
+  // disclose the deployment's filesystem layout).
+  let symbols = 0;
+  let packages = 0;
+  let libraries = 0;
+  let generatedAt = '';
+  let dataOk = true;
+  try {
+    symbols = getSymbols().length;
+    const graph = getGraph();
+    packages = graph.packages.length;
+    libraries = graph.libraries.length;
+    generatedAt = graph.generatedAt;
+  } catch (err) {
+    console.error('[health] failed to read bundled data', err);
+    dataOk = false;
+  }
+
   return Response.json(
-    { ok: true, es: esEnabled() },
+    {
+      ok: true,
+      es: esEnabled(),
+      data: { ok: dataOk && symbols > 0 && packages > 0, symbols, packages, libraries, generatedAt },
+    },
     {
       headers: {
         ...CORS_HEADERS,

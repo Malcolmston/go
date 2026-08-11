@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import type { CSSProperties } from 'react';
+import { useRef, useState } from 'react';
+import type { CSSProperties, KeyboardEvent } from 'react';
 import Link from 'next/link';
 import { CodeBlock, CompareCard, DocsApp, VersionBadge, hi, hx, ghrepo } from 'go-ui';
 import type { Lib } from '../data';
-import { parityFor } from '../parityLookup';
+import { parityFor, repoKey } from '../parityLookup';
 import { withBase } from '../basePath';
 import { Html } from './Html';
 
@@ -20,6 +20,13 @@ function docKey(lib: Lib): string {
 
 type Sub = 'overview' | 'examples' | 'api' | 'parity';
 
+const SUBS: { id: Sub; label: string }[] = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'examples', label: 'Examples' },
+  { id: 'api', label: 'API' },
+  { id: 'parity', label: 'Parity' },
+];
+
 // LibView renders a single library's page. The content is split into sub-tabs
 // (Overview / Examples / API / Parity) under a persistent hero, so each concern
 // is its own view instead of one long scroll.
@@ -28,13 +35,26 @@ export function LibView({ lib }: LibViewProps) {
   const source = lib.source ?? 'Node.js';
   const parity = parityFor(lib);
   const [sub, setSub] = useState<Sub>('overview');
+  const tabRefs = useRef<Partial<Record<Sub, HTMLButtonElement | null>>>({});
 
-  const tabs: { id: Sub; label: string }[] = [
-    { id: 'overview', label: 'Overview' },
-    { id: 'examples', label: 'Examples' },
-    { id: 'api', label: 'API' },
-    { id: 'parity', label: 'Parity' },
-  ];
+  const tabId = (id: Sub) => `${idb}-tab-${id}`;
+  const panelId = (id: Sub) => `${idb}-panel-${id}`;
+
+  // WAI-ARIA tabs pattern: the tablist is one tab stop (roving tabindex) and
+  // Left/Right/Home/End move between tabs, activating as they go.
+  const onTabKeyDown = (e: KeyboardEvent<HTMLButtonElement>) => {
+    const i = SUBS.findIndex((t) => t.id === sub);
+    let next = -1;
+    if (e.key === 'ArrowRight') next = (i + 1) % SUBS.length;
+    else if (e.key === 'ArrowLeft') next = (i - 1 + SUBS.length) % SUBS.length;
+    else if (e.key === 'Home') next = 0;
+    else if (e.key === 'End') next = SUBS.length - 1;
+    if (next < 0) return;
+    e.preventDefault();
+    const id = SUBS[next].id;
+    setSub(id);
+    tabRefs.current[id]?.focus();
+  };
 
   return (
     <section className="view active" id={`view-${lib.id}`}>
@@ -62,15 +82,22 @@ export function LibView({ lib }: LibViewProps) {
       <p className="muted">{lib.blurb}</p>
 
       <div className="libtabs" role="tablist" aria-label={`${lib.name} sections`}>
-        {tabs.map((t) => (
+        {SUBS.map((t) => (
           <button
             key={t.id}
             type="button"
             role="tab"
+            id={tabId(t.id)}
             aria-selected={sub === t.id}
+            aria-controls={panelId(t.id)}
+            tabIndex={sub === t.id ? 0 : -1}
+            ref={(el) => {
+              tabRefs.current[t.id] = el;
+            }}
             className={`libtab${sub === t.id ? ' active' : ''}`}
             style={sub === t.id ? ({ '--lib-accent': lib.accent } as CSSProperties) : undefined}
             onClick={() => setSub(t.id)}
+            onKeyDown={onTabKeyDown}
           >
             {t.label}
           </button>
@@ -78,7 +105,13 @@ export function LibView({ lib }: LibViewProps) {
       </div>
 
       {sub === 'overview' && (
-        <div className="libpanel" role="tabpanel">
+        <div
+          className="libpanel"
+          role="tabpanel"
+          id={panelId('overview')}
+          aria-labelledby={tabId('overview')}
+          tabIndex={0}
+        >
           <div className="sec-h" id={`${idb}-install`}><span className="bar" /><h3 style={{ margin: 0 }}>Install</h3></div>
           <CodeBlock lang="shell" html={`<span class="tok-c">$</span> go get ${lib.pkg}`} />
 
@@ -93,7 +126,13 @@ export function LibView({ lib }: LibViewProps) {
       )}
 
       {sub === 'examples' && (
-        <div className="libpanel" role="tabpanel">
+        <div
+          className="libpanel"
+          role="tabpanel"
+          id={panelId('examples')}
+          aria-labelledby={tabId('examples')}
+          tabIndex={0}
+        >
           <div className="sec-h" id={`${idb}-cmp`}><span className="bar" /><h3 style={{ margin: 0 }}>{source} → Go</h3></div>
           <p className="muted">The same program, written in {source} and in its Go port — the API is designed to read the same way.</p>
           <div className="compare">
@@ -112,7 +151,13 @@ export function LibView({ lib }: LibViewProps) {
       )}
 
       {sub === 'api' && (
-        <div className="libpanel" role="tabpanel">
+        <div
+          className="libpanel"
+          role="tabpanel"
+          id={panelId('api')}
+          aria-labelledby={tabId('api')}
+          tabIndex={0}
+        >
           <div className="sec-h" id={`${idb}-api`}><span className="bar" /><h3 style={{ margin: 0 }}>API reference</h3></div>
           <p className="muted">The complete package-by-package Go API reference, generated from source — every exported type, function and method, with signatures, doc comments and runnable examples.</p>
           {/* Full Javadoc-style reference rendered inline. hashRouting is off so the
@@ -132,7 +177,13 @@ export function LibView({ lib }: LibViewProps) {
       )}
 
       {sub === 'parity' && (
-        <div className="libpanel" role="tabpanel">
+        <div
+          className="libpanel"
+          role="tabpanel"
+          id={panelId('parity')}
+          aria-labelledby={tabId('parity')}
+          tabIndex={0}
+        >
           <div className="sec-h" id={`${idb}-parity`}><span className="bar" /><h3 style={{ margin: 0 }}>Upstream parity</h3></div>
           {parity ? (
             <>
@@ -141,8 +192,8 @@ export function LibView({ lib }: LibViewProps) {
                 <a href={`${lib.repo}/blob/main/parity.json`} target="_blank" rel="noopener"><code>parity.json</code></a>,
                 which the port's parity CI pipeline publishes. It measures the Go port against the original library by syncing
                 that library's own test suite and closing the gaps those tests expose. See the{' '}
-                <Link href="/parity">Parity</Link> tab for exactly how the score is calculated, and the{' '}
-                <Link href="/pipeline">Pipeline</Link> tab to watch {lib.name}'s CI run stage by stage.
+                <Link href={`/parity/${encodeURIComponent(repoKey(lib))}`}>{lib.name} parity record</Link> for the
+                stages of the run, every upstream symbol compared with its Go counterpart, and every individual case.
               </p>
               <div className="parity-tiles">
                 <div className="parity-tile" style={{ '--lib-accent': lib.accent } as CSSProperties}>
@@ -162,7 +213,8 @@ export function LibView({ lib }: LibViewProps) {
           ) : (
             <p className="muted">
               {lib.name} is not yet audited against an upstream test suite, so it has no live parity score. Its pipeline still
-              builds and tests the port on every push — see the <Link href="/pipeline">Pipeline</Link> tab, or{' '}
+              builds and tests the port on every push — see the <Link href="/parity">Parity</Link> page for how a
+              measured score is produced, or{' '}
               <a href={`${lib.repo}/actions`} target="_blank" rel="noopener">view CI ↗</a>.
             </p>
           )}

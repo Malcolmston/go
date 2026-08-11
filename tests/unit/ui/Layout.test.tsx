@@ -50,4 +50,64 @@ describe('Layout', () => {
     await userEvent.click(menuBtn);
     expect(navEl.className).toContain('open');
   });
+
+  it('marks the active tab with aria-current and labels the tab nav', () => {
+    render(
+      <Layout brand={brand} tabs={tabs} active="express" onNav={() => {}}>
+        <div />
+      </Layout>,
+    );
+    expect(screen.getByRole('link', { name: 'Express' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: 'Home' })).not.toHaveAttribute('aria-current');
+    expect(screen.getByRole('navigation', { name: 'Sections' })).toBeInTheDocument();
+  });
+
+  it('wires the menu button to the sidebar it controls', () => {
+    render(
+      <Layout brand={brand} tabs={tabs} active="home" onNav={() => {}}>
+        <div />
+      </Layout>,
+    );
+    const menuBtn = screen.getByRole('button', { name: 'Menu' });
+    expect(menuBtn).toHaveAttribute('type', 'button');
+    expect(menuBtn).toHaveAttribute('aria-controls', 'site-sidebar');
+    expect(document.getElementById('site-sidebar')).toBeTruthy();
+  });
+
+  it('closes the mobile menu on Escape', async () => {
+    render(
+      <Layout brand={brand} tabs={tabs} active="home" onNav={() => {}}>
+        <div />
+      </Layout>,
+    );
+    const navEl = document.querySelector('nav.tabs') as HTMLElement;
+    await userEvent.click(screen.getByRole('button', { name: 'Menu' }));
+    expect(navEl.className).toContain('open');
+    await userEvent.keyboard('{Escape}');
+    expect(navEl.className).not.toContain('open');
+  });
+
+  it('renders with no tabs without crashing on the brand link', () => {
+    // Regression: the brand click handler used to index tabs[0] unguarded.
+    const onNav = vi.fn();
+    expect(() =>
+      render(
+        <Layout brand={brand} tabs={[]} active="" onNav={onNav}>
+          <div />
+        </Layout>,
+      ),
+    ).not.toThrow();
+    expect(screen.getByText('malcolmston')).toBeInTheDocument();
+  });
+
+  it('opens the GitHub link safely in a new tab', () => {
+    render(
+      <Layout brand={brand} tabs={tabs} active="home" onNav={() => {}} github="https://github.com/malcolmston">
+        <div />
+      </Layout>,
+    );
+    const link = screen.getByRole('link', { name: /GitHub/ });
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+  });
 });

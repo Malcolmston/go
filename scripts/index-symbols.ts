@@ -50,9 +50,20 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
+  // symbols.json is generated (gitignored), so a missing or half-written file is
+  // the expected failure mode on a fresh checkout. Report it as an actionable
+  // message rather than an ENOENT / SyntaxError stack trace.
   const symbolsPath = path.join(root, 'api', '_data', 'symbols.json');
-  const parsed = JSON.parse(fs.readFileSync(symbolsPath, 'utf8')) as { symbols?: SymbolDoc[] };
-  const symbols = parsed.symbols ?? [];
+  let parsed: { symbols?: SymbolDoc[] };
+  try {
+    parsed = JSON.parse(fs.readFileSync(symbolsPath, 'utf8')) as { symbols?: SymbolDoc[] };
+  } catch (err) {
+    const reason = (err as NodeJS.ErrnoException).code === 'ENOENT' ? 'does not exist' : 'is not readable JSON';
+    console.error(`${symbolsPath} ${reason}: ${(err as Error).message}\nRun \`pnpm build:graph\` first.`);
+    process.exit(1);
+    return;
+  }
+  const symbols = Array.isArray(parsed.symbols) ? parsed.symbols : [];
   if (symbols.length === 0) {
     console.error(`No symbols found in ${symbolsPath}. Run \`pnpm build:graph\` first.`);
     process.exit(1);

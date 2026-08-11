@@ -1,3 +1,28 @@
+// LEGACY — HAND-WRITTEN. DO NOT USE IN NEW CODE.
+//
+// This map was maintained by hand (and by a since-retired generator), so its
+// numbers are *claims*, not measurements: nothing re-checks them when a harness
+// re-runs, and the `before`/`after`/`gapsClosed` fields have no counterpart in
+// any harness output at all.
+//
+// The measured source of truth is **api/_data/parity.json**, generated on every
+// build by `scripts/build-graph-data.ts` (`pnpm build:graph`, also the `prebuild`
+// hook) directly out of the harnesses under `parity/**`:
+// `parity.json` totals, `cases/*.json`, the `COVERAGE.md` API inventory and
+// `security.json`. Read it through the memoized loaders in `api/_lib/data.ts`:
+//
+//     import { getParity, getParityFor } from '../_lib/data.ts';
+//     const express = getParityFor('express');   // null when unknown
+//     express?.parityPercent;                    // measured, per case
+//     express?.coverage;                         // per-symbol inventory
+//     express?.nested?.qs;                       // the qs port, scored separately
+//
+// This file is kept only because existing code still imports PARITY (the graph
+// builder reads `upstream`/`after` from it, best-effort). Do not add entries and
+// do not quote these numbers in the UI.
+//
+// ---------------------------------------------------------------------------
+//
 // Upstream-parity metrics per library, aggregated from each repo's parity.json.
 //
 // Each number is MEASURED, not asserted: the port's parity suite installs the
@@ -38,14 +63,14 @@ export interface Parity {
 export const PARITY: Record<string, Parity> = {
   algebra: { upstream: "sympy/sympy", before: "91%", after: "100%", casesSynced: 56, gapsClosed: 3 },
   axios: { upstream: "axios/axios", before: "66%", after: "100%", casesSynced: 38, gapsClosed: 13 },
-  chalk: { upstream: "chalk/chalk", before: "83%", after: "100%", casesSynced: 30, gapsClosed: 5 },
+  chalk: { upstream: "chalk/chalk", before: "83%", after: "100%", casesSynced: 30, gapsClosed: 7 },
   cheerio: { upstream: "cheeriojs/cheerio", before: "92%", after: "100%", casesSynced: 60, gapsClosed: 5 },
   express: { upstream: "expressjs/express", before: "73%", after: "100%", casesSynced: 33, gapsClosed: 9 },
   fastmcp: { upstream: "jlowin/fastmcp", before: "82%", after: "99%", casesSynced: 161, gapsClosed: 12 },
   gltf: { upstream: "KhronosGroup/glTF", before: "94%", after: "100%", casesSynced: 36, gapsClosed: 2 },
   handlebars: { upstream: "handlebars-lang/handlebars.js", before: "87%", after: "97%", casesSynced: 192, gapsClosed: 11 },
   jest: { upstream: "jestjs/jest", before: "98%", after: "100%", casesSynced: 90, gapsClosed: 1 },
-  jose: { upstream: "panva/jose", before: "0%", after: "100%", casesSynced: 55, gapsClosed: 6 },
+  jose: { upstream: "panva/jose", before: "0%", after: "100%", casesSynced: 55, gapsClosed: 7 },
   jq: { upstream: "jqlang/jq", before: "0%", after: "92.5%", casesSynced: 782, gapsClosed: 109 },
   jwt: { upstream: "auth0/node-jsonwebtoken", before: "93%", after: "100%", casesSynced: 30, gapsClosed: 2 },
   liveview: { upstream: "phoenixframework/phoenix_live_view", before: "90%", after: "100%", casesSynced: 18, gapsClosed: 2 },
@@ -55,7 +80,7 @@ export const PARITY: Record<string, Parity> = {
   matplotlib: { upstream: "matplotlib/matplotlib", before: "78%", after: "100%", casesSynced: 8, gapsClosed: 2 },
   migrate: { upstream: "rails/rails", before: "87%", after: "100%", casesSynced: 15, gapsClosed: 2 },
   moment: { upstream: "moment/moment", before: "84%", after: "98%", casesSynced: 319, gapsClosed: 9 },
-  morgan: { upstream: "expressjs/morgan", before: "81%", after: "100%", casesSynced: 54, gapsClosed: 3 },
+  morgan: { upstream: "expressjs/morgan", before: "81%", after: "100%", casesSynced: 54, gapsClosed: 8 },
   nodemailer: { upstream: "nodemailer/nodemailer", before: "0%", after: "100%", casesSynced: 78, gapsClosed: 78 },
   numpy: { upstream: "numpy/numpy", before: "94%", after: "100%", casesSynced: 46, gapsClosed: 3 },
   oban: { upstream: "sorentwo/oban", before: "80%", after: "100%", casesSynced: 41, gapsClosed: 3 },
@@ -71,6 +96,6 @@ export const PARITY: Record<string, Parity> = {
   sled: { upstream: "spacejam/sled", before: "90%", after: "100%", casesSynced: 30, gapsClosed: 3 },
   'socket.io': { upstream: "socketio/socket.io", before: "90%", after: "100%", casesSynced: 20, gapsClosed: 4 },
   sqlite: { upstream: "sqlite/sqlite", before: "92%", after: "100%", casesSynced: 73, gapsClosed: 5 },
-  streamlit: { upstream: "streamlit/streamlit", before: "76%", after: "93%", casesSynced: 31, gapsClosed: 3 },
+  streamlit: { upstream: "streamlit/streamlit", before: "93%", after: "96%", casesSynced: 47, gapsClosed: 8 },
   yaml: { upstream: "yaml/yaml-test-suite", before: "0%", after: "99.7%", casesSynced: 373, gapsClosed: 372 },
 };

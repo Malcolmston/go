@@ -33,4 +33,53 @@ describe('PackageNav', () => {
     await userEvent.click(screen.getByText('middleware'));
     expect(onSelect).toHaveBeenCalledWith('github.com/malcolmston/express/middleware');
   });
+
+  it('exposes the expanded package symbols as real links', () => {
+    // Regression: the rows carried role="listitem", which stripped the link role
+    // off each <a> and hid them from screen-reader link navigation.
+    render(
+      <PackageNav
+        packages={sample.packages}
+        active={sample.packages[0].importPath}
+        onSelect={() => {}}
+      />,
+    );
+    const link = screen.getByRole('link', { name: /Router$/ });
+    expect(link).toHaveAttribute('href', '#sym-Router');
+  });
+
+  it('marks the symbol row matching the current hash', () => {
+    window.location.hash = '#sym-Router';
+    render(
+      <PackageNav
+        packages={sample.packages}
+        active={sample.packages[0].importPath}
+        onSelect={() => {}}
+      />,
+    );
+    const active = document.querySelector('.gd-sym-link.active');
+    expect(active).toHaveAttribute('aria-current', 'true');
+    expect(active?.getAttribute('href')).toBe('#sym-Router');
+    window.location.hash = '';
+  });
+
+  it('shows an empty state when the filter matches nothing', async () => {
+    render(<PackageNav packages={sample.packages} active="" onSelect={() => {}} />);
+    await userEvent.type(screen.getByRole('searchbox'), 'zzzznope');
+    expect(screen.getByText('No packages match.')).toBeInTheDocument();
+  });
+
+  it('renders an empty package list without crashing', () => {
+    render(<PackageNav packages={[]} active="" onSelect={() => {}} />);
+    expect(screen.getByText('No packages match.')).toBeInTheDocument();
+  });
+
+  it('does not crash on a package whose symbol arrays are missing', () => {
+    const malformed = [
+      { importPath: 'github.com/x/broken', name: 'broken', synopsis: '', doc: '' },
+    ] as unknown as DocIndex['packages'];
+    expect(() =>
+      render(<PackageNav packages={malformed} active="github.com/x/broken" onSelect={() => {}} />),
+    ).not.toThrow();
+  });
 });

@@ -167,6 +167,13 @@ export function Ask() {
                       </div>
                     );
                   }
+                  if (part.type === 'tool-getSecurityNotes' && part.state !== 'output-available') {
+                    return (
+                      <div key={`${message.id}-${i}`} className="ask-tool muted">
+                        <i className="fa-solid fa-shield-halved" /> checking the recorded security findings…
+                      </div>
+                    );
+                  }
                   if (part.type === 'tool-searchPastAnswers' && part.state !== 'output-available') {
                     return (
                       <div key={`${message.id}-${i}`} className="ask-tool muted">

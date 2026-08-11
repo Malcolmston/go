@@ -46,4 +46,50 @@ describe('PackageView', () => {
     const { container } = render(<PackageView pkg={express} />);
     expect(container.textContent).toContain('listening on :3000');
   });
+
+  it('keeps a strictly descending heading outline (h1 → h2 → h3 → h4)', () => {
+    const { container } = render(<PackageView pkg={express} />);
+    const levels = Array.from(container.querySelectorAll('h1,h2,h3,h4,h5')).map((h) =>
+      Number(h.tagName.slice(1)),
+    );
+    expect(levels[0]).toBe(1);
+    for (let i = 1; i < levels.length; i++) {
+      // A heading may never skip a level going deeper.
+      expect(levels[i] - levels[i - 1]).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it('renders nested type members one level deeper than the type card', () => {
+    const { container } = render(<PackageView pkg={express} />);
+    expect(container.querySelector('#sym-Router')?.tagName).toBe('H3');
+    expect(container.querySelector('#sym-Router\\.Get')?.tagName).toBe('H4');
+  });
+
+  it('renders a package with no symbols as an empty page rather than crashing', () => {
+    const bare = {
+      importPath: 'github.com/x/empty',
+      name: 'empty',
+      synopsis: 'nothing here',
+      doc: '',
+      consts: [],
+      vars: [],
+      types: [],
+      funcs: [],
+    };
+    render(<PackageView pkg={bare} />);
+    expect(screen.getByRole('heading', { level: 1, name: /package empty/ })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Detail' })).not.toBeInTheDocument();
+  });
+
+  it('tolerates a malformed package whose symbol arrays are missing', () => {
+    // A hand-written / truncated doc.json must degrade, not throw.
+    const malformed = {
+      importPath: 'github.com/x/broken',
+      name: 'broken',
+      synopsis: '',
+      doc: '',
+    } as unknown as Parameters<typeof PackageView>[0]['pkg'];
+    expect(() => render(<PackageView pkg={malformed} />)).not.toThrow();
+    expect(screen.getByRole('heading', { level: 1, name: /package broken/ })).toBeInTheDocument();
+  });
 });

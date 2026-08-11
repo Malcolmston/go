@@ -1,0 +1,224 @@
+/* Styling for the merged Parity page (the index and the per-library run).
+   Uses the site's glass tokens so it inherits the viewer's theme. Every table
+   scrolls inside its own container, so the page itself never scrolls
+   horizontally on a phone. */
+
+.parity-lede { max-width: 78ch; }
+
+.parity-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
+  gap: 0.7rem;
+  margin: 1rem 0 0.5rem;
+}
+
+/* identity cards: the exact oracle and the exact module measured */
+.parity-idgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  gap: 0.7rem;
+  margin: 0.9rem 0 0.3rem;
+}
+.parity-idcard {
+  border: 1px solid var(--edge);
+  border-radius: 14px;
+  background: var(--glass);
+  backdrop-filter: var(--blur);
+  padding: 0.9rem 1rem;
+  box-shadow: var(--hi);
+  min-width: 0;
+}
+.parity-idcard h4 {
+  margin: 0 0 0.5rem;
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+}
+.parity-dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 0.3rem 0.7rem; font-size: 0.85rem; }
+.parity-dl dt { color: var(--fg-dim); white-space: nowrap; }
+.parity-dl dd {
+  margin: 0;
+  color: var(--fg);
+  font-family: "SF Mono", ui-monospace, monospace;
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+
+/* filter bar: text search + status chips + selects */
+.parity-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.8rem 0 0.6rem;
+}
+.parity-filters input[type='search'],
+.parity-filters select {
+  font: inherit;
+  font-size: 0.86rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: 9px;
+  border: 1px solid var(--edge);
+  background: var(--glass);
+  color: var(--fg);
+  backdrop-filter: var(--blur);
+  min-width: 12rem;
+  max-width: 100%;
+}
+.parity-filters label { font-size: 0.8rem; color: var(--fg-dim); font-weight: 600; }
+.parity-chip {
+  font: inherit;
+  font-size: 0.76rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--edge);
+  background: var(--glass);
+  color: var(--fg-dim);
+  cursor: pointer;
+}
+.parity-chip[aria-pressed='true'] { color: var(--fg); border-color: var(--edge-2); background: var(--glass-2); }
+.parity-chip .parity-chip-n { opacity: 0.7; margin-left: 0.35rem; }
+.parity-count { font-size: 0.8rem; color: var(--fg-dim); margin-left: auto; }
+
+/* tables */
+.parity-table-wrap {
+  overflow: auto;
+  max-height: 32rem;
+  border: 1px solid var(--edge);
+  border-radius: 12px;
+  background: var(--glass);
+}
+.parity-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+.parity-table th,
+.parity-table td {
+  text-align: left;
+  padding: 0.5rem 0.8rem;
+  border-bottom: 1px solid var(--edge);
+  vertical-align: top;
+}
+.parity-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--glass-2);
+  backdrop-filter: var(--blur);
+  color: var(--fg-dim);
+  font-weight: 600;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.parity-table tbody tr:last-child td { border-bottom: none; }
+.parity-table tbody tr:hover { background: var(--glass); }
+.parity-table .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.parity-table .mono {
+  font-family: "SF Mono", ui-monospace, monospace;
+  font-size: 0.79rem;
+  color: var(--fg-muted);
+  overflow-wrap: anywhere;
+}
+.parity-table .nowrap { white-space: nowrap; }
+.parity-table caption { caption-side: top; text-align: left; padding: 0.5rem 0.8rem; font-size: 0.8rem; color: var(--fg-dim); }
+.parity-nested-row td { background: var(--glass); }
+
+.parity-pill {
+  display: inline-block;
+  padding: 0.05rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid;
+  font-weight: 600;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+.parity-status {
+  display: inline-block;
+  padding: 0.04rem 0.45rem;
+  border-radius: 6px;
+  border: 1px solid var(--edge-2);
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.parity-status.is-match { color: #10b981; border-color: #10b98155; background: #10b98114; }
+.parity-status.is-mismatch { color: #ef4444; border-color: #ef444455; background: #ef444414; }
+.parity-status.is-deviation { color: #f59e0b; border-color: #f59e0b55; background: #f59e0b14; }
+.parity-status.is-differs { color: #f59e0b; border-color: #f59e0b55; background: #f59e0b14; }
+.parity-status.is-missing { color: #ef4444; border-color: #ef444455; background: #ef444414; }
+.parity-status.is-extra { color: #6366f1; border-color: #6366f155; background: #6366f114; }
+.parity-status.is-untested { color: var(--fg-dim); }
+.parity-status.is-unknown { color: var(--fg-dim); }
+
+.parity-more { display: flex; gap: 0.5rem; align-items: center; margin: 0.6rem 0 0; flex-wrap: wrap; }
+.parity-more button {
+  font: inherit;
+  font-size: 0.82rem;
+  padding: 0.35rem 0.8rem;
+  border-radius: 9px;
+  border: 1px solid var(--edge);
+  background: var(--glass-2);
+  color: var(--fg);
+  cursor: pointer;
+}
+.parity-more button:hover { border-color: var(--edge-2); }
+.parity-more .parity-more-note { font-size: 0.8rem; color: var(--fg-dim); }
+
+/* sticky per-page index */
+.parity-onthis {
+  position: sticky;
+  top: 0.4rem;
+  z-index: 3;
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin: 1.2rem 0 0.4rem;
+  padding: 0.5rem;
+  border: 1px solid var(--edge);
+  border-radius: 12px;
+  background: var(--glass-2);
+  backdrop-filter: var(--blur);
+  font-size: 0.82rem;
+}
+.parity-onthis a {
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--edge);
+  color: var(--fg-muted);
+  text-decoration: none;
+}
+.parity-onthis a:hover { color: var(--fg); border-color: var(--edge-2); }
+
+/* nested harness disclosures */
+.parity-nested { display: grid; gap: 0.6rem; margin: 0.7rem 0 0; }
+.parity-nested-item { border: 1px solid var(--edge); border-radius: 14px; background: var(--glass); overflow: hidden; }
+.parity-disc {
+  width: 100%;
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  font: inherit;
+  text-align: left;
+  padding: 0.75rem 0.95rem;
+  background: none;
+  border: 0;
+  color: var(--fg);
+  cursor: pointer;
+}
+.parity-disc:hover { background: var(--glass-2); }
+.parity-disc .parity-disc-mark { color: var(--fg-dim); font-family: "SF Mono", ui-monospace, monospace; }
+.parity-disc .parity-disc-title { font-weight: 700; }
+.parity-disc .parity-disc-sub { font-size: 0.82rem; color: var(--fg-dim); font-family: "SF Mono", ui-monospace, monospace; overflow-wrap: anywhere; }
+.parity-disc-body { padding: 0.2rem 0.95rem 1rem; border-top: 1px solid var(--edge); }
+
+.parity-back { font-size: 0.85rem; color: var(--fg-dim); }
+.parity-back a { color: var(--fg-muted); }
+.parity-sec { font-size: 0.88rem; color: var(--fg-muted); line-height: 1.6; }
+.parity-empty { border: 1px dashed var(--edge-2); border-radius: 12px; padding: 1rem; color: var(--fg-muted); font-size: 0.88rem; }
+
+@media (max-width: 640px) {
+  .parity-count { margin-left: 0; }
+  .parity-table-wrap { max-height: 24rem; }
+}

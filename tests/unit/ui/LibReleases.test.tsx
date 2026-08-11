@@ -57,4 +57,59 @@ describe('LibReleases', () => {
     render(<LibReleases lib={lib} />);
     expect(await screen.findByText('No releases yet.')).toBeInTheDocument();
   });
+
+  it('shows the error state when the API answers with a non-array payload', async () => {
+    // GitHub returns an object (not an array) for rate-limit style payloads;
+    // mapping over it used to throw during render.
+    global.fetch = vi.fn().mockResolvedValue(okJson({ message: 'API rate limit exceeded' }));
+    render(<LibReleases lib={lib} />);
+    expect(await screen.findByText(/Couldn't load releases/)).toBeInTheDocument();
+  });
+
+  it('linkifies bare URLs in release notes', async () => {
+    global.fetch = vi.fn().mockResolvedValue(
+      okJson([
+        {
+          id: 1,
+          tag_name: 'v1.0.0',
+          published_at: '2025-01-15T00:00:00Z',
+          html_url: 'https://github.com/malcolmston/express/releases/tag/v1.0.0',
+          body: 'See https://example.com/notes for details',
+        },
+      ]),
+    );
+    render(<LibReleases lib={lib} />);
+    const link = await screen.findByRole('link', { name: 'https://example.com/notes' });
+    expect(link).toHaveAttribute('href', 'https://example.com/notes');
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+  });
+
+  it('cannot be made to inject markup or attributes through release notes', async () => {
+    // Release notes are rendered with dangerouslySetInnerHTML. A note whose URL
+    // carries a quote used to break out of the href and add an event handler.
+    const body =
+      'pwn https://example.com/"onmouseover="alert(1)" x\n<img src=x onerror="alert(2)">';
+    global.fetch = vi.fn().mockResolvedValue(
+      okJson([
+        {
+          id: 1,
+          tag_name: 'v1.0.0',
+          published_at: '2025-01-15T00:00:00Z',
+          html_url: 'https://github.com/malcolmston/express/releases/tag/v1.0.0',
+          body,
+        },
+      ]),
+    );
+    const { container } = render(<LibReleases lib={lib} />);
+    await screen.findByText('v1.0.0');
+    const notes = container.querySelector('.rel-notes') as HTMLElement;
+    expect(notes).toBeTruthy();
+    expect(notes.querySelector('img')).toBeNull();
+    for (const el of Array.from(notes.querySelectorAll('*'))) {
+      expect(el.tagName).toBe('A');
+      expect(el.getAttribute('onmouseover')).toBeNull();
+      expect(el.getAttribute('href')).toMatch(/^https?:\/\//);
+    }
+    expect(notes.textContent).toContain('<img src=x onerror="alert(2)">');
+  });
 });

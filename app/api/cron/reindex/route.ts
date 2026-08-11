@@ -23,8 +23,25 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { timingSafeEqual } from 'node:crypto';
 import { esEnabled, esIndexAll } from '../../../../api/_lib/es';
 import type { SymbolDoc } from '../../../../api/_lib/data';
+
+// Compare the presented bearer token against CRON_SECRET without leaking the
+// secret's *contents* through response timing. (The length check short-circuits,
+// so a wrong length is distinguishable — that is accepted; timingSafeEqual
+// requires equal-length buffers, and secret length is not the sensitive part.)
+function bearerMatches(header: string | null, secret: string): boolean {
+  if (typeof header !== 'string') return false;
+  const prefix = 'Bearer ';
+  if (!header.startsWith(prefix)) return false;
+  const presented = Buffer.from(header.slice(prefix.length));
+  const expected = Buffer.from(secret);
+  if (presented.length !== expected.length) return false;
+  return timingSafeEqual(presented, expected);
+}
+
+const NO_STORE = { 'Cache-Control': 'no-store' } as const;
 
 // Run on the Node.js runtime (fs + the shared lib read process.env), never
 // cache, and allow up to 5 minutes for the full reindex (Pro/Fluid Compute).
@@ -39,15 +56,11 @@ export async function GET(request: Request): Promise<Response> {
   if (!secret || secret.trim() === '') {
     return Response.json(
       { ok: false, reason: 'CRON_SECRET not configured' },
-      { status: 500, headers: { 'Cache-Control': 'no-store' } }
+      { status: 500, headers: NO_STORE }
     );
   }
-  const auth = request.headers.get('authorization');
-  if (auth !== `Bearer ${secret}`) {
-    return Response.json(
-      { ok: false, reason: 'unauthorized' },
-      { status: 401, headers: { 'Cache-Control': 'no-store' } }
-    );
+  if (!bearerMatches(request.headers.get('authorization'), secret)) {
+    return Response.json({ ok: false, reason: 'unauthorized' }, { status: 401, headers: NO_STORE });
   }
 
   // If Upstash Search isn't configured, there's nothing to index. Return 200 so
@@ -55,22 +68,43 @@ export async function GET(request: Request): Promise<Response> {
   if (!esEnabled()) {
     return Response.json(
       { ok: false, reason: 'upstash not configured' },
-      { status: 200, headers: { 'Cache-Control': 'no-store' } }
+      { status: 200, headers: NO_STORE }
     );
   }
 
   // Load the symbol corpus the same way scripts/index-symbols.ts does (the file
   // is bundled into this function by next.config.mjs outputFileTracingIncludes).
-  const symbolsPath = path.join(process.cwd(), 'api', '_data', 'symbols.json');
-  const parsed = JSON.parse(fs.readFileSync(symbolsPath, 'utf8')) as { symbols?: SymbolDoc[] };
-  const symbols = parsed.symbols ?? [];
+  // A missing/corrupt corpus is a deploy problem, not a caller problem — report
+  // it as 500 with a fixed reason, never the raw fs/JSON error (which would
+  // disclose the deployment's filesystem layout).
+  let symbols: SymbolDoc[];
+  try {
+    const symbolsPath = path.join(process.cwd(), 'api', '_data', 'symbols.json');
+    const parsed = JSON.parse(fs.readFileSync(symbolsPath, 'utf8')) as { symbols?: SymbolDoc[] };
+    symbols = Array.isArray(parsed?.symbols) ? parsed.symbols : [];
+  } catch (err) {
+    console.error('[cron/reindex] failed to read symbol corpus', err);
+    return Response.json(
+      { ok: false, reason: 'corpus unavailable' },
+      { status: 500, headers: NO_STORE }
+    );
+  }
 
+  // Upstash can rate-limit or fail part-way through ~308 chunked upserts. Surface
+  // that as 502 (upstream dependency failed) so Vercel Cron retries/alarms on a
+  // meaningful status instead of an unhandled rejection.
   const started = Date.now();
-  const indexed = await esIndexAll(symbols);
-  const tookMs = Date.now() - started;
-
-  return Response.json(
-    { ok: true, indexed, tookMs },
-    { headers: { 'Cache-Control': 'no-store' } }
-  );
+  try {
+    const indexed = await esIndexAll(symbols);
+    return Response.json(
+      { ok: true, indexed, tookMs: Date.now() - started },
+      { headers: NO_STORE }
+    );
+  } catch (err) {
+    console.error('[cron/reindex] indexing failed', err);
+    return Response.json(
+      { ok: false, reason: 'indexing failed', tookMs: Date.now() - started },
+      { status: 502, headers: NO_STORE }
+    );
+  }
 }

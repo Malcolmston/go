@@ -18,7 +18,7 @@ let pageErrors: string[] = [];
 
 // The fixed, non-library top-level sections (everything else is a library under
 // /lib/). Mirror of app/nav.ts.
-const TOP_LEVEL = ['parity', 'pipeline', 'explore', 'releases', 'howto', 'faq', 'ai', 'ask', 'about'];
+const TOP_LEVEL = ['parity', 'explore', 'releases', 'howto', 'faq', 'ai', 'ask', 'about'];
 
 /** Map a tab id to its route path. */
 function pathForTab(id: string): string {
@@ -38,7 +38,7 @@ test.use({ permissions: ['clipboard-read', 'clipboard-write'] });
 test.beforeEach(async ({ page }) => {
   // Fail network-blocked external requests fast (render-blocking font CSS +
   // api.github.com) so a stalled request can't delay first paint / hydration —
-  // otherwise the heaviest views (e.g. /pipeline) render past their budget.
+  // otherwise the heaviest views (e.g. /parity) render past their budget.
   await page.route(/(fonts\.googleapis\.com|fonts\.gstatic\.com|kit\.fontawesome\.com|ka-f\.fontawesome\.com|api\.github\.com)/, (r) => r.abort());
 
   pageErrors = [];
@@ -159,7 +159,7 @@ test('every nav tab is clickable and activates its view (menu opens on mobile)',
     } catch {
       await link.dispatchEvent('click');
     }
-    // The heaviest views (e.g. /pipeline's PipelineFlow graph) mount a beat
+    // The heaviest views (e.g. /parity's pipeline graph) mount a beat
     // after the route change, so give the active-view swap a real budget rather
     // than the default 5s.
     await expect(page.locator('.view.active')).toHaveAttribute('id', `view-${id}`, { timeout: 15_000 });

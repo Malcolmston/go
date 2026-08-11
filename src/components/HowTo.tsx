@@ -1,4 +1,5 @@
 import { CodeBlock, hi } from 'go-ui';
+import { LIBS } from '../data';
 import { SecH } from './SecH';
 
 // HowTo is the "how to use this" getting-started guide. It walks through
@@ -35,7 +36,7 @@ go get github.com/malcolmston/passport     # auth
 go get github.com/malcolmston/algebra      # symbolic + numeric math
 go get github.com/malcolmston/sqlite       # embedded SQL
 go get github.com/malcolmston/chalk        # terminal styling
-# …33 libraries in total`)} />
+# …${LIBS.length} libraries in total`)} />
 
       <SecH id="howto-web">2 · A minimal web server (express)</SecH>
       <CodeBlock lang="main.go" html={hi(`package main
@@ -99,8 +100,8 @@ func main() {
     fmt.Println(ntheory.Binomial(52, 5))          // 2598960
     fmt.Println(ntheory.Factorial(10))            // 3628800
 
-    a := matrix.New([][]float64{{1, 2}, {3, 4}})
-    det, _ := matrix.Det(a)                       // -2
+    a := matrix.FromFloats([][]float64{{1, 2}, {3, 4}})
+    det, _ := a.DetLU()                           // -2
 
     v := numpy.Arange(0, 10, 1)
     fmt.Println(numpy.Mean(v))                    // 4.5

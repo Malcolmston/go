@@ -65,6 +65,78 @@ describe('SymbolSearch (local fallback, no endpoint)', () => {
     typeQuery('zzzznotathing');
     expect(document.querySelector('.gd-search-empty')).toBeTruthy();
   });
+
+  it('ranks a name prefix above a package-only match', () => {
+    render(<SymbolSearch packages={packages} onPick={() => {}} />);
+    typeQuery('lru');
+    const first = document.querySelector('.gd-search-item .gd-search-item-label');
+    expect(first?.textContent).toBe('LRU');
+  });
+
+  it('arrow keys move the active row and expose it via aria-activedescendant', () => {
+    render(<SymbolSearch packages={packages} onPick={() => {}} />);
+    const input = typeQuery('lru');
+    expect(document.querySelectorAll('.gd-search-item').length).toBeGreaterThan(1);
+    expect(input).toHaveAttribute('aria-activedescendant', 'gd-search-opt-0');
+
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    expect(input).toHaveAttribute('aria-activedescendant', 'gd-search-opt-1');
+    expect(document.querySelectorAll('.gd-search-item')[1].className).toContain('active');
+
+    fireEvent.keyDown(input, { key: 'ArrowUp' });
+    expect(input).toHaveAttribute('aria-activedescendant', 'gd-search-opt-0');
+  });
+
+  it('Enter picks the active row and clears the query', () => {
+    const onPick = vi.fn();
+    render(<SymbolSearch packages={packages} onPick={onPick} />);
+    const input = typeQuery('readfile');
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(onPick).toHaveBeenCalledWith('github.com/x/io', 'sym-ReadFile');
+    expect((input as HTMLInputElement).value).toBe('');
+  });
+
+  it('Escape closes the menu, then clears the query', () => {
+    render(<SymbolSearch packages={packages} onPick={() => {}} />);
+    const input = typeQuery('read');
+    fireEvent.keyDown(input, { key: 'Escape' });
+    expect(document.querySelector('.gd-search-item')).toBeNull();
+    fireEvent.keyDown(input, { key: 'Escape' });
+    expect((input as HTMLInputElement).value).toBe('');
+  });
+
+  it('scopes the listbox to option rows only (kind chips live outside it)', () => {
+    render(<SymbolSearch packages={packages} onPick={() => {}} />);
+    typeQuery('read');
+    const listbox = document.getElementById('gd-search-listbox');
+    expect(listbox).toHaveAttribute('role', 'listbox');
+    expect(listbox?.querySelector('.gd-search-filter')).toBeNull();
+    expect(document.querySelector('.gd-search-filters')).toBeTruthy();
+    // Everything the listbox owns is an option.
+    for (const child of Array.from(listbox!.children)) {
+      expect(['option', 'status']).toContain(child.getAttribute('role'));
+    }
+  });
+
+  it('filters results by kind when a chip is toggled', () => {
+    render(<SymbolSearch packages={packages} onPick={() => {}} />);
+    typeQuery('lru');
+    fireEvent.click(document.querySelector('.gd-search-filter[data-kind="method"]')!);
+    const labels = Array.from(document.querySelectorAll('.gd-search-item-label')).map(
+      (n) => n.textContent,
+    );
+    expect(labels).toEqual(['LRU.Get']);
+  });
+
+  it('does not crash on a package whose symbol arrays are missing', () => {
+    const malformed = [
+      { importPath: 'github.com/x/broken', name: 'broken', synopsis: '', doc: '' },
+    ] as unknown as DocPackage[];
+    expect(() => {
+      render(<SymbolSearch packages={malformed} onPick={() => {}} />);
+      typeQuery('broken');
+    }).not.toThrow();
+  });
 });
 
 describe('SymbolSearch (backend endpoint)', () => {

@@ -36,4 +36,39 @@ describe('DocText', () => {
     const { container } = render(<DocText text="   " />);
     expect(container.firstChild).toBeNull();
   });
+
+  it('honours an explicit headingLevel so the outline never skips a rank', () => {
+    render(<DocText text={sample} headingLevel={2} />);
+    expect(screen.getByRole('heading', { level: 2, name: 'Basic usage' })).toBeInTheDocument();
+  });
+
+  it('renders a Deprecated: paragraph as a callout', () => {
+    const { container } = render(<DocText text="Deprecated: use New instead." />);
+    const note = container.querySelector('.gd-note.gd-note-dep');
+    expect(note).toBeTruthy();
+    expect(note).toHaveTextContent('Deprecated:');
+    expect(note).toHaveTextContent('use New instead.');
+  });
+
+  it('renders a Note: paragraph as a plain callout', () => {
+    const { container } = render(<DocText text="Note: this is safe." />);
+    expect(container.querySelector('.gd-note')).toBeTruthy();
+    expect(container.querySelector('.gd-note-dep')).toBeNull();
+  });
+
+  it('does not linkify non-http schemes', () => {
+    const { container } = render(<DocText text="Try javascript:alert(1) or data:text/html,x" />);
+    expect(container.querySelector('a')).toBeNull();
+  });
+
+  it('escapes highlighted code inside a doc code block', () => {
+    const { container } = render(<DocText text={'intro\n\n\ts := "<b>x</b>"'} />);
+    expect(container.querySelector('b')).toBeNull();
+    expect(container.textContent).toContain('<b>x</b>');
+  });
+
+  it('tolerates undefined text', () => {
+    const { container } = render(<DocText text={undefined as unknown as string} />);
+    expect(container.firstChild).toBeNull();
+  });
 });

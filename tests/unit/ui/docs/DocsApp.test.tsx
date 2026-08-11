@@ -47,4 +47,56 @@ describe('DocsApp', () => {
     render(<DocsApp url="/missing.json" />);
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent(/Failed to load/));
   });
+
+  it('renders an empty state — not a spinner — when given neither index nor url', () => {
+    render(<DocsApp />);
+    expect(screen.getByText('No documentation available.')).toBeInTheDocument();
+  });
+
+  it('renders an empty state for a doc index with no packages', () => {
+    render(<DocsApp index={{ module: 'github.com/x/y', packages: [] }} />);
+    expect(screen.getAllByText('No packages.').length).toBeGreaterThan(0);
+    expect(screen.getByText('github.com/x/y')).toBeInTheDocument();
+  });
+
+  it('does not crash on a malformed doc index (missing/!array packages)', () => {
+    const bad = { module: 'github.com/x/y' } as unknown as DocIndex;
+    expect(() => render(<DocsApp index={bad} />)).not.toThrow();
+    expect(screen.getAllByText('No packages.').length).toBeGreaterThan(0);
+  });
+
+  it('errors rather than hanging when the fetched JSON is not an object', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => null }));
+    render(<DocsApp url="/doc.json" />);
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent(/malformed/));
+  });
+
+  it('renders the sidebar "Packages" title exactly once', () => {
+    render(<DocsApp index={sample} />);
+    expect(screen.getAllByText('Packages')).toHaveLength(1);
+  });
+
+  it('toggles the Index panel from the header nav', async () => {
+    render(<DocsApp index={sample} />);
+    const indexLink = screen.getByRole('link', { name: 'Index' });
+    expect(indexLink).toHaveAttribute('aria-expanded', 'false');
+    await userEvent.click(indexLink);
+    expect(indexLink).toHaveAttribute('aria-expanded', 'true');
+    expect(document.getElementById('gd-index-panel')).toBeTruthy();
+  });
+
+  it('toggles the Help panel and closes the Index panel', async () => {
+    render(<DocsApp index={sample} />);
+    await userEvent.click(screen.getByRole('link', { name: 'Index' }));
+    await userEvent.click(screen.getByRole('link', { name: 'Help' }));
+    expect(document.getElementById('gd-index-panel')).toBeNull();
+    expect(document.getElementById('gd-help-panel')).toBeTruthy();
+  });
+
+  it('exposes a labelled breadcrumb showing module › package', () => {
+    render(<DocsApp index={sample} />);
+    const crumb = screen.getByRole('navigation', { name: 'Breadcrumb' });
+    expect(crumb).toHaveTextContent(sample.module);
+    expect(crumb).toHaveTextContent('express');
+  });
 });

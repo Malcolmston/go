@@ -16,4 +16,17 @@ describe('Html', () => {
     expect(li).toHaveClass('feat');
     expect(screen.getByText('x').tagName).toBe('CODE');
   });
+
+  it('forwards aria attributes to the rendered element', () => {
+    const { container } = render(<Html tag="div" aria-hidden html={'<i></i>'} />);
+    expect(container.querySelector('div')).toHaveAttribute('aria-hidden', 'true');
+  });
+
+  it('keeps the html prop authoritative for the element contents', () => {
+    const { container } = render(<Html tag="p" id="x" title="t" html={'hello'} />);
+    const p = container.querySelector('p');
+    expect(p).toHaveAttribute('id', 'x');
+    expect(p).toHaveAttribute('title', 't');
+    expect(p).toHaveTextContent('hello');
+  });
 });

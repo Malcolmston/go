@@ -38,7 +38,14 @@ vi.mock('../../../api/_lib/bm25', async (importOriginal) => {
 });
 
 import { GET, OPTIONS } from '../../../app/api/search/route';
-import { parseKinds, rerankEnabled } from '../../../app/api/search/params';
+import {
+  MAX_Q_LEN,
+  parseKinds,
+  parseLibrary,
+  parseQuery,
+  parseSearchParams,
+  rerankEnabled,
+} from '../../../app/api/search/params';
 
 const bmHit = (over: Record<string, unknown> = {}) => ({
   id: 'x',
@@ -88,6 +95,70 @@ describe('parseKinds', () => {
   });
   it('returns [] when all entries are invalid', () => {
     expect(parseKinds('bogus,nope')).toEqual([]);
+  });
+});
+
+describe('parseQuery', () => {
+  it('returns "" for null / non-strings', () => {
+    expect(parseQuery(null)).toBe('');
+  });
+  it('trims surrounding whitespace', () => {
+    expect(parseQuery('  marshal  ')).toBe('marshal');
+  });
+  it('caps the query at MAX_Q_LEN so BM25 term work stays bounded', () => {
+    expect(parseQuery('a'.repeat(5_000))).toHaveLength(MAX_Q_LEN);
+  });
+});
+
+describe('parseLibrary', () => {
+  it('returns "" for null / empty / whitespace', () => {
+    expect(parseLibrary(null)).toBe('');
+    expect(parseLibrary('')).toBe('');
+    expect(parseLibrary('   ')).toBe('');
+  });
+  it('accepts well-formed library slugs and lowercases them', () => {
+    expect(parseLibrary('express')).toBe('express');
+    expect(parseLibrary('socket.io')).toBe('socket.io');
+    expect(parseLibrary('  Express  ')).toBe('express');
+    expect(parseLibrary('next-mdx_2')).toBe('next-mdx_2');
+  });
+  it('drops values that are not library ids', () => {
+    // Nothing caller-controlled may reach the Upstash metadata filter builder.
+    for (const bad of [
+      '../../etc/passwd',
+      'express" OR "1"="1',
+      'a b',
+      '@metadata.kind',
+      '{"$ne":null}',
+      '-leading-dash',
+      'x'.repeat(65),
+    ]) {
+      expect(parseLibrary(bad)).toBe('');
+    }
+  });
+});
+
+describe('parseSearchParams', () => {
+  it('never throws — every field falls back to a bounded default', () => {
+    const p = new URLSearchParams('q=%20hi%20&first=-3&library=NOT VALID&kind=bogus');
+    expect(parseSearchParams(p)).toEqual({ q: 'hi', first: 20, library: '', kinds: [] });
+  });
+  it('parses a fully-specified request', () => {
+    const p = new URLSearchParams('q=marshal&first=5&library=express&kind=func,TYPE');
+    expect(parseSearchParams(p)).toEqual({
+      q: 'marshal',
+      first: 5,
+      library: 'express',
+      kinds: ['func', 'type'],
+    });
+  });
+  it('defaults an entirely empty query string', () => {
+    expect(parseSearchParams(new URLSearchParams())).toEqual({
+      q: '',
+      first: 20,
+      library: '',
+      kinds: [],
+    });
   });
 });
 
@@ -238,5 +309,43 @@ describe('GET', () => {
     mockEsEnabled.mockReturnValue(false);
     await get('q=marshal');
     expect(mockLogSearch).toHaveBeenCalledTimes(1);
+  });
+
+  it('bounds the query length before it reaches a backend', async () => {
+    mockEsEnabled.mockReturnValue(false);
+    await get(`q=${'a'.repeat(5_000)}`);
+    expect(mockBm25Search).toHaveBeenCalledWith(expect.anything(), 'a'.repeat(MAX_Q_LEN), 20);
+  });
+
+  it('drops a malformed library instead of pushing it into the Upstash filter', async () => {
+    mockEsEnabled.mockReturnValue(true);
+    mockEsSearch.mockResolvedValue([]);
+    await get(`q=marshal&library=${encodeURIComponent('express" OR "1"="1')}`);
+    expect(mockEsSearch).toHaveBeenCalledWith('marshal', 20, {
+      reranking: true,
+      library: undefined,
+      kinds: [],
+    });
+  });
+
+  it('treats a whitespace-only query as empty and short-circuits', async () => {
+    const body = await (await get('q=%20%20')).json();
+    expect(body.hits).toEqual([]);
+    expect(mockBm25Search).not.toHaveBeenCalled();
+  });
+
+  it('returns 503 (not a 500 stack) when the corpus itself is unavailable', async () => {
+    mockEsEnabled.mockReturnValue(false);
+    mockGetSymbols.mockImplementation(() => {
+      throw new Error('ENOENT /var/task/api/_data/symbols.json');
+    });
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const res = await get('q=marshal');
+    expect(res.status).toBe(503);
+    const text = await res.text();
+    expect(JSON.parse(text)).toMatchObject({ error: 'search_unavailable', hits: [], total: 0 });
+    expect(text).not.toContain('ENOENT');
+    expect(text).not.toContain('/var/task');
+    expect(res.headers.get('Cache-Control')).toBe('no-store');
   });
 });
