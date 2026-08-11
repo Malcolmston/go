@@ -1,48 +1,94 @@
-# Vercel deploys the go aggregator (web/) which imports the shared UI from ui/.
-# Everything else in this monorepo is irrelevant to the web build — the 33
-# library submodules (their prebuilt API docs already live in web/public/docs),
-# the Go doc tools, and build/test artifacts — so keep them out of the upload.
-.git
-node_modules
+# What NOT to upload to Vercel.
+#
+# EVERY PATTERN HERE MUST BE ANCHORED WITH A LEADING SLASH.
+#
+# This file uses .gitignore syntax, where a bare name like `express` matches a
+# directory called `express` at ANY depth — not just at the repo root. That is
+# what silently broke production: the bare submodule names below also matched
+# `parity/express`, `parity/axios`, `parity/chalk` and so on, so 33 of the 40
+# parity harnesses were stripped from the upload. The site then built from the 7
+# that survived, `/parity` reported "7 harnesses", and `/parity/express` rendered
+# "Parity record not found" — while every local build was correct, because
+# .vercelignore only applies to the upload. The bare `examples` entry had the
+# same effect on the runnable-examples corpus.
+#
+# So: anchor everything, and before adding a pattern, check it does not also
+# match a path the build reads. scripts/build-graph-data.ts reads
+# public/docs/, examples/, parity/ and src/parity.ts; scripts/build-security-data.ts
+# reads parity/*/security.json and each library's VERSION file.
+
+/.git
+
+# Dependencies are installed by Vercel, never uploaded.
+/node_modules
 **/node_modules
-web/dist
-web/test-results
-web/playwright-report
-web/coverage
-examples
-gendocs
-genparity
-# library submodules (docs are prebuilt into web/public/docs):
-algebra
-axios
-chalk
-cheerio
-express
-fastmcp
-gltf
-handlebars
-jest
-jwt
-liveview
-lodash
-lucene
-matplotlib
-migrate
-moment
-morgan
-nodemailer
-numpy
-oban
-opencv
-pandas
-passport
-pdfkit
-prisma
-puppeteer
-quartz
-redis
-sharp
-sled
-socket.io
-sqlite
-streamlit
+
+# Build and test output.
+/.next
+/out
+/test-results
+/playwright-report
+/coverage
+/tsconfig.tsbuildinfo
+
+# Go tooling that the web build does not use. (`gendocs` produces
+# public/docs/*.json, but those are committed, so the tool itself is not needed.)
+/gendocs
+/genparity
+
+# The library submodules themselves. Their prebuilt API docs are committed under
+# public/docs/, which is what the site actually reads, so the Go sources are dead
+# weight in the upload — several hundred MB across 39 repos.
+#
+# NOTE the leading slash on every one. Without it these also match parity/<name>,
+# which the parity pages are built from.
+/algebra
+/axios
+/chalk
+/cheerio
+/express
+/fastmcp
+/gltf
+/handlebars
+/jest
+/jose
+/jq
+/jwt
+/liveview
+/lodash
+/lucene
+/markdown
+/matplotlib
+/migrate
+/moment
+/morgan
+/nodemailer
+/numpy
+/oban
+/opencv
+/pandas
+/passport
+/pdfkit
+/prisma
+/puppeteer
+/quartz
+/redis
+/rrule
+/sequelize
+/sharp
+/sled
+/socket.io
+/sqlite
+/streamlit
+/yaml
+
+# react/, reactcli/ and d3/ are libraries too, but they live in this repo rather
+# than as submodules. Only their committed docs are needed, same as the others.
+/react
+/reactcli
+/d3
+/d3-react-chart
+
+# examples/ IS read by scripts/build-graph-data.ts to build the runnable-examples
+# corpus the /ask assistant serves, so it must be uploaded. It was excluded here
+# before, which left api/_data/examples.json empty in production.
