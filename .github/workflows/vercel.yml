@@ -84,6 +84,14 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: "22"
+          # setup-node@v5 turned package-manager caching ON by default. It reads
+          # `packageManager` from package.json, sees pnpm, and shells out to pnpm
+          # to find its store — but pnpm is not on PATH yet (the reindex step
+          # enables it via corepack further down), so the step fails with
+          # "Unable to locate executable file: pnpm" before anything is built.
+          # Nothing here needs the cache: the deploy step installs through the
+          # Vercel CLI, and the reindex step's install is a single cold install.
+          package-manager-cache: false
 
       - name: Install Vercel CLI
         run: npm install -g vercel@latest
