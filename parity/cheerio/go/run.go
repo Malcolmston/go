@@ -627,7 +627,7 @@ func applyStep(st *state, step []any) (stepResult, error) {
 		return stepResult{sel: sel.AddClass(c)}, nil
 	case "removeClass":
 		if len(a) == 0 {
-			return stepResult{}, fmt.Errorf("Go RemoveClass has no zero-argument (remove-all) form")
+			return stepResult{sel: sel.RemoveClass()}, nil
 		}
 		c, err := str(a, 0)
 		if err != nil {
@@ -864,6 +864,9 @@ func handle(req request) (v any, err error) {
 			return nil, err
 		}
 		nodes := cheerio.ParseHTML(h)
+		if nodes == nil {
+			return nil, nil // upstream returns null for empty input
+		}
 		tags := []any{}
 		for _, n := range nodes {
 			tags = append(tags, nodeName(n))

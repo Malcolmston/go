@@ -3,25 +3,354 @@
   "upstream": "cheerio@1.0.0",
   "note": "Attribute order and quoting are normalised by the shared canonicaliser; entity escaping is deliberately NOT normalised, so escaping differences show up as divergences.",
   "cases": [
-    { "id": "ser-doc-roundtrip-selectors", "fn": "chain", "args": ["selectors", [], "docHtml"], "upstreamFn": "$.html", "goFn": "Document.Html" },
-    { "id": "ser-doc-roundtrip-form", "fn": "chain", "args": ["form", [], "docHtml"], "upstreamFn": "$.html", "goFn": "Document.Html" },
-    { "id": "ser-doc-text", "fn": "chain", "args": ["selectors", [], "docText"], "upstreamFn": "$.root().text", "goFn": "Document.Text" },
-    { "id": "ser-inner-all", "fn": "chain", "args": ["nth", [["find", "li"]], "innerAll"], "upstreamFn": "Cheerio.prototype.html", "goFn": "Node.InnerHTML" },
-    { "id": "ser-outer-all", "fn": "chain", "args": ["nth", [["find", "li"], ["slice", 0, 3]], "outerAll"], "upstreamFn": "$.html", "goFn": "Node.OuterHTML" },
-    { "id": "ser-escape-text-amp", "fn": "chain", "args": ["manip", [["find", "#box"], ["text", "a & b"]], "docHtml"], "upstreamFn": "Cheerio.prototype.text", "goFn": "Selection.SetText" },
-    { "id": "ser-escape-text-lt-gt", "fn": "chain", "args": ["manip", [["find", "#box"], ["text", "1 < 2 > 0"]], "docHtml"], "upstreamFn": "Cheerio.prototype.text", "goFn": "Selection.SetText" },
-    { "id": "ser-escape-text-quotes", "fn": "chain", "args": ["manip", [["find", "#box"], ["text", "\"double\" and 'single'"]], "docHtml"], "upstreamFn": "Cheerio.prototype.text", "goFn": "Selection.SetText" },
-    { "id": "ser-escape-text-nbsp", "fn": "chain", "args": ["manip", [["find", "#box"], ["text", "a b"]], "docHtml"], "upstreamFn": "Cheerio.prototype.text", "goFn": "Selection.SetText", "note": "non-breaking space: literal or &nbsp;?" },
-    { "id": "ser-escape-text-nonascii", "fn": "chain", "args": ["manip", [["find", "#box"], ["text", "café — 日本語"]], "docHtml"], "upstreamFn": "Cheerio.prototype.text", "goFn": "Selection.SetText" },
-    { "id": "ser-escape-attr-quotes", "fn": "chain", "args": ["manip", [["find", "#box"], ["attr", "title", "\"q\" 'p'"]], "docHtml"], "upstreamFn": "Cheerio.prototype.attr", "goFn": "Selection.SetAttr" },
-    { "id": "ser-escape-attr-amp", "fn": "chain", "args": ["manip", [["find", "#box"], ["attr", "href", "/a?b=1&c=2"]], "docHtml"], "upstreamFn": "Cheerio.prototype.attr", "goFn": "Selection.SetAttr" },
-    { "id": "ser-escape-attr-newline", "fn": "chain", "args": ["manip", [["find", "#box"], ["attr", "title", "a\nb\tc"]], "docHtml"], "upstreamFn": "Cheerio.prototype.attr", "goFn": "Selection.SetAttr" },
-    { "id": "ser-script-not-escaped", "fn": "chain", "args": ["manip", [["find", "#box"], ["html", "<script>if (1 < 2 && 3 > 2) f();</script>"]], "docHtml"], "upstreamFn": "Cheerio.prototype.html", "goFn": "Selection.SetHtml", "note": "raw-text element content must not be entity-escaped" },
-    { "id": "ser-style-not-escaped", "fn": "chain", "args": ["manip", [["find", "#box"], ["html", "<style>a > b { content: '&'; }</style>"]], "docHtml"], "upstreamFn": "Cheerio.prototype.html", "goFn": "Selection.SetHtml" },
-    { "id": "ser-comment-preserved", "fn": "chain", "args": ["manip", [["find", "#box"], ["append", "<!-- c & <d> -->"]], "docHtml"], "upstreamFn": "Cheerio.prototype.append", "goFn": "Selection.Append" },
-    { "id": "ser-doctype-preserved", "fn": "chain", "args": ["comments-doctype", [], "docHtml"], "upstreamFn": "$.html", "goFn": "Document.Html" },
-    { "id": "ser-void-no-close-tag", "fn": "chain", "args": ["manip", [["find", "#box"], ["append", "<br><img src=\"x\">"]], "docHtml"], "upstreamFn": "Cheerio.prototype.append", "goFn": "Selection.Append" },
-    { "id": "ser-entities-roundtrip", "fn": "chain", "args": ["entities", [], "docHtml"], "upstreamFn": "$.html", "goFn": "Document.Html" },
-    { "id": "ser-escape-out-roundtrip", "fn": "chain", "args": ["escape-out", [], "docHtml"], "upstreamFn": "$.html", "goFn": "Document.Html" }
+    {
+      "id": "ser-doc-roundtrip-selectors",
+      "fn": "chain",
+      "args": [
+        "selectors",
+        [],
+        "docHtml"
+      ],
+      "upstreamFn": "$.html",
+      "goFn": "Document.Html"
+    },
+    {
+      "id": "ser-doc-roundtrip-form",
+      "fn": "chain",
+      "args": [
+        "form",
+        [],
+        "docHtml"
+      ],
+      "upstreamFn": "$.html",
+      "goFn": "Document.Html"
+    },
+    {
+      "id": "ser-doc-text",
+      "fn": "chain",
+      "args": [
+        "selectors",
+        [],
+        "docText"
+      ],
+      "upstreamFn": "$.root().text",
+      "goFn": "Document.Text"
+    },
+    {
+      "id": "ser-inner-all",
+      "fn": "chain",
+      "args": [
+        "nth",
+        [
+          [
+            "find",
+            "li"
+          ]
+        ],
+        "innerAll"
+      ],
+      "upstreamFn": "Cheerio.prototype.html",
+      "goFn": "Node.InnerHTML"
+    },
+    {
+      "id": "ser-outer-all",
+      "fn": "chain",
+      "args": [
+        "nth",
+        [
+          [
+            "find",
+            "li"
+          ],
+          [
+            "slice",
+            0,
+            3
+          ]
+        ],
+        "outerAll"
+      ],
+      "upstreamFn": "$.html",
+      "goFn": "Node.OuterHTML"
+    },
+    {
+      "id": "ser-escape-text-amp",
+      "fn": "chain",
+      "args": [
+        "manip",
+        [
+          [
+            "find",
+            "#box"
+          ],
+          [
+            "text",
+            "a & b"
+          ]
+        ],
+        "docHtml"
+      ],
+      "upstreamFn": "Cheerio.prototype.text",
+      "goFn": "Selection.SetText"
+    },
+    {
+      "id": "ser-escape-text-lt-gt",
+      "fn": "chain",
+      "args": [
+        "manip",
+        [
+          [
+            "find",
+            "#box"
+          ],
+          [
+            "text",
+            "1 < 2 > 0"
+          ]
+        ],
+        "docHtml"
+      ],
+      "upstreamFn": "Cheerio.prototype.text",
+      "goFn": "Selection.SetText"
+    },
+    {
+      "id": "ser-escape-text-quotes",
+      "fn": "chain",
+      "args": [
+        "manip",
+        [
+          [
+            "find",
+            "#box"
+          ],
+          [
+            "text",
+            "\"double\" and 'single'"
+          ]
+        ],
+        "docHtml"
+      ],
+      "upstreamFn": "Cheerio.prototype.text",
+      "goFn": "Selection.SetText"
+    },
+    {
+      "id": "ser-escape-text-nbsp",
+      "fn": "chain",
+      "args": [
+        "manip",
+        [
+          [
+            "find",
+            "#box"
+          ],
+          [
+            "text",
+            "a b"
+          ]
+        ],
+        "docHtml"
+      ],
+      "upstreamFn": "Cheerio.prototype.text",
+      "goFn": "Selection.SetText",
+      "note": "non-breaking space: literal or &nbsp;?"
+    },
+    {
+      "id": "ser-escape-text-nonascii",
+      "fn": "chain",
+      "args": [
+        "manip",
+        [
+          [
+            "find",
+            "#box"
+          ],
+          [
+            "text",
+            "café — 日本語"
+          ]
+        ],
+        "docHtml"
+      ],
+      "upstreamFn": "Cheerio.prototype.text",
+      "goFn": "Selection.SetText"
+    },
+    {
+      "id": "ser-escape-attr-quotes",
+      "fn": "chain",
+      "args": [
+        "manip",
+        [
+          [
+            "find",
+            "#box"
+          ],
+          [
+            "attr",
+            "title",
+            "\"q\" 'p'"
+          ]
+        ],
+        "docHtml"
+      ],
+      "upstreamFn": "Cheerio.prototype.attr",
+      "goFn": "Selection.SetAttr"
+    },
+    {
+      "id": "ser-escape-attr-amp",
+      "fn": "chain",
+      "args": [
+        "manip",
+        [
+          [
+            "find",
+            "#box"
+          ],
+          [
+            "attr",
+            "href",
+            "/a?b=1&c=2"
+          ]
+        ],
+        "docHtml"
+      ],
+      "upstreamFn": "Cheerio.prototype.attr",
+      "goFn": "Selection.SetAttr"
+    },
+    {
+      "id": "ser-escape-attr-newline",
+      "fn": "chain",
+      "args": [
+        "manip",
+        [
+          [
+            "find",
+            "#box"
+          ],
+          [
+            "attr",
+            "title",
+            "a\nb\tc"
+          ]
+        ],
+        "docHtml"
+      ],
+      "upstreamFn": "Cheerio.prototype.attr",
+      "goFn": "Selection.SetAttr"
+    },
+    {
+      "id": "ser-script-not-escaped",
+      "fn": "chain",
+      "args": [
+        "manip",
+        [
+          [
+            "find",
+            "#box"
+          ],
+          [
+            "html",
+            "<script>if (1 < 2 && 3 > 2) f();</script>"
+          ]
+        ],
+        "docHtml"
+      ],
+      "upstreamFn": "Cheerio.prototype.html",
+      "goFn": "Selection.SetHtml",
+      "note": "raw-text element content must not be entity-escaped"
+    },
+    {
+      "id": "ser-style-not-escaped",
+      "fn": "chain",
+      "args": [
+        "manip",
+        [
+          [
+            "find",
+            "#box"
+          ],
+          [
+            "html",
+            "<style>a > b { content: '&'; }</style>"
+          ]
+        ],
+        "docHtml"
+      ],
+      "upstreamFn": "Cheerio.prototype.html",
+      "goFn": "Selection.SetHtml"
+    },
+    {
+      "id": "ser-comment-preserved",
+      "fn": "chain",
+      "args": [
+        "manip",
+        [
+          [
+            "find",
+            "#box"
+          ],
+          [
+            "append",
+            "<!-- c & <d> -->"
+          ]
+        ],
+        "docHtml"
+      ],
+      "upstreamFn": "Cheerio.prototype.append",
+      "goFn": "Selection.Append"
+    },
+    {
+      "id": "ser-doctype-preserved",
+      "fn": "chain",
+      "args": [
+        "comments-doctype",
+        [],
+        "docHtml"
+      ],
+      "upstreamFn": "$.html",
+      "goFn": "Document.Html",
+      "deviation": "parse5 fragment mode drops the doctype; the Go port has no fragment/document switch and preserves it (document-mode behaviour) - a parsing-mode artefact."
+    },
+    {
+      "id": "ser-void-no-close-tag",
+      "fn": "chain",
+      "args": [
+        "manip",
+        [
+          [
+            "find",
+            "#box"
+          ],
+          [
+            "append",
+            "<br><img src=\"x\">"
+          ]
+        ],
+        "docHtml"
+      ],
+      "upstreamFn": "Cheerio.prototype.append",
+      "goFn": "Selection.Append"
+    },
+    {
+      "id": "ser-entities-roundtrip",
+      "fn": "chain",
+      "args": [
+        "entities",
+        [],
+        "docHtml"
+      ],
+      "upstreamFn": "$.html",
+      "goFn": "Document.Html"
+    },
+    {
+      "id": "ser-escape-out-roundtrip",
+      "fn": "chain",
+      "args": [
+        "escape-out",
+        [],
+        "docHtml"
+      ],
+      "upstreamFn": "$.html",
+      "goFn": "Document.Html"
+    }
   ]
 }

@@ -5,9 +5,13 @@
   (added with `GOWORK=off go get github.com/malcolmston/cheerio@latest`; consumed as a
   published module — there is no `replace` directive in `go.mod`).
 - **Harness:** `GOWORK=off go test ./parity/cheerio/` — 317 cases across 7 case files.
-- **Case score:** 276 match / 41 differ / 0 declared deviations → **87.07 %** (see `parity.json`).
-- **Symbol score:** 49 match / 15 differs over 64 compared symbols → **76.56 %**
-  (17 untested, 9 missing, 90 upstream symbols total).
+- **Case score:** 306 match / 2 differ / 9 declared deviations → **99.35 %** of the
+  308 compared cases (see `parity.json`). The 9 deviations are listed in
+  `cheerio/API-DEVIATIONS.md`; the 2 remaining differs are the adoption-agency
+  parsing gap.
+- **Symbol score:** 60 match / 1 differs over 61 compared symbols → **98.36 %**
+  (3 symbols are now pure deviations — `serialize`, `serializeArray`, `val`;
+  17 untested, 9 missing, 90 upstream symbols total).
 
 ## How the upstream inventory was derived
 
@@ -196,7 +200,46 @@ Untested unless a case is listed. None of these has an upstream counterpart to c
 | `cheerio.RenderNodes`, `cheerio.TextOf` | extra/mapped | `static-html-*`, `static-text-*` | stand in for `$.html(nodes)` / `$.text(nodes)` |
 | `NodeType` and its constants, `Attribute`, `FormField` | extra | — | exported types |
 
-## Divergences found (all are real behavioural differences, reproducible by `go test`)
+## Status update (this round)
+
+Most divergences catalogued below have since been fixed in the port and now
+match upstream; the descriptions are kept for the record. Concretely:
+
+- **Serialisation / escaping (all fixed):** attribute values no longer escape
+  `<`/`>`, and both text and attribute serialisation emit `&nbsp;` for U+00A0
+  — matching cheerio's dom-serializer (`parse-escape-out`, `acc-outerhtml-escapes`,
+  `man-setattr-escaping`, `static-html-escapes`, `ser-escape-out-roundtrip`,
+  `ser-escape-text-nbsp`).
+- **Entity decoding (fixed):** the decoder now does longest-prefix matching and
+  honours the legacy (semicolon-optional) entities, so `&notanentity;` → `¬anentity;`
+  and `&amp` → `&` (`parse-entities`, `text-entities`, `tree-entities-text`,
+  `ser-entities-roundtrip`).
+- **Parser (fixed):** foster parenting for stray content in `<table>`; the
+  self-closing slash is ignored on non-void elements; `<col>` outside a table is
+  dropped; a stray `</p>` synthesises an empty `<p></p>` under the same conditions
+  parse5 does (`parse-table-foster`, `tree-foster-siblings`,
+  `parse-self-closing-nonvoid`, `parse-void-elements`, `tree-void-children`,
+  `parse-select-in-p`, `tree-select-in-p-children`).
+- **Selectors (fixed):** `:empty`/`:parent` treat whitespace text as content;
+  `:enabled` matches any element without a `disabled` attribute; an unknown
+  pseudo-class is a `Compile` error; the empty selector compiles to a
+  match-nothing matcher (`pseudo-empty`, `pseudo-parent`, `pseudo-enabled`,
+  `compile-unknown-pseudo`, `compile-empty`).
+- **Traversal (fixed):** `End`/`AddBack` now track the correct previous stage
+  through a filtered traversal step (`tr-end`, `tr-add-back`, `tr-add-back-filtered`).
+- **Accessors/manipulation/statics (fixed):** `AddClass` preserves the original
+  class-attribute whitespace; `RemoveClass()` has a zero-argument remove-all form;
+  `SetData` caches in memory instead of writing an attribute; `Merge` concatenates
+  without de-duplicating; `ParseHTML("")` returns nil (→ `null`).
+
+**Remaining real difference:** the adoption agency algorithm is still not
+implemented (`parse-misnested-format`, `parse-misnested-deep`).
+
+The nine deliberate deviations are documented in `cheerio/API-DEVIATIONS.md`
+(absent `Css`/`Val` → `""`, `multiple`-select serialisation, `RemoveData`,
+namespace-qualified selectors, and the fragment-mode doctype artefact).
+
+## Divergences found (original catalogue; see status update above)
 
 ### HTML parsing and error recovery (highest-value area)
 
@@ -293,12 +336,11 @@ bare `n`, `0` and internal whitespace, `:first/last/only-child`,
 
 | scope | match | differs | missing | untested | extra | total | parity |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `Cheerio.prototype` (71) | 46 | 11 | 2 | 12 | — | 71 | 80.70 % of 57 compared |
-| loaded `$` own props (15) | 3 | 4 | 3 | 5 | — | 15 | 42.86 % of 7 compared |
-| module-only exports (4) | 0 | 0 | 4 | 0 | — | 4 | n/a |
-| **upstream total** | **49** | **15** | **9** | **17** | — | **90** | **76.56 % of 64 compared** |
-| cases | 276 | 41 | — | — | — | 317 | **87.07 %** |
+| **upstream total** | **60** | **1** | **9** | **17** | — | **90** | **98.36 % of 61 compared** |
+| cases | 306 | 2 | — | — | — | 317 | **99.35 % of 308 compared** |
 
-Symbol parity = `match / (match + differs)` = 49 / 64 = 76.56 %.
-Case parity = `match / (match + differ)` = 276 / 317 = 87.07 %.
+Symbol parity = `match / (match + differs)` = 60 / 61 = 98.36 % (3 symbols —
+`serialize`, `serializeArray`, `val` — are now pure deviations, excluded).
+Case parity = `match / (match + differ)` = 306 / 308 = 99.35 % (9 deviations
+excluded).
 A symbol with no case is `untested`, never `match`.
