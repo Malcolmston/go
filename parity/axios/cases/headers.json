@@ -51,7 +51,8 @@
       "fn": "request",
       "upstreamFn": "defaults.headers['User-Agent']",
       "goFn": "net/http User-Agent",
-      "note": "axios sends axios/<version>; the port leaves the stdlib default",
+      "note": "axios sends axios/<version>; the port sends axios/<port-version>",
+      "deviation": "the port advertises its own version (axios/0.3.0), not the pinned upstream axios/1.7.9; it will never string-match a specific upstream release. See API-DEVIATIONS.md.",
       "args": [
         {
           "client": {

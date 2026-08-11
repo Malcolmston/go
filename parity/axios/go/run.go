@@ -194,6 +194,10 @@ func headerGroups(h map[string]any) (http.Header, ax.HeaderDefaults) {
 			}
 		}
 		if v == nil {
+			// A null header value means "remove this header" in axios. The port
+			// expresses removal as a request-level header key with no values,
+			// which overrides (and thus drops) any inherited default.
+			flat[http.CanonicalHeaderKey(k)] = []string{}
 			continue
 		}
 		flat.Set(k, fmt.Sprint(v))
@@ -231,7 +235,7 @@ func clientConfig(s *spec) ax.Config {
 		cfg.ValidateStatus = validators[*s.ValidateStatus]
 	}
 	if s.MaxRedirects != nil {
-		cfg.MaxRedirects = *s.MaxRedirects
+		cfg.MaxRedirects = s.MaxRedirects
 	}
 	if s.Auth != nil {
 		cfg.BasicAuth = &ax.BasicAuth{Username: s.Auth.Username, Password: s.Auth.Password}
@@ -382,7 +386,7 @@ func renderOK(r *ax.Response, sp *spec) map[string]any {
 	case "text":
 		v["data"] = r.Text()
 	case "auto":
-		v["data"] = map[string]any{"dataType": "string", "text": r.Text()}
+		v["data"] = autoData(r.Data())
 	default:
 		var parsed any
 		if err := r.JSON(&parsed); err != nil {
@@ -420,16 +424,39 @@ func renderErr(err error) map[string]any {
 		"hasResponse":  false,
 		"status":       nil,
 	}
+	if code := ax.ErrorCode(err); code != "" {
+		v["code"] = code
+	}
 	if ae := ax.AsError(err); ae != nil {
-		if ae.Code != "" {
-			v["code"] = ae.Code
-		}
 		if ae.Response != nil {
 			v["hasResponse"] = true
 			v["status"] = ae.Response.Status
 		}
 	}
 	return v
+}
+
+// autoData mirrors the node runner's renderData("auto"): it reports the JSON
+// kind of the parsed response body and its stringified form, so the port's
+// Response.Data (which auto-parses like axios) can be compared to res.data.
+func autoData(d any) map[string]any {
+	dt := "object"
+	switch d.(type) {
+	case nil:
+		return map[string]any{"dataType": "null", "text": "null"}
+	case string:
+		return map[string]any{"dataType": "string", "text": d.(string)}
+	case bool:
+		dt = "boolean"
+	case float64:
+		dt = "number"
+	case []any:
+		dt = "array"
+	case map[string]any:
+		dt = "object"
+	}
+	b, _ := json.Marshal(d)
+	return map[string]any{"dataType": dt, "text": string(b)}
 }
 
 // ------------------------------------------------------------------- fns ---
