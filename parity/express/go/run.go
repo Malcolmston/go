@@ -28,6 +28,7 @@ import (
 	"time"
 
 	"github.com/malcolmston/express"
+	"github.com/malcolmston/express/httperrors"
 )
 
 var pub = func() string {
@@ -216,7 +217,7 @@ func init() {
 				"baseUrl":     baseURLOf(req),
 				"originalUrl": req.OriginalURL(),
 				"path":        req.Path(),
-				"url":         req.Path(),
+				"url":         req.URL(),
 			})
 		})
 		app.Use("/loc", loc)
@@ -320,7 +321,13 @@ func init() {
 			res.JSON(map[string]any{"body": req.Body()})
 		})
 		app.Use(func(err error, req *express.Request, res *express.Response, next express.Next) {
-			res.Status(500).JSON(map[string]any{"parseError": true})
+			// Mirror node's `res.status(err.status || 500)`: a body-parser error
+			// carries its own HTTP status (400 for malformed / non-strict JSON).
+			status := 500
+			if he, ok := err.(*httperrors.Error); ok && he.Status != 0 {
+				status = he.Status
+			}
+			res.Status(status).JSON(map[string]any{"parseError": true})
 		})
 		return app
 	}
@@ -468,7 +475,12 @@ func init() {
 		// keep the 406 comparison portable: upstream's default error page embeds
 		// absolute file paths and a stack trace
 		app.Use(func(err error, req *express.Request, res *express.Response, next express.Next) {
-			res.Status(500).Send("NOTACCEPTABLE")
+			// Mirror node's `res.status(err.status || 500)`.
+			status := 500
+			if he, ok := err.(*httperrors.Error); ok && he.Status != 0 {
+				status = he.Status
+			}
+			res.Status(status).Send("NOTACCEPTABLE")
 		})
 		return app
 	}
