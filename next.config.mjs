@@ -2,7 +2,6 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const isPages = process.env.GITHUB_PAGES === 'true';
 
 // public/ holds generated, browser-fetched data bundles (public/docs/<lib>.json,
 // search-index.json, graph.json, parity.json). Next serves everything under
@@ -23,13 +22,15 @@ export const staticDataSources = [
 ];
 
 /**
- * headers() entries for the generated data bundles. Empty on the GitHub Pages
- * build: `output: 'export'` has no server to attach headers to and Next errors
- * out if headers() is configured alongside it.
- * @param {Record<string, string | undefined>} env
+ * headers() entries for the generated data bundles.
+ *
+ * This used to return [] when GITHUB_PAGES=true, because `output: 'export'` has no
+ * server to attach headers to and Next errors if headers() is set alongside it.
+ * The Pages deployment is gone, so there is only one target now and the env
+ * parameter is kept purely so the unit test can call this directly.
+ * @param {Record<string, string | undefined>} _env
  */
-export function staticDataHeaders(env = process.env) {
-  if (env.GITHUB_PAGES === 'true') return [];
+export function staticDataHeaders(_env = process.env) {
   return staticDataSources.map((source) => ({
     source,
     headers: [{ key: 'Cache-Control', value: staticDataCacheControl }],
@@ -54,15 +55,13 @@ const nextConfig = {
   outputFileTracingIncludes: {
     '/api/**': ['api/_data/**', 'api/_lib/**'],
   },
-  // GitHub Pages is a static, API-less project site under /go; Vercel serves
-  // the full Next app (with API routes) at the domain root.
-  ...(isPages
-    ? { output: 'export', basePath: '/go', images: { unoptimized: true } }
-    : {
-        async headers() {
-          return staticDataHeaders();
-        },
-      }),
+  // Vercel serves the full Next app, API routes included, at the domain root.
+  // There is no second, static target any more: the GitHub Pages export (which
+  // forced `output: 'export'`, a '/go' basePath and unoptimised images) has been
+  // removed, so nothing here is conditional on the deploy target.
+  async headers() {
+    return staticDataHeaders();
+  },
   webpack: (config) => {
     config.resolve.alias['go-ui'] = path.resolve(__dirname, 'ui/src/index.ts');
     // go-ui's source (ui/src) has no node_modules of its own; make webpack

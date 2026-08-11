@@ -499,7 +499,7 @@ in its row above.
 ## The website
 
 The Next.js 15 (App Router, React 19) site that documents the family lives at the
-repo root and deploys to both Vercel and GitHub Pages.
+repo root and deploys to Vercel.
 
 ```sh
 pnpm install        # requires FONTAWESOME_PACKAGE_TOKEN — see below

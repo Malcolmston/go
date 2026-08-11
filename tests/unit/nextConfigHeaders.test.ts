@@ -35,14 +35,20 @@ describe('next config: cache headers for generated data bundles', () => {
     }
   });
 
-  it('emits no headers for the static GitHub Pages export, which rejects them', () => {
-    expect(staticDataHeaders({ GITHUB_PAGES: 'true' })).toEqual([]);
+  // The GitHub Pages export has been removed, so headers() is no longer
+  // conditional on the deploy target. It used to return [] for GITHUB_PAGES=true
+  // because output:'export' has no server to attach headers to; that env var now
+  // means nothing, and asserting so keeps a stale branch from creeping back.
+  it('emits the same headers regardless of the environment', () => {
+    expect(staticDataHeaders({ GITHUB_PAGES: 'true' })).toEqual(staticDataHeaders({}));
+    expect(staticDataHeaders({}).length).toBe(staticDataSources.length);
   });
 
-  it('wires headers() into the Vercel (non-Pages) config', async () => {
-    // The suite runs without GITHUB_PAGES set, i.e. the Vercel branch.
+  it('wires headers() into the config and configures no static export', async () => {
     expect(typeof config.headers).toBe('function');
     await expect(config.headers?.()).resolves.toEqual(staticDataHeaders({}));
+    // A static export would break the API routes and the parity/security pages.
     expect(config.output).toBeUndefined();
+    expect(config.basePath).toBeUndefined();
   });
 });
