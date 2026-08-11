@@ -1,13 +1,31 @@
 {
   "module": "github.com/malcolmston/streamlit",
-  "generatedAt": "2026-07-19T02:05:53Z",
+  "generatedAt": "2026-08-05T11:13:32Z",
   "packages": [
     {
       "importPath": "github.com/malcolmston/streamlit/st",
       "name": "st",
       "synopsis": "Package st is a from-scratch, standard-library-only Go port of Python's Streamlit: a framework for building interactive web and data apps by writing a plain script.",
-      "doc": "Package st is a from-scratch, standard-library-only Go port of Python's\nStreamlit: a framework for building interactive web and data apps by writing\na plain script.\n\n# The model\n\nYou write an app function with the signature func(s *st.Session). Inside it\nyou call methods on the session to build the page: s.Title, s.Write,\ns.Slider, s.Button and so on. Each call appends one element to the page's\nelement tree, and each widget call returns the widget's current value. The\nframework runs your app function top to bottom to produce the page.\n\nThe defining behaviour of Streamlit, reproduced faithfully here, is\nrerun-on-interaction. When the user interacts with any widget, the entire\napp function runs again from the top. Widget values are restored from\nper-session state, so a slider you dragged reads its new position on the\nnext run, and any [State] you stored persists too. The freshly built element\ntree is diffed against the page and the browser updates. This means app code\ncan be written as a simple straight-line script: there are no callbacks,\nevent handlers, or manual DOM updates.\n\n# Sessions and containers\n\nA [Session] represents one browser connection. It embeds the root\n[Container], so all display and widget methods are available directly on the\nsession. Layout helpers such as [Container.Columns] and [Container.Expander]\nreturn further containers that render nested regions; [Session.Sidebar]\nreturns the sidebar container. Because every method lives on *Container, the\nsame API works uniformly for the main body, the sidebar and each column.\n\n# Transport and frontend\n\n[Run] starts an HTTP server. It serves a small, dependency-free single-page\nfrontend (embedded via go:embed) that renders the JSON element tree and\nposts widget-change events back to POST /api/run. The server applies the\nevent, reruns the app function for that session, and returns the new tree.\nThe whole protocol is plain JSON request/response — no third-party modules,\nno JavaScript frameworks, no external charting library (charts are rendered\nto inline SVG on the server).\n\n# Example\n\n\tpackage main\n\n\timport \"github.com/malcolmston/streamlit/st\"\n\n\tfunc main() {\n\t\tst.Run(app, \":8501\")\n\t}\n\n\tfunc app(s *st.Session) {\n\t\ts.Title(\"Hello, Streamlit-Go\")\n\t\tn := s.Slider(\"Points\", 0, 100, 50, 1)\n\t\ts.LineChart(series(int(n)))\n\t\tif s.Button(\"Celebrate\") {\n\t\t\ts.Success(\"🎉\")\n\t\t}\n\t}\n\n# Widgets, layout, media and charts\n\nBeyond the basics the package offers a broad surface, each piece backed by\nper-session state and rendered by the embedded frontend:\n\n  - Display and data: [Container.Title], [Container.Header],\n    [Container.Subheader], [Container.Markdown], [Container.Write],\n    [Container.Metric], [Container.Code], [Container.JSON],\n    [Container.Table] and [Container.DataFrame]. Tabular structs and slices\n    render automatically, and alerts ([Container.Success], [Container.Info],\n    [Container.Warning], [Container.Error]) draw the callout boxes.\n  - Widgets: [Container.Button], [Container.Checkbox], [Container.Toggle],\n    [Container.Slider], [Container.SelectSlider], [Container.NumberInput],\n    [Container.TextInput], [Container.TextArea], [Container.SelectBox],\n    [Container.Radio], [Container.MultiSelect], [Container.DateInput],\n    [Container.TimeInput], [Container.ColorPicker], [Container.Feedback],\n    [Container.DownloadButton] and [Container.FileUploader].\n  - Layout: [Container.Columns], [Container.Container], [Container.Expander],\n    [Container.Tabs], [Container.Popover], [Container.Status],\n    [Container.Empty] and [Session.Sidebar].\n  - Forms: [Container.Form] with [Container.FormSubmitButton] batch widget\n    updates until the form is submitted.\n  - Chat: [Container.ChatMessage] and [Container.ChatInput].\n  - Media: [Container.Image], [Container.Logo], [Container.Audio],\n    [Container.Video] and [Container.Map]. Bytes and [image.Image] values are\n    embedded as base64 data URIs.\n  - Charts (server-side SVG): [Container.LineChart], [Container.AreaChart],\n    [Container.BarChart], [Container.ScatterChart], [Container.PieChart] and\n    [Container.Histogram].\n  - Caching: [Session.Cache] memoises an expensive computation process-wide,\n    across reruns and sessions, with an optional TTL — the analogue of\n    st.cache_data. [CacheClear] evicts every cached entry.\n\n# Deferred features\n\nThis is a compact reimplementation of a large framework. Deliberately\ndeferred: custom components, resource caching (st.cache_resource),\nmultipage apps, real-time streaming/async widgets, in-place dataframe\nediting and theming APIs. The synchronous long-poll-free transport also\nmeans [Container.Spinner] and [Container.Progress] are snapshots of the\ncompleted run rather than live-updating during work.\n",
-      "consts": [],
+      "doc": "Package st is a from-scratch, standard-library-only Go port of Python's\nStreamlit: a framework for building interactive web and data apps by writing\na plain script.\n\n# The model\n\nYou write an app function with the signature func(s *st.Session). Inside it\nyou call methods on the session to build the page: s.Title, s.Write,\ns.Slider, s.Button and so on. Each call appends one element to the page's\nelement tree, and each widget call returns the widget's current value. The\nframework runs your app function top to bottom to produce the page.\n\nThe defining behaviour of Streamlit, reproduced faithfully here, is\nrerun-on-interaction. When the user interacts with any widget, the entire\napp function runs again from the top. Widget values are restored from\nper-session state, so a slider you dragged reads its new position on the\nnext run, and any [State] you stored persists too. The freshly built element\ntree is diffed against the page and the browser updates. This means app code\ncan be written as a simple straight-line script: there are no callbacks,\nevent handlers, or manual DOM updates.\n\nTwo rules follow from that model and are worth internalising early.\n[Session.Stop] halts a run and [Session.Rerun] abandons one and starts it\nagain from the top. And widget state lives exactly as long as the app keeps\nrendering the widget: state for a widget a run did not draw is discarded at\nthe end of that run, so hiding and revealing a widget starts it from its\ndefault — the same behaviour as Streamlit. Give any widget that is not\nunconditionally rendered an explicit key.\n\n# Sessions and containers\n\nA [Session] represents one browser connection. It embeds the root\n[Container], so all display and widget methods are available directly on the\nsession. Layout helpers such as [Container.Columns] and [Container.Expander]\nreturn further containers that render nested regions; [Session.Sidebar]\nreturns the sidebar container. Because every method lives on *Container, the\nsame API works uniformly for the main body, the sidebar and each column.\n\n# Transport and frontend\n\n[Run] starts an HTTP server. It serves a small, dependency-free single-page\nfrontend (embedded via go:embed) that renders the JSON element tree and\nposts widget-change events back to POST /api/run. The server applies the\nevent, reruns the app function for that session, and returns the new tree.\nThe whole protocol is plain JSON request/response — no third-party modules,\nno JavaScript frameworks, no external charting library (charts are rendered\nto inline SVG on the server).\n\n# Example\n\n\tpackage main\n\n\timport \"github.com/malcolmston/streamlit/st\"\n\n\tfunc main() {\n\t\tst.Run(app, \":8501\")\n\t}\n\n\tfunc app(s *st.Session) {\n\t\ts.Title(\"Hello, Streamlit-Go\")\n\t\tn := s.Slider(\"Points\", 0, 100, 50, 1)\n\t\ts.LineChart(series(int(n)))\n\t\tif s.Button(\"Celebrate\") {\n\t\t\ts.Success(\"🎉\")\n\t\t}\n\t}\n\n# Widgets, layout, media and charts\n\nBeyond the basics the package offers a broad surface, each piece backed by\nper-session state and rendered by the embedded frontend:\n\n  - Display and data: [Container.Title], [Container.Header],\n    [Container.Subheader], [Container.Markdown], [Container.Write],\n    [Container.Metric], [Container.Code], [Container.JSON],\n    [Container.Table] and [Container.DataFrame]. Tabular structs and slices\n    render automatically, and alerts ([Container.Success], [Container.Info],\n    [Container.Warning], [Container.Error]) draw the callout boxes.\n  - Widgets: [Container.Button], [Container.Checkbox], [Container.Toggle],\n    [Container.Slider], [Container.SelectSlider], [Container.NumberInput],\n    [Container.TextInput], [Container.TextArea], [Container.SelectBox],\n    [Container.Radio], [Container.MultiSelect], [Container.DateInput],\n    [Container.TimeInput], [Container.ColorPicker], [Container.Feedback],\n    [Container.DownloadButton] and [Container.FileUploader]. The extended\n    set adds [Container.Pills], [Container.SegmentedControl],\n    [Container.PrimaryButton], [Container.PasswordInput],\n    [Container.TextInputMax], [Container.NumberInputRange],\n    [Container.SliderRange], [Container.SelectSliderRange],\n    [Container.DateRangeInput], [Container.CameraInput] and\n    [Container.AudioInput].\n  - Layout: [Container.Columns], [Container.ColumnsWeighted],\n    [Container.Container], [Container.BorderedContainer],\n    [Container.Expander], [Container.Tabs], [Container.Popover],\n    [Container.Status], [Container.Empty] and [Session.Sidebar].\n  - Forms: [Container.Form] with [Container.FormSubmitButton] batch widget\n    updates until the form is submitted.\n  - Chat: [Container.ChatMessage] and [Container.ChatInput].\n  - Media: [Container.Image], [Container.Logo], [Container.Audio],\n    [Container.Video] and [Container.Map]. Bytes and [image.Image] values are\n    embedded as base64 data URIs.\n  - Charts (server-side SVG): [Container.LineChart], [Container.AreaChart],\n    [Container.BarChart], [Container.ScatterChart], [Container.PieChart] and\n    [Container.Histogram].\n  - Caching: [Session.Cache] memoises an expensive computation process-wide,\n    across reruns and sessions, with an optional TTL — the analogue of\n    st.cache_data. [Session.CacheResource] is the st.cache_resource\n    analogue: a singleton that never expires. [CacheClear], [CacheDelete]\n    and [CacheResourceClear] invalidate them.\n\n# Safety\n\nText rendered as Markdown is escaped before any formatting is applied, and a\nlink or media URL is emitted only if its scheme is on an allowlist, so a\njavascript: target cannot reach an href. Raw HTML is opt-in through\n[Container.Html] and [Container.MarkdownUnsafe]. Both POST endpoints reject a\nrequest whose Origin header names another site, and every allocation a remote\ncaller can grow — sessions, uploaded bytes, request bodies, cache entries,\nwidget keys — is bounded; see [Options].\n\n# Deferred features\n\nThis is a compact reimplementation of a large framework. Deliberately\ndeferred: custom components, multipage apps, fragments, real-time\nstreaming/async widgets, in-place dataframe editing, query parameters and\ntheming APIs. The synchronous long-poll-free transport also means\n[Container.Spinner] and [Container.Progress] are snapshots of the completed\nrun rather than live-updating during work. The full list, and every place\nthis port's semantics differ from upstream on purpose, is in\nAPI-DEVIATIONS.md.\n",
+      "consts": [
+        {
+          "names": [
+            "DefaultMaxSessions",
+            "DefaultSessionIdleTimeout",
+            "DefaultMaxUploadBytes",
+            "DefaultMaxRequestBytes"
+          ],
+          "signature": "const (\n\t// DefaultMaxSessions is the largest number of concurrent sessions kept in\n\t// memory. When the limit is reached the least recently used session is\n\t// evicted.\n\tDefaultMaxSessions = 1000\n\t// DefaultSessionIdleTimeout is how long a session survives without a\n\t// request before it is dropped.\n\tDefaultSessionIdleTimeout = 30 * time.Minute\n\t// DefaultMaxUploadBytes is the largest accepted body for a single\n\t// multipart upload request, across all of its file parts.\n\tDefaultMaxUploadBytes int64 = 32 \u003c\u003c 20 // 32 MiB\n\t// DefaultMaxRequestBytes is the largest accepted body for POST /api/run.\n\tDefaultMaxRequestBytes int64 = 1 \u003c\u003c 20 // 1 MiB\n)",
+          "doc": "Defaults applied by [Handler] and [Run]. Every one of them exists because the\nvalue it bounds is ultimately chosen by a remote client: without a ceiling a\nsingle caller could pin unbounded memory (sessions, uploaded bytes) on the\nserver. Use [Options] with [HandlerWithOptions] to tune them.\n"
+        },
+        {
+          "names": [
+            "DefaultMaxCacheEntries"
+          ],
+          "signature": "const DefaultMaxCacheEntries = 1024",
+          "doc": "DefaultMaxCacheEntries bounds the process-wide table used by\n[Session.Cache]. Streamlit's @st.cache_data defaults to max_entries=None\n(unbounded); this port bounds it because a cache whose keys are derived from\nuser input otherwise grows until the process dies. Change it with\n[CacheSetMaxEntries].\n"
+        }
+      ],
       "vars": [],
       "types": [
         {
@@ -113,6 +131,12 @@
               "recv": "*Container",
               "signature": "func (c *Container) Columns(n int) []*Container",
               "doc": "Columns splits the current region into n side-by-side columns and returns a\ncontainer for each. Elements added to a returned container render within that\ncolumn. If n is less than one it is treated as one.\n\n\tc1, c2 := s.Columns(2)[0], s.Columns(2)[1] // (illustrative)\n\tcols := s.Columns(2)\n\tcols[0].Metric(\"Left\", \"1\", \"\")\n\tcols[1].Metric(\"Right\", \"2\", \"\")\n"
+            },
+            {
+              "name": "ColumnsWeighted",
+              "recv": "*Container",
+              "signature": "func (c *Container) ColumnsWeighted(weights []float64) []*Container",
+              "doc": "ColumnsWeighted splits the current region into columns whose widths are\nproportional to weights, mirroring Streamlit's st.columns([2, 1]) — which\ntakes a list of relative widths rather than a count.\n\nNon-positive and non-finite weights are treated as 1 so a stray zero cannot\ncollapse a column to nothing. An empty weights slice yields a single\nfull-width column.\n\n\tcols := s.ColumnsWeighted([]float64{3, 1})\n\tcols[0].LineChart(series) // three quarters of the width\n\tcols[1].Metric(\"Peak\", \"42\", \"\")\n"
             },
             {
               "name": "Container",
@@ -280,7 +304,13 @@
               "name": "Markdown",
               "recv": "*Container",
               "signature": "func (c *Container) Markdown(text string)",
-              "doc": "Markdown adds text rendered with a small, safe subset of Markdown\n(headings, bold, italics, inline code, links and lists) by the frontend.\n"
+              "doc": "Markdown adds text rendered with a small, safe subset of Markdown\n(ATX headings, bold, italics, inline code, links and unordered lists) by the\nfrontend.\n\nThe text is treated as untrusted: every character is HTML-escaped before any\nformatting is applied, and a link target is emitted only when its scheme is\none of http, https, mailto, tel, ftp, ftps or sms — a `javascript:` URL is\nreplaced with \"#\". This mirrors Streamlit, where st.markdown escapes HTML\nunless unsafe_allow_html is set; see [Container.MarkdownUnsafe] for the\nopt-in.\n"
+            },
+            {
+              "name": "MarkdownUnsafe",
+              "recv": "*Container",
+              "signature": "func (c *Container) MarkdownUnsafe(text string)",
+              "doc": "MarkdownUnsafe is [Container.Markdown] with HTML passed through instead of\nescaped, mirroring st.markdown(body, unsafe_allow_html=True).\n\nThe name is a warning, not decoration: anything in text that looks like a tag\nbecomes a tag, so a string containing untrusted input can inject script into\nevery viewer's page. Use [Container.Markdown] unless the whole string is\nunder your control. Markdown link targets are still restricted to safe\nschemes, but raw \u003ca href=\"javascript:…\"\u003e in the HTML is not — that is the\npoint of the opt-in.\n"
             },
             {
               "name": "Metric",
@@ -531,6 +561,15 @@
           "methods": []
         },
         {
+          "name": "Options",
+          "signature": "type Options struct {\n\t// MaxSessions caps concurrently retained sessions; \u003c= 0 selects\n\t// [DefaultMaxSessions].\n\tMaxSessions int\n\t// SessionIdleTimeout is how long an idle session is retained; \u003c= 0\n\t// selects [DefaultSessionIdleTimeout].\n\tSessionIdleTimeout time.Duration\n\t// MaxUploadBytes caps a single upload request body; \u003c= 0 selects\n\t// [DefaultMaxUploadBytes].\n\tMaxUploadBytes int64\n\t// MaxRequestBytes caps a single /api/run request body; \u003c= 0 selects\n\t// [DefaultMaxRequestBytes].\n\tMaxRequestBytes int64\n\t// AllowedOrigins lists extra browser origins (\"https://app.example.com\")\n\t// permitted to drive the app. Same-origin requests are always allowed;\n\t// requests carrying any other Origin are rejected with 403. Leave it nil\n\t// unless the app is deliberately embedded in another site.\n\tAllowedOrigins []string\n\t// AllowAllOrigins disables origin checking entirely. Only set it when the\n\t// app is deliberately public and stateless — with it on, any web page a\n\t// user visits can drive their session (cross-site request forgery).\n\tAllowAllOrigins bool\n}",
+          "doc": "Options configures the HTTP surface returned by [HandlerWithOptions]. The\nzero Options is valid and selects the documented default for every field.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
           "name": "Session",
           "signature": "type Session struct {\n\n\t// State is the persistent per-session key/value store.\n\tState *State\n\t// contains filtered or unexported fields\n}",
           "doc": "Session represents a single browser connection to the app. It embeds the\nroot [Container], so every display and widget method may be called directly\non the session (for example s.Title or s.Slider). A fresh Session is created\nfor each new browser and reused for every rerun triggered by that browser.\n\nThe app function receives a *Session and builds the page by calling methods\non it. On each run the element tree is rebuilt from scratch while widget\nvalues and [State] persist, faithfully reproducing Streamlit's\nrerun-on-interaction model.\n",
@@ -542,13 +581,25 @@
               "name": "Cache",
               "recv": "*Session",
               "signature": "func (s *Session) Cache(key string, compute func() any, ttl ...time.Duration) any",
-              "doc": "Cache returns the value memoised under key, computing it with compute on the\nfirst call (or after the entry has expired) and returning the stored value on\nsubsequent calls. The cache is process-wide and shared across sessions, so an\nexpensive computation runs once and is reused by every rerun and every\nbrowser, mirroring Streamlit's st.cache_data.\n\nAn optional time-to-live may be supplied as the final argument; a positive\nTTL causes the entry to be recomputed once it has aged past the duration. A\nzero or omitted TTL caches for the lifetime of the process.\n\n\trows := s.Cache(\"report\", func() any { return loadReport() }, time.Minute)\n\treport := rows.([]Row)\n"
+              "doc": "Cache returns the value memoised under key, computing it with compute on the\nfirst call (or after the entry has expired) and returning the stored value on\nsubsequent calls. The cache is process-wide and shared across sessions, so an\nexpensive computation runs once and is reused by every rerun and every\nbrowser, mirroring Streamlit's st.cache_data.\n\nAn optional time-to-live may be supplied as the final argument; a positive\nTTL causes the entry to be recomputed once it has aged past the duration. A\nzero or omitted TTL caches for the lifetime of the process.\n\n\trows := s.Cache(\"report\", func() any { return loadReport() }, time.Minute)\n\treport := rows.([]Row)\n\nConcurrent callers asking for the same missing key do not each run compute:\nthe first caller computes while the others wait for its result. The table\nholds at most [DefaultMaxCacheEntries] entries (see [CacheSetMaxEntries]);\nwhen it is full the entry inserted longest ago is evicted. Derive keys that\ninclude everything the computation depends on — this port takes an explicit\nkey rather than hashing the arguments the way Python's decorator does.\n"
+            },
+            {
+              "name": "CacheResource",
+              "recv": "*Session",
+              "signature": "func (s *Session) CacheResource(key string, create func() any) any",
+              "doc": "CacheResource returns the singleton registered under key, creating it with\ncreate on the first call, mirroring Streamlit's @st.cache_resource. Use it\nfor objects that are expensive to build and safe to share — database\nhandles, model weights, clients — rather than for data.\n\nUnlike [Session.Cache] a resource has no TTL and is never evicted, so create\nruns exactly once per key for the lifetime of the process. create must return\na value that is safe for concurrent use, because every session shares it.\n\n\tdb := s.CacheResource(\"db\", func() any { return mustOpenDB() }).(*sql.DB)\n"
             },
             {
               "name": "ID",
               "recv": "*Session",
               "signature": "func (s *Session) ID() string",
               "doc": "ID returns the session's opaque identifier.\n"
+            },
+            {
+              "name": "Rerun",
+              "recv": "*Session",
+              "signature": "func (s *Session) Rerun()",
+              "doc": "Rerun abandons the current run and immediately re-executes the app function\nfrom the top, mirroring Streamlit's st.rerun. Every element added so far is\ndiscarded; [State] and widget values persist, so the fresh run observes any\nchange made before the call.\n\nIt is the escape hatch for \"I have just mutated state that earlier code\nalready rendered\" — the canonical example being a login form that must\nrepaint the whole page once authentication succeeds:\n\n\tif s.Button(\"Log in\") {\n\t\ts.State.Set(\"user\", name)\n\t\ts.Rerun() // repaint the page as the logged-in user\n\t}\n\nLike [Session.Stop] it is implemented by panicking with an internal sentinel\nand so must be called from within the app function, not a separate goroutine.\nA chain of reruns within a single request is capped (see maxRerunChain); an\napp that calls Rerun unconditionally therefore terminates with the tree from\nthe final permitted run instead of hanging.\n"
             },
             {
               "name": "SetPageConfig",
@@ -579,6 +630,12 @@
           "funcs": [],
           "methods": [
             {
+              "name": "Clear",
+              "recv": "*State",
+              "signature": "func (s *State) Clear()",
+              "doc": "Clear removes every key from the store.\n"
+            },
+            {
               "name": "Delete",
               "recv": "*State",
               "signature": "func (s *State) Delete(key string)",
@@ -589,6 +646,12 @@
               "recv": "*State",
               "signature": "func (s *State) Get(key string) (any, bool)",
               "doc": "Get returns the value stored under key and whether it was present.\n"
+            },
+            {
+              "name": "GetBool",
+              "recv": "*State",
+              "signature": "func (s *State) GetBool(key string, def bool) bool",
+              "doc": "GetBool returns the bool stored under key, or def if absent or not a bool.\n"
             },
             {
               "name": "GetFloat",
@@ -609,10 +672,34 @@
               "doc": "GetString returns the string stored under key, or def if absent or not a\nstring.\n"
             },
             {
+              "name": "Has",
+              "recv": "*State",
+              "signature": "func (s *State) Has(key string) bool",
+              "doc": "Has reports whether key is present, mirroring `key in st.session_state`.\n"
+            },
+            {
+              "name": "Keys",
+              "recv": "*State",
+              "signature": "func (s *State) Keys() []string",
+              "doc": "Keys returns the store's keys in ascending lexical order. The order is\nsorted rather than map order so that iterating state is deterministic across\nreruns.\n"
+            },
+            {
+              "name": "Len",
+              "recv": "*State",
+              "signature": "func (s *State) Len() int",
+              "doc": "Len returns the number of keys held in the store.\n"
+            },
+            {
               "name": "Set",
               "recv": "*State",
               "signature": "func (s *State) Set(key string, value any)",
               "doc": "Set stores value under key.\n"
+            },
+            {
+              "name": "SetDefault",
+              "recv": "*State",
+              "signature": "func (s *State) SetDefault(key string, value any) bool",
+              "doc": "SetDefault stores value under key only if the key is absent and reports\nwhether it was stored. It is the analogue of Streamlit's common\n`if \"k\" not in st.session_state: st.session_state.k = v` idiom, which is how\nper-session state is seeded on the first of many reruns.\n"
             }
           ]
         },
@@ -630,25 +717,91 @@
         {
           "name": "CacheClear",
           "signature": "func CacheClear()",
-          "doc": "CacheClear removes all entries from the process-wide cache used by\n[Session.Cache]. It is primarily useful in tests and for manual\ninvalidation.\n"
+          "doc": "CacheClear removes all entries from the process-wide cache used by\n[Session.Cache]. It is primarily useful in tests and for manual\ninvalidation. Resources registered with [Session.CacheResource] survive;\nclear those with [CacheResourceClear].\n"
+        },
+        {
+          "name": "CacheDelete",
+          "signature": "func CacheDelete(key string) bool",
+          "doc": "CacheDelete removes a single entry from the data cache used by\n[Session.Cache], forcing the next call for that key to recompute. It reports\nwhether an entry was present. It is the targeted counterpart to [CacheClear],\nmatching the per-function .clear() Streamlit exposes on a cached function.\n"
+        },
+        {
+          "name": "CacheLen",
+          "signature": "func CacheLen() int",
+          "doc": "CacheLen reports how many entries the data cache currently holds. Resources\nregistered with [Session.CacheResource] are not counted.\n"
+        },
+        {
+          "name": "CacheResourceClear",
+          "signature": "func CacheResourceClear()",
+          "doc": "CacheResourceClear discards every singleton registered with\n[Session.CacheResource], so the next call for each key builds a fresh one.\nIt mirrors st.cache_resource.clear() and is chiefly useful in tests.\n"
+        },
+        {
+          "name": "CacheSetMaxEntries",
+          "signature": "func CacheSetMaxEntries(n int)",
+          "doc": "CacheSetMaxEntries sets how many entries [Session.Cache] retains. When the\ntable is full the entry inserted longest ago is evicted. A value of zero or\nless restores [DefaultMaxCacheEntries]. It affects [Session.Cache] only;\n[Session.CacheResource] entries are never evicted.\n"
         },
         {
           "name": "Handler",
           "signature": "func Handler(app func(*Session)) http.Handler",
-          "doc": "Handler returns the http.Handler that serves the app. It is exposed so the\napp can be mounted inside a larger server or driven in tests; most callers\nshould use [Run] instead.\n"
+          "doc": "Handler returns the http.Handler that serves the app with the default\n[Options]. It is exposed so the app can be mounted inside a larger server or\ndriven in tests; most callers should use [Run] instead.\n"
+        },
+        {
+          "name": "HandlerWithOptions",
+          "signature": "func HandlerWithOptions(app func(*Session), opts Options) http.Handler",
+          "doc": "HandlerWithOptions is [Handler] with explicit resource limits and origin\npolicy. See [Options].\n"
         },
         {
           "name": "Run",
           "signature": "func Run(app func(*Session), addr string) error",
           "doc": "Run starts an HTTP server that serves the app on addr (for example\n\":8501\"). Each browser connection is assigned its own [Session]; widget\ninteractions rerun the app function and push the updated element tree back.\nRun blocks until the server exits.\n"
+        },
+        {
+          "name": "RunWithOptions",
+          "signature": "func RunWithOptions(app func(*Session), addr string, opts Options) error",
+          "doc": "RunWithOptions is [Run] with explicit resource limits and origin policy.\n"
         }
       ],
       "examples": [
+        {
+          "name": "Container (columnsWeighted)",
+          "code": "app := func(s *Session) {\n\tcols := s.ColumnsWeighted([]float64{3, 1})\n\tcols[0].LineChart([]float64{1, 4, 9})\n\tcols[1].Metric(\"Peak\", \"9\", \"+5\")\n}\n\ns := newSession()\nrow := s.run(app).Children[1].Children[0]\nfor _, col := range row.Children {\n\tfmt.Printf(\"%v -\u003e %s\\n\", col.Props[\"weight\"], col.Children[0].Type)\n}",
+          "output": "3 -\u003e chart\n1 -\u003e metric",
+          "doc": "ExampleContainer_columnsWeighted lays out a wide chart beside a narrow\nsummary, mirroring st.columns([3, 1]).\n"
+        },
+        {
+          "name": "Container (markdownUnsafe)",
+          "code": "app := func(s *Session) {\n\ts.Markdown(`\u003cb\u003efrom a user\u003c/b\u003e`)\n\ts.MarkdownUnsafe(`\u003cb\u003efrom me\u003c/b\u003e`)\n}\n\ns := newSession()\nfor _, el := range s.run(app).Children[1].Children {\n\tfmt.Println(el.Props[\"text\"], \"unsafe:\", el.Props[\"unsafeAllowHTML\"])\n}",
+          "output": "\u003cb\u003efrom a user\u003c/b\u003e unsafe: \u003cnil\u003e\n\u003cb\u003efrom me\u003c/b\u003e unsafe: true",
+          "doc": "ExampleContainer_markdownUnsafe contrasts the safe default with the opt-in.\nMarkdown ships the text for escaping in the browser; MarkdownUnsafe flags it\nto be passed through as HTML, which is why it must never carry untrusted\ninput.\n"
+        },
         {
           "name": "Session",
           "code": "app := func(s *Session) {\n\ts.Title(\"Report\")\n\tn := s.Slider(\"Count\", 0, 10, 3, 1)\n\ts.Metric(\"Count\", fmt.Sprintf(\"%.0f\", n), \"+1\")\n}\n\ns := newSession()\ntree := s.run(app)\n\nmain := tree.Children[1]\nfor _, el := range main.Children {\n\tfmt.Println(el.Type)\n}",
           "output": "title\nslider\nmetric",
           "doc": "ExampleSession demonstrates building a page and inspecting the resulting\nelement tree without an HTTP server. Rendering an app function against a\nsession produces a deterministic tree that can be walked and asserted on.\n"
+        },
+        {
+          "name": "Session (cacheResource)",
+          "code": "CacheResourceClear()\n\nbuilds := 0\nopen := func() any {\n\tbuilds++\n\treturn \"connection\"\n}\n\na, b := newSession(), newSession()\nfmt.Println(a.CacheResource(\"db\", open))\nfmt.Println(b.CacheResource(\"db\", open))\nfmt.Println(\"builds:\", builds)",
+          "output": "connection\nconnection\nbuilds: 1",
+          "doc": "ExampleSession_cacheResource shows the @st.cache_resource analogue: a\nsingleton built once and shared by every session, unlike Cache which holds\ndata and can expire.\n"
+        },
+        {
+          "name": "Session (rerun)",
+          "code": "app := func(s *Session) {\n\tif !s.State.GetBool(\"ready\", false) {\n\t\ts.Text(\"loading…\")\n\t\ts.State.Set(\"ready\", true)\n\t\ts.Rerun()\n\t}\n\ts.Title(\"Dashboard\")\n}\n\ns := newSession()\ntree := s.run(app)\n\nmain := tree.Children[1]\nfmt.Println(\"elements:\", len(main.Children))\nfmt.Println(\"first:\", main.Children[0].Type)",
+          "output": "elements: 1\nfirst: title",
+          "doc": "ExampleSession_rerun shows st.rerun's control flow: the run is abandoned at\nthe call and the app executes again from the top, so the second pass sees the\nstate written just before it and the discarded elements never reach the page.\n"
+        },
+        {
+          "name": "Session (state)",
+          "code": "app := func(s *Session) {\n\ts.State.SetDefault(\"runs\", 0)\n\ts.State.Set(\"runs\", s.State.GetInt(\"runs\", 0)+1)\n\ts.TextInput(\"Name\", \"anon\", \"name\")\n}\n\ns := newSession()\ns.run(app)\ns.widgets[\"name\"] = \"ada\"\ntree := s.run(app)\n\nfmt.Println(\"runs:\", s.State.GetInt(\"runs\", 0))\nfmt.Println(\"name:\", tree.Children[1].Children[0].Props[\"value\"])\nfmt.Println(\"keys:\", s.State.Keys())",
+          "output": "runs: 2\nname: ada\nkeys: [runs]",
+          "doc": "ExampleSession_state shows the two lifetimes an app has to reason about.\nState survives every rerun; a widget's value survives only as long as the app\nkeeps rendering that widget.\n"
+        },
+        {
+          "name": "Session (stop)",
+          "code": "app := func(s *Session) {\n\ts.Title(\"Private area\")\n\tif !s.State.GetBool(\"authenticated\", false) {\n\t\ts.Error(\"Please log in\")\n\t\ts.Stop()\n\t}\n\ts.Text(\"secrets\")\n}\n\ns := newSession()\nmain := s.run(app).Children[1]\nfor _, el := range main.Children {\n\tfmt.Println(el.Type)\n}",
+          "output": "title\nalert",
+          "doc": "ExampleSession_stop shows st.stop: elements added before the call stay on the\npage and nothing after it runs.\n"
         }
       ]
     }

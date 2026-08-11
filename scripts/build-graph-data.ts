@@ -9,8 +9,12 @@
 //          <library source dirs>  (best-effort, for real import edges)
 //          parity/**/{parity.json,COVERAGE.md,cases/*.json,security.json}
 // Writes:  api/_data/graph.json      + public/graph.json
-//          api/_data/symbols.json    + public/search-index.json
+//          api/_data/symbols.json    (full-fat, server-side ranking)
+//          public/search-index.json  (columnar browser projection of it —
+//                                     name/kind/package/library/anchor only)
 //          api/_data/parity.json     (measured parity corpus — see below)
+//          public/parity.json        (the browser-sized summary of that corpus,
+//                                     fetched by Explore)
 //
 // The output is DETERMINISTIC: everything is sorted by stable ids and no
 // Date.now/Math.random is used for ordering. Only the free-form `generatedAt`
@@ -25,6 +29,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+// The one browser-facing projection of the parity corpus, shared with the live
+// /api/parity route so the static file and the endpoint can never disagree.
+// api/_lib/data.ts is itself erasable-only TypeScript, so Node strips it too.
+import { summarizeParity } from '../api/_lib/data.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..');
@@ -173,14 +181,15 @@ function resolveGeneratedAt(): string {
 //   value / func  => sym-<name>
 //   type          => sym-<Type>
 //   method        => sym-<recvBase>.<method>
+const ANCHOR_PREFIX = 'sym-';
 function valueAnchor(name: string): string {
-  return `sym-${name}`;
+  return `${ANCHOR_PREFIX}${name}`;
 }
 function typeAnchor(typeName: string): string {
-  return `sym-${typeName}`;
+  return `${ANCHOR_PREFIX}${typeName}`;
 }
 function methodAnchor(recv: string | undefined, methodName: string): string {
-  return `sym-${recvBase(recv)}.${methodName}`;
+  return `${ANCHOR_PREFIX}${recvBase(recv)}.${methodName}`;
 }
 // "*Application", "Application[T]", "*Store[K, V]" => "Application" / "Store"
 function recvBase(recv: string | undefined): string {
@@ -1304,6 +1313,67 @@ function buildParityCorpus(generatedAt: string): {
 // main
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Browser search index (public/search-index.json)
+// ---------------------------------------------------------------------------
+
+/**
+ * Project the full symbol index down to the columnar shape the browser
+ * fallback actually needs. api/_data/symbols.json stays full-fat (the server
+ * BM25 route ranks over `doc` and renders `signature`); the public copy is
+ * fetched over the wire by every static-host search, so it carries only the
+ * four fields the hit list renders plus the anchor needed to rebuild `id`.
+ *
+ * Shape (format "columns/1", decoded by src/api/graph.ts):
+ *   libraries: string[]                       — interned library ids
+ *   kinds:     string[]                       — interned symbol kinds
+ *   packages:  [importPath, libraryIndex][]   — interned package paths
+ *   symbols:   [name, kindIndex, packageIndex, anchor][]
+ * where `anchor` is the literal anchor string, or the number 0 meaning
+ * `anchorPrefix + name` — which is how every non-package anchor is derived
+ * (see valueAnchor/typeAnchor/methodAnchor), so the column costs almost
+ * nothing. `signature` and `doc` are dropped entirely: nothing in the UI
+ * renders them, and together they are roughly half the payload.
+ */
+function browserSearchIndex(generatedAt: string, symbols: SymbolOut[]) {
+  const libraries: string[] = [];
+  const libraryIndex = new Map<string, number>();
+  const kinds: string[] = [];
+  const kindIndex = new Map<string, number>();
+  const packages: [string, number][] = [];
+  const packageIndex = new Map<string, number>();
+  const intern = (value: string, list: string[], seen: Map<string, number>): number => {
+    const hit = seen.get(value);
+    if (hit !== undefined) return hit;
+    const next = list.length;
+    list.push(value);
+    seen.set(value, next);
+    return next;
+  };
+
+  const rows: [string, number, number, string | 0][] = symbols.map((s) => {
+    const lib = intern(s.library, libraries, libraryIndex);
+    let pkg = packageIndex.get(s.packageImportPath);
+    if (pkg === undefined) {
+      pkg = packages.length;
+      packages.push([s.packageImportPath, lib]);
+      packageIndex.set(s.packageImportPath, pkg);
+    }
+    const anchor: string | 0 = s.anchor === `${ANCHOR_PREFIX}${s.name}` ? 0 : s.anchor;
+    return [s.name, intern(s.kind, kinds, kindIndex), pkg, anchor];
+  });
+
+  return {
+    generatedAt,
+    format: 'columns/1',
+    anchorPrefix: ANCHOR_PREFIX,
+    libraries,
+    kinds,
+    packages,
+    symbols: rows,
+  };
+}
+
 function main(): void {
   const generatedAt = resolveGeneratedAt();
   const parity = loadParity();
@@ -1571,6 +1641,7 @@ function main(): void {
     generatedAt,
     symbols: finalSymbols,
   };
+  const browserIndex = browserSearchIndex(generatedAt, finalSymbols);
 
   // -------- write to both destinations --------
   for (const dir of OUT_DIRS) {
@@ -1591,15 +1662,28 @@ function main(): void {
 
   const graphJson = JSON.stringify(graph, null, 2) + '\n';
   const symbolsJson = JSON.stringify(symbolIndex, null, 2) + '\n';
+  // Not pretty-printed, and deliberately not `symbolsJson`: this copy is
+  // downloaded by the browser on every static-host search (see
+  // browserSearchIndex above).
+  const browserIndexJson = JSON.stringify(browserIndex) + '\n';
   const examplesJson = JSON.stringify(examplesOut, null, 2) + '\n';
 
   // -------- measured parity corpus --------
-  // Only api/_data gets this file: it is read server-side (api/_lib/data.ts,
-  // getParity()) and is far too large to ship to the browser wholesale.
+  // Only api/_data gets the full corpus: it is read server-side (api/_lib/data.ts,
+  // getParity()) and is far too large to ship to the browser wholesale. The
+  // browser gets the summary written to public/parity.json below instead.
   const { corpus: parityCorpus, stats: parityStats } = buildParityCorpus(generatedAt);
   // Not pretty-printed: 17k case records and 6.7k coverage rows cost ~5 MB of
   // pure indentation, and this file is bundled into every serverless function.
   const parityJson = JSON.stringify(parityCorpus) + '\n';
+  // ...and the browser-sized projection of it. src/components/Explore.tsx
+  // fetches `parity.json` relative to the base path and rejects any payload over
+  // 512 KB, so public/parity.json carries only the headline figures per library
+  // (a few KB). Same filename as the corpus, different directory: the corpus is
+  // server-side (api/_data), the summary is public. app/api/parity/route.ts
+  // serves the identical shape from the same summarizeParity().
+  const paritySummary = summarizeParity(parityCorpus);
+  const paritySummaryJson = JSON.stringify(paritySummary, null, 2) + '\n';
 
   fs.writeFileSync(path.join(OUT_DIRS[0], 'graph.json'), graphJson);
   fs.writeFileSync(path.join(OUT_DIRS[0], 'symbols.json'), symbolsJson);
@@ -1607,7 +1691,8 @@ function main(): void {
   fs.writeFileSync(path.join(OUT_DIRS[0], 'parity.json'), parityJson);
   // public copies use the frontend-fallback filenames.
   fs.writeFileSync(path.join(OUT_DIRS[1], 'graph.json'), graphJson);
-  fs.writeFileSync(path.join(OUT_DIRS[1], 'search-index.json'), symbolsJson);
+  fs.writeFileSync(path.join(OUT_DIRS[1], 'search-index.json'), browserIndexJson);
+  fs.writeFileSync(path.join(OUT_DIRS[1], 'parity.json'), paritySummaryJson);
 
   const kindCounts: Record<string, number> = {};
   for (const e of finalEdges) kindCounts[e.kind] = (kindCounts[e.kind] || 0) + 1;
@@ -1621,6 +1706,12 @@ function main(): void {
     `to api/_data and public.`
   );
   console.log(
+    `build-graph-data: browser search index: ${browserIndex.symbols.length} symbols over ` +
+    `${browserIndex.packages.length} packages ` +
+    `(${(browserIndexJson.length / 1024 / 1024).toFixed(2)} MB, down from ` +
+    `${(symbolsJson.length / 1024 / 1024).toFixed(2)} MB). Wrote search-index.json to public.`
+  );
+  console.log(
     `build-graph-data: ${Object.keys(sortedExamples).length} runnable examples ` +
     `(${(examplesJson.length / 1024).toFixed(1)} KB). Wrote examples.json to api/_data.`
   );
@@ -1628,7 +1719,9 @@ function main(): void {
     `build-graph-data: parity: ${parityStats.libraries} harnesses + ${parityStats.nested} nested ` +
     `packages, ${parityStats.cases} cases, ${parityStats.coverageRows} coverage rows, ` +
     `${parityStats.findings} security findings ` +
-    `(${(parityJson.length / 1024).toFixed(1)} KB). Wrote parity.json to api/_data.`
+    `(${(parityJson.length / 1024).toFixed(1)} KB). Wrote parity.json to api/_data, ` +
+    `plus a ${(paritySummaryJson.length / 1024).toFixed(1)} KB summary of ` +
+    `${Object.keys(paritySummary.libraries).length} libraries to public/parity.json.`
   );
   if (missingExamples.length > 0) {
     console.warn(

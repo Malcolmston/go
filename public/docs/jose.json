@@ -1,0 +1,500 @@
+{
+  "module": "github.com/malcolmston/jose",
+  "generatedAt": "2026-08-05T11:13:34Z",
+  "packages": [
+    {
+      "importPath": "github.com/malcolmston/jose",
+      "name": "jose",
+      "synopsis": "Package jose is a standard-library-only implementation of the JOSE stack: JSON Web Signature (RFC 7515), JSON Web Encryption (RFC 7516), JSON Web Key (RFC 7517), and the JSON Web Algorithms they are built from (RFC 7518).",
+      "doc": "Package jose is a standard-library-only implementation of the JOSE stack:\nJSON Web Signature (RFC 7515), JSON Web Encryption (RFC 7516), JSON Web Key\n(RFC 7517), and the JSON Web Algorithms they are built from (RFC 7518).\n\n# Overview\n\nJOSE is four specifications that compose: a key format (JWK), a signature\ncontainer (JWS), an encryption container (JWE), and a registry of algorithms\n(JWA) naming what may go in the \"alg\" and \"enc\" headers. This package\nimplements all four using only the Go standard library (crypto/*, encoding/*,\ncompress/flate, math/big). There are no third-party dependencies and no cgo.\n\nThe sibling package github.com/malcolmston/jwt covers RFC 7519 claims and the\nJWS compact serialization for tokens; this package covers the wider stack,\nincluding encryption, the JSON serializations, and key agreement.\n\n# Signature algorithms (JWS \"alg\")\n\n\tHS256, HS384, HS512   HMAC-SHA2               key: []byte\n\tRS256, RS384, RS512   RSASSA-PKCS1-v1_5       sign: *rsa.PrivateKey, verify: *rsa.PublicKey\n\tPS256, PS384, PS512   RSASSA-PSS              sign: *rsa.PrivateKey, verify: *rsa.PublicKey\n\tES256, ES384, ES512   ECDSA on P-256/384/521  sign: *ecdsa.PrivateKey, verify: *ecdsa.PublicKey\n\tEdDSA                 Ed25519                 sign: ed25519.PrivateKey, verify: ed25519.PublicKey\n\nECDSA signatures use the fixed-width r||s encoding RFC 7518 §3.4 requires,\nnot ASN.1 DER. The unsecured \"none\" algorithm is never verified: Verify\nrejects it with ErrNoneAlgDisallowed and there is no option to enable it.\n\n# Key management algorithms (JWE \"alg\")\n\n\tRSA1_5                        RSAES-PKCS1-v1_5 (legacy; prefer RSA-OAEP-256)\n\tRSA-OAEP                      RSAES-OAEP with SHA-1\n\tRSA-OAEP-256                  RSAES-OAEP with SHA-256\n\tA128KW, A192KW, A256KW        AES Key Wrap (RFC 3394)\n\tdir                           the supplied symmetric key is the CEK\n\tECDH-ES                       ECDH with Concat KDF; the agreed key is the CEK\n\tECDH-ES+A128KW/+A192KW/+A256KW  ECDH-agreed key wraps the CEK\n\tA128GCMKW, A192GCMKW, A256GCMKW  AES-GCM key wrapping (\"iv\"/\"tag\" headers)\n\tPBES2-HS256+A128KW              PBKDF2-HMAC-SHA-256 then A128KW\n\tPBES2-HS384+A192KW              PBKDF2-HMAC-SHA-384 then A192KW\n\tPBES2-HS512+A256KW              PBKDF2-HMAC-SHA-512 then A256KW\n\nECDH-ES works over P-256, P-384, P-521 (crypto/ecdh) and X25519.\n\n# Content encryption algorithms (JWE \"enc\")\n\n\tA128CBC-HS256   AES-128-CBC + HMAC-SHA-256, 128-bit tag, 32-octet CEK\n\tA192CBC-HS384   AES-192-CBC + HMAC-SHA-384, 192-bit tag, 48-octet CEK\n\tA256CBC-HS512   AES-256-CBC + HMAC-SHA-512, 256-bit tag, 64-octet CEK\n\tA128GCM         AES-128-GCM, 96-bit IV, 128-bit tag, 16-octet CEK\n\tA192GCM         AES-192-GCM, 96-bit IV, 128-bit tag, 24-octet CEK\n\tA256GCM         AES-256-GCM, 96-bit IV, 128-bit tag, 32-octet CEK\n\n# Primitives implemented here\n\ngolang.org/x/crypto is not a dependency, so four primitives the standard\nlibrary does not export are implemented directly from their specifications\nand are exported for reuse: AESKeyWrap and AESKeyUnwrap (RFC 3394), PBKDF2\n(RFC 8018 §5.2), ConcatKDF (NIST SP 800-56A in the single-hash form of\nRFC 7518 §4.6.2), and the AES-CBC-HMAC-SHA2 construction of RFC 7518 §5.2.\n\n# JWK\n\nParseJWK decodes a single key and JWK.Key resolves it to a Go crypto key;\nFromKey is the inverse. JWK.Thumbprint computes the RFC 7638 thumbprint,\nbase64url-encoded, which makes a convenient deterministic \"kid\". ParseJWKSet\ndecodes a key set and JWKSet.LookupKeyID selects from it. A *JWK may be\npassed directly as the key to Sign, Verify, Encrypt, and Decrypt.\n\n# Signing and verifying\n\n\ttoken, err := jose.Sign(payload, key, jose.SignOptions{Algorithm: jose.ES256})\n\tpayload, header, err := jose.Verify(token, publicKey)\n\nSign produces the compact serialization; SignJSON produces the general JSON\nserialization and SignJSONMulti attaches several signatures, each with its\nown key, algorithm, and unprotected header. VerifyJSON accepts both the\ngeneral and flattened forms and returns the first signature that verifies\nwith the supplied key. VerifyWithOptions restricts the accepted algorithms,\ndeclares understood \"crit\" extensions, and supplies a detached payload.\n\n# Encrypting and decrypting\n\n\ttoken, err := jose.Encrypt(plaintext, recipientPublicKey, jose.EncryptOptions{\n\t        Algorithm:  jose.ECDH_ES_A256KW,\n\t        Encryption: jose.A256GCM,\n\t})\n\tplaintext, header, err := jose.Decrypt(token, recipientPrivateKey)\n\nEncrypt produces the compact serialization. EncryptJSON produces the general\nJSON serialization, which can additionally carry a shared unprotected header\nand an \"aad\" member, and EncryptJSONMulti addresses several recipients from\none content encryption. DecryptJSON accepts the general and flattened forms\nand tries recipients until one of them yields a usable key.\n\n# Security properties\n\nEvery algorithm type-asserts the key it is handed, so a token cannot be\nverified or decrypted with a key of the wrong type — the classic\nalgorithm-confusion attack. The \"alg\" header never selects a key on its own.\n\nAll authentication tags and MACs are compared with hmac.Equal in constant\ntime. CBC content decryption verifies the tag before it touches the\nciphertext, and every cryptographic decryption failure — wrong key, bad tag,\ninvalid padding — reports the same ErrDecryptFailed, so the API cannot be\nused as a padding oracle.\n\nA zero-length symmetric secret is refused by both Sign and Verify. HMAC keyed\nwith no octets is a public function, so a comparison against it succeeds for\nanyone; a secret that resolves to nothing must fail closed, not open.\n\nHeader parameters that decide how an authenticated octet string is\ninterpreted — \"b64\" (RFC 7797) and \"zip\" (RFC 7516 §4.1.3) — are honoured only\nfrom the protected header, and \"b64\" must additionally appear in \"crit\".\nNeither enters the signing input or the authentication tag, so an\nunprotected copy would change the payload a caller receives without\ndisturbing the signature.\n\nBase64url decoding is strict: padding, the standard alphabet's '+' and '/',\nembedded whitespace, and a final quantum with non-zero unused bits are all\nrejected, so every value has exactly one spelling and the serialized token is\nnot malleable.\n\nA JWK's \"use\", \"key_ops\", and \"alg\" members are enforced (RFC 7517 §4.2–§4.4),\nso a key published for one purpose cannot be used for another.\n\nA \"crit\" header naming an extension the caller has not declared as understood\ncauses rejection, as RFC 7515 §4.1.11 requires. \"zip\":\"DEF\" payloads inflate\nunder a cap of MaxDecompressedSize, which refuses DEFLATE bombs. The PBES2\n\"p2c\" iteration count is attacker-supplied, so it is bounded by\nMinPBES2Count and MaxPBES2Count before any key derivation is attempted.\n\n# Errors\n\nAll errors are wrapped sentinels; test them with errors.Is, e.g.\nerrors.Is(err, jose.ErrDecryptFailed) or errors.Is(err, jose.ErrInvalidCrit).\n",
+      "consts": [
+        {
+          "names": [
+            "A128CBC_HS256",
+            "A192CBC_HS384",
+            "A256CBC_HS512",
+            "A128GCM",
+            "A192GCM",
+            "A256GCM"
+          ],
+          "signature": "const (\n\t// A128CBC_HS256 is AES-128 in CBC mode with HMAC-SHA-256 (truncated to\n\t// 128 bits); the CEK is 32 octets.\n\tA128CBC_HS256 = \"A128CBC-HS256\"\n\t// A192CBC_HS384 is AES-192 in CBC mode with HMAC-SHA-384 (truncated to\n\t// 192 bits); the CEK is 48 octets.\n\tA192CBC_HS384 = \"A192CBC-HS384\"\n\t// A256CBC_HS512 is AES-256 in CBC mode with HMAC-SHA-512 (truncated to\n\t// 256 bits); the CEK is 64 octets.\n\tA256CBC_HS512 = \"A256CBC-HS512\"\n\t// A128GCM is AES-128 in Galois/Counter Mode; the CEK is 16 octets.\n\tA128GCM = \"A128GCM\"\n\t// A192GCM is AES-192 in Galois/Counter Mode; the CEK is 24 octets.\n\tA192GCM = \"A192GCM\"\n\t// A256GCM is AES-256 in Galois/Counter Mode; the CEK is 32 octets.\n\tA256GCM = \"A256GCM\"\n)",
+          "doc": "Content encryption algorithm identifiers (\"enc\"), RFC 7518 §5.\n"
+        },
+        {
+          "names": [
+            "RSA1_5",
+            "RSA_OAEP",
+            "RSA_OAEP_256",
+            "A128KW",
+            "A192KW",
+            "A256KW",
+            "Dir",
+            "ECDH_ES",
+            "ECDH_ES_A128KW",
+            "ECDH_ES_A192KW",
+            "ECDH_ES_A256KW",
+            "A128GCMKW",
+            "A192GCMKW",
+            "A256GCMKW",
+            "PBES2_HS256_A128KW",
+            "PBES2_HS384_A192KW",
+            "PBES2_HS512_A256KW"
+          ],
+          "signature": "const (\n\t// RSA1_5 is RSAES-PKCS1-v1_5. It is supported for interoperability with\n\t// existing deployments (and the RFC 7520 §5.1 vector) but is vulnerable\n\t// to Bleichenbacher-style attacks; prefer RSA-OAEP-256.\n\tRSA1_5 = \"RSA1_5\"\n\t// RSA_OAEP is RSAES-OAEP using SHA-1 and MGF1 with SHA-1.\n\tRSA_OAEP = \"RSA-OAEP\"\n\t// RSA_OAEP_256 is RSAES-OAEP using SHA-256 and MGF1 with SHA-256.\n\tRSA_OAEP_256 = \"RSA-OAEP-256\"\n\t// A128KW is AES Key Wrap (RFC 3394) with a 128-bit key.\n\tA128KW = \"A128KW\"\n\t// A192KW is AES Key Wrap (RFC 3394) with a 192-bit key.\n\tA192KW = \"A192KW\"\n\t// A256KW is AES Key Wrap (RFC 3394) with a 256-bit key.\n\tA256KW = \"A256KW\"\n\t// Dir uses the supplied symmetric key directly as the content\n\t// encryption key; no key is transmitted.\n\tDir = \"dir\"\n\t// ECDH_ES is Elliptic Curve Diffie-Hellman Ephemeral Static key\n\t// agreement using Concat KDF; the agreed key is the CEK.\n\tECDH_ES = \"ECDH-ES\"\n\t// ECDH_ES_A128KW agrees a 128-bit key with ECDH-ES and uses it to wrap\n\t// the CEK with AES Key Wrap.\n\tECDH_ES_A128KW = \"ECDH-ES+A128KW\"\n\t// ECDH_ES_A192KW agrees a 192-bit key with ECDH-ES and uses it to wrap\n\t// the CEK with AES Key Wrap.\n\tECDH_ES_A192KW = \"ECDH-ES+A192KW\"\n\t// ECDH_ES_A256KW agrees a 256-bit key with ECDH-ES and uses it to wrap\n\t// the CEK with AES Key Wrap.\n\tECDH_ES_A256KW = \"ECDH-ES+A256KW\"\n\t// A128GCMKW wraps the CEK with AES-128 in GCM mode.\n\tA128GCMKW = \"A128GCMKW\"\n\t// A192GCMKW wraps the CEK with AES-192 in GCM mode.\n\tA192GCMKW = \"A192GCMKW\"\n\t// A256GCMKW wraps the CEK with AES-256 in GCM mode.\n\tA256GCMKW = \"A256GCMKW\"\n\t// PBES2_HS256_A128KW derives a key from a password with\n\t// PBKDF2-HMAC-SHA-256 and wraps the CEK with A128KW.\n\tPBES2_HS256_A128KW = \"PBES2-HS256+A128KW\"\n\t// PBES2_HS384_A192KW derives a key from a password with\n\t// PBKDF2-HMAC-SHA-384 and wraps the CEK with A192KW.\n\tPBES2_HS384_A192KW = \"PBES2-HS384+A192KW\"\n\t// PBES2_HS512_A256KW derives a key from a password with\n\t// PBKDF2-HMAC-SHA-512 and wraps the CEK with A256KW.\n\tPBES2_HS512_A256KW = \"PBES2-HS512+A256KW\"\n)",
+          "doc": "JWE key management algorithm identifiers (\"alg\"), RFC 7518 §4.\n"
+        },
+        {
+          "names": [
+            "HS256",
+            "HS384",
+            "HS512",
+            "RS256",
+            "RS384",
+            "RS512",
+            "PS256",
+            "PS384",
+            "PS512",
+            "ES256",
+            "ES384",
+            "ES512",
+            "EdDSA",
+            "None"
+          ],
+          "signature": "const (\n\t// HS256 is HMAC using SHA-256; the key is a []byte secret.\n\tHS256 = \"HS256\"\n\t// HS384 is HMAC using SHA-384; the key is a []byte secret.\n\tHS384 = \"HS384\"\n\t// HS512 is HMAC using SHA-512; the key is a []byte secret.\n\tHS512 = \"HS512\"\n\t// RS256 is RSASSA-PKCS1-v1_5 using SHA-256.\n\tRS256 = \"RS256\"\n\t// RS384 is RSASSA-PKCS1-v1_5 using SHA-384.\n\tRS384 = \"RS384\"\n\t// RS512 is RSASSA-PKCS1-v1_5 using SHA-512.\n\tRS512 = \"RS512\"\n\t// PS256 is RSASSA-PSS using SHA-256 and MGF1 with SHA-256.\n\tPS256 = \"PS256\"\n\t// PS384 is RSASSA-PSS using SHA-384 and MGF1 with SHA-384.\n\tPS384 = \"PS384\"\n\t// PS512 is RSASSA-PSS using SHA-512 and MGF1 with SHA-512.\n\tPS512 = \"PS512\"\n\t// ES256 is ECDSA using P-256 and SHA-256.\n\tES256 = \"ES256\"\n\t// ES384 is ECDSA using P-384 and SHA-384.\n\tES384 = \"ES384\"\n\t// ES512 is ECDSA using P-521 and SHA-512.\n\tES512 = \"ES512\"\n\t// EdDSA is Edwards-curve DSA using Ed25519.\n\tEdDSA = \"EdDSA\"\n\t// None is the unsecured \"none\" algorithm. This package never verifies a\n\t// JWS that uses it; the constant exists so callers can detect it.\n\tNone = \"none\"\n)",
+          "doc": "JWS signature algorithm identifiers (\"alg\"), RFC 7518 §3.\n"
+        },
+        {
+          "names": [
+            "UseSig",
+            "UseEnc"
+          ],
+          "signature": "const (\n\t// UseSig marks a key intended for signing and verification.\n\tUseSig = \"sig\"\n\t// UseEnc marks a key intended for encryption and key management.\n\tUseEnc = \"enc\"\n)",
+          "doc": "JWK \"use\" values (RFC 7517 §4.2).\n"
+        },
+        {
+          "names": [
+            "DefaultPBES2Count",
+            "MinPBES2Count",
+            "MaxPBES2Count",
+            "MaxPBES2SaltInput"
+          ],
+          "signature": "const (\n\t// DefaultPBES2Count is the PBKDF2 iteration count used when a caller does\n\t// not set \"p2c\" explicitly.\n\tDefaultPBES2Count = 100000\n\n\t// MinPBES2Count is the smallest iteration count this package will accept\n\t// when decrypting. RFC 7518 §4.8.1.2 recommends a minimum of 1000.\n\tMinPBES2Count = 1000\n\n\t// MaxPBES2Count is the largest iteration count this package will accept.\n\t// The \"p2c\" header is attacker-controlled, so an unbounded count is a\n\t// denial-of-service vector: a token asking for a billion iterations would\n\t// pin a CPU for minutes before any authentication happens.\n\tMaxPBES2Count = 1000000\n\n\t// MaxPBES2SaltInput is the largest \"p2s\" salt input accepted, again to\n\t// bound work driven by attacker-supplied headers.\n\tMaxPBES2SaltInput = 1024\n)",
+          "doc": "PBKDF2 iteration bounds enforced by the PBES2 key management algorithms.\n"
+        },
+        {
+          "names": [
+            "MaxDecompressedSize"
+          ],
+          "signature": "const MaxDecompressedSize = 16 \u003c\u003c 20 // 16 MiB\n",
+          "doc": "MaxDecompressedSize bounds the plaintext a \"zip\":\"DEF\" JWE may expand to.\nDEFLATE reaches ratios above 1000:1, so an unbounded inflate is a\nstraightforward memory-exhaustion attack; decompression past this limit\nfails with ErrCompressionLimit.\n"
+        }
+      ],
+      "vars": [
+        {
+          "names": [
+            "ErrInvalidToken",
+            "ErrMalformed",
+            "ErrSignatureInvalid",
+            "ErrDecryptFailed",
+            "ErrInvalidKeyType",
+            "ErrInvalidKey",
+            "ErrKeyNotFound",
+            "ErrUnsupportedAlgorithm",
+            "ErrUnsupportedEncryption",
+            "ErrNoneAlgDisallowed",
+            "ErrInvalidCrit",
+            "ErrInvalidHeader",
+            "ErrCompressionLimit",
+            "ErrIterationCount",
+            "ErrDetachedPayload"
+          ],
+          "signature": "var (\n\t// ErrInvalidToken is a generic error indicating a JWS or JWE could not be\n\t// parsed or is otherwise malformed.\n\tErrInvalidToken = errors.New(\"jose: token is invalid\")\n\n\t// ErrMalformed indicates the compact or JSON serialization did not have\n\t// the structure required by RFC 7515 / RFC 7516, or a part failed to\n\t// base64url-decode.\n\tErrMalformed = errors.New(\"jose: token is malformed\")\n\n\t// ErrSignatureInvalid indicates a JWS signature or MAC failed verification.\n\tErrSignatureInvalid = errors.New(\"jose: signature is invalid\")\n\n\t// ErrDecryptFailed indicates a JWE could not be decrypted: the key was\n\t// wrong, the authentication tag did not match, or the content was\n\t// corrupt. The cause is deliberately not distinguished.\n\tErrDecryptFailed = errors.New(\"jose: decryption failed\")\n\n\t// ErrInvalidKeyType indicates the key supplied to an algorithm was not of\n\t// the Go type that algorithm requires. This is the error that closes\n\t// algorithm-confusion attacks.\n\tErrInvalidKeyType = errors.New(\"jose: key is of invalid type\")\n\n\t// ErrInvalidKey indicates a JWK could not be decoded into a usable key, or\n\t// held inconsistent or out-of-range parameters.\n\tErrInvalidKey = errors.New(\"jose: key is invalid\")\n\n\t// ErrKeyNotFound indicates a JWK Set did not contain a key matching the\n\t// requested key ID.\n\tErrKeyNotFound = errors.New(\"jose: no key found for kid\")\n\n\t// ErrUnsupportedAlgorithm indicates the \"alg\" header named a signature or\n\t// key-management algorithm this package does not implement.\n\tErrUnsupportedAlgorithm = errors.New(\"jose: unsupported algorithm\")\n\n\t// ErrUnsupportedEncryption indicates the \"enc\" header named a content\n\t// encryption algorithm this package does not implement.\n\tErrUnsupportedEncryption = errors.New(\"jose: unsupported content encryption algorithm\")\n\n\t// ErrNoneAlgDisallowed indicates a JWS used the unsecured \"none\"\n\t// algorithm. This package never verifies such a token.\n\tErrNoneAlgDisallowed = errors.New(\"jose: 'none' algorithm is not allowed\")\n\n\t// ErrInvalidCrit indicates the JOSE \"crit\" header listed an extension the\n\t// caller has not declared as understood, or was itself malformed.\n\tErrInvalidCrit = errors.New(\"jose: unsupported or malformed 'crit' header\")\n\n\t// ErrInvalidHeader indicates a JOSE header was missing a required\n\t// parameter or held a parameter of the wrong JSON type.\n\tErrInvalidHeader = errors.New(\"jose: invalid JOSE header\")\n\n\t// ErrCompressionLimit indicates a \"zip\":\"DEF\" payload expanded past\n\t// MaxDecompressedSize, which is how this package refuses decompression\n\t// bombs.\n\tErrCompressionLimit = errors.New(\"jose: decompressed payload exceeds limit\")\n\n\t// ErrIterationCount indicates a PBES2 \"p2c\" header requested more PBKDF2\n\t// iterations than MaxPBES2Count permits, a denial-of-service vector when\n\t// the count is attacker-supplied.\n\tErrIterationCount = errors.New(\"jose: PBES2 iteration count out of range\")\n\n\t// ErrDetachedPayload indicates a compact JWS carried no payload and the\n\t// caller supplied none out of band. See VerifyOptions.DetachedPayload.\n\tErrDetachedPayload = errors.New(\"jose: payload is detached\")\n)",
+          "doc": "Sentinel errors returned by the package. Callers may test for these using\nerrors.Is. Parsing, verification, and decryption errors are wrapped so that a\nsingle returned error can match one of these categories while still carrying\na descriptive message.\n\nDecryption deliberately reports a single, uniform ErrDecryptFailed for every\ncryptographic failure — a bad key, a corrupt tag, or invalid padding all look\nthe same to the caller — so that nothing resembling a padding oracle leaks\nout of the API.\n"
+        }
+      ],
+      "types": [
+        {
+          "name": "DecryptOptions",
+          "signature": "type DecryptOptions struct {\n\t// Algorithms, when non-empty, restricts the accepted key management\n\t// \"alg\" values.\n\tAlgorithms []string\n\n\t// Encryptions, when non-empty, restricts the accepted content\n\t// encryption \"enc\" values.\n\tEncryptions []string\n\n\t// KnownCritical lists extension header names the caller understands.\n\t// Any other name in \"crit\" causes rejection.\n\tKnownCritical []string\n\n\t// MaxDecompressed overrides MaxDecompressedSize for this call. Values\n\t// below or equal to zero select the default.\n\tMaxDecompressed int\n}",
+          "doc": "DecryptOptions configures JWE decryption. The zero value is what Decrypt\nuses.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "EncryptOptions",
+          "signature": "type EncryptOptions struct {\n\t// Algorithm is the JWE key management \"alg\" value, e.g. \"RSA-OAEP-256\",\n\t// \"A128KW\", \"dir\", or \"ECDH-ES+A256KW\". When empty, Encrypt infers a\n\t// conventional algorithm for the key's type.\n\tAlgorithm string\n\n\t// Encryption is the content encryption \"enc\" value, e.g. \"A256GCM\" or\n\t// \"A128CBC-HS256\". It defaults to A256GCM.\n\tEncryption string\n\n\t// KeyID, when non-empty, is written to the protected \"kid\" header.\n\tKeyID string\n\n\t// Header holds additional protected header parameters. Algorithm inputs\n\t// may be supplied here — \"apu\"/\"apv\" for ECDH-ES, \"p2s\"/\"p2c\" for\n\t// PBES2 — and algorithm outputs (\"epk\", \"iv\", \"tag\", and the generated\n\t// \"p2s\"/\"p2c\") are written back into the protected header.\n\tHeader map[string]any\n\n\t// AdditionalHeaders holds further protected header parameters, merged\n\t// after Header. The compact serialization has no unprotected header, so\n\t// both maps end up protected and covered by the authentication tag.\n\tAdditionalHeaders map[string]any\n\n\t// Unprotected holds the JWE Shared Unprotected Header, which is *not*\n\t// covered by the authentication tag. Only the JSON serializations can\n\t// carry it, so Encrypt rejects it.\n\tUnprotected map[string]any\n\n\t// AdditionalAuthenticatedData is authenticated but not encrypted, and is\n\t// carried in the \"aad\" member. Only the JSON serializations can carry\n\t// it, so Encrypt rejects it.\n\tAdditionalAuthenticatedData []byte\n\n\t// Compress selects raw DEFLATE compression of the plaintext and sets\n\t// \"zip\":\"DEF\". Compressing attacker-influenced plaintext alongside\n\t// secrets enables CRIME-style attacks; leave it off unless you know the\n\t// plaintext is safe to compress.\n\tCompress bool\n}",
+          "doc": "EncryptOptions configures the production of a JWE (RFC 7516).\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Header",
+          "signature": "type Header map[string]any",
+          "doc": "Header is a decoded JOSE header. Sign, Verify, Encrypt, and Decrypt exchange\nheaders as plain map[string]any values; this named type exists so the helper\naccessors have somewhere to live.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Algorithm",
+              "recv": "Header",
+              "signature": "func (h Header) Algorithm() string",
+              "doc": "Algorithm returns the \"alg\" header parameter.\n"
+            },
+            {
+              "name": "ContentType",
+              "recv": "Header",
+              "signature": "func (h Header) ContentType() string",
+              "doc": "ContentType returns the \"cty\" header parameter.\n"
+            },
+            {
+              "name": "Critical",
+              "recv": "Header",
+              "signature": "func (h Header) Critical() ([]string, bool)",
+              "doc": "Critical returns the \"crit\" header parameter as a list of extension names.\nThe second result is false if \"crit\" is absent or is not an array of strings.\n"
+            },
+            {
+              "name": "Encryption",
+              "recv": "Header",
+              "signature": "func (h Header) Encryption() string",
+              "doc": "Encryption returns the \"enc\" header parameter.\n"
+            },
+            {
+              "name": "KeyID",
+              "recv": "Header",
+              "signature": "func (h Header) KeyID() string",
+              "doc": "KeyID returns the \"kid\" header parameter.\n"
+            },
+            {
+              "name": "String",
+              "recv": "Header",
+              "signature": "func (h Header) String(name string) string",
+              "doc": "String returns the value of a string-valued header parameter, or \"\" if the\nparameter is absent or not a string.\n"
+            },
+            {
+              "name": "Type",
+              "recv": "Header",
+              "signature": "func (h Header) Type() string",
+              "doc": "Type returns the \"typ\" header parameter.\n"
+            }
+          ]
+        },
+        {
+          "name": "JWK",
+          "signature": "type JWK struct {\n\t// Kty is the key type: \"RSA\", \"EC\", \"OKP\", or \"oct\".\n\tKty string `json:\"kty\"`\n\t// Use is the intended public key use, \"sig\" or \"enc\" (optional).\n\tUse string `json:\"use,omitempty\"`\n\t// Alg is the algorithm intended for use with this key, e.g. \"RS256\".\n\tAlg string `json:\"alg,omitempty\"`\n\t// Kid is the key ID, matched against a JOSE \"kid\" header.\n\tKid string `json:\"kid,omitempty\"`\n\t// Crv is the curve name for EC and OKP keys, e.g. \"P-256\" or \"Ed25519\".\n\tCrv string `json:\"crv,omitempty\"`\n\n\t// KeyOps lists the permitted key operations (optional).\n\tKeyOps []string `json:\"key_ops,omitempty\"`\n\n\t// N is the RSA modulus.\n\tN string `json:\"n,omitempty\"`\n\t// E is the RSA public exponent.\n\tE string `json:\"e,omitempty\"`\n\t// D is the RSA private exponent, or the EC/OKP private key.\n\tD string `json:\"d,omitempty\"`\n\t// P is the first RSA prime factor.\n\tP string `json:\"p,omitempty\"`\n\t// Q is the second RSA prime factor.\n\tQ string `json:\"q,omitempty\"`\n\t// DP is the RSA CRT exponent d mod (p-1).\n\tDP string `json:\"dp,omitempty\"`\n\t// DQ is the RSA CRT exponent d mod (q-1).\n\tDQ string `json:\"dq,omitempty\"`\n\t// QI is the RSA CRT coefficient q^-1 mod p.\n\tQI string `json:\"qi,omitempty\"`\n\t// X is the EC x coordinate, or the OKP public key.\n\tX string `json:\"x,omitempty\"`\n\t// Y is the EC y coordinate.\n\tY string `json:\"y,omitempty\"`\n\t// K is the symmetric key material for kty \"oct\".\n\tK string `json:\"k,omitempty\"`\n}",
+          "doc": "JWK is a JSON Web Key (RFC 7517). It holds the raw JWK parameters exactly as\nthey appear in JSON; call Key to resolve the corresponding Go crypto key.\n\nThe supported key types (\"kty\") are:\n\n\tRSA  – *rsa.PublicKey / *rsa.PrivateKey\n\tEC   – *ecdsa.PublicKey / *ecdsa.PrivateKey (curves P-256, P-384, P-521)\n\tOKP  – ed25519.PublicKey / ed25519.PrivateKey (crv Ed25519),\n\t       *ecdh.PublicKey / *ecdh.PrivateKey (crv X25519)\n\toct  – []byte (a symmetric secret)\n\nEvery numeric parameter is unpadded base64url of a big-endian octet string,\nper RFC 7518.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "FromKey",
+              "signature": "func FromKey(key any) (*JWK, error)",
+              "doc": "FromKey builds a JWK from a Go crypto key, populating the parameters that\ncorrespond to the key's type. It is the inverse of Key.\n\nThe accepted types are *rsa.PublicKey, *rsa.PrivateKey, *ecdsa.PublicKey,\n*ecdsa.PrivateKey, ed25519.PublicKey, ed25519.PrivateKey, *ecdh.PublicKey and\n*ecdh.PrivateKey (X25519 only), and []byte for a symmetric key.\n"
+            },
+            {
+              "name": "ParseJWK",
+              "signature": "func ParseJWK(data []byte) (*JWK, error)",
+              "doc": "ParseJWK decodes a single JWK from its JSON encoding. It validates the\nparameters by resolving the key, so a JWK that ParseJWK accepts is usable.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "IsPrivate",
+              "recv": "*JWK",
+              "signature": "func (k *JWK) IsPrivate() bool",
+              "doc": "IsPrivate reports whether the JWK carries private key material.\n"
+            },
+            {
+              "name": "Key",
+              "recv": "*JWK",
+              "signature": "func (k *JWK) Key() (any, error)",
+              "doc": "Key resolves the JWK into a Go crypto key. Private parameters, when present,\nproduce a private key; otherwise the public key is returned. See the JWK\ndocumentation for the type each \"kty\" yields.\n"
+            },
+            {
+              "name": "Public",
+              "recv": "*JWK",
+              "signature": "func (k *JWK) Public() (*JWK, error)",
+              "doc": "Public returns a copy of the JWK holding only its public parameters. For a\nsymmetric (\"oct\") key, which has no public form, Public reports an error.\n"
+            },
+            {
+              "name": "Thumbprint",
+              "recv": "*JWK",
+              "signature": "func (k *JWK) Thumbprint() (string, error)",
+              "doc": "Thumbprint returns the RFC 7638 JWK thumbprint of the key: the unpadded\nbase64url encoding of the SHA-256 digest of the canonical, minimal set of\nrequired members for the key type, serialized as lexicographically ordered\ncompact JSON. It is stable across implementations and is the conventional\nway to derive a deterministic \"kid\".\n"
+            }
+          ]
+        },
+        {
+          "name": "JWKSet",
+          "signature": "type JWKSet struct {\n\t// Keys holds the set's keys in document order.\n\tKeys []*JWK `json:\"keys\"`\n}",
+          "doc": "JWKSet is a JWK Set (RFC 7517 §5), the \"jwks\" document commonly served at a\nprovider's well-known endpoint.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "ParseJWKSet",
+              "signature": "func ParseJWKSet(data []byte) (*JWKSet, error)",
+              "doc": "ParseJWKSet decodes a JWK Set document, validating every key it contains.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "LookupKeyID",
+              "recv": "*JWKSet",
+              "signature": "func (s *JWKSet) LookupKeyID(kid string) (*JWK, bool)",
+              "doc": "LookupKeyID returns the first key in the set whose Kid equals kid. The second\nresult reports whether such a key was found.\n"
+            }
+          ]
+        },
+        {
+          "name": "Recipient",
+          "signature": "type Recipient struct {\n\t// Key is the recipient's key: a Go crypto key, a []byte symmetric key or\n\t// PBES2 password, or a *JWK.\n\tKey any\n\n\t// Algorithm is the key management \"alg\" for this recipient. When empty\n\t// it is inferred from the key's type, or taken from the *JWK's \"alg\".\n\tAlgorithm string\n\n\t// KeyID, when non-empty, identifies the key in this recipient's\n\t// unprotected header. A recipient-specific \"kid\" cannot live in the\n\t// protected header, which is shared by every recipient.\n\tKeyID string\n\n\t// Header holds additional per-recipient unprotected header parameters.\n\t// Algorithm outputs that differ per recipient (\"epk\", \"iv\", \"tag\",\n\t// \"p2s\", \"p2c\") are written here.\n\tHeader map[string]any\n}",
+          "doc": "Recipient pairs a key with the key-management options used to encrypt the\ncontent encryption key for one recipient of a multi-recipient JWE.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "SignOptions",
+          "signature": "type SignOptions struct {\n\t// Algorithm is the JWS \"alg\" value, e.g. \"RS256\" or \"EdDSA\". When empty,\n\t// Sign infers the conventional algorithm for the key's type.\n\tAlgorithm string\n\n\t// KeyID, when non-empty, is written to the protected \"kid\" header.\n\tKeyID string\n\n\t// Header holds additional protected header parameters. They are covered\n\t// by the signature.\n\tHeader map[string]any\n\n\t// Unprotected holds header parameters that are *not* covered by the\n\t// signature. They can only be carried by the JSON serializations, so\n\t// Sign (which produces the compact serialization) rejects them.\n\tUnprotected map[string]any\n\n\t// Critical lists the extension header names to advertise in \"crit\". Each\n\t// name must also appear in Header.\n\tCritical []string\n\n\t// DetachPayload omits the payload from the serialization (RFC 7515\n\t// Appendix F). The payload is still covered by the signature and must be\n\t// supplied out of band at verification time via\n\t// VerifyOptions.DetachedPayload.\n\t//\n\t// Setting Header[\"b64\"] = false additionally selects the RFC 7797\n\t// unencoded payload option, in which case \"b64\" must be listed in\n\t// Critical.\n\tDetachPayload bool\n}",
+          "doc": "SignOptions configures the production of a JWS (RFC 7515).\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Signer",
+          "signature": "type Signer struct {\n\t// Key is the signing key: a Go crypto key, a []byte secret, or a *JWK.\n\tKey any\n\t// Options configures this signature.\n\tOptions SignOptions\n}",
+          "doc": "Signer pairs a key with the options used to produce one signature, for\nbuilding a multi-signature JWS with SignJSONMulti.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "VerifyOptions",
+          "signature": "type VerifyOptions struct {\n\t// Algorithms, when non-empty, restricts the accepted \"alg\" values. This\n\t// is the strongest defense against algorithm confusion and should be set\n\t// whenever the expected algorithm is known.\n\tAlgorithms []string\n\n\t// KnownCritical lists extension header names the caller understands and\n\t// processes out of band. \"b64\" (RFC 7797) is always understood; any other\n\t// name in \"crit\" that is not listed here causes rejection.\n\tKnownCritical []string\n\n\t// DetachedPayload supplies the payload for a JWS serialized without one.\n\tDetachedPayload []byte\n}",
+          "doc": "VerifyOptions configures JWS verification. The zero value is what Verify and\nVerifyJSON use.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        }
+      ],
+      "funcs": [
+        {
+          "name": "AESKeyUnwrap",
+          "signature": "func AESKeyUnwrap(kek, ciphertext []byte) ([]byte, error)",
+          "doc": "AESKeyUnwrap reverses AESKeyWrap. The integrity check on the RFC 3394 initial\nvalue is performed in constant time; a failure yields ErrDecryptFailed and\nsays nothing further about the cause.\n"
+        },
+        {
+          "name": "AESKeyWrap",
+          "signature": "func AESKeyWrap(kek, plaintext []byte) ([]byte, error)",
+          "doc": "AESKeyWrap implements the AES Key Wrap algorithm of RFC 3394, the primitive\nbehind the JWE \"A128KW\", \"A192KW\", and \"A256KW\" key management algorithms\n(and the key-wrapping half of \"ECDH-ES+A128KW\" and friends).\n\nkek is the key-encryption key (16, 24, or 32 octets) and plaintext is the key\nto wrap, whose length must be a multiple of 8 octets and at least 16. The\nresult is 8 octets longer than the input.\n\nThe Go standard library does not provide key wrap, so it is implemented here\ndirectly from the RFC's index-based pseudocode.\n"
+        },
+        {
+          "name": "ConcatKDF",
+          "signature": "func ConcatKDF(z []byte, algID string, apu, apv []byte, keyLen int) ([]byte, error)",
+          "doc": "ConcatKDF implements the NIST SP 800-56A Concatenation KDF in the single-hash\nform RFC 7518 §4.6.2 requires for ECDH-ES: SHA-256, no SuppPrivInfo, and an\nOtherInfo of\n\n\tAlgorithmID || PartyUInfo || PartyVInfo || SuppPubInfo\n\nwhere AlgorithmID, PartyUInfo, and PartyVInfo are each prefixed with their\nlength as a 32-bit big-endian octet count, and SuppPubInfo is the derived key\nlength in *bits* as a 32-bit big-endian integer.\n\nz is the raw ECDH shared secret, algID is the \"enc\" value for direct key\nagreement or the \"alg\" value when the agreed key wraps a CEK, apu and apv are\nthe decoded \"apu\"/\"apv\" header parameters (either may be nil), and keyLen is\nthe number of key octets to produce.\n\nGetting this encoding wrong is the classic JOSE interoperability bug; the\nRFC 7520 §5.4 and §5.5 vectors exercise both the wrapped and direct forms.\n"
+        },
+        {
+          "name": "ContentEncryptionAlgorithms",
+          "signature": "func ContentEncryptionAlgorithms() []string",
+          "doc": "ContentEncryptionAlgorithms returns the sorted list of \"enc\" values this\npackage supports.\n"
+        },
+        {
+          "name": "ContentEncryptionKeySize",
+          "signature": "func ContentEncryptionKeySize(enc string) (int, error)",
+          "doc": "ContentEncryptionKeySize returns the number of octets a content encryption\nkey must have for the given \"enc\" algorithm.\n"
+        },
+        {
+          "name": "DecodeSegment",
+          "signature": "func DecodeSegment(seg string) ([]byte, error)",
+          "doc": "DecodeSegment decodes a JOSE base64url segment.\n\nThe decoding is strict and canonical: padding is rejected, as RFC 7515 §2\nrequires (\"base64url encoding ... with all trailing '=' characters omitted\"),\nas are the standard-alphabet characters '+' and '/', embedded whitespace, and\na final quantum with non-zero unused bits. Every valid input therefore has\nexactly one spelling, so DecodeSegment(EncodeSegment(b)) round-trips and no\ntwo distinct segments decode alike.\n"
+        },
+        {
+          "name": "Decrypt",
+          "signature": "func Decrypt(token string, key any) (plaintext []byte, header map[string]any, err error)",
+          "doc": "Decrypt decrypts a JWE compact serialization and returns the plaintext and\nthe protected header.\n\nEvery cryptographic failure — a wrong key, a corrupt tag, invalid padding —\nreports the same ErrDecryptFailed, so nothing about the failure leaks back to\nthe sender.\n"
+        },
+        {
+          "name": "DecryptJSON",
+          "signature": "func DecryptJSON(data []byte, key any) (plaintext []byte, header map[string]any, err error)",
+          "doc": "DecryptJSON decrypts a JWE in the general or flattened JSON serialization and\nreturns the plaintext and the merged header of the recipient that key\nunlocked.\n"
+        },
+        {
+          "name": "DecryptJSONWithOptions",
+          "signature": "func DecryptJSONWithOptions(data []byte, key any, opts DecryptOptions) (plaintext []byte, header map[string]any, err error)",
+          "doc": "DecryptJSONWithOptions is DecryptJSON with explicit control over the accepted\nalgorithms, the understood \"crit\" extensions, and the decompression bound.\n\nWhen the document addresses several recipients, the one whose \"kid\" matches\nthe supplied key is tried first; otherwise every recipient is tried in turn\nuntil one yields a content encryption key that authenticates the ciphertext.\n"
+        },
+        {
+          "name": "DecryptWithOptions",
+          "signature": "func DecryptWithOptions(token string, key any, opts DecryptOptions) (plaintext []byte, header map[string]any, err error)",
+          "doc": "DecryptWithOptions is Decrypt with explicit control over the accepted\nalgorithms, the understood \"crit\" extensions, and the decompression bound.\n"
+        },
+        {
+          "name": "EncodeSegment",
+          "signature": "func EncodeSegment(seg []byte) string",
+          "doc": "EncodeSegment returns the base64url (RFC 4648 §5) encoding of seg without\npadding, the encoding every JOSE serialization uses.\n"
+        },
+        {
+          "name": "Encrypt",
+          "signature": "func Encrypt(plaintext []byte, key any, opts EncryptOptions) (string, error)",
+          "doc": "Encrypt encrypts plaintext and returns the JWE compact serialization\n\"protected.encrypted_key.iv.ciphertext.tag\".\n\nkey is the recipient's key: an *rsa.PublicKey, an EC or X25519 public key, a\n[]byte symmetric key (for \"dir\", the AES key wrapping algorithms, or a PBES2\npassword), or a *JWK carrying one.\n"
+        },
+        {
+          "name": "EncryptJSON",
+          "signature": "func EncryptJSON(plaintext []byte, key any, opts EncryptOptions) ([]byte, error)",
+          "doc": "EncryptJSON encrypts plaintext for a single recipient and returns the JWE\ngeneral JSON serialization (RFC 7516 §7.2.1).\n\nUnlike the compact serialization, the JSON form can carry a shared\nunprotected header, per-recipient unprotected headers, and an \"aad\" member.\nSet EncryptOptions.AdditionalAuthenticatedData to use the last of these.\n"
+        },
+        {
+          "name": "EncryptJSONMulti",
+          "signature": "func EncryptJSONMulti(plaintext []byte, opts EncryptOptions, recipients ...Recipient) ([]byte, error)",
+          "doc": "EncryptJSONMulti encrypts plaintext once and delivers the content encryption\nkey to every recipient, returning the general JSON serialization.\n\nAll recipients share one CEK and one content encryption, so the algorithms\nthat derive the CEK rather than transport it — \"dir\" and direct \"ECDH-ES\" —\nmay only be used with exactly one recipient.\n"
+        },
+        {
+          "name": "KeyManagementAlgorithms",
+          "signature": "func KeyManagementAlgorithms() []string",
+          "doc": "KeyManagementAlgorithms returns the sorted list of JWE \"alg\" values this\npackage supports.\n"
+        },
+        {
+          "name": "PBKDF2",
+          "signature": "func PBKDF2(password, salt []byte, iterations, keyLen int, newHash func() hash.Hash) ([]byte, error)",
+          "doc": "PBKDF2 derives a key of keyLen octets from password and salt using\nPBKDF2-HMAC (RFC 8018 §5.2) with the hash constructed by newHash and the\ngiven iteration count.\n\nThe Go standard library does not ship PBKDF2 outside golang.org/x/crypto, so\nit is implemented here directly from the RFC.\n"
+        },
+        {
+          "name": "Sign",
+          "signature": "func Sign(payload []byte, key any, opts SignOptions) (string, error)",
+          "doc": "Sign signs payload and returns the JWS compact serialization\n\"protected.payload.signature\".\n\nkey may be a Go crypto key ([]byte, *rsa.PrivateKey, *ecdsa.PrivateKey,\ned25519.PrivateKey) or a *JWK carrying one. Every algorithm type-asserts the\nkey it is given, so an \"alg\" can never be used with a key of the wrong type.\n"
+        },
+        {
+          "name": "SignJSON",
+          "signature": "func SignJSON(payload []byte, key any, opts SignOptions) ([]byte, error)",
+          "doc": "SignJSON signs payload and returns the general JWS JSON serialization with a\nsingle signature. Parameters in SignOptions.Unprotected are carried in the\nper-signature unprotected \"header\" member.\n"
+        },
+        {
+          "name": "SignJSONMulti",
+          "signature": "func SignJSONMulti(payload []byte, signers ...Signer) ([]byte, error)",
+          "doc": "SignJSONMulti signs payload once per signer and returns the general JWS JSON\nserialization carrying all of the signatures (RFC 7515 §7.2.1). Every signer\nmust agree on whether the payload is detached and on the RFC 7797 \"b64\"\nsetting, since the payload is serialized only once.\n"
+        },
+        {
+          "name": "SignatureAlgorithms",
+          "signature": "func SignatureAlgorithms() []string",
+          "doc": "SignatureAlgorithms returns the sorted list of JWS \"alg\" values this package\ncan sign and verify. The unsecured \"none\" algorithm is not included.\n"
+        },
+        {
+          "name": "Verify",
+          "signature": "func Verify(token string, key any) (payload []byte, header map[string]any, err error)",
+          "doc": "Verify checks the signature of a compact JWS and returns the payload and the\nprotected header. The unsecured \"none\" algorithm is always rejected.\n"
+        },
+        {
+          "name": "VerifyJSON",
+          "signature": "func VerifyJSON(data []byte, key any) (payload []byte, header map[string]any, err error)",
+          "doc": "VerifyJSON checks a JWS in the general or flattened JSON serialization. It\nreturns the payload and the merged protected and unprotected header of the\nfirst signature that verifies with key; if none does, it returns the last\nerror encountered.\n"
+        },
+        {
+          "name": "VerifyJSONWithOptions",
+          "signature": "func VerifyJSONWithOptions(data []byte, key any, opts VerifyOptions) (payload []byte, header map[string]any, err error)",
+          "doc": "VerifyJSONWithOptions is VerifyJSON with explicit control over the accepted\nalgorithms, the understood \"crit\" extensions, and a detached payload.\n"
+        },
+        {
+          "name": "VerifyWithOptions",
+          "signature": "func VerifyWithOptions(token string, key any, opts VerifyOptions) (payload []byte, header map[string]any, err error)",
+          "doc": "VerifyWithOptions is Verify with explicit control over the accepted\nalgorithms, the understood \"crit\" extensions, and a detached payload.\n"
+        }
+      ],
+      "examples": [
+        {
+          "name": "DecryptWithOptions (compressionBomb)",
+          "code": "package main\n\nimport (\n\t\"crypto/rand\"\n\t\"errors\"\n\t\"fmt\"\n\n\t\"github.com/malcolmston/jose\"\n)\n\nfunc main() {\n\tcek := make([]byte, 32)\n\tif _, err := rand.Read(cek); err != nil {\n\t\tpanic(err)\n\t}\n\t// A megabyte of zeros compresses to about a kilobyte.\n\ttoken, err := jose.Encrypt(make([]byte, 1\u003c\u003c20), cek,\n\t\tjose.EncryptOptions{Algorithm: jose.Dir, Encryption: jose.A256GCM, Compress: true})\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\n\t_, _, err = jose.DecryptWithOptions(token, cek,\n\t\tjose.DecryptOptions{MaxDecompressed: 4096})\n\tfmt.Println(errors.Is(err, jose.ErrCompressionLimit))\n\n\t_, _, err = jose.Decrypt(token, cek) // the 16 MiB default\n\tfmt.Println(err)\n}",
+          "output": "true\n\u003cnil\u003e",
+          "doc": "ExampleDecryptWithOptions_compressionBomb shows the bound on \"zip\":\"DEF\".\nDEFLATE reaches ratios well past 1000:1, so an unbounded inflate turns a small\ntoken into a memory-exhaustion attack.\n"
+        },
+        {
+          "name": "Encrypt",
+          "code": "package main\n\nimport (\n\t\"crypto/rand\"\n\t\"fmt\"\n\n\t\"github.com/malcolmston/jose\"\n)\n\nfunc main() {\n\tcek := make([]byte, 32) // A256GCM takes a 32-octet key\n\tif _, err := rand.Read(cek); err != nil {\n\t\tpanic(err)\n\t}\n\n\ttoken, err := jose.Encrypt([]byte(\"attack at dawn\"), cek,\n\t\tjose.EncryptOptions{Algorithm: jose.Dir, Encryption: jose.A256GCM})\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\n\tplaintext, header, err := jose.DecryptWithOptions(token, cek,\n\t\tjose.DecryptOptions{\n\t\t\tAlgorithms:  []string{jose.Dir},\n\t\t\tEncryptions: []string{jose.A256GCM},\n\t\t})\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Printf(\"enc=%s plaintext=%s\\n\", jose.Header(header).Encryption(), plaintext)\n}",
+          "output": "enc=A256GCM plaintext=attack at dawn",
+          "doc": "ExampleEncrypt produces a compact JWE. \"dir\" uses the supplied key as the\ncontent encryption key directly, so nothing is transmitted in the JWE\nEncrypted Key.\n"
+        },
+        {
+          "name": "Encrypt (ecdh)",
+          "code": "package main\n\nimport (\n\t\"crypto/ecdsa\"\n\t\"crypto/elliptic\"\n\t\"crypto/rand\"\n\t\"fmt\"\n\n\t\"github.com/malcolmston/jose\"\n)\n\nfunc main() {\n\trecipient, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\n\ttoken, err := jose.Encrypt([]byte(\"for your eyes only\"), \u0026recipient.PublicKey,\n\t\tjose.EncryptOptions{Algorithm: jose.ECDH_ES_A256KW, Encryption: jose.A256GCM})\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\n\tplaintext, _, err := jose.Decrypt(token, recipient)\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Println(string(plaintext))\n}",
+          "output": "for your eyes only",
+          "doc": "ExampleEncrypt_ecdh encrypts to an EC public key with ephemeral-static\nDiffie-Hellman. The sender needs only the recipient's public key; the\nephemeral public key travels in the \"epk\" header.\n"
+        },
+        {
+          "name": "Encrypt (password)",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/jose\"\n)\n\nfunc main() {\n\tpassword := []byte(\"correct horse battery staple\")\n\n\ttoken, err := jose.Encrypt([]byte(\"secret note\"), password,\n\t\tjose.EncryptOptions{\n\t\t\tAlgorithm:  jose.PBES2_HS256_A128KW,\n\t\t\tEncryption: jose.A128GCM,\n\t\t\tHeader:     map[string]any{\"p2c\": jose.MinPBES2Count},\n\t\t})\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\n\tplaintext, header, err := jose.Decrypt(token, password)\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Printf(\"p2c=%v plaintext=%s\\n\", header[\"p2c\"], plaintext)\n}",
+          "output": "p2c=1000 plaintext=secret note",
+          "doc": "ExampleEncrypt_password derives the key-wrapping key from a password with\nPBES2. The iteration count travels in the \"p2c\" header, and because that\nheader is attacker-controlled the decrypter bounds it at both ends before\ndoing any work.\n"
+        },
+        {
+          "name": "EncryptJSONMulti",
+          "code": "package main\n\nimport (\n\t\"crypto/ecdsa\"\n\t\"crypto/elliptic\"\n\t\"crypto/rand\"\n\t\"fmt\"\n\n\t\"github.com/malcolmston/jose\"\n)\n\nfunc main() {\n\talice := make([]byte, 32)\n\tif _, err := rand.Read(alice); err != nil {\n\t\tpanic(err)\n\t}\n\tbob, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\n\tdoc, err := jose.EncryptJSONMulti([]byte(\"one message, two readers\"),\n\t\tjose.EncryptOptions{Encryption: jose.A256GCM},\n\t\tjose.Recipient{Key: alice, Algorithm: jose.A256KW, KeyID: \"alice\"},\n\t\tjose.Recipient{Key: \u0026bob.PublicKey, Algorithm: jose.ECDH_ES_A256KW, KeyID: \"bob\"},\n\t)\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\n\tfor _, key := range []any{alice, bob} {\n\t\tplaintext, header, err := jose.DecryptJSON(doc, key)\n\t\tif err != nil {\n\t\t\tpanic(err)\n\t\t}\n\t\tfmt.Printf(\"%s: %s\\n\", jose.Header(header).KeyID(), plaintext)\n\t}\n}",
+          "output": "alice: one message, two readers\nbob: one message, two readers",
+          "doc": "ExampleEncryptJSONMulti encrypts once and delivers the content encryption key\nto two recipients under different key management algorithms — something the\ncompact serialization cannot express.\n"
+        },
+        {
+          "name": "Sign",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/jose\"\n)\n\nfunc main() {\n\tsecret := []byte(\"a 32-octet secret for HMAC-SHA256\")\n\n\ttoken, err := jose.Sign([]byte(`{\"sub\":\"alice\"}`), secret,\n\t\tjose.SignOptions{Algorithm: jose.HS256})\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\n\tpayload, header, err := jose.VerifyWithOptions(token, secret,\n\t\tjose.VerifyOptions{Algorithms: []string{jose.HS256}})\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Printf(\"alg=%s payload=%s\\n\", jose.Header(header).Algorithm(), payload)\n}",
+          "output": "alg=HS256 payload={\"sub\":\"alice\"}",
+          "doc": "ExampleSign shows the compact JWS most callers want: sign with a shared\nsecret, then verify with the expected algorithm pinned. Pinning \"alg\" is the\nsingle most important thing a verifier does — without it, the token's own\nheader chooses the algorithm.\n"
+        },
+        {
+          "name": "Sign (detached)",
+          "code": "package main\n\nimport (\n\t\"errors\"\n\t\"fmt\"\n\n\t\"github.com/malcolmston/jose\"\n)\n\nfunc main() {\n\tsecret := []byte(\"a 32-octet secret for HMAC-SHA256\")\n\tpayload := []byte(\"a large document that is stored elsewhere\")\n\n\ttoken, err := jose.Sign(payload, secret,\n\t\tjose.SignOptions{Algorithm: jose.HS256, DetachPayload: true})\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\n\tgot, _, err := jose.VerifyWithOptions(token, secret,\n\t\tjose.VerifyOptions{Algorithms: []string{jose.HS256}, DetachedPayload: payload})\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Println(string(got))\n\n\t// A different payload does not verify, which is the point.\n\t_, _, err = jose.VerifyWithOptions(token, secret,\n\t\tjose.VerifyOptions{Algorithms: []string{jose.HS256}, DetachedPayload: []byte(\"a different document\")})\n\tfmt.Println(errors.Is(err, jose.ErrSignatureInvalid))\n}",
+          "output": "a large document that is stored elsewhere\ntrue",
+          "doc": "ExampleSign_detached produces a JWS whose payload travels out of band\n(RFC 7515 Appendix F). The payload is still covered by the signature, so the\nverifier must supply the identical octets.\n"
+        },
+        {
+          "name": "SignJSONMulti",
+          "code": "package main\n\nimport (\n\t\"crypto/ecdsa\"\n\t\"crypto/elliptic\"\n\t\"crypto/rand\"\n\t\"fmt\"\n\n\t\"github.com/malcolmston/jose\"\n)\n\nfunc main() {\n\tsecret := []byte(\"a 32-octet secret for HMAC-SHA256\")\n\tecKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\n\tdoc, err := jose.SignJSONMulti([]byte(\"shared payload\"),\n\t\tjose.Signer{Key: secret, Options: jose.SignOptions{Algorithm: jose.HS256}},\n\t\tjose.Signer{Key: ecKey, Options: jose.SignOptions{Algorithm: jose.ES256}},\n\t)\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\n\tfor _, key := range []any{secret, \u0026ecKey.PublicKey} {\n\t\tpayload, header, err := jose.VerifyJSON(doc, key)\n\t\tif err != nil {\n\t\t\tpanic(err)\n\t\t}\n\t\tfmt.Printf(\"%s verified %q\\n\", jose.Header(header).Algorithm(), payload)\n\t}\n}",
+          "output": "HS256 verified \"shared payload\"\nES256 verified \"shared payload\"",
+          "doc": "ExampleSignJSONMulti signs one payload with two keys and serializes both\nsignatures in a single general JSON document (RFC 7515 §7.2.1). Each\nrecipient verifies with the key it holds; neither signature vouches for the\nother.\n"
+        },
+        {
+          "name": "SignatureAlgorithms",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/jose\"\n)\n\nfunc main() {\n\tfmt.Println(jose.SignatureAlgorithms())\n\tfmt.Println(jose.ContentEncryptionAlgorithms())\n}",
+          "output": "[ES256 ES384 ES512 EdDSA HS256 HS384 HS512 PS256 PS384 PS512 RS256 RS384 RS512]\n[A128CBC-HS256 A128GCM A192CBC-HS384 A192GCM A256CBC-HS512 A256GCM]",
+          "doc": "ExampleSignatureAlgorithms lists the registries this package implements.\n\"none\" is deliberately absent from the signature list.\n"
+        },
+        {
+          "name": "Verify (none)",
+          "code": "package main\n\nimport (\n\t\"errors\"\n\t\"fmt\"\n\n\t\"github.com/malcolmston/jose\"\n)\n\nfunc main() {\n\t// header {\"alg\":\"none\"}, payload {\"admin\":true}, empty signature\n\ttoken := \"eyJhbGciOiJub25lIn0.eyJhZG1pbiI6dHJ1ZX0.\"\n\n\t_, _, err := jose.Verify(token, []byte(\"irrelevant\"))\n\tfmt.Println(errors.Is(err, jose.ErrNoneAlgDisallowed))\n}",
+          "output": "true",
+          "doc": "ExampleVerify_none shows that the unsecured \"none\" algorithm is refused\nunconditionally. There is no option to enable it.\n"
+        },
+        {
+          "name": "VerifyWithOptions (algorithmConfusion)",
+          "code": "package main\n\nimport (\n\t\"crypto/ecdsa\"\n\t\"crypto/elliptic\"\n\t\"crypto/rand\"\n\t\"errors\"\n\t\"fmt\"\n\n\t\"github.com/malcolmston/jose\"\n)\n\nfunc main() {\n\tkey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\n\t// The attacker MACs with material derived from the public key.\n\tforged, err := jose.Sign([]byte(`{\"admin\":true}`), []byte(\"public key bytes\"),\n\t\tjose.SignOptions{Algorithm: jose.HS256})\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\n\t_, _, err = jose.Verify(forged, \u0026key.PublicKey)\n\tfmt.Println(errors.Is(err, jose.ErrInvalidKeyType))\n}",
+          "output": "true",
+          "doc": "ExampleVerifyWithOptions demonstrates the defence against algorithm\nconfusion. An attacker who has the RSA *public* key can MAC a token with it\nand claim \"alg\":\"HS256\"; a verifier that trusted the header would recompute\nthe same MAC and accept. Here the HMAC algorithm type-asserts its key, so an\n*rsa.PublicKey never reaches it.\n"
+        },
+        {
+          "name": "FromKey",
+          "code": "package main\n\nimport (\n\t\"crypto/ecdsa\"\n\t\"crypto/elliptic\"\n\t\"crypto/rand\"\n\t\"fmt\"\n\n\t\"github.com/malcolmston/jose\"\n)\n\nfunc main() {\n\tkey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\n\tprivate, err := jose.FromKey(key)\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tpublic, err := private.Public()\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\n\tthumb, err := public.Thumbprint()\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Printf(\"kty=%s crv=%s private=%v public-has-d=%v thumbprint-length=%d\\n\",\n\t\tpublic.Kty, public.Crv, private.IsPrivate(), public.IsPrivate(), len(thumb))\n}",
+          "output": "kty=EC crv=P-256 private=true public-has-d=false thumbprint-length=43",
+          "doc": "ExampleFromKey converts a Go key to a JWK, strips it to its public half for\npublication, and derives the RFC 7638 thumbprint that conventionally serves as\nthe \"kid\".\n"
+        },
+        {
+          "name": "JWK (Public)",
+          "code": "package main\n\nimport (\n\t\"errors\"\n\t\"fmt\"\n\n\t\"github.com/malcolmston/jose\"\n)\n\nfunc main() {\n\toct, err := jose.FromKey([]byte(\"a symmetric secret\"))\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\t_, err = oct.Public()\n\tfmt.Println(errors.Is(err, jose.ErrInvalidKey))\n}",
+          "output": "true",
+          "doc": "ExampleJWK_Public shows that a JWK published for verification carries no\nprivate material, and that a symmetric key correctly reports it has no public\nform rather than handing back the secret.\n"
+        },
+        {
+          "name": "ParseJWKSet",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/jose\"\n)\n\nfunc main() {\n\tconst jwks = `{\"keys\":[\n\t\t{\"kty\":\"oct\",\"kid\":\"2023\",\"use\":\"sig\",\"alg\":\"HS256\",\"k\":\"c2VjcmV0LWZyb20tMjAyMy1zaWduaW5nLWtleQ\"},\n\t\t{\"kty\":\"oct\",\"kid\":\"2024\",\"use\":\"sig\",\"alg\":\"HS256\",\"k\":\"c2VjcmV0LWZyb20tMjAyNC1zaWduaW5nLWtleQ\"}\n\t]}`\n\n\tset, err := jose.ParseJWKSet([]byte(jwks))\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tcurrent, ok := set.LookupKeyID(\"2024\")\n\tif !ok {\n\t\tpanic(\"kid 2024 not found\")\n\t}\n\n\ttoken, err := jose.Sign([]byte(\"payload\"), current,\n\t\tjose.SignOptions{Algorithm: jose.HS256, KeyID: \"2024\"})\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\n\t// The verifier hands over the whole set; the \"kid\" header selects the key.\n\tpayload, header, err := jose.VerifyWithOptions(token, set,\n\t\tjose.VerifyOptions{Algorithms: []string{jose.HS256}})\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Printf(\"kid=%s payload=%s\\n\", jose.Header(header).KeyID(), payload)\n}",
+          "output": "kid=2024 payload=payload",
+          "doc": "ExampleParseJWKSet resolves a key from a JWK Set by the \"kid\" the token\nnames, which is how a verifier follows a provider's key rotation.\n"
+        }
+      ]
+    }
+  ]
+}

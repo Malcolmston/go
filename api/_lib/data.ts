@@ -183,6 +183,79 @@ export interface ParityCorpus {
   libraries: Record<string, ParityLibrary>;
 }
 
+// ---------------------------------------------------------------------------
+// The browser-reachable parity SUMMARY.
+//
+// parity.json (the corpus) is ~5.4 MB of per-case detail and is deliberately
+// server-side only. The frontend (src/components/Explore.tsx) needs exactly one
+// number per library, and refuses any parity payload over its own 512 KB guard,
+// so the summary below is the browser-facing projection of the corpus: the
+// headline counts and the pinned upstream, nothing else. It is produced twice
+// from the same code — written to public/parity.json by
+// scripts/build-graph-data.ts (which Explore fetches directly, and which is the
+// only form GitHub Pages can serve) and served live by app/api/parity/route.ts.
+// ---------------------------------------------------------------------------
+
+export interface ParitySummaryEntry {
+  parityPercent: number;
+  total: number;
+  match: number;
+  mismatch: number;
+  deviations: number;
+  upstream: { raw: string; name: string; version: string };
+}
+export interface ParitySummary {
+  generatedAt: string;
+  libraries: Record<string, ParitySummaryEntry>;
+}
+
+// Structural input: the generator has its own (wider) corpus types and runs
+// under Node's type stripping, so summarizeParity accepts anything carrying the
+// fields it projects rather than the ParityCorpus nominal shape.
+export interface ParitySummarySource {
+  generatedAt: string;
+  libraries: Record<
+    string,
+    {
+      total: number;
+      match: number;
+      mismatch: number;
+      deviations: number;
+      parityPercent: number;
+      upstream: { raw: string; name: string; version: string };
+    }
+  >;
+}
+
+// Project the measured corpus down to the per-library headline figures.
+// Deterministic: keys are emitted in sorted order and lowercased, because
+// Explore keys its lookup by the lowercased library id. Nested harnesses are
+// intentionally omitted — they are not libraries in the graph, so no page can
+// key on them, and including them would only grow the payload.
+export function summarizeParity(corpus: ParitySummarySource): ParitySummary {
+  const libraries: Record<string, ParitySummaryEntry> = {};
+  const src = corpus?.libraries ?? {};
+  for (const id of Object.keys(src).sort()) {
+    const lib = src[id];
+    if (!lib) continue;
+    const key = id.trim().toLowerCase();
+    if (key === '') continue;
+    libraries[key] = {
+      parityPercent: num(lib.parityPercent),
+      total: num(lib.total),
+      match: num(lib.match),
+      mismatch: num(lib.mismatch),
+      deviations: num(lib.deviations),
+      upstream: {
+        raw: String(lib.upstream?.raw ?? ''),
+        name: String(lib.upstream?.name ?? ''),
+        version: String(lib.upstream?.version ?? ''),
+      },
+    };
+  }
+  return { generatedAt: String(corpus?.generatedAt ?? ''), libraries };
+}
+
 let graphCache: Graph | null = null;
 let symbolsCache: SymbolDoc[] | null = null;
 let examplesCache: Record<string, ExampleDoc> | null = null;
@@ -380,6 +453,13 @@ export function getExamples(): Record<string, ExampleDoc> {
 // name, which is also the docs/library id).
 export function getParity(): ParityCorpus {
   return loadParity();
+}
+
+// The browser-sized projection of the corpus (see summarizeParity). Recomputed
+// per call off the memoized corpus — it is a few thousand bytes of object churn
+// over 40 libraries, not worth a second cache.
+export function getParitySummary(): ParitySummary {
+  return summarizeParity(loadParity());
 }
 
 // One library's measured parity, or null when the id is unknown (a placeholder

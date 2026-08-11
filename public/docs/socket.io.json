@@ -1,6 +1,6 @@
 {
   "module": "github.com/malcolmston/socketio",
-  "generatedAt": "2026-07-19T02:05:53Z",
+  "generatedAt": "2026-08-05T11:13:32Z",
   "packages": [
     {
       "importPath": "github.com/malcolmston/socketio",
@@ -10,10 +10,24 @@
       "consts": [
         {
           "names": [
+            "DefaultMaxSessions"
+          ],
+          "signature": "const DefaultMaxSessions = 65536",
+          "doc": "DefaultMaxSessions is the concurrent-session cap applied when\nOptions.MaxSessions is zero. It is deliberately far above what a single\nprocess is expected to serve: it exists to bound a handshake flood, not to\nthrottle legitimate traffic.\n"
+        },
+        {
+          "names": [
             "DefaultPath"
           ],
           "signature": "const DefaultPath = \"/socket.io/\"",
           "doc": "DefaultPath is the HTTP path Socket.IO serves from.\n"
+        },
+        {
+          "names": [
+            "MaxAttachments"
+          ],
+          "signature": "const MaxAttachments = 1024",
+          "doc": "MaxAttachments bounds the number of binary buffers a single BINARY_EVENT or\nBINARY_ACK packet may declare in its \"\u003cn\u003e-\" wire prefix. The count is\nattacker-controlled — it arrives on the wire before any buffer does — so it is\nvalidated at decode time rather than trusted by the code that pre-allocates\nper-attachment storage. A packet declaring more than this is rejected with\nErrInvalidPacket. The limit is far above any realistic payload (socket.io's\nown encoder emits one attachment per []byte argument).\n"
         },
         {
           "names": [
@@ -24,6 +38,13 @@
         }
       ],
       "vars": [
+        {
+          "names": [
+            "ErrAckTimeout"
+          ],
+          "signature": "var ErrAckTimeout = errors.New(\"socketio: ack timeout\")",
+          "doc": "ErrAckTimeout is returned by EmitAck when the client does not acknowledge the\nevent within the supplied timeout.\n"
+        },
         {
           "names": [
             "ErrEmptyEvent"
@@ -44,6 +65,13 @@
           ],
           "signature": "var ErrReservedEvent = errors.New(\"socketio: reserved event name\")",
           "doc": "ErrReservedEvent indicates an attempt to use a reserved event name for an\napplication event.\n"
+        },
+        {
+          "names": [
+            "ErrTooManyAttachments"
+          ],
+          "signature": "var ErrTooManyAttachments = fmt.Errorf(\"%w: too many binary attachments (max %d)\", ErrInvalidPacket, MaxAttachments)",
+          "doc": "ErrTooManyAttachments indicates a BINARY_EVENT/BINARY_ACK packet declaring\nmore than MaxAttachments binary buffers. It wraps ErrInvalidPacket so callers\nthat only care about malformed input can keep testing for that.\n"
         }
       ],
       "types": [
@@ -214,7 +242,7 @@
         },
         {
           "name": "Handshake",
-          "signature": "type Handshake struct {\n\t// Headers is the set of HTTP request headers.\n\tHeaders http.Header\n\t// Time is when the handshake was processed.\n\tTime time.Time\n\t// Address is the remote network address the connection originated from\n\t// (honoring X-Forwarded-For when present).\n\tAddress string\n\t// XDomain reports whether the request carried an Origin header (a\n\t// cross-origin, browser-initiated request).\n\tXDomain bool\n\t// Secure reports whether the request arrived over TLS (https/wss).\n\tSecure bool\n\t// Issued is the handshake time in Unix milliseconds, matching the JS\n\t// handshake.issued field.\n\tIssued int64\n\t// URL is the request URI (path and query) of the handshake request.\n\tURL string\n\t// Query holds the parsed query-string parameters.\n\tQuery url.Values\n\t// Auth is the authentication payload the client supplied with CONNECT.\n\tAuth any\n}",
+          "signature": "type Handshake struct {\n\t// Headers is the set of HTTP request headers.\n\tHeaders http.Header\n\t// Time is when the handshake was processed.\n\tTime time.Time\n\t// Address is the remote network address the connection originated from.\n\t// It is the port-stripped RemoteAddr unless the handshake was built with\n\t// NewProxiedHandshake or Options.TrustProxy, in which case a present\n\t// X-Forwarded-For takes precedence. See NewHandshake for why the header is\n\t// not trusted by default.\n\tAddress string\n\t// XDomain reports whether the request carried an Origin header (a\n\t// cross-origin, browser-initiated request).\n\tXDomain bool\n\t// Secure reports whether the request arrived over TLS (https/wss).\n\tSecure bool\n\t// Issued is the handshake time in Unix milliseconds, matching the JS\n\t// handshake.issued field.\n\tIssued int64\n\t// URL is the request URI (path and query) of the handshake request.\n\tURL string\n\t// Query holds the parsed query-string parameters.\n\tQuery url.Values\n\t// Auth is the authentication payload the client supplied with CONNECT.\n\tAuth any\n}",
           "doc": "Handshake describes the details of the HTTP request that established a\nconnection — the Go equivalent of Socket.IO's socket.handshake object. It is\ncaptured once, at connection time, and never changes for the life of the\nsocket. Middleware and connection handlers inspect it to authorize or\nannotate a connection (origin, forwarded address, query string, auth\npayload).\n",
           "consts": [],
           "vars": [],
@@ -222,7 +250,12 @@
             {
               "name": "NewHandshake",
               "signature": "func NewHandshake(r *http.Request, auth any) *Handshake",
-              "doc": "NewHandshake builds a Handshake from an incoming HTTP request and the auth\npayload sent with the Socket.IO CONNECT packet. The remote address prefers the\nfirst entry of an X-Forwarded-For header (for connections behind a proxy) and\notherwise falls back to the request's RemoteAddr with any port stripped.\n"
+              "doc": "NewHandshake builds a Handshake from an incoming HTTP request and the auth\npayload sent with the Socket.IO CONNECT packet. Address is taken from the\nrequest's RemoteAddr with any port stripped, matching engine.io, which\nreports the address of the socket the request actually arrived on.\n\nX-Forwarded-For is deliberately NOT consulted: it is a client-supplied header\nthat any peer can set to an arbitrary value, so honoring it unconditionally\nlets a client choose the address that authorization, rate limiting, and audit\nlogging see. Use NewProxiedHandshake (or Options.TrustProxy on the server)\nonly when the server sits behind a reverse proxy that overwrites the header.\n"
+            },
+            {
+              "name": "NewProxiedHandshake",
+              "signature": "func NewProxiedHandshake(r *http.Request, auth any) *Handshake",
+              "doc": "NewProxiedHandshake is NewHandshake for a server running behind a trusted\nreverse proxy: Address is the first entry of the X-Forwarded-For header when\none is present, falling back to RemoteAddr otherwise. Only use it when a proxy\nyou control is guaranteed to replace (not append to) any client-supplied\nX-Forwarded-For, because the value is otherwise attacker-chosen.\n"
             }
           ],
           "methods": [
@@ -342,7 +375,7 @@
         },
         {
           "name": "Options",
-          "signature": "type Options struct {\n\t// Path is the HTTP path the server handles (default \"/socket.io/\").\n\tPath string\n\t// PingInterval is how often the server sends heartbeat pings.\n\tPingInterval time.Duration\n\t// PingTimeout is how long the server waits for a pong before disconnecting.\n\tPingTimeout time.Duration\n\t// MaxPayload advertises the maximum HTTP payload size to clients.\n\tMaxPayload int\n\t// CheckOrigin, if set, authorizes cross-origin requests. When nil, all\n\t// origins are allowed.\n\tCheckOrigin func(r *http.Request) bool\n}",
+          "signature": "type Options struct {\n\t// Path is the HTTP path the server handles (default \"/socket.io/\").\n\tPath string\n\t// PingInterval is how often the server sends heartbeat pings.\n\tPingInterval time.Duration\n\t// PingTimeout is how long the server waits for a pong before disconnecting.\n\tPingTimeout time.Duration\n\t// MaxPayload advertises the maximum HTTP payload size to clients.\n\tMaxPayload int\n\t// CheckOrigin, if set, authorizes cross-origin requests. When nil, all\n\t// origins are allowed — including cross-site WebSocket handshakes, which\n\t// are not subject to the same-origin policy. Set it on any deployment where\n\t// a connection carries ambient authority (cookies, session headers).\n\tCheckOrigin func(r *http.Request) bool\n\t// TrustProxy makes Socket.Handshake().Address honor the first entry of the\n\t// X-Forwarded-For header. Leave it false unless a reverse proxy you control\n\t// overwrites that header: it is otherwise fully client-controlled.\n\tTrustProxy bool\n\t// MaxSessions caps the number of concurrent Engine.IO sessions the server\n\t// will hold. Every unauthenticated handshake request allocates a session and\n\t// a heartbeat goroutine that survive until the ping timeout elapses, so\n\t// without a cap a request flood grows the session map without bound. When\n\t// the cap is reached, further handshakes are refused with 503 while existing\n\t// sessions keep working. Zero selects DefaultMaxSessions; a negative value\n\t// disables the cap entirely.\n\tMaxSessions int\n}",
           "doc": "Options configures a Server.\n",
           "consts": [],
           "vars": [],
@@ -624,13 +657,13 @@
               "name": "EmitAck",
               "recv": "*Socket",
               "signature": "func (s *Socket) EmitAck(event string, timeout time.Duration, args ...any) ([]any, error)",
-              "doc": "EmitAck sends an event and blocks until the client acknowledges it or timeout\nelapses, returning the acknowledgement arguments.\n"
+              "doc": "EmitAck sends an event and blocks until the client acknowledges it or timeout\nelapses, returning the acknowledgement arguments. On timeout it returns\nErrAckTimeout and forgets the acknowledgement, so a client that never answers\n(or answers late) cannot make the socket accumulate pending callbacks.\n"
             },
             {
               "name": "EmitWithAck",
               "recv": "*Socket",
               "signature": "func (s *Socket) EmitWithAck(event string, ackFn func(args []any), args ...any) error",
-              "doc": "EmitWithAck sends an event and invokes ackFn with the client's acknowledgement\narguments.\n"
+              "doc": "EmitWithAck sends an event and invokes ackFn with the client's acknowledgement\narguments. If the packet cannot be sent the pending callback is discarded and\nthe send error is returned; ackFn is not invoked.\n"
             },
             {
               "name": "Except",
@@ -649,6 +682,12 @@
               "recv": "*Socket",
               "signature": "func (s *Socket) GetString(key string) string",
               "doc": "GetString returns a stored string value, or \"\" if missing / not a string.\n"
+            },
+            {
+              "name": "Handshake",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) Handshake() *Handshake",
+              "doc": "Handshake returns the details of the HTTP request that established this\nsocket's session — headers, query string, address, TLS flag, and the auth\npayload sent with CONNECT — the equivalent of socket.handshake in the\nJavaScript API. It is nil only for sockets created outside an HTTP request\n(in tests). The returned value is a per-socket snapshot; mutating it does not\naffect the session or other namespaces on it.\n"
             },
             {
               "name": "ID",
@@ -717,6 +756,12 @@
               "doc": "OnDisconnect registers a callback invoked when the socket disconnects.\n"
             },
             {
+              "name": "PendingAcks",
+              "recv": "*Socket",
+              "signature": "func (s *Socket) PendingAcks() int",
+              "doc": "PendingAcks reports how many acknowledgements this socket is still waiting\nfor. It is primarily useful in tests and for instrumentation.\n"
+            },
+            {
               "name": "PrependAny",
               "recv": "*Socket",
               "signature": "func (s *Socket) PrependAny(fn func(event string, args []any)) *Socket",
@@ -745,6 +790,11 @@
       ],
       "funcs": [
         {
+          "name": "AllowedOrigins",
+          "signature": "func AllowedOrigins(origins ...string) func(*http.Request) bool",
+          "doc": "AllowedOrigins builds an Options.CheckOrigin function that admits only the\nlisted origins. It is the Go equivalent of configuring socket.io's\n`cors: { origin: [...] }`, and exists because the zero value of Options\naccepts every origin:\n\n\tio := socketio.New(socketio.Options{\n\t\tCheckOrigin: socketio.AllowedOrigins(\"https://app.example.com\"),\n\t})\n\nComparison is on the exact Origin header value (scheme, host and port),\ncase-insensitively for the scheme and host as browsers always send them\nlowercased. A request with no Origin header is allowed: only browsers send\none, and the same-origin policy — the thing an allowlist protects — does not\napply to a non-browser client, which could set any value it liked anyway.\n\nSetting CheckOrigin matters most for the WebSocket transport. A WebSocket\nhandshake is *not* subject to the same-origin policy: any page on any site\ncan open a socket to this server and, if the browser attaches cookies, act\nwith the visitor's authority (\"cross-site WebSocket hijacking\"). Unlike the\npolling transport, no CORS preflight stands in the way, so the Origin check\nis the only defense. Pass \"*\" to allow everything explicitly (the same as\nleaving CheckOrigin nil, but self-documenting).\n"
+        },
+        {
           "name": "IsReservedEvent",
           "signature": "func IsReservedEvent(name string) bool",
           "doc": "IsReservedEvent reports whether name is a Socket.IO reserved event name\n(such as \"connect\", \"disconnect\", or \"connect_error\"). Reserved names are\nemitted by the library itself and must not be used for application events,\nmirroring the RESERVED_EVENTS guard in the JavaScript server.\n"
@@ -766,6 +816,18 @@
         }
       ],
       "examples": [
+        {
+          "name": "AllowedOrigins",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n\t\"net/http/httptest\"\n\n\tsocketio \"github.com/malcolmston/socketio\"\n)\n\nfunc main() {\n\tio := socketio.New(socketio.Options{\n\t\tCheckOrigin: socketio.AllowedOrigins(\n\t\t\t\"https://app.example.com\",\n\t\t\t\"https://admin.example.com\",\n\t\t),\n\t})\n\tdefer io.Close()\n\n\tts := httptest.NewServer(io)\n\tdefer ts.Close()\n\n\tprobe := func(origin string) int {\n\t\treq, _ := http.NewRequest(http.MethodGet, ts.URL+\"/socket.io/?EIO=4\u0026transport=polling\", nil)\n\t\treq.Header.Set(\"Origin\", origin)\n\t\tresp, err := http.DefaultClient.Do(req)\n\t\tif err != nil {\n\t\t\treturn 0\n\t\t}\n\t\tresp.Body.Close()\n\t\treturn resp.StatusCode\n\t}\n\n\tfmt.Println(\"app.example.com  -\u003e\", probe(\"https://app.example.com\"))\n\tfmt.Println(\"evil.example     -\u003e\", probe(\"https://evil.example\"))\n}",
+          "output": "app.example.com  -\u003e 200\nevil.example     -\u003e 403",
+          "doc": "ExampleAllowedOrigins locks a server down to the origins a browser app is\nactually served from. This matters most for the WebSocket transport: a\nWebSocket handshake is an ordinary GET that the same-origin policy does not\nrestrict and that triggers no CORS preflight, so without an Origin check any\npage a user visits can open an authenticated socket to this server —\ncross-site WebSocket hijacking. Setting CheckOrigin also switches on\nAccess-Control-Allow-Credentials for the polling transport, which is withheld\nwhile every origin is accepted.\n"
+        },
+        {
+          "name": "Options (trustProxy)",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n\t\"net/http/httptest\"\n\n\tsocketio \"github.com/malcolmston/socketio\"\n)\n\nfunc main() {\n\tbehindProxy := socketio.New(socketio.Options{TrustProxy: true})\n\tdefer behindProxy.Close()\n\n\tdirect := socketio.New() // TrustProxy is false by default\n\tdefer direct.Close()\n\n\tr := httptest.NewRequest(http.MethodGet, \"/socket.io/\", nil)\n\tr.RemoteAddr = \"10.0.0.9:51234\"\n\tr.Header.Set(\"X-Forwarded-For\", \"203.0.113.7, 10.0.0.1\")\n\n\tfmt.Println(\"trusted:  \", socketio.NewProxiedHandshake(r, nil).Address)\n\tfmt.Println(\"untrusted:\", socketio.NewHandshake(r, nil).Address)\n}",
+          "output": "trusted:   203.0.113.7\nuntrusted: 10.0.0.9",
+          "doc": "ExampleOptions_trustProxy shows when the X-Forwarded-For header may be\nbelieved. Socket.Handshake().Address defaults to the address of the socket\nthe request actually arrived on, because X-Forwarded-For is a plain request\nheader any client can set — trusting it unconditionally would let a client\npick the address that rate limiting, authorization and audit logs see. Turn\nTrustProxy on only when a reverse proxy you control *overwrites* the header.\n"
+        },
         {
           "name": "Server",
           "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http/httptest\"\n\n\tsocketio \"github.com/malcolmston/socketio\"\n)\n\nfunc main() {\n\tio := socketio.New()\n\tio.OnConnection(func(s *socketio.Socket) {\n\t\t// Every socket joins a shared room on connect.\n\t\ts.Join(\"room1\")\n\n\t\t// Re-broadcast each chat message to the whole room.\n\t\ts.On(\"chat\", func(args []any) []any {\n\t\t\tio.To(\"room1\").Emit(\"chat\", args...)\n\t\t\treturn nil\n\t\t})\n\n\t\ts.OnDisconnect(func(reason string) {\n\t\t\t// Clean up per-socket state here.\n\t\t\t_ = reason\n\t\t})\n\t})\n\n\t// A *Server is an http.Handler. In production:\n\t//\n\t//\thttp.Handle(socketio.DefaultPath, io)\n\t//\thttp.ListenAndServe(\":3000\", nil)\n\t//\n\t// Here httptest hosts it so the example is self-contained.\n\tts := httptest.NewServer(io)\n\tdefer ts.Close()\n\tdefer io.Close()\n\n\tfmt.Println(\"serving Socket.IO at\", socketio.DefaultPath)\n}",
@@ -1108,8 +1170,16 @@
       "importPath": "github.com/malcolmston/socketio/internal/ws",
       "name": "ws",
       "synopsis": "Package ws is a minimal, dependency-free RFC 6455 WebSocket implementation, sufficient to carry Engine.IO/Socket.IO traffic.",
-      "doc": "Package ws is a minimal, dependency-free RFC 6455 WebSocket implementation,\nsufficient to carry Engine.IO/Socket.IO traffic. It provides both sides of a\nconnection: a server that upgrades an incoming net/http request and a client\nthat dials a remote endpoint. It supports the opening handshake, fragmented\ndata messages, and the control frames (ping/pong/close). Only what Socket.IO\nneeds is implemented; it is not a general-purpose WebSocket library, and it is\nan internal package with no compatibility guarantees for outside importers.\n\nIt exists so that the surrounding module can offer WebSocket transport using\nnothing but the Go standard library — no gorilla/websocket, no nhooyr, no cgo.\nThe socketio server calls Upgrade to turn a hijacked HTTP connection into a\n*Conn; the client package calls Dial to obtain a *Conn to a remote server.\nBoth then exchange Engine.IO frames through the same small message API, so the\nrest of the stack is transport-agnostic.\n\nThe server handshake works by validating the Upgrade/Connection headers and\nSec-WebSocket-Version (13), hijacking the underlying net.Conn via\nhttp.Hijacker, and replying with the 101 Switching Protocols response whose\nSec-WebSocket-Accept is the SHA-1/base64 digest of the client key plus the\nRFC 6455 GUID. IsWebSocketUpgrade reports whether a request is a WebSocket\nupgrade so callers can branch before attempting Upgrade. Dial performs the\nmirror image: it opens a TCP connection, sends the GET upgrade request with a\nrandom key, and verifies the server's accept value.\n\nMessages are exchanged with ReadMessage and WriteMessage (or the WriteText\nconvenience), which speak whole logical messages rather than raw frames.\nReadMessage reassembles fragmented messages, transparently answers ping\ncontrol frames with a pong, and responds to a close frame by echoing it and\nreturning ErrClosed. MessageType distinguishes TextMessage from\nBinaryMessage, which matches Engine.IO's split between string packets and\nbinary attachments. Per RFC 6455, client-originated frames are masked with a\nfresh random key (Conn tracks whether it is a client), while server frames are\nsent unmasked.\n\nA Conn is safe for one concurrent reader and one concurrent writer: writes are\nserialized by an internal mutex and the closed flag is atomic, so a reader\nthat observes a close while a writer is mid-flight will not race. It is not\nsafe to call ReadMessage from two goroutines at once. Close sends a normal\n(1000) close frame and tears down the transport; subsequent writes return\nErrClosed. Notably absent, because Socket.IO does not require them, are\npermessage-deflate compression, subprotocol negotiation, and read/write\ndeadlines — callers that need timeouts should manage them on the underlying\nconnection or via request context.\n",
-      "consts": [],
+      "doc": "Package ws is a minimal, dependency-free RFC 6455 WebSocket implementation,\nsufficient to carry Engine.IO/Socket.IO traffic. It provides both sides of a\nconnection: a server that upgrades an incoming net/http request and a client\nthat dials a remote endpoint. It supports the opening handshake, fragmented\ndata messages, and the control frames (ping/pong/close). Only what Socket.IO\nneeds is implemented; it is not a general-purpose WebSocket library, and it is\nan internal package with no compatibility guarantees for outside importers.\n\nIt exists so that the surrounding module can offer WebSocket transport using\nnothing but the Go standard library — no gorilla/websocket, no nhooyr, no cgo.\nThe socketio server calls Upgrade to turn a hijacked HTTP connection into a\n*Conn; the client package calls Dial to obtain a *Conn to a remote server.\nBoth then exchange Engine.IO frames through the same small message API, so the\nrest of the stack is transport-agnostic.\n\nThe server handshake works by validating the Upgrade/Connection headers and\nSec-WebSocket-Version (13), hijacking the underlying net.Conn via\nhttp.Hijacker, and replying with the 101 Switching Protocols response whose\nSec-WebSocket-Accept is the SHA-1/base64 digest of the client key plus the\nRFC 6455 GUID. IsWebSocketUpgrade reports whether a request is a WebSocket\nupgrade so callers can branch before attempting Upgrade. Dial performs the\nmirror image: it opens a TCP connection (wrapped in TLS for a wss:// or\nhttps:// URL — see DialTLS for a custom *tls.Config), sends the GET upgrade\nrequest with a random key, and verifies the server's accept value.\n\nReads are bounded. A frame header declares its payload length before the\npayload arrives, so an unbounded reader would allocate whatever a peer asks\nfor; ReadMessage instead rejects any frame — or any fragmented message whose\nreassembly would grow — beyond the connection's read limit\n(DefaultMaxMessageSize, adjustable with SetReadLimit) with ErrMessageTooLarge.\nControl frames are held to the RFC's 125-byte, never-fragmented rule, and a\nserver-side Conn rejects the unmasked client frames RFC 6455 §5.1 forbids.\n\nMessages are exchanged with ReadMessage and WriteMessage (or the WriteText\nconvenience), which speak whole logical messages rather than raw frames.\nReadMessage reassembles fragmented messages, transparently answers ping\ncontrol frames with a pong, and responds to a close frame by echoing it and\nreturning ErrClosed. MessageType distinguishes TextMessage from\nBinaryMessage, which matches Engine.IO's split between string packets and\nbinary attachments. Per RFC 6455, client-originated frames are masked with a\nfresh random key (Conn tracks whether it is a client), while server frames are\nsent unmasked.\n\nA Conn is safe for one concurrent reader and one concurrent writer: writes are\nserialized by an internal mutex and the closed flag is atomic, so a reader\nthat observes a close while a writer is mid-flight will not race. It is not\nsafe to call ReadMessage from two goroutines at once. Close sends a normal\n(1000) close frame and tears down the transport; subsequent writes return\nErrClosed. Notably absent, because Socket.IO does not require them, are\npermessage-deflate compression, subprotocol negotiation, and read/write\ndeadlines — callers that need timeouts should manage them on the underlying\nconnection or via request context.\n",
+      "consts": [
+        {
+          "names": [
+            "DefaultMaxMessageSize"
+          ],
+          "signature": "const DefaultMaxMessageSize = 1 \u003c\u003c 20",
+          "doc": "DefaultMaxMessageSize is the read limit a Conn starts with: the largest\nsingle frame, and the largest reassembled fragmented message, that\nReadMessage will accept. It matters because a frame header declares its\npayload length in up to 64 bits *before* any of that payload is sent, so an\nunbounded reader would allocate whatever an unauthenticated peer asks for\nfrom 14 bytes of input. It defaults to 1 MiB, matching engine.io's\nmaxHttpBufferSize default; raise it with Conn.SetReadLimit.\n"
+        }
+      ],
       "vars": [
         {
           "names": [
@@ -1117,6 +1187,13 @@
           ],
           "signature": "var ErrClosed = errors.New(\"ws: connection closed\")",
           "doc": "ErrClosed is returned once the connection has been closed.\n"
+        },
+        {
+          "names": [
+            "ErrMessageTooLarge"
+          ],
+          "signature": "var ErrMessageTooLarge = errors.New(\"ws: message exceeds read limit\")",
+          "doc": "ErrMessageTooLarge is returned by ReadMessage when a peer announces a frame,\nor accumulates a fragmented message, larger than the connection's read limit.\n"
         }
       ],
       "types": [
@@ -1130,7 +1207,12 @@
             {
               "name": "Dial",
               "signature": "func Dial(rawURL string, header http.Header) (*Conn, error)",
-              "doc": "Dial opens a client WebSocket connection to a ws:// or http:// URL. The\nreturned Conn masks outgoing frames as required for clients.\n"
+              "doc": "Dial opens a client WebSocket connection to a ws://, wss://, http:// or\nhttps:// URL. The returned Conn masks outgoing frames as required for\nclients. A wss:// or https:// URL is dialed over TLS, verified against the\nsystem roots using the URL host as the server name; use DialTLS to supply a\ncustom *tls.Config.\n"
+            },
+            {
+              "name": "DialTLS",
+              "signature": "func DialTLS(rawURL string, header http.Header, cfg *tls.Config) (*Conn, error)",
+              "doc": "DialTLS is Dial with an explicit *tls.Config, used for secure (wss://)\nendpoints that need a custom root pool, client certificate, or ServerName.\ncfg is cloned before use and its ServerName is filled in from the URL host\nwhen empty. It is ignored for plaintext (ws://) URLs.\n"
             },
             {
               "name": "Upgrade",
@@ -1146,6 +1228,12 @@
               "doc": "Close sends a close frame and tears down the connection.\n"
             },
             {
+              "name": "ReadLimit",
+              "recv": "*Conn",
+              "signature": "func (c *Conn) ReadLimit() int64",
+              "doc": "ReadLimit returns the current read limit in bytes.\n"
+            },
+            {
               "name": "ReadMessage",
               "recv": "*Conn",
               "signature": "func (c *Conn) ReadMessage() (MessageType, []byte, error)",
@@ -1156,6 +1244,12 @@
               "recv": "*Conn",
               "signature": "func (c *Conn) RemoteAddr() net.Addr",
               "doc": "RemoteAddr returns the underlying connection's remote address.\n"
+            },
+            {
+              "name": "SetReadLimit",
+              "recv": "*Conn",
+              "signature": "func (c *Conn) SetReadLimit(n int64)",
+              "doc": "SetReadLimit sets the maximum payload size, in bytes, that ReadMessage will\naccept for a single frame or for a fully reassembled fragmented message.\nA value \u003c= 0 restores DefaultMaxMessageSize. Exceeding the limit fails the\nread with ErrMessageTooLarge instead of allocating what the peer asked for.\n"
             },
             {
               "name": "WriteMessage",
@@ -1229,8 +1323,38 @@
       "name": "redis",
       "synopsis": "Package redis provides a Redis-backed Broadcaster for socketio, enabling multi-node scale-out: broadcasts are relayed between server instances over Redis pub/sub so a message emitted on one node reaches sockets connected to any node.",
       "doc": "Package redis provides a Redis-backed Broadcaster for socketio, enabling\nmulti-node scale-out: broadcasts are relayed between server instances over\nRedis pub/sub so a message emitted on one node reaches sockets connected to\nany node. It is the Go counterpart of the Node.js @socket.io/redis-adapter,\nand it speaks the Redis RESP protocol directly using only the standard\nlibrary — no third-party client and no cgo:\n\n\tbc, _ := redis.New(redis.Options{Addr: \"localhost:6379\", Channel: \"socket.io\"})\n\tio.SetBroadcaster(bc) // io is a *socketio.Server\n\nA single socketio.Server keeps its room and socket membership in memory, so a\nbroadcast only reaches clients connected to that one process. Once you run\nmore than one instance behind a load balancer — for horizontal scaling or high\navailability — clients are spread across processes and an in-memory broadcast\nno longer reaches everyone. Install this Broadcaster on every node and each\ncall to io.Emit, io.To(room).Emit, and the other broadcast forms is instead\npublished once to Redis and delivered to the local sockets of every node that\nreceives it. Reach for this package as soon as you scale past a single server.\n\nIt works by holding two Redis connections: one for PUBLISH and one that issues\nSUBSCRIBE and runs a background receive loop. When the server broadcasts, it\nserializes the target namespace, rooms, exclusions, event name, and arguments\nand calls Publish, which PUBLISHes the bytes to the configured channel. Redis\nfans that message out to every subscriber, including the publisher, and the\nreceive loop hands each incoming payload to the handler the server registered\nthrough OnMessage — which decodes it and re-emits to that node's local\nsockets. Because pub/sub echoes to the sender, the originating node delivers\nits own broadcast through exactly the same path, so no node is special-cased.\n\nNew connects, authenticates (AUTH) and selects a database (SELECT) if\nconfigured, subscribes, and returns a *Broadcaster ready to pass to\nserver.SetBroadcaster; Options carries Addr, Channel, Password, DB, and an\noptional Dial hook used by tests to substitute an in-memory connection. The\nthree methods that satisfy socketio.Broadcaster — Publish, OnMessage, and\nClose — are safe for concurrent use: Publish serializes writes on the publish\nconnection with a mutex, and OnMessage/Close guard shared state with their\nown lock. Close is idempotent and tears down both connections, ending the\nreceive loop.\n\nDelivery inherits Redis pub/sub semantics, which callers should understand.\nPub/sub is fire-and-forget and at-most-once: messages are not persisted or\nqueued, so a node that is down or momentarily disconnected misses whatever was\npublished while it was unavailable — matching the behavior of the Node redis\nadapter. Publish returns an error only if the local write to Redis fails, not\nif a remote subscriber never receives the message. The RESP codec here\nimplements just the commands this adapter needs (SUBSCRIBE, PUBLISH, AUTH,\nSELECT and their replies); it is not a general-purpose Redis client. It does\nnot (yet) implement the adapter's remote request/response features such as\ncross-node fetchSockets or server-side acknowledgements.\n",
-      "consts": [],
-      "vars": [],
+      "consts": [
+        {
+          "names": [
+            "MaxArrayLength"
+          ],
+          "signature": "const MaxArrayLength = 1 \u003c\u003c 20",
+          "doc": "MaxArrayLength bounds the declared element count of a RESP array (\"*\u003cn\u003e\"),\nfor the same reason as MaxBulkLength: the count is used to size a slice\nbefore any element has been read. Redis pub/sub replies have three elements.\n"
+        },
+        {
+          "names": [
+            "MaxBulkLength"
+          ],
+          "signature": "const MaxBulkLength = 64 \u003c\u003c 20",
+          "doc": "MaxBulkLength bounds the declared length of a RESP bulk string (\"$\u003cn\u003e\") that\nreadReply will accept. The length arrives on the wire before the bytes do, so\nwithout a bound a corrupt or hostile peer could make the client allocate an\narbitrary amount of memory (or panic in make) from a handful of bytes. 64 MiB\nis far above any broadcast payload this adapter produces.\n"
+        }
+      ],
+      "vars": [
+        {
+          "names": [
+            "ErrClosed"
+          ],
+          "signature": "var ErrClosed = errors.New(\"redis: broadcaster closed\")",
+          "doc": "ErrClosed is returned by Publish once the Broadcaster has been closed. The\ncaller (socketio's broadcast operator) treats a Publish failure as \"the\ncluster link is unavailable\" and falls back to local-only delivery, so a\nclosed or broken Redis link degrades instead of silently dropping messages.\n"
+        },
+        {
+          "names": [
+            "ErrReplyTooLarge"
+          ],
+          "signature": "var ErrReplyTooLarge = errors.New(\"redis: reply exceeds size limit\")",
+          "doc": "ErrReplyTooLarge is returned when a RESP reply declares a bulk string or\narray larger than MaxBulkLength / MaxArrayLength, or nests deeper than the\ninternal depth limit. It signals a corrupt or hostile peer, not a transient\nfailure: the connection's framing can no longer be trusted.\n"
+        }
+      ],
       "types": [
         {
           "name": "Broadcaster",
@@ -1262,7 +1386,7 @@
               "name": "Publish",
               "recv": "*Broadcaster",
               "signature": "func (b *Broadcaster) Publish(data []byte) error",
-              "doc": "Publish implements socketio.Broadcaster: it PUBLISHes data to the channel.\n"
+              "doc": "Publish implements socketio.Broadcaster: it PUBLISHes data to the channel.\nIt returns ErrClosed after Close, and the underlying I/O error if the Redis\nconnection has failed.\n"
             }
           ]
         },

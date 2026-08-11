@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { LIBS } from '../../src/data';
+import { waitForHydration } from './hydrate';
 
 // The Next.js App Router migration turned every hash tab into a real route:
 //   home    -> '/'
@@ -10,6 +11,7 @@ import { LIBS } from '../../src/data';
 // (mirrors app/nav.ts pathForTab / tabForPath).
 const TOP_LEVEL = [
   'parity',
+  'security',
   'explore',
   'releases',
   'howto',
@@ -81,6 +83,9 @@ async function gotoTab(page: Page, id: string) {
   // regardless, so we wait for the active view to paint instead.
   await page.goto(pathForTab(id), { waitUntil: 'domcontentloaded' });
   await expect(page.locator(`.view.active#view-${id}`)).toBeVisible({ timeout: 20_000 });
+  // Server-rendered markup paints before React attaches its handlers, so the
+  // visibility wait above is not a hydration signal any more.
+  await waitForHydration(page);
 }
 
 // Activate a nav tab link. Across 200+ device profiles the tab bar renders three
@@ -141,6 +146,10 @@ test('nav tabs switch the active view and update the URL path', async ({ page })
 test('every link is valid (internal targets exist, external links are safe)', async ({ page }) => {
   // Every route the nav can reach, as a set of concrete paths.
   const knownPaths = new Set(TAB_IDS.map(pathForTab));
+  // Route families the nav does not list but that the app builds pages for:
+  // /parity/<lib> is a prerendered page per parity harness (a superset of LIBS —
+  // harnesses cover nested packages too), linked from the /parity table.
+  const KNOWN_PATH_PATTERNS = [/^\/parity\/[A-Za-z0-9._-]+$/];
 
   // Load once, then client-route across every tab (no per-tab reload).
   await gotoTab(page, 'home');
@@ -179,7 +188,9 @@ test('every link is valid (internal targets exist, external links are safe)', as
         // Internal route path (Next <Link>): '/', '/parity', '/lib/express', …
         const clean = href.replace(/\/+$/, '') || '/';
         expect(
-          knownPaths.has(clean) || knownPaths.has(href),
+          knownPaths.has(clean) ||
+            knownPaths.has(href) ||
+            KNOWN_PATH_PATTERNS.some((re) => re.test(clean)),
           `${pathForTab(id)}: internal path "${href}" maps to no known route`,
         ).toBeTruthy();
       } else if (href.startsWith('#')) {

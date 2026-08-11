@@ -1,12 +1,21 @@
 'use client';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import Link from 'next/link';
+import { withBase } from '../basePath';
 import type { ParityHarness } from './ParityData';
-import { pct } from './ParityData';
+import { normalizeParityData, pct } from './ParityData';
+import type { ParityNestedSummary } from './ParityNested';
+import { nestedSummaries } from './ParityNested';
 import { ParityHarnessView } from './ParityHarnessView';
 import { ScorePill } from './ParityTables';
 import { SecH } from './SecH';
 import './Parity.css';
+
+// A nested map is big by design (express: ~1.2 MB of harnesses) but it is still
+// one library's slice, not the whole corpus. The guard is here so a
+// misconfigured host that answers this route with the full parity.json (5.6 MB)
+// or an HTML error page cannot be pulled into the page.
+const NESTED_MAX_BYTES = 4 * 1024 * 1024;
 
 export interface ParityLibraryProps {
   /** The harness key, i.e. the parity/<slug> directory name. */
@@ -18,7 +27,17 @@ export interface ParityLibraryProps {
   /** /lib/<id> route of the port, when the site has that page. */
   libRoute: string | null;
   generatedAt: string;
+  /**
+   * The top-level harness. Its `nested` map may be empty: the page strips it to
+   * keep it out of the RSC payload. When it IS populated (a test, or a caller
+   * that already holds the data) the disclosures open without a fetch.
+   */
   harness: ParityHarness;
+  /**
+   * Collapsed-row data for the nested ports. Defaults to whatever `harness.nested`
+   * carries, so a caller with the full harness needs to pass nothing.
+   */
+  nested?: ParityNestedSummary[];
 }
 
 /**
@@ -35,13 +54,54 @@ export function ParityLibrary({
   libRoute,
   generatedAt,
   harness,
+  nested: nestedProp,
 }: ParityLibraryProps) {
-  const nested = Object.entries(harness.nested).sort((a, b) => a[0].localeCompare(b[0]));
+  const nested = nestedProp ?? nestedSummaries(harness.nested);
   const [open, setOpen] = useState<Record<string, boolean>>({});
-  const toggle = (key: string) => setOpen((o) => ({ ...o, [key]: !o[key] }));
+  // Nested harness bodies, keyed like `nested`. Seeded from the harness when the
+  // caller passed them inline; otherwise filled by one fetch of this library's
+  // nested route the first time a disclosure is opened.
+  const [bodies, setBodies] = useState<Record<string, ParityHarness>>(
+    () => harness.nested ?? {}
+  );
+  const [loadState, setLoadState] = useState<'idle' | 'loading' | 'error'>('idle');
+  const requested = useRef(false);
 
-  const nestedCases = nested.reduce((s, [, n]) => s + n.total, 0);
-  const nestedSymbols = nested.reduce((s, [, n]) => s + n.coverage.length, 0);
+  function loadBodies() {
+    if (requested.current) return;
+    requested.current = true;
+    setLoadState('loading');
+    fetch(withBase(`parity/${encodeURIComponent(slug)}/nested`))
+      .then((res) => {
+        const len = Number(res.headers.get('content-length') ?? 0);
+        if (!res.ok || len > NESTED_MAX_BYTES) {
+          void res.body?.cancel();
+          throw new Error('nested harnesses unavailable');
+        }
+        return res.json();
+      })
+      .then((raw: unknown) => {
+        const libraries =
+          raw && typeof raw === 'object'
+            ? (raw as { nested?: unknown }).nested
+            : null;
+        setBodies(normalizeParityData({ libraries }).libraries);
+        setLoadState('idle');
+      })
+      .catch(() => {
+        // Allow a retry: the next open re-requests rather than staying broken.
+        requested.current = false;
+        setLoadState('error');
+      });
+  }
+
+  const toggle = (key: string) => {
+    setOpen((o) => ({ ...o, [key]: !o[key] }));
+    if (!open[key] && !bodies[key]) loadBodies();
+  };
+
+  const nestedCases = nested.reduce((s, n) => s + n.total, 0);
+  const nestedSymbols = nested.reduce((s, n) => s + n.symbols, 0);
 
   return (
     <section className="view active" id={`view-parity-${slug}`}>
@@ -106,15 +166,15 @@ export function ParityLibrary({
                 </tr>
               </thead>
               <tbody>
-                {nested.map(([key, n]) => (
-                  <tr key={key}>
-                    <td className="mono"><a href={`#${slug}-nested-${key}`}>{n.library || key}</a></td>
-                    <td className="mono">{n.upstream.raw || '—'}</td>
+                {nested.map((n) => (
+                  <tr key={n.key}>
+                    <td className="mono"><a href={`#${slug}-nested-${n.key}`}>{n.library || n.key}</a></td>
+                    <td className="mono">{n.upstream || '—'}</td>
                     <td className="mono">{n.goModule || '—'}</td>
                     <td className="num">{n.total.toLocaleString()}</td>
                     <td className="num">{n.mismatch.toLocaleString()}</td>
                     <td className="num">{n.deviations.toLocaleString()}</td>
-                    <td className="num">{n.coverage.length.toLocaleString()}</td>
+                    <td className="num">{n.symbols.toLocaleString()}</td>
                     <td className="num">{pct(n.parityPercent, n.comparedTotal)}</td>
                   </tr>
                 ))}
@@ -123,9 +183,11 @@ export function ParityLibrary({
           </div>
 
           <div className="parity-nested">
-            {nested.map(([key, n]) => {
+            {nested.map((n) => {
+              const key = n.key;
               const id = `${slug}-nested-${key}`;
               const isOpen = open[key] === true;
+              const body = bodies[key];
               return (
                 <div className="parity-nested-item" key={key} id={id}>
                   <h4 style={{ margin: 0 }}>
@@ -139,25 +201,34 @@ export function ParityLibrary({
                       <span className="parity-disc-mark" aria-hidden="true">{isOpen ? '[-]' : '[+]'}</span>
                       <span className="parity-disc-title">{n.library || key}</span>
                       <span className="parity-disc-sub">
-                        ports {n.upstream.raw || 'an upstream package'} · {n.total.toLocaleString()} cases ·{' '}
-                        {n.coverage.length.toLocaleString()} symbols
+                        ports {n.upstream || 'an upstream package'} · {n.total.toLocaleString()} cases ·{' '}
+                        {n.symbols.toLocaleString()} symbols
                       </span>
                       <ScorePill value={n.parityPercent} compared={n.comparedTotal} accent={accent} />
                     </button>
                   </h4>
-                  {/* Mounted only when opened: a repo like express carries 30
-                      nested harnesses, and rendering all their tables up front
-                      would build tens of thousands of rows nobody asked for. */}
+                  {/* Mounted only when opened, and its harness is fetched only
+                      then too: a repo like express carries 28 nested harnesses,
+                      which are megabytes of cases and would build tens of
+                      thousands of rows nobody asked for. */}
                   {isOpen && (
                     <div className="parity-disc-body" id={`${id}-body`}>
-                      <ParityHarnessView
-                        harness={n}
-                        accent={accent}
-                        idPrefix={id}
-                        h="h5"
-                        generatedAt={generatedAt}
-                        runLabel={`${n.library || key} parity run`}
-                      />
+                      {body ? (
+                        <ParityHarnessView
+                          harness={body}
+                          accent={accent}
+                          idPrefix={id}
+                          h="h5"
+                          generatedAt={generatedAt}
+                          runLabel={`${n.library || key} parity run`}
+                        />
+                      ) : (
+                        <p className="muted" role="status">
+                          {loadState === 'error'
+                            ? `The ${n.library || key} harness could not be loaded. Open it again to retry.`
+                            : `Loading the ${n.library || key} harness…`}
+                        </p>
+                      )}
                     </div>
                   )}
                 </div>

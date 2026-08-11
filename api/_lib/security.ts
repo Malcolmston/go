@@ -54,12 +54,26 @@ const EMPTY: SecurityIndex = { generatedAt: '', statusDerivation: '', findings: 
 
 let cache: SecurityIndex | null = null;
 
+// The relative path is passed through a parameter rather than written inline at
+// the `new URL` call site, exactly as ./data.ts readJson() does. That indirection
+// is load-bearing, not style: webpack statically analyses a literal
+// `new URL('./file.json', import.meta.url)` and rewrites it into an *asset*
+// reference (`__webpack_public_path__ + "static/media/security.<hash>.json"`),
+// which is a URL string and not a readable filesystem path. In the route-handler
+// layer that rewrite happens, so readFileSync fails and the loader silently
+// degrades to EMPTY — which is how /api/health came to report zero security
+// findings while /security rendered all of them. Keeping the specifier dynamic
+// leaves `import.meta.url` to resolve at runtime, the same as every other loader.
+function readJson(relativePath: string): unknown {
+  const url = new URL(relativePath, import.meta.url);
+  return JSON.parse(fs.readFileSync(url, 'utf8'));
+}
+
 export function loadSecurity(): SecurityIndex {
   if (cache) return cache;
   let parsed: unknown;
   try {
-    const url = new URL('../_data/security.json', import.meta.url);
-    parsed = JSON.parse(fs.readFileSync(url, 'utf8'));
+    parsed = readJson('../_data/security.json');
   } catch {
     parsed = null;
   }

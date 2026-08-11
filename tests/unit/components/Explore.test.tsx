@@ -55,12 +55,12 @@ describe('Explore', () => {
   it('labels the search box for assistive tech', () => {
     render(<Explore />);
     // The box had only a placeholder, which is not an accessible name.
-    expect(screen.getByRole('searchbox', { name: /Search symbols/i })).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: /Search symbols/i })).toBeInTheDocument();
   });
 
   it('announces the result count in a live region', async () => {
     render(<Explore />);
-    await userEvent.type(screen.getByRole('searchbox'), 'Router');
+    await userEvent.type(screen.getByRole('combobox'), 'Router');
     await waitFor(() => {
       const status = screen.getByRole('status');
       expect(status.textContent).toMatch(/Searching…|results?/);
@@ -70,17 +70,17 @@ describe('Explore', () => {
   it('leaves the search-clear button out of the tab order until there is a query', async () => {
     render(<Explore />);
     expect(screen.queryByRole('button', { name: 'Clear search' })).toBeNull();
-    await userEvent.type(screen.getByRole('searchbox'), 'Router');
+    await userEvent.type(screen.getByRole('combobox'), 'Router');
     const clear = screen.getByRole('button', { name: 'Clear search' });
     // Inside no <form>, but an implicit type="submit" is still a footgun.
     expect(clear).toHaveAttribute('type', 'button');
     await userEvent.click(clear);
-    expect(screen.getByRole('searchbox')).toHaveValue('');
+    expect(screen.getByRole('combobox')).toHaveValue('');
   });
 
   it('recovers from a rejected search instead of spinning forever', async () => {
     render(<Explore />);
-    await userEvent.type(screen.getByRole('searchbox'), 'Router');
+    await userEvent.type(screen.getByRole('combobox'), 'Router');
     // /api/* rejects in this suite and the bundled index is empty, so the query
     // must settle on an explicit "no results" rather than staying in "Searching…".
     await waitFor(
@@ -100,7 +100,11 @@ describe('Explore', () => {
       expect(screen.getByText(/no graph data available/)).toBeInTheDocument();
     });
     expect(screen.queryByLabelText('Library graph')).toBeNull();
-    expect(screen.queryByRole('combobox')).toBeNull();
+    // The picker was a <select>. Assert on the element rather than on the
+    // combobox role: the search input now carries role="combobox" (the ARIA 1.2
+    // pattern it already implemented via aria-expanded/aria-controls), so the
+    // role no longer identifies a library picker uniquely.
+    expect(document.querySelector('select')).toBeNull();
     expect(screen.getByText('Package graph')).toBeInTheDocument();
   });
 
@@ -238,7 +242,7 @@ describe('Explore', () => {
     const { Explore: Fresh } = await import('../../../src/components/Explore');
     render(<Fresh />);
     await waitFor(() => expect(document.querySelectorAll('.xpl-node')).toHaveLength(2));
-    await userEvent.type(screen.getByRole('searchbox'), 'router');
+    await userEvent.type(screen.getByRole('combobox'), 'router');
     await waitFor(() => {
       expect(document.querySelectorAll('.xpl-node.is-hit')).toHaveLength(1);
     });

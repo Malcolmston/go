@@ -156,14 +156,78 @@ export function loadFallbackGraph(): Promise<GraphData | null> {
   return graphCache;
 }
 
+/**
+ * Refuse a search index larger than this. The generator writes a columnar
+ * projection (a few MB uncompressed); the full server-side corpus is an order
+ * of magnitude bigger and must never be pulled into the page. Mirrors the
+ * PARITY_MAX_BYTES guard in src/components/Explore.tsx.
+ */
+export const SEARCH_INDEX_MAX_BYTES = 8 * 1024 * 1024;
+
+/**
+ * The columnar wire shape of `public/search-index.json` (format "columns/1",
+ * written by scripts/build-graph-data.ts). Libraries, kinds and package import
+ * paths are interned; `signature` and `doc` are not shipped at all because
+ * nothing in the UI renders them. An anchor of `0` means `anchorPrefix + name`,
+ * which is how the docs renderer derives every non-package anchor.
+ */
+interface ColumnarSymbolIndex {
+  generatedAt: string;
+  format: 'columns/1';
+  anchorPrefix?: string;
+  libraries: string[];
+  kinds: string[];
+  packages: [string, number][];
+  symbols: [string, number, number, string | 0][];
+}
+
+function isColumnar(raw: unknown): raw is ColumnarSymbolIndex {
+  return Boolean(raw) && (raw as ColumnarSymbolIndex).format === 'columns/1';
+}
+
+/** Expand the columnar wire shape back into full SymbolRecords. */
+export function expandSymbolIndex(raw: unknown): SymbolIndex | null {
+  if (!raw || typeof raw !== 'object') return null;
+  if (!isColumnar(raw)) {
+    // Legacy / server shape: already a list of full records.
+    const legacy = raw as SymbolIndex;
+    return Array.isArray(legacy.symbols) ? legacy : null;
+  }
+  const symbols: SymbolRecord[] = [];
+  const anchorPrefix = raw.anchorPrefix ?? '';
+  for (const row of raw.symbols) {
+    if (!Array.isArray(row)) continue;
+    const [name, kindIdx, pkgIdx, rawAnchor] = row;
+    const pkg = raw.packages[pkgIdx];
+    if (typeof name !== 'string' || !pkg) continue;
+    const [packageImportPath, libIdx] = pkg;
+    const anchor = rawAnchor === 0 ? `${anchorPrefix}${name}` : String(rawAnchor ?? '');
+    symbols.push({
+      id: anchor ? `${packageImportPath}#${anchor}` : packageImportPath,
+      name,
+      kind: (raw.kinds[kindIdx] ?? 'func') as SymbolKind,
+      packageImportPath,
+      library: raw.libraries[libIdx] ?? '',
+      signature: '',
+      doc: '',
+      anchor,
+    });
+  }
+  return { generatedAt: raw.generatedAt, symbols };
+}
+
 /** Fetch the bundled search index (`search-index.json`), memoized. */
 export function loadFallbackSymbols(): Promise<SymbolIndex | null> {
   if (!symbolsCache) {
     symbolsCache = (async () => {
       try {
         const res = await fetch(withBase('search-index.json'));
-        if (!res.ok) return null;
-        return (await res.json()) as SymbolIndex;
+        const len = Number(res.headers?.get('content-length') ?? 0);
+        if (!res.ok || len > SEARCH_INDEX_MAX_BYTES) {
+          void res.body?.cancel();
+          return null;
+        }
+        return expandSymbolIndex(await res.json());
       } catch {
         return null;
       }

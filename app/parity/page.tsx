@@ -7,13 +7,15 @@ import type { Metadata } from 'next';
 import { Parity } from '../../src/components/Parity';
 import { LIBS } from '../../src/data';
 import { repoKey } from '../../src/parityLookup';
+import { pageMetadata } from '../seo';
 import { loadParityData, paritySummaries } from './load';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: 'Parity — measured against the original library',
   description:
     'How every Go port is scored: the pinned upstream package it is measured against, the stages of each harness run, and a symbol-by-symbol, case-by-case comparison.',
-};
+  path: '/parity',
+});
 
 export default function Page() {
   const data = loadParityData();

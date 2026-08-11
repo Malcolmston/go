@@ -1,0 +1,361 @@
+{
+  "module": "github.com/malcolmston/yaml",
+  "generatedAt": "2026-08-05T11:13:34Z",
+  "packages": [
+    {
+      "importPath": "github.com/malcolmston/yaml",
+      "name": "yaml",
+      "synopsis": "Package yaml is a standard-library-only implementation of YAML 1.2: a parser, a schema resolver, a reflection-based codec and an emitter.",
+      "doc": "Package yaml is a standard-library-only implementation of YAML 1.2: a\nparser, a schema resolver, a reflection-based codec and an emitter.\n\n# Overview\n\nThe Go standard library has no YAML support, so almost every project reaches\nfor a third-party module. This package fills that gap using nothing but the\nstandard library — no cgo, no generated parser, and a go.mod with zero\nrequire directives. The API deliberately mirrors the shape people already\nknow from gopkg.in/yaml.v3 (Marshal, Unmarshal, Encoder, Decoder, Node), so\nmigrating is mostly a matter of changing the import path.\n\n# Quick start\n\n\tvar conf struct {\n\t        Name    string   `yaml:\"name\"`\n\t        Ports   []int    `yaml:\"ports,flow\"`\n\t        Verbose bool     `yaml:\"verbose,omitempty\"`\n\t}\n\terr := yaml.Unmarshal(data, \u0026conf)\n\tout, err := yaml.Marshal(conf)\n\nStreams of several documents are read with Decoder, which returns io.EOF\nafter the last document, and written with Encoder, which separates documents\nwith \"---\" and is flushed by Close.\n\n# What the parser supports\n\nBlock sequences and mappings (including compact nesting such as \"- key: v\"),\nflow collections (\"[a, b]\", \"{k: v}\"), explicit keys (\"? key\"), multi-document\nstreams (\"---\" and \"...\"), %YAML and %TAG directives, anchors and aliases,\nmerge keys (\"\u003c\u003c\"), plain, single-quoted and double-quoted scalars with the\nfull escape set (\\n \\t \\\" \\\\ \\xNN \\uNNNN \\UNNNNNNNN), and literal (\"|\") and\nfolded (\"\u003e\") block scalars with strip, clip and keep chomping plus explicit\nindentation indicators. Errors are *SyntaxError values carrying the line and\ncolumn at which the problem was found.\n\n# Schema\n\nUntagged scalars are resolved with the YAML 1.2 core schema:\n\n\tnull | ~ | (empty)        -\u003e nil\n\ttrue | false              -\u003e bool   (also True/TRUE/False/FALSE)\n\t0b1010 is NOT special; 12, 0o14, 0xC -\u003e int\n\t1.5, 1e3, .inf, -.inf, .nan          -\u003e float64\n\teverything else                      -\u003e string\n\nThis is YAML 1.2, not YAML 1.1: \"yes\", \"no\", \"on\" and \"off\" are ordinary\nstrings, and sexagesimal numbers such as \"12:30\" are strings too. Explicit\ntags (!!str, !!int, !!float, !!bool, !!null, !!seq, !!map, !!binary,\n!!timestamp) override resolution, and unknown or local tags (!custom) are\npreserved on the Node so callers can act on them.\n\n# Nodes\n\nUnmarshal into a *Node to get the document tree rather than Go values. A Node\nkeeps its kind, tag, anchor, presentation style, source position and its\nhead, line and foot comments, which is what makes comment-preserving\nround-trips possible. Node.Decode converts a subtree into a Go value and\nNode.Encode builds a subtree from one, so custom Marshaler and Unmarshaler\nimplementations can work at whatever level they prefer.\n\n# Struct tags\n\nField names default to the lowercased Go field name. The `yaml` tag supports\na name plus the options \"omitempty\" (skip zero values), \"flow\" (emit this\nfield's collections in flow style), \"inline\" (hoist an embedded struct's\nfields, or collect unmatched keys into a map), and \"-\" (ignore the field).\nencoding.TextMarshaler and encoding.TextUnmarshaler are honoured for scalars,\ntime.Time uses RFC 3339, and time.Duration uses the time.ParseDuration\nspelling.\n\n# Errors\n\nDecoding does not stop at the first field that does not fit: mismatches are\ncollected into a *TypeError while every other field is still stored. All\nerrors wrap sentinels, so they can be classified with errors.Is:\n\n\terrors.Is(err, yaml.ErrSyntax)\n\terrors.Is(err, yaml.ErrTypeMismatch)\n\terrors.Is(err, yaml.ErrUnknownAnchor)\n\terrors.Is(err, yaml.ErrAliasBomb)\n\n# Alias-expansion guard\n\nAliases make it possible to write a small document that expands to an\nenormous value — the \"billion laughs\" attack:\n\n\ta: \u0026a [x, x, x, x, x, x, x, x, x]\n\tb: \u0026b [*a, *a, *a, *a, *a, *a, *a, *a, *a]\n\tc: \u0026c [*b, *b, *b, *b, *b, *b, *b, *b, *b]\n\t...\n\nDecoding counts the nodes it visits, and a document that would expand past\nthe budget fails with an error wrapping ErrAliasBomb instead of exhausting\nmemory. Recursive anchors are caught by the same counter.\n\n# Emitting\n\nThe emitter indents by four spaces by default (Encoder.SetIndent changes\nthat), quotes any scalar whose plain form would be read back as something\nelse, writes multi-line strings as literal block scalars when that\nround-trips exactly, and falls back to double quotes when it does not. The\ngoal is stability — Unmarshal, Marshal, Unmarshal returns the same value —\nrather than matching another implementation byte for byte.\n\nThis package is an independent re-implementation, MIT licensed, and is not\naffiliated with or endorsed by the YAML project, PyYAML or js-yaml.\n",
+      "consts": [
+        {
+          "names": [
+            "NullTag",
+            "BoolTag",
+            "IntTag",
+            "FloatTag",
+            "StringTag",
+            "SequenceTag",
+            "MappingTag",
+            "BinaryTag",
+            "TimestampTag",
+            "MergeTag"
+          ],
+          "signature": "const (\n\t// NullTag is the tag of the null value.\n\tNullTag = \"!!null\"\n\t// BoolTag is the tag of true and false.\n\tBoolTag = \"!!bool\"\n\t// IntTag is the tag of integers.\n\tIntTag = \"!!int\"\n\t// FloatTag is the tag of floating-point numbers.\n\tFloatTag = \"!!float\"\n\t// StringTag is the tag of strings.\n\tStringTag = \"!!str\"\n\t// SequenceTag is the tag of sequences.\n\tSequenceTag = \"!!seq\"\n\t// MappingTag is the tag of mappings.\n\tMappingTag = \"!!map\"\n\t// BinaryTag is the tag of base64-encoded binary data.\n\tBinaryTag = \"!!binary\"\n\t// TimestampTag is the tag of timestamps.\n\tTimestampTag = \"!!timestamp\"\n\t// MergeTag is the tag of the merge key (\"\u003c\u003c\").\n\tMergeTag = \"!!merge\"\n)",
+          "doc": "Standard tags of the YAML 1.2 core schema, in the short \"!!name\" form used by\nNode.Tag.\n"
+        }
+      ],
+      "vars": [
+        {
+          "names": [
+            "ErrSyntax",
+            "ErrUnknownAnchor",
+            "ErrAliasBomb",
+            "ErrTypeMismatch",
+            "ErrUnsupportedType",
+            "ErrInvalidUnmarshal",
+            "ErrClosed"
+          ],
+          "signature": "var (\n\t// ErrSyntax indicates the input was not well-formed YAML. Syntax errors are\n\t// reported as *SyntaxError values carrying a line and column.\n\tErrSyntax = errors.New(\"yaml: syntax error\")\n\n\t// ErrUnknownAnchor indicates an alias (*name) referred to an anchor that has\n\t// not been defined earlier in the same document.\n\tErrUnknownAnchor = errors.New(\"yaml: unknown anchor\")\n\n\t// ErrAliasBomb indicates that expanding aliases would produce more nodes\n\t// than the decoder is willing to materialize. It guards against the\n\t// \"billion laughs\" alias-expansion attack.\n\tErrAliasBomb = errors.New(\"yaml: alias expansion exceeds node budget\")\n\n\t// ErrTypeMismatch indicates a YAML value could not be decoded into the Go\n\t// value it was assigned to. Decoding collects these into a *TypeError\n\t// instead of stopping at the first one.\n\tErrTypeMismatch = errors.New(\"yaml: cannot decode value into Go type\")\n\n\t// ErrUnsupportedType indicates a Go value has no YAML representation, for\n\t// example a channel or a function.\n\tErrUnsupportedType = errors.New(\"yaml: unsupported type\")\n\n\t// ErrInvalidUnmarshal indicates Unmarshal or Decode was given something\n\t// other than a non-nil pointer.\n\tErrInvalidUnmarshal = errors.New(\"yaml: Unmarshal expects a non-nil pointer\")\n\n\t// ErrClosed indicates Encode was called on an Encoder that has already been\n\t// closed.\n\tErrClosed = errors.New(\"yaml: encoder is closed\")\n)",
+          "doc": "Sentinel errors returned by the package. Every error produced here wraps at\nleast one of these, so callers can classify failures with errors.Is:\n\n\tif errors.Is(err, yaml.ErrSyntax) { ... }\n"
+        }
+      ],
+      "types": [
+        {
+          "name": "Decoder",
+          "signature": "type Decoder struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Decoder reads a stream of YAML documents from an io.Reader.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewDecoder",
+              "signature": "func NewDecoder(r io.Reader) *Decoder",
+              "doc": "NewDecoder returns a Decoder reading the YAML stream in r. The whole stream\nis read on the first call to Decode.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Decode",
+              "recv": "*Decoder",
+              "signature": "func (d *Decoder) Decode(v any) error",
+              "doc": "Decode reads the next document from the stream and stores it in v. It returns\nio.EOF once every document has been consumed.\n"
+            }
+          ]
+        },
+        {
+          "name": "Encoder",
+          "signature": "type Encoder struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Encoder writes a stream of YAML documents to an io.Writer.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewEncoder",
+              "signature": "func NewEncoder(w io.Writer) *Encoder",
+              "doc": "NewEncoder returns an Encoder writing to w. Documents after the first are\nseparated by a \"---\" marker. Close must be called to flush the stream.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Close",
+              "recv": "*Encoder",
+              "signature": "func (e *Encoder) Close() error",
+              "doc": "Close finishes the stream. It is safe to call more than once; subsequent\ncalls return nil.\n"
+            },
+            {
+              "name": "Encode",
+              "recv": "*Encoder",
+              "signature": "func (e *Encoder) Encode(v any) error",
+              "doc": "Encode writes v to the stream as one YAML document.\n"
+            },
+            {
+              "name": "SetIndent",
+              "recv": "*Encoder",
+              "signature": "func (e *Encoder) SetIndent(spaces int)",
+              "doc": "SetIndent sets the number of spaces added per nesting level. It panics if\nspaces is not positive.\n"
+            }
+          ]
+        },
+        {
+          "name": "Kind",
+          "signature": "type Kind uint32",
+          "doc": "Kind identifies what a Node represents. Kinds are distinct bits so that they\ncan be tested with a mask, mirroring the layout used by gopkg.in/yaml.v3.\n",
+          "consts": [
+            {
+              "names": [
+                "DocumentNode",
+                "SequenceNode",
+                "MappingNode",
+                "ScalarNode",
+                "AliasNode"
+              ],
+              "signature": "const (\n\t// DocumentNode is a single document in a stream. It has exactly one child,\n\t// the document's root node.\n\tDocumentNode Kind = 1 \u003c\u003c iota\n\t// SequenceNode is a YAML sequence; Content holds its items in order.\n\tSequenceNode\n\t// MappingNode is a YAML mapping; Content holds alternating keys and values.\n\tMappingNode\n\t// ScalarNode is a YAML scalar; Value holds its (unquoted, unfolded) text.\n\tScalarNode\n\t// AliasNode is an alias (*name); Alias points at the anchored node.\n\tAliasNode\n)",
+              "doc": ""
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "String",
+              "recv": "Kind",
+              "signature": "func (k Kind) String() string",
+              "doc": "String returns the kind's name, such as \"mapping\" or \"scalar\".\n"
+            }
+          ]
+        },
+        {
+          "name": "Marshaler",
+          "signature": "type Marshaler interface {\n\t// MarshalYAML returns the value that should be encoded in place of the\n\t// receiver.\n\tMarshalYAML() (any, error)\n}",
+          "doc": "Marshaler is implemented by types that choose their own YAML representation.\nThe returned value is marshalled in place of the receiver; returning a *Node\ngives complete control over tag, style and comments.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Node",
+          "signature": "type Node struct {\n\t// Kind is what this node is: document, sequence, mapping, scalar or alias.\n\tKind Kind\n\n\t// Tag is the node's tag, either explicit in the source or resolved by the\n\t// core schema, in short form (for example \"!!str\" or \"!custom\").\n\tTag string\n\n\t// Value is the scalar's text with quoting removed, escapes decoded and\n\t// block-scalar folding applied. It is empty for collections.\n\tValue string\n\n\t// Anchor is the anchor name attached to this node (\"\u0026name\"), without the\n\t// leading ampersand.\n\tAnchor string\n\n\t// Alias points at the anchored node this alias refers to. It is non-nil\n\t// only when Kind is AliasNode.\n\tAlias *Node\n\n\t// Content holds a document's single child, a sequence's items, or a\n\t// mapping's alternating keys and values.\n\tContent []*Node\n\n\t// Style records how the node was written, and how it should be emitted.\n\tStyle Style\n\n\t// Line is the 1-based line the node starts on.\n\tLine int\n\t// Column is the 1-based column the node starts at.\n\tColumn int\n\n\t// HeadComment holds the comment block that precedes the node.\n\tHeadComment string\n\t// LineComment holds the comment that trails the node on its own line.\n\tLineComment string\n\t// FootComment holds the comment block that follows the node.\n\tFootComment string\n}",
+          "doc": "Node is a single node of a YAML document tree. It preserves everything that\nis needed to write a document back out unchanged in spirit: the node's kind,\nits resolved or explicit tag, its scalar text, its anchor, its presentation\nstyle, its source position, and the comments attached to it.\n\nUnmarshal into a *Node (or a struct field of type Node) to obtain the tree\ninstead of Go values; Node.Decode then converts a subtree into a Go value on\ndemand, and Node.Encode builds a subtree from one.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "Parse",
+              "signature": "func Parse(data []byte) ([]*Node, error)",
+              "doc": "Parse parses a YAML stream and returns one document Node per document. It is\nthe lowest-level entry point, useful for inspecting or rewriting a document\nwithout converting it to Go values.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Decode",
+              "recv": "*Node",
+              "signature": "func (n *Node) Decode(v any) error",
+              "doc": "Decode decodes the node and its children into v, which must be a non-nil\npointer. It is the entry point used by Unmarshal for each document, and it\nmay also be called on any subtree obtained from a previously decoded Node.\n"
+            },
+            {
+              "name": "Encode",
+              "recv": "*Node",
+              "signature": "func (n *Node) Encode(v any) error",
+              "doc": "Encode builds the node tree for v and stores it in n, replacing whatever the\nnode held before. It is the inverse of Node.Decode.\n"
+            },
+            {
+              "name": "IsZero",
+              "recv": "*Node",
+              "signature": "func (n *Node) IsZero() bool",
+              "doc": "IsZero reports whether the node holds no information at all, which is how an\nomitted document or an absent value is represented.\n"
+            },
+            {
+              "name": "LongTag",
+              "recv": "*Node",
+              "signature": "func (n *Node) LongTag() string",
+              "doc": "LongTag returns the node's tag in the fully expanded form, so \"!!str\" becomes\n\"tag:yaml.org,2002:str\". Non-specific and local tags are returned unchanged.\n"
+            },
+            {
+              "name": "SetString",
+              "recv": "*Node",
+              "signature": "func (n *Node) SetString(s string)",
+              "doc": "SetString configures the node as a plain (or, when necessary, literal) string\nscalar holding s.\n"
+            },
+            {
+              "name": "ShortTag",
+              "recv": "*Node",
+              "signature": "func (n *Node) ShortTag() string",
+              "doc": "ShortTag returns the node's tag in short form, resolving it from the value\nthrough the YAML 1.2 core schema when the source carried no explicit tag.\n"
+            }
+          ]
+        },
+        {
+          "name": "Style",
+          "signature": "type Style uint32",
+          "doc": "Style is a bit set recording how a node was written in the source, and how it\nshould be written back out by the emitter. The zero Style means \"let the\nemitter choose\".\n",
+          "consts": [
+            {
+              "names": [
+                "TaggedStyle",
+                "DoubleQuotedStyle",
+                "SingleQuotedStyle",
+                "LiteralStyle",
+                "FoldedStyle",
+                "FlowStyle"
+              ],
+              "signature": "const (\n\t// TaggedStyle forces the node's tag to be emitted even when the core schema\n\t// would resolve the value to that tag anyway.\n\tTaggedStyle Style = 1 \u003c\u003c iota\n\t// DoubleQuotedStyle emits a scalar inside double quotes, with escapes.\n\tDoubleQuotedStyle\n\t// SingleQuotedStyle emits a scalar inside single quotes.\n\tSingleQuotedStyle\n\t// LiteralStyle emits a scalar as a literal block scalar (\"|\").\n\tLiteralStyle\n\t// FoldedStyle emits a scalar as a folded block scalar (\"\u003e\").\n\tFoldedStyle\n\t// FlowStyle emits a collection in flow form (\"[a, b]\" or \"{a: b}\").\n\tFlowStyle\n)",
+              "doc": ""
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "SyntaxError",
+          "signature": "type SyntaxError struct {\n\t// Line is the 1-based line number of the offending construct.\n\tLine int\n\t// Column is the 1-based column number of the offending construct.\n\tColumn int\n\t// Msg describes the problem.\n\tMsg string\n}",
+          "doc": "SyntaxError reports a malformed YAML construct together with the position at\nwhich it was detected. It wraps ErrSyntax.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Error",
+              "recv": "*SyntaxError",
+              "signature": "func (e *SyntaxError) Error() string",
+              "doc": "Error implements the error interface.\n"
+            },
+            {
+              "name": "Unwrap",
+              "recv": "*SyntaxError",
+              "signature": "func (e *SyntaxError) Unwrap() error",
+              "doc": "Unwrap reports ErrSyntax so that errors.Is(err, yaml.ErrSyntax) succeeds.\n"
+            }
+          ]
+        },
+        {
+          "name": "TypeError",
+          "signature": "type TypeError struct {\n\t// Errors holds one human-readable message per failure, in the order the\n\t// failures were encountered.\n\tErrors []string\n}",
+          "doc": "TypeError holds the accumulated per-value decoding failures of a single\nDecode call. Decoding continues past a mismatched field, so a TypeError may\ndescribe several unrelated problems at once; every other field is still\nstored into the destination value.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Error",
+              "recv": "*TypeError",
+              "signature": "func (e *TypeError) Error() string",
+              "doc": "Error implements the error interface.\n"
+            },
+            {
+              "name": "Unwrap",
+              "recv": "*TypeError",
+              "signature": "func (e *TypeError) Unwrap() error",
+              "doc": "Unwrap reports ErrTypeMismatch so that errors.Is(err, yaml.ErrTypeMismatch)\nsucceeds for any accumulated decode failure.\n"
+            }
+          ]
+        },
+        {
+          "name": "Unmarshaler",
+          "signature": "type Unmarshaler interface {\n\t// UnmarshalYAML decodes value into the receiver.\n\tUnmarshalYAML(value *Node) error\n}",
+          "doc": "Unmarshaler is implemented by types that decode themselves from a YAML node.\nThe node is the fully parsed subtree assigned to the value, with its tag,\nstyle and comments intact.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        }
+      ],
+      "funcs": [
+        {
+          "name": "Marshal",
+          "signature": "func Marshal(v any) ([]byte, error)",
+          "doc": "Marshal encodes v as a YAML document.\n\nStruct fields are named by their lowercased Go name unless a `yaml` tag says\notherwise; the tag supports \"omitempty\", \"flow\", \"inline\" and \"-\". Strings\nthat would be ambiguous as plain scalars are quoted, and multi-line strings\nare written as literal block scalars where that round-trips exactly.\n"
+        },
+        {
+          "name": "Unmarshal",
+          "signature": "func Unmarshal(data []byte, v any) error",
+          "doc": "Unmarshal decodes the first document of a YAML stream into v, which must be a\nnon-nil pointer.\n\nMappings decode into structs, maps or any; sequences into slices, arrays or\nany; scalars are resolved with the YAML 1.2 core schema (null, bool, int,\nfloat, otherwise string). Decoding a document into *Node yields the document\ntree instead, preserving tags, styles, anchors and comments.\n\nFields that cannot be decoded do not abort the operation: they are collected\ninto a *TypeError which is returned once the rest of the document has been\nstored.\n"
+        }
+      ],
+      "examples": [
+        {
+          "name": "Marshal",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"time\"\n\n\t\"github.com/malcolmston/yaml\"\n)\n\nfunc main() {\n\ttype server struct {\n\t\tHost    string        `yaml:\"host\"`\n\t\tPort    int           `yaml:\"port\"`\n\t\tTimeout time.Duration `yaml:\"timeout\"`\n\t\tDebug   bool          `yaml:\"debug,omitempty\"`\n\t}\n\tout, err := yaml.Marshal(server{Host: \"localhost\", Port: 8080, Timeout: 30 * time.Second})\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Print(string(out))\n}",
+          "output": "host: localhost\nport: 8080\ntimeout: 30s"
+        },
+        {
+          "name": "Marshal (multilineString)",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/yaml\"\n)\n\nfunc main() {\n\tout, err := yaml.Marshal(map[string]string{\"script\": \"set -e\\nmake test\\n\"})\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Print(string(out))\n}",
+          "output": "script: |\n    set -e\n    make test"
+        },
+        {
+          "name": "Marshal (stringsAreQuotedWhenAmbiguous)",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/yaml\"\n)\n\nfunc main() {\n\t// A string whose plain form would resolve to another type is quoted, so\n\t// that reading the document back gives the same Go value.\n\tout, err := yaml.Marshal(map[string]string{\"version\": \"1.20\", \"flag\": \"true\"})\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Print(string(out))\n}",
+          "output": "flag: \"true\"\nversion: \"1.20\""
+        },
+        {
+          "name": "Unmarshal",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n\n\t\"github.com/malcolmston/yaml\"\n)\n\nfunc main() {\n\tsrc := []byte(`\nname: gopher\nage: 13\ntags: [small, blue]\n`)\n\tvar v struct {\n\t\tName string   `yaml:\"name\"`\n\t\tAge  int      `yaml:\"age\"`\n\t\tTags []string `yaml:\"tags\"`\n\t}\n\tif err := yaml.Unmarshal(src, \u0026v); err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Printf(\"%s is %d and is %s\\n\", v.Name, v.Age, strings.Join(v.Tags, \" and \"))\n}",
+          "output": "gopher is 13 and is small and blue"
+        },
+        {
+          "name": "Unmarshal (anchorsAndAliases)",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/yaml\"\n)\n\nfunc main() {\n\tsrc := []byte(`\ndefaults: \u0026defaults\n  retries: 3\n  timeout: 5\njob:\n  \u003c\u003c: *defaults\n  timeout: 30\n`)\n\tvar v struct {\n\t\tJob struct {\n\t\t\tRetries int `yaml:\"retries\"`\n\t\t\tTimeout int `yaml:\"timeout\"`\n\t\t} `yaml:\"job\"`\n\t}\n\tif err := yaml.Unmarshal(src, \u0026v); err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Printf(\"retries=%d timeout=%d\\n\", v.Job.Retries, v.Job.Timeout)\n}",
+          "output": "retries=3 timeout=30"
+        },
+        {
+          "name": "Unmarshal (intoAny)",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/yaml\"\n)\n\nfunc main() {\n\t// Decoding into any resolves scalars with the YAML 1.2 core schema.\n\tvar v any\n\tif err := yaml.Unmarshal([]byte(\"a: 1\\nb: true\\nc: 1.5\\nd: ~\\ne: text\\n\"), \u0026v); err != nil {\n\t\tpanic(err)\n\t}\n\tm := v.(map[string]any)\n\tfor _, k := range []string{\"a\", \"b\", \"c\", \"d\", \"e\"} {\n\t\tfmt.Printf(\"%s: %T\\n\", k, m[k])\n\t}\n}",
+          "output": "a: int\nb: bool\nc: float64\nd: \u003cnil\u003e\ne: string"
+        },
+        {
+          "name": "Unmarshal (yaml12Booleans)",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/yaml\"\n)\n\nfunc main() {\n\t// Under the YAML 1.2 core schema only true/false are booleans, so the\n\t// country code for Norway stays a string. This is the \"Norway problem\",\n\t// and a YAML 1.1 parser gets it wrong.\n\tvar v map[string]any\n\tif err := yaml.Unmarshal([]byte(\"country: NO\\nenabled: true\\n\"), \u0026v); err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Printf(\"%T %v\\n\", v[\"country\"], v[\"country\"])\n\tfmt.Printf(\"%T %v\\n\", v[\"enabled\"], v[\"enabled\"])\n}",
+          "output": "string NO\nbool true"
+        },
+        {
+          "name": "Decoder",
+          "code": "package main\n\nimport (\n\t\"errors\"\n\t\"fmt\"\n\t\"io\"\n\t\"strings\"\n\n\t\"github.com/malcolmston/yaml\"\n)\n\nfunc main() {\n\tstream := strings.NewReader(\"--- 1\\n--- two\\n--- [3]\\n\")\n\tdec := yaml.NewDecoder(stream)\n\tfor {\n\t\tvar v any\n\t\terr := dec.Decode(\u0026v)\n\t\tif errors.Is(err, io.EOF) {\n\t\t\tbreak\n\t\t}\n\t\tif err != nil {\n\t\t\tpanic(err)\n\t\t}\n\t\tfmt.Printf(\"%#v\\n\", v)\n\t}\n}",
+          "output": "1\n\"two\"\n[]interface {}{3}"
+        },
+        {
+          "name": "Encoder",
+          "code": "package main\n\nimport (\n\t\"os\"\n\n\t\"github.com/malcolmston/yaml\"\n)\n\nfunc main() {\n\tenc := yaml.NewEncoder(os.Stdout)\n\tenc.SetIndent(2)\n\tfor _, doc := range []any{\n\t\tmap[string]any{\"first\": []any{1, 2}},\n\t\tmap[string]any{\"second\": true},\n\t} {\n\t\tif err := enc.Encode(doc); err != nil {\n\t\t\tpanic(err)\n\t\t}\n\t}\n\tif err := enc.Close(); err != nil {\n\t\tpanic(err)\n\t}\n}",
+          "output": "first:\n  - 1\n  - 2\n---\nsecond: true"
+        },
+        {
+          "name": "Marshaler",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"time\"\n\n\t\"github.com/malcolmston/yaml\"\n)\n\n// duration is a type that chooses its own YAML representation on both sides.\ntype duration struct{ d time.Duration }\n\n// MarshalYAML implements yaml.Marshaler.\nfunc (v duration) MarshalYAML() (any, error) { return v.d.String(), nil }\n\n// UnmarshalYAML implements yaml.Unmarshaler.\nfunc (v *duration) UnmarshalYAML(n *yaml.Node) error {\n\tvar s string\n\tif err := n.Decode(\u0026s); err != nil {\n\t\treturn err\n\t}\n\td, err := time.ParseDuration(s)\n\tif err != nil {\n\t\treturn fmt.Errorf(\"line %d: %w\", n.Line, err)\n\t}\n\tv.d = d\n\treturn nil\n}\n\nfunc main() {\n\tout, err := yaml.Marshal(map[string]duration{\"ttl\": {90 * time.Second}})\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Print(string(out))\n}",
+          "output": "ttl: 1m30s"
+        },
+        {
+          "name": "Parse",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/yaml\"\n)\n\nfunc main() {\n\tdocs, err := yaml.Parse([]byte(\"# a greeting\\ngreeting: hello # inline\\n\"))\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tmapping := docs[0].Content[0]\n\tkey, value := mapping.Content[0], mapping.Content[1]\n\tfmt.Printf(\"key %q at line %d, tag %s\\n\", key.Value, key.Line, key.ShortTag())\n\tfmt.Printf(\"value %q, line comment %q\\n\", value.Value, value.LineComment)\n\tfmt.Printf(\"document head comment %q\\n\", docs[0].HeadComment)\n}",
+          "output": "key \"greeting\" at line 2, tag !!str\nvalue \"hello\", line comment \"# inline\"\ndocument head comment \"# a greeting\""
+        },
+        {
+          "name": "Node (Decode)",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/yaml\"\n)\n\nfunc main() {\n\tdocs, err := yaml.Parse([]byte(\"a: 1\\nb: 2\\n\"))\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tvar m map[string]int\n\tif err := docs[0].Decode(\u0026m); err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Println(m[\"a\"] + m[\"b\"])\n}",
+          "output": "3"
+        },
+        {
+          "name": "Node (Encode)",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/yaml\"\n)\n\nfunc main() {\n\tvar n yaml.Node\n\tif err := n.Encode(map[string]any{\"k\": []any{1, 2}}); err != nil {\n\t\tpanic(err)\n\t}\n\tn.Style = yaml.FlowStyle\n\tout, err := yaml.Marshal(\u0026n)\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Print(string(out))\n}",
+          "output": "{k: [1, 2]}"
+        },
+        {
+          "name": "SyntaxError",
+          "code": "package main\n\nimport (\n\t\"errors\"\n\t\"fmt\"\n\n\t\"github.com/malcolmston/yaml\"\n)\n\nfunc main() {\n\terr := yaml.Unmarshal([]byte(\"a: 1\\n b: 2\\n\"), new(any))\n\tvar se *yaml.SyntaxError\n\tif errors.As(err, \u0026se) {\n\t\tfmt.Printf(\"line %d, column %d\\n\", se.Line, se.Column)\n\t}\n\tfmt.Println(errors.Is(err, yaml.ErrSyntax))\n}",
+          "output": "line 2, column 2\ntrue"
+        },
+        {
+          "name": "TypeError",
+          "code": "package main\n\nimport (\n\t\"errors\"\n\t\"fmt\"\n\n\t\"github.com/malcolmston/yaml\"\n)\n\nfunc main() {\n\t// Decoding does not stop at the first bad field: every field that can be\n\t// stored is stored, and the failures are collected.\n\tvar v struct {\n\t\tA int `yaml:\"a\"`\n\t\tB int `yaml:\"b\"`\n\t\tC int `yaml:\"c\"`\n\t}\n\terr := yaml.Unmarshal([]byte(\"a: 1\\nb: nope\\nc: also-nope\\n\"), \u0026v)\n\tvar te *yaml.TypeError\n\tif errors.As(err, \u0026te) {\n\t\tfmt.Printf(\"%d failures, but a was still stored as %d\\n\", len(te.Errors), v.A)\n\t}\n}",
+          "output": "2 failures, but a was still stored as 1"
+        },
+        {
+          "name": "Unmarshaler",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"time\"\n\n\t\"github.com/malcolmston/yaml\"\n)\n\n// duration is a type that chooses its own YAML representation on both sides.\ntype duration struct{ d time.Duration }\n\n// MarshalYAML implements yaml.Marshaler.\nfunc (v duration) MarshalYAML() (any, error) { return v.d.String(), nil }\n\n// UnmarshalYAML implements yaml.Unmarshaler.\nfunc (v *duration) UnmarshalYAML(n *yaml.Node) error {\n\tvar s string\n\tif err := n.Decode(\u0026s); err != nil {\n\t\treturn err\n\t}\n\td, err := time.ParseDuration(s)\n\tif err != nil {\n\t\treturn fmt.Errorf(\"line %d: %w\", n.Line, err)\n\t}\n\tv.d = d\n\treturn nil\n}\n\nfunc main() {\n\tvar v map[string]duration\n\tif err := yaml.Unmarshal([]byte(\"ttl: 1m30s\\n\"), \u0026v); err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Println(v[\"ttl\"].d)\n}",
+          "output": "1m30s"
+        }
+      ]
+    }
+  ]
+}

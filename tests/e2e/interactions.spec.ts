@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { waitForHydration } from './hydrate';
 
 // Interaction coverage: everything a user may actually touch — the theme
 // toggle, the mobile hamburger menu, every nav tab (clicked, not just routed),
@@ -18,7 +19,7 @@ let pageErrors: string[] = [];
 
 // The fixed, non-library top-level sections (everything else is a library under
 // /lib/). Mirror of app/nav.ts.
-const TOP_LEVEL = ['parity', 'explore', 'releases', 'howto', 'faq', 'ai', 'ask', 'about'];
+const TOP_LEVEL = ['parity', 'security', 'explore', 'releases', 'howto', 'faq', 'ai', 'ask', 'about'];
 
 /** Map a tab id to its route path. */
 function pathForTab(id: string): string {
@@ -67,12 +68,16 @@ async function gotoHome(page: Page) {
   // DCL + hydration, which the visibility wait below covers.
   await page.goto('', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('.view.active')).toBeVisible({ timeout: 15_000 });
+  // The markup is server-rendered, so a visible view does not imply live event
+  // handlers. Wait for hydration before anything clicks.
+  await waitForHydration(page);
 }
 
 // Directly navigate to a tab's route and wait for its view to render.
 async function gotoTab(page: Page, id: string) {
   await page.goto(pathForTab(id), { waitUntil: 'domcontentloaded' });
   await expect(page.locator('.view.active')).toBeVisible({ timeout: 15_000 });
+  await waitForHydration(page);
 }
 
 // Client-side switch to a tab (no full reload) and wait for its view to paint.
@@ -120,7 +125,7 @@ async function ensureMenuForTabs(page: Page) {
 test('theme toggle flips data-theme, persists it, and flips back', async ({ page }) => {
   await gotoHome(page);
   const html = page.locator('html');
-  const btn = page.locator('button.iconbtn[aria-label="Toggle colour theme"]');
+  const btn = page.locator('button.iconbtn[aria-label^="Toggle colour theme"]');
   await expect(btn).toBeVisible();
 
   // The toggle is a two-state light<->dark switch: it sets an explicit
@@ -255,9 +260,21 @@ test('every accordion (FAQ / releases / doc examples) toggles open and closed', 
       const summary = summaries.nth(i);
       const details = summary.locator('xpath=..');
       const openBefore = await details.evaluate((d) => (d as HTMLDetailsElement).open);
-      await summary.click();
+      await summary.scrollIntoViewIfNeeded();
+      // dispatchEvent, not click(), for the same reason the tab sweep and the
+      // Copy-button sweep use it (see clickMenuBtn): a real tap is resolved to
+      // coordinates, and under the full 8-project run a phone-viewport summary
+      // can shift between the actionability check and the tap landing, so the
+      // tap misses and the panel never toggles — with no Playwright error, since
+      // the click itself "succeeded". That showed up as exactly one failing
+      // project per full run (moving between Pixel 7 and iPhone 15), never
+      // reproducible with that project on its own, and unaffected by longer
+      // waits or by re-tapping. A synthetic click on a <summary> still runs the
+      // element's native activation behaviour, so this exercises the same toggle
+      // without depending on layout having settled.
+      await summary.dispatchEvent('click');
       await expect
-        .poll(() => details.evaluate((d) => (d as HTMLDetailsElement).open))
+        .poll(() => details.evaluate((d) => (d as HTMLDetailsElement).open), { timeout: 15_000 })
         .toBe(!openBefore);
     }
   }

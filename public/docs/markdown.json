@@ -1,0 +1,229 @@
+{
+  "module": "github.com/malcolmston/markdown",
+  "generatedAt": "2026-08-05T11:13:34Z",
+  "packages": [
+    {
+      "importPath": "github.com/malcolmston/markdown",
+      "name": "markdown",
+      "synopsis": "Package markdown is a standard-library-only CommonMark 0.31.2 parser and HTML renderer, in the spirit of markdown-it.",
+      "doc": "Package markdown is a standard-library-only CommonMark 0.31.2 parser and\nHTML renderer, in the spirit of markdown-it.\n\n# Overview\n\nRendering is a two-phase process, the same one the CommonMark reference\nparsers use. The block phase walks the input line by line, matching the\ncontinuation prefixes of the currently open container blocks (block quotes,\nlist items), trying new block starts, and buffering leaf-block text. The\ninline phase then re-scans each paragraph and heading, resolving code spans,\nlinks, images, autolinks, raw HTML, character references, and — with the\ndelimiter-stack algorithm from the specification appendix — emphasis and\nstrong emphasis. There are no third-party dependencies and no cgo.\n\n# Rendering\n\nThe package-level helpers use CommonMark-strict settings:\n\n\thtml := markdown.Render(\"# Title\\n\\nSome *emphasis*.\\n\")\n\terr := markdown.RenderTo(os.Stdout, src)\n\nThe output is an HTML fragment, not a whole document: no \u003chtml\u003e, \u003chead\u003e or\n\u003cbody\u003e wrapper is generated.\n\n# Options\n\nNew returns a reusable, concurrency-safe renderer:\n\n\tmd := markdown.New(markdown.Options{\n\t        HTML:        true,   // pass raw HTML through (CommonMark default)\n\t        Typographer: true,   // smart quotes, en/em dashes, ellipses\n\t        LineBreaks:  true,   // soft breaks become \u003cbr /\u003e\n\t        LinkTarget:  \"_blank\",\n\t})\n\thtml := md.Render(src)\n\nDefaultOptions reports the configuration the package-level functions use:\nOptions{HTML: true}. With HTML set to false, raw HTML blocks and inline tags\nare escaped rather than passed through.\n\n# The AST\n\nParse exposes the document tree, which Node.Walk traverses:\n\n\tdoc := markdown.Parse(src)\n\tdoc.Walk(func(n *markdown.Node) bool {\n\t        if n.Type == markdown.Link {\n\t                fmt.Println(n.Destination)\n\t        }\n\t        return true\n\t})\n\nNodeType names the eighteen CommonMark node kinds; NodeType.IsBlock\ndistinguishes block-level from inline nodes. Which Node fields carry meaning\ndepends on the node type — see the Node documentation.\n\n# Conformance\n\nEvery one of the 652 examples in the CommonMark 0.31.2 specification\nrenders byte for byte identically to the reference output, including tab\nexpansion to four-column tab stops, the left- and right-flanking delimiter\nrun rules, link reference label case folding (full Unicode folding, so that\n\"ẞ\" and \"SS\" name the same reference), percent-encoding of link\ndestinations, and the full WHATWG HTML5 named character reference table.\n\n# Security\n\nRendering untrusted Markdown produces untrusted HTML. Two defences are built\nin, and one deliberate hole is left open:\n\n  - Link destinations and image sources are sanitized by ValidateLink, the Go\n    form of markdown-it's md.validateLink. The javascript:, vbscript:, file:\n    and data: schemes are rejected — data: only for the inert\n    data:image/{gif,png,jpeg,webp} payloads — and a rejected destination is\n    replaced with the empty string. Matching is case-insensitive and ignores\n    ASCII control characters, so \"JaVaScRiPt:\", \" javascript:\" and\n    \"java\\tscript:\" are all caught, as is \"\u0026#x6a;avascript:\" (character\n    references in a destination are decoded before validation). Sanitizing\n    happens at parse time, so the destinations on the Parse AST are already\n    safe. Options.ValidateLink replaces the policy.\n  - Text, attribute values (title, alt, the info string's language class,\n    LinkTarget) and URL destinations are escaped so nothing in the document\n    can break out of the attribute it lands in.\n  - Options.HTML, when true, passes raw HTML blocks and inline tags through\n    verbatim. That is what CommonMark requires and it is what the\n    package-level Render does, but it means a document can emit any HTML it\n    likes — including \u003cscript\u003e. Set HTML to false for untrusted input (raw\n    HTML is then escaped, as in markdown-it), or run the output through a\n    sanitizer.\n\n# Errors\n\nOnly RenderTo can fail, and only because the underlying io.Writer failed.\nIts error wraps both ErrWrite and the writer's own error, so either can be\nmatched with errors.Is.\n\nThis package is an independent re-implementation, not affiliated with or\nendorsed by markdown-it or the CommonMark project.\n",
+      "consts": [],
+      "vars": [
+        {
+          "names": [
+            "ErrMarkdown"
+          ],
+          "signature": "var ErrMarkdown = errors.New(\"markdown\")",
+          "doc": "ErrMarkdown is the root sentinel for every error returned by this package.\nEvery other sentinel wraps it, so errors.Is(err, ErrMarkdown) matches any\nerror originating here.\n"
+        },
+        {
+          "names": [
+            "ErrWrite"
+          ],
+          "signature": "var ErrWrite = fmt.Errorf(\"%w: write output\", ErrMarkdown)",
+          "doc": "ErrWrite indicates that writing rendered output to an io.Writer failed. The\nunderlying writer error is wrapped alongside it, so both\nerrors.Is(err, markdown.ErrWrite) and errors.Is(err, io.ErrShortWrite) (for\nexample) can succeed.\n"
+        }
+      ],
+      "types": [
+        {
+          "name": "Markdown",
+          "signature": "type Markdown struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Markdown is a reusable, configured CommonMark renderer. A Markdown value is\nsafe for concurrent use by multiple goroutines.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "New",
+              "signature": "func New(opts Options) *Markdown",
+              "doc": "New returns a renderer configured by opts.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Parse",
+              "recv": "*Markdown",
+              "signature": "func (m *Markdown) Parse(src string) *Node",
+              "doc": "Parse returns the CommonMark AST of src, using the renderer's options.\n"
+            },
+            {
+              "name": "Render",
+              "recv": "*Markdown",
+              "signature": "func (m *Markdown) Render(src string) string",
+              "doc": "Render converts CommonMark source to an HTML fragment using the renderer's\noptions.\n"
+            },
+            {
+              "name": "RenderTo",
+              "recv": "*Markdown",
+              "signature": "func (m *Markdown) RenderTo(w io.Writer, src string) error",
+              "doc": "RenderTo writes the HTML rendering of src to w. Any error returned by w is\nwrapped and can be tested with errors.Is against [ErrWrite].\n"
+            }
+          ]
+        },
+        {
+          "name": "Node",
+          "signature": "type Node struct {\n\tType        NodeType\n\tLiteral     string\n\tLevel       int    // heading level, or ordered-list start number\n\tDestination string // link/image target\n\tTitle       string\n\tInfo        string // fenced code info string, or list kind\n\tTight       bool   // list tightness\n\tChildren    []*Node\n\t// contains filtered or unexported fields\n}",
+          "doc": "Node is a node in the CommonMark AST.\n\nWhich fields carry meaning depends on Type:\n\n\tHeading      Level is 1-6.\n\tList         Info is \"bullet\" or \"ordered\", Literal is the bullet or\n\t             delimiter character (\"-\", \"*\", \"+\", \".\" or \")\"), Level is\n\t             the start number of an ordered list, Tight reports list\n\t             tightness.\n\tItem         Literal and Info mirror the parent list's fields.\n\tCodeBlock    Literal is the code, Info the fenced info string (empty for\n\t             indented code blocks).\n\tHTMLBlock    Literal is the raw HTML.\n\tText, Code,\n\tHTMLInline   Literal is the content.\n\tLink, Image  Destination and Title hold the target and title.\n\nChildren holds the child nodes in document order.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "Parse",
+              "signature": "func Parse(src string) *Node",
+              "doc": "Parse returns the document AST for src, using the CommonMark-strict\ndefaults. The returned [Node] always has Type [Document].\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "AppendChild",
+              "recv": "*Node",
+              "signature": "func (n *Node) AppendChild(c *Node)",
+              "doc": "AppendChild appends c to n's children and records n as its parent.\n"
+            },
+            {
+              "name": "FirstChild",
+              "recv": "*Node",
+              "signature": "func (n *Node) FirstChild() *Node",
+              "doc": "FirstChild returns n's first child, or nil when n has no children.\n"
+            },
+            {
+              "name": "LastChild",
+              "recv": "*Node",
+              "signature": "func (n *Node) LastChild() *Node",
+              "doc": "LastChild returns n's last child, or nil when n has no children.\n"
+            },
+            {
+              "name": "Parent",
+              "recv": "*Node",
+              "signature": "func (n *Node) Parent() *Node",
+              "doc": "Parent returns n's parent node, or nil for the document root and for nodes\nthat are not attached to a tree.\n"
+            },
+            {
+              "name": "Walk",
+              "recv": "*Node",
+              "signature": "func (n *Node) Walk(fn func(*Node) bool)",
+              "doc": "Walk calls fn for n and, depth first, for every descendant of n. Returning\nfalse from fn skips that node's children.\n"
+            }
+          ]
+        },
+        {
+          "name": "NodeType",
+          "signature": "type NodeType int",
+          "doc": "NodeType identifies the kind of a [Node] in the CommonMark AST.\n",
+          "consts": [
+            {
+              "names": [
+                "Document",
+                "Paragraph",
+                "Heading",
+                "BlockQuote",
+                "List",
+                "Item",
+                "CodeBlock",
+                "HTMLBlock",
+                "ThematicBreak",
+                "Text",
+                "Emph",
+                "Strong",
+                "Link",
+                "Image",
+                "Code",
+                "HTMLInline",
+                "SoftBreak",
+                "HardBreak"
+              ],
+              "signature": "const (\n\t// Document is the root node of a parsed CommonMark document.\n\tDocument NodeType = iota\n\t// Paragraph is a run of inline content rendered as \u003cp\u003e.\n\tParagraph\n\t// Heading is an ATX or setext heading; Level holds 1-6.\n\tHeading\n\t// BlockQuote is a \"\u003e \" quoted region.\n\tBlockQuote\n\t// List is a bullet or ordered list; see Info, Level and Tight.\n\tList\n\t// Item is a single list item.\n\tItem\n\t// CodeBlock is an indented or fenced code block; Literal holds the code\n\t// and Info the fenced info string.\n\tCodeBlock\n\t// HTMLBlock is a run of raw HTML at block level; Literal holds it verbatim.\n\tHTMLBlock\n\t// ThematicBreak is a horizontal rule.\n\tThematicBreak\n\t// Text is a literal run of text.\n\tText\n\t// Emph is emphasized inline content, rendered as \u003cem\u003e.\n\tEmph\n\t// Strong is strongly emphasized inline content, rendered as \u003cstrong\u003e.\n\tStrong\n\t// Link is a hyperlink; see Destination and Title.\n\tLink\n\t// Image is an image reference; see Destination and Title.\n\tImage\n\t// Code is an inline code span; Literal holds its contents.\n\tCode\n\t// HTMLInline is a raw inline HTML tag; Literal holds it verbatim.\n\tHTMLInline\n\t// SoftBreak is a line ending inside a paragraph.\n\tSoftBreak\n\t// HardBreak is an explicit line break, rendered as \u003cbr /\u003e.\n\tHardBreak\n)",
+              "doc": "The node types produced by [Parse]. The first nine are block-level nodes;\nthe remainder are inline nodes and may only appear inside a Paragraph,\nHeading, Link or Image (or nested inline) node.\n"
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "IsBlock",
+              "recv": "NodeType",
+              "signature": "func (t NodeType) IsBlock() bool",
+              "doc": "IsBlock reports whether the node type is a block-level (container or leaf\nblock) type rather than an inline type.\n"
+            },
+            {
+              "name": "String",
+              "recv": "NodeType",
+              "signature": "func (t NodeType) String() string",
+              "doc": "String returns the CommonMark name of the node type, for example \"paragraph\"\nor \"block_quote\". Unknown values render as \"NodeType(n)\".\n"
+            }
+          ]
+        },
+        {
+          "name": "Options",
+          "signature": "type Options struct {\n\t// HTML allows raw HTML blocks and inline HTML through to the output.\n\t// CommonMark requires this (default true for the package-level Render).\n\t// When false, raw HTML is escaped rather than passed through.\n\tHTML bool\n\t// Typographer enables smart quotes, en/em dashes and ellipses.\n\tTypographer bool\n\t// LineBreaks renders soft line breaks inside paragraphs as \u003cbr /\u003e.\n\tLineBreaks bool\n\t// LinkTarget, when non-empty, is emitted as the target attribute of every\n\t// generated \u003ca\u003e element, e.g. \"_blank\".\n\tLinkTarget string\n\t// ValidateLink decides whether a link destination or image source may be\n\t// emitted. A destination it rejects is replaced with the empty string.\n\t//\n\t// It mirrors markdown-it's overridable md.validateLink hook. When nil the\n\t// package-level [ValidateLink] is used, which rejects the javascript:,\n\t// vbscript:, file: and data: schemes (except inert data:image/... payloads).\n\t// Set it to func(string) bool { return true } to disable sanitizing.\n\tValidateLink func(url string) bool\n}",
+          "doc": "Options configures a Markdown renderer.\n\nThe zero value is not the CommonMark default: [Render] and [RenderTo] use\nOptions{HTML: true}, which is CommonMark-strict. Construct a renderer with\n[New] to change any of these.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "DefaultOptions",
+              "signature": "func DefaultOptions() Options",
+              "doc": "DefaultOptions returns the CommonMark-strict configuration used by the\npackage-level [Render] and [RenderTo]: raw HTML enabled, everything else\ndisabled.\n"
+            }
+          ],
+          "methods": []
+        }
+      ],
+      "funcs": [
+        {
+          "name": "Render",
+          "signature": "func Render(src string) string",
+          "doc": "Render converts CommonMark source to an HTML fragment using the\nCommonMark-strict defaults (raw HTML enabled, no typographic\nsubstitutions, soft breaks preserved as newlines).\n"
+        },
+        {
+          "name": "RenderTo",
+          "signature": "func RenderTo(w io.Writer, src string) error",
+          "doc": "RenderTo writes the HTML rendering of src to w using the CommonMark-strict\ndefaults. Errors from w are wrapped and can be tested with errors.Is against\n[ErrWrite].\n"
+        },
+        {
+          "name": "ValidateLink",
+          "signature": "func ValidateLink(url string) bool",
+          "doc": "ValidateLink reports whether url may be emitted as a link destination or an\nimage source.\n\nIt is the Go form of markdown-it's default md.validateLink. Destinations\nusing the javascript:, vbscript:, file: or data: schemes are rejected, with\nthe single exception of the four inert data:image/... subtypes (gif, png,\njpeg, webp) that cannot carry script. Everything else — including relative\nURLs, fragments and unknown schemes — is allowed.\n\nThe scheme is matched case-insensitively, and ASCII control characters and\nspaces are removed before matching, so JaVaScRiPt:, \" javascript:\" and\n\"java\\tscript:\" are all rejected. (Browsers strip tabs and newlines from a\nURL before resolving its scheme, so a renderer must too; this is stricter\nthan markdown-it, which only trims the ends of the string.)\n\nA destination that fails validation is not dropped: the link or image is\nstill produced, with an empty destination, which is also what markdown-it\ndoes.\n\nOverride it per renderer with [Options].ValidateLink — for example\n`func(string) bool { return true }` to disable sanitizing entirely, in a\ncontext where the input is already trusted.\n"
+        }
+      ],
+      "examples": [
+        {
+          "name": "Render",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/markdown\"\n)\n\nfunc main() {\n\tfmt.Print(markdown.Render(\"# Title\\n\\nSome *emphasis* and a [link](/url).\\n\"))\n}",
+          "output": "\u003ch1\u003eTitle\u003c/h1\u003e\n\u003cp\u003eSome \u003cem\u003eemphasis\u003c/em\u003e and a \u003ca href=\"/url\"\u003elink\u003c/a\u003e.\u003c/p\u003e"
+        },
+        {
+          "name": "RenderTo",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"os\"\n\n\t\"github.com/malcolmston/markdown\"\n)\n\nfunc main() {\n\tif err := markdown.RenderTo(os.Stdout, \"- a\\n- b\\n\"); err != nil {\n\t\tfmt.Println(\"error:\", err)\n\t}\n}",
+          "output": "\u003cul\u003e\n\u003cli\u003ea\u003c/li\u003e\n\u003cli\u003eb\u003c/li\u003e\n\u003c/ul\u003e"
+        },
+        {
+          "name": "ValidateLink",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/markdown\"\n)\n\nfunc main() {\n\tfmt.Print(markdown.Render(\"[click](javascript:alert(1))\\n\"))\n\tfmt.Print(markdown.Render(\"![logo](data:image/png;base64,iVBORw0KGgo=)\\n\"))\n\tfmt.Println(markdown.ValidateLink(\"https://example.com\"), markdown.ValidateLink(\"vbscript:x\"))\n}",
+          "output": "\u003cp\u003e\u003ca href=\"\"\u003eclick\u003c/a\u003e\u003c/p\u003e\n\u003cp\u003e\u003cimg src=\"data:image/png;base64,iVBORw0KGgo=\" alt=\"logo\" /\u003e\u003c/p\u003e\ntrue false",
+          "doc": "Link destinations using an executable scheme are sanitized by default, the\nway markdown-it's validateLink does it: the link is still rendered, with an\nempty destination.\n"
+        },
+        {
+          "name": "New",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/markdown\"\n)\n\nfunc main() {\n\tmd := markdown.New(markdown.Options{\n\t\tHTML:        true,\n\t\tTypographer: true,\n\t\tLinkTarget:  \"_blank\",\n\t})\n\tfmt.Print(md.Render(`He said \"hi\" -- then [left](/away).` + \"\\n\"))\n}",
+          "output": "\u003cp\u003eHe said “hi” – then \u003ca href=\"/away\" target=\"_blank\"\u003eleft\u003c/a\u003e.\u003c/p\u003e"
+        },
+        {
+          "name": "Parse",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/markdown\"\n)\n\nfunc main() {\n\tdoc := markdown.Parse(\"See [the spec](https://spec.commonmark.org) and [RFC](/rfc).\\n\")\n\tdoc.Walk(func(n *markdown.Node) bool {\n\t\tif n.Type == markdown.Link {\n\t\t\tfmt.Println(n.Destination)\n\t\t}\n\t\treturn true\n\t})\n}",
+          "output": "https://spec.commonmark.org\n/rfc"
+        },
+        {
+          "name": "Node (Walk)",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/markdown\"\n)\n\nfunc main() {\n\tdoc := markdown.Parse(\"# One\\n\\n## Two\\n\\n### Three\\n\")\n\tdoc.Walk(func(n *markdown.Node) bool {\n\t\tif n.Type == markdown.Heading {\n\t\t\tfmt.Printf(\"h%d\\n\", n.Level)\n\t\t}\n\t\treturn true\n\t})\n}",
+          "output": "h1\nh2\nh3"
+        },
+        {
+          "name": "Options (validateLink)",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n\n\t\"github.com/malcolmston/markdown\"\n)\n\nfunc main() {\n\tmd := markdown.New(markdown.Options{\n\t\tHTML: true,\n\t\tValidateLink: func(u string) bool {\n\t\t\treturn strings.HasPrefix(u, \"https://\") || strings.HasPrefix(u, \"#\")\n\t\t},\n\t})\n\tfmt.Print(md.Render(\"[a](https://ok/) [b](http://no/) [c](#here)\\n\"))\n}",
+          "output": "\u003cp\u003e\u003ca href=\"https://ok/\"\u003ea\u003c/a\u003e \u003ca href=\"\"\u003eb\u003c/a\u003e \u003ca href=\"#here\"\u003ec\u003c/a\u003e\u003c/p\u003e",
+          "doc": "Options.ValidateLink replaces the default sanitizer — here with an allowlist\nthat only permits https and same-document fragments.\n"
+        }
+      ]
+    }
+  ]
+}

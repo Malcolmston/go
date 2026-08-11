@@ -1,0 +1,414 @@
+{
+  "module": "github.com/malcolmston/rrule",
+  "generatedAt": "2026-08-05T11:13:34Z",
+  "packages": [
+    {
+      "importPath": "github.com/malcolmston/rrule",
+      "name": "rrule",
+      "synopsis": "Package rrule is a standard-library-only implementation of RFC 5545 recurrence rules and of the minimal iCalendar object model they live in.",
+      "doc": "Package rrule is a standard-library-only implementation of RFC 5545\nrecurrence rules and of the minimal iCalendar object model they live in.\n\n# Overview\n\nA recurrence rule describes an unbounded series of instants — \"every second\nTuesday\", \"the last Friday of every month\", \"every year on the first Sunday\nafter the first Saturday of November\" — in a few dozen characters of text.\nThis package compiles such a rule, iterates it, composes rules into\nrecurrence sets, and reads and writes the surrounding iCalendar object,\nusing only the Go standard library. There are no third-party dependencies\nand no cgo.\n\nIt is a re-implementation of the recurrence engines in Python's\ndateutil.rrule and in jkbrzt/rrule.js, and it complements the cron-style\nscheduling of the family's quartz package: cron cannot express \"the last\nweekday of the month in even-numbered years\", and RRULE cannot express a\nduty roster in seconds since boot.\n\n# Building a rule\n\nA rule is a Freq, an anchor, and any number of BYxxx rule parts:\n\n\tr, err := rrule.New(rrule.Options{\n\t        Freq:      rrule.Monthly,\n\t        DTStart:   time.Date(1997, 9, 2, 9, 0, 0, 0, time.UTC),\n\t        ByWeekday: []rrule.Weekday{rrule.FR.Nth(-1)},\n\t        Count:     3,\n\t})\n\tr.All() // 1997-09-26, 1997-10-31, 1997-11-28, all at 09:00 UTC\n\nDTSTART anchors everything. Its date supplies the defaults RFC 5545 derives\nfrom FREQ — a MONTHLY rule with no BYxxx part recurs on DTSTART's day of the\nmonth, a WEEKLY one on DTSTART's weekday — its time of day supplies the\ndefaults for BYHOUR, BYMINUTE and BYSECOND, and its time.Location is the\nlocation every occurrence is generated in.\n\n# How the engine works\n\nIteration follows the structure RFC 5545 §3.3.10 describes and dateutil\nimplements. For each interval of the base frequency the engine builds the\nset of candidate days, removes the days the BYxxx rule parts reject,\napplies BYSETPOS to the days that survived, and emits them in order:\n\n\tFREQ=YEARLY   candidates: every day of the year\n\tFREQ=MONTHLY  candidates: every day of the month\n\tFREQ=WEEKLY   candidates: the seven days from the week start\n\tFREQ=DAILY    and finer: the single current day\n\nA BYxxx part that is coarser than or equal to FREQ limits the candidate set;\none that is finer expands it. BYWEEKDAY entries carrying an ordinal (-1FR,\nthe last Friday) are only meaningful for MONTHLY and YEARLY and are handled\nseparately from plain ones; for finer frequencies the ordinal is dropped, as\nthe RFC requires. BYWEEKNO uses ISO 8601 week numbering relative to the\nrule's week start, and BYWEEKNO, BYYEARDAY and BYMONTHDAY all accept\nnegative values counting back from the end of their period.\n\n# Week start\n\nWKST genuinely changes results: it moves the boundary of a FREQ=WEEKLY\ninterval and it decides which days ISO week 1 contains. It is threaded\nthrough the engine rather than fixed at Monday. Because the zero value of\nOptions.Wkst is time.Sunday but an unset week start must mean Monday — the\nRFC 5545 default — set Options.Wkst to the SundayStart constant, not to\ntime.Sunday, to start weeks on Sunday.\n\n# Time zones and daylight saving\n\nOccurrences are generated in DTSTART's time.Location by wall-clock\narithmetic, so a daily 09:00 rule stays at 09:00 across a daylight-saving\ntransition rather than drifting to 08:00 or 10:00. Occurrences are always\nstrictly increasing in instant order, and no instant is ever produced twice.\n\nThe two wall clocks a transition makes irregular are handled the way\nRFC 5545 requires. A wall clock that occurs twice, in the hour a fall-back\ntransition repeats, refers to the first of the two (§3.3.5), i.e. the offset\nin effect before the transition. A wall clock that does not occur at all, in\nthe hour a spring-forward transition removes, yields no occurrence: §3.3.10\nsays such instances \"MUST be ignored and MUST NOT be counted as part of the\nrecurrence set\", so a daily 02:30 rule simply has no instance on the day its\nzone skips 02:30, and a COUNT is not spent on it.\n\n# Termination\n\nRules can be impossible: FREQ=MONTHLY;BYMONTHDAY=31;BYMONTH=2 never matches\na day. Iteration therefore gives up after maxEmptyIterations consecutive\nintervals that produce nothing, and never iterates past year 9999. An\nimpossible rule yields an empty result instead of hanging. All on a rule\nwith neither COUNT nor UNTIL would be infinite, so it stops after\nMaxAllOccurrences occurrences; prefer a bounded rule, or use Between, After\nor Iterator.\n\nA COUNT or an UNTIL makes a rule finite but not necessarily small:\nFREQ=SECONDLY;UNTIL=99991231T235959Z has some 2.5e11 occurrences and All\nwill try to build every one of them. For a rule whose text came from\nsomewhere you do not control, use AllLimit, Between or Iterator, all of\nwhich are bounded by an argument you supply. INTERVAL is capped for the same\nreason: a value large enough to overflow the day arithmetic is rejected by\nNew, and could never place a second occurrence before year 9999 anyway.\n\n# Text\n\nParse reads an RRULE line with or without its property name; StrToRRule\nreads a DTSTART + RRULE block; String writes that block back, stably and\nre-parseably; RuleString writes just the rule value that follows \"RRULE:\".\n\n\tr, err := rrule.StrToRRule(\"DTSTART:19970902T090000Z\\nRRULE:FREQ=DAILY;COUNT=10\")\n\n# Recurrence sets\n\nSet composes a VEVENT's recurrence the way RFC 5545 does: any number of\nRRULE and RDATE inclusions minus any number of EXRULE and EXDATE\nexclusions. Inclusions are merged chronologically and de-duplicated, then\nexclusions are removed.\n\n\ts := rrule.NewSet()\n\ts.RRule(weekly)\n\ts.ExDate(time.Date(1997, 9, 9, 9, 0, 0, 0, time.UTC))\n\n# iCalendar\n\nParseCalendar reads a VCALENDAR into Calendar, Event and Property values,\nunfolding continuation lines per RFC 5545 §3.1, decoding property\nparameters such as TZID and VALUE=DATE, and turning RRULE, RDATE, EXRULE and\nEXDATE into a Set. Calendar.Encode writes the object back with CRLF line\nendings and content lines folded at 75 octets — folded by octet, never\nsplitting a UTF-8 sequence — with TEXT values escaped per the RFC.\n\n# Errors\n\nAll errors are wrapped sentinels; test them with errors.Is, e.g.\nerrors.Is(err, rrule.ErrInvalidFreq) or errors.Is(err, rrule.ErrParse).\n",
+      "consts": [
+        {
+          "names": [
+            "MaxAllOccurrences"
+          ],
+          "signature": "const MaxAllOccurrences = 10000",
+          "doc": "MaxAllOccurrences bounds All on a rule that has neither COUNT nor UNTIL.\nSuch a rule is infinite, so All stops after this many occurrences instead of\nnever returning. Use Between, After or Iterator to walk an unbounded rule\nunder your own control.\n"
+        },
+        {
+          "names": [
+            "SundayStart"
+          ],
+          "signature": "const SundayStart = time.Weekday(7)",
+          "doc": "SundayStart selects Sunday as the week start in Options.Wkst.\n\nThe zero value of Options.Wkst is time.Sunday, but an unset week start must\nmean Monday — the RFC 5545 default — so this package reads the zero value as\n\"unset\". Set Options.Wkst to SundayStart (or parse a rule containing\nWKST=SU) to start weeks on Sunday.\n"
+        }
+      ],
+      "vars": [
+        {
+          "names": [
+            "ErrInvalidRule",
+            "ErrInvalidFreq",
+            "ErrInvalidWeekday",
+            "ErrEmptyRule",
+            "ErrParse",
+            "ErrNoRRule",
+            "ErrInvalidCalendar"
+          ],
+          "signature": "var (\n\t// ErrInvalidRule indicates a rule whose options are inconsistent or out of\n\t// range (a bad INTERVAL, a BYMONTH of 13, a BYSETPOS of 0, ...).\n\tErrInvalidRule = errors.New(\"rrule: invalid recurrence rule\")\n\n\t// ErrInvalidFreq indicates a missing or unrecognized FREQ rule part.\n\tErrInvalidFreq = errors.New(\"rrule: invalid frequency\")\n\n\t// ErrInvalidWeekday indicates a BYDAY entry that is not a two-letter\n\t// weekday, optionally prefixed by a non-zero ordinal (for example \"-1FR\").\n\tErrInvalidWeekday = errors.New(\"rrule: invalid weekday\")\n\n\t// ErrEmptyRule indicates a rule whose FREQ, INTERVAL and same-level BYxxx\n\t// parts can never agree, so the rule can never produce an occurrence (for\n\t// example FREQ=HOURLY;INTERVAL=2 starting at an odd hour with BYHOUR=1).\n\tErrEmptyRule = errors.New(\"rrule: rule generates an empty set\")\n\n\t// ErrParse indicates malformed RFC 5545 text: an unknown rule part, a value\n\t// that is not a number, or a date-time that does not match the RFC 5545\n\t// forms.\n\tErrParse = errors.New(\"rrule: parse error\")\n\n\t// ErrNoRRule indicates that a block passed to StrToRRule contained no\n\t// RRULE property and no bare rule value.\n\tErrNoRRule = errors.New(\"rrule: no RRULE found\")\n\n\t// ErrInvalidCalendar indicates malformed iCalendar input: a missing or\n\t// mismatched BEGIN/END pair, or a content line without a name.\n\tErrInvalidCalendar = errors.New(\"rrule: invalid iCalendar data\")\n)",
+          "doc": "Sentinel errors returned by the package. Every error returned by rrule\nwraps one of these, so callers may classify failures with errors.Is:\n\n\t_, err := rrule.Parse(\"FREQ=NEVER\")\n\terrors.Is(err, rrule.ErrInvalidFreq) // true\n"
+        },
+        {
+          "names": [
+            "MO",
+            "TU",
+            "WE",
+            "TH",
+            "FR",
+            "SA",
+            "SU"
+          ],
+          "signature": "var (\n\t// MO is Monday.\n\tMO = Weekday{Day: time.Monday}\n\t// TU is Tuesday.\n\tTU = Weekday{Day: time.Tuesday}\n\t// WE is Wednesday.\n\tWE = Weekday{Day: time.Wednesday}\n\t// TH is Thursday.\n\tTH = Weekday{Day: time.Thursday}\n\t// FR is Friday.\n\tFR = Weekday{Day: time.Friday}\n\t// SA is Saturday.\n\tSA = Weekday{Day: time.Saturday}\n\t// SU is Sunday.\n\tSU = Weekday{Day: time.Sunday}\n)",
+          "doc": "The seven unqualified weekdays, matching the RFC 5545 BYDAY abbreviations.\nCall Nth to qualify one with an ordinal, e.g. rrule.FR.Nth(-1) is \"-1FR\",\nthe last Friday.\n"
+        }
+      ],
+      "types": [
+        {
+          "name": "Calendar",
+          "signature": "type Calendar struct {\n\t// ProdID is the PRODID property.\n\tProdID string\n\t// Version is the VERSION property, normally \"2.0\".\n\tVersion string\n\t// Events are the VEVENT components of the calendar, in document order.\n\tEvents []*Event\n}",
+          "doc": "Calendar is a VCALENDAR component holding events.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "ParseCalendar",
+              "signature": "func ParseCalendar(r io.Reader) (*Calendar, error)",
+              "doc": "ParseCalendar reads an iCalendar object. Folded lines are unfolded per\nRFC 5545 §3.1 — a CRLF followed by a space or tab continues the previous\nline — property parameters are decoded, and DTSTART, DTEND, RRULE, RDATE,\nEXRULE and EXDATE are turned into times, rules and recurrence sets.\nComponents other than VEVENT (VTIMEZONE, VALARM, ...) are skipped, but\ntheir content lines are not mistaken for the enclosing component's.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Encode",
+              "recv": "*Calendar",
+              "signature": "func (c *Calendar) Encode(w io.Writer) error",
+              "doc": "Encode writes the calendar as an iCalendar object: CRLF line endings and\ncontent lines folded at 75 octets per RFC 5545 §3.1.\n"
+            }
+          ]
+        },
+        {
+          "name": "Event",
+          "signature": "type Event struct {\n\t// UID identifies the event.\n\tUID string\n\t// Summary is the SUMMARY text, unescaped.\n\tSummary string\n\t// Description is the DESCRIPTION text, unescaped.\n\tDescription string\n\t// Location is the LOCATION text, unescaped.\n\tLocation string\n\t// DTStart is the start of the event.\n\tDTStart time.Time\n\t// DTEnd is the end of the event, zero when the event carried none.\n\tDTEnd time.Time\n\t// AllDay reports that DTSTART was a DATE rather than a DATE-TIME.\n\tAllDay bool\n\t// RRule is the event's recurrence rule, nil when it does not recur.\n\tRRule *RRule\n\t// Set is the full recurrence set of the event — its RRULE together with\n\t// any RDATE, EXRULE and EXDATE — and is nil when the event does not\n\t// recur.\n\tSet *Set\n\t// Props holds every property of the component, including the ones parsed\n\t// into the fields above, keyed by upper-case name.\n\tProps map[string][]Property\n}",
+          "doc": "Event is a VEVENT component: the properties this package models directly,\nplus every other property it carried, kept verbatim in Props.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Freq",
+          "signature": "type Freq int",
+          "doc": "Freq is the base frequency of a recurrence rule: the RFC 5545 FREQ rule\npart. It selects the size of the interval that BYxxx rule parts expand or\nlimit.\n",
+          "consts": [
+            {
+              "names": [
+                "Yearly",
+                "Monthly",
+                "Weekly",
+                "Daily",
+                "Hourly",
+                "Minutely",
+                "Secondly"
+              ],
+              "signature": "const (\n\t// Yearly repeats once per year (FREQ=YEARLY).\n\tYearly Freq = iota\n\t// Monthly repeats once per month (FREQ=MONTHLY).\n\tMonthly\n\t// Weekly repeats once per week (FREQ=WEEKLY).\n\tWeekly\n\t// Daily repeats once per day (FREQ=DAILY).\n\tDaily\n\t// Hourly repeats once per hour (FREQ=HOURLY).\n\tHourly\n\t// Minutely repeats once per minute (FREQ=MINUTELY).\n\tMinutely\n\t// Secondly repeats once per second (FREQ=SECONDLY).\n\tSecondly\n)",
+              "doc": "The recurrence frequencies defined by RFC 5545 §3.3.10, ordered from the\ncoarsest to the finest. The ordering is significant: a BYxxx rule part\nexpands the candidate set when it is finer than FREQ and limits it when it\nis coarser or equal.\n"
+            }
+          ],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "String",
+              "recv": "Freq",
+              "signature": "func (f Freq) String() string",
+              "doc": "String returns the RFC 5545 name of the frequency, such as \"WEEKLY\".\n"
+            }
+          ]
+        },
+        {
+          "name": "Options",
+          "signature": "type Options struct {\n\t// Freq is the base frequency (required).\n\tFreq Freq\n\t// DTStart is the first candidate instant and the location of the rule.\n\tDTStart time.Time\n\t// Interval is the number of frequency units between occurrences. Zero\n\t// means 1.\n\tInterval int\n\t// Wkst is the day a week starts on, affecting BYWEEKNO and the boundaries\n\t// of a FREQ=WEEKLY interval. The zero value means the RFC 5545 default,\n\t// Monday; use SundayStart to select Sunday.\n\tWkst time.Weekday\n\t// Count limits the rule to this many occurrences. Zero means unlimited.\n\tCount int\n\t// Until is the inclusive upper bound of the recurrence. The zero value\n\t// means unbounded.\n\tUntil time.Time\n\t// BySetPos selects occurrences by position within each interval, counting\n\t// from the end when negative. It is only meaningful together with another\n\t// BYxxx rule part.\n\tBySetPos []int\n\t// ByMonth limits occurrences to these months, 1-12.\n\tByMonth []int\n\t// ByMonthDay limits occurrences to these days of the month; negative\n\t// values count back from the end, -1 being the last day.\n\tByMonthDay []int\n\t// ByYearDay limits occurrences to these days of the year, 1-366 or\n\t// -1 to -366 counting back from the end.\n\tByYearDay []int\n\t// ByWeekNo limits occurrences to these ISO 8601 week numbers, 1-53 or\n\t// negative counting back from the end of the year. It only applies to\n\t// FREQ=YEARLY.\n\tByWeekNo []int\n\t// ByWeekday limits occurrences to these weekdays. Entries carrying an\n\t// ordinal (see Weekday.Nth) select the nth such weekday of the MONTHLY or\n\t// YEARLY interval; for finer frequencies the ordinal is ignored.\n\tByWeekday []Weekday\n\t// ByHour limits or expands occurrences to these hours, 0-23.\n\tByHour []int\n\t// ByMinute limits or expands occurrences to these minutes, 0-59.\n\tByMinute []int\n\t// BySecond limits or expands occurrences to these seconds, 0-60.\n\tBySecond []int\n}",
+          "doc": "Options describes a recurrence rule. It mirrors the RFC 5545 RRULE rule\nparts one for one; the zero value of a BYxxx slice means the rule part is\nabsent, not empty.\n\nDTStart anchors the recurrence: its date supplies the defaults for the\nBYxxx parts that FREQ leaves unspecified, its time of day supplies the\ndefaults for BYHOUR, BYMINUTE and BYSECOND, and its time.Location is the\nlocation every occurrence is generated in. A zero DTStart defaults to the\ncurrent local time truncated to the second.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "Property",
+          "signature": "type Property struct {\n\t// Name is the upper-case property name, e.g. \"DTSTART\".\n\tName string\n\t// Value is the property value, with escapes still in place.\n\tValue string\n\t// Params holds the property parameters keyed by upper-case name; a\n\t// parameter may carry several comma-separated values.\n\tParams map[string][]string\n}",
+          "doc": "Property is a raw iCalendar content line: a name, a value, and the\nparameters that qualified it, such as TZID or VALUE.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "RRule",
+          "signature": "type RRule struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "RRule is a compiled RFC 5545 recurrence rule. It is immutable once built by\nNew, Parse or StrToRRule, and safe for concurrent use: every iteration\nmethod allocates its own state.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "New",
+              "signature": "func New(opts Options) (*RRule, error)",
+              "doc": "New compiles opts into a recurrence rule, filling in the defaults RFC 5545\nderives from FREQ and DTSTART and validating every rule part. It returns an\nerror wrapping ErrInvalidRule, ErrInvalidFreq or ErrEmptyRule if the options\ncannot describe a usable rule.\n"
+            },
+            {
+              "name": "Parse",
+              "signature": "func Parse(line string) (*RRule, error)",
+              "doc": "Parse reads one RFC 5545 recurrence rule, with or without the \"RRULE:\"\nproperty name:\n\n\trrule.Parse(\"FREQ=WEEKLY;BYDAY=MO,WE;COUNT=6\")\n\trrule.Parse(\"RRULE:FREQ=WEEKLY;BYDAY=MO,WE;COUNT=6\")\n\nA leading DTSTART line is accepted as well, so the output of String round\ntrips. When no DTSTART is present the rule is anchored at the current local\ntime truncated to the second, as dateutil does.\n"
+            },
+            {
+              "name": "StrToRRule",
+              "signature": "func StrToRRule(s string) (*RRule, error)",
+              "doc": "StrToRRule parses a full DTSTART + RRULE block, the form String produces and\nthe form an iCalendar object carries:\n\n\trrule.StrToRRule(\"DTSTART:19970902T090000\\nRRULE:FREQ=DAILY;COUNT=10\")\n\nFolded lines are unfolded first. It returns an error wrapping ErrNoRRule if\nthe block holds no rule. A block that also carries RDATE, EXRULE or EXDATE\ndescribes a recurrence set rather than a single rule; pass it to StrToSet.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "After",
+              "recv": "*RRule",
+              "signature": "func (r *RRule) After(t time.Time, inc bool) time.Time",
+              "doc": "After returns the first occurrence strictly after t, or exactly at t when\ninc is true. It returns the zero time.Time if the rule has no such\noccurrence.\n"
+            },
+            {
+              "name": "All",
+              "recv": "*RRule",
+              "signature": "func (r *RRule) All() []time.Time",
+              "doc": "All returns every occurrence of the rule.\n\nA rule with neither COUNT nor UNTIL is infinite; rather than never\nreturning, All stops after MaxAllOccurrences occurrences. Prefer giving the\nrule a COUNT or an UNTIL, or use Between or Iterator, when the rule may be\nunbounded.\n\nA COUNT or an UNTIL makes the rule finite but not necessarily small:\nFREQ=SECONDLY;UNTIL=99991231T235959Z has about 2.5e11 occurrences, and All\nwill try to materialize all of them. Never call All on a rule parsed from\nuntrusted input; use AllLimit, Between or Iterator, which are bounded by an\nargument you control.\n"
+            },
+            {
+              "name": "AllLimit",
+              "recv": "*RRule",
+              "signature": "func (r *RRule) AllLimit(n int) []time.Time",
+              "doc": "AllLimit returns at most n occurrences of the rule, and is the bounded form\nof All: it never allocates more than n results however large the rule's COUNT\nor however distant its UNTIL. Use it for rules built from input you do not\ncontrol. A non-positive n returns an empty slice.\n"
+            },
+            {
+              "name": "Before",
+              "recv": "*RRule",
+              "signature": "func (r *RRule) Before(t time.Time, inc bool) time.Time",
+              "doc": "Before returns the last occurrence strictly before t, or exactly at t when\ninc is true. It returns the zero time.Time if the rule has no such\noccurrence.\n"
+            },
+            {
+              "name": "Between",
+              "recv": "*RRule",
+              "signature": "func (r *RRule) Between(after, before time.Time, inc bool) []time.Time",
+              "doc": "Between returns the occurrences that fall between after and before. The\nbounds are exclusive unless inc is true, in which case occurrences exactly\nequal to either bound are included.\n"
+            },
+            {
+              "name": "DTStart",
+              "recv": "*RRule",
+              "signature": "func (r *RRule) DTStart() time.Time",
+              "doc": "DTStart returns the instant the recurrence is anchored to.\n"
+            },
+            {
+              "name": "Freq",
+              "recv": "*RRule",
+              "signature": "func (r *RRule) Freq() Freq",
+              "doc": "Freq returns the base frequency of the rule.\n"
+            },
+            {
+              "name": "Iterator",
+              "recv": "*RRule",
+              "signature": "func (r *RRule) Iterator() func() (time.Time, bool)",
+              "doc": "Iterator returns a function that yields the occurrences of the rule in\nchronological order. The second result is false once the rule is exhausted;\nafter that the function keeps returning false. The iterator holds its own\nstate, so several may run at once.\n"
+            },
+            {
+              "name": "Options",
+              "recv": "*RRule",
+              "signature": "func (r *RRule) Options() Options",
+              "doc": "Options returns a copy of the options the rule was built from, with the\ndefaults New applied for INTERVAL, DTSTART and WKST filled in.\n"
+            },
+            {
+              "name": "RuleString",
+              "recv": "*RRule",
+              "signature": "func (r *RRule) RuleString() string",
+              "doc": "RuleString returns just the value of the RRULE property, without the\nproperty name and without a DTSTART line — the form that goes after\n\"RRULE:\" in an iCalendar object.\n"
+            },
+            {
+              "name": "String",
+              "recv": "*RRule",
+              "signature": "func (r *RRule) String() string",
+              "doc": "String returns the rule as RFC 5545 content lines: a DTSTART line followed\nby an RRULE line, for example\n\n\tDTSTART;TZID=America/New_York:19970902T090000\n\tRRULE:FREQ=DAILY;COUNT=10\n\nThe output is stable and is accepted by both Parse and StrToRRule, so\nrules round trip through text.\n"
+            }
+          ]
+        },
+        {
+          "name": "Set",
+          "signature": "type Set struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Set is a recurrence set: any number of RRULE and RDATE inclusions minus any\nnumber of EXRULE and EXDATE exclusions, as RFC 5545 composes them inside a\nVEVENT.\n\nOccurrences from every inclusion are merged in chronological order and\nde-duplicated, then any instant produced by an exclusion is removed. The\nzero Set is usable and empty.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "NewSet",
+              "signature": "func NewSet() *Set",
+              "doc": "NewSet returns an empty recurrence set.\n"
+            },
+            {
+              "name": "StrToSet",
+              "signature": "func StrToSet(s string) (*Set, error)",
+              "doc": "StrToSet parses a block of RFC 5545 content lines into a recurrence set. It\naccepts DTSTART together with any number of RRULE, EXRULE, RDATE and EXDATE\nlines, which is what an iCalendar VEVENT's recurrence properties amount to:\n\n\ts, err := rrule.StrToSet(\n\t        \"DTSTART:19970902T090000\\n\" +\n\t        \"RRULE:FREQ=YEARLY;COUNT=6;BYDAY=TU,TH\\n\" +\n\t        \"EXDATE:19970904T090000\")\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "After",
+              "recv": "*Set",
+              "signature": "func (s *Set) After(t time.Time, inc bool) time.Time",
+              "doc": "After returns the first occurrence of the set strictly after t, or exactly\nat t when inc is true, and the zero time.Time if there is none.\n"
+            },
+            {
+              "name": "All",
+              "recv": "*Set",
+              "signature": "func (s *Set) All() []time.Time",
+              "doc": "All returns every occurrence of the set.\n\nAs with RRule.All, a set containing an unbounded rule would be infinite, so\nAll stops after MaxAllOccurrences occurrences. A set whose rules are finite\nbut enormous — a far-future UNTIL, a huge COUNT — is still materialized in\nfull; use AllLimit for sets built from input you do not control.\n"
+            },
+            {
+              "name": "AllLimit",
+              "recv": "*Set",
+              "signature": "func (s *Set) AllLimit(n int) []time.Time",
+              "doc": "AllLimit returns at most n occurrences of the set, and is the bounded form of\nAll. A non-positive n returns an empty slice.\n"
+            },
+            {
+              "name": "Before",
+              "recv": "*Set",
+              "signature": "func (s *Set) Before(t time.Time, inc bool) time.Time",
+              "doc": "Before returns the last occurrence of the set strictly before t, or exactly\nat t when inc is true, and the zero time.Time if there is none.\n"
+            },
+            {
+              "name": "Between",
+              "recv": "*Set",
+              "signature": "func (s *Set) Between(after, before time.Time, inc bool) []time.Time",
+              "doc": "Between returns the occurrences of the set that fall between after and\nbefore, exclusive unless inc is true.\n"
+            },
+            {
+              "name": "DTStart",
+              "recv": "*Set",
+              "signature": "func (s *Set) DTStart() time.Time",
+              "doc": "DTStart returns the anchor of the first rule in the set, or the earliest\nRDATE when the set holds no rule. It is the zero time for an empty set.\n"
+            },
+            {
+              "name": "ExDate",
+              "recv": "*Set",
+              "signature": "func (s *Set) ExDate(t time.Time)",
+              "doc": "ExDate removes a single instant from the set.\n"
+            },
+            {
+              "name": "ExDates",
+              "recv": "*Set",
+              "signature": "func (s *Set) ExDates() []time.Time",
+              "doc": "ExDates returns the explicitly excluded instants of the set, sorted.\n"
+            },
+            {
+              "name": "ExRule",
+              "recv": "*Set",
+              "signature": "func (s *Set) ExRule(r *RRule)",
+              "doc": "ExRule adds an exclusion rule: every instant it generates is removed from\nthe set, whether it came from an RRULE or an RDATE.\n"
+            },
+            {
+              "name": "ExRules",
+              "recv": "*Set",
+              "signature": "func (s *Set) ExRules() []*RRule",
+              "doc": "ExRules returns the exclusion rules of the set.\n"
+            },
+            {
+              "name": "Iterator",
+              "recv": "*Set",
+              "signature": "func (s *Set) Iterator() func() (time.Time, bool)",
+              "doc": "Iterator returns a function yielding the occurrences of the set in\nchronological order, de-duplicated and with the exclusions removed.\n"
+            },
+            {
+              "name": "RDate",
+              "recv": "*Set",
+              "signature": "func (s *Set) RDate(t time.Time)",
+              "doc": "RDate adds a single explicit occurrence to the set.\n"
+            },
+            {
+              "name": "RDates",
+              "recv": "*Set",
+              "signature": "func (s *Set) RDates() []time.Time",
+              "doc": "RDates returns the explicit occurrences of the set, sorted.\n"
+            },
+            {
+              "name": "RRule",
+              "recv": "*Set",
+              "signature": "func (s *Set) RRule(r *RRule)",
+              "doc": "RRule adds an inclusion rule to the set.\n"
+            },
+            {
+              "name": "RRules",
+              "recv": "*Set",
+              "signature": "func (s *Set) RRules() []*RRule",
+              "doc": "RRules returns the inclusion rules of the set.\n"
+            },
+            {
+              "name": "String",
+              "recv": "*Set",
+              "signature": "func (s *Set) String() string",
+              "doc": "String returns the set as RFC 5545 content lines: the DTSTART of the first\nrule, then one line per RRULE, EXRULE, RDATE and EXDATE. Explicit dates are\ngathered into a single comma-separated line each, as RFC 5545 permits.\n"
+            }
+          ]
+        },
+        {
+          "name": "Weekday",
+          "signature": "type Weekday struct {\n\t// Day is the day of the week.\n\tDay time.Weekday\n\t// N is the ordinal occurrence, e.g. -1 for \"the last one\". 0 means the\n\t// entry is unqualified and matches every such weekday.\n\tN int\n}",
+          "doc": "Weekday is a BYDAY entry: a day of the week, optionally qualified by an\nordinal. N is the ordinal occurrence of the day within the MONTHLY or\nYEARLY interval — 1 for the first, -1 for the last — and 0 for a plain,\nunqualified weekday. The ordinal is only meaningful for FREQ=MONTHLY and\nFREQ=YEARLY; for finer frequencies RFC 5545 says it must be ignored, and\nthis package drops it.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Nth",
+              "recv": "Weekday",
+              "signature": "func (w Weekday) Nth(n int) Weekday",
+              "doc": "Nth returns a copy of w qualified by the ordinal n, so that FR.Nth(-1) is\nthe RFC 5545 BYDAY value \"-1FR\" (the last Friday of the interval).\n"
+            },
+            {
+              "name": "String",
+              "recv": "Weekday",
+              "signature": "func (w Weekday) String() string",
+              "doc": "String returns the RFC 5545 BYDAY representation of w, such as \"MO\",\n\"2MO\" or \"-1FR\".\n"
+            }
+          ]
+        }
+      ],
+      "funcs": [],
+      "examples": [
+        {
+          "name": "ParseCalendar",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"os\"\n\t\"strings\"\n\n\t\"github.com/malcolmston/rrule\"\n)\n\nfunc main() {\n\tconst ics = \"BEGIN:VCALENDAR\\r\\nVERSION:2.0\\r\\nBEGIN:VEVENT\\r\\n\" +\n\t\t\"UID:1@example.com\\r\\nDTSTART:19970902T090000Z\\r\\n\" +\n\t\t\"SUMMARY:Weekly review\\r\\nRRULE:FREQ=WEEKLY;COUNT=3\\r\\n\" +\n\t\t\"END:VEVENT\\r\\nEND:VCALENDAR\\r\\n\"\n\tcal, err := rrule.ParseCalendar(strings.NewReader(ics))\n\tif err != nil {\n\t\tfmt.Fprintln(os.Stderr, err)\n\t\treturn\n\t}\n\tev := cal.Events[0]\n\tfmt.Println(ev.Summary)\n\tfor _, t := range ev.RRule.All() {\n\t\tfmt.Println(t.Format(\"2006-01-02\"))\n\t}\n}",
+          "output": "Weekly review\n1997-09-02\n1997-09-09\n1997-09-16"
+        },
+        {
+          "name": "Calendar (Encode)",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n\t\"time\"\n\n\t\"github.com/malcolmston/rrule\"\n)\n\n// implExampleStart is the anchor the examples share.\nvar implExampleStart = time.Date(1997, 9, 2, 9, 0, 0, 0, time.UTC)\n\nfunc main() {\n\tr, err := rrule.New(rrule.Options{Freq: rrule.Daily, DTStart: implExampleStart, Count: 3})\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tcal := \u0026rrule.Calendar{\n\t\tProdID: \"-//Example Corp.//Scheduler//EN\",\n\t\tEvents: []*rrule.Event{{\n\t\t\tUID:     \"1@example.com\",\n\t\t\tSummary: \"Stand-up; short\",\n\t\t\tDTStart: implExampleStart,\n\t\t\tRRule:   r,\n\t\t}},\n\t}\n\tvar b strings.Builder\n\tif err := cal.Encode(\u0026b); err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Print(strings.ReplaceAll(b.String(), \"\\r\\n\", \"\\n\"))\n}",
+          "output": "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Example Corp.//Scheduler//EN\nBEGIN:VEVENT\nUID:1@example.com\nDTSTART:19970902T090000Z\nSUMMARY:Stand-up\\; short\nRRULE:FREQ=DAILY;COUNT=3\nEND:VEVENT\nEND:VCALENDAR"
+        },
+        {
+          "name": "New",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"time\"\n\n\t\"github.com/malcolmston/rrule\"\n)\n\n// implExampleStart is the anchor the examples share.\nvar implExampleStart = time.Date(1997, 9, 2, 9, 0, 0, 0, time.UTC)\n\nfunc main() {\n\tr, err := rrule.New(rrule.Options{\n\t\tFreq:      rrule.Monthly,\n\t\tDTStart:   implExampleStart,\n\t\tByWeekday: []rrule.Weekday{rrule.FR.Nth(-1)},\n\t\tCount:     3,\n\t})\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tfor _, t := range r.All() {\n\t\tfmt.Println(t.Format(\"Mon 2006-01-02 15:04\"))\n\t}\n}",
+          "output": "Fri 1997-09-26 09:00\nFri 1997-10-31 09:00\nFri 1997-11-28 09:00"
+        },
+        {
+          "name": "StrToRRule",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/rrule\"\n)\n\nfunc main() {\n\tr, err := rrule.StrToRRule(\"DTSTART:19970902T090000Z\\n\" +\n\t\t\"RRULE:FREQ=WEEKLY;INTERVAL=2;COUNT=4;WKST=SU;BYDAY=TU,TH\")\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tfor _, t := range r.All() {\n\t\tfmt.Println(t.Format(\"Mon 2006-01-02\"))\n\t}\n\tfmt.Println(r.String())\n}",
+          "output": "Tue 1997-09-02\nThu 1997-09-04\nTue 1997-09-16\nThu 1997-09-18\nDTSTART:19970902T090000Z\nRRULE:FREQ=WEEKLY;INTERVAL=2;WKST=SU;COUNT=4;BYDAY=TU,TH"
+        },
+        {
+          "name": "RRule (AllLimit)",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/rrule\"\n)\n\nfunc main() {\n\tr, err := rrule.StrToRRule(\"DTSTART:19970902T090000Z\\n\" +\n\t\t\"RRULE:FREQ=SECONDLY;UNTIL=99991231T235959Z\")\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tfor _, t := range r.AllLimit(3) {\n\t\tfmt.Println(t.Format(\"2006-01-02 15:04:05\"))\n\t}\n}",
+          "output": "1997-09-02 09:00:00\n1997-09-02 09:00:01\n1997-09-02 09:00:02",
+          "doc": "ExampleRRule_AllLimit shows the bounded way to read a rule whose text came\nfrom somewhere you do not control. The rule below is finite — it has an\nUNTIL — but names roughly 2.5e11 occurrences, so All would try to build all\nof them; AllLimit never returns more than it is asked for.\n"
+        },
+        {
+          "name": "RRule (Between)",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"time\"\n\n\t\"github.com/malcolmston/rrule\"\n)\n\nfunc main() {\n\tr, err := rrule.StrToRRule(\"DTSTART:19970902T090000Z\\nRRULE:FREQ=DAILY\")\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tfrom := time.Date(1997, 12, 24, 0, 0, 0, 0, time.UTC)\n\tto := time.Date(1997, 12, 27, 0, 0, 0, 0, time.UTC)\n\tfor _, t := range r.Between(from, to, true) {\n\t\tfmt.Println(t.Format(\"2006-01-02\"))\n\t}\n}",
+          "output": "1997-12-24\n1997-12-25\n1997-12-26",
+          "doc": "ExampleRRule_Between reads a window out of an infinite rule without\nmaterializing anything outside it.\n"
+        },
+        {
+          "name": "RRule (Iterator)",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/rrule\"\n)\n\nfunc main() {\n\tr, err := rrule.StrToRRule(\"DTSTART:19970902T090000Z\\nRRULE:FREQ=MONTHLY;BYDAY=-1FR\")\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tnext := r.Iterator()\n\tfor {\n\t\tt, ok := next()\n\t\tif !ok || t.Year() \u003e 1997 {\n\t\t\tbreak\n\t\t}\n\t\tfmt.Println(t.Format(\"Mon 2006-01-02\"))\n\t}\n}",
+          "output": "Fri 1997-09-26\nFri 1997-10-31\nFri 1997-11-28\nFri 1997-12-26",
+          "doc": "ExampleRRule_Iterator walks an unbounded rule lazily, stopping on a condition\nthe rule itself cannot express.\n"
+        },
+        {
+          "name": "Set",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"time\"\n\n\t\"github.com/malcolmston/rrule\"\n)\n\n// implExampleStart is the anchor the examples share.\nvar implExampleStart = time.Date(1997, 9, 2, 9, 0, 0, 0, time.UTC)\n\nfunc main() {\n\tweekly, err := rrule.New(rrule.Options{\n\t\tFreq:      rrule.Weekly,\n\t\tDTStart:   implExampleStart,\n\t\tByWeekday: []rrule.Weekday{rrule.TU, rrule.TH},\n\t\tCount:     6,\n\t})\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\ts := rrule.NewSet()\n\ts.RRule(weekly)\n\ts.ExDate(time.Date(1997, 9, 4, 9, 0, 0, 0, time.UTC))\n\ts.RDate(time.Date(1997, 9, 5, 9, 0, 0, 0, time.UTC))\n\tfor _, t := range s.All() {\n\t\tfmt.Println(t.Format(\"Mon 2006-01-02\"))\n\t}\n}",
+          "output": "Tue 1997-09-02\nFri 1997-09-05\nTue 1997-09-09\nThu 1997-09-11\nTue 1997-09-16\nThu 1997-09-18"
+        }
+      ]
+    }
+  ]
+}

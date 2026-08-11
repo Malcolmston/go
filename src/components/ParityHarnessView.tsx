@@ -1,7 +1,7 @@
 'use client';
 import type { ElementType } from 'react';
 import type { ParityHarness } from './ParityData';
-import { inventoryHint, pct, runnerFile, runtimeLabel } from './ParityData';
+import { inventoryHint, pct, runnerFile, runtimeLabel, scoredDenominator } from './ParityData';
 import { PipelineFlow } from './PipelineFlow';
 import type { PipelineRun } from './PipelineFlow';
 import { CaseTable, CoverageTable, GroupTable, ScorePill, Tiles } from './ParityTables';
@@ -98,8 +98,11 @@ export function ParityHarnessView({
       <Tiles
         accent={accent}
         tiles={[
-          { value: <ScorePill value={harness.parityPercent} compared={harness.comparedTotal} accent={accent} />, label: 'measured parity' },
-          { value: `${harness.match.toLocaleString()} / ${harness.comparedTotal.toLocaleString()}`, label: 'cases in agreement' },
+          { value: <ScorePill value={harness.parityPercent} compared={scoredDenominator(harness)} accent={accent} />, label: 'measured parity' },
+          {
+            value: `${harness.match.toLocaleString()} / ${scoredDenominator(harness).toLocaleString()}`,
+            label: 'cases in agreement',
+          },
           { value: harness.mismatch.toLocaleString(), label: 'mismatches' },
           { value: harness.deviations.toLocaleString(), label: 'documented deviations' },
           { value: harness.total.toLocaleString(), label: 'cases streamed to both' },

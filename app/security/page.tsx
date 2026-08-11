@@ -17,12 +17,14 @@ import path from 'node:path';
 import type { Metadata } from 'next';
 import { loadSecurity } from '../../api/_lib/security';
 import { Security, type SecurityData, type SecurityFinding } from '../../src/components/Security';
+import { pageMetadata } from '../seo';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: 'Security findings',
   description:
     'Security findings in the Go ports, recorded from the parity harness: severity, affected version range, the parity cases that detected each one, and whether the latest release is still affected.',
-};
+  path: '/security',
+});
 
 const DEFAULT_DERIVATION =
   'Fixed status is derived, not declared: the affected range recorded in each manifest is ' +

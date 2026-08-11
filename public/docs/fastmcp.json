@@ -1,6 +1,6 @@
 {
   "module": "github.com/malcolmston/fastmcp",
-  "generatedAt": "2026-07-19T02:05:52Z",
+  "generatedAt": "2026-08-05T11:13:32Z",
   "packages": [
     {
       "importPath": "github.com/malcolmston/fastmcp",
@@ -32,6 +32,13 @@
           ],
           "signature": "const JSONRPCVersion = \"2.0\"",
           "doc": "JSONRPCVersion is the JSON-RPC protocol version string used by MCP.\n"
+        },
+        {
+          "names": [
+            "MaxHTTPRequestBytes"
+          ],
+          "signature": "const MaxHTTPRequestBytes = 16 * 1024 * 1024",
+          "doc": "MaxHTTPRequestBytes is the largest JSON-RPC request body the Streamable HTTP\ntransport accepts. A larger body is rejected with a JSON-RPC parse error\nrather than being buffered, so an unauthenticated client cannot drive the\nserver's memory use with a single request.\n"
         },
         {
           "names": [
@@ -225,7 +232,19 @@
               "name": "Log",
               "recv": "*Context",
               "signature": "func (c *Context) Log(level string, data any) error",
-              "doc": "Log sends a logging notification (notifications/message) to the client at the\ngiven level (\"debug\", \"info\", \"warning\", \"error\", ...) carrying arbitrary\ndata. It is a no-op when the transport cannot deliver notifications.\n"
+              "doc": "Log sends a logging notification (notifications/message) to the client at the\ngiven level (\"debug\", \"info\", \"warning\", \"error\", ...) carrying arbitrary\ndata. Records below the minimum severity the client selected with\nlogging/setLevel are dropped. It is a no-op when the transport cannot deliver\nnotifications.\n"
+            },
+            {
+              "name": "LogEnabled",
+              "recv": "*Context",
+              "signature": "func (c *Context) LogEnabled(level string) bool",
+              "doc": "LogEnabled reports whether a record at the named level would currently be\ndelivered to the client. Unknown level names are treated as enabled, matching\n[Context.Log], which forwards them verbatim.\n"
+            },
+            {
+              "name": "LogLevel",
+              "recv": "*Context",
+              "signature": "func (c *Context) LogLevel() mcplog.Level",
+              "doc": "LogLevel returns the minimum log severity the connected client asked for with\nlogging/setLevel. It is [mcplog.Debug] (deliver everything) until the client\nnarrows it, and on transports without a session.\n"
             },
             {
               "name": "Progress",
@@ -404,7 +423,14 @@
           "consts": [],
           "vars": [],
           "funcs": [],
-          "methods": []
+          "methods": [
+            {
+              "name": "MarshalJSON",
+              "recv": "*Response",
+              "signature": "func (r *Response) MarshalJSON() ([]byte, error)",
+              "doc": "MarshalJSON encodes the response exactly as JSON-RPC 2.0 requires: the \"id\"\nmember is always present (null when the id could not be determined, as for a\nparse error), and exactly one of \"result\" or \"error\" is emitted — \"result\" is\nwritten as null rather than omitted when a successful handler produced no\nvalue. Encoding the struct with the default rules would drop both members and\nyield a response object that is not valid JSON-RPC.\n"
+            }
+          ]
         },
         {
           "name": "Root",
@@ -585,6 +611,14 @@
       "consts": [
         {
           "names": [
+            "AlgHS256",
+            "AlgRS256"
+          ],
+          "signature": "const (\n\t// AlgHS256 is HMAC with SHA-256 (RFC 7518 §3.2).\n\tAlgHS256 = \"HS256\"\n\t// AlgRS256 is RSASSA-PKCS1-v1_5 with SHA-256 (RFC 7518 §3.3).\n\tAlgRS256 = \"RS256\"\n)",
+          "doc": "Supported JWT \"alg\" header values, for use with [WithAlgorithms].\n"
+        },
+        {
+          "names": [
             "WellKnownPath"
           ],
           "signature": "const WellKnownPath = \"/.well-known/oauth-protected-resource\"",
@@ -692,6 +726,11 @@
           "vars": [],
           "funcs": [
             {
+              "name": "WithAlgorithms",
+              "signature": "func WithAlgorithms(algs ...string) JWTOption",
+              "doc": "WithAlgorithms restricts the set of JWS \"alg\" header values the verifier will\naccept, mirroring the algorithm parameter of FastMCP's JWTVerifier. A token\nwhose header names any other algorithm is rejected before its signature is\nchecked. Only [AlgHS256] and [AlgRS256] are implemented; naming any other\nalgorithm makes every token fail.\n\nPin the algorithm whenever more than one key source is configured: a verifier\nholding both an HMAC secret and an RSA public key otherwise lets the token\nitself choose which one is used.\n"
+            },
+            {
               "name": "WithAudience",
               "signature": "func WithAudience(aud string) JWTOption",
               "doc": "WithAudience requires the token's \"aud\" claim to contain aud.\n"
@@ -742,7 +781,7 @@
         {
           "name": "JWTVerifier",
           "signature": "type JWTVerifier struct {\n\t// contains filtered or unexported fields\n}",
-          "doc": "JWTVerifier verifies signed JSON Web Tokens. It supports the HS256 and RS256\nalgorithms and validates the exp, nbf, iss, and aud claims. Configure it with\nthe With* options passed to [NewJWTVerifier]. A JWTVerifier is safe for\nconcurrent use.\n",
+          "doc": "JWTVerifier verifies signed JSON Web Tokens. It supports the HS256 and RS256\nalgorithms and validates the exp, nbf, iss, and aud claims. Configure it with\nthe With* options passed to [NewJWTVerifier]. A JWTVerifier is safe for\nconcurrent use.\n\nBy default the token's own \"alg\" header selects which configured key is used;\nuse [WithAlgorithms] to pin the acceptable algorithms, which matters as soon\nas more than one key source is configured.\n",
           "consts": [],
           "vars": [],
           "funcs": [
@@ -957,6 +996,12 @@
               "doc": "ListPrompts returns the server's registered prompts.\n"
             },
             {
+              "name": "ListResourceTemplates",
+              "recv": "*Client",
+              "signature": "func (c *Client) ListResourceTemplates(ctx context.Context) ([]ResourceTemplate, error)",
+              "doc": "ListResourceTemplates returns the server's registered resource templates\n(resources/templates/list). Templates are the parameterized counterpart of the\nstatic resources reported by [Client.ListResources]; read one by expanding it\ninto a concrete URI and calling [Client.ReadResource].\n"
+            },
+            {
               "name": "ListResources",
               "recv": "*Client",
               "signature": "func (c *Client) ListResources(ctx context.Context) ([]Resource, error)",
@@ -979,6 +1024,12 @@
               "recv": "*Client",
               "signature": "func (c *Client) ReadResource(ctx context.Context, uri string) (*ReadResourceResult, error)",
               "doc": "ReadResource reads a resource (static or templated) by URI.\n"
+            },
+            {
+              "name": "SetLoggingLevel",
+              "recv": "*Client",
+              "signature": "func (c *Client) SetLoggingLevel(ctx context.Context, level string) error",
+              "doc": "SetLoggingLevel asks the server to send only log records at or above the named\nseverity (logging/setLevel). The level is one of the eight RFC 5424 names MCP\nuses: \"debug\", \"info\", \"notice\", \"warning\", \"error\", \"critical\", \"alert\" and\n\"emergency\". Records the server emits arrive as notifications/message through\nthe handler installed with [WithNotificationHandler].\n"
             },
             {
               "name": "Subscribe",
@@ -1102,6 +1153,15 @@
           "methods": []
         },
         {
+          "name": "ResourceTemplate",
+          "signature": "type ResourceTemplate struct {\n\tURITemplate string `json:\"uriTemplate\"`\n\tName        string `json:\"name\"`\n\tDescription string `json:\"description\"`\n\tMIMEType    string `json:\"mimeType\"`\n}",
+          "doc": "ResourceTemplate describes a parameterized resource advertised by the server.\nURITemplate is the RFC 6570 style template string, for example\n\"users://{id}/profile\".\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
           "name": "RootsHandler",
           "signature": "type RootsHandler func(ctx context.Context) ([]fastmcp.Root, error)",
           "doc": "RootsHandler answers a server's roots/list request with the roots to expose.\n",
@@ -1138,7 +1198,21 @@
           "methods": []
         }
       ],
-      "funcs": []
+      "funcs": [],
+      "examples": [
+        {
+          "name": "Client (ListResourceTemplates)",
+          "code": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\t\"io\"\n\n\t\"github.com/malcolmston/fastmcp\"\n\t\"github.com/malcolmston/fastmcp/client\"\n)\n\nfunc main() {\n\tsrv := fastmcp.New(\"templates\")\n\tsrv.ResourceTemplate(\"users://{id}/name\", \"user name\", \"a user's name\", \"text/plain\",\n\t\tfunc(_ context.Context, p map[string]string) (string, error) { return \"user-\" + p[\"id\"], nil })\n\n\tc2sR, c2sW := io.Pipe()\n\ts2cR, s2cW := io.Pipe()\n\tctx, cancel := context.WithCancel(context.Background())\n\tdefer cancel()\n\tgo func() { _ = srv.ServeStdio(ctx, c2sR, s2cW) }()\n\n\tc := client.NewStdio(s2cR, c2sW)\n\tdefer c.Close()\n\tif _, err := c.Initialize(ctx); err != nil {\n\t\tpanic(err)\n\t}\n\n\ttemplates, err := c.ListResourceTemplates(ctx)\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tfor _, tpl := range templates {\n\t\tfmt.Println(tpl.URITemplate, \"-\u003e\", tpl.MIMEType)\n\t}\n\tres, err := c.ReadResource(ctx, \"users://7/name\")\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Println(res.Contents[0].Text)\n}",
+          "output": "users://{id}/name -\u003e text/plain\nuser-7",
+          "doc": "ExampleClient_ListResourceTemplates discovers the parameterized resources a\nserver exposes and reads one by expanding the template.\n"
+        },
+        {
+          "name": "Client (SetLoggingLevel)",
+          "code": "package main\n\nimport (\n\t\"context\"\n\t\"encoding/json\"\n\t\"fmt\"\n\t\"io\"\n\n\t\"github.com/malcolmston/fastmcp\"\n\t\"github.com/malcolmston/fastmcp/client\"\n)\n\nfunc main() {\n\tsrv := fastmcp.New(\"logger\")\n\tsrv.Tool(\"work\", \"logs while working\", func(ctx context.Context, _ struct{}) (any, error) {\n\t\tc := fastmcp.FromContext(ctx)\n\t\t_ = c.Info(\"starting\")  // filtered out\n\t\t_ = c.Error(\"it broke\") // delivered\n\t\treturn \"done\", nil\n\t})\n\n\tc2sR, c2sW := io.Pipe()\n\ts2cR, s2cW := io.Pipe()\n\tctx, cancel := context.WithCancel(context.Background())\n\tdefer cancel()\n\tgo func() { _ = srv.ServeStdio(ctx, c2sR, s2cW) }()\n\n\tlogged := make(chan string, 8)\n\tc := client.NewStdio(s2cR, c2sW, client.WithNotificationHandler(\n\t\tfunc(method string, params json.RawMessage) {\n\t\t\tif method != \"notifications/message\" {\n\t\t\t\treturn\n\t\t\t}\n\t\t\tvar p struct {\n\t\t\t\tLevel string `json:\"level\"`\n\t\t\t\tData  string `json:\"data\"`\n\t\t\t}\n\t\t\t_ = json.Unmarshal(params, \u0026p)\n\t\t\tlogged \u003c- p.Level + \": \" + p.Data\n\t\t}))\n\tdefer c.Close()\n\tif _, err := c.Initialize(ctx); err != nil {\n\t\tpanic(err)\n\t}\n\tif err := c.SetLoggingLevel(ctx, \"warning\"); err != nil {\n\t\tpanic(err)\n\t}\n\tif _, err := c.CallTool(ctx, \"work\", struct{}{}); err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Println(\u003c-logged)\n}",
+          "output": "error: it broke",
+          "doc": "ExampleClient_SetLoggingLevel narrows the server's log stream to warnings and\nabove before invoking a tool that logs at several levels.\n"
+        }
+      ]
     },
     {
       "importPath": "github.com/malcolmston/fastmcp/contrib",
@@ -2970,7 +3044,7 @@
         {
           "name": "TemplateSpec",
           "signature": "type TemplateSpec struct {\n\tURITemplate string\n\tName        string\n\tDescription string\n\tMIMEType    string\n}",
-          "doc": "TemplateSpec declares a resource template to proxy. Because the client API is\nread-only and has no resources/templates/list call, templates cannot be\ndiscovered automatically; pass the ones to forward to [WithResourceTemplates].\nURITemplate is the RFC 6570 style template string the backend registered\n(for example \"users://{id}/profile\").\n",
+          "doc": "TemplateSpec declares a resource template to proxy. The proxy discovers the\nbackend's templates automatically with resources/templates/list; use a\nTemplateSpec with [WithResourceTemplates] to add a template the backend does\nnot advertise, or to override the name, description or MIME type of one it\ndoes. URITemplate is the RFC 6570 style template string the backend\nregistered (for example \"users://{id}/profile\").\n",
           "consts": [],
           "vars": [],
           "funcs": [],
@@ -2981,7 +3055,7 @@
         {
           "name": "New",
           "signature": "func New(ctx context.Context, backend *client.Client, opts ...Option) (*fastmcp.Server, error)",
-          "doc": "New builds a FastMCP server that transparently forwards to backend. Unless\n[WithoutInitialize] is supplied it first performs the MCP handshake, then\ndiscovers the backend's tools, resources and prompts via list calls and\nregisters a forwarding handler for each on a fresh server. The returned\nserver re-advertises all discovered capabilities. Backend list failures abort\nconstruction and are returned.\n"
+          "doc": "New builds a FastMCP server that transparently forwards to backend. Unless\n[WithoutInitialize] is supplied it first performs the MCP handshake, then\ndiscovers the backend's tools, resources, resource templates and prompts via\nlist calls and\nregisters a forwarding handler for each on a fresh server. The returned\nserver re-advertises all discovered capabilities. Backend list failures abort\nconstruction and are returned.\n"
         }
       ],
       "examples": [
@@ -2990,6 +3064,12 @@
           "code": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\t\"net/http/httptest\"\n\n\t\"github.com/malcolmston/fastmcp\"\n\t\"github.com/malcolmston/fastmcp/client\"\n\t\"github.com/malcolmston/fastmcp/proxy\"\n)\n\nfunc main() {\n\tctx := context.Background()\n\n\t// A backend MCP server with a single \"add\" tool.\n\ttype addArgs struct {\n\t\tA int `json:\"a\"`\n\t\tB int `json:\"b\"`\n\t}\n\tbackend := fastmcp.New(\"calculator\")\n\tbackend.Tool(\"add\", \"add two ints\", func(_ context.Context, a addArgs) (any, error) {\n\t\treturn a.A + a.B, nil\n\t})\n\n\t// Expose the backend over HTTP and connect a client to it.\n\tbackendHTTP := httptest.NewServer(backend.HTTPHandler())\n\tdefer backendHTTP.Close()\n\tbackendClient := client.NewHTTP(backendHTTP.URL)\n\tdefer backendClient.Close()\n\n\t// Build the proxy from the backend client.\n\tproxySrv, err := proxy.New(ctx, backendClient)\n\tif err != nil {\n\t\tfmt.Println(\"error:\", err)\n\t\treturn\n\t}\n\n\t// Expose the proxy over HTTP and call the forwarded tool through it.\n\tproxyHTTP := httptest.NewServer(proxySrv.HTTPHandler())\n\tdefer proxyHTTP.Close()\n\tproxyClient := client.NewHTTP(proxyHTTP.URL)\n\tdefer proxyClient.Close()\n\n\tif _, err := proxyClient.Initialize(ctx); err != nil {\n\t\tfmt.Println(\"error:\", err)\n\t\treturn\n\t}\n\tres, err := proxyClient.CallTool(ctx, \"add\", map[string]any{\"a\": 2, \"b\": 3})\n\tif err != nil {\n\t\tfmt.Println(\"error:\", err)\n\t\treturn\n\t}\n\tfmt.Println(res.Content[0].Text)\n\n}",
           "output": "5",
           "doc": "Example wraps an in-process backend server with a proxy and calls a tool\nthrough the proxy, showing that the backend's result is relayed unchanged.\n"
+        },
+        {
+          "name": "resourceTemplates",
+          "code": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\t\"net/http/httptest\"\n\n\t\"github.com/malcolmston/fastmcp\"\n\t\"github.com/malcolmston/fastmcp/client\"\n\t\"github.com/malcolmston/fastmcp/proxy\"\n)\n\nfunc main() {\n\tctx := context.Background()\n\n\tbackend := fastmcp.New(\"directory\")\n\tbackend.ResourceTemplate(\"users://{id}/name\", \"user name\", \"a user's name\", \"text/plain\",\n\t\tfunc(_ context.Context, p map[string]string) (string, error) {\n\t\t\treturn \"user-\" + p[\"id\"], nil\n\t\t})\n\n\tbackendHTTP := httptest.NewServer(backend.HTTPHandler())\n\tdefer backendHTTP.Close()\n\tbackendClient := client.NewHTTP(backendHTTP.URL)\n\tdefer backendClient.Close()\n\n\tproxySrv, err := proxy.New(ctx, backendClient)\n\tif err != nil {\n\t\tfmt.Println(\"error:\", err)\n\t\treturn\n\t}\n\n\tproxyHTTP := httptest.NewServer(proxySrv.HTTPHandler())\n\tdefer proxyHTTP.Close()\n\tproxyClient := client.NewHTTP(proxyHTTP.URL)\n\tdefer proxyClient.Close()\n\tif _, err := proxyClient.Initialize(ctx); err != nil {\n\t\tfmt.Println(\"error:\", err)\n\t\treturn\n\t}\n\n\ttemplates, err := proxyClient.ListResourceTemplates(ctx)\n\tif err != nil {\n\t\tfmt.Println(\"error:\", err)\n\t\treturn\n\t}\n\tfor _, tpl := range templates {\n\t\tfmt.Println(\"mirrored:\", tpl.URITemplate)\n\t}\n\n\tread, err := proxyClient.ReadResource(ctx, \"users://12/name\")\n\tif err != nil {\n\t\tfmt.Println(\"error:\", err)\n\t\treturn\n\t}\n\tfmt.Println(read.Contents[0].Text)\n\n}",
+          "output": "mirrored: users://{id}/name\nuser-12",
+          "doc": "Example_resourceTemplates shows that a proxy mirrors the backend's resource\ntemplates automatically: it discovers them with resources/templates/list, so\nno TemplateSpec has to be declared for a template the backend advertises.\n"
         }
       ]
     },

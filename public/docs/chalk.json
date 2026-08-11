@@ -1,12 +1,12 @@
 {
   "module": "github.com/malcolmston/chalk",
-  "generatedAt": "2026-07-19T02:05:52Z",
+  "generatedAt": "2026-08-05T11:13:32Z",
   "packages": [
     {
       "importPath": "github.com/malcolmston/chalk",
       "name": "chalk",
       "synopsis": "Package chalk is a Go port of Node's chalk — expressive terminal string styling.",
-      "doc": "Package chalk is a Go port of Node's chalk — expressive terminal string\nstyling. Like the original JavaScript library, it wraps text in ANSI SGR\n(Select Graphic Rendition) escape sequences so that terminals render it with\ncolor, weight and other attributes. Styles are chainable and compose\nnaturally:\n\n\tfmt.Println(chalk.New().Red().Bold().Sprint(\"error!\"))\n\tfmt.Println(chalk.Green(\"ok\"))                 // package shortcut\n\tfmt.Println(chalk.New().Hex(\"#ff8800\").Sprint(\"orange\"))\n\nReach for chalk whenever a command-line program wants to highlight output —\nerrors in red, success in green, hints in a dim gray — without hand-writing\nescape codes or pulling in a dependency. The package is standard-library only.\nEvery entry point comes in two flavors: a fluent [Style] built with [New] and\nchained methods for reuse, and package-level shortcuts such as [Red] or [Hex]\nfor one-off styling. A [Style] is immutable — each method returns a new value\n— so a configured style is safe to store and share across goroutines.\n\nInternally a [Style] records a list of open/close SGR code pairs. At render\ntime each pair is emitted as an escape sequence of the form ESC[\u003ccodes\u003em\naround the text, applying the innermost style first so that outer styles\nre-assert themselves. When a piece of text already contains a matching close\ncode (from a nested style), chalk re-opens the outer style immediately after\nit, mirroring the \"style bleed\" fix in Node chalk so nested colors survive.\nForeground and background colors, the 16 basic and 16 bright ANSI colors, the\n256-color palette ([Style.Ansi256]), 24-bit truecolor ([Style.RGB]) and hex\nstrings ([Style.Hex]) are all supported.\n\nColor output is enabled automatically when stdout is a terminal and NO_COLOR\nis unset. Detection follows the same conventions as the Node ecosystem: the\n[Level] is derived from NO_COLOR, FORCE_COLOR, COLORTERM and TERM (see\n[GetLevel] and [SetLevel]). Truecolor and 256-color requests degrade\ngracefully down to the nearest color the terminal actually supports, so an\n[Style.RGB] call still produces reasonable output on a 16-color terminal and\nemits nothing at all when the level is [LevelNone]. Detection happens once and\nis cached; [ResetDetection] forces a re-detect and [SetLevel] pins a fixed\nlevel, which is the recommended way to get deterministic output in tests.\n\nA handful of edge cases are worth knowing. When color is disabled the render\nmethods return the input text unchanged, so it is always safe to wrap output\nin a style. [Strip] removes SGR sequences from a string and [VisibleLength]\nreports the on-screen width (counting runes, not bytes, and ignoring escape\ncodes), which is useful for laying out tables or padding colored columns.\nBecause detection keys off os.Stdout, redirecting output to a file or pipe\ndisables color automatically unless FORCE_COLOR overrides it.\n\nParity with Node chalk is close but not exact. The chainable API, automatic\nlevel detection, the NO_COLOR/FORCE_COLOR conventions and the truecolor→256→16\ndowngrade all match. The differences are idiomatic: styling is applied with\nSprint/Sprintf/Println methods (and package shortcuts) rather than by calling\nthe style as a function, template literal tagging is not provided, and the\nglobal level is process-wide rather than per-instance. Rarely supported\nattributes such as [Style.Italic] and [Style.Overline] are included for\ncompleteness even though not every terminal honors them.\n",
+      "doc": "Package chalk is a Go port of Node's chalk — expressive terminal string\nstyling. Like the original JavaScript library, it wraps text in ANSI SGR\n(Select Graphic Rendition) escape sequences so that terminals render it with\ncolor, weight and other attributes. Styles are chainable and compose\nnaturally:\n\n\tfmt.Println(chalk.New().Red().Bold().Sprint(\"error!\"))\n\tfmt.Println(chalk.Green(\"ok\"))                 // package shortcut\n\tfmt.Println(chalk.New().Hex(\"#ff8800\").Sprint(\"orange\"))\n\nReach for chalk whenever a command-line program wants to highlight output —\nerrors in red, success in green, hints in a dim gray — without hand-writing\nescape codes or pulling in a dependency. The package is standard-library only.\nEvery entry point comes in two flavors: a fluent [Style] built with [New] and\nchained methods for reuse, and package-level shortcuts such as [Red] or [Hex]\nfor one-off styling. A [Style] is immutable — each method returns a new value\n— so a configured style is safe to store and share across goroutines.\n\nInternally a [Style] records a list of open/close SGR code pairs. At render\ntime each pair is emitted as an escape sequence of the form ESC[\u003ccodes\u003em\naround the text, applying the innermost style first so that outer styles\nre-assert themselves. When a piece of text already contains a matching close\ncode (from a nested style), chalk re-opens the outer style immediately after\nit, mirroring the \"style bleed\" fix in Node chalk so nested colors survive.\nForeground and background colors, the 16 basic and 16 bright ANSI colors, the\n256-color palette ([Style.Ansi256]), 24-bit truecolor ([Style.RGB]) and hex\nstrings ([Style.Hex]) are all supported.\n\nColor output is enabled automatically when stdout is a terminal and NO_COLOR\nis unset. Detection follows the same conventions as the Node ecosystem: the\n[Level] is derived from NO_COLOR, FORCE_COLOR, the CI provider variables,\nCOLORTERM, TERM_PROGRAM and TERM, in the precedence documented on\n[GetLevel] and [SetLevel] (and in full on the unexported detectLevel). Truecolor and 256-color requests degrade\ngracefully down to the nearest color the terminal actually supports, so an\n[Style.RGB] call still produces reasonable output on a 16-color terminal and\nemits nothing at all when the level is [LevelNone]. Detection happens once and\nis cached; [ResetDetection] forces a re-detect and [SetLevel] pins a fixed\nlevel, which is the recommended way to get deterministic output in tests.\n\nA handful of edge cases are worth knowing. When color is disabled the render\nmethods return the input text unchanged, so it is always safe to wrap output\nin a style. [Strip] removes escape sequences from a string, [VisibleLength]\ncounts the visible runes and [VisibleWidth] counts the terminal cells they\noccupy — the last is the one to pad with when laying out tables or columns,\nbecause a CJK character or emoji is one rune but two cells wide.\nBecause detection keys off os.Stdout, redirecting output to a file or pipe\ndisables color automatically unless FORCE_COLOR overrides it.\n\nParity with Node chalk is close but not exact. The chainable API, automatic\nlevel detection, the NO_COLOR/FORCE_COLOR conventions and the truecolor→256→16\ndowngrade all match. The differences are idiomatic: styling is applied with\nSprint/Sprintf/Println methods (and package shortcuts) rather than by calling\nthe style as a function, template literal tagging is not provided, and the\nglobal level is process-wide rather than per-instance. Rarely supported\nattributes such as [Style.Italic] and [Style.Overline] are included for\ncompleteness even though not every terminal honors them.\n",
       "consts": [],
       "vars": [],
       "types": [
@@ -54,13 +54,13 @@
               "name": "Ansi256",
               "recv": "*Style",
               "signature": "func (s *Style) Ansi256(n int) *Style",
-              "doc": "Ansi256 sets the foreground to a 256-palette color (0–255), degrading to 16\ncolors on limited terminals.\n"
+              "doc": "Ansi256 sets the foreground to a 256-palette color, degrading to the nearest\nof the 16 basic colors on terminals that do not support the palette. The index\nis clamped to 0–255. The downgrade is decided when the style renders, not when\nAnsi256 is called, so the same Style follows a later [SetLevel] or\n[Style.Level].\n"
             },
             {
               "name": "BgAnsi256",
               "recv": "*Style",
               "signature": "func (s *Style) BgAnsi256(n int) *Style",
-              "doc": "BgAnsi256 sets the background to a 256-palette color (0–255).\n"
+              "doc": "BgAnsi256 sets the background to a 256-palette color (index clamped to 0–255),\ndegrading to the nearest basic color on limited terminals.\n"
             },
             {
               "name": "BgBlack",
@@ -174,7 +174,7 @@
               "name": "BgRGB",
               "recv": "*Style",
               "signature": "func (s *Style) BgRGB(r, g, b int) *Style",
-              "doc": "BgRGB sets the background to a 24-bit color.\n"
+              "doc": "BgRGB sets the background to a 24-bit color, degrading to 256 or 16 colors as\nneeded. Channels are clamped to 0–255.\n"
             },
             {
               "name": "BgRed",
@@ -372,7 +372,7 @@
               "name": "RGB",
               "recv": "*Style",
               "signature": "func (s *Style) RGB(r, g, b int) *Style",
-              "doc": "RGB sets the foreground to a 24-bit color, degrading to 256/16 colors as\nneeded.\n"
+              "doc": "RGB sets the foreground to a 24-bit color, degrading to 256 or 16 colors as\nneeded. Channels are clamped to 0–255 and, as with [Style.Ansi256], the\ndowngrade happens at render time.\n"
             },
             {
               "name": "Red",
@@ -724,6 +724,11 @@
           "doc": "ResetDetection clears any forced level so the next use re-detects.\n"
         },
         {
+          "name": "RuneWidth",
+          "signature": "func RuneWidth(r rune) int",
+          "doc": "RuneWidth returns the number of terminal cells r occupies: 0 for combining\nmarks, control characters and other zero-width runes, 2 for East Asian wide\nand fullwidth characters and for emoji, and 1 for everything else.\n"
+        },
+        {
           "name": "SetEnabled",
           "signature": "func SetEnabled(on bool)",
           "doc": "SetEnabled turns color on (auto-detected level, minimum basic) or off.\n"
@@ -741,7 +746,7 @@
         {
           "name": "Strip",
           "signature": "func Strip(s string) string",
-          "doc": "Strip removes all ANSI SGR escape sequences from s.\n"
+          "doc": "Strip removes ANSI escape sequences from s, returning the plain text a\nterminal would display.\n\nIt removes complete escape sequences rather than only SGR color codes: CSI\nsequences (ESC [ … final byte, which covers colors as well as cursor movement\nand erase commands), OSC sequences terminated by BEL or ST (used for window\ntitles and hyperlinks), and the short two-character escapes. Anything that is\nnot part of a recognized sequence is preserved verbatim, including a trailing\nlone ESC.\n"
         },
         {
           "name": "SupportsColor",
@@ -761,7 +766,12 @@
         {
           "name": "VisibleLength",
           "signature": "func VisibleLength(s string) int",
-          "doc": "VisibleLength returns the number of visible characters in s, ignoring ANSI\nescape codes (counts runes, not bytes).\n"
+          "doc": "VisibleLength returns the number of visible characters in s, ignoring ANSI\nescape codes. It counts runes, not bytes and not screen columns: a CJK\nideograph counts as one even though it occupies two terminal cells. Use\n[VisibleWidth] when laying out columns.\n"
+        },
+        {
+          "name": "VisibleWidth",
+          "signature": "func VisibleWidth(s string) int",
+          "doc": "VisibleWidth returns the number of terminal cells s occupies, ignoring ANSI\nescape codes. Wide characters (CJK ideographs, Hangul syllables, most emoji\nand fullwidth forms) count as two cells; combining marks, variation selectors\nand other zero-width characters count as none; and an emoji joined with\nzero-width joiners counts once for the whole sequence, so \"👨‍👩‍👧\" is 2 rather\nthan 6.\n\nThis is the measurement to use when padding or aligning colored output. Tabs\nand other control characters have no well-defined width and are counted as 0.\n"
         },
         {
           "name": "White",
@@ -787,10 +797,28 @@
           "output": "#ff8800"
         },
         {
+          "name": "Strip",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/chalk\"\n)\n\nfunc main() {\n\tstyled := \"\\x1b[31mred\\x1b[39m \\x1b[2Cshifted \\x1b]8;;https://example.com\\x1b\\\\link\\x1b]8;;\\x1b\\\\\"\n\tfmt.Printf(\"%q\\n\", chalk.Strip(styled))\n}",
+          "output": "\"red shifted link\"",
+          "doc": "ExampleStrip shows that Strip removes whole ANSI escape sequences, not just\nthe color codes chalk itself writes. The input below mixes an SGR color pair\nwith a cursor-movement sequence and an OSC hyperlink of the kind terminals use\nto make text clickable; all three vanish and only the characters a user would\nsee remain. This is the function to reach for before measuring, logging or\ncomparing styled output.\n"
+        },
+        {
+          "name": "VisibleWidth",
+          "code": "SetLevel(LevelBasic)\ndefer SetLevel(LevelNone)\n\ns := New().Red().Sprint(\"日本\")\nfmt.Println(len(s), VisibleLength(s), VisibleWidth(s))",
+          "output": "16 2 4",
+          "doc": "ExampleVisibleWidth shows why ANSI-aware measurement is needed: the raw string\nlength counts escape bytes, VisibleLength counts runes, and VisibleWidth\ncounts the cells the terminal actually uses.\n"
+        },
+        {
           "name": "Style",
           "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/chalk\"\n)\n\nfunc main() {\n\tchalk.SetLevel(chalk.LevelBasic)\n\tdefer chalk.ResetDetection()\n\n\tstyled := chalk.New().Red().Bold().Sprint(\"error!\")\n\tfmt.Printf(\"%q\\n\", styled)\n}",
           "output": "\"\\x1b[31m\\x1b[1merror!\\x1b[22m\\x1b[39m\"",
           "doc": "ExampleStyle demonstrates the fluent styling API end to end. It pins the\nglobal color level to LevelBasic with SetLevel so the emitted ANSI escape\ncodes are deterministic regardless of the terminal running the test, then\nresets detection afterward so other tests are unaffected. A single Style is\nbuilt by chaining Red and Bold and rendered with Sprint, which wraps the text\nin the corresponding open/close SGR sequences. The result is printed with the\n%q verb so the normally invisible escape bytes show up literally, making clear\nthat Red opens code 31 and Bold opens code 1, each closed in reverse order.\nThe takeaway is that a chained Style is immutable and produces predictable\nescape sequences once the color level is fixed.\n"
+        },
+        {
+          "name": "Style (Level)",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/chalk\"\n)\n\nfunc main() {\n\tchalk.SetLevel(chalk.LevelNone)\n\tdefer chalk.ResetDetection()\n\n\twarn := chalk.New().Hex(\"#ff8800\")\n\tfmt.Printf(\"%q\\n\", warn.Level(chalk.LevelTrueColor).Sprint(\"hot\"))\n\tfmt.Printf(\"%q\\n\", warn.Level(chalk.Level256).Sprint(\"hot\"))\n}",
+          "output": "\"\\x1b[38;2;255;136;0mhot\\x1b[39m\"\n\"\\x1b[38;5;214mhot\\x1b[39m\"",
+          "doc": "ExampleStyle_Level shows that a Style resolves its color codes when it\nrenders, not when it is built. The style below is created while color output\nis off — at that moment chalk would have emitted nothing at all — and is then\nrendered twice, once pinned to truecolor and once to the 256-color palette.\nThe same value produces a 24-bit \"38;2;r;g;b\" sequence in the first case and\nthe nearest palette index in the second, which is what makes it safe to store\nconfigured styles in package-level variables and decide the terminal's\ncapability later. Style.Level pins one style without touching the global\nsetting, so the two renders do not interfere.\n"
         }
       ]
     },
@@ -799,7 +827,15 @@
       "name": "figlet",
       "synopsis": "Package figlet renders text as ASCII-art banners using FIGfont, a Go port of the classic figlet program and the Node figlet library.",
       "doc": "Package figlet renders text as ASCII-art banners using FIGfont, a Go port of\nthe classic figlet program and the Node figlet library. It ships a built-in\nblock font plus a large registry of bundled variants, and it can load any\nstandard .flf FIGfont from a file, directory or reader.\n\n\tfmt.Println(figlet.Render(\"Hi!\"))                    // built-in font\n\tf, _ := figlet.LoadFontFile(\"slant.flf\")\n\tfmt.Println(f.Render(\"Hello\"))\n\nUse figlet to draw large banner text for CLI splash screens, section headers\nin logs, or generated README art. The simplest entry point is [Render], which\nrenders a string with the built-in font; [RenderFont] renders with a named\nfont from the registry (see [Fonts] and [GetFont]); and a [Font] value\nobtained from [LoadFont], [LoadFontFile] or [ParseFont] can render directly\nwith [Font.Render]. The companion helpers [RenderRainbow] and [RenderGradient]\n(and the lower-level [Rainbow] and [Gradient]) colorize a finished banner with\nthe sibling chalk package.\n\nA FIGfont describes each printable character as a small block of text rows,\nall the same height. Rendering lays the glyphs for the input left to right and\ncombines each pair of adjacent glyphs according to a [Layout]: full width\nleaves them separate, kerning slides them together until they touch, and\nsmushing overlaps their touching edges and fuses the overlapping cells using\nthe font's \"smushing rules\". [LayoutDefault] honors whatever the font's header\nspecifies. Fonts may use a \"hardblank\" character that occupies space during\nlayout but prints as a blank, which is how figlet keeps letters from fusing\ninto an unreadable blob; hardblanks are replaced with spaces in the final\noutput.\n\nImportant semantics and edge cases: input is split on newlines and each line\nis rendered as its own block, so multi-line input produces stacked banners.\nCharacters the font does not define fall back to the uppercase form (so fonts\nthat only define capitals still render mixed-case text) and finally to a\nspace, meaning unknown runes never abort a render. [ParseFont] validates the\nflf2a signature and header and returns an error for a malformed font, but it\ntolerates a truncated glyph table by rendering whatever characters it managed\nto read. Output is plain text containing no ANSI codes unless you pass it\nthrough one of the color helpers.\n\nParity with the original tools is partial and deliberate. The .flf format,\nthe four layout modes and the standard horizontal smushing rules (equal\ncharacter, underscore, hierarchy, opposite pair, big-X and hardblank) are all\nimplemented, so real-world fonts render faithfully. What is intentionally left\nout is vertical smushing, right-to-left print direction, control files (.flc)\nand character-code remapping. In exchange this port bundles its own fonts and\nprogrammatically generates roughly a thousand named variants (see\nfonts_generated.go) so useful output is available with zero external font\nfiles.\n",
-      "consts": [],
+      "consts": [
+        {
+          "names": [
+            "MaxFontHeight"
+          ],
+          "signature": "const MaxFontHeight = 1000",
+          "doc": "MaxFontHeight is the largest character height ParseFont accepts. Real FIGfonts\nare at most a few dozen rows tall; the limit exists because the height is read\nfrom the font file and then used to size allocations, so an absurd declared\nheight in a hostile or corrupt file would otherwise try to allocate gigabytes\nbefore the parser ever discovered the file was short.\n"
+        }
+      ],
       "vars": [],
       "types": [
         {
@@ -851,7 +887,7 @@
               "name": "Render",
               "recv": "*Font",
               "signature": "func (f *Font) Render(text string, opts ...Options) string",
-              "doc": "Render renders text using the font.\n"
+              "doc": "Render renders text using the font.\n\nEach line of text becomes its own block of [Font.Height] rows, and the blocks\nare stacked. When Options.Width is positive the text is additionally wrapped\nat word boundaries so no block is wider than that many columns; a single word\ntoo wide to fit is emitted on a line of its own rather than being broken.\n"
             }
           ]
         },
@@ -944,6 +980,12 @@
           "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n\n\t\"github.com/malcolmston/chalk/figlet\"\n)\n\nfunc main() {\n\tbanner, err := figlet.RenderFont(\"banner\", \"Go\")\n\tif err != nil {\n\t\tfmt.Println(\"error:\", err)\n\t\treturn\n\t}\n\tfmt.Println(strings.Count(banner, \"\\n\") + 1)\n}",
           "output": "5",
           "doc": "ExampleRenderFont demonstrates rendering with a named font drawn from the\nregistry rather than the default. It renders the word \"Go\" with the bundled\n\"banner\" outline font by calling RenderFont, which looks the font up by\ncase-insensitive name and returns an error if the name is unknown. The number\nof output rows equals the font's Height, so the code prints that height to\nshow the render succeeded without depending on the exact glyph art, which is\nless stable across fonts. This also illustrates the two-value contract of\nRenderFont: a rendered string plus an error that is nil on success. The\ntakeaway is that many named fonts are available through the registry via a\nsingle call.\n"
+        },
+        {
+          "name": "Font (Render)",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n\n\t\"github.com/malcolmston/chalk/figlet\"\n)\n\nfunc main() {\n\tf := figlet.BuiltinFont()\n\tnarrow := f.Render(\"go chalk\", figlet.Options{Width: 30})\n\tfmt.Println(len(strings.Split(narrow, \"\\n\")) / f.Height())\n\n\twide := f.Render(\"go chalk\")\n\tfmt.Println(len(strings.Split(wide, \"\\n\")) / f.Height())\n}",
+          "output": "2\n1",
+          "doc": "ExampleFont_Render demonstrates Options.Width, which wraps a banner at word\nboundaries so it fits a given number of columns. The phrase below renders 60\ncolumns wide as a single block, but with Width set to 30 the words are laid\nout as two stacked blocks of the font's height, breaking between words and\nnever in the middle of one. A word too wide for the limit is still emitted\nwhole on its own line rather than being split or dropped. The takeaway is that\nWidth lets a banner adapt to a narrow terminal without the caller having to\npre-chop the text.\n"
         }
       ]
     },
@@ -1003,7 +1045,7 @@
         },
         {
           "name": "MultiSelectConfig",
-          "signature": "type MultiSelectConfig struct {\n\t// Message is the question shown to the user.\n\tMessage string\n\t// Choices are the selectable options.\n\tChoices []Choice\n\t// In is the input source (defaults to os.Stdin).\n\tIn io.Reader\n\t// Out is the output destination (defaults to os.Stdout).\n\tOut io.Writer\n}",
+          "signature": "type MultiSelectConfig struct {\n\t// Message is the question shown to the user.\n\tMessage string\n\t// Choices are the selectable options.\n\tChoices []Choice\n\t// MaxVisible caps how many choices are shown at once, scrolling the list\n\t// around the highlighted entry. Zero shows every choice.\n\tMaxVisible int\n\t// In is the input source (defaults to os.Stdin).\n\tIn io.Reader\n\t// Out is the output destination (defaults to os.Stdout).\n\tOut io.Writer\n}",
           "doc": "MultiSelectConfig configures MultiSelect.\n",
           "consts": [],
           "vars": [],
@@ -1030,7 +1072,7 @@
         },
         {
           "name": "SelectConfig",
-          "signature": "type SelectConfig struct {\n\t// Message is the question shown to the user.\n\tMessage string\n\t// Choices are the selectable options.\n\tChoices []Choice\n\t// Default is the initially highlighted index.\n\tDefault int\n\t// In is the input source (defaults to os.Stdin).\n\tIn io.Reader\n\t// Out is the output destination (defaults to os.Stdout).\n\tOut io.Writer\n}",
+          "signature": "type SelectConfig struct {\n\t// Message is the question shown to the user.\n\tMessage string\n\t// Choices are the selectable options.\n\tChoices []Choice\n\t// Default is the initially highlighted index.\n\tDefault int\n\t// MaxVisible caps how many choices are shown at once, scrolling the list\n\t// around the highlighted entry. Zero shows every choice. This is upstream\n\t// prompts' \"limit\" option.\n\tMaxVisible int\n\t// In is the input source (defaults to os.Stdin).\n\tIn io.Reader\n\t// Out is the output destination (defaults to os.Stdout).\n\tOut io.Writer\n}",
           "doc": "SelectConfig configures Select.\n",
           "consts": [],
           "vars": [],
@@ -1072,6 +1114,12 @@
           "code": "package main\n\nimport (\n\t\"bytes\"\n\t\"fmt\"\n\t\"strings\"\n\n\t\"github.com/malcolmston/chalk/prompts\"\n)\n\nfunc main() {\n\tanswer, err := prompts.Input(prompts.InputConfig{\n\t\tMessage: \"Your name?\",\n\t\tIn:      strings.NewReader(\"Ada\\r\"),\n\t\tOut:     \u0026bytes.Buffer{},\n\t})\n\tif err != nil {\n\t\tfmt.Println(\"error:\", err)\n\t\treturn\n\t}\n\tfmt.Printf(\"got %q\\n\", answer)\n}",
           "output": "got \"Ada\"",
           "doc": "ExampleInput demonstrates driving a text prompt non-interactively. Instead of\nreading from a real terminal, it points the config's In field at a\nstrings.Reader that supplies the scripted keystrokes \"Ada\" followed by a\ncarriage return, which stands in for the user typing a name and pressing\nEnter. The rendered prompt is sent to a discarded bytes.Buffer via Out so the\nexample does not depend on terminal styling. Because the input is not a TTY,\nthe prompt skips raw mode and simply consumes the scripted bytes, returning\nthe typed value and a nil error. The takeaway is that any prompt can be tested\nor scripted by supplying In and Out, exercising the exact code path a live\nkeyboard would.\n"
+        },
+        {
+          "name": "Select",
+          "code": "package main\n\nimport (\n\t\"bytes\"\n\t\"fmt\"\n\t\"strings\"\n\n\t\"github.com/malcolmston/chalk/prompts\"\n)\n\nfunc main() {\n\tidx, choice, err := prompts.Select(prompts.SelectConfig{\n\t\tMessage:    \"Pick a color\",\n\t\tMaxVisible: 3,\n\t\tChoices: []prompts.Choice{\n\t\t\t{Name: \"Red\"},\n\t\t\t{Name: \"Green\", Disabled: true},\n\t\t\t{Name: \"Blue\"},\n\t\t\t{Name: \"Violet\"},\n\t\t},\n\t\tIn:  strings.NewReader(\"\\x1b[B\\x1b[B\\r\"),\n\t\tOut: \u0026bytes.Buffer{},\n\t})\n\tif err != nil {\n\t\tfmt.Println(\"error:\", err)\n\t\treturn\n\t}\n\tfmt.Printf(\"%d %s\\n\", idx, choice.Name)\n}",
+          "output": "3 Violet",
+          "doc": "ExampleSelect demonstrates a scripted single-choice list, including the\nMaxVisible option that pages a long list. The scripted input sends two\n\"cursor down\" escape sequences and then Enter, so the selection lands on the\nthird choice; MaxVisible limits the drawn list to three entries at a time and\nscrolls it around the cursor, which is the behavior of upstream prompts'\n\"limit\" option. Choices marked Disabled are skipped by the arrow keys, and a\nlist in which every choice is disabled is rejected with an error rather than\nreturning an unselectable answer. As with the other prompts, In and Out make\nthe whole interaction testable without a terminal.\n"
         }
       ]
     }

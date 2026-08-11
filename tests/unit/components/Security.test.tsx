@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Security, type SecurityData, type SecurityFinding } from '../../../src/components/Security';
+import { Security, resolveManifestHref, type SecurityData, type SecurityFinding } from '../../../src/components/Security';
 
 // A finding shaped exactly like scripts/build-security-data.ts emits one.
 function finding(over: Partial<SecurityFinding>): SecurityFinding {
@@ -125,5 +125,50 @@ describe('Security', () => {
   it('renders an empty record without implying a clean bill of health', () => {
     render(<Security data={{ ...DATA, findings: [] }} />);
     expect(screen.getByText(/No recorded finding matches this filter/)).toBeInTheDocument();
+  });
+});
+
+// A manifest note links the way a file sitting next to it would ("cases/x.json").
+// Rendered on /security those hrefs would resolve against the PAGE and 404, so
+// they are rewritten to the repository file they name. The e2e link sweep
+// (tests/e2e/site.spec.ts) enforces the same rule from the browser side.
+describe('manifest-relative links in finding prose', () => {
+  it('resolves a path relative to the manifest directory to a repo file URL', () => {
+    expect(resolveManifestHref('cases/parse.json', 'parity/express/nested/contenttype/security.json')).toBe(
+      'https://github.com/malcolmston/go/blob/main/parity/express/nested/contenttype/cases/parse.json'
+    );
+  });
+
+  it('applies .. segments against the manifest directory', () => {
+    expect(resolveManifestHref('../COVERAGE.md', 'parity/express/nested/contenttype/security.json')).toBe(
+      'https://github.com/malcolmston/go/blob/main/parity/express/nested/COVERAGE.md'
+    );
+  });
+
+  it('refuses a path that climbs out of the repository root', () => {
+    expect(resolveManifestHref('../../../../etc/passwd', 'parity/express/security.json')).toBeNull();
+  });
+
+  it('renders the relative link as an absolute anchor, never a dead relative href', () => {
+    const { container } = render(
+      <Security
+        data={{
+          ...DATA,
+          findings: [
+            finding({
+              id: 'relative-link',
+              manifestPath: 'parity/express/nested/contenttype/security.json',
+              scopeNote: 'The ids are in [cases/parse.json](cases/parse.json).',
+            }),
+          ],
+        }}
+      />
+    );
+    const links = [...container.querySelectorAll('a')].map((a) => a.getAttribute('href') ?? '');
+    const relative = links.filter((h) => !/^(https?:\/\/|\/|#|mailto:)/.test(h));
+    expect(relative).toEqual([]);
+    expect(links).toContain(
+      'https://github.com/malcolmston/go/blob/main/parity/express/nested/contenttype/cases/parse.json'
+    );
   });
 });

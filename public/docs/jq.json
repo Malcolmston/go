@@ -1,0 +1,175 @@
+{
+  "module": "github.com/malcolmston/jq",
+  "generatedAt": "2026-08-05T11:13:34Z",
+  "packages": [
+    {
+      "importPath": "github.com/malcolmston/jq",
+      "name": "jq",
+      "synopsis": "Package jq is a standard-library-only implementation of the jq query language (jqlang/jq 1.7 semantics).",
+      "doc": "Package jq is a standard-library-only implementation of the jq query\nlanguage (jqlang/jq 1.7 semantics).\n\n# Overview\n\nA jq program is a filter: it takes one JSON value as input and produces a\nstream of zero or more JSON values as output. Every expression in the\nlanguage is such a generator, and the whole evaluator is built around that\nidea — Query.RunFunc pushes each output to a callback as it is produced, so\n\"empty\" yields nothing, \"1,2,3\" yields three values, and \"first(range(1e9))\"\nstops after the first. There are no third-party dependencies and no cgo.\n\n# Values\n\nValues are ordinary Go values: nil for JSON null, bool, float64 for every\nnumber, string, []any for arrays, and map[string]any for objects. Unmarshal\ndecodes JSON into that shape and Marshal encodes it back, using jq's own\nnumber formatting (integral values print without a trailing \".0\") and jq's\nstring escaping. Object key order is not preserved; keys are emitted sorted,\nso keys and keys_unsorted return the same thing.\n\n# Running a program\n\n\tq, err := jq.Compile(\".users[] | select(.age \u003e 30) | .name\")\n\tout, err := q.Run(input)\n\n\t// or, in one call:\n\tout, err := jq.Eval(\".a.b\", map[string]any{\"a\": map[string]any{\"b\": 1}})\n\nQuery.WithVariables binds values a program can reach as $name, and\nQuery.RunFunc streams results, stopping as soon as the callback returns an\nerror. A compiled Query is immutable and safe for concurrent use.\n\n# Language support\n\nThe implementation covers the core language: identity, field, index, slice\nand iteration (including the optional forms \".a?\" and \".[]?\"), pipe, comma,\nthe alternative operator \"//\", arithmetic and comparison, and/or/not,\nif/then/elif/else/end, try/catch and the postfix \"?\", reduce and foreach,\n\"as\" bindings with array and object destructuring (including the \"?//\"\nalternative patterns), label/break, user-defined functions with filter\narguments and closures, string interpolation, the @base64, @base64d, @csv,\n@tsv, @html, @uri, @json, @sh and @text format strings (also usable as\ninterpolation prefixes, as in @base64 \"x=\\(.x)\"), object and array\nconstruction, recursive descent (\"..\" and recurse), path expressions\n(path, getpath, setpath, delpaths, paths, leaf_paths, del) and every\nassignment operator: =, |=, +=, -=, *=, /=, %= and //=.\n\nPath expressions are first class: an expression is evaluated together with\nthe location it came from, so \"path(.a[0].b)\" reports [\"a\",0,\"b\"] and\n\"(.a,.b) |= .+1\" updates both locations. An expression that does not denote a\nlocation, such as \"path(1+1)\", fails with a runtime error.\n\nMost builtins that jq itself writes in jq — map, select, recurse, to_entries,\nfirst, limit, until, walk, paths, del and the rest — are likewise defined in\njq here (see the package's prelude), which is what makes them behave\ncorrectly inside path expressions and as generators.\n\n# Regular expressions\n\ntest, match, capture, scan, sub, gsub, split/2 and splits use the standard\nlibrary's regexp package, which implements RE2. RE2 guarantees linear-time\nmatching, but unlike the Oniguruma engine that jq links against it does not\nsupport backreferences or lookaround assertions; programs using those\nconstructs fail with a runtime error rather than matching. The \"g\", \"i\", \"x\",\n\"n\", \"s\", \"m\" and \"p\" flags are honoured. This is a deliberate, documented\nparity gap.\n\n# Bounded evaluation\n\njq programs can diverge — \"repeat(.)\" and \"recurse(.+1)\" never terminate. A\nQuery therefore carries a step budget (DefaultMaxSteps) and a nesting depth\nlimit (DefaultMaxDepth); exceeding either fails with ErrStepLimit, which the\nprogram's own try/catch cannot intercept. Query.WithMaxSteps raises, lowers\nor disables the budget. A caller that wants full control can instead run with\nno budget and stop iteration from RunFunc.\n\n# Errors\n\nCompile failures are *CompileError and match errors.Is(err, jq.ErrCompile).\nFailures raised while running — type errors from operators and builtins, and\nvalues raised by the program's own error/0 and error/1 — are *RuntimeError\nand match errors.Is(err, jq.ErrRuntime); type errors additionally match\njq.ErrType, and RuntimeError.Value returns the raw value carried by error/1.\nA step budget overrun is ErrStepLimit and an escaped break is ErrBreak.\n\n# Known differences from upstream jq\n\n  - Object key order is not preserved (Go maps are unordered).\n  - Numbers are float64 throughout; jq 1.7 preserves the literal text of\n    numbers that pass through a program unchanged, and this port does not.\n  - JSON input must be strict: the non-standard nan, NaN and Infinity\n    literals that jq's own parser accepts are rejected by Unmarshal.\n  - Modules (import, include, modulemeta) and the streaming builtins are not\n    implemented.\n  - Regular expressions are RE2, as described above.\n\nThis package is a re-implementation, not a binding, and is not affiliated\nwith the jq project.\n",
+      "consts": [
+        {
+          "names": [
+            "DefaultMaxDepth"
+          ],
+          "signature": "const DefaultMaxDepth = 100_000",
+          "doc": "DefaultMaxDepth bounds how deeply expressions may nest at run time, which\nkeeps a runaway recursive definition from exhausting the goroutine stack\nbefore the step budget notices.\n"
+        },
+        {
+          "names": [
+            "DefaultMaxSteps"
+          ],
+          "signature": "const DefaultMaxSteps int64 = 10_000_000",
+          "doc": "DefaultMaxSteps is the number of evaluation steps a Query is allowed to take\nbefore it fails with ErrStepLimit. It bounds otherwise non-terminating\nprograms such as \"repeat(.)\" or \"recurse(.+1)\". Change it per query with\nQuery.WithMaxSteps.\n"
+        }
+      ],
+      "vars": [
+        {
+          "names": [
+            "ErrCompile",
+            "ErrSyntax",
+            "ErrUndefined",
+            "ErrRuntime",
+            "ErrType",
+            "ErrStepLimit",
+            "ErrBreak"
+          ],
+          "signature": "var (\n\t// ErrCompile indicates a program could not be parsed or compiled. Errors\n\t// wrapping it are of concrete type *CompileError.\n\tErrCompile = errors.New(\"jq: compile error\")\n\n\t// ErrSyntax indicates the lexer or parser rejected the program text. It is\n\t// wrapped by *CompileError in addition to ErrCompile.\n\tErrSyntax = errors.New(\"jq: syntax error\")\n\n\t// ErrUndefined indicates the program referenced a function, variable or\n\t// label that is not defined.\n\tErrUndefined = errors.New(\"jq: undefined symbol\")\n\n\t// ErrRuntime indicates the program failed while running. Errors wrapping it\n\t// are of concrete type *RuntimeError.\n\tErrRuntime = errors.New(\"jq: runtime error\")\n\n\t// ErrType indicates a value of the wrong type reached an operator or\n\t// builtin, for example \"1 + {}\".\n\tErrType = errors.New(\"jq: type error\")\n\n\t// ErrStepLimit indicates evaluation exceeded the step budget (see\n\t// Query.WithMaxSteps). It guards against non-terminating programs such as\n\t// \"repeat(.)\" and cannot be caught by the program's own try/catch.\n\tErrStepLimit = errors.New(\"jq: step limit exceeded\")\n\n\t// ErrBreak indicates a \"break $label\" escaped its enclosing \"label $label\"\n\t// expression, which jq reports as an uncaught break.\n\tErrBreak = errors.New(\"jq: break outside of label\")\n)",
+          "doc": "Sentinel errors returned by the package. Every error produced by Compile,\nEval, Query.Run and Query.RunFunc wraps one of these, so callers can classify\na failure with errors.Is without type-asserting the concrete error value.\n"
+        }
+      ],
+      "types": [
+        {
+          "name": "CompileError",
+          "signature": "type CompileError struct {\n\t// Program is the full jq program text that failed to compile.\n\tProgram string\n\t// Offset is the byte offset within Program where the error was detected.\n\tOffset int\n\t// Msg describes the problem.\n\tMsg string\n}",
+          "doc": "CompileError reports a program that could not be parsed or compiled. Offset\nis the byte offset into Program at which the problem was detected, or -1 when\nno position is available.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Error",
+              "recv": "*CompileError",
+              "signature": "func (e *CompileError) Error() string",
+              "doc": "Error implements the error interface.\n"
+            },
+            {
+              "name": "Is",
+              "recv": "*CompileError",
+              "signature": "func (e *CompileError) Is(target error) bool",
+              "doc": "Is reports whether the error matches ErrCompile or ErrSyntax.\n"
+            },
+            {
+              "name": "Unwrap",
+              "recv": "*CompileError",
+              "signature": "func (e *CompileError) Unwrap() error",
+              "doc": "Unwrap reports ErrCompile so that errors.Is(err, jq.ErrCompile) matches.\n"
+            }
+          ]
+        },
+        {
+          "name": "Query",
+          "signature": "type Query struct {\n\t// contains filtered or unexported fields\n}",
+          "doc": "Query is a compiled jq program. A Query is immutable and safe for concurrent\nuse by multiple goroutines; the option methods return a modified copy.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "Compile",
+              "signature": "func Compile(program string) (*Query, error)",
+              "doc": "Compile parses and compiles a jq program. The returned *Query may be run any\nnumber of times, against any number of inputs. Syntax errors and references\nto undefined functions or variables are reported as *CompileError, which\nmatches errors.Is(err, jq.ErrCompile).\n"
+            },
+            {
+              "name": "MustCompile",
+              "signature": "func MustCompile(program string) *Query",
+              "doc": "MustCompile is like Compile but panics if the program does not compile. It\nis intended for package-level variables holding known-good programs.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Run",
+              "recv": "*Query",
+              "signature": "func (q *Query) Run(input any) ([]any, error)",
+              "doc": "Run executes the program against input and collects every output value.\n"
+            },
+            {
+              "name": "RunFunc",
+              "recv": "*Query",
+              "signature": "func (q *Query) RunFunc(input any, fn func(any) error) error",
+              "doc": "RunFunc executes the program against input, calling fn once for every output\nvalue in order. If fn returns a non-nil error, iteration stops and that error\nis returned unchanged, which lets a caller take the first N results or impose\nits own deadline on a long-running program.\n\nErrors raised by the program itself are returned as *RuntimeError; a step\nbudget overrun is returned as ErrStepLimit.\n"
+            },
+            {
+              "name": "String",
+              "recv": "*Query",
+              "signature": "func (q *Query) String() string",
+              "doc": "String returns the program text the Query was compiled from.\n"
+            },
+            {
+              "name": "WithMaxSteps",
+              "recv": "*Query",
+              "signature": "func (q *Query) WithMaxSteps(n int64) *Query",
+              "doc": "WithMaxSteps returns a copy of q with a different evaluation step budget. A\nvalue of zero or less disables the budget entirely, in which case the caller\nis responsible for stopping runaway programs from RunFunc.\n"
+            },
+            {
+              "name": "WithVariables",
+              "recv": "*Query",
+              "signature": "func (q *Query) WithVariables(vars map[string]any) *Query",
+              "doc": "WithVariables returns a copy of q in which the given names are bound as jq\nvariables, so a program may refer to them as $name. The values must be jq\nvalues (nil, bool, float64, string, []any or map[string]any).\n"
+            }
+          ]
+        },
+        {
+          "name": "RuntimeError",
+          "signature": "type RuntimeError struct {\n\t// Msg is the human readable message, matching jq's wording where practical.\n\tMsg string\n\t// contains filtered or unexported fields\n}",
+          "doc": "RuntimeError reports a failure raised while a program was running: a type\nerror from an operator or builtin, or an uncaught value raised by the\nprogram's own error/0 or error/1 builtin.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": [
+            {
+              "name": "Error",
+              "recv": "*RuntimeError",
+              "signature": "func (e *RuntimeError) Error() string",
+              "doc": "Error implements the error interface.\n"
+            },
+            {
+              "name": "Is",
+              "recv": "*RuntimeError",
+              "signature": "func (e *RuntimeError) Is(target error) bool",
+              "doc": "Is reports whether the error matches ErrRuntime, or ErrType when the failure\nwas caused by a value of the wrong type.\n"
+            },
+            {
+              "name": "Unwrap",
+              "recv": "*RuntimeError",
+              "signature": "func (e *RuntimeError) Unwrap() error",
+              "doc": "Unwrap reports ErrRuntime so that errors.Is(err, jq.ErrRuntime) matches.\n"
+            },
+            {
+              "name": "Value",
+              "recv": "*RuntimeError",
+              "signature": "func (e *RuntimeError) Value() (any, bool)",
+              "doc": "Value returns the jq value carried by the program's error/1 builtin and\nwhether one was present. Errors raised inside this package report false.\n"
+            }
+          ]
+        }
+      ],
+      "funcs": [
+        {
+          "name": "Eval",
+          "signature": "func Eval(program string, input any) ([]any, error)",
+          "doc": "Eval compiles program and runs it against input in one call, returning every\noutput value the program produces.\n"
+        },
+        {
+          "name": "Marshal",
+          "signature": "func Marshal(v any) ([]byte, error)",
+          "doc": "Marshal encodes v as compact, jq-compatible JSON. Numbers use jq's shortest\nround-trip formatting (integral values print without a trailing \".0\"), object\nkeys are emitted in sorted order, and HTML-significant characters are not\nescaped. NaN encodes as null and infinities clamp to the largest finite\ndouble, as in jq.\n\nA value nested deeper than jq's own MAX_PRINT_DEPTH is not descended into:\nthe sub-value is replaced by the JSON string \"\u003cskipped: too deep\u003e\", exactly as\njq's printer does, so the result is still valid JSON. See limits.go.\n"
+        },
+        {
+          "name": "Unmarshal",
+          "signature": "func Unmarshal(data []byte) (any, error)",
+          "doc": "Unmarshal decodes JSON the way jq does: objects become map[string]any, arrays\nbecome []any, numbers become float64, strings become string, and JSON null\nbecomes the untyped Go nil. Key order is not preserved.\n\nA leading UTF-8 byte order mark is ignored, matching jq's tolerance of BOMs\nin input files.\n\nInput nested deeper than jq's own MAX_PARSING_DEPTH (10000 containers) is\nrejected rather than decoded, so that a hostile document cannot exhaust\nmemory in the decoder. See limits.go.\n"
+        }
+      ]
+    }
+  ]
+}

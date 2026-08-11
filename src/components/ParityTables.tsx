@@ -10,7 +10,9 @@ import type {
   ParityGroup,
 } from './ParityData';
 import { CASE_STATUSES, COVERAGE_STATUSES, pct } from './ParityData';
+import { accentVar } from './accentText';
 import './Parity.css';
+import './AccentText.css';
 
 // The tables here can hold thousands of rows (16,900 cases and 9,200 upstream
 // symbols across the repo), so nothing renders the full set up front: rows are
@@ -26,8 +28,10 @@ export function StatusTag({ status }: { status: string }) {
 export function ScorePill({ value, compared, accent }: { value: number; compared: number; accent: string }) {
   return (
     <span
-      className="parity-pill"
-      style={{ borderColor: hx(accent, '55'), color: accent, background: hx(accent, '14') }}
+      className="parity-pill acc-text"
+      // The accent stays the border and the tint; the readable text colour is
+      // derived from --acc per theme in AccentText.css.
+      style={accentVar(accent, { borderColor: hx(accent, '55'), background: hx(accent, '14') })}
     >
       {pct(value, compared)}
     </span>

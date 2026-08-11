@@ -3,7 +3,9 @@ import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerE
 import { useRouter } from 'next/navigation';
 import { LIBS } from '../data';
 import { withBase } from '../basePath';
+import './AccentText.css';
 import { SecH } from './SecH';
+import { accentVar } from './accentText';
 import {
   hasApi,
   loadFallbackGraph,
@@ -779,6 +781,13 @@ export function Explore() {
           onKeyDown={onSearchKey}
           spellCheck={false}
           autoComplete="off"
+          // The implicit role of input[type=search] is searchbox, which supports
+          // none of the combobox properties below (aria-expanded, aria-controls,
+          // aria-autocomplete, aria-activedescendant). The markup already is the
+          // ARIA 1.2 combobox pattern — the input drives the listbox at
+          // #xpl-hitlist and moves a virtual cursor over its options — so name
+          // the role explicitly rather than dropping the state.
+          role="combobox"
           aria-expanded={hits.length > 0}
           aria-controls="xpl-hitlist"
           aria-autocomplete="list"
@@ -837,13 +846,15 @@ export function Explore() {
                 >
                   <span className="xpl-hit-name">{h.name}</span>
                   <span
-                    className="xpl-chip"
-                    style={{ background: (SYMBOL_COLOR[h.kind] || 'var(--fg-dim)') + '22', color: SYMBOL_COLOR[h.kind] || 'var(--fg-muted)' }}
+                    className="xpl-chip acc-text"
+                    style={accentVar(SYMBOL_COLOR[h.kind] || 'var(--fg-muted)', {
+                      background: (SYMBOL_COLOR[h.kind] || 'var(--fg-dim)') + '22',
+                    })}
                   >
                     {h.kind}
                   </span>
                   <span className="xpl-hit-pkg">{h.packageImportPath}</span>
-                  <span className="xpl-hit-lib" style={{ color: accentFor(h.library) }}>
+                  <span className="xpl-hit-lib acc-text" style={accentVar(accentFor(h.library))}>
                     {h.library}
                   </span>
                 </button>
@@ -910,8 +921,8 @@ export function Explore() {
             {sub.clusters.map((c) => (
               <span
                 key={c.id}
-                className="xpl-cluster-label"
-                style={{ left: c.x, top: c.y - c.r - 18, color: accentFor(c.id) }}
+                className="xpl-cluster-label acc-text"
+                style={accentVar(accentFor(c.id), { left: c.x, top: c.y - c.r - 18 })}
                 aria-hidden
               >
                 {c.id}
@@ -1008,8 +1019,8 @@ export function Explore() {
             </div>
             <button
               type="button"
-              className="xpl-panel-lib"
-              style={{ color: accentFor(selectedPkg.library) }}
+              className="xpl-panel-lib acc-text"
+              style={accentVar(accentFor(selectedPkg.library))}
               onClick={() => goLibrary(selectedPkg.library)}
             >
               {selectedPkg.library} →
@@ -1060,7 +1071,7 @@ export function Explore() {
               <div className="xpl-distbar">
                 {[0, 1, 2].map((i) => (
                   <span key={i} className="xpl-distcell">
-                    <span className="xpl-distnum" style={{ color: RING_COLOR[i] }}>
+                    <span className="xpl-distnum acc-text" style={accentVar(RING_COLOR[i])}>
                       {rings.counts[i]}
                     </span>
                     <span className="xpl-distlab">{i + 1} hop{i ? 's' : ''}</span>
@@ -1081,18 +1092,18 @@ export function Explore() {
                     <li key={n.pkg.id}>
                       <button type="button" className="xpl-near" onClick={() => pick(n.pkg.id, { centre: true })} title={n.pkg.importPath}>
                         <span
-                          className="xpl-near-hops"
-                          style={{ color: RING_COLOR[Math.min(n.hops - 1, RING_COLOR.length - 1)] }}
+                          className="xpl-near-hops acc-text"
+                          style={accentVar(RING_COLOR[Math.min(n.hops - 1, RING_COLOR.length - 1)])}
                         >
                           {n.hops}
                         </span>
                         <span className="xpl-near-name">{shortName(n.pkg)}</span>
                         {n.kind && (
-                          <span className="xpl-near-kind" style={{ color: KIND_COLOR[n.kind] }}>
+                          <span className="xpl-near-kind acc-text" style={accentVar(KIND_COLOR[n.kind])}>
                             {n.dir === 'in' ? '←' : '→'} {n.kind}
                           </span>
                         )}
-                        <span className="xpl-near-lib" style={{ color: accentFor(n.pkg.library) }}>
+                        <span className="xpl-near-lib acc-text" style={accentVar(accentFor(n.pkg.library))}>
                           {n.pkg.library}
                         </span>
                       </button>
@@ -1292,7 +1303,10 @@ const styles = `
 .xpl-cluster-label {
   position: absolute; transform: translate(-50%, -50%);
   font-size: .8rem; font-weight: 700; letter-spacing: .04em; text-transform: lowercase;
-  opacity: .55; pointer-events: none; white-space: nowrap; z-index: 1;
+  /* Was .55, which cancelled most of the contrast the acc-text mix buys back:
+     at .55 the worst accent lands near 2.7:1 on the light theme. .92 keeps the
+     label subordinate to the nodes while staying above 5:1 in both themes. */
+  opacity: .92; pointer-events: none; white-space: nowrap; z-index: 1;
 }
 
 /* The detail panel overlays the left edge of the graph on wide screens. */

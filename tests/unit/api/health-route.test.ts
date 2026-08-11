@@ -6,17 +6,24 @@
 // is unreadable — is exercised without touching the filesystem.
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const { mockEsEnabled, mockGetGraph, mockGetSymbols } = vi.hoisted(() => ({
-  mockEsEnabled: vi.fn(),
-  mockGetGraph: vi.fn(),
-  mockGetSymbols: vi.fn(),
-}));
+const { mockEsEnabled, mockGetGraph, mockGetSymbols, mockGetParitySummary, mockGetExamples, mockLoadSecurity } =
+  vi.hoisted(() => ({
+    mockEsEnabled: vi.fn(),
+    mockGetGraph: vi.fn(),
+    mockGetSymbols: vi.fn(),
+    mockGetParitySummary: vi.fn(),
+    mockGetExamples: vi.fn(),
+    mockLoadSecurity: vi.fn(),
+  }));
 
 vi.mock('../../../api/_lib/es', () => ({ esEnabled: mockEsEnabled }));
 vi.mock('../../../api/_lib/data', () => ({
   getGraph: mockGetGraph,
   getSymbols: mockGetSymbols,
+  getParitySummary: mockGetParitySummary,
+  getExamples: mockGetExamples,
 }));
+vi.mock('../../../api/_lib/security', () => ({ loadSecurity: mockLoadSecurity }));
 
 import { GET, OPTIONS } from '../../../app/api/health/route';
 
@@ -32,6 +39,16 @@ beforeEach(() => {
   mockEsEnabled.mockReset().mockReturnValue(false);
   mockGetGraph.mockReset().mockReturnValue(graph());
   mockGetSymbols.mockReset().mockReturnValue([{ id: 's1' }, { id: 's2' }, { id: 's3' }]);
+  mockGetParitySummary.mockReset().mockReturnValue({
+    generatedAt: '2026-01-01T00:00:00.000Z',
+    libraries: { express: { parityPercent: 98.9 } },
+  });
+  mockGetExamples.mockReset().mockReturnValue({ express: { library: 'express' }, lodash: { library: 'lodash' } });
+  mockLoadSecurity.mockReset().mockReturnValue({
+    generatedAt: '2026-01-02T00:00:00.000Z',
+    statusDerivation: '',
+    findings: [{ id: 'f1' }, { id: 'f2' }],
+  });
   vi.spyOn(console, 'error').mockImplementation(() => {});
 });
 
@@ -65,8 +82,63 @@ describe('GET', () => {
       symbols: 3,
       packages: 2,
       libraries: 1,
+      parityLibraries: 1,
+      examples: 2,
+      securityFindings: 2,
       generatedAt: '2026-01-01T00:00:00.000Z',
+      securityGeneratedAt: '2026-01-02T00:00:00.000Z',
     });
+  });
+
+  it('marks data as not ok when the parity corpus did not ship', async () => {
+    mockGetParitySummary.mockReturnValue({ generatedAt: '', libraries: {} });
+    const body = await (await GET()).json();
+    expect(body.ok).toBe(true);
+    expect(body.data.ok).toBe(false);
+    expect(body.data.parityLibraries).toBe(0);
+    // the artifacts that DID ship are still reported
+    expect(body.data.symbols).toBe(3);
+  });
+
+  it('marks data as not ok when the examples corpus did not ship', async () => {
+    mockGetExamples.mockReturnValue({});
+    const body = await (await GET()).json();
+    expect(body.data.ok).toBe(false);
+    expect(body.data.examples).toBe(0);
+  });
+
+  it('marks data as not ok when the security corpus did not ship', async () => {
+    mockLoadSecurity.mockReturnValue({ generatedAt: '', statusDerivation: '', findings: [] });
+    const body = await (await GET()).json();
+    expect(body.data.ok).toBe(false);
+    expect(body.data.securityFindings).toBe(0);
+  });
+
+  it('stays ok when the security corpus shipped with zero findings', async () => {
+    mockLoadSecurity.mockReturnValue({
+      generatedAt: '2026-01-02T00:00:00.000Z',
+      statusDerivation: '',
+      findings: [],
+    });
+    const body = await (await GET()).json();
+    expect(body.data.ok).toBe(true);
+    expect(body.data.securityFindings).toBe(0);
+  });
+
+  it('still answers 200 when a parity, examples or security read throws', async () => {
+    mockGetParitySummary.mockImplementation(() => {
+      throw new Error('ENOENT /var/task/api/_data/parity.json');
+    });
+    mockLoadSecurity.mockImplementation(() => {
+      throw new Error('ENOENT /var/task/api/_data/security.json');
+    });
+    const res = await GET();
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.ok).toBe(true);
+    expect(body.data.ok).toBe(false);
+    expect(body.data.symbols).toBe(3);
+    expect(JSON.stringify(body)).not.toContain('ENOENT');
   });
 
   it('marks data as not ok when the corpus is empty (files did not ship)', async () => {

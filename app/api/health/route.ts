@@ -11,7 +11,8 @@
 // Upstash Search env vars are configured. CORS is permissive (Allow-Origin: *).
 
 import { esEnabled } from '../../../api/_lib/es';
-import { getGraph, getSymbols } from '../../../api/_lib/data';
+import { getGraph, getSymbols, getParitySummary, getExamples } from '../../../api/_lib/data';
+import { loadSecurity } from '../../../api/_lib/security';
 
 // Run on the Node.js runtime (the shared lib reads process.env), and never
 // pre-render / cache — every request reports live configuration state.
@@ -38,6 +39,12 @@ export async function GET(): Promise<Response> {
   // Every read is defensive: a health probe must answer even when the data it
   // reports on is broken, and it must never echo an internal error (which would
   // disclose the deployment's filesystem layout).
+  //
+  // All five generated artifacts are covered, each in its own try/catch, so one
+  // unreadable file still lets the others be reported. The loaders in
+  // api/_lib/{data,security}.ts swallow read errors and degrade to empty
+  // structures, so "missing" surfaces here as a zero counter rather than a
+  // throw — which is exactly why the counters have to be folded into data.ok.
   let symbols = 0;
   let packages = 0;
   let libraries = 0;
@@ -54,11 +61,58 @@ export async function GET(): Promise<Response> {
     dataOk = false;
   }
 
+  let parityLibraries = 0;
+  try {
+    parityLibraries = Object.keys(getParitySummary().libraries).length;
+  } catch (err) {
+    console.error('[health] failed to read parity data', err);
+    dataOk = false;
+  }
+
+  let examples = 0;
+  try {
+    examples = Object.keys(getExamples()).length;
+  } catch (err) {
+    console.error('[health] failed to read examples data', err);
+    dataOk = false;
+  }
+
+  // A zero finding count is a legitimate state for the security corpus (every
+  // advisory could be fixed), so presence is judged by the generator's stamp:
+  // scripts/build-security-data.ts always writes `generatedAt`, and the loader
+  // only yields '' when the file is missing or malformed.
+  let securityFindings = 0;
+  let securityGeneratedAt = '';
+  try {
+    const security = loadSecurity();
+    securityFindings = security.findings.length;
+    securityGeneratedAt = security.generatedAt;
+  } catch (err) {
+    console.error('[health] failed to read security data', err);
+    dataOk = false;
+  }
+
   return Response.json(
     {
       ok: true,
       es: esEnabled(),
-      data: { ok: dataOk && symbols > 0 && packages > 0, symbols, packages, libraries, generatedAt },
+      data: {
+        ok:
+          dataOk &&
+          symbols > 0 &&
+          packages > 0 &&
+          parityLibraries > 0 &&
+          examples > 0 &&
+          securityGeneratedAt !== '',
+        symbols,
+        packages,
+        libraries,
+        parityLibraries,
+        examples,
+        securityFindings,
+        generatedAt,
+        securityGeneratedAt,
+      },
     },
     {
       headers: {

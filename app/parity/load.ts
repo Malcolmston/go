@@ -6,6 +6,12 @@
 // export and the Vercel build both get the same numbers without a runtime API
 // call. A missing file is not an error: the page renders an explanatory empty
 // state instead of failing the build.
+//
+// The corpus is the ONLY accepted source. public/parity.json looks similar but
+// is the small browser summary (percentages only, no cases/coverage), and
+// feeding it in here would build pages that print headline "measured" numbers
+// with no evidence behind them — worse than an empty state. isParityCorpus
+// below rejects anything that is not the full corpus.
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -15,26 +21,48 @@ import type { ParityData, ParityHarness } from '../../src/components/ParityData'
 import { normalizeParityData, summarize } from '../../src/components/ParityData';
 import type { ParitySummary } from '../../src/components/ParityData';
 
-// Candidate locations, most authoritative first. api/_data is the generated
-// home; public/ is where the same file is mirrored for the static site.
-const CANDIDATES = [
-  path.join(process.cwd(), 'api', '_data', 'parity.json'),
-  path.join(process.cwd(), 'public', 'parity.json'),
-  path.join(process.cwd(), 'public', 'docs', 'parity.json'),
-];
+// The generated corpus. There is deliberately no fallback: see the note above.
+const CORPUS = path.join(process.cwd(), 'api', '_data', 'parity.json');
+
+/**
+ * Does this parsed blob look like the full parity corpus, as opposed to the
+ * browser summary (or any other `libraries` map)? A corpus harness carries
+ * per-case evidence: `cases` / `coverage` arrays and a `harnessPath`. The
+ * summary carries none of those, so it is rejected and the pages fall back to
+ * their empty state rather than showing unbacked percentages.
+ */
+export function isParityCorpus(parsed: unknown): boolean {
+  if (!parsed || typeof parsed !== 'object') return false;
+  const libraries = (parsed as { libraries?: unknown }).libraries;
+  if (!libraries || typeof libraries !== 'object') return false;
+  return Object.values(libraries as Record<string, unknown>).some((entry) => {
+    if (!entry || typeof entry !== 'object') return false;
+    const h = entry as { cases?: unknown; coverage?: unknown; harnessPath?: unknown };
+    return (
+      Array.isArray(h.cases) ||
+      Array.isArray(h.coverage) ||
+      (typeof h.harnessPath === 'string' && h.harnessPath.length > 0)
+    );
+  });
+}
 
 let cache: ParityData | null = null;
 
 export function loadParityData(): ParityData {
   if (cache) return cache;
   let parsed: unknown = null;
-  for (const file of CANDIDATES) {
-    try {
-      parsed = JSON.parse(fs.readFileSync(file, 'utf8'));
-      break;
-    } catch {
-      // try the next candidate
+  try {
+    parsed = JSON.parse(fs.readFileSync(CORPUS, 'utf8'));
+  } catch {
+    // absent or unreadable: the empty state below is the honest answer
+  }
+  if (!isParityCorpus(parsed)) {
+    if (parsed !== null) {
+      console.warn(
+        `parity: ${CORPUS} is not the generated corpus (no cases/coverage/harnessPath); rendering the empty state`,
+      );
     }
+    parsed = null;
   }
   cache = normalizeParityData(parsed);
   return cache;

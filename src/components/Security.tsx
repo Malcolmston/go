@@ -8,6 +8,8 @@ import { hx } from 'go-ui';
 import { LIBS } from '../data';
 import { repoKey } from '../parityLookup';
 import { SecH } from './SecH';
+import { accentVar } from './accentText';
+import './AccentText.css';
 
 // Security — the disclosure record for the ports themselves.
 //
@@ -89,7 +91,43 @@ function libForDir(dir: string) {
   return LIBS.find((l) => l.id === dir) ?? LIBS.find((l) => repoKey(l) === dir);
 }
 
-function Markdown({ text }: { text: string }) {
+// Where a manifest-relative link points once it is resolved: the file in this
+// monorepo, on the default branch.
+const REPO_BLOB_BASE = 'https://github.com/malcolmston/go/blob/main/';
+
+/**
+ * Resolve a link written inside a security manifest against that manifest's own
+ * directory.
+ *
+ * Manifest prose is authored next to the harness it documents, so it links the
+ * way a file in that directory would: `cases/parse.json`, `../COVERAGE.md`.
+ * Rendered on /security those hrefs are relative to the PAGE, so the browser
+ * resolves `cases/parse.json` to /security/cases/parse.json — a 404. Rewrite
+ * them to the repository file they actually name.
+ *
+ * `manifestPath` is repo-relative ('parity/express/nested/contenttype/security.json'),
+ * so the base directory is everything before its last segment. Returns null when
+ * the link cannot be resolved (no manifest path, or `../` climbing out of the
+ * repo root), and the caller then renders the text without an anchor rather than
+ * emitting a link that goes nowhere.
+ */
+export function resolveManifestHref(href: string, manifestPath: string): string | null {
+  const dir = manifestPath.split('/').slice(0, -1);
+  const segments = dir.concat(href.split('/'));
+  const out: string[] = [];
+  for (const seg of segments) {
+    if (seg === '' || seg === '.') continue;
+    if (seg === '..') {
+      if (out.length === 0) return null; // climbs above the repo root
+      out.pop();
+      continue;
+    }
+    out.push(seg);
+  }
+  return out.length > 0 ? REPO_BLOB_BASE + out.join('/') : null;
+}
+
+function Markdown({ text, manifestPath }: { text: string; manifestPath: string }) {
   return (
     <div className="ask-md sec-md">
       <ReactMarkdown
@@ -100,12 +138,20 @@ function Markdown({ text }: { text: string }) {
           // let it inherit the page's own link styling silently.
           a: ({ href, children }) => {
             const url = href ?? '';
+            // Absolute URLs, site paths and in-page anchors already mean what
+            // they say. Anything else is relative to the manifest, not the page.
             const external = /^https?:\/\//.test(url);
+            const resolved =
+              external || url.startsWith('/') || url.startsWith('#')
+                ? url
+                : resolveManifestHref(url, manifestPath);
+            if (!resolved) return <>{children}</>;
+            const outbound = external || resolved.startsWith('http');
             return (
               <a
                 className="ask-link"
-                href={url}
-                {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                href={resolved}
+                {...(outbound ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
               >
                 {children}
               </a>
@@ -215,12 +261,11 @@ export function Security({ data }: { data: SecurityData }) {
         {SEVERITY_ORDER.map((s) => (
           <span
             key={s}
-            className="sec-pill"
-            style={{
+            className="sec-pill acc-text"
+            style={accentVar(SEVERITY_COLOR[s], {
               borderColor: hx(SEVERITY_COLOR[s], '66'),
-              color: SEVERITY_COLOR[s],
               background: hx(SEVERITY_COLOR[s], '16'),
-            }}
+            })}
           >
             {counts.bySeverity[s] ?? 0} {s}
           </span>
@@ -321,12 +366,11 @@ export function Security({ data }: { data: SecurityData }) {
         <div key={g.severity} className="sec-group">
           <h3 className="sec-group-h">
             <span
-              className="sec-pill"
-              style={{
+              className="sec-pill acc-text"
+              style={accentVar(SEVERITY_COLOR[g.severity], {
                 borderColor: hx(SEVERITY_COLOR[g.severity], '66'),
-                color: SEVERITY_COLOR[g.severity],
                 background: hx(SEVERITY_COLOR[g.severity], '16'),
-              }}
+              })}
             >
               {g.severity}
             </span>
@@ -364,23 +408,23 @@ function Finding({ f }: { f: SecurityFinding }) {
       <header className="sec-card-h">
         <div className="sec-card-title">
           {lib ? (
-            <Link href={`/lib/${lib.id}`} className="sec-lib" style={{ color: accent }}>
+            <Link href={`/lib/${lib.id}`} className="sec-lib acc-text" style={accentVar(accent)}>
               {f.port}
             </Link>
           ) : (
-            <span className="sec-lib" style={{ color: accent }}>
+            <span className="sec-lib acc-text" style={accentVar(accent)}>
               {f.port}
             </span>
           )}
           <span
-            className="sec-pill"
-            style={{ borderColor: hx(sevColor, '66'), color: sevColor, background: hx(sevColor, '16') }}
+            className="sec-pill acc-text"
+            style={accentVar(sevColor, { borderColor: hx(sevColor, '66'), background: hx(sevColor, '16') })}
           >
             {f.severity}
           </span>
           <span
-            className="sec-pill"
-            style={{ borderColor: hx(statusColor, '66'), color: statusColor, background: hx(statusColor, '16') }}
+            className="sec-pill acc-text"
+            style={accentVar(statusColor, { borderColor: hx(statusColor, '66'), background: hx(statusColor, '16') })}
             title={f.statusReason}
           >
             {f.status === 'fixed' && f.fixedIn ? `fixed in ${f.fixedIn}` : STATUS_LABEL[f.status]}
@@ -451,13 +495,13 @@ function Finding({ f }: { f: SecurityFinding }) {
       {f.scopeNote && (
         <div className="note sec-scope">
           <b>Scope note from the manifest.</b>
-          <Markdown text={f.scopeNote} />
+          <Markdown text={f.scopeNote} manifestPath={f.manifestPath} />
         </div>
       )}
 
       <details className="sec-desc">
         <summary>Full finding note (as written in the manifest)</summary>
-        <Markdown text={f.description} />
+        <Markdown text={f.description} manifestPath={f.manifestPath} />
       </details>
     </article>
   );

@@ -1,0 +1,39 @@
+/* Readable accent text.
+
+   Every library carries a brand accent (src/data.ts) and the security view
+   carries a severity scale. Those hues were picked to sit on the dark
+   backdrop as a border, a dot or a tinted fill — used raw as a TEXT colour
+   they fail WCAG AA badly: on the light theme the parity percentage rendered
+   at 1.55:1 (#f2cc60 on near-white) and the severity pills at 1.79:1, and
+   even on dark a few accents sat under 4.5:1 (#11557c at 2.4:1).
+
+   The fix is to stop shipping the accent as a colour and ship it as a custom
+   property instead: `style={{ '--acc': accent }}` (see accentText.ts), plus
+   the `acc-text` class. CSS then derives the text colour per theme, mixing
+   the accent toward the page's own extreme in oklab — toward white on dark,
+   toward black on light — which keeps the hue recognisable while lifting the
+   contrast. The mix percentages below are the smallest round numbers for
+   which EVERY accent in src/data.ts, every severity colour and every status
+   colour clears 4.5:1 against the darkest/lightest surface it is drawn on
+   (measured in tests/unit/components/accentText.test.ts: worst case 5.4:1 on
+   dark, 6.5:1 on light).
+
+   The raw accent stays in charge of borders, dots, swatches and tinted
+   backgrounds, where 3:1 non-text contrast is the bar and the brand hue is
+   the point. */
+
+:root {
+  --acc-text-toward: #ffffff;
+  --acc-text-mix: 40%;
+}
+:root[data-theme='light'] {
+  --acc-text-toward: #000000;
+  --acc-text-mix: 44%;
+}
+
+/* The plain `color` first is the fallback for engines without color-mix():
+   the readable-but-anonymous foreground, never the failing accent. */
+.acc-text {
+  color: var(--fg);
+  color: color-mix(in oklab, var(--acc, var(--accent)), var(--acc-text-toward) var(--acc-text-mix));
+}

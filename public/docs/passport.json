@@ -1,6 +1,6 @@
 {
   "module": "github.com/malcolmston/passport",
-  "generatedAt": "2026-07-19T15:18:13Z",
+  "generatedAt": "2026-08-05T11:13:32Z",
   "packages": [
     {
       "importPath": "github.com/malcolmston/passport",
@@ -274,6 +274,12 @@
               "doc": "AuthenticateCallback runs the named strategy and invokes cb with the outcome\ninstead of writing a default response. On success the user is attached to the\nrequest (so cb may call p.LogIn). err is non-nil only for internal strategy\nerrors; a failed auth yields (nil user) with info carrying the challenge/info.\n\nIt mirrors Passport.js's custom-callback form:\n\n\tpassport.authenticate('local', function(err, user, info){ ... })\n\nRedirects requested by the strategy (e.g. an OAuth handshake) are performed\ndirectly and cb is not called for them.\n"
             },
             {
+              "name": "CookieName",
+              "recv": "*Passport",
+              "signature": "func (p *Passport) CookieName(name string) *Passport",
+              "doc": "CookieName overrides the name of the session cookie (DefaultCookieName).\nAn empty name is ignored, since a cookie with no name cannot be read back.\n"
+            },
+            {
               "name": "Deserialize",
               "recv": "*Passport",
               "signature": "func (p *Passport) Deserialize(id any, r *http.Request) (user any, err error)",
@@ -310,10 +316,16 @@
               "doc": "RequireLogin returns middleware that allows the request through only when it\nis authenticated; otherwise it redirects to redirectTo (or responds 401 when\nredirectTo is empty).\n"
             },
             {
+              "name": "SameSite",
+              "recv": "*Passport",
+              "signature": "func (p *Passport) SameSite(mode http.SameSite) *Passport",
+              "doc": "SameSite sets the SameSite attribute of the session cookie. The default is\nhttp.SameSiteLaxMode, which blocks the cookie on cross-site POSTs — the CSRF\nshape that matters for login endpoints — while still allowing top-level\nnavigations back from an external identity provider. Use\nhttp.SameSiteNoneMode (together with SecureCookies(true)) only when the\nsession genuinely must travel on cross-site subrequests.\n"
+            },
+            {
               "name": "SecureCookies",
               "recv": "*Passport",
               "signature": "func (p *Passport) SecureCookies(secure bool) *Passport",
-              "doc": "SecureCookies marks the session cookie Secure (send only over HTTPS).\n"
+              "doc": "SecureCookies marks the session cookie Secure (send only over HTTPS). Enable\nit for any deployment served over TLS.\n"
             },
             {
               "name": "Serialize",
@@ -337,7 +349,7 @@
               "name": "SetStore",
               "recv": "*Passport",
               "signature": "func (p *Passport) SetStore(store Store) *Passport",
-              "doc": "SetStore replaces the session store (e.g. with a Redis-backed Store).\n"
+              "doc": "SetStore replaces the session store (e.g. with a Redis-backed Store),\npreserving every cookie setting configured so far. Swapping the store must\nnever silently relax cookie security, so SecureCookies, CookieName, and\nSameSite may be called before or after SetStore with the same result.\n"
             },
             {
               "name": "TransformAuthInfo",
@@ -514,7 +526,38 @@
             {
               "name": "ParseBasic",
               "signature": "func ParseBasic(header string) (BasicCredentials, error)",
-              "doc": "ParseBasic decodes an \"Authorization: Basic ...\" header into its username and\npassword. It returns ErrWrongScheme for a non-Basic header and ErrMalformed\nif the base64 payload is invalid or lacks the \":\" separator.\n"
+              "doc": "ParseBasic decodes an \"Authorization: Basic ...\" header into its username and\npassword. It returns ErrWrongScheme for a non-Basic header and ErrMalformed\nif the base64 payload is invalid or lacks the \":\" separator.\n\nThe payload is split at the first \":\" only, so a password may itself contain\ncolons (RFC 7617 forbids them in the user-id but not in the password).\nPadded and unpadded base64 are both accepted, since some clients omit the\n\"=\" padding.\n"
+            }
+          ],
+          "methods": [
+            {
+              "name": "Matches",
+              "recv": "BasicCredentials",
+              "signature": "func (c BasicCredentials) Matches(username, password string) bool",
+              "doc": "Matches reports whether c carries exactly the given username and password,\ncomparing both in constant time so a caller cannot be used as an oracle for\nguessing either field one byte at a time. Both fields are always compared,\neven when the username already differs, so the timing does not reveal which\nof the two was wrong.\n\nThis is only appropriate for a fixed, in-process credential pair (a metrics\nendpoint, an internal callback). Multi-user systems should look the user up\nand compare the password against a password hash instead.\n"
+            }
+          ]
+        },
+        {
+          "name": "DigestChallengeParams",
+          "signature": "type DigestChallengeParams struct {\n\tRealm     string // protection space shown in the client's credential prompt\n\tNonce     string // server nonce; must be unpredictable and single-use\n\tOpaque    string // opaque value the client echoes back unchanged\n\tAlgorithm string // AlgMD5, AlgSHA256, AlgSHA512_256, optionally \"-sess\"\n\tQOP       string // quality of protection, e.g. \"auth\" or \"auth,auth-int\"\n\tDomain    string // space-separated URIs the credentials are valid for\n\tStale     bool   // true when the previous nonce merely expired\n\tCharset   string // e.g. \"UTF-8\"\n\tUserhash  bool   // true when the server accepts a hashed username\n}",
+          "doc": "DigestChallengeParams describes the WWW-Authenticate challenge a server sends\nto start a Digest exchange (RFC 7616 Section 3.3). Only Realm and Nonce are\nrequired; the remaining fields are omitted from the rendered header when\nempty.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [],
+          "methods": []
+        },
+        {
+          "name": "DigestCredentials",
+          "signature": "type DigestCredentials struct {\n\tUsername  string\n\tRealm     string\n\tNonce     string\n\tURI       string\n\tResponse  string\n\tAlgorithm string\n\tCNonce    string\n\tOpaque    string\n\tQOP       string\n\tNC        string\n\tUserhash  bool\n\t// Params holds every auth-param as parsed, keyed by lower-cased name, so\n\t// extensions this struct does not model remain reachable.\n\tParams map[string]string\n}",
+          "doc": "DigestCredentials is a parsed \"Authorization: Digest ...\" header.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "ParseDigest",
+              "signature": "func ParseDigest(header string) (DigestCredentials, error)",
+              "doc": "ParseDigest parses a full \"Digest ...\" Authorization header value. It returns\nErrWrongScheme for a header using another scheme, and ErrMalformed when the\nmandatory username, nonce, uri or response parameters are missing.\n"
             }
           ],
           "methods": []
@@ -533,12 +576,17 @@
         {
           "name": "BasicChallenge",
           "signature": "func BasicChallenge(realm string) string",
-          "doc": "BasicChallenge returns the WWW-Authenticate header value a server sends with a\n401 to request HTTP Basic credentials for realm.\n"
+          "doc": "BasicChallenge returns the WWW-Authenticate header value a server sends with a\n401 to request HTTP Basic credentials for realm. The realm is emitted as a\nquoted-string via QuoteString, so it cannot break out of the header value.\n"
         },
         {
           "name": "BearerChallenge",
           "signature": "func BearerChallenge(realm, errCode string) string",
-          "doc": "BearerChallenge returns the WWW-Authenticate header value for a Bearer 401.\nWhen realm is non-empty it is included; when errCode is non-empty an RFC 6750\nerror parameter (e.g. \"invalid_token\") is appended.\n"
+          "doc": "BearerChallenge returns the WWW-Authenticate header value for a Bearer 401.\nWhen realm is non-empty it is included; when errCode is non-empty an RFC 6750\nerror parameter (e.g. \"invalid_token\") is appended. Both are emitted as\nquoted-strings via QuoteString.\n"
+        },
+        {
+          "name": "DigestChallenge",
+          "signature": "func DigestChallenge(p DigestChallengeParams) string",
+          "doc": "DigestChallenge renders p as a WWW-Authenticate header value. All values are\nemitted as quoted-strings via QuoteString except \"stale\" and \"userhash\",\nwhich RFC 7616 defines as unquoted booleans, so a caller-supplied realm or\nnonce cannot inject additional header content.\n"
         },
         {
           "name": "DigestResponse",
@@ -573,20 +621,35 @@
         {
           "name": "ParseScheme",
           "signature": "func ParseScheme(header string) (scheme, rest string, err error)",
-          "doc": "ParseScheme splits an Authorization header value into its scheme token and\nthe remaining credentials, without interpreting the credentials. The scheme\nis returned as written (callers should compare case-insensitively).\n"
+          "doc": "ParseScheme splits an Authorization header value into its scheme token and\nthe remaining credentials, without interpreting the credentials. The scheme\nis returned as written (callers should compare case-insensitively).\n\nPer RFC 7235 the scheme and credentials are separated by one or more spaces\nor horizontal tabs, so \"Basic  dXNlcjpwdw\" and \"Basic\\tdXNlcjpwdw\" parse the\nsame as the single-space form. A header with no separator, or with an empty\ncredentials part, is ErrMalformed; an empty header is ErrNoHeader.\n"
+        },
+        {
+          "name": "QuoteString",
+          "signature": "func QuoteString(s string) string",
+          "doc": "QuoteString renders s as an RFC 7230 quoted-string suitable for use as an\nauth-param value in a WWW-Authenticate header. Backslashes and double quotes\nare escaped, and CR, LF, NUL and other control characters are dropped so an\nattacker-influenced realm cannot terminate the value or inject a second\nheader (response splitting).\n"
         },
         {
           "name": "SchemeOf",
           "signature": "func SchemeOf(header string) string",
           "doc": "SchemeOf returns the lower-cased authentication scheme named by an\nAuthorization header value, or \"\" if the header is empty or malformed.\n"
+        },
+        {
+          "name": "SecureCompare",
+          "signature": "func SecureCompare(a, b string) bool",
+          "doc": "SecureCompare reports whether a and b are equal using a constant-time\ncomparison. Use it instead of == whenever one of the operands is a secret —\na password, an API key, a signature — so the check does not leak how many\nleading bytes matched through response timing.\n\nNote that, like crypto/subtle.ConstantTimeCompare, this does not hide the\noperands' lengths.\n"
+        },
+        {
+          "name": "VerifyDigest",
+          "signature": "func VerifyDigest(c DigestCredentials, method, password string, body []byte) bool",
+          "doc": "VerifyDigest recomputes the expected response digest for c using method (the\nHTTP request method), password (the user's cleartext password) and body (only\nconsulted when c.QOP is \"auth-int\"), then compares it against the presented\nc.Response in constant time.\n\nIt reports false — rather than an error — for an unsupported algorithm, so a\ncaller can treat every rejection identically. The caller remains responsible\nfor checking that c.Nonce is one this server issued and has not already seen\nat this nonce-count; without that bookkeeping Digest offers no replay\nprotection.\n"
         }
       ]
     },
     {
       "importPath": "github.com/malcolmston/passport/interop",
       "name": "main",
-      "synopsis": "",
-      "doc": "",
+      "synopsis": "Command jwt_interop is the Go half of the cross-ecosystem JWT check described in README.md.",
+      "doc": "Command jwt_interop is the Go half of the cross-ecosystem JWT check\ndescribed in README.md. Run without arguments it signs an HS256 token for\nNode's jsonwebtoken to verify; run as `jwt_interop verify \u003ctoken\u003e` it\nverifies a token Node produced.\n\nThe compatibility claims this command demonstrates are also asserted\nautomatically, against checked-in jsonwebtoken@9 vectors, in\njwt_interop_test.go — so `go test ./interop` re-checks them without needing\nNode installed.\n",
       "isCommand": true,
       "consts": [],
       "vars": [],
@@ -620,7 +683,7 @@
             {
               "name": "NewHMACStore",
               "signature": "func NewHMACStore(key []byte, ttl time.Duration) *HMACStore",
-              "doc": "NewHMACStore returns an HMACStore that signs with key. If ttl is positive,\nVerify rejects states older than ttl. The key should be at least 32 bytes of\nunpredictable data.\n"
+              "doc": "NewHMACStore returns an HMACStore that signs with key. If ttl is positive,\nVerify rejects states older than ttl. The key should be at least 32 bytes of\nunpredictable data.\n\nBecause verification is stateless there is nothing to consume, so a valid\nstate can be replayed until it expires. That is enough for CSRF protection —\nan attacker still cannot mint a state — but it is weaker than MemoryStore's\nexactly-once semantics. Keep ttl short (minutes), and prefer MemoryStore when\nsingle use matters. A non-positive ttl disables the expiry check entirely and\nshould be avoided.\n"
             }
           ],
           "methods": [
@@ -656,13 +719,19 @@
               "name": "Issue",
               "recv": "*MemoryStore",
               "signature": "func (s *MemoryStore) Issue(payload string) (string, error)",
-              "doc": "Issue generates a nonce, stores payload against it, and returns the nonce.\n"
+              "doc": "Issue generates a nonce, stores payload against it, and returns the nonce.\n\nMost issued states are never redeemed — users abandon consent screens — so\nevery sweepEvery calls Issue also drops the entries whose TTL has elapsed.\nWithout that, a store with a TTL would still grow forever under normal\ntraffic. Callers that want a predictable schedule can drive Sweep themselves.\n"
             },
             {
               "name": "Len",
               "recv": "*MemoryStore",
               "signature": "func (s *MemoryStore) Len() int",
               "doc": "Len reports how many issued-but-unconsumed states the store currently holds,\nincluding any that have expired but not yet been swept.\n"
+            },
+            {
+              "name": "Sweep",
+              "recv": "*MemoryStore",
+              "signature": "func (s *MemoryStore) Sweep() int",
+              "doc": "Sweep discards every issued-but-unconsumed state whose TTL has elapsed and\nreports how many were removed. It is safe to call concurrently and is a no-op\nfor a store created with a non-positive ttl, whose states never expire.\n"
             },
             {
               "name": "Verify",
@@ -684,9 +753,39 @@
       ],
       "funcs": [
         {
+          "name": "Equal",
+          "signature": "func Equal(a, b string) bool",
+          "doc": "Equal reports whether two state values are identical, comparing them in\nconstant time. Use it when checking a returned state against one you kept\nyourself rather than against a Store, so the comparison cannot be used as a\nbyte-at-a-time guessing oracle.\n"
+        },
+        {
           "name": "GenerateNonce",
           "signature": "func GenerateNonce() (string, error)",
-          "doc": "GenerateNonce returns a URL-safe random string built from 16 bytes of\nentropy, suitable as an OAuth state value or general CSRF token.\n"
+          "doc": "GenerateNonce returns a URL-safe random string built from 16 bytes of\nentropy, suitable as an OAuth state value or general CSRF token. The bytes\ncome from crypto/rand, and a failure of the system random source is returned\nas an error rather than yielding a guessable value.\n"
+        },
+        {
+          "name": "GenerateNonceWithLength",
+          "signature": "func GenerateNonceWithLength(n int) (string, error)",
+          "doc": "GenerateNonceWithLength returns a URL-safe random string built from n bytes\nof entropy. n must be positive; 16 bytes (128 bits) is the practical minimum\nfor a CSRF token and is what GenerateNonce uses.\n"
+        }
+      ],
+      "examples": [
+        {
+          "name": "HMACStore",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"time\"\n\n\t\"github.com/malcolmston/passport/oauthstate\"\n)\n\nfunc main() {\n\tstore := oauthstate.NewHMACStore([]byte(\"a-32-byte-or-longer-secret-key!!\"), 5*time.Minute)\n\n\tstate, err := store.Issue(\"/settings\")\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\n\treturnTo, err := store.Verify(state)\n\tfmt.Println(\"return to:\", returnTo, \"err:\", err)\n\n\t// Tampering with the payload invalidates the signature.\n\t_, err = store.Verify(state + \"x\")\n\tfmt.Println(\"tampered:\", err)\n}",
+          "output": "return to: /settings err: \u003cnil\u003e\ntampered: oauthstate: signature mismatch",
+          "doc": "ExampleHMACStore shows the stateless style, which needs no server storage and\ntherefore works across restarts and multiple instances sharing the key.\n"
+        },
+        {
+          "name": "MemoryStore",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"time\"\n\n\t\"github.com/malcolmston/passport/oauthstate\"\n)\n\nfunc main() {\n\tstore := oauthstate.NewMemoryStore(10 * time.Minute)\n\n\t// Before redirecting: remember where the user was headed.\n\tstate, err := store.Issue(\"/dashboard\")\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\n\t// On the callback: consume the state and recover the payload.\n\treturnTo, err := store.Verify(state)\n\tfmt.Println(\"return to:\", returnTo, \"err:\", err)\n\n\t// A second callback with the same state is rejected.\n\t_, err = store.Verify(state)\n\tfmt.Println(\"replay:\", err)\n\n\t// So is a state we never issued.\n\t_, err = store.Verify(\"made-up\")\n\tfmt.Println(\"forged:\", err)\n}",
+          "output": "return to: /dashboard err: \u003cnil\u003e\nreplay: oauthstate: unknown or expired state\nforged: oauthstate: unknown or expired state",
+          "doc": "ExampleMemoryStore shows the server-side style: a state is issued before the\nredirect and consumed exactly once on the callback, so a replayed callback\ncannot succeed.\n"
+        },
+        {
+          "name": "MemoryStore (Sweep)",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"time\"\n\n\t\"github.com/malcolmston/passport/oauthstate\"\n)\n\nfunc main() {\n\tstore := oauthstate.NewMemoryStore(time.Nanosecond)\n\tfor i := 0; i \u003c 3; i++ {\n\t\tif _, err := store.Issue(\"\"); err != nil {\n\t\t\tpanic(err)\n\t\t}\n\t}\n\ttime.Sleep(time.Millisecond)\n\n\tfmt.Println(\"swept:\", store.Sweep())\n\tfmt.Println(\"remaining:\", store.Len())\n}",
+          "output": "swept: 3\nremaining: 0",
+          "doc": "ExampleMemoryStore_Sweep shows explicit expiry collection, for callers that\nwant a predictable schedule rather than the amortized sweeping Issue does.\n"
         }
       ]
     },
@@ -694,9 +793,17 @@
       "importPath": "github.com/malcolmston/passport/otpauth",
       "name": "otpauth",
       "synopsis": "Package otpauth builds and parses \"otpauth://\" key URIs for the passport port.",
-      "doc": "Package otpauth builds and parses \"otpauth://\" key URIs for the passport\nport. These URIs are the de-facto interchange format for provisioning\ntime-based (TOTP) and counter-based (HOTP) one-time-password secrets into\nauthenticator apps, most commonly by encoding them in a QR code. The passport\nTOTP and HOTP strategies verify codes but ship no way to describe an\nenrollment; this package provides that missing piece, following the Google\nAuthenticator Key Uri Format.\n\nA Key captures the OTP type (totp or hotp), the account label and issuer, the\nshared secret, and the algorithm/digits parameters. URL renders it to a\ncanonical otpauth URI and Parse reads one back; the two round-trip. Secrets\nare handled as base32 without padding, the encoding authenticator apps expect.\nEverything here is deterministic and uses only the standard library, except\nGenerateSecret which draws from crypto/rand.\n",
+      "doc": "Package otpauth builds and parses \"otpauth://\" key URIs for the passport\nport. These URIs are the de-facto interchange format for provisioning\ntime-based (TOTP) and counter-based (HOTP) one-time-password secrets into\nauthenticator apps, most commonly by encoding them in a QR code. The passport\nTOTP and HOTP strategies verify codes but ship no way to describe an\nenrollment; this package provides that missing piece, following the Google\nAuthenticator Key Uri Format.\n\nA Key captures the OTP type (totp or hotp), the account label and issuer, the\nshared secret, and the algorithm/digits parameters. URL renders it to a\ncanonical otpauth URI and Parse reads one back; the two round-trip. Secrets\nare handled as base32 without padding, the encoding authenticator apps expect.\nEverything here is deterministic and uses only the standard library, except\nGenerateSecret which draws from crypto/rand.\n\nA Key can also produce and check the codes it describes. Code implements the\nRFC 4226 HOTP construction and its RFC 6238 time-based variant, honoring\neverything the Key Uri Format can express — SHA-1, SHA-256 or SHA-512, six to\nten digits, an arbitrary time step — which is strictly more than the fixed\nSHA-1/6-digit/30-second strategies in strategies/totp and strategies/hotp can\nhandle. Verify checks a submitted code against an acceptance window, forward-\nonly for HOTP so a consumed counter can never be replayed, and symmetric for\nTOTP so honest clock drift is tolerated; every candidate is compared in\nconstant time. Both are validated against the published test vectors in RFC\n4226 Appendix D and RFC 6238 Appendix B.\n",
       "consts": [],
-      "vars": [],
+      "vars": [
+        {
+          "names": [
+            "ErrUnknownAlgorithm"
+          ],
+          "signature": "var ErrUnknownAlgorithm = errors.New(\"otpauth: unknown algorithm\")",
+          "doc": "ErrUnknownAlgorithm indicates a Key.Algorithm this package cannot compute.\n"
+        }
+      ],
       "types": [
         {
           "name": "Key",
@@ -713,16 +820,46 @@
           ],
           "methods": [
             {
+              "name": "Code",
+              "recv": "Key",
+              "signature": "func (k Key) Code(t time.Time) (string, error)",
+              "doc": "Code returns the one-time password this Key produces at time t, honoring the\nKey's Algorithm, Digits, and (for TOTP) Period. For a HOTP key the time is\nignored and the Key's Counter is used as the moving factor.\n\nUnlike the fixed SHA1/6-digit/30-second strategies in strategies/totp and\nstrategies/hotp, this respects everything the Key Uri Format can express, so\nit can generate codes for SHA-256 and SHA-512 keys and for 8-digit tokens. It\nreturns an error if the Key does not pass Validate.\n"
+            },
+            {
+              "name": "CodeAtCounter",
+              "recv": "Key",
+              "signature": "func (k Key) CodeAtCounter(counter uint64) (string, error)",
+              "doc": "CodeAtCounter returns the one-time password for an explicit moving factor,\nbypassing the Key's own Counter and Period. It is the building block behind\nCode and is useful for pre-generating a batch of HOTP codes or for driving a\ncustom acceptance window.\n"
+            },
+            {
               "name": "Label",
               "recv": "Key",
               "signature": "func (k Key) Label() string",
               "doc": "Label returns the canonical \"Issuer:Account\" label, or just Account when no\nissuer is set.\n"
             },
             {
+              "name": "MovingFactor",
+              "recv": "Key",
+              "signature": "func (k Key) MovingFactor(t time.Time) uint64",
+              "doc": "MovingFactor returns the counter that drives the HOTP construction for this\nKey at time t: k.Counter for an HOTP key (t is ignored), or\nfloor(unixSeconds / Period) for a TOTP key (RFC 6238 Section 4.2).\n"
+            },
+            {
               "name": "URL",
               "recv": "Key",
               "signature": "func (k Key) URL() string",
               "doc": "URL renders the Key as a canonical otpauth URI string. The issuer is written\nboth as a label prefix and as an explicit issuer parameter, as recommended by\nthe Key Uri Format.\n"
+            },
+            {
+              "name": "Validate",
+              "recv": "Key",
+              "signature": "func (k Key) Validate() error",
+              "doc": "Validate reports whether k is internally consistent and can produce codes: a\nknown Type and Algorithm, a decodable base32 Secret, a digit count within\n[6,10], and (for TOTP) a positive Period.\n"
+            },
+            {
+              "name": "Verify",
+              "recv": "Key",
+              "signature": "func (k Key) Verify(code string, t time.Time, window int) (matched uint64, ok bool)",
+              "doc": "Verify reports whether code is valid for this Key at time t, accepting any\ncode within window moving-factor steps of the expected one, and returns the\ncounter that matched.\n\nThe window is interpreted per OTP type. For TOTP it is symmetric — window\nsteps either side of the current one — because the client and server clocks\ncan drift in both directions; window 1 with the default 30-second period\naccepts the previous, current, and next code. For HOTP it looks only forward,\nfrom the Key's Counter to Counter+window, because a token whose counter has\nfallen behind the server's is not something the server should re-accept; that\nis exactly the replay it must prevent. A window of 0 accepts only the exact\nexpected code.\n\nEvery candidate is compared with crypto/subtle.ConstantTimeCompare, and all\ncandidates are evaluated even after a match, so neither the validity of the\ncode nor which step matched leaks through response timing.\n\nVerify does not by itself make a code single-use. TOTP codes stay valid for\nthe rest of their step, and HOTP codes stay valid until the stored counter\nadvances: on success the caller MUST persist matched+1 as the new counter (or,\nfor TOTP, record the accepted step) before honoring another attempt.\n"
             }
           ]
         },
@@ -756,6 +893,32 @@
           "signature": "func GenerateSecret(n int) (string, error)",
           "doc": "GenerateSecret returns a random base32 secret string (no padding) built from\nn bytes of entropy. Twenty bytes is a common, well-supported choice.\n"
         }
+      ],
+      "examples": [
+        {
+          "name": "",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"time\"\n\n\t\"github.com/malcolmston/passport/otpauth\"\n)\n\nfunc main() {\n\tkey := otpauth.Key{\n\t\tType:    otpauth.TOTP,\n\t\tIssuer:  \"Example, Inc.\",\n\t\tAccount: \"alice@example.com\",\n\t\t// In production: otpauth.GenerateSecret(20).\n\t\tSecret: \"GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ\",\n\t}\n\n\t// Render this as a QR code for the authenticator app to scan.\n\tfmt.Println(key.URL())\n\n\t// At sign-in, generate what the app should be showing and compare.\n\tat := time.Unix(1_000_000_000, 0)\n\tcode, err := key.Code(at)\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\t_, ok := key.Verify(code, at, 1)\n\tfmt.Println(\"accepted:\", ok)\n}",
+          "output": "otpauth://totp/Example,%20Inc.:alice@example.com?algorithm=SHA1\u0026digits=6\u0026issuer=Example%2C%20Inc.\u0026period=30\u0026secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ\naccepted: true",
+          "doc": "Example walks a full TOTP enrollment: mint a secret, describe it as an\notpauth URI for the user's authenticator app, then check the code they type\nback.\n"
+        },
+        {
+          "name": "Parse",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/passport/otpauth\"\n)\n\nfunc main() {\n\tkey, err := otpauth.Parse(\"otpauth://totp/Example:bob@example.com?secret=GEZDGNBVGY3TQOJQ\u0026issuer=Example\")\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Printf(\"%s %s/%s alg=%s digits=%d period=%d\\n\",\n\t\tkey.Type, key.Issuer, key.Account, key.Algorithm, key.Digits, key.Period)\n}",
+          "output": "totp Example/bob@example.com alg=SHA1 digits=6 period=30",
+          "doc": "ExampleParse reads an otpauth URI produced by another system, applying the\nformat's defaults for anything it omits.\n"
+        },
+        {
+          "name": "Key (Code)",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"time\"\n\n\t\"github.com/malcolmston/passport/otpauth\"\n)\n\nfunc main() {\n\tkey := otpauth.Key{\n\t\tType:      otpauth.TOTP,\n\t\tAccount:   \"alice\",\n\t\tSecret:    \"GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNA\",\n\t\tAlgorithm: \"SHA512\",\n\t\tDigits:    8,\n\t\tPeriod:    30,\n\t}\n\tcode, err := key.Code(time.Unix(59, 0))\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Println(code)\n}",
+          "output": "90693936",
+          "doc": "ExampleKey_Code generates the RFC 6238 Appendix B vector for SHA-512 at\n8 digits — parameters the fixed-format strategies/totp package cannot express.\n"
+        },
+        {
+          "name": "Key (Verify)",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"time\"\n\n\t\"github.com/malcolmston/passport/otpauth\"\n)\n\nfunc main() {\n\thotpKey := otpauth.Key{\n\t\tType:    otpauth.HOTP,\n\t\tAccount: \"alice\",\n\t\tSecret:  \"GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ\",\n\t\tCounter: 5,\n\t}\n\n\tused, _ := hotpKey.CodeAtCounter(4)\n\t_, ok := hotpKey.Verify(used, time.Time{}, 3)\n\tfmt.Println(\"already-consumed counter accepted:\", ok)\n\n\tahead, _ := hotpKey.CodeAtCounter(7)\n\tmatched, ok := hotpKey.Verify(ahead, time.Time{}, 3)\n\tfmt.Println(\"look-ahead accepted:\", ok, \"at counter\", matched)\n\tfmt.Println(\"now persist counter\", matched+1)\n}",
+          "output": "already-consumed counter accepted: false\nlook-ahead accepted: true at counter 7\nnow persist counter 8",
+          "doc": "ExampleKey_Verify shows the asymmetry between the two OTP types. TOTP\ntolerates clock drift in both directions; HOTP only ever looks forward, so a\ncounter the server has already consumed can never be replayed.\n"
+        }
       ]
     },
     {
@@ -781,7 +944,13 @@
             }
           ],
           "vars": [],
-          "funcs": [],
+          "funcs": [
+            {
+              "name": "ParseMethod",
+              "signature": "func ParseMethod(s string) (Method, error)",
+              "doc": "ParseMethod interprets a code_challenge_method value from an authorization\nrequest. RFC 7636 Section 4.3 specifies that an absent method means \"plain\",\nso an empty string yields MethodPlain; any value other than the two defined\ntransformations is an error. The comparison is case-sensitive, as the RFC\ndefines both names as literals.\n"
+            }
+          ],
           "methods": [
             {
               "name": "String",
@@ -808,6 +977,11 @@
               "name": "New",
               "signature": "func New() (Pair, error)",
               "doc": "New returns a fresh Pair using the S256 transformation. The verifier is\nrandomly generated; the challenge is derived from it.\n"
+            },
+            {
+              "name": "NewWithMethod",
+              "signature": "func NewWithMethod(method Method) (Pair, error)",
+              "doc": "NewWithMethod returns a fresh Pair using the given transformation.\n\nCallers should pass MethodS256 unless they are talking to a server that\ngenuinely cannot do SHA-256: under MethodPlain the challenge is the verifier\nin cleartext, so anything that can observe the authorization request also\nlearns the secret and PKCE stops protecting against code interception. RFC\n7636 Section 4.2 requires clients capable of S256 to use it.\n"
             }
           ],
           "methods": [
@@ -816,6 +990,18 @@
               "recv": "Pair",
               "signature": "func (p Pair) AuthParams() map[string]string",
               "doc": "AuthParams returns the query parameters a client adds to the authorization\nrequest: code_challenge and code_challenge_method.\n"
+            },
+            {
+              "name": "TokenParams",
+              "recv": "Pair",
+              "signature": "func (p Pair) TokenParams() map[string]string",
+              "doc": "TokenParams returns the form parameters a client adds to the authorization-\ncode token request: the single code_verifier field (RFC 7636 Section 4.5).\nThe verifier is a secret and must travel only on that back-channel POST,\nnever on the front-channel authorization request.\n"
+            },
+            {
+              "name": "Valid",
+              "recv": "Pair",
+              "signature": "func (p Pair) Valid() bool",
+              "doc": "Valid reports whether p is internally consistent: the verifier is\nsyntactically legal and the challenge is exactly what Method derives from it.\n"
             }
           ]
         }
@@ -854,7 +1040,33 @@
         {
           "name": "Verify",
           "signature": "func Verify(method Method, verifier, challenge string) bool",
-          "doc": "Verify reports whether verifier matches challenge under method, using a\nconstant-time comparison. An unrecognized method returns false.\n"
+          "doc": "Verify reports whether verifier matches challenge under method, using a\nconstant-time comparison. It returns false for an unrecognized method, an\nempty challenge, or a verifier that is not syntactically valid per\nValidVerifier.\n\nThe syntax check is load-bearing, not cosmetic. RFC 7636 Section 4.6 requires\nthe server to validate the verifier it receives, and under MethodPlain the\nchallenge is the verifier: without the check, a request presenting an empty\nverifier against a stored empty challenge would \"match\" and defeat PKCE\nentirely. Rejecting anything shorter than 43 characters also enforces the\nentropy floor the RFC mandates.\n"
+        }
+      ],
+      "examples": [
+        {
+          "name": "",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/passport/pkce\"\n)\n\nfunc main() {\n\t// Before redirecting the user agent to the provider.\n\tpair, err := pkce.New()\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\n\t// These go on the front-channel authorization request.\n\tauth := pair.AuthParams()\n\tfmt.Println(\"method:\", auth[\"code_challenge_method\"])\n\n\t// The verifier stays with the client and travels only on the token POST.\n\tfmt.Println(\"token request carries:\", len(pair.TokenParams()), \"parameter\")\n\n\t// What the authorization server does when the code is redeemed.\n\tfmt.Println(\"verified:\", pkce.Verify(pair.Method, pair.Verifier, pair.Challenge))\n}",
+          "output": "method: S256\ntoken request carries: 1 parameter\nverified: true",
+          "doc": "Example shows the two halves of a PKCE-protected authorization-code flow: the\nclient derives a challenge before redirecting, keeps the verifier locally,\nand presents it on the back-channel token request.\n"
+        },
+        {
+          "name": "S256Challenge",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/passport/pkce\"\n)\n\nfunc main() {\n\tverifier := \"dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk\"\n\tfmt.Println(pkce.S256Challenge(verifier))\n}",
+          "output": "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+          "doc": "ExampleS256Challenge reproduces the worked example from RFC 7636 Appendix B.\n"
+        },
+        {
+          "name": "Verify",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/passport/pkce\"\n)\n\nfunc main() {\n\tgood := \"dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk\"\n\n\tfmt.Println(pkce.Verify(pkce.MethodS256, good, pkce.S256Challenge(good)))\n\tfmt.Println(pkce.Verify(pkce.MethodPlain, good, good))\n\tfmt.Println(pkce.Verify(pkce.MethodPlain, \"\", \"\"))\n\tfmt.Println(pkce.Verify(pkce.MethodS256, good, \"not-the-challenge\"))\n}",
+          "output": "true\ntrue\nfalse\nfalse",
+          "doc": "ExampleVerify shows that verification fails closed for a verifier that does\nnot meet RFC 7636's syntax rules, which is what stops an empty verifier from\n\"matching\" an empty plain challenge.\n"
+        },
+        {
+          "name": "ParseMethod",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/passport/pkce\"\n)\n\nfunc main() {\n\tfor _, raw := range []string{\"S256\", \"plain\", \"\"} {\n\t\tm, err := pkce.ParseMethod(raw)\n\t\tfmt.Printf(\"%q -\u003e %v (err %v)\\n\", raw, m, err)\n\t}\n\tif _, err := pkce.ParseMethod(\"S512\"); err != nil {\n\t\tfmt.Println(\"S512 rejected\")\n\t}\n}",
+          "output": "\"S256\" -\u003e S256 (err \u003cnil\u003e)\n\"plain\" -\u003e plain (err \u003cnil\u003e)\n\"\" -\u003e plain (err \u003cnil\u003e)\nS512 rejected",
+          "doc": "ExampleParseMethod shows RFC 7636's default: an absent code_challenge_method\nmeans \"plain\".\n"
         }
       ]
     },
@@ -863,7 +1075,15 @@
       "name": "pwhash",
       "synopsis": "Package pwhash provides password hashing and verification for the passport port using PBKDF2 (RFC 2898 / PKCS #5) over the standard library only.",
       "doc": "Package pwhash provides password hashing and verification for the passport\nport using PBKDF2 (RFC 2898 / PKCS #5) over the standard library only. Local\nusername/password strategies need a safe way to store and check passwords;\nNode's passport ecosystem leans on modules such as passport-local-mongoose\nfor this, and pwhash supplies the equivalent building block here without any\nthird-party dependency.\n\nThe core Key function is a faithful, allocation-frugal implementation of\nPBKDF2 with an HMAC pseudo-random function, verified against the RFC 6070\ntest vectors. On top of it, Hash produces a self-describing, Django-style\nencoded string — \"pbkdf2_\u003chash\u003e$\u003citerations\u003e$\u003cb64salt\u003e$\u003cb64dk\u003e\" — that\ncaptures every parameter needed to verify it later, and Verify recomputes the\nderived key in constant time. Salting uses crypto/rand; Key itself is\ndeterministic.\n",
-      "consts": [],
+      "consts": [
+        {
+          "names": [
+            "MaxIterations"
+          ],
+          "signature": "const MaxIterations = 100_000_000",
+          "doc": "MaxIterations is the largest iteration count Decode will accept. Encoded\nhashes are attacker-influenced whenever they reach the process from an\nuntrusted store or a copied credential file, and PBKDF2's cost is linear in\nthe iteration count, so an unbounded value would let a single Verify call\npin a CPU indefinitely. The bound is far above any realistic parameter\nchoice (DefaultParams uses 600,000).\n"
+        }
+      ],
       "vars": [
         {
           "names": [
@@ -895,7 +1115,7 @@
             {
               "name": "Decode",
               "signature": "func Decode(encoded string) (alg Algorithm, iterations int, salt, dk []byte, err error)",
-              "doc": "Decode parses an encoded pwhash string into its parameters and raw bytes. It\nreturns ErrInvalidHash or ErrUnknownAlgorithm on malformed input.\n"
+              "doc": "Decode parses an encoded pwhash string into its parameters and raw bytes. It\nreturns ErrInvalidHash or ErrUnknownAlgorithm on malformed input.\n\nDecode is strict on purpose: an encoding whose salt or derived key is empty,\nwhose iteration count is not in [1, MaxIterations], or that carries trailing\njunk is rejected outright rather than being verified against. A hash with an\nempty derived key would otherwise match every password, so this validation is\nload-bearing for Verify's correctness, not merely cosmetic.\n"
             }
           ],
           "methods": []
@@ -930,12 +1150,49 @@
         {
           "name": "Key",
           "signature": "func Key(password, salt []byte, iter, keyLen int, h func() hash.Hash) []byte",
-          "doc": "Key derives a keyLen-byte key from password and salt by applying PBKDF2 with\niter iterations of HMAC using the hash constructed by h. It is a direct\nimplementation of the algorithm in RFC 2898 section 5.2 and matches the\nRFC 6070 test vectors for HMAC-SHA1.\n"
+          "doc": "Key derives a keyLen-byte key from password and salt by applying PBKDF2 with\niter iterations of HMAC using the hash constructed by h. It is a direct\nimplementation of the algorithm in RFC 2898 section 5.2 and matches the\nRFC 6070 test vectors for HMAC-SHA1.\n\nkeyLen values \u003c= 0 yield an empty key rather than panicking, and iter values\n\u003c 1 are clamped to the RFC's minimum of one iteration. Callers deriving\npassword hashes should use Hash/HashWithParams, which pick safe parameters;\nKey is exported for callers that need raw PBKDF2 (for example to match an\nexisting hash format).\n"
+        },
+        {
+          "name": "NeedsRehash",
+          "signature": "func NeedsRehash(encoded string, want Params) bool",
+          "doc": "NeedsRehash reports whether an encoded hash was produced with weaker\nparameters than want, meaning the stored credential should be re-derived the\nnext time the plaintext password is available (i.e. immediately after a\nsuccessful Verify). It mirrors the upgrade hook password libraries expose —\nDjango's check_password/must_update and PHP's password_needs_rehash — and\nlets a deployment raise its iteration count without forcing a reset.\n\nA hash that cannot be decoded needs rehashing by definition, so NeedsRehash\nreturns true for malformed input.\n"
         },
         {
           "name": "Verify",
           "signature": "func Verify(password, encoded string) (bool, error)",
-          "doc": "Verify reports whether password matches the given encoded hash. The\ncomparison of derived keys is constant-time. A malformed encoding returns a\nnon-nil error and a false result.\n"
+          "doc": "Verify reports whether password matches the given encoded hash. The\ncomparison of derived keys is constant-time. A malformed encoding returns a\nnon-nil error and a false result; callers must treat a non-nil error as a\nfailed login and never fall through to success.\n"
+        }
+      ],
+      "examples": [
+        {
+          "name": "Hash",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/passport/pwhash\"\n)\n\nfunc main() {\n\t// At registration: derive a hash to store in the user record.\n\tencoded, err := pwhash.Hash(\"correct horse battery staple\")\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\n\t// At login: check the submitted password against the stored hash.\n\tok, err := pwhash.Verify(\"correct horse battery staple\", encoded)\n\tfmt.Println(\"correct password:\", ok, err)\n\n\tok, err = pwhash.Verify(\"hunter2\", encoded)\n\tfmt.Println(\"wrong password:  \", ok, err)\n\n}",
+          "output": "correct password: true \u003cnil\u003e\nwrong password:   false \u003cnil\u003e",
+          "doc": "ExampleHash shows the two operations a local username/password strategy\nneeds: derive a storable hash at registration time, and check a submitted\npassword against it at login time. The encoded string is self-describing —\nit carries the algorithm, iteration count and salt — so it is the only thing\nthe user table needs to store.\n"
+        },
+        {
+          "name": "HashWithParams",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/passport/pwhash\"\n)\n\nfunc main() {\n\tencoded, err := pwhash.HashWithParams(\"s3cret\", pwhash.Params{\n\t\tAlgorithm:  pwhash.SHA512,\n\t\tIterations: 10_000,\n\t\tSaltLength: 16,\n\t\tKeyLength:  64,\n\t})\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\n\talg, iterations, salt, dk, err := pwhash.Decode(encoded)\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Println(\"algorithm: \", alg)\n\tfmt.Println(\"iterations:\", iterations)\n\tfmt.Println(\"salt bytes:\", len(salt))\n\tfmt.Println(\"key bytes: \", len(dk))\n\n}",
+          "output": "algorithm:  sha512\niterations: 10000\nsalt bytes: 16\nkey bytes:  64",
+          "doc": "ExampleHashWithParams tunes the derivation cost. Lower iteration counts make\ntests fast; production code should stick to DefaultParams.\n"
+        },
+        {
+          "name": "Key",
+          "code": "package main\n\nimport (\n\t\"crypto/sha1\"\n\t\"encoding/hex\"\n\t\"fmt\"\n\n\t\"github.com/malcolmston/passport/pwhash\"\n)\n\nfunc main() {\n\tdk := pwhash.Key([]byte(\"password\"), []byte(\"salt\"), 2, 20, sha1.New)\n\tfmt.Println(hex.EncodeToString(dk))\n}",
+          "output": "ea6c014dc72d6f8ccd1ed92ace1d41f0d8de8957",
+          "doc": "ExampleKey derives a raw PBKDF2 key. This is the low-level primitive behind\nHash; reach for it only when you must match an externally defined hash\nformat. The vector below is from RFC 6070.\n"
+        },
+        {
+          "name": "NeedsRehash",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/passport/pwhash\"\n)\n\nfunc main() {\n\t// A hash stored years ago under much weaker settings.\n\tlegacy, err := pwhash.HashWithParams(\"s3cret\", pwhash.Params{\n\t\tAlgorithm: pwhash.SHA1, Iterations: 1_000, SaltLength: 8, KeyLength: 20,\n\t})\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\n\tok, err := pwhash.Verify(\"s3cret\", legacy)\n\tif err != nil || !ok {\n\t\tfmt.Println(\"login failed\")\n\t\treturn\n\t}\n\tfmt.Println(\"login ok\")\n\n\tif pwhash.NeedsRehash(legacy, pwhash.DefaultParams()) {\n\t\tupgraded, err := pwhash.Hash(\"s3cret\")\n\t\tif err != nil {\n\t\t\tpanic(err)\n\t\t}\n\t\tfmt.Println(\"upgraded:\", !pwhash.NeedsRehash(upgraded, pwhash.DefaultParams()))\n\t}\n\n}",
+          "output": "login ok\nupgraded: true",
+          "doc": "ExampleNeedsRehash shows the credential-upgrade pattern. Right after a\nsuccessful Verify — the one moment the plaintext password is in hand — check\nwhether the stored hash predates your current cost settings and, if so,\nre-derive and save it. Over time every active account migrates to the\nstronger parameters without a password reset.\n"
+        },
+        {
+          "name": "Verify",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/passport/pwhash\"\n)\n\nfunc main() {\n\tfor _, stored := range []string{\n\t\t\"not-a-pwhash-string\",\n\t\t\"pbkdf2_md5$1000$c2FsdA$ZGs\",        // unsupported algorithm\n\t\t\"pbkdf2_sha256$600000$c29tZXNhbHQ$\", // truncated: empty derived key\n\t} {\n\t\tok, err := pwhash.Verify(\"any password at all\", stored)\n\t\tfmt.Printf(\"%-38s ok=%v err=%v\\n\", stored, ok, err)\n\t}\n\n}",
+          "output": "not-a-pwhash-string                    ok=false err=pwhash: malformed encoded hash\npbkdf2_md5$1000$c2FsdA$ZGs             ok=false err=pwhash: unknown hash algorithm\npbkdf2_sha256$600000$c29tZXNhbHQ$      ok=false err=pwhash: malformed encoded hash",
+          "doc": "ExampleVerify shows that a malformed or tampered encoding is reported as an\nerror rather than as a match. Treat any non-nil error as a failed login: a\ncredential you cannot parse is a credential you cannot trust.\n"
         }
       ]
     },
@@ -963,6 +1220,11 @@
               "name": "Parse",
               "signature": "func Parse(raw string) Set",
               "doc": "Parse splits a space-delimited scope string (as sent on the wire) into a Set,\ncollapsing any runs of whitespace and dropping empty tokens.\n"
+            },
+            {
+              "name": "ParseSep",
+              "signature": "func ParseSep(raw, sep string) Set",
+              "doc": "ParseSep splits a scope string on an explicit separator. RFC 6749 specifies a\nspace, but several providers deviate — Facebook and LinkedIn use \",\" — which\nis why passport-oauth2 exposes a scopeSeparator option; ParseSep is the\nequivalent knob here. Surrounding whitespace is trimmed from each token and\nempty tokens are dropped, so \"a, b,,c\" parses to three scopes. An empty\nseparator falls back to Parse's whitespace splitting.\n"
             }
           ],
           "methods": [
@@ -971,6 +1233,12 @@
               "recv": "Set",
               "signature": "func (s Set) Add(scopes ...string) Set",
               "doc": "Add returns a new Set containing every scope in the receiver plus the given\nscopes. The receiver is not modified.\n"
+            },
+            {
+              "name": "Clone",
+              "recv": "Set",
+              "signature": "func (s Set) Clone() Set",
+              "doc": "Clone returns an independent copy of the set. Every other operation already\nreturns a new Set rather than mutating the receiver, so Clone is needed only\nwhen a caller wants to hold a snapshot across an assignment.\n"
             },
             {
               "name": "Contains",
@@ -1000,7 +1268,19 @@
               "name": "Has",
               "recv": "Set",
               "signature": "func (s Set) Has(scope string) bool",
-              "doc": "Has reports whether scope is present in the set.\n"
+              "doc": "Has reports whether scope is present in the set.\n\nMembership is an exact, whole-token match against the parsed set — never a\nsubstring or prefix test on the raw scope string. That distinction is a\nsecurity boundary: a naive strings.Contains check on \"read admin\" would\nreport that the holder has \"admin\" when a provider granted only \"readadmin\",\nor that \"user:read\" satisfies a check for \"user\", silently escalating\nprivilege. Callers gating on a scope should always go through Has, HasAll,\nor Contains rather than inspecting String().\n"
+            },
+            {
+              "name": "HasAll",
+              "recv": "Set",
+              "signature": "func (s Set) HasAll(scopes ...string) bool",
+              "doc": "HasAll reports whether every one of the given scopes is present. It is the\nvariadic form of Contains and the usual way to gate an operation that needs\nseveral scopes at once. With no arguments it reports true.\n"
+            },
+            {
+              "name": "HasAny",
+              "recv": "Set",
+              "signature": "func (s Set) HasAny(scopes ...string) bool",
+              "doc": "HasAny reports whether at least one of the given scopes is present. With no\narguments it reports false.\n"
             },
             {
               "name": "Intersection",
@@ -1009,10 +1289,28 @@
               "doc": "Intersection returns a new Set of the scopes present in both sets, in the\nreceiver's order.\n"
             },
             {
+              "name": "IsEmpty",
+              "recv": "Set",
+              "signature": "func (s Set) IsEmpty() bool",
+              "doc": "IsEmpty reports whether the set contains no scopes. It is true for the zero\nvalue as well as for a Set built from an empty or whitespace-only string.\n"
+            },
+            {
+              "name": "Join",
+              "recv": "Set",
+              "signature": "func (s Set) Join(sep string) string",
+              "doc": "Join renders the set using an explicit separator, the counterpart to\nParseSep for providers that do not use the RFC 6749 space.\n"
+            },
+            {
               "name": "Len",
               "recv": "Set",
               "signature": "func (s Set) Len() int",
               "doc": "Len returns the number of distinct scopes in the set.\n"
+            },
+            {
+              "name": "MarshalText",
+              "recv": "Set",
+              "signature": "func (s Set) MarshalText() ([]byte, error)",
+              "doc": "MarshalText renders the set as its space-delimited wire form, so a Set used\nas a struct field encodes as a plain JSON string (\"openid profile\") rather\nthan as an object. It implements encoding.TextMarshaler.\n"
             },
             {
               "name": "Remove",
@@ -1043,11 +1341,79 @@
               "recv": "Set",
               "signature": "func (s Set) Union(other Set) Set",
               "doc": "Union returns a new Set containing every scope from the receiver followed by\nany additional scopes from other.\n"
+            },
+            {
+              "name": "UnmarshalText",
+              "recv": "*Set",
+              "signature": "func (s *Set) UnmarshalText(text []byte) error",
+              "doc": "UnmarshalText parses a space-delimited wire value into the receiver,\nreplacing any existing contents. It implements encoding.TextUnmarshaler and\nnever fails: every string is a valid scope list, and empty or whitespace-only\ninput yields an empty Set.\n"
             }
           ]
         }
       ],
-      "funcs": []
+      "funcs": [],
+      "examples": [
+        {
+          "name": "Parse",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/passport/scope\"\n)\n\nfunc main() {\n\tgranted := scope.Parse(\"openid  profile email\")\n\n\tfmt.Println(\"count:  \", granted.Len())\n\tfmt.Println(\"email:  \", granted.Has(\"email\"))\n\tfmt.Println(\"admin:  \", granted.Has(\"admin\"))\n\tfmt.Println(\"rendered:\", granted)\n\n}",
+          "output": "count:   3\nemail:   true\nadmin:   false\nrendered: openid profile email",
+          "doc": "ExampleParse reads the space-delimited scope value an OAuth provider returns\nin its token response and answers membership questions about it.\n"
+        },
+        {
+          "name": "ParseSep",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/passport/scope\"\n)\n\nfunc main() {\n\tfb := scope.ParseSep(\"email, public_profile ,pages_show_list\", \",\")\n\n\tfmt.Println(\"parsed:\", fb.Slice())\n\tfmt.Println(\"as wire value for a comma provider:\", fb.Join(\",\"))\n\tfmt.Println(\"as an RFC 6749 space-delimited value:\", fb.String())\n\n}",
+          "output": "parsed: [email public_profile pages_show_list]\nas wire value for a comma provider: email,public_profile,pages_show_list\nas an RFC 6749 space-delimited value: email public_profile pages_show_list",
+          "doc": "ExampleParseSep handles providers that deviate from RFC 6749's space\ndelimiter. Facebook and LinkedIn use commas; passport-oauth2 exposes this as\nits scopeSeparator option.\n"
+        },
+        {
+          "name": "Set (Contains)",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/passport/scope\"\n)\n\nfunc main() {\n\trequired := scope.New(\"openid\", \"email\", \"offline_access\")\n\tgranted := scope.Parse(\"openid email profile\")\n\n\tfmt.Println(\"satisfied:\", granted.Contains(required))\n\tfmt.Println(\"missing:  \", required.Diff(granted))\n\tfmt.Println(\"extra:    \", granted.Diff(required))\n\n}",
+          "output": "satisfied: false\nmissing:   offline_access\nextra:     profile",
+          "doc": "ExampleSet_Contains checks a granted set against a required set — the usual\nshape of an authorization decision when the requirement is itself a scope\nlist. Diff then reports exactly what is missing, which makes for an\nactionable error message.\n"
+        },
+        {
+          "name": "Set (Filter)",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/passport/scope\"\n)\n\nfunc main() {\n\tgranted := scope.Parse(\"repo:read repo:write user:email admin\")\n\n\trepo := granted.Filter(func(s string) bool {\n\t\treturn len(s) \u003e 5 \u0026\u0026 s[:5] == \"repo:\"\n\t})\n\tfmt.Println(repo)\n\n}",
+          "output": "repo:read repo:write",
+          "doc": "ExampleSet_Filter narrows a granted set down to one namespace, for instance\nto show a user which repository permissions an integration holds.\n"
+        },
+        {
+          "name": "Set (Has)",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/passport/scope\"\n)\n\nfunc main() {\n\tgranted := scope.Parse(\"readadmin user:read\")\n\n\tfmt.Println(\"admin:    \", granted.Has(\"admin\"))\n\tfmt.Println(\"user:     \", granted.Has(\"user\"))\n\tfmt.Println(\"read:     \", granted.Has(\"read\"))\n\tfmt.Println(\"readadmin:\", granted.Has(\"readadmin\"))\n\tfmt.Println(\"user:read:\", granted.Has(\"user:read\"))\n\n}",
+          "output": "admin:     false\nuser:      false\nread:      false\nreadadmin: true\nuser:read: true",
+          "doc": "ExampleSet_Has shows why membership is an exact token match. A substring\ncheck over the raw scope string would treat \"readadmin\" as granting \"admin\"\nand \"user:read\" as granting \"user\" — a privilege escalation. Has compares\nwhole tokens, so both correctly report false.\n"
+        },
+        {
+          "name": "Set (HasAll)",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/passport/scope\"\n)\n\nfunc main() {\n\tgranted := scope.Parse(\"repo:read repo:write\")\n\n\tfmt.Println(\"can read and write:\", granted.HasAll(\"repo:read\", \"repo:write\"))\n\tfmt.Println(\"can also delete:   \", granted.HasAll(\"repo:read\", \"repo:delete\"))\n\tfmt.Println(\"has any repo verb: \", granted.HasAny(\"repo:delete\", \"repo:read\"))\n\n}",
+          "output": "can read and write: true\ncan also delete:    false\nhas any repo verb:  true",
+          "doc": "ExampleSet_HasAll gates a handler on the scopes an access token actually\ncarries. HasAll requires every listed scope; HasAny requires at least one.\n"
+        },
+        {
+          "name": "Set (HasAny)",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n\t\"net/http/httptest\"\n\n\t\"github.com/malcolmston/passport/scope\"\n)\n\nfunc main() {\n\trequireScopes := func(required ...string) func(http.Handler) http.Handler {\n\t\treturn func(next http.Handler) http.Handler {\n\t\t\treturn http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {\n\t\t\t\tgranted := scope.Parse(r.Header.Get(\"X-Token-Scope\"))\n\t\t\t\tif !granted.HasAll(required...) {\n\t\t\t\t\tmissing := scope.New(required...).Diff(granted)\n\t\t\t\t\tw.Header().Set(\"WWW-Authenticate\",\n\t\t\t\t\t\t`Bearer error=\"insufficient_scope\", scope=\"`+missing.String()+`\"`)\n\t\t\t\t\thttp.Error(w, \"insufficient scope\", http.StatusForbidden)\n\t\t\t\t\treturn\n\t\t\t\t}\n\t\t\t\tnext.ServeHTTP(w, r)\n\t\t\t})\n\t\t}\n\t}\n\n\tguarded := requireScopes(\"repo:write\")(http.HandlerFunc(\n\t\tfunc(w http.ResponseWriter, r *http.Request) { fmt.Fprint(w, \"ok\") },\n\t))\n\n\tfor _, tokenScope := range []string{\"repo:read repo:write\", \"repo:read\"} {\n\t\treq := httptest.NewRequest(http.MethodPost, \"/repos/1\", nil)\n\t\treq.Header.Set(\"X-Token-Scope\", tokenScope)\n\t\trec := httptest.NewRecorder()\n\t\tguarded.ServeHTTP(rec, req)\n\t\tfmt.Printf(\"scope %q -\u003e %d\\n\", tokenScope, rec.Code)\n\t\tif challenge := rec.Header().Get(\"WWW-Authenticate\"); challenge != \"\" {\n\t\t\tfmt.Println(\"  challenge:\", challenge)\n\t\t}\n\t}\n\n\t// A read-only token still satisfies a check that accepts either verb.\n\tfmt.Println(\"read-only has any:\", scope.Parse(\"repo:read\").HasAny(\"repo:read\", \"repo:write\"))\n\n}",
+          "output": "scope \"repo:read repo:write\" -\u003e 200\nscope \"repo:read\" -\u003e 403\n  challenge: Bearer error=\"insufficient_scope\", scope=\"repo:write\"\nread-only has any: true",
+          "doc": "ExampleSet_HasAny wires scopes into an HTTP middleware: the handler runs only\nwhen the request's token carries every required scope, and otherwise gets the\n403 that RFC 6750 prescribes for an insufficient scope.\n"
+        },
+        {
+          "name": "Set (MarshalText)",
+          "code": "package main\n\nimport (\n\t\"encoding/json\"\n\t\"fmt\"\n\n\t\"github.com/malcolmston/passport/scope\"\n)\n\nfunc main() {\n\ttype tokenResponse struct {\n\t\tAccessToken string    `json:\"access_token\"`\n\t\tScope       scope.Set `json:\"scope\"`\n\t}\n\n\tbody := []byte(`{\"access_token\":\"tok_123\",\"scope\":\"openid email\"}`)\n\n\tvar resp tokenResponse\n\tif err := json.Unmarshal(body, \u0026resp); err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Println(\"has email:\", resp.Scope.Has(\"email\"))\n\n\tout, err := json.Marshal(resp)\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Println(string(out))\n\n}",
+          "output": "has email: true\n{\"access_token\":\"tok_123\",\"scope\":\"openid email\"}",
+          "doc": "ExampleSet_MarshalText shows a Set round-tripping through JSON as a plain\nspace-delimited string, matching how scopes appear in an OAuth token\nresponse body.\n"
+        },
+        {
+          "name": "Set (String)",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/url\"\n\n\t\"github.com/malcolmston/passport/scope\"\n)\n\nfunc main() {\n\trequested := scope.New(\"openid\").Add(\"profile\", \"email\").Add(\"openid\")\n\n\tq := url.Values{}\n\tq.Set(\"client_id\", \"abc123\")\n\tq.Set(\"response_type\", \"code\")\n\tq.Set(\"scope\", requested.String())\n\n\tfmt.Println(q.Encode())\n\n}",
+          "output": "client_id=abc123\u0026response_type=code\u0026scope=openid+profile+email",
+          "doc": "ExampleSet_String builds the scope parameter of an authorization URL.\nInsertion order is preserved, so the generated URL is stable across runs and\ndiffs cleanly in tests and logs.\n"
+        },
+        {
+          "name": "Set (Union)",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/passport/scope\"\n)\n\nfunc main() {\n\tpreset := scope.New(\"openid\", \"profile\")\n\textra := scope.Parse(\"email openid calendar.read\")\n\n\tfmt.Println(\"union:       \", preset.Union(extra))\n\tfmt.Println(\"intersection:\", preset.Intersection(extra))\n\tfmt.Println(\"only in extra:\", extra.Diff(preset))\n\n}",
+          "output": "union:        openid profile email calendar.read\nintersection: openid\nonly in extra: email calendar.read",
+          "doc": "ExampleSet_Union combines a provider preset with the extra scopes an\napplication asks for, without duplicating anything the preset already\nincludes.\n"
+        }
+      ]
     },
     {
       "importPath": "github.com/malcolmston/passport/strategies/adobe",
@@ -1496,7 +1862,7 @@
       "types": [
         {
           "name": "Strategy",
-          "signature": "type Strategy struct {\n\t// Realm is reported in the WWW-Authenticate challenge on failure.\n\tRealm string\n\t// contains filtered or unexported fields\n}",
+          "signature": "type Strategy struct {\n\t// Realm is reported in the WWW-Authenticate challenge on failure. It is\n\t// rendered as a quoted-string by httpauth.BasicChallenge, so embedded\n\t// quotes, backslashes and control characters cannot break out of the\n\t// header value.\n\tRealm string\n\t// contains filtered or unexported fields\n}",
           "doc": "Strategy authenticates requests using HTTP Basic credentials.\n",
           "consts": [],
           "vars": [],
@@ -1657,7 +2023,7 @@
       "types": [
         {
           "name": "Strategy",
-          "signature": "type Strategy struct {\n\t// Realm is reported in the WWW-Authenticate challenge on failure.\n\tRealm string\n\t// contains filtered or unexported fields\n}",
+          "signature": "type Strategy struct {\n\t// Realm is reported in the WWW-Authenticate challenge on failure.\n\tRealm string\n\n\t// Scope, when non-empty, is advertised in the WWW-Authenticate challenge\n\t// as scope=\"\u003cspace-joined\u003e\", indicating the scope required to access the\n\t// protected resource (RFC 6750 §3).\n\tScope []string\n\t// contains filtered or unexported fields\n}",
           "doc": "Strategy authenticates requests bearing an opaque access token.\n",
           "consts": [],
           "vars": [],
@@ -1665,7 +2031,7 @@
             {
               "name": "New",
               "signature": "func New(verify VerifyFunc) *Strategy",
-              "doc": "New creates a bearer Strategy.\n"
+              "doc": "New creates a bearer Strategy. It panics if verify is nil, matching\npassport-http-bearer, which throws \"HTTPBearerStrategy requires a verify\nfunction\".\n"
             }
           ],
           "methods": [
@@ -1673,7 +2039,7 @@
               "name": "Authenticate",
               "recv": "*Strategy",
               "signature": "func (s *Strategy) Authenticate(c *passport.Context, r *http.Request)",
-              "doc": "Authenticate implements passport.Strategy.\n"
+              "doc": "Authenticate implements passport.Strategy. It mirrors passport-http-bearer's\ntoken extraction: at most one of the Authorization header, the access_token\nbody parameter, or the access_token query parameter may carry the token.\nPresenting a Bearer header without a token, or a token in more than one\nlocation, is a malformed request and fails with HTTP 400.\n"
             },
             {
               "name": "Name",
@@ -2427,13 +2793,13 @@
       "importPath": "github.com/malcolmston/passport/strategies/digest",
       "name": "digest",
       "synopsis": "Package digest implements a SIMPLIFIED form of HTTP Digest access authentication (RFC 7616) using MD5 and qop=\"auth\".",
-      "doc": "Package digest implements a SIMPLIFIED form of HTTP Digest access\nauthentication (RFC 7616) using MD5 and qop=\"auth\". It is the Go port of the\nPassport.js passport-http Digest strategy: rather than transmitting a password,\nthe client proves knowledge of it by sending a hash computed over a\nserver-issued nonce, so the cleartext secret never travels on the wire.\n\nUse it when you want browser-native credential prompts without building a login\nform or when interoperating with clients (tools, devices, curl --digest) that\nspeak Digest. Because the browser itself renders the username/password dialog\nin response to the challenge, there is no HTML frontend to write; the \"frontend\"\nis simply any request to a protected URL. Digest is stateless per request, so\npair the strategy with passport.Options{Session: false}.\n\nThe exchange works in two steps. When a request carries no Digest Authorization\nheader, the strategy fails with a \"Digest realm=..., nonce=..., qop=auth\"\nchallenge, which it also sets as a WWW-Authenticate response header so the\nclient knows how to respond. When a Digest header is present, the strategy looks\nup the user's secret via Options.Secret, recomputes the expected response digest\nfrom the request method, URI, realm, nonce, and (for qop) the client nonce and\nnonce count, and compares it against the client's value in constant time.\n\nSemantics and the verify contract: Options.Secret returns the cleartext\npassword (or a precomputed HA1) for a username, and returning an empty string\nrejects that user by re-issuing the challenge. A malformed header, a missing\nusername or response, or a digest mismatch all result in a fresh challenge\nrather than a hard error, which is how browsers are prompted to retry. On a\nsuccessful match the username becomes the authenticated user (passport.User).\nOptions.Realm defaults to \"Users\", and Options.Nonce may be injected to make the\nchallenge deterministic in tests.\n\nSIMPLIFICATION and security caveats: this implementation does NOT track issued\nnonces, nonce counts (nc), or opaque values, so it does not defend against\nreplay attacks and it accepts any well-formed nonce echoed by the client. It\nalso uses MD5, which is weak. Do not use it as the sole protection for sensitive\nresources; layer it over TLS and, for real replay protection, add server-side\nnonce/nc bookkeeping. The strategy registers under the name \"digest\".\n",
+      "doc": "Package digest implements a SIMPLIFIED form of HTTP Digest access\nauthentication (RFC 7616) using MD5 and qop=\"auth\". It is the Go port of the\nPassport.js passport-http Digest strategy: rather than transmitting a password,\nthe client proves knowledge of it by sending a hash computed over a\nserver-issued nonce, so the cleartext secret never travels on the wire.\n\nUse it when you want browser-native credential prompts without building a login\nform or when interoperating with clients (tools, devices, curl --digest) that\nspeak Digest. Because the browser itself renders the username/password dialog\nin response to the challenge, there is no HTML frontend to write; the \"frontend\"\nis simply any request to a protected URL. Digest is stateless per request, so\npair the strategy with passport.Options{Session: false}.\n\nThe exchange works in two steps. When a request carries no Digest Authorization\nheader, the strategy fails with a \"Digest realm=..., nonce=..., qop=auth\"\nchallenge, which it also sets as a WWW-Authenticate response header so the\nclient knows how to respond. When a Digest header is present, the strategy looks\nup the user's secret via Options.Secret, recomputes the expected response digest\nfrom the request method, URI, realm, nonce, and (for qop) the client nonce and\nnonce count, and compares it against the client's value in constant time.\n\nSemantics and the verify contract: Options.Secret returns the cleartext\npassword (or a precomputed HA1) for a username, and returning an empty string\nrejects that user by re-issuing the challenge. A malformed header, a missing\nusername or response, or a digest mismatch all result in a fresh challenge\nrather than a hard error, which is how browsers are prompted to retry. On a\nsuccessful match the username becomes the authenticated user (passport.User).\nOptions.Realm defaults to \"Users\", and Options.Nonce may be injected to make the\nchallenge deterministic in tests.\n\nSIMPLIFICATION and security caveats: by default this implementation does NOT\ntrack issued nonces, nonce counts (nc), or opaque values, so out of the box it\ndoes not defend against replay attacks and it accepts any well-formed nonce\nechoed by the client — a captured Authorization header stays valid\nindefinitely. Options.ValidateNonce is the hook for closing that gap: supply\nit with a store of the nonces this server issued and reject any it did not\nmint, has already seen at that nonce-count, or has expired. The scheme also\nuses MD5, which is weak. Do not use it as the sole protection for sensitive\nresources; layer it over TLS. The strategy registers under the name \"digest\".\n",
       "consts": [],
       "vars": [],
       "types": [
         {
           "name": "Options",
-          "signature": "type Options struct {\n\t// Realm is the protection space presented in the challenge.\n\tRealm string\n\t// Secret returns the password (or precomputed HA1) for the given username.\n\t// The returned value is treated as the cleartext password from which HA1 =\n\t// MD5(username:realm:password) is derived. An empty return rejects the user.\n\tSecret func(user string) (ha1OrPassword string)\n\t// Nonce, when set, returns the challenge nonce; defaults to a random value.\n\t// Injected for deterministic tests.\n\tNonce func() string\n}",
+          "signature": "type Options struct {\n\t// Realm is the protection space presented in the challenge.\n\tRealm string\n\t// Secret returns the password (or precomputed HA1) for the given username.\n\t// The returned value is treated as the cleartext password from which HA1 =\n\t// MD5(username:realm:password) is derived. An empty return rejects the user.\n\tSecret func(user string) (ha1OrPassword string)\n\t// Nonce, when set, returns the challenge nonce; defaults to a random value.\n\t// Injected for deterministic tests.\n\tNonce func() string\n\t// ValidateNonce, when set, is consulted with the nonce and nonce-count the\n\t// client echoed back before the response digest is checked; returning\n\t// false re-issues the challenge.\n\t//\n\t// This is the hook that turns Digest from a \"proves knowledge of the\n\t// password\" check into one that also resists replay. Without it the\n\t// strategy computes the expected digest over whatever nonce the client\n\t// chose to send, so a captured Authorization header stays valid forever\n\t// and can be replayed by anyone who observed it. A production\n\t// implementation should record the nonces it issued, reject any it did not,\n\t// expire them, and refuse an (nonce, nc) pair it has already seen.\n\t//\n\t// It is left opt-in because the bookkeeping needs storage this\n\t// dependency-free strategy has no way to provide.\n\tValidateNonce func(nonce, nc string) bool\n}",
           "doc": "Options configures the digest Strategy.\n",
           "consts": [],
           "vars": [],
@@ -3193,13 +3559,21 @@
       "importPath": "github.com/malcolmston/passport/strategies/hmac",
       "name": "hmac",
       "synopsis": "Package hmac authenticates requests by verifying an HMAC-SHA256 signature of the raw request body.",
-      "doc": "Package hmac authenticates requests by verifying an HMAC-SHA256 signature of\nthe raw request body. It ports the HMAC request-signing pattern seen in the\nPassport.js ecosystem (passport-hmac) and in widely used webhook signature\nschemes such as Stripe's and GitHub's, using only the Go standard library.\n\nUse this strategy to authenticate webhook deliveries and other machine-to-\nmachine POST requests where the sender and receiver share a secret and the\nsender signs each payload. Because the signature covers the exact bytes of\nthe body, it authenticates the caller and guarantees the payload was not\naltered in transit, without any interactive handshake or session. This makes\nit well suited to receiving events from third-party providers that sign their\ncallbacks, or to securing internal service-to-service notifications.\n\nThe flow reads the hex-encoded signature from the header named by\nOptions.Header (defaulting to \"X-Signature\") and an optional key id from\nOptions.KeyIDHeader. The key id is passed to Options.Secret to look up the\nshared secret; when KeyIDHeader is empty the strategy verifies against\nSecret(\"\"). The strategy recomputes HMAC-SHA256 over the raw request body\nwith that secret, hex-encodes it, and compares it against the presented\nsignature using a constant-time comparison (hmac.Equal). A missing signature,\nan unknown key id (Secret returns nil), or a mismatch fails the request with\n401; on a match the key id becomes the authenticated user available through\npassport.User(r).\n\nTwo details are important for correctness. First, verification is over the\nraw, unparsed request body, so the signed bytes must be exactly what the\nsender signed; the strategy buffers the body while reading it and restores it\nvia an io.NopCloser so downstream handlers can still read the payload.\nSecond, the secret is resolved per request through the Secret(keyID)\ncallback, which supports multiple clients and key rotation: returning nil for\nan unrecognized key id cleanly rejects the request, and the signature\ncomparison is constant-time to avoid leaking validity through timing.\n\nParity with Passport.js: like the Node HMAC strategies and provider webhook\nverifiers, this recomputes a keyed digest of the request body and compares it\nagainst a client-supplied signature, then reports the verified identity (the\nkey id) to the framework. The header names and per-key secret lookup are\nconfigurable to match a given provider's signing scheme. The Strategy's\nregistered name is \"hmac\".\n",
-      "consts": [],
+      "doc": "Package hmac authenticates requests by verifying an HMAC-SHA256 signature of\nthe raw request body. It ports the HMAC request-signing pattern seen in the\nPassport.js ecosystem (passport-hmac) and in widely used webhook signature\nschemes such as Stripe's and GitHub's, using only the Go standard library.\n\nUse this strategy to authenticate webhook deliveries and other machine-to-\nmachine POST requests where the sender and receiver share a secret and the\nsender signs each payload. Because the signature covers the exact bytes of\nthe body, it authenticates the caller and guarantees the payload was not\naltered in transit, without any interactive handshake or session. This makes\nit well suited to receiving events from third-party providers that sign their\ncallbacks, or to securing internal service-to-service notifications.\n\nThe flow reads the hex-encoded signature from the header named by\nOptions.Header (defaulting to \"X-Signature\") and an optional key id from\nOptions.KeyIDHeader. The key id is passed to Options.Secret to look up the\nshared secret; when KeyIDHeader is empty the strategy verifies against\nSecret(\"\"). The strategy recomputes HMAC-SHA256 over the raw request body\nwith that secret, hex-encodes it, and compares it against the presented\nsignature using a constant-time comparison (hmac.Equal). A missing signature,\nan unknown key id (Secret returns nil), or a mismatch fails the request with\n401; on a match the key id becomes the authenticated user available through\npassport.User(r).\n\nThree details are important for correctness. First, verification is over the\nraw, unparsed request body, so the signed bytes must be exactly what the\nsender signed; the strategy buffers the body while reading it and restores it\nvia an io.NopCloser so downstream handlers can still read the payload.\nSecond, the secret is resolved per request through the Secret(keyID)\ncallback, which supports multiple clients and key rotation: returning nil for\nan unrecognized key id cleanly rejects the request, and the signature\ncomparison is constant-time to avoid leaking validity through timing. Third,\nbecause verification needs the whole body in memory before the caller has\nbeen authenticated, Options.MaxBodyBytes bounds how much is buffered; the\ndefault is DefaultMaxBodyBytes.\n\nThe presented signature is hex-decoded and compared as bytes, so upper- and\nlower-case hex are equally acceptable and a non-hex value is rejected before\nthe body is read at all.\n\nParity with Passport.js: like the Node HMAC strategies and provider webhook\nverifiers, this recomputes a keyed digest of the request body and compares it\nagainst a client-supplied signature, then reports the verified identity (the\nkey id) to the framework. The header names and per-key secret lookup are\nconfigurable to match a given provider's signing scheme. The Strategy's\nregistered name is \"hmac\".\n",
+      "consts": [
+        {
+          "names": [
+            "DefaultMaxBodyBytes"
+          ],
+          "signature": "const DefaultMaxBodyBytes int64 = 10 \u003c\u003c 20",
+          "doc": "DefaultMaxBodyBytes is the body cap applied when Options.MaxBodyBytes is\nzero. 10 MiB comfortably exceeds any realistic signed webhook payload — the\nmajor providers cap their own deliveries well below it — while keeping the\nworst-case allocation per in-flight request bounded.\n"
+        }
+      ],
       "vars": [],
       "types": [
         {
           "name": "Options",
-          "signature": "type Options struct {\n\t// Secret returns the shared secret for the given key id, or nil if the key\n\t// id is unknown.\n\tSecret func(keyID string) []byte\n\t// Header carries the hex-encoded signature. Defaults to \"X-Signature\".\n\tHeader string\n\t// KeyIDHeader carries the key id used to look up the secret. When empty the\n\t// signature is verified against Secret(\"\").\n\tKeyIDHeader string\n}",
+          "signature": "type Options struct {\n\t// Secret returns the shared secret for the given key id, or nil if the key\n\t// id is unknown.\n\tSecret func(keyID string) []byte\n\t// Header carries the hex-encoded signature. Defaults to \"X-Signature\".\n\tHeader string\n\t// KeyIDHeader carries the key id used to look up the secret. When empty the\n\t// signature is verified against Secret(\"\").\n\tKeyIDHeader string\n\t// MaxBodyBytes caps how many bytes of the request body are buffered while\n\t// computing the signature. Verification requires the whole body in memory,\n\t// so without a cap an unauthenticated caller can make the process allocate\n\t// arbitrarily much simply by streaming a large payload at the endpoint. A\n\t// body longer than the cap is rejected with 401 rather than truncated,\n\t// because a truncated body would never produce a matching signature.\n\t//\n\t// Defaults to DefaultMaxBodyBytes. Set it to a negative value to disable\n\t// the limit, which is only safe when an upstream proxy already bounds the\n\t// request size.\n\tMaxBodyBytes int64\n}",
           "doc": "Options configures the hmac Strategy.\n",
           "consts": [],
           "vars": [],
@@ -3216,7 +3590,7 @@
             {
               "name": "New",
               "signature": "func New(opts Options) *Strategy",
-              "doc": "New creates an hmac Strategy. opts.Header defaults to \"X-Signature\".\n"
+              "doc": "New creates an hmac Strategy. opts.Header defaults to \"X-Signature\" and\nopts.MaxBodyBytes to DefaultMaxBodyBytes.\n"
             }
           ],
           "methods": [
@@ -3267,7 +3641,7 @@
       "types": [
         {
           "name": "Options",
-          "signature": "type Options struct {\n\t// Secret returns the shared secret for the identified user.\n\tSecret func(user string) ([]byte, error)\n\t// Counter returns the current expected counter value for the user.\n\tCounter func(user string) (uint64, error)\n\t// UserField names the form/query field carrying the user identifier.\n\t// Defaults to \"user\".\n\tUserField string\n\t// CodeField names the form/query field carrying the submitted code.\n\t// Defaults to \"code\".\n\tCodeField string\n\t// Window is the number of counter values to look ahead. Defaults to 3.\n\tWindow int\n}",
+          "signature": "type Options struct {\n\t// Secret returns the shared secret for the identified user.\n\tSecret func(user string) ([]byte, error)\n\t// Counter returns the current expected counter value for the user.\n\tCounter func(user string) (uint64, error)\n\t// UserField names the form/query field carrying the user identifier.\n\t// Defaults to \"user\".\n\tUserField string\n\t// CodeField names the form/query field carrying the submitted code.\n\t// Defaults to \"code\".\n\tCodeField string\n\t// Window is the number of counter values to look ahead. Zero selects the\n\t// default of 3; any negative value disables the look-ahead entirely, so\n\t// only the code for the exact stored counter is accepted.\n\tWindow int\n}",
           "doc": "Options configures the hotp Strategy.\n",
           "consts": [],
           "vars": [],
@@ -3427,8 +3801,19 @@
       "importPath": "github.com/malcolmston/passport/strategies/jwks",
       "name": "jwks",
       "synopsis": "Package jwks verifies JSON Web Tokens signed with asymmetric keys (RS256/384/ 512, PS256/384/512, ES256/384/512) whose public keys are published as a JWKS (JSON Web Key Set), as used by OpenID Connect providers such as Google, Auth0, Okta, Azure AD, and Cognito.",
-      "doc": "Package jwks verifies JSON Web Tokens signed with asymmetric keys (RS256/384/\n512, PS256/384/512, ES256/384/512) whose public keys are published as a JWKS\n(JSON Web Key Set), as used by OpenID Connect providers such as Google, Auth0,\nOkta, Azure AD, and Cognito. It combines the roles of Node's passport-jwt\nstrategy (bearer-token authentication) and jwks-rsa (fetching and caching a\nprovider's rotating signing keys) into a single stdlib-only passport.Strategy\nwhose Name is \"jwks\". The low-level Verify function additionally supports\nHS256/384/512 with a shared secret for symmetric use cases.\n\nUse this strategy to protect an API that accepts provider-issued JWTs — the\ntypical stateless \"Authorization: Bearer \u003cjwt\u003e\" pattern for single-page apps,\nmobile clients, and service-to-service calls. Rather than sharing a static\nsecret, the server trusts any token signed by the provider's current private\nkey and validated against the matching public key from the provider's\npublished JWKS, so keys can rotate without redeploying your application.\n\nBy default the token is read from the Authorization: Bearer header; set\nOptions.TokenFromParam to instead read it from an \"id_token\" or\n\"access_token\" query parameter or form field. The token's signature and\nexp/nbf time claims are checked first, then Options.Issuer (\"iss\") and\nOptions.Audience (\"aud\") are validated when configured. The VerifyFunc maps\nthe verified claims to an application user and may be nil, in which case the\nraw Claims become the user; returning a nil user (or a non-nil error) rejects\nthe request. Options.Algorithms is an allow-list of accepted \"alg\" header\nvalues (for example {\"RS256\"}); leaving it empty permits any supported\nasymmetric algorithm.\n\nSigning keys are sourced from exactly one of Options.JWKSURL (fetched over\nHTTP and cached), Options.Set (a static, pre-loaded key set), or\nOptions.Resolve (a fully custom KeyResolver). For the JWKSURL path, keys are\ncached for Options.CacheTTL (default one hour) and looked up by the token's\n\"kid\" header. Key rotation is handled automatically: an unknown kid triggers\na single refetch of the JWKS, and if that refetch fails with a transient\nerror the previously cached keys are served rather than failing outright, so a\nbrief provider outage does not immediately break authentication.\n\nA deliberate security guard is that HS* (HMAC) algorithms are never accepted\nthrough the JWKS resolver, even if an allow-list would otherwise permit them:\nthis prevents the classic key-confusion attack in which an attacker signs a\ntoken with HS256 using the RSA public key as the HMAC secret. HS* remains\navailable only through the low-level Verify function with an explicitly\nsupplied symmetric key. VerifyToken exposes the same cached key resolution\nwithout the issuer/audience checks so that higher-level OpenID Connect\nstrategies (such as googleidtoken and jwtbearer) can reuse it. Together these\nbehaviors give parity with the passport-jwt plus jwks-rsa combination from the\nPassport.js ecosystem.\n\nThis file wires the jwks verifier into a passport.Strategy so OpenID Connect\nproviders (Google, Auth0, Okta, Azure AD, Cognito, ...) that sign id_tokens\nwith rotating RS256/ES256 keys can be authenticated directly against their\npublished JWKS endpoint.\n",
-      "consts": [],
+      "doc": "Package jwks verifies JSON Web Tokens signed with asymmetric keys (RS256/384/\n512, PS256/384/512, ES256/384/512) whose public keys are published as a JWKS\n(JSON Web Key Set), as used by OpenID Connect providers such as Google, Auth0,\nOkta, Azure AD, and Cognito. It combines the roles of Node's passport-jwt\nstrategy (bearer-token authentication) and jwks-rsa (fetching and caching a\nprovider's rotating signing keys) into a single stdlib-only passport.Strategy\nwhose Name is \"jwks\". The low-level Verify function additionally supports\nHS256/384/512 with a shared secret for symmetric use cases.\n\nUse this strategy to protect an API that accepts provider-issued JWTs — the\ntypical stateless \"Authorization: Bearer \u003cjwt\u003e\" pattern for single-page apps,\nmobile clients, and service-to-service calls. Rather than sharing a static\nsecret, the server trusts any token signed by the provider's current private\nkey and validated against the matching public key from the provider's\npublished JWKS, so keys can rotate without redeploying your application.\n\nBy default the token is read from the Authorization: Bearer header; set\nOptions.TokenFromParam to instead read it from an \"id_token\" or\n\"access_token\" query parameter or form field. The token's signature and\nexp/nbf time claims are checked first, then Options.Issuer (\"iss\") and\nOptions.Audience (\"aud\") are validated when configured. The VerifyFunc maps\nthe verified claims to an application user and may be nil, in which case the\nraw Claims become the user; returning a nil user (or a non-nil error) rejects\nthe request. Options.Algorithms is an allow-list of accepted \"alg\" header\nvalues (for example {\"RS256\"}); leaving it empty permits any supported\nasymmetric algorithm.\n\nSigning keys are sourced from exactly one of Options.JWKSURL (fetched over\nHTTP and cached), Options.Set (a static, pre-loaded key set), or\nOptions.Resolve (a fully custom KeyResolver). For the JWKSURL path, keys are\ncached for Options.CacheTTL (default one hour) and looked up by the token's\n\"kid\" header. Key rotation is handled automatically: an unknown kid triggers\na single refetch of the JWKS, and if that refetch fails with a transient\nerror the previously cached keys are served rather than failing outright, so a\nbrief provider outage does not immediately break authentication. Because that\nkid arrives on an unauthenticated request, refetching is rate limited to\nOptions.MaxRefreshesPerMinute so a flood of tokens bearing invented kids\ncannot be turned into a flood of outbound fetches.\n\nA deliberate security guard is that HS* (HMAC) algorithms are never accepted\nthrough the JWKS resolver, even if an allow-list would otherwise permit them:\nthis prevents the classic key-confusion attack in which an attacker signs a\ntoken with HS256 using the RSA public key as the HMAC secret. HS* remains\navailable only through the low-level Verify function with an explicitly\nsupplied symmetric key. VerifyToken exposes the same cached key resolution\nwithout the issuer/audience checks so that higher-level OpenID Connect\nstrategies (such as googleidtoken and jwtbearer) can reuse it. Together these\nbehaviors give parity with the passport-jwt plus jwks-rsa combination from the\nPassport.js ecosystem.\n\nThis file wires the jwks verifier into a passport.Strategy so OpenID Connect\nproviders (Google, Auth0, Okta, Azure AD, Cognito, ...) that sign id_tokens\nwith rotating RS256/ES256 keys can be authenticated directly against their\npublished JWKS endpoint.\n",
+      "consts": [
+        {
+          "names": [
+            "DefaultCacheTTL",
+            "DefaultMaxRefreshesPerMinute",
+            "DefaultMaxJWKSBytes",
+            "DefaultFetchTimeout"
+          ],
+          "signature": "const (\n\t// DefaultCacheTTL is how long fetched keys are reused before a refresh.\n\tDefaultCacheTTL = time.Hour\n\t// DefaultMaxRefreshesPerMinute throttles unknown-kid refetches. Ten per\n\t// minute is the same budget Node's jwks-rsa uses by default: ample for\n\t// real key rotation, which happens on the order of days, while capping the\n\t// outbound traffic an unauthenticated caller can induce.\n\tDefaultMaxRefreshesPerMinute = 10\n\t// DefaultMaxJWKSBytes caps the JWKS response body. Real key sets are a few\n\t// kilobytes; 1 MiB leaves ample headroom.\n\tDefaultMaxJWKSBytes int64 = 1 \u003c\u003c 20\n\t// DefaultFetchTimeout bounds a single JWKS fetch.\n\tDefaultFetchTimeout = 10 * time.Second\n)",
+          "doc": "Defaults applied by New for the corresponding zero-valued Options fields.\n"
+        }
+      ],
       "vars": [
         {
           "names": [
@@ -3503,7 +3888,7 @@
         },
         {
           "name": "Options",
-          "signature": "type Options struct {\n\t// JWKSURL is the provider's JWKS endpoint (e.g.\n\t// \"https://www.googleapis.com/oauth2/v3/certs\"). Keys fetched from it are\n\t// cached and refreshed when an unknown kid is seen. Either JWKSURL, Set, or\n\t// Resolve must be provided.\n\tJWKSURL string\n\t// Set is a static, pre-loaded key set (alternative to JWKSURL).\n\tSet *Set\n\t// Resolve is a fully custom key resolver (alternative to JWKSURL/Set).\n\tResolve KeyResolver\n\n\t// Issuer, when non-empty, must equal the token's \"iss\" claim.\n\tIssuer string\n\t// Audience, when non-empty, must be present in the token's \"aud\" claim.\n\tAudience string\n\t// Algorithms restricts the accepted \"alg\" header values (e.g.\n\t// {\"RS256\"}). Empty means any supported asymmetric algorithm; HS* is never\n\t// accepted here to avoid key-confusion attacks.\n\tAlgorithms []string\n\n\t// CacheTTL bounds how long fetched keys are reused before a forced refresh\n\t// (default 1 hour).\n\tCacheTTL time.Duration\n\t// HTTPClient fetches the JWKS document (default http.DefaultClient).\n\tHTTPClient *http.Client\n\t// TokenFromParam, when true, reads the token from the \"id_token\" or\n\t// \"access_token\" query/form field instead of the Authorization: Bearer\n\t// header (the default).\n\tTokenFromParam bool\n}",
+          "signature": "type Options struct {\n\t// JWKSURL is the provider's JWKS endpoint (e.g.\n\t// \"https://www.googleapis.com/oauth2/v3/certs\"). Keys fetched from it are\n\t// cached and refreshed when an unknown kid is seen. Either JWKSURL, Set, or\n\t// Resolve must be provided.\n\tJWKSURL string\n\t// Set is a static, pre-loaded key set (alternative to JWKSURL).\n\tSet *Set\n\t// Resolve is a fully custom key resolver (alternative to JWKSURL/Set).\n\tResolve KeyResolver\n\n\t// Issuer, when non-empty, must equal the token's \"iss\" claim.\n\tIssuer string\n\t// Audience, when non-empty, must be present in the token's \"aud\" claim.\n\tAudience string\n\t// Algorithms restricts the accepted \"alg\" header values (e.g.\n\t// {\"RS256\"}). Empty means any supported asymmetric algorithm; HS* is never\n\t// accepted here to avoid key-confusion attacks.\n\tAlgorithms []string\n\n\t// CacheTTL bounds how long fetched keys are reused before a forced refresh\n\t// (default 1 hour).\n\tCacheTTL time.Duration\n\t// MaxRefreshesPerMinute caps how many times the JWKS document may be\n\t// fetched in any one-minute window (default\n\t// DefaultMaxRefreshesPerMinute).\n\t//\n\t// Seeing an unknown \"kid\" triggers a refetch, because that is how key\n\t// rotation is picked up promptly. But the kid comes from an\n\t// unauthenticated token header, so without a cap anyone can turn each\n\t// request they send into an outbound fetch — using this server to hammer\n\t// the provider's JWKS endpoint, and stalling its own request handlers\n\t// behind those fetches. Once the budget for the current window is spent,\n\t// an unknown kid is reported as ErrKey against the cached set until the\n\t// window rolls over. This mirrors the jwksRequestsPerMinute rate limit in\n\t// Node's jwks-rsa.\n\t//\n\t// Set it to a negative value to allow unthrottled refetching.\n\tMaxRefreshesPerMinute int\n\t// HTTPClient fetches the JWKS document (default http.DefaultClient).\n\tHTTPClient *http.Client\n\t// MaxJWKSBytes caps the size of the JWKS document that will be read\n\t// (default DefaultMaxJWKSBytes), so a hostile or misbehaving endpoint\n\t// cannot exhaust memory with an endless response body.\n\tMaxJWKSBytes int64\n\t// FetchTimeout bounds a single JWKS fetch (default DefaultFetchTimeout).\n\t// It applies only when HTTPClient has no timeout of its own.\n\tFetchTimeout time.Duration\n\t// TokenFromParam, when true, reads the token from the \"id_token\" or\n\t// \"access_token\" query/form field instead of the Authorization: Bearer\n\t// header (the default).\n\tTokenFromParam bool\n}",
           "doc": "Options configures a Strategy.\n",
           "consts": [],
           "vars": [],
@@ -3594,7 +3979,7 @@
       "importPath": "github.com/malcolmston/passport/strategies/jwt",
       "name": "jwt",
       "synopsis": "Package jwt implements a JSON Web Token authentication strategy, a Go port of the Node passport-jwt strategy for the common HMAC-SHA256 (HS256) case.",
-      "doc": "Package jwt implements a JSON Web Token authentication strategy, a Go port of\nthe Node passport-jwt strategy for the common HMAC-SHA256 (HS256) case. It\nverifies a token's signature and standard time claims (exp, nbf) using only\nthe standard library, then hands the decoded claims to a user-supplied\nVerifyFunc that maps them to an application user.\n\nUse this strategy for stateless bearer authentication of APIs, where the\nclient obtains a signed JWT (from a login endpoint or an identity provider\nthat shares a symmetric secret with you) and presents it on subsequent\nrequests. Because the token carries its own claims and is self-verifying, no\nserver-side session store is required: the same secret that signs a token\nverifies it. The Sign helper is provided as a small convenience for issuing\nHS256 tokens in tests and simple issuers.\n\nThe flow reads the token from the \"Authorization: Bearer \u003cjwt\u003e\" header; a\nmissing token fails with 401 and a \"WWW-Authenticate: Bearer\" challenge. The\ntoken is then parsed by Parse, which splits the compact serialization,\nverifies that the header's \"alg\" is HS256, recomputes the HMAC-SHA256\nsignature over \"header.payload\" with Strategy.Secret, and compares it against\nthe presented signature in constant time (crypto/hmac). It then checks the\nnumeric \"exp\" and \"nbf\" claims against the current time, honoring\nStrategy.Leeway to tolerate small clock skew between issuer and verifier.\nVerified claims are passed to VerifyFunc; a non-nil user authenticates the\nrequest while a nil user rejects it.\n\nSecurity semantics matter here. The strategy accepts HS256 and only HS256:\nany other \"alg\" value — including the notorious \"none\" and asymmetric\nalgorithms like RS256 — is rejected with ErrAlgorithm. This closes the\nclassic JWT algorithm-confusion attack in which an attacker swaps a token's\nalgorithm to trick a verifier into treating a public key (or no key) as the\nHMAC secret. Signature comparison is constant-time to avoid timing oracles,\nand the exported sentinels ErrMalformed, ErrSignature, ErrExpired, ErrNotYet,\nErrAlgorithm, and ErrNoToken let callers distinguish failure modes. On any\nverification failure the Authenticate method responds 401 with the header\nWWW-Authenticate: Bearer error=\"invalid_token\".\n\nParity with Passport.js: this mirrors passport-jwt's model of extracting a\nbearer token, verifying it, and invoking an application callback with the\ndecoded payload, restricted to the symmetric-key (HS256) profile that the\nstandard library can implement without external dependencies. VerifyFunc\ncorresponds to the Node verify(payload, done) callback, Claims is the decoded\npayload with a Subject helper for the \"sub\" claim, and the fromAuthHeaderAsBearerToken\nextractor is the fixed default here. The Strategy's registered name is \"jwt\".\n",
+      "doc": "Package jwt implements a JSON Web Token authentication strategy, a Go port of\nthe Node passport-jwt strategy for the common HMAC-SHA256 (HS256) case. It\nverifies a token's signature and standard time claims (exp, nbf) using only\nthe standard library, then hands the decoded claims to a user-supplied\nVerifyFunc that maps them to an application user.\n\nUse this strategy for stateless bearer authentication of APIs, where the\nclient obtains a signed JWT (from a login endpoint or an identity provider\nthat shares a symmetric secret with you) and presents it on subsequent\nrequests. Because the token carries its own claims and is self-verifying, no\nserver-side session store is required: the same secret that signs a token\nverifies it. The Sign helper is provided as a small convenience for issuing\nHS256 tokens in tests and simple issuers.\n\nThe flow reads the token from the \"Authorization: Bearer \u003cjwt\u003e\" header by\ndefault, or from wherever Strategy.Extractor says — the FromHeader,\nFromURLQueryParameter, FromBodyField, FromAuthHeaderWithScheme and\nFromExtractors constructors mirror passport-jwt's ExtractJwt helpers. A\nmissing token fails with 401 and a \"WWW-Authenticate: Bearer\" challenge. The\ntoken is then parsed by Parse, which splits the compact serialization,\nverifies that the header's \"alg\" is HS256, recomputes the HMAC-SHA256\nsignature over \"header.payload\" with Strategy.Secret, and compares it against\nthe presented signature in constant time (crypto/hmac). It then checks the\nnumeric \"exp\" and \"nbf\" claims against the current time, honoring\nStrategy.Leeway to tolerate small clock skew between issuer and verifier.\nStrategy.RequireExpiry additionally rejects a token that carries no \"exp\" at\nall, and Strategy.Issuer and Strategy.Audience — passport-jwt's issuer and\naudience options — pin the \"iss\" and \"aud\" claims when set. Audience matters\nas soon as one issuer serves several services: without it a token minted for\nany of them is accepted by all of them. Verified claims are passed to\nVerifyFunc; a non-nil user authenticates the request while a nil user\nrejects it.\n\nSecurity semantics matter here. The strategy accepts HS256 and only HS256:\nany other \"alg\" value — including the notorious \"none\" and asymmetric\nalgorithms like RS256 — is rejected with ErrAlgorithm. This closes the\nclassic JWT algorithm-confusion attack in which an attacker swaps a token's\nalgorithm to trick a verifier into treating a public key (or no key) as the\nHMAC secret. Signature comparison is constant-time to avoid timing oracles,\nand the exported sentinels ErrMalformed, ErrSignature, ErrExpired, ErrNotYet,\nErrAlgorithm, and ErrNoToken let callers distinguish failure modes. On any\nverification failure the Authenticate method responds 401 with the header\nWWW-Authenticate: Bearer error=\"invalid_token\".\n\nParity with Passport.js: this mirrors passport-jwt's model of extracting a\nbearer token, verifying it, and invoking an application callback with the\ndecoded payload, restricted to the symmetric-key (HS256) profile that the\nstandard library can implement without external dependencies. VerifyFunc\ncorresponds to the Node verify(payload, done) callback, Claims is the decoded\npayload with a Subject helper for the \"sub\" claim, and the fromAuthHeaderAsBearerToken\nextractor is the fixed default here. The Strategy's registered name is \"jwt\".\n",
       "consts": [],
       "vars": [
         {
@@ -3604,9 +3989,11 @@
             "ErrExpired",
             "ErrNotYet",
             "ErrAlgorithm",
-            "ErrNoToken"
+            "ErrNoToken",
+            "ErrIssuer",
+            "ErrAudience"
           ],
-          "signature": "var (\n\t// ErrMalformed indicates the token could not be parsed.\n\tErrMalformed = errors.New(\"jwt: malformed token\")\n\t// ErrSignature indicates the token signature did not verify.\n\tErrSignature = errors.New(\"jwt: signature verification failed\")\n\t// ErrExpired indicates the token's exp claim is in the past.\n\tErrExpired = errors.New(\"jwt: token expired\")\n\t// ErrNotYet indicates the token's nbf claim is in the future.\n\tErrNotYet = errors.New(\"jwt: token not valid yet\")\n\t// ErrAlgorithm indicates the token uses an unexpected signing algorithm.\n\tErrAlgorithm = errors.New(\"jwt: unexpected signing algorithm\")\n\t// ErrNoToken indicates no token was supplied on the request.\n\tErrNoToken = errors.New(\"jwt: no token supplied\")\n)",
+          "signature": "var (\n\t// ErrMalformed indicates the token could not be parsed.\n\tErrMalformed = errors.New(\"jwt: malformed token\")\n\t// ErrSignature indicates the token signature did not verify.\n\tErrSignature = errors.New(\"jwt: signature verification failed\")\n\t// ErrExpired indicates the token's exp claim is in the past.\n\tErrExpired = errors.New(\"jwt: token expired\")\n\t// ErrNotYet indicates the token's nbf claim is in the future.\n\tErrNotYet = errors.New(\"jwt: token not valid yet\")\n\t// ErrAlgorithm indicates the token uses an unexpected signing algorithm.\n\tErrAlgorithm = errors.New(\"jwt: unexpected signing algorithm\")\n\t// ErrNoToken indicates no token was supplied on the request.\n\tErrNoToken = errors.New(\"jwt: no token supplied\")\n\t// ErrIssuer indicates the token's iss claim did not match Strategy.Issuer.\n\tErrIssuer = errors.New(\"jwt: unexpected issuer\")\n\t// ErrAudience indicates the token's aud claim did not include\n\t// Strategy.Audience.\n\tErrAudience = errors.New(\"jwt: unexpected audience\")\n)",
           "doc": "Common verification errors.\n"
         }
       ],
@@ -3620,6 +4007,18 @@
           "funcs": [],
           "methods": [
             {
+              "name": "Audience",
+              "recv": "Claims",
+              "signature": "func (c Claims) Audience() []string",
+              "doc": "Audience returns the \"aud\" claim as a slice. RFC 7519 permits \"aud\" to be\neither a single string or an array of strings, and both forms are normalized\nto a slice here; any other JSON type yields nil.\n"
+            },
+            {
+              "name": "Issuer",
+              "recv": "Claims",
+              "signature": "func (c Claims) Issuer() string",
+              "doc": "Issuer returns the \"iss\" claim as a string, if present.\n"
+            },
+            {
               "name": "Subject",
               "recv": "Claims",
               "signature": "func (c Claims) Subject() string",
@@ -3628,8 +4027,48 @@
           ]
         },
         {
+          "name": "Extractor",
+          "signature": "type Extractor func(r *http.Request) string",
+          "doc": "Extractor pulls the compact JWT out of a request, returning \"\" when the\nrequest carries none. It corresponds to passport-jwt's jwtFromRequest option.\n",
+          "consts": [],
+          "vars": [],
+          "funcs": [
+            {
+              "name": "FromAuthHeaderAsBearerToken",
+              "signature": "func FromAuthHeaderAsBearerToken() Extractor",
+              "doc": "FromAuthHeaderAsBearerToken returns an Extractor that reads the token from\nthe \"Authorization: Bearer \u003cjwt\u003e\" header. It is the default and mirrors\npassport-jwt's ExtractJwt.fromAuthHeaderAsBearerToken().\n"
+            },
+            {
+              "name": "FromAuthHeaderWithScheme",
+              "signature": "func FromAuthHeaderWithScheme(scheme string) Extractor",
+              "doc": "FromAuthHeaderWithScheme returns an Extractor that reads the token from the\nAuthorization header using an arbitrary scheme name, compared\ncase-insensitively. It mirrors ExtractJwt.fromAuthHeaderWithScheme(scheme).\n"
+            },
+            {
+              "name": "FromBodyField",
+              "signature": "func FromBodyField(name string) Extractor",
+              "doc": "FromBodyField returns an Extractor that reads the token from a form field,\nmirroring ExtractJwt.fromBodyField(name).\n"
+            },
+            {
+              "name": "FromExtractors",
+              "signature": "func FromExtractors(extractors ...Extractor) Extractor",
+              "doc": "FromExtractors returns an Extractor that tries each of the given extractors\nin order and yields the first non-empty token, mirroring\nExtractJwt.fromExtractors([...]).\n"
+            },
+            {
+              "name": "FromHeader",
+              "signature": "func FromHeader(name string) Extractor",
+              "doc": "FromHeader returns an Extractor that reads the token from a named header,\nmirroring ExtractJwt.fromHeader(name).\n"
+            },
+            {
+              "name": "FromURLQueryParameter",
+              "signature": "func FromURLQueryParameter(name string) Extractor",
+              "doc": "FromURLQueryParameter returns an Extractor that reads the token from a query\nparameter, mirroring ExtractJwt.fromUrlQueryParameter(name).\n\nPrefer a header. Query strings are routinely written to access logs, kept in\nbrowser history, and forwarded in the Referer header, so a token placed there\ntends to outlive the request that carried it.\n"
+            }
+          ],
+          "methods": []
+        },
+        {
           "name": "Strategy",
-          "signature": "type Strategy struct {\n\t// Secret is the HMAC signing key used to verify the token.\n\tSecret []byte\n\t// Leeway allows a small clock skew when checking exp/nbf (default 0).\n\tLeeway time.Duration\n\t// contains filtered or unexported fields\n}",
+          "signature": "type Strategy struct {\n\t// Secret is the HMAC signing key used to verify the token.\n\tSecret []byte\n\t// Leeway allows a small clock skew when checking exp/nbf (default 0).\n\tLeeway time.Duration\n\t// Issuer, when non-empty, must equal the token's \"iss\" claim. It\n\t// corresponds to passport-jwt's issuer option.\n\tIssuer string\n\t// Audience, when non-empty, must appear in the token's \"aud\" claim, which\n\t// JWT allows to be either a string or an array of strings. It corresponds\n\t// to passport-jwt's audience option.\n\t//\n\t// Set this whenever the issuer mints tokens for more than one service:\n\t// without it, a token any other audience received is equally acceptable\n\t// here, so a token handed to a less-trusted service can be replayed\n\t// against this one.\n\tAudience string\n\t// RequireExpiry rejects a token that carries no \"exp\" claim. A JWT without\n\t// an expiry is valid forever and cannot be revoked, so require one unless\n\t// something else bounds the token's lifetime.\n\tRequireExpiry bool\n\t// Extractor locates the token on the request. Defaults to\n\t// FromAuthHeaderAsBearerToken().\n\tExtractor Extractor\n\t// contains filtered or unexported fields\n}",
           "doc": "Strategy authenticates requests carrying a signed JWT.\n",
           "consts": [],
           "vars": [],
@@ -3637,7 +4076,7 @@
             {
               "name": "New",
               "signature": "func New(secret []byte, verify VerifyFunc) *Strategy",
-              "doc": "New creates a JWT strategy that verifies HS256 tokens with the given secret.\n"
+              "doc": "New creates a JWT strategy that verifies HS256 tokens with the given secret.\nThe token is read from the Authorization: Bearer header; set Extractor to\nread it from somewhere else.\n"
             }
           ],
           "methods": [
@@ -4744,11 +5183,19 @@
       "synopsis": "Package openidconnect implements an OpenID Connect (OIDC) authentication strategy layered on top of the OAuth 2.0 authorization-code flow.",
       "doc": "Package openidconnect implements an OpenID Connect (OIDC) authentication\nstrategy layered on top of the OAuth 2.0 authorization-code flow. It ports\npassport-openidconnect from the Passport.js ecosystem and, like that module,\nis the shared base other OIDC provider presets are built on: Okta, OneLogin,\nAzure AD, Auth0, Salesforce and similar providers are just this strategy with\ntheir issuer, endpoints and JWKS URL filled in. Use it directly for any\nstandards-compliant OIDC provider, or as the foundation for a new\nprovider-specific preset.\n\nReach for this strategy (rather than a plain OAuth2 preset) when you need the\nidentity guarantees OIDC adds on top of OAuth 2.0: a signed id_token whose\nclaims describe the authenticated end user, validated against a known issuer.\nA plain OAuth2 login proves the app obtained an access token; OIDC proves who\nthe user is by cryptographically verifying the id_token, which is what you\nwant for single sign-on and account linking.\n\nThe flow has two legs. On a request with no ?code the strategy issues a 302\nredirect to the provider's authorization endpoint (Config.AuthURL), with a\nscope that always includes \"openid\" plus any extra Config.Scopes, the client\nID, the redirect URI, response_type=code, and the caller-supplied state. The\nprovider authenticates the user and redirects back to Config.RedirectURL with\na ?code (and the same state, which the surrounding passport machinery should\nvalidate for CSRF protection). On that second request the strategy exchanges\nthe code at Config.TokenURL for a token response, then verifies the returned\nid_token before trusting any of its contents. AuthCodeURL and Exchange are\nexported so callers can drive the two legs manually if they are not using the\npassport middleware.\n\nid_token verification supports both modes real providers use, and this is the\nsecurity-critical part of the strategy:\n\n  - RS256/ES256/PS256 via a JWKS endpoint (Google, Auth0, Okta, Azure AD,\n    ...): set Config.JWKSURL (and optionally Config.Algorithms to pin the\n    accepted \"alg\" values). The provider's public signing keys are fetched\n    from the endpoint and cached across requests, refreshing automatically on\n    key rotation. This is the production path and is preferred.\n  - HS256 with a shared secret (Config.JWKSecret) via strategies/jwt: convenient\n    for tests and symmetric-key deployments, but only appropriate when the app\n    and issuer share a secret.\n\nWhen JWKSURL is set it takes precedence; otherwise the HS256 path is used.\nVerification checks the token signature and its time-based claims (exp/nbf via\nstrategies/jwt); a bad signature or an expired token is reported as an\nauthentication failure (\"invalid_token\", 401) rather than a hard error. When\nConfig.Issuer is non-empty the token's \"iss\" claim must match it exactly, which\ndefends against tokens minted by a different provider; a mismatch is likewise a\n401 failure. Note that audience (\"aud\") checking against the client ID is not\nperformed automatically here — enforce it in your VerifyFunc if your threat\nmodel requires it.\n\nOn success the strategy reports the authenticated user. If a VerifyFunc was\nsupplied it receives the verified claims and returns your application user;\nreturning a nil user (with a nil error) is treated as an authentication\nfailure, while a non-nil error surfaces as an internal error. If VerifyFunc is\nnil the raw jwt.Claims are used as the user. Parity note relative to the Node\noriginal: this implementation validates the id_token signature, expiry and\nissuer, but does not implement the full optional feature set of\npassport-openidconnect (nonce round-tripping, dynamic discovery of endpoints\nfrom the issuer's /.well-known/openid-configuration document, PKCE, or\nuserinfo fetching) — endpoints are configured explicitly and the id_token\nclaims stand in for the userinfo response.\n",
       "consts": [],
-      "vars": [],
+      "vars": [
+        {
+          "names": [
+            "ErrNoVerificationKey"
+          ],
+          "signature": "var ErrNoVerificationKey = errors.New(\"openidconnect: neither JWKSURL nor JWKSecret is configured; id_token signatures cannot be verified\")",
+          "doc": "ErrNoVerificationKey reports that neither JWKSURL nor JWKSecret was\nconfigured, leaving nothing to verify the id_token signature against.\n"
+        }
+      ],
       "types": [
         {
           "name": "Config",
-          "signature": "type Config struct {\n\tIssuer       string // OIDC issuer identifier, validated against the id_token \"iss\" claim\n\tClientID     string // OAuth2 client (application) ID\n\tClientSecret string // OAuth2 client (application) secret\n\tRedirectURL  string // URL the provider redirects back to after authorization\n\n\tAuthURL  string // provider authorization endpoint\n\tTokenURL string // provider token-exchange endpoint\n\n\t// JWKSURL is the provider's JWKS endpoint. When set, id_tokens are verified\n\t// with the asymmetric keys (RS256/ES256/PS256) published there, which is\n\t// how real OIDC providers sign them. Takes precedence over JWKSecret.\n\tJWKSURL string\n\n\t// Algorithms restricts accepted id_token \"alg\" values when using JWKSURL\n\t// (e.g. {\"RS256\"}). Empty accepts any supported asymmetric algorithm.\n\tAlgorithms []string\n\n\t// JWKSecret is the HS256 key used to verify the id_token when JWKSURL is\n\t// not configured. Handy for tests and symmetric-key deployments.\n\tJWKSecret []byte\n\n\t// Scopes are requested in addition to \"openid\" (always included).\n\tScopes []string\n\n\t// HTTPClient is used for the token exchange. When nil, http.DefaultClient\n\t// is used. Injectable for tests.\n\tHTTPClient *http.Client\n}",
+          "signature": "type Config struct {\n\tIssuer string // OIDC issuer identifier, validated against the id_token \"iss\" claim\n\t// ClientID is the OAuth2 client (application) ID. It is also validated\n\t// against the id_token \"aud\" claim, which must contain it, so a token the\n\t// provider issued to a different relying party cannot be replayed here.\n\tClientID     string\n\tClientSecret string // OAuth2 client (application) secret\n\tRedirectURL  string // URL the provider redirects back to after authorization\n\n\tAuthURL  string // provider authorization endpoint\n\tTokenURL string // provider token-exchange endpoint\n\n\t// JWKSURL is the provider's JWKS endpoint. When set, id_tokens are verified\n\t// with the asymmetric keys (RS256/ES256/PS256) published there, which is\n\t// how real OIDC providers sign them. Takes precedence over JWKSecret.\n\tJWKSURL string\n\n\t// Algorithms restricts accepted id_token \"alg\" values when using JWKSURL\n\t// (e.g. {\"RS256\"}). Empty accepts any supported asymmetric algorithm.\n\tAlgorithms []string\n\n\t// JWKSecret is the HS256 key used to verify the id_token when JWKSURL is\n\t// not configured. Handy for tests and symmetric-key deployments.\n\tJWKSecret []byte\n\n\t// Scopes are requested in addition to \"openid\" (always included).\n\tScopes []string\n\n\t// HTTPClient is used for the token exchange. When nil, http.DefaultClient\n\t// is used. Injectable for tests.\n\tHTTPClient *http.Client\n}",
           "doc": "Config holds the OIDC client configuration.\n",
           "consts": [],
           "vars": [],
@@ -5250,7 +5697,7 @@
       "importPath": "github.com/malcolmston/passport/strategies/remembercookie",
       "name": "remembercookie",
       "synopsis": "Package remembercookie implements persistent \"remember me\" login using the selector/validator cookie scheme.",
-      "doc": "Package remembercookie implements persistent \"remember me\" login using the\nselector/validator cookie scheme. It ports the intent of Passport.js's\npassport-remember-me strategy: it lets a returning visitor be recognized and\nlogged in automatically from a long-lived cookie, without re-entering their\npassword, even after their session has expired.\n\nUse this strategy alongside your primary login. When a user checks a \"remember\nme\" box, you generate a fresh token (a random selector plus a random\nvalidator), store the selector together with a hash of the validator keyed to\nthe user, and set a persistent cookie holding \"selector:validator\". On a later\nvisit with no active session, this strategy consults that cookie to\nre-establish the login. It is intentionally non-fatal when absent: with no\nremember cookie the strategy calls Pass() so the request continues as an\nanonymous visitor rather than failing.\n\nThe cookie is named CookieName (\"remember\") and holds \"selector:validator\".\nThe selector is the lookup key and the validator is the secret. On each request\nthe strategy splits the cookie at the first ':'; a value with no ':' is a 401\nfailure (\"Malformed cookie\"). It then calls the LookupFunc with the selector,\nwhich returns the associated user and the stored token hash. An unknown\nselector (nil user or empty hash) is a 401 failure (\"Invalid token\"), and any\nerror from the lookup is reported as an internal error. The presented validator\nis compared against the stored hash using crypto/subtle constant-time\ncomparison to avoid leaking timing information; only an exact match yields\nSuccess.\n\nThe selector/validator split is what makes the scheme safe: the selector is\nused for the database lookup (so lookups are not vulnerable to timing attacks),\nwhile the validator is the actual secret and is only ever stored hashed. This\nalso lets you revoke a single remembered device by deleting its selector row,\nand mitigates theft by rotating the validator on each use. Options.Secret is\naccepted for API symmetry with the other strategies (for callers that\nadditionally sign the cookie) but is not required by the core comparison.\n\nSecurity and parity notes: set the cookie as HttpOnly, Secure and with a long\nbut bounded Max-Age/Expires, and rotate the validator (issue a new one and\ninvalidate the old) on every successful auto-login so a stolen cookie is\nsingle-use. Treat a valid selector with a mismatched validator as a possible\ntheft and consider invalidating all of that user's remember tokens. Minting,\nstoring, hashing and rotating tokens are the application's responsibility; this\nstrategy focuses on the read/verify half, matching the deliberately minimal\ndesign of the Go port.\n",
+      "doc": "Package remembercookie implements persistent \"remember me\" login using the\nselector/validator cookie scheme. It ports the intent of Passport.js's\npassport-remember-me strategy: it lets a returning visitor be recognized and\nlogged in automatically from a long-lived cookie, without re-entering their\npassword, even after their session has expired.\n\nUse this strategy alongside your primary login. When a user checks a \"remember\nme\" box, you generate a fresh token (a random selector plus a random\nvalidator), store the selector together with the validator — or, better, its\ndigest; see Options.Hash below — keyed to the user, and set a persistent\ncookie holding \"selector:validator\". On a later\nvisit with no active session, this strategy consults that cookie to\nre-establish the login. It is intentionally non-fatal when absent: with no\nremember cookie the strategy calls Pass() so the request continues as an\nanonymous visitor rather than failing.\n\nThe cookie is named CookieName (\"remember\") and holds \"selector:validator\".\nThe selector is the lookup key and the validator is the secret. On each request\nthe strategy splits the cookie at the first ':'; a value with no ':' is a 401\nfailure (\"Malformed cookie\"). It then calls the LookupFunc with the selector,\nwhich returns the associated user and the stored token value. An unknown\nselector (nil user or empty value) is a 401 failure (\"Invalid token\"), and any\nerror from the lookup is reported as an internal error. The presented\nvalidator — passed through Options.Hash first, when one is set — is compared\nagainst that stored value using crypto/subtle constant-time comparison to\navoid leaking timing information; only an exact match yields Success.\n\nThe selector/validator split is what makes the scheme safe: the selector is\nused for the database lookup (so lookups are not vulnerable to timing attacks),\nwhile the validator is the actual secret. This also lets you revoke a single\nremembered device by deleting its selector row, and mitigates theft by\nrotating the validator on each use. Options.Secret is accepted for API\nsymmetry with the other strategies (for callers that additionally sign the\ncookie) but is not required by the core comparison.\n\nBy default the value LookupFunc returns is compared against the presented\nvalidator as-is, which means the store must hold the validator itself. To get\nthe stronger property the scheme is named for — a stolen database dump that\ncannot be replayed as a login — set Options.Hash and store only digests.\nHashValidator is a ready SHA-256 implementation:\n\n\tremembercookie.New(remembercookie.Options{\n\t\tHash:   remembercookie.HashValidator,\n\t\tLookup: func(selector string) (any, string, error) {\n\t\t\trow := db.FindRememberToken(selector) // row.Digest is a SHA-256 hex string\n\t\t\treturn row.User, row.Digest, nil\n\t\t},\n\t})\n\nA plain digest is the right primitive here rather than a password hash: the\nvalidator is high-entropy random data, so there is nothing to brute force,\nand a deliberately slow KDF would only add latency to every page load.\n\nSecurity and parity notes: set the cookie as HttpOnly, Secure and with a long\nbut bounded Max-Age/Expires, and rotate the validator (issue a new one and\ninvalidate the old) on every successful auto-login so a stolen cookie is\nsingle-use. Treat a valid selector with a mismatched validator as a possible\ntheft and consider invalidating all of that user's remember tokens. Minting,\nstoring, hashing and rotating tokens are the application's responsibility; this\nstrategy focuses on the read/verify half, matching the deliberately minimal\ndesign of the Go port.\n",
       "consts": [
         {
           "names": [
@@ -5265,7 +5712,7 @@
         {
           "name": "LookupFunc",
           "signature": "type LookupFunc func(selector string) (user any, tokenHash string, err error)",
-          "doc": "LookupFunc resolves a selector to the associated user and the stored hash of\nthe validator (tokenHash). It returns a nil user (or an error) when the\nselector is unknown.\n",
+          "doc": "LookupFunc resolves a selector to the associated user and the stored token\nvalue it must be checked against — the validator itself by default, or its\ndigest when Options.Hash is set. It returns a nil user (or an error) when the\nselector is unknown.\n",
           "consts": [],
           "vars": [],
           "funcs": [],
@@ -5273,7 +5720,7 @@
         },
         {
           "name": "Options",
-          "signature": "type Options struct {\n\t// Secret is reserved for callers that additionally sign the cookie; it is\n\t// accepted for API symmetry with the other strategies.\n\tSecret []byte\n\t// Lookup resolves the selector to a user and stored validator hash.\n\tLookup LookupFunc\n}",
+          "signature": "type Options struct {\n\t// Secret is reserved for callers that additionally sign the cookie; it is\n\t// accepted for API symmetry with the other strategies.\n\tSecret []byte\n\t// Lookup resolves the selector to a user and the stored token value.\n\tLookup LookupFunc\n\t// Hash, when set, is applied to the validator from the cookie before it is\n\t// compared with the value Lookup returned, so the store need only hold\n\t// digests. HashValidator is the recommended implementation. When nil the\n\t// validator is compared as-is, which requires storing it in the clear.\n\tHash func(validator string) string\n}",
           "doc": "Options configures the remembercookie Strategy.\n",
           "consts": [],
           "vars": [],
@@ -5309,7 +5756,13 @@
           ]
         }
       ],
-      "funcs": [],
+      "funcs": [
+        {
+          "name": "HashValidator",
+          "signature": "func HashValidator(validator string) string",
+          "doc": "HashValidator returns the hex-encoded SHA-256 digest of a validator. Pass it\nas Options.Hash to store digests rather than raw validators.\n"
+        }
+      ],
       "examples": [
         {
           "name": "frontend",
@@ -6028,7 +6481,7 @@
       "types": [
         {
           "name": "Options",
-          "signature": "type Options struct {\n\t// Secret returns the shared secret for the identified user.\n\tSecret func(user string) ([]byte, error)\n\t// UserField names the form/query field carrying the user identifier.\n\t// Defaults to \"user\".\n\tUserField string\n\t// CodeField names the form/query field carrying the submitted code.\n\t// Defaults to \"code\".\n\tCodeField string\n\t// Skew is the number of time steps checked on either side of the current\n\t// step. Defaults to 1.\n\tSkew int\n\t// Now returns the current time; defaults to time.Now. Injected for tests.\n\tNow func() time.Time\n}",
+          "signature": "type Options struct {\n\t// Secret returns the shared secret for the identified user.\n\tSecret func(user string) ([]byte, error)\n\t// UserField names the form/query field carrying the user identifier.\n\t// Defaults to \"user\".\n\tUserField string\n\t// CodeField names the form/query field carrying the submitted code.\n\t// Defaults to \"code\".\n\tCodeField string\n\t// Skew is the number of time steps checked on either side of the current\n\t// step. Zero selects the default of 1 (the previous, current, and next\n\t// 30-second windows); any negative value means no tolerance at all, so\n\t// only the code for the current step is accepted.\n\tSkew int\n\t// Now returns the current time; defaults to time.Now. Injected for tests.\n\tNow func() time.Time\n}",
           "doc": "Options configures the totp Strategy.\n",
           "consts": [],
           "vars": [],
@@ -6686,6 +7139,11 @@
       "types": [],
       "funcs": [
         {
+          "name": "Base32",
+          "signature": "func Base32(n int) (string, error)",
+          "doc": "Base32 returns a random token of n bytes of entropy encoded as unpadded,\nupper-case RFC 4648 base32. Base32 avoids the visually confusable pairs that\ntrip people up when reading a code aloud or typing it from a screen, and it\nis the encoding authenticator apps expect for shared OTP secrets.\n"
+        },
+        {
           "name": "Bytes",
           "signature": "func Bytes(n int) ([]byte, error)",
           "doc": "Bytes returns n cryptographically random bytes. It returns an error if the\nsystem random source cannot supply them.\n"
@@ -6694,6 +7152,16 @@
           "name": "Equal",
           "signature": "func Equal(a, b string) bool",
           "doc": "Equal reports whether a and b are the same token using a constant-time\ncomparison, so callers do not leak length-independent timing information when\nchecking a secret.\n"
+        },
+        {
+          "name": "EqualBytes",
+          "signature": "func EqualBytes(a, b []byte) bool",
+          "doc": "EqualBytes reports whether a and b are the same token using a constant-time\ncomparison. It is the []byte counterpart of Equal, for callers holding raw\ntoken bytes rather than an encoded string.\n"
+        },
+        {
+          "name": "Hash",
+          "signature": "func Hash(token string) string",
+          "doc": "Hash returns the SHA-256 digest of a token, hex-encoded.\n\nStore this instead of the token itself. A token is a bearer credential, so a\ndatabase that holds them in the clear hands an attacker who reads it every\nlive session; storing only the digest means a leaked table cannot be replayed.\nOn each request, hash the presented token and look up (or compare with\nEqual) the digest.\n\nA plain digest is the right tool here and a password hash is not: tokens from\nthis package carry at least 128 bits of entropy, so there is nothing to brute\nforce, and the deliberate slowness of bcrypt or argon2 would only add latency\nto every authenticated request. Do not use Hash for user-chosen passwords,\nwhich have far less entropy and do need a slow, salted KDF.\n"
         },
         {
           "name": "Hex",
@@ -6719,6 +7187,37 @@
           "name": "URLSafe",
           "signature": "func URLSafe(n int) (string, error)",
           "doc": "URLSafe returns a random token of n bytes of entropy encoded with unpadded\nbase64url, safe for use in URLs, cookies, and headers.\n"
+        },
+        {
+          "name": "Verify",
+          "signature": "func Verify(presented, storedHash string) bool",
+          "doc": "Verify reports whether a presented token matches a stored SHA-256 digest as\nproduced by Hash, comparing in constant time.\n"
+        }
+      ],
+      "examples": [
+        {
+          "name": "",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/passport/token\"\n)\n\nfunc main() {\n\tissued, err := token.New()\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\n\t// What goes in the database.\n\tstored := token.Hash(issued)\n\n\t// On a later request, check the presented token against the stored digest.\n\tfmt.Println(\"correct token:\", token.Verify(issued, stored))\n\tfmt.Println(\"wrong token:\", token.Verify(\"some-other-token\", stored))\n\tfmt.Println(\"digest length:\", len(stored))\n}",
+          "output": "correct token: true\nwrong token: false\ndigest length: 64",
+          "doc": "Example shows the intended lifecycle of an API token: mint it with\ncrypto/rand entropy, hand the caller the token itself, and persist only its\ndigest so a leaked database cannot be replayed as a login.\n"
+        },
+        {
+          "name": "Equal",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/passport/token\"\n)\n\nfunc main() {\n\tfmt.Println(token.Equal(\"s3cret\", \"s3cret\"))\n\tfmt.Println(token.Equal(\"s3cret\", \"s3crev\"))\n}",
+          "output": "true\nfalse",
+          "doc": "ExampleEqual shows the constant-time comparison to use whenever one side is a\nsecret. A plain == would leak how many leading bytes matched through the time\nit takes to return.\n"
+        },
+        {
+          "name": "Hex",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/malcolmston/passport/token\"\n)\n\nfunc main() {\n\thex, err := token.Hex(16)\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\turlSafe, err := token.URLSafe(16)\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tb32, err := token.Base32(16)\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Println(\"hex:\", len(hex), \"urlsafe:\", len(urlSafe), \"base32:\", len(b32))\n}",
+          "output": "hex: 32 urlsafe: 22 base32: 26",
+          "doc": "ExampleHex and the other encoders differ only in the alphabet they use; the\nargument is always the number of random bytes, not the string length.\n"
+        },
+        {
+          "name": "Numeric",
+          "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n\n\t\"github.com/malcolmston/passport/token\"\n)\n\nfunc main() {\n\tcode, err := token.Numeric(6)\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Println(\"length:\", len(code))\n\tfmt.Println(\"all digits:\", strings.IndexFunc(code, func(r rune) bool { return r \u003c '0' || r \u003e '9' }) == -1)\n}",
+          "output": "length: 6\nall digits: true",
+          "doc": "ExampleNumeric mints a short verification code of the kind sent by SMS or\nemail. Leading zeros are preserved, so the code always has the requested\nnumber of digits.\n"
         }
       ]
     }

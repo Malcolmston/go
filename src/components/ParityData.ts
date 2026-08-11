@@ -380,6 +380,31 @@ export function summarize(
   };
 }
 
+/**
+ * The denominator the harness's own parityPercent was actually computed over.
+ *
+ * Harnesses disagree about this. Most exclude declared deviations, so
+ * comparedTotal (total - deviations) is the denominator. But some — express, for
+ * one — count a declared deviation inside `mismatch` as well, so subtracting it
+ * again yields a denominator that does not reproduce the published percentage:
+ * express is match 182, total 184, deviations 1, parityPercent 98.91, and
+ * 182/184 is 98.91% while 182/183 is 99.45%.
+ *
+ * Showing "182 / 183" next to "98.9%" invites the reader to check the division
+ * and conclude one of the two is wrong. So pick whichever denominator actually
+ * reproduces the published percentage, preferring comparedTotal when both do.
+ * The deviation count is displayed on its own tile either way, so nothing is
+ * hidden by this choice.
+ */
+export function scoredDenominator(h: { match: number; total: number; comparedTotal: number; parityPercent: number }): number {
+  const candidates = [h.comparedTotal, h.total].filter((d) => d > 0);
+  if (!candidates.length) return h.total;
+  const closest = candidates.reduce((best, d) =>
+    Math.abs((100 * h.match) / d - h.parityPercent) < Math.abs((100 * h.match) / best - h.parityPercent) ? d : best,
+  );
+  return closest;
+}
+
 /** Percent formatted for display; "—" when nothing comparable ran. */
 export function pct(value: number, compared: number): string {
   if (compared <= 0) return '—';
