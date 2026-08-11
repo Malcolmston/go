@@ -19,17 +19,42 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          submodules: recursive
+          # NOT recursive: each library vendors the shared UI as web/vendor/go,
+          # which points back at this aggregator, so the submodule graph is
+          # cyclic (go -> opencv -> go -> ...). Recursing walks that cycle until
+          # the job exhausts. Only the top-level library modules are needed to
+          # build Go code. (Same reasoning as sync-submodules.yml.)
+          submodules: true
       - uses: actions/setup-go@v7
         with:
-          go-version: "1.24"
+          go-version-file: go.work
           cache: false
-      # go.work is gitignored (a local-dev convention), so recreate it here.
-      # The example requires the libraries at v0.0.0, which only resolve through
-      # the workspace's `use` directives pointing at the submodule checkouts.
-      - name: Set up the Go workspace
-        run: go work init ./express ./passport ./socket.io ./chalk ./morgan ./fastmcp ./streamlit ./algebra ./opencv ./examples/integration
-      - name: Build the integration example
-        run: go build ./examples/integration
-      - name: Vet the integration example
-        run: go vet ./examples/integration
+      # go.work is committed at the repo root and is the single source of truth
+      # for workspace membership (`go work init` here would fail with "go.work
+      # already exists"). Guard against a member directory that the submodule
+      # checkout left empty — without this, `go build` reports a confusing
+      # "does not contain modules" instead of "submodules were not fetched".
+      - name: Verify every workspace member is checked out
+        run: |
+          set -euo pipefail
+          missing=0
+          while read -r dir; do
+            [ -f "$dir/go.mod" ] || { echo "::error::workspace member $dir has no go.mod (submodule not checked out?)"; missing=1; }
+          done < <(go work edit -json | jq -r '.Use[].DiskPath')
+          exit $missing
+      - name: Build every workspace member
+        run: |
+          set -euo pipefail
+          while read -r dir; do
+            echo "::group::go build $dir"
+            (cd "$dir" && go build ./...)
+            echo "::endgroup::"
+          done < <(go work edit -json | jq -r '.Use[].DiskPath')
+      - name: Vet every workspace member
+        run: |
+          set -euo pipefail
+          while read -r dir; do
+            echo "::group::go vet $dir"
+            (cd "$dir" && go vet ./...)
+            echo "::endgroup::"
+          done < <(go work edit -json | jq -r '.Use[].DiskPath')

@@ -31,7 +31,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v7
         with:
-          go-version: "1.24"
+          go-version-file: go.work
           cache: true
 
       - uses: pnpm/action-setup@v4
@@ -56,8 +56,10 @@ jobs:
       # Regenerate one DocIndex JSON per library (public/docs/<lib>.json),
       # the full Go API reference the /go landing renders inline under each
       # library's "API reference" section (via the shared DocsApp renderer).
-      # Run from inside gendocs (its own stdlib-only module) with GOWORK=off so
-      # it does not depend on the git-ignored go.work.
+      # Run from inside gendocs (its own stdlib-only module) with GOWORK=off:
+      # gendocs walks the library directories as plain source trees, so it must
+      # not be constrained by the workspace member list (it also documents
+      # submodules that are not workspace members).
       - name: Generate per-library API docs
         run: cd gendocs && GOWORK=off go run . -root .. -out ../public/docs
 
@@ -72,8 +74,12 @@ jobs:
       # Regenerate the search index + package-connection graph (public/
       # graph.json + search-index.json) that the Explore tab falls back to when
       # the serverless search/GraphQL API isn't reachable (as on GitHub Pages).
+      # GRAPH_STRICT=1: on the published site an empty graph/search index is a
+      # broken deploy, not a degraded one, so fail here rather than shipping it.
+      # (The same script runs as `prebuild` locally/on Vercel without the flag,
+      # where degrading is the right call.)
       - name: Generate search + package-graph data
-        run: node --experimental-strip-types scripts/build-graph-data.ts
+        run: GRAPH_STRICT=1 node --experimental-strip-types scripts/build-graph-data.ts
 
       # Build the Next.js static export. GITHUB_PAGES=true switches
       # next.config.mjs to `output: 'export'` (emitting out/) with

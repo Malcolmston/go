@@ -28,16 +28,30 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          submodules: recursive
+          # NOT recursive: each library vendors the shared UI as web/vendor/go,
+          # which points back at this aggregator, so the submodule graph is
+          # cyclic (go -> opencv -> go -> ...). Recursing walks that cycle until
+          # the job exhausts. Only the top-level library modules are needed to
+          # build Go code. (Same reasoning as sync-submodules.yml.)
+          submodules: true
       - uses: actions/setup-go@v7
         with:
-          go-version: "1.24"
+          go-version-file: go.work
           cache: false
-      - name: Set up the Go workspace
-        run: go work init ./express ./passport ./socket.io ./chalk ./morgan ./examples/integration
-      - name: Build the integration example
+      # go.work is committed — nothing to initialise here.
+      # examples/integration no longer exists — the examples were reorganised into one
+      # self-contained module per library (examples/<lib>/), each consuming the PUBLISHED
+      # module rather than the workspace. Iterate the committed go.work members instead;
+      # that is the set this job actually cares about.
+      - name: Cross-compile every workspace member
         env:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
           CGO_ENABLED: "0"
-        run: go build ./examples/integration
+        run: |
+          set -euo pipefail
+          while read -r dir; do
+            echo "::group::$GOOS/$GOARCH $dir"
+            (cd "$dir" && go build ./...)
+            echo "::endgroup::"
+          done < <(go work edit -json | jq -r '.Use[].DiskPath')

@@ -38,20 +38,28 @@ jobs:
       - name: Update submodules to each library's latest main
         # Explicit library paths, no --recursive, so the cyclic web/vendor/go
         # nested submodules are never touched.
-        run: git submodule update --remote express passport socket.io chalk morgan fastmcp streamlit algebra opencv
+        # Only the submodules that actually contain a Go module are bumped; the
+        # remaining entries in .gitmodules are still-empty placeholders for
+        # planned ports (see README "Planned ports"), so `--remote` on them
+        # would churn the pointer without changing anything buildable.
+        run: git submodule update --remote algebra chalk express fastmcp jose jq markdown morgan opencv passport rrule socket.io streamlit yaml
 
       - name: Set up Go
         uses: actions/setup-go@v7
         with:
-          go-version: "1.24"
+          # Derived from the committed go.work so the toolchain never lags the
+          # highest language version any member module requires.
+          go-version-file: go.work
 
-      # go.work is gitignored, so recreate it before building — the example
-      # requires the libraries at v0.0.0, which only resolve via the workspace.
-      - name: Set up the Go workspace
-        run: go work init ./express ./passport ./socket.io ./chalk ./morgan ./fastmcp ./streamlit ./algebra ./opencv ./examples/integration
-
+      # go.work is committed — nothing to initialise here.
       - name: Validate the workspace still builds against latest
-        run: go build ./examples/integration
+        run: |
+          set -euo pipefail
+          # examples/integration no longer exists; the member loop below is the
+          # real check that every library still builds after the bump.
+          while read -r dir; do
+            (cd "$dir" && go build ./...)
+          done < <(go work edit -json | jq -r '.Use[].DiskPath')
 
       - name: Commit & push if any pointer moved
         run: |

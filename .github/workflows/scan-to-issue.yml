@@ -18,19 +18,34 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          submodules: recursive
+          # NOT recursive: each library vendors the shared UI as web/vendor/go,
+          # which points back at this aggregator, so the submodule graph is
+          # cyclic (go -> opencv -> go -> ...). Recursing walks that cycle until
+          # the job exhausts. Only the top-level library modules are needed to
+          # build Go code. (Same reasoning as sync-submodules.yml.)
+          submodules: true
       - uses: actions/setup-go@v7
         with:
-          go-version: "1.24"
+          go-version-file: go.work
           cache: false
       - name: Run govulncheck (workspace)
         id: scan
         run: |
-          go work init ./express ./passport ./socket.io ./chalk ./morgan ./examples/integration
+          # go.work is committed — nothing to initialise here.
           go install golang.org/x/vuln/cmd/govulncheck@latest
           set +e
-          "$(go env GOPATH)/bin/govulncheck" ./examples/integration > govuln.txt 2>&1
-          echo "code=$?" >> "$GITHUB_OUTPUT"
+          # examples/integration no longer exists; scan every committed go.work
+          # member and concatenate the reports. The step's exit code is the worst
+          # of the runs, so a finding anywhere still opens an issue.
+          worst=0
+          : > govuln.txt
+          while read -r dir; do
+            echo "=== $dir ===" >> govuln.txt
+            (cd "$dir" && "$(go env GOPATH)/bin/govulncheck" ./...) >> govuln.txt 2>&1
+            rc=$?
+            [ "$rc" -gt "$worst" ] && worst=$rc
+          done < <(go work edit -json | jq -r '.Use[].DiskPath')
+          echo "code=$worst" >> "$GITHUB_OUTPUT"
       - uses: actions/github-script@v7
         env:
           SCAN_CODE: ${{ steps.scan.outputs.code }}

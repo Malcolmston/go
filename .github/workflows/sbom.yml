@@ -19,7 +19,12 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          submodules: recursive
+          # NOT recursive: each library vendors the shared UI as web/vendor/go,
+          # which points back at this aggregator, so the submodule graph is
+          # cyclic (go -> opencv -> go -> ...). Recursing walks that cycle until
+          # the job exhausts. Only the top-level library modules are needed to
+          # build Go code. (Same reasoning as sync-submodules.yml.)
+          submodules: true
       - name: Generate SBOM
         uses: anchore/sbom-action@v0
         with:

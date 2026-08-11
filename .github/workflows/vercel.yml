@@ -13,23 +13,30 @@ name: Vercel
 # links a new Vercel project non-interactively from the repo root.
 
 # THIS WORKFLOW IS THE ONLY DEPLOY PATH. vercel.json sets
-# git.deploymentEnabled.main = false, which turns off Vercel's own Git
-# integration, because that integration clones the repository RECURSIVELY and
-# this repo has 39 submodules. Measured from a clean machine:
+# git.deploymentEnabled.main = false, turning off Vercel's own Git integration,
+# because that integration clones RECURSIVELY and THE SUBMODULE GRAPH IS CYCLIC:
+# 33 of the 39 libraries vendor this aggregator back as web/vendor/go, so
 #
-#   git clone --depth 1 --no-recurse-submodules   ->  15 s,  41 MB
-#   git clone --depth 1 --recurse-submodules      ->  still running at 240 s, 149 MB
+#   go -> express -> go -> express -> ...
+#
+# never terminates. Measured from a clean machine:
+#
+#   git clone --depth 1 --no-recurse-submodules   ->  15 s, 41 MB, done
+#   git clone --depth 1 --recurse-submodules      ->  still going at 240 s, 149 MB
 #
 # Every Git-integration build therefore sat on "Cloning github.com/Malcolmston/go"
-# until it hit the 45-minute build limit and errored — the build log contained
-# three lines and never reached the install step. actions/checkout does not fetch
-# submodules by default, so this path clones in seconds. The web build needs no
-# submodule source anyway: each library's API docs are committed under
-# public/docs/, and the import edges the graph derives from Go source are cached
-# in data/import-edges.json for exactly this reason.
+# until it hit the 45-minute build limit and errored, with a three-line log that
+# never reached the install step. It is a cycle, not merely a big repo — raising
+# the timeout or shallow-cloning would not have helped.
 #
-# If you ever re-enable the Git integration, set the project's "Skip submodule
-# fetching" behaviour first, or the 45-minute timeouts come straight back.
+# actions/checkout does not fetch submodules by default, so this path clones in
+# seconds. The web build needs no submodule source anyway: each library's API
+# docs are committed under public/docs/, and the import edges the graph derives
+# from Go source are cached in data/import-edges.json for exactly this reason.
+#
+# If you ever re-enable the Git integration, disable submodule fetching first, or
+# the 45-minute timeouts come straight back. Workflows that DO need the library
+# sources use `submodules: true` (one level), never `recursive`.
 
 on:
   push:

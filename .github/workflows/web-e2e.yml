@@ -2,9 +2,14 @@ name: Web e2e
 
 # Playwright end-to-end tests for the landing site across the device matrix.
 #
-# Pull requests run a small, representative device SUBSET (E2E_SUBSET=1) across
-# 2 shards to keep PR wall-clock low. Pushes to main and the nightly schedule
-# run the full 100+ device matrix across 4 shards for exhaustive coverage.
+# Pull requests and pushes to main run the default device subset across 2 shards
+# to keep wall-clock low. The nightly schedule and manual dispatch opt in to the
+# full 100+ device matrix (E2E_FULL=1) across 4 shards for exhaustive coverage.
+#
+# The production build is its own step, before Playwright starts. It is not
+# welded into the webServer command: that build peaks around 2.4 GB RSS and,
+# inside webServer, its output is swallowed and its failures surface only as a
+# server-start timeout.
 
 on:
   pull_request:
@@ -21,26 +26,29 @@ permissions:
   contents: read
 
 jobs:
-  # Compute the run shape once: PRs get the subset + 2 shards, everything else
-  # (main pushes, nightly, manual) gets the full matrix + 4 shards.
+  # Compute the run shape once: scheduled and manual runs get the full device
+  # matrix + 4 shards, everything else (PRs, pushes to main) the subset + 2.
   config:
     runs-on: ubuntu-latest
     outputs:
       shards: ${{ steps.plan.outputs.shards }}
       total: ${{ steps.plan.outputs.total }}
-      subset: ${{ steps.plan.outputs.subset }}
+      full: ${{ steps.plan.outputs.full }}
     steps:
       - id: plan
         run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            echo 'shards=[1,2]' >> "$GITHUB_OUTPUT"
-            echo 'total=2' >> "$GITHUB_OUTPUT"
-            echo 'subset=1' >> "$GITHUB_OUTPUT"
-          else
-            echo 'shards=[1,2,3,4]' >> "$GITHUB_OUTPUT"
-            echo 'total=4' >> "$GITHUB_OUTPUT"
-            echo 'subset=0' >> "$GITHUB_OUTPUT"
-          fi
+          case "${{ github.event_name }}" in
+            schedule|workflow_dispatch)
+              echo 'shards=[1,2,3,4]' >> "$GITHUB_OUTPUT"
+              echo 'total=4' >> "$GITHUB_OUTPUT"
+              echo 'full=1' >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo 'shards=[1,2]' >> "$GITHUB_OUTPUT"
+              echo 'total=2' >> "$GITHUB_OUTPUT"
+              echo 'full=0' >> "$GITHUB_OUTPUT"
+              ;;
+          esac
 
   playwright:
     needs: config
@@ -51,13 +59,13 @@ jobs:
       matrix:
         shard: ${{ fromJSON(needs.config.outputs.shards) }}
     env:
-      E2E_SUBSET: ${{ needs.config.outputs.subset }}
+      E2E_FULL: ${{ needs.config.outputs.full }}
       FONTAWESOME_PACKAGE_TOKEN: ${{ secrets.FONTAWESOME_PACKAGE_TOKEN }}
     steps:
       - uses: actions/checkout@v7
         with: { submodules: true }
       - uses: actions/setup-go@v7
-        with: { go-version: "1.24", cache: true }
+        with: { go-version-file: go.work, cache: true }
       - uses: pnpm/action-setup@v4
         with:
           version: 10.33.0
@@ -70,8 +78,12 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Install Playwright chromium
         run: pnpm exec playwright install --with-deps chromium
+      - name: Build
+        run: pnpm run build
+        timeout-minutes: 15
       - name: Run E2E (shard ${{ matrix.shard }}/${{ needs.config.outputs.total }})
         run: pnpm exec playwright test --shard=${{ matrix.shard }}/${{ needs.config.outputs.total }}
+        timeout-minutes: 45
       - name: Upload report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4

@@ -22,19 +22,50 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        lib: [express, passport, socket.io, chalk, morgan]
+        # Every submodule that actually contains a Go module. The remaining
+        # entries in .gitmodules are still-empty placeholders for planned ports
+        # (README → "Planned ports"); listing one here would produce a job that
+        # silently passes on zero packages, which is worse than no job at all.
+        # Keep this list in sync with the `use` block of /go.work.
+        lib:
+          - algebra
+          - chalk
+          - express
+          - fastmcp
+          - jose
+          - jq
+          - markdown
+          - morgan
+          - opencv
+          - passport
+          - rrule
+          - socket.io
+          - streamlit
+          - yaml
     steps:
       - uses: actions/checkout@v7
         with:
           submodules: true
       - uses: actions/setup-go@v7
         with:
-          go-version: "1.24"
+          go-version-file: go.work
           cache: true
       - name: Pull latest ${{ matrix.lib }}
         run: git submodule update --remote --checkout -- "${{ matrix.lib }}"
+      # Without this, a submodule that failed to check out leaves an empty
+      # directory and `go build ./...` / `go test ./...` exit 0 having compiled
+      # nothing — a green tick for an untested library.
+      - name: Assert ${{ matrix.lib }} is a populated Go module
+        run: |
+          set -euo pipefail
+          lib='${{ matrix.lib }}'
+          [ -f "$lib/go.mod" ] || { echo "::error::$lib/go.mod is missing — submodule not checked out"; exit 1; }
+          n=$(find "$lib" -name '*.go' -not -path '*/.git/*' | wc -l)
+          echo "$lib contains $n .go files"
+          [ "$n" -gt 0 ] || { echo "::error::$lib contains no Go source"; exit 1; }
       - name: Build + test ${{ matrix.lib }}
         working-directory: ${{ matrix.lib }}
         run: |
+          set -euo pipefail
           go build ./...
           go test -race ./...
