@@ -1,0 +1,68 @@
+# Gitleaks configuration for the go aggregator.
+#
+# The default ruleset is kept in full — this file only carves out the places that
+# are SUPPOSED to contain key material, and it deliberately carves out as little
+# as possible so a genuine leak anywhere else still fails the scan.
+#
+# Why anything is allowlisted at all: this repository contains cross-language
+# parity harnesses. A JWT harness cannot demonstrate that the Go port and
+# jsonwebtoken agree without real signed tokens and real keys, and a TOTP harness
+# cannot without real base32 secrets. Those fixtures are the test data, not a
+# credential leak. Before adding each entry below I verified what it covers:
+#
+#   * parity/*/keys/ — parity/jwt/COVERAGE.md records that these were "generated
+#     once with `openssl genpkey`, committed, never regenerated at run time".
+#     They are purpose-made throwaway keypairs that exist only to sign fixture
+#     tokens. Confirmed that every "BEGIN ... PRIVATE KEY" file in the repository
+#     lives under parity/, so nothing outside the harnesses ships key material.
+#   * parity/**/cases/ — the case files hold the tokens those keys signed, plus
+#     the reject-corpus of deliberately malformed and forged tokens. 42 of the
+#     239 findings were a single file of tokens a verifier must refuse.
+#   * The RFC 6238 test secret, which appears in generated godoc output under
+#     public/docs/ because a TOTP example prints an otpauth:// URI containing it.
+#     It is a published test vector from the spec, not an account secret.
+#
+# What is NOT allowlisted, on purpose: app/, api/, src/, scripts/, ui/, public/
+# generally, every library submodule, and any dotfile. A real secret committed
+# there still fails the scan.
+#
+# If a future harness needs fixtures somewhere new, add that path here with the
+# same standard of proof — say how you established the material is throwaway.
+# Do not widen a pattern to make a red build go away.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Parity-harness test vectors: fixture keys, fixture tokens, and published spec test secrets."
+
+paths = [
+  # Throwaway keypairs generated for the harnesses (see parity/jwt/COVERAGE.md).
+  '''^parity/[^/]+/keys/''',
+  '''^parity/[^/]+/nested/[^/]+/keys/''',
+  '''^parity/[^/]+/fixtures/''',
+  '''^parity/[^/]+/nested/[^/]+/fixtures/''',
+  # Case files: the tokens/secrets the two implementations are fed, including the
+  # corpus of forged tokens that verification must reject.
+  '''^parity/[^/]+/cases/''',
+  '''^parity/[^/]+/nested/[^/]+/cases/''',
+  # Security manifests. Each finding's description carries the proof-of-concept
+  # for a published advisory, and for a JWT flaw that proof IS a token. See
+  # parity/HARNESS.md, "Disclosing a security finding".
+  '''^parity/[^/]+/security\.json$''',
+  '''^parity/[^/]+/nested/[^/]+/security\.json$''',
+  # Generated API docs from the repository's previous layout, when the Next app
+  # lived under web/. Only reachable by scanning history; the path no longer
+  # exists. The hits are `curl -u user:pass` lines in godoc examples.
+  '''^web/public/docs/''',
+]
+
+regexes = [
+  # RFC 6238 Appendix B's test secret, base32-encoded. Reaches public/docs/*.json
+  # via a TOTP godoc example that prints an otpauth:// URI.
+  '''GEZDGNBVGY3TQOJQ''',
+  # The demo signing secret in examples/express/main.go. Matched as a literal
+  # rather than allowlisting all of examples/, so a real key pasted into an
+  # example still fails the scan.
+  '''s3cr3t-signing-key''',
+]
