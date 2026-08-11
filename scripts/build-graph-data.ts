@@ -27,11 +27,24 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..');
 const DOCS_DIR = path.join(REPO_ROOT, 'public', 'docs');
+const EXAMPLES_DIR = path.join(REPO_ROOT, 'examples');
 const PARITY_TS = path.join(REPO_ROOT, 'src', 'parity.ts');
 const OUT_DIRS = [
   path.join(REPO_ROOT, 'api', '_data'),
   path.join(REPO_ROOT, 'public'),
 ];
+
+// Caps for the embedded runnable-example corpus (examples.json). The example
+// programs are real, complete main.go files (some ~50 KB); we embed them so the
+// /ask tool needs no runtime fetch, but clip very large ones to keep the data
+// file — which ships in the serverless bundle — to a sane size. The chat tool
+// clips again before handing text to the model.
+const EXAMPLE_CODE_MAX = 20_000; // chars of main.go kept per library
+const EXAMPLE_README_MAX = 2_000; // chars of README kept per library
+
+// Library ids are generated slugs; the examples/<id>/ dir name is the id. Guard
+// the directory listing against anything that is not a plausible id.
+const EXAMPLE_ID_RE = /^[a-z0-9][a-z0-9._-]{0,63}$/;
 
 // Cap applied to reference-edge weights so a package that mentions a neighbour's
 // types dozens of times does not dominate the layout.
@@ -115,6 +128,16 @@ interface LibraryOut {
 interface ParityEntry {
   after: string | null;
   upstream: string | null;
+}
+
+// One embedded runnable example, keyed in examples.json by library id.
+interface ExampleOut {
+  library: string;
+  path: string;          // repo-relative path to the source, e.g. examples/express/main.go
+  code: string;          // the main.go source (clipped)
+  codeTruncated: boolean;
+  readme: string;        // README text (clipped/summarized)
+  readmeTruncated: boolean;
 }
 
 interface PkgState {
@@ -368,6 +391,76 @@ function goImportsForDir(dir: string): Map<string, number> {
 }
 
 // ---------------------------------------------------------------------------
+// runnable examples (examples/<id>/main.go + README.md)
+// ---------------------------------------------------------------------------
+
+// Clip a string to `max` chars, appending a marker line when truncated. Returns
+// the (possibly clipped) text and whether clipping happened.
+function clipText(s: string, max: number): { text: string; truncated: boolean } {
+  if (s.length <= max) return { text: s, truncated: false };
+  return { text: s.slice(0, max).trimEnd() + '\n…\n', truncated: true };
+}
+
+// Read every examples/<id>/ dir that has a main.go and embed its source +
+// README (clipped). `knownLibraries` is the set of library ids the docs pass
+// produced; an example without a matching library is still emitted (it maps to
+// a valid /lib/<id> page) but this lets us warn about drift. Deterministic:
+// directories are processed in sorted order.
+function buildExamples(knownLibraries: Set<string>): {
+  examples: Record<string, ExampleOut>;
+  missing: string[];
+} {
+  const examples: Record<string, ExampleOut> = {};
+  const missing: string[] = []; // library ids with docs but no runnable example
+  let dirs: fs.Dirent[] = [];
+  try {
+    dirs = fs.readdirSync(EXAMPLES_DIR, { withFileTypes: true });
+  } catch {
+    // No examples/ tree checked out — emit an empty-but-valid corpus.
+    for (const id of Array.from(knownLibraries).sort()) missing.push(id);
+    return { examples, missing };
+  }
+
+  const ids = dirs
+    .filter((d) => d.isDirectory() && EXAMPLE_ID_RE.test(d.name))
+    .map((d) => d.name)
+    .sort();
+
+  const seen = new Set<string>();
+  for (const id of ids) {
+    const mainPath = path.join(EXAMPLES_DIR, id, 'main.go');
+    let code: string;
+    try {
+      code = fs.readFileSync(mainPath, 'utf8');
+    } catch {
+      continue; // no runnable program here (placeholder dir) — skip
+    }
+    let readme = '';
+    try {
+      readme = fs.readFileSync(path.join(EXAMPLES_DIR, id, 'README.md'), 'utf8');
+    } catch {
+      readme = '';
+    }
+    const clippedCode = clipText(code, EXAMPLE_CODE_MAX);
+    const clippedReadme = clipText(readme, EXAMPLE_README_MAX);
+    examples[id] = {
+      library: id,
+      path: `examples/${id}/main.go`,
+      code: clippedCode.text,
+      codeTruncated: clippedCode.truncated,
+      readme: clippedReadme.text,
+      readmeTruncated: clippedReadme.truncated,
+    };
+    seen.add(id);
+  }
+
+  for (const id of Array.from(knownLibraries).sort()) {
+    if (!seen.has(id)) missing.push(id);
+  }
+  return { examples, missing };
+}
+
+// ---------------------------------------------------------------------------
 // main
 // ---------------------------------------------------------------------------
 
@@ -375,12 +468,37 @@ function main(): void {
   const generatedAt = resolveGeneratedAt();
   const parity = loadParity();
 
-  let docFiles: string[];
+  // This script is the `prebuild` hook, so anything it throws fails `pnpm build`
+  // outright. A missing/empty public/docs is a *data* problem (the gendocs pass
+  // has not run, or submodules were never checked out) and the app has bundled
+  // fallbacks for it — so degrade to an empty-but-valid graph instead of taking
+  // the whole build down. Set GRAPH_STRICT=1 (or pass --strict) in a pipeline
+  // that genuinely requires the data, e.g. the Pages deploy.
+  const strict = process.argv.includes('--strict') || process.env.GRAPH_STRICT === '1';
+  let docFiles: string[] = [];
   try {
-    docFiles = fs.readdirSync(DOCS_DIR).filter((f) => f.endsWith('.json'));
+    // gendocs also writes an index.json alongside the per-library files. It is
+    // a manifest, not a library, so exclude it — otherwise it is counted as a
+    // 39th library and reported as "no go.mod on disk", which reads as a real
+    // missing port.
+    docFiles = fs
+      .readdirSync(DOCS_DIR)
+      .filter((f) => f.endsWith('.json') && f !== 'index.json');
   } catch (err) {
-    console.error(`build-graph-data: cannot read docs dir ${DOCS_DIR}: ${(err as Error).message}`);
-    process.exit(1);
+    const msg = `build-graph-data: cannot read docs dir ${DOCS_DIR}: ${(err as Error).message}`;
+    if (strict) {
+      console.error(`${msg} (GRAPH_STRICT is set — failing)`);
+      process.exit(1);
+    }
+    console.warn(`${msg}\nbuild-graph-data: continuing with an empty graph/symbol index.`);
+  }
+  if (docFiles.length === 0) {
+    const msg = `build-graph-data: no DocIndex JSON found in ${DOCS_DIR}. Run gendocs (see .github/workflows/pages.yml) after \`git submodule update --init --recursive\`.`;
+    if (strict) {
+      console.error(`${msg} (GRAPH_STRICT is set — failing)`);
+      process.exit(1);
+    }
+    console.warn(msg);
   }
   docFiles.sort();
 
@@ -530,8 +648,14 @@ function main(): void {
   }
 
   // -------- edges: import (best-effort, from Go source) --------
+  // A library whose submodule is unchecked-out, empty, or still a placeholder
+  // simply contributes no import edges (goImportsForDir swallows the ENOENT).
+  // Name those libraries so a graph with few import edges is diagnosable
+  // instead of mysterious.
   let importEdgeCount = 0;
+  const missingSources: string[] = [];
   for (const st of libState) {
+    if (!fs.existsSync(path.join(st.sourceDir, 'go.mod'))) missingSources.push(st.id);
     for (const p of st.pkgs) {
       // Map importPath -> on-disk directory under the library source dir.
       let sub = '';
@@ -612,11 +736,26 @@ function main(): void {
   for (const dir of OUT_DIRS) {
     fs.mkdirSync(dir, { recursive: true });
   }
+  // -------- runnable examples corpus --------
+  // Deterministic: keyed and iterated by sorted library id. Only api/_data gets
+  // this file — it is read server-side by the /ask tool and embedded in the
+  // function bundle; the frontend never fetches it, so no public/ copy.
+  const knownLibraries = new Set(finalLibraries.map((l) => l.id));
+  const { examples: exampleMap, missing: missingExamples } = buildExamples(knownLibraries);
+  const sortedExamples: Record<string, ExampleOut> = {};
+  for (const id of Object.keys(exampleMap).sort()) sortedExamples[id] = exampleMap[id];
+  const examplesOut = {
+    generatedAt,
+    examples: sortedExamples,
+  };
+
   const graphJson = JSON.stringify(graph, null, 2) + '\n';
   const symbolsJson = JSON.stringify(symbolIndex, null, 2) + '\n';
+  const examplesJson = JSON.stringify(examplesOut, null, 2) + '\n';
 
   fs.writeFileSync(path.join(OUT_DIRS[0], 'graph.json'), graphJson);
   fs.writeFileSync(path.join(OUT_DIRS[0], 'symbols.json'), symbolsJson);
+  fs.writeFileSync(path.join(OUT_DIRS[0], 'examples.json'), examplesJson);
   // public copies use the frontend-fallback filenames.
   fs.writeFileSync(path.join(OUT_DIRS[1], 'graph.json'), graphJson);
   fs.writeFileSync(path.join(OUT_DIRS[1], 'search-index.json'), symbolsJson);
@@ -632,6 +771,25 @@ function main(): void {
     `${importEdgeCount} raw import edges from source). Wrote graph.json + symbols.json ` +
     `to api/_data and public.`
   );
+  console.log(
+    `build-graph-data: ${Object.keys(sortedExamples).length} runnable examples ` +
+    `(${(examplesJson.length / 1024).toFixed(1)} KB). Wrote examples.json to api/_data.`
+  );
+  if (missingExamples.length > 0) {
+    console.warn(
+      `build-graph-data: no runnable example for ${missingExamples.length} librar` +
+      `${missingExamples.length === 1 ? 'y' : 'ies'} (${missingExamples.join(', ')}).`
+    );
+  }
+  if (missingSources.length > 0) {
+    console.warn(
+      `build-graph-data: no go.mod on disk for ${missingSources.length} librar` +
+      `${missingSources.length === 1 ? 'y' : 'ies'} (${missingSources.join(', ')}) — ` +
+      `import edges for those are omitted. These are either placeholder ports ` +
+      `(README → "Planned ports") or unfetched submodules ` +
+      `(\`git submodule update --init --recursive\`).`
+    );
+  }
 }
 
 main();

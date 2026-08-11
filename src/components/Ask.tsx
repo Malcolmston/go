@@ -160,6 +160,13 @@ export function Ask() {
                       </div>
                     );
                   }
+                  if (part.type === 'tool-getExample' && part.state !== 'output-available') {
+                    return (
+                      <div key={`${message.id}-${i}`} className="ask-tool muted">
+                        <i className="fa-solid fa-code" /> fetching a runnable example…
+                      </div>
+                    );
+                  }
                   if (part.type === 'tool-searchPastAnswers' && part.state !== 'output-available') {
                     return (
                       <div key={`${message.id}-${i}`} className="ask-tool muted">
