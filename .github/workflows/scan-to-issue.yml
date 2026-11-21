@@ -49,7 +49,7 @@ jobs:
             [ "$rc" -gt "$worst" ] && worst=$rc
           done < <(go work edit -json | jq -r '.Use[].DiskPath')
           echo "code=$worst" >> "$GITHUB_OUTPUT"
-      - uses: actions/github-script@v7
+      - uses: actions/github-script@v9
         env:
           SCAN_CODE: ${{ steps.scan.outputs.code }}
         with:
